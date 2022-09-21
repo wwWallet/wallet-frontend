@@ -1,0 +1,158 @@
+.landing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-auto-rows: auto;
+  grid-gap: 1rem;
+  margin-top: 50px;
+}
+
+.button {
+  margin-right: 20px;
+  margin-bottom: 20px;
+}
+.yellow-button {
+  background-color: #F9CA1A;
+  color: #000;
+}
+
+.yellow-button:hover {
+  background-color: #caa418;
+  color: #000;
+  transition: 0.1s ease-in-out;
+}
+
+.grey-button {
+  background-color: #a0a0a0;
+  color: white;
+}
+
+.grey-button:hover {
+  background-color: #818181;
+  color: white;
+  transition: 0.1s ease-in-out;
+}
+
+.landing-cards > .card {
+  border: 2px solid #cfcfcf;
+  border-radius: 15px;
+  padding: 4rem;
+  padding-bottom: 1rem;
+  padding-top: 2rem;
+  text-align: center;
+  font-size: 15px;
+}
+
+.landing-cards > .card h3 {
+  font-size: 20px;
+  color: #003476;
+}
+
+.landing-cards > .card p {
+  text-align: left;
+}
+
+#description > p {
+  font-size: 17px;
+  color: #3a3a3a;
+}
+
+.links-section ul {
+  margin-left: 0;
+  padding-left: 18px;
+}
+
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-gap: 2rem;
+  padding-top: 1rem;
+}
+
+.info-cards > .card {
+  border: 0.5px solid #cfcfcf;
+  border-radius: 25px;
+  padding: 1rem;
+  padding-bottom: 4rem;
+  padding-top: 2rem;
+  text-align: center;
+  font-size: 15px;
+}
+
+.info-cards > .card > .content > ul {
+  text-align: left;
+}
+
+.info-cards > .card > .content > .description {
+  margin-top: 60px;
+}
+
+#description .card {
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+#priviledge-dates {
+  color: #003476;
+}
+
+#priviledge-dates #priviledge-text {
+  padding-left: 10px;
+}
+
+.Help.hidden,
+#Landing .compact.row.hidden,
+.App.redirect-ready .Footer {
+  opacity: 1 !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: none;
+}
+
+/* MEDIA */
+
+@media only screen and (max-width: 355px) {
+  /* iPhone 5 */
+
+  .landing-cards > .card {
+    border: 2px solid #cfcfcf;
+    border-radius: 15px;
+    padding: 4rem;
+    padding-bottom: 1rem;
+    padding-top: 2rem;
+    padding-right: 1rem;
+    text-align: left;
+    font-size: 15px;
+    width: 60%;
+  }
+}
+
+@media only screen and (max-width: 782px) {
+  .Help {
+    padding-top: 72px !important;
+  }
+
+  #organization-link,
+  #graduate-link {
+    display: block;
+  }
+
+  .More {
+    top: 517px;
+  }
+}
+
+@media only screen and (max-width: 1080px) {
+  /* for all media */
+
+  .info-cards > .card {
+    padding-bottom: 2rem;
+  }
+}
+
+.passphrase-input-field {
+  width: 300px;
+}

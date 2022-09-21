@@ -1,0 +1,99 @@
+.diplomaRows {
+  border-bottom: 2px solid rgb(80, 80, 80);
+}
+
+.diploma-table table.inner-table {
+  margin-top: 0 !important;
+  border-collapse: collapse;
+  white-space: break-spaces;
+  table-layout: fixed;
+  /* word-break: break-word; */
+}
+
+.diploma-table table.inner-table tr td {
+  border-bottom: 0;
+  width: 200px;
+}
+
+.diploma-table table.inner-table tbody > tr > td:nth-child(even) {
+  width: 65%;
+}
+
+.divContainer {
+  position: relative;
+}
+
+.signature {
+  margin-top: 25px;
+}
+
+.actions {
+  margin-top: 40px;
+}
+
+#closeModal {
+  display: none;
+}
+
+.modal .actions .left button {
+  width: 188px;
+}
+
+.did-container {
+  inline-size: 100%;
+  overflow-wrap: break-word;
+}
+
+@media only screen and (max-width: 768px) {
+  .header {
+    width: 100%;
+  }
+}
+
+@media only screen and (max-width: 560px) {
+  .diploma-table table.inner-table tbody > tr > td:nth-child(even) {
+    width: 50%;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .diploma-table table.inner-table tbody > tr > td:nth-child(even) {
+    width: 50%;
+  }
+
+  .diploma-table {
+    font-size: 14px !important;
+  }
+
+  .diploma-table .side_description {
+    display: none;
+  }
+
+  .diploma-table table.inner-table tbody > tr > td:nth-child(odd) {
+    white-space: normal;
+    min-width: 136px;
+  }
+
+  .diploma-table table.inner-table tbody > tr > td:nth-child(even) {
+    white-space: normal;
+    word-break: break-all;
+  }
+
+  .diploma-table table.inner-table tr td {
+    padding: 15px 20px 15px 0;
+  }
+}
+
+@media only screen and (max-width: 386px) {
+  .actions {
+    margin-top: 50px;
+  }
+
+  .actions .left button:first-of-type {
+    margin-bottom: 20px;
+  }
+
+  .signature input {
+    width: 95.48px;
+  }
+}

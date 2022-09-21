@@ -1,0 +1,54 @@
+.Section-left .Homecard svg:hover .thing {
+    animation: move-thing 1s 1;
+  }
+  
+  #briefcase {
+    position: relative;
+  }
+  
+  @keyframes scale-corner {
+    0% {
+      transform: scaleY(1);
+    }
+    50% {
+      transform: scaleY(1.1) translateY(-23px);
+    }
+    100% {
+      transform: scaleY(1);
+    }
+  }
+  
+  @keyframes cap-string {
+    0% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(5deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+  
+  @keyframes move-thing {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    40% {
+      transform: rotate(1.5deg);
+    }
+  }
+  
+  @keyframes open-lid {
+    0% {
+      transform: rotate3d(0, 0, 0, 0) translateY(0);
+    }
+    50% {
+      transform: rotate3d(0, 0, 0, 13deg) translateY(-5px);
+    }
+    100% {
+      transform: rotate3d(0, 0, 0, 0deg) translateY(0);
+    }
+  }
+  

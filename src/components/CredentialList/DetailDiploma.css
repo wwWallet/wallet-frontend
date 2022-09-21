@@ -1,0 +1,111 @@
+h5 {
+    width: 550px;
+}
+
+.bold {
+    font-weight: bold;
+    font-size: 19px !important;
+
+}
+
+.field {
+    display: block;
+    font-size: 16px;
+    text-align: left;
+}
+
+.diplomabox {
+    border: 1px solid transparent;
+    border-left: 11px solid rgb(170, 170, 170);
+    max-width: 550px;
+    box-shadow: 0 0 4px 0 rgb(0 0 0 / 10%);
+    overflow-wrap: break-word;
+    min-width: 300px;
+}
+
+.diplomabox-selected {
+    border: 1px solid rgb(170, 170, 170);
+    border-left: 11px solid #003476;
+    max-width: 550px;
+    box-shadow: 0 0 4px 0 rgb(0 0 0 / 10%);
+    overflow-wrap: break-word;
+    min-width: 300px;
+
+}
+
+.diplomabox:hover {
+    border: 1px solid rgb(170, 170, 170);
+    border-left: 11px solid rgb(170, 170, 170);
+}
+
+.headerbox {
+    display: grid;
+    grid-template-columns: 90% 10%;
+    cursor: pointer;
+}
+
+.diplomas {
+    display: grid;
+    grid-gap: 30px;
+    max-width: 550px;
+}
+
+.fields {
+    padding-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.action {
+    position: relative;
+    background-color:#F8F8F8;
+}
+
+.action .icon {
+    position: absolute;
+    top: 45%;
+    left: 30%;
+    right: 30%;
+}
+
+.details {
+    border-top: 1px solid rgb(170, 170, 170);
+    background-color: rgb(240, 240, 240);
+    padding-left: 20px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1;
+    grid-gap: 10px;
+    font-size: 18px;
+}
+
+.details table {
+    display: block;
+    width: 100%;
+}
+
+.details tbody {
+    display: block;
+    width: 100%;
+}
+
+.details tr {
+    display: block;
+}
+
+.details table td:nth-child(odd){
+    font-weight: bold;
+    color: rgb(50, 50, 50);
+    min-width: 250px;
+}
+
+.details table td:nth-child(even){
+    text-align: left;
+    min-width: 250px;
+}
+
+.detail-scope-name {
+    font-size: 15px;
+}

@@ -1,0 +1,13 @@
+.buttn {
+  background-color: #0071e3 !important;
+}
+
+.small.login-button.ui.fancy.button {
+  margin: 10px 0 10px;
+  padding: 7px 20px;
+  font-size: 15px;
+  min-width: auto;
+  cursor: pointer;
+  font-weight: 400;
+  border-radius: 5px;
+}

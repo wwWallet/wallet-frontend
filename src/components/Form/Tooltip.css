@@ -1,0 +1,31 @@
+.Tooltip {
+  position: relative;
+}
+
+.Tooltip:before,
+.Tooltip:after {
+  z-index: 100;
+  position: absolute;
+  left: 0;
+  bottom: 125%;
+}
+
+.Tooltip:hover:before {
+  background-color: rgb(150, 150, 150);
+  margin-left: 3px;
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  transform: translateY(5px) rotate(45deg);
+}
+
+.Tooltip:hover:after {
+  background-color: rgb(150, 150, 150);
+  color: white;
+  padding: 7px 10px;
+  content: attr(data-tip);
+  transform: translateY(0);
+  width: 120px;
+  font-size: 13px;
+}

@@ -1,0 +1,13 @@
+
+
+.buttons {
+    margin: 10px auto;
+}
+
+.message {
+    font-size: 20px;
+    opacity: 1;
+    font-weight: 300;
+    position: inherit;
+
+}
