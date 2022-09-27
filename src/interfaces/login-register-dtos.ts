@@ -1,7 +1,6 @@
 export interface registrationResponseDTO {
     did: string;
-    ebsi_access_token: string;
-    apptoken: string;
+    appToken: string;
 }
 
 export interface loginResponseDTO {

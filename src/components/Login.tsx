@@ -14,6 +14,7 @@ import './animations.css';
 import '../static/gunet/gunet.css';
 import Polyglot from 'node-polyglot';
 import LanguageSwitch from './LanguageSwitch';
+import config from '../config/config.dev';
 const POST_URL = `/user-wallet-auth/login`;
 const AUTH_URL = `/op/auth`;
 
@@ -30,7 +31,7 @@ const Login: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}> 
   async function authn(passphrase: string) {
     setHasWrongPassword(false); // re initialize when new login attempt is made
     setLoading(true);
-    await axios.post<loginResponseDTO>(POST_URL,{
+    await axios.post<loginResponseDTO>(config.backend.url+'/user/login',{
         "did": window.localStorage.getItem('did'),
         "password": passphrase,
     }).then(res => {

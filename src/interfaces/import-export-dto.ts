@@ -12,3 +12,11 @@ export interface exportRequestDTO {
     did: string;
     password: string;
 }
+
+export interface importQRResponseDTO {
+    stateToken: string;
+}
+
+export interface exportQRResponseDTO {
+    stateToken: string;
+}

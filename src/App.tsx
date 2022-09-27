@@ -9,7 +9,7 @@ import {
 import Layout from './components/Layout/Layout';
 import Wallet from './components/Wallet';
 import RequestVCs from './components/RequestVCs';
-import Register from './components/Register/Register';
+import Register from './components/RegisterNoToken/Register';
 import Authz from './components/Authz/Authz';
 import Login from './components/Login';
 import AuthGuard from './components/AuthGuard';
@@ -17,8 +17,8 @@ import Present from './components/Present';
 import Settings from './components/Settings/Settings';
 import DetailedVID from './components/DetailedVC/DetailedVID';
 import DetailedVC from './components/DetailedVC/DetailedVC';
-import Import from './components/Import';
-import Export from './components/Export';
+import Import from './components/ImportQR/Import';
+import Export from './components/ExportQR/Export';
 import TabTest from './TabTest';
 import Polyglot from 'node-polyglot';
 import LocaleEl from './i18n/locale-el';
@@ -76,7 +76,7 @@ function App() {
         <Layout polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}>
           <Routes>
             <Route path='/login' element={<AuthGuard loginGuard={true}>< Login polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/></AuthGuard>} />
-            <Route path='/'  element={<AuthGuard>< Wallet polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/></AuthGuard>} />
+            <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/>} />
             <Route path='/detailed/vid/:id' element={<AuthGuard>< DetailedVID polyglot={POLYGLOT[lang]}/></AuthGuard>} />
             <Route path='/detailed/vc/:id' element={<AuthGuard>< DetailedVC /></AuthGuard>} />
             <Route path='/settings'  element={<AuthGuard>< Settings /></AuthGuard>} />
@@ -86,6 +86,7 @@ function App() {
             <Route path='/auth' element={<AuthGuard>< Authz polyglot={POLYGLOT[lang]}/></AuthGuard>}></Route>
             <Route path='/present' element={<AuthGuard><Present polyglot={POLYGLOT[lang]}/></AuthGuard>}></Route>
             <Route path='/import' element={<Import polyglot={POLYGLOT[lang]}/>}></Route>
+            <Route path='/export' element={<Export polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='*' element={<Navigate to="/login" replace />} />
           </Routes>
         </Layout>
