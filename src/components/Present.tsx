@@ -63,7 +63,7 @@ const Present: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 		axios.post(`/get-by-did`,
     { ebsi_token: localStorage.getItem('ebsi_token') },
     { headers : {
-			Authorization: `Bearer ${localStorage.getItem('apptoken')}`
+			Authorization: `Bearer ${localStorage.getItem('appToken')}`
 		}})
     .then(res => {
 			const array_of_payloads: any[] = [];
@@ -96,7 +96,7 @@ const Present: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
         ebsi_token: localStorage.getItem('ebsi_token'),
         exp: expirationDate.toISOString()
       },
-      { headers: { authorization: `Bearer ${localStorage.getItem('apptoken')}` } }
+      { headers: { authorization: `Bearer ${localStorage.getItem('appToken')}` } }
     )
     .then((res) => {
       setLoading(false);

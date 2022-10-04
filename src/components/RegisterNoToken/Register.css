@@ -1,3 +1,7 @@
+.Form input[type='password'] {
+	width: 300px;
+}
+
 .give-pass {
     opacity: 0;
 }

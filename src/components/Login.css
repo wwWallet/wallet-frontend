@@ -112,6 +112,10 @@
   display: none;
 }
 
+.login-content {
+	margin-top: 25px;
+}
+
 /* MEDIA */
 
 @media only screen and (max-width: 355px) {

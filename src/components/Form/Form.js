@@ -6,7 +6,7 @@ import './Form.css';
 import '../../App.css';
 
 export const Form = (props) => (
-  <form className={`Form ${props.className}`}>{props.children}</form>
+  <form className={`Form ${props.className}`} onSubmit={props.onSubmit}>{props.children}</form>
 );
 
 export const FormGroup = (props) => (

@@ -33,7 +33,7 @@ export const DetailedVC: React.FC = () => {
 		{ ebsi_token: localStorage.getItem('ebsi_token') },
 		{ 
 				headers : {
-					Authorization: `Bearer ${localStorage.getItem('apptoken')}`
+					Authorization: `Bearer ${localStorage.getItem('appToken')}`
 		}})
 		.then((returnedVC => {
 

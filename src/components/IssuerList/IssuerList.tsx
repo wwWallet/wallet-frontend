@@ -41,7 +41,11 @@ const IssuerList: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
     // Fetch Issuers from backend
     const getIssuers = async () => {
-        const getInstitutionsRes = await axios.get(`${config.backend.url}/tir/search?institution=`);
+        const getInstitutionsRes = await axios.get(`${config.storeBackend.url}/tir/search?institution=`,
+					{ headers : {
+						Authorization: `Bearer ${localStorage.getItem('appToken')}`
+					}}
+				);
         if(getInstitutionsRes.status===200 && getInstitutionsRes.data.issuers !== undefined) {
             setIssuers(getInstitutionsRes.data.issuers);
         }
@@ -87,7 +91,7 @@ const IssuerList: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
                     {step>1 &&
                         <div className="buttons">
                             <a className="back-link" onClick={prevStep}>
-                                <FontAwesomeIcon className='icon' icon={'arrow-left'}/>
+																<span className="fa fa-arrow-left" />
                                 {polyglot.t('Wallet.tab5.back')}
                             </a>
                         </div>

@@ -11,6 +11,7 @@ import CustomButton from "../Button/CustomButton";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // import { faArrowDown, faArrowUp, faAward, faBars, faClock, faSubscript, faEdit } from '@fortawesome/free-solid-svg-icons'
 import Polyglot from "node-polyglot";
+import config from "../../config/config.dev";
 
 
 interface VP {
@@ -104,11 +105,11 @@ export const VpAudit: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 	const [filteredPresentations, setFilteredPresentations] = useState<ExtractedVpFormat[]>([]);
 
 	useEffect(() => {
-		axios.post(`/vp/logs/get-by-did`, 
+		axios.post(`${config.storeBackend.vc_storage_url}/vp/logs/get-by-did`,
 		{ ebsi_token: localStorage.getItem('ebsi_token') },
 		{ 
 			headers : {
-				Authorization: `Bearer ${localStorage.getItem('apptoken')}`
+				Authorization: `Bearer ${localStorage.getItem('appToken')}`
 		}})
 		.then(res => {
 			const vp_list: VP[] = res.data.vp_list;

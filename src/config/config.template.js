@@ -1,11 +1,18 @@
 
-const BACKEND_HOST = '';
+const STORE_BACKEND_HOST = "localhost";
+const STORE_BACKEND_PORT = 8001;
+
+const SIGNATORY_BACKEND_HOST = "localhost";
+const SIGNATORY_BACKEND_PORT = 8002;
 
 const config = {
-	host: '',
-	backend: {
-		url: `http://${BACKEND_HOST}:8001`,
-		vc_storage_url: `http://${BACKEND_HOST}:8001/vc`
+	host: 'localhost',
+	storeBackend: {
+		url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}`,
+		vc_storage_url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}/vc`
+	},
+	signatoryBackend: {
+		url: `http://${SIGNATORY_BACKEND_HOST}:${SIGNATORY_BACKEND_PORT}`,
 	}
 }
 

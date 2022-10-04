@@ -31,7 +31,7 @@ const RequestVCs: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
         // backend will request the VCs and store them into the DB
         // client will be redirected to main page of wallet
         await axios.post(`/op/request-vc`, {state: state, ebsi_token:localStorage.getItem('ebsi_token'), vc_endpoint: vcEndpoint}, { headers: {
-            Authorization: `Bearer ${localStorage.getItem('apptoken')}`
+            Authorization: `Bearer ${localStorage.getItem('appToken')}`
         }}).then(success => {
             setCredentialsAreReceived(true)
         })

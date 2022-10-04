@@ -11,7 +11,7 @@ type AuthProps = {
 const AuthGuard: React.FC<AuthProps> = ({children, loginGuard}) => {
 
     const location = useLocation();
-    const apptoken = localStorage.getItem("apptoken");
+    const apptoken = localStorage.getItem("appToken");
   
     const isAuthenticated = () => {
       console.log('path = ', location.pathname, '   ',  window.location.href)

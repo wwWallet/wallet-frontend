@@ -11,7 +11,7 @@ const Export: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
     useEffect(() => {
 
-        axios.get<exportQRResponseDTO>(config.backend.url+'/sync/import'
+        axios.get<exportQRResponseDTO>(config.storeBackend.url+'/sync/import'
             ).then(res => {
                 setStateToken(res.data.stateToken);
             })

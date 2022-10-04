@@ -77,7 +77,8 @@ const ShortVID = (props: any) => {
 				<div className='action' 
 					// onClick={ () => navigate("/detailed/vid/"+props.credential.id, {replace: true, state: { path: window.location.href.substring(window.location.href.indexOf(location.pathname)) }}) } >
 					onClick={ props.handleSetSelectedVc } >
-				<FontAwesomeIcon className='icon' icon={'bars'}/>
+				{/* <FontAwesomeIcon className='icon' icon={'bars'}/> */}
+				<span className="fa fa-bars" />
 				</div>
 			</div>
 		</div>
@@ -99,7 +100,8 @@ const ShortVC = (props: any) => {
 				<div className='action' 
 					// onClick={ () => navigate("/detailed/vc/"+props.credential.id, {replace: true, state: { path: window.location.href.substring(window.location.href.indexOf(location.pathname)) }}) } >
 					onClick={ props.handleSetSelectedVc } >
-				<FontAwesomeIcon className='icon' icon={'bars'}/>
+				{/* <FontAwesomeIcon className='icon' icon={'bars'}/> */}
+				<span className="fa fa-bars" />
 				</div>
 			</div>
 		</div>
@@ -164,7 +166,8 @@ export const ShortVCPlaceholder = (props: any) => {
 				</Placeholder>
 				</div>
 				<div className='action'>
-					<FontAwesomeIcon className='icon' icon={'bars'}/>
+					{/* <FontAwesomeIcon className='icon' icon={'bars'}/> */}
+					<span className="fa fa-bars" />
 				</div>				
 				
 			</div>

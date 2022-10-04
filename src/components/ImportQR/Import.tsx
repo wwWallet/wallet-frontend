@@ -19,7 +19,7 @@ const Import: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
     useEffect(() => {
 
-        axios.get<importQRResponseDTO>(config.backend.url+'/sync/import'
+        axios.get<importQRResponseDTO>(config.storeBackend.url+'/sync/import'
             ).then(res => {
                 setStateToken(res.data.stateToken);
             })

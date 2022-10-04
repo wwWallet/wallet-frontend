@@ -3,7 +3,7 @@
 }
 
 .small.login-button.ui.fancy.button {
-  margin: 10px 0 10px;
+  margin: 10px 5px 10px 5px;
   padding: 7px 20px;
   font-size: 15px;
   min-width: auto;

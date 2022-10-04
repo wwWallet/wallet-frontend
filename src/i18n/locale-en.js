@@ -27,25 +27,16 @@ export default {
     buttonLogin: 'Login',
     buttonRegister: 'Register',
     buttonImport: 'Import existing wallet',
+    invalidPassword: 'Invalid password'
   },
 
   Register: {
-    step1: {
-      title: 'Step 1',
-      description1: 'To create your wallet, you must first provide a token from the EBSI Onboarding Service (EOS) page to prove that you are not a robot',
-      buttonEOS: 'Visit EOS to get token',
-      description2: 'Paste your token here',
-      token: 'token',
-      buttonToken: 'Submit token'
-    },
-    step2: {
-      title: 'Step 2',
-      description1: 'At this step, you must provide a secure passphrase to protect your wallet',
-      description2: 'Choose a passphrase',
-      passphrase: 'passphrase',
-      buttonBack: 'Back',
-      buttonRegister: 'Register'
-    },
+    title: 'Register',
+    description1: 'You must provide a secure password to protect your wallet',
+    description2: 'Choose a password',
+    buttonBack: 'Back',
+    buttonRegister: 'Register',
+    invalidPassword: 'Choose a password',
     loading: 'Registering Wallet'
   },
 
@@ -622,19 +613,5 @@ export default {
   Jades: {
     home: 'Home',
     news: 'News'
-  },
-  Footer: {
-    services: 'Services',
-    info: 'Information',
-    contact: 'Contact',
-    web: 'Web',
-    email: 'E-mail for Organizations and HEIs',
-    participatingInstitutions: 'Participating Institutions',
-    signatureVerification: 'Signature Verification',
-    diplomaCheck: 'Ex-officio Degree Check',
-    termsOfUse: 'Terms of Use',
-    revocation: 'Authorization Revocation',
-    templateHandlingApp: 'Degree Template Administration Service',
-    developersGuide: 'Documentation'
   }
 };

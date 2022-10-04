@@ -36,7 +36,8 @@ const ShortVCPlaceholder = (props: any) => {
 				</Placeholder>
 				</div>
 				<div className='action'>
-					<FontAwesomeIcon className='icon' icon={'bars'}/>
+					{/* <FontAwesomeIcon className='icon' icon={'bars'}/> */}
+					<span className="fa fa-bars" />
 				</div>				
 				
 			</div>
@@ -59,10 +60,9 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 
 	useEffect(() => {
 		// load credentials from db
-		axios.post(config.backend.vc_storage_url+'/get-by-did',
-		{ ebsi_token: localStorage.getItem('ebsi_token') },
+		axios.get(config.storeBackend.vc_storage_url+'/vc',
 		{ headers : {
-			Authorization: `Bearer ${localStorage.getItem('apptoken')}`
+			Authorization: `Bearer ${localStorage.getItem('appToken')}`
 		}})
 		.then(res => {
 			const array_of_payloads: any[] = [];
@@ -86,7 +86,7 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 	}, []);
 
 	const logout = () => {
-		localStorage.setItem('apptoken', '');
+		localStorage.setItem('appToken', '');
 		navigate('/login');
 	}
 
@@ -117,7 +117,7 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 		 			{/* <div className='message'>
 		 				This is where you can find the Verifiable Credentials you have presented to third-party organizations.
 		 			</div> */}
-					<VpAudit polyglot={polyglot}/>
+					{/* <VpAudit polyglot={polyglot}/> */}
 				</div>
 			</Tab>
 			<Tab eventKey="settings" title={polyglot.t('Wallet.tab3.title')}>

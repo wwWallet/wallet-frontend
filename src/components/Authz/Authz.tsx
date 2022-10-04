@@ -76,7 +76,7 @@ const Authz: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 		axios.post(`/vid`,
         { ebsi_token: localStorage.getItem('ebsi_token') },
         { headers : {
-			Authorization: `Bearer ${localStorage.getItem('apptoken')}`
+			Authorization: `Bearer ${localStorage.getItem('appToken')}`
 		}})
         .then(res => {
 			const array_of_payloads: any[] = [];
@@ -111,7 +111,7 @@ const Authz: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
             "did": window.localStorage.getItem('did'),
             "redirectUrl": window.location.href.substring(window.location.href.indexOf("/auth?")+5),
             "selected_id_set": selectedSet
-        }, {headers: { authorization: `Bearer ${localStorage.getItem('apptoken')}`}})
+        }, {headers: { authorization: `Bearer ${localStorage.getItem('appToken')}`}})
         .then(res => {
             setLoading(false);
             console.log(res);

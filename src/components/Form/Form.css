@@ -10,6 +10,15 @@
   width: 100%;
 }
 
+.Form input.invalid {
+	border: 1px solid red;
+}
+
+.Form p.invalid-feedback {
+	display: block;
+	color: red;
+}
+
 .Form input[type='text'].labeled,
 .Form select.labeled {
   border-top-left-radius: 0;

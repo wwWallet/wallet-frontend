@@ -27,25 +27,16 @@ export default {
     buttonLogin: 'Σύνδεση',
     buttonRegister: 'Εγγραφή',
     buttonImport: 'Εισαγωγή υπάρχοντος πορτοφολιού',
+    invalidPassword: 'Εσφαλμένος κωδικός πρόσβασης'
   },
 
   Register: {
-    step1: {
-      title: 'Βήμα 1',
-      description1: 'Για την δημιουργία ενός ψηφιακού πορτοφολιού, πρέπει πρώτα να παρέχετε ένα token από τη σελίδα του EBSI Onboarding Service (EOS), για να αποδείξετε ότι δεν είστε ρομπότ',
-      buttonEOS: 'Επίσκεψη του EOS για λήψη token',
-      description2: 'Επικολλήστε το token σας εδώ:',
-      token: 'token',
-      buttonToken: 'Υποβολή token'
-    },
-    step2: {
-      title: 'Βήμα 2',
-      description1: 'Σε αυτό το βήμα, πρέπει να παρέχετε έναν ασφαλή κωδικό για την προστασία του ψηφιακού πορτοφολιού σας.',
-      description2: 'Επιλέξτε έναν κωδικό',
-      passphrase: 'κωδικός',
-      buttonBack: 'Πίσω',
-      buttonRegister: 'Εγγραφή'
-    },
+    title: 'Εγγραφή',
+    description1: 'Δώστε έναν ασφαλή κωδικό για την προστασία του ψηφιακού πορτοφολιού σας',
+    description2: 'Επιλέξτε έναν κωδικό',
+    buttonBack: 'Πίσω',
+    buttonRegister: 'Εγγραφή',
+    invalidPassword: 'Επιλέξτε έναν κωδικό πρόσβασης',
     loading: 'Εγγραφή νέου πορτοφολιού'
   },
 
@@ -624,19 +615,5 @@ export default {
   Jades: {
     home: 'Αρχική Σελίδα',
     news: 'Νέα'
-  },
-  Footer: {
-    services: 'Υπηρεσίες',
-    info: 'Πληροφορίες',
-    contact: 'Επικοινωνία',
-    web: 'Ιστός',
-    email: 'E-mail για Φορείς & ΑΕΙ',
-    participatingInstitutions: 'Συμμετέχοντα Ιδρύματα',
-    signatureVerification: 'Έλεγχος Εγκυρότητας Υπογραφής',
-    diplomaCheck: 'Αυτεπάγγελτος Έλεγχος Τίτλων Σπουδών',
-    termsOfUse: 'Όροι Χρήσης',
-    revocation: 'Ανάκληση Εξουσιοδοτήσεων',
-    templateHandlingApp: 'Εφαρμογή Διαχείρισης Προτύπων Τίτλων Σπουδών',
-    developersGuide: 'Τεκμηρίωση'
   }
 };
