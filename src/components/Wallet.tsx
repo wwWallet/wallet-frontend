@@ -16,9 +16,9 @@ import VpAudit from './VpAudit/VpAudit';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faArrowUp, faBars } from '@fortawesome/free-solid-svg-icons';
 import Polyglot from 'node-polyglot';
-import LanguageSwitch from './LanguageSwitch';
 import Modal from 'react-modal';
 import config from '../config/config.dev';
+import IssuerList from './IssuerList/IssuerList';
 
 const ShortVCPlaceholder = (props: any) => {
 
@@ -92,10 +92,6 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 
 	return (
 		<Tabs defaultActiveKey="credentials" id="wallet-tabs" className="mb-3" onSelect={(k) => handleSelect(k)}>
-			<LanguageSwitch
-				polyglot={polyglot}
-				handleLanguage={handleLanguage}
-			/>
 			<Tab eventKey="credentials" title={polyglot.t('Wallet.tab1.title')}>
 				<div className="gunet-container">
 					<div>
@@ -158,7 +154,7 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 								<img className="service-thumbnail" id="uni-logo" src={uniLogo}></img>
 								<strong>{polyglot.t('Wallet.tab4.diplomaHeader')}</strong>
 								<br />
-								<p className="card-subtitle">{polyglot.t('Wallet.tab4.diplomaDesc')}</p>
+								<span className="card-subtitle">{polyglot.t('Wallet.tab4.diplomaDesc')}</span>
 							</Card.Text>
 						</Card.Body>
 					</Card>
@@ -172,13 +168,16 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 								<img className="service-thumbnail" id="verifier-logo" src={verifierLogo}></img>
 								<strong>{polyglot.t('Wallet.tab4.verifyHeader')}</strong>
 								<br />
-								<p className="card-subtitle">{polyglot.t('Wallet.tab4.verifyDesc')}</p>
+								<span className="card-subtitle">{polyglot.t('Wallet.tab4.verifyDesc')}</span>
 							</Card.Text>
 						</Card.Body>
 					</Card>
 				</div>
 			</Tab>
-			<Tab eventKey="logout" title={polyglot.t('Wallet.tab5.logout')} id="logout" className="btn btn-danger" style={{ "color": "red" }} />
+			<Tab eventKey="findIssuers" title={polyglot.t('Wallet.tab5.title')}>
+				<IssuerList polyglot={polyglot}/>
+			</Tab>
+			<Tab eventKey="logout" title={polyglot.t('Wallet.logout')} id="logout" className="btn btn-danger" style={{ "color": "red" }} />
 		</Tabs>
 	);
 }

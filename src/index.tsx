@@ -9,6 +9,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './i18n/locale-en.js';
 import './i18n/locale-el.js';
 
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faArrowDown, faArrowUp, faArrowLeft, faArrowRight, faBars } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faArrowDown, faArrowUp, faArrowLeft, faArrowRight, faBars);
+
 ReactDOM.render(
   // <React.StrictMode>
     <App />,

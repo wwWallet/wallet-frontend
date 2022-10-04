@@ -94,8 +94,14 @@ export default {
       verifyDesc: 'Available for specified authorized parties from the public and private sector'
     },
     tab5: {
-      logout: 'Logout'
-    }
+      title: 'Find an Issuer',
+      country: 'Country',
+      institution: 'Institution',
+      step1: 'Βήμα 1: Select Country',
+      step2: 'Βήμα 2: Select Institution',
+      back: 'Back'
+    },
+    logout: 'Logout'
   },
 
   Audit: {
