@@ -19,6 +19,7 @@ import Polyglot from 'node-polyglot';
 import Modal from 'react-modal';
 import config from '../config/config.dev';
 import IssuerList from './IssuerList/IssuerList';
+import Authguard from './Authguard/Authguard';
 
 const ShortVCPlaceholder = (props: any) => {
 
@@ -182,4 +183,4 @@ const Wallet: React.FC<{polyglot: Polyglot, handleLanguage(lang: string): void}>
 	);
 }
 
-export default Wallet;
+export default Authguard(Wallet, null);
