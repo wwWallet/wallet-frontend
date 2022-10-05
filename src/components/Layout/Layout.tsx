@@ -1,12 +1,13 @@
 import React from 'react';
-import Footer from '../Footer';
-import Header from '../Header';
+import Footer from '../Footer/Footer';
+import Header from '../Header/Header';
 import '../../static/gunet/gunet.css'
-import '../SecondaryLayout/SecondaryLayout.scss';
+import './SecondaryLayout.scss';
+import Polyglot from 'node-polyglot';
 
 
 type Props = {
-    polyglot: string,
+    polyglot: Polyglot,
     handleLanguage(lang: string): void
     children: JSX.Element,
 };

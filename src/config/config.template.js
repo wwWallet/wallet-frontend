@@ -9,7 +9,7 @@ const config = {
 	host: 'localhost',
 	storeBackend: {
 		url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}`,
-		vc_storage_url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}/vc`
+		vc_storage_url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}/storage`
 	},
 	signatoryBackend: {
 		url: `http://${SIGNATORY_BACKEND_HOST}:${SIGNATORY_BACKEND_PORT}`,

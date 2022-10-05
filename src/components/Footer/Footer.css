@@ -1,8 +1,7 @@
 #FooterContainer {
   justify-content: space-around;
   box-sizing: content-box;
-  flex-wrap: wrap; 
- 
+  flex-wrap: wrap;
 }
 
 #Footer {

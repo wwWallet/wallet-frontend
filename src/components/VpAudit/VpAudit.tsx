@@ -234,7 +234,7 @@ export const VpAudit: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 	}
 
 	return (
-		<>
+		<div className="gunet-container">
 			<h3 className="cntr">{polyglot.t('Audit.header')}</h3>
 			{polyglot.t('Audit.range')} <br/>
 			{polyglot.t('Audit.from')}: <DatePicker dateFormat="dd/MM/yyyy" selected={startDate} onChange={(date: Date) => setStartDate(date)} />
@@ -283,7 +283,7 @@ export const VpAudit: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 					</div>
 				);
 			})}
-		</>
+		</div>
 	);
 }
 
