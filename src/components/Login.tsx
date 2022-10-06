@@ -10,6 +10,7 @@ import './animations.css';
 import '../static/gunet/gunet.css';
 import Polyglot from 'node-polyglot';
 import config from '../config/config.dev';
+import Authguard from './Authguard/Authguard';
 
 
 const Login: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void }> = ({ polyglot, handleLanguage }) => {
@@ -33,6 +34,7 @@ const Login: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void }
 			}
 		).then(res => {
 			localStorage.setItem("appToken", res.data.appToken);
+			// window.location.href = '/'
 			goToWallet();
 		}
 		).catch(err => {
@@ -112,4 +114,4 @@ const Login: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void }
 	);
 }
 
-export default Login;
+export default Authguard(Login, null);
