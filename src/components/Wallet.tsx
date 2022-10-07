@@ -9,6 +9,7 @@ import Settings from './Settings/Settings';
 import VpAudit from './VpAudit/VpAudit';
 import ConnectedServices from './ConnectedServices/ConnectedServices';
 import IssuerList from './IssuerList/IssuerList';
+import Authguard from './Authguard/Authguard';
 
 const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -46,4 +47,4 @@ const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	);
 }
 
-export default Wallet;
+export default Authguard(Wallet, null);

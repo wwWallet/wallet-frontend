@@ -12,7 +12,6 @@ import RequestVCs from './components/RequestVCs';
 import Register from './components/RegisterNoToken/Register';
 import Authz from './components/Authz/Authz';
 import Login from './components/Login';
-import AuthGuard from './components/AuthGuard';
 import Present from './components/Present';
 import Settings from './components/Settings/Settings';
 import DetailedVID from './components/DetailedVC/DetailedVID';
@@ -76,16 +75,16 @@ function App() {
       <React.Fragment>
         <Layout polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}>
           <Routes>
-            <Route path='/login' element={<AuthGuard loginGuard={true}>< Login polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/></AuthGuard>} />
-            <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]}/>} />
-            <Route path='/detailed/vid/:id' element={<AuthGuard>< DetailedVID polyglot={POLYGLOT[lang]}/></AuthGuard>} />
-            <Route path='/detailed/vc/:id' element={<AuthGuard>< DetailedVC /></AuthGuard>} />
-            <Route path='/settings'  element={<Settings polyglot={POLYGLOT[lang]}/>} />
+            <Route path='/login' element={< Login polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/>} />
+            <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/>} />
+            <Route path='/detailed/vid/:id' element={< DetailedVID polyglot={POLYGLOT[lang]}/>} />
+            <Route path='/detailed/vc/:id' element={< DetailedVC />} />
+            <Route path='/settings'  element={< Settings polyglot={POLYGLOT[lang]}/>} />
             <Route path='/register' element={<Register polyglot={POLYGLOT[lang]}/>} />
             <Route path='/test' element={<TabTest/>} />
             <Route path='/vc' element={< RequestVCs polyglot={POLYGLOT[lang]}/>}></Route>
-            <Route path='/auth' element={<AuthGuard>< Authz polyglot={POLYGLOT[lang]}/></AuthGuard>}></Route>
-            <Route path='/present' element={<AuthGuard><Present polyglot={POLYGLOT[lang]}/></AuthGuard>}></Route>
+            <Route path='/auth' element={< Authz polyglot={POLYGLOT[lang]}/>}></Route>
+            <Route path='/present' element={<Present polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/import' element={<Import polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/export' element={<Export polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/consent' element={<Consent polyglot={POLYGLOT[lang]}/>}></Route>
