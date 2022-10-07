@@ -4,16 +4,19 @@ import Tab from 'react-bootstrap/Tab';
 import { useNavigate } from 'react-router-dom';
 import './Wallet.css';
 import Polyglot from 'node-polyglot';
+import MyCredentials from './MyCredentials/MyCredentials';
+import Settings from './Settings/Settings';
+import VpAudit from './VpAudit/VpAudit';
+import ConnectedServices from './ConnectedServices/ConnectedServices';
+import IssuerList from './IssuerList/IssuerList';
 
-const Wallet: React.FC<{ polyglot: Polyglot}> = ({ polyglot }) => {
+const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const navigate = useNavigate();
 
 	const handleSelect = (key: string | null) => {
 		if (key && key === "logout")
 			logout();
-		else if (key)
-			navigate(key);
 	}
 
 	const logout = () => {
@@ -23,12 +26,22 @@ const Wallet: React.FC<{ polyglot: Polyglot}> = ({ polyglot }) => {
 
 	return (
 		<Tabs defaultActiveKey="credentials" id="wallet-tabs" className="mb-3" onSelect={(k) => handleSelect(k)}>
-			<Tab eventKey="credentials" title={polyglot.t('Wallet.tab1.title')}/>
-			<Tab eventKey="transactions" title={polyglot.t('Wallet.tab2.title')}/>
-			<Tab eventKey="settings" title={polyglot.t('Wallet.tab3.title')}/>
-			<Tab eventKey="services" title={polyglot.t('Wallet.tab4.title')}/>
-			<Tab eventKey="issue" title={polyglot.t('Wallet.tab5.title')}/>
-			<Tab eventKey="logout" title={polyglot.t('Wallet.logout')}/>
+			<Tab eventKey="credentials" title={polyglot.t('Wallet.tab1.title')}>
+				<MyCredentials polyglot={polyglot} />
+			</Tab>
+			<Tab eventKey="transactions" title={polyglot.t('Wallet.tab2.title')}>
+				<VpAudit polyglot={polyglot} />
+			</Tab>
+			<Tab eventKey="settings" title={polyglot.t('Wallet.tab3.title')}>
+				<Settings polyglot={polyglot} />
+			</Tab>
+			<Tab eventKey="services" title={polyglot.t('Wallet.tab4.title')}>
+				<ConnectedServices polyglot={polyglot} />
+			</Tab>
+			<Tab eventKey="issue" title={polyglot.t('Wallet.tab5.title')}>
+				<IssuerList polyglot={polyglot} />
+			</Tab>
+			<Tab eventKey="logout" title={polyglot.t('Wallet.logout')} />
 		</Tabs>
 	);
 }

@@ -23,10 +23,7 @@ import TabTest from './TabTest';
 import Polyglot from 'node-polyglot';
 import LocaleEl from './i18n/locale-el';
 import LocaleEn from './i18n/locale-en';
-import IssuerList from './components/IssuerList/IssuerList';
-import MyCredentials from './components/MyCredentials/MyCredentials';
-import VpAudit from './components/VpAudit/VpAudit';
-import ConnectedServices from './components/ConnectedServices/ConnectedServices';
+import Consent from './components/Consent/Consent';
 
 const POLYGLOT: any = {
   el: new Polyglot({ phrases: LocaleEl, locale: 'el' }),
@@ -83,7 +80,7 @@ function App() {
             <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]}/>} />
             <Route path='/detailed/vid/:id' element={<AuthGuard>< DetailedVID polyglot={POLYGLOT[lang]}/></AuthGuard>} />
             <Route path='/detailed/vc/:id' element={<AuthGuard>< DetailedVC /></AuthGuard>} />
-            <Route path='/settings'  element={<AuthGuard><Settings polyglot={POLYGLOT[lang]}/></AuthGuard>} />
+            <Route path='/settings'  element={<Settings polyglot={POLYGLOT[lang]}/>} />
             <Route path='/register' element={<Register polyglot={POLYGLOT[lang]}/>} />
             <Route path='/test' element={<TabTest/>} />
             <Route path='/vc' element={< RequestVCs polyglot={POLYGLOT[lang]}/>}></Route>
@@ -91,11 +88,7 @@ function App() {
             <Route path='/present' element={<AuthGuard><Present polyglot={POLYGLOT[lang]}/></AuthGuard>}></Route>
             <Route path='/import' element={<Import polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/export' element={<Export polyglot={POLYGLOT[lang]}/>}></Route>
-
-						<Route path='/issue' element={<IssuerList polyglot={POLYGLOT[lang]}/>}></Route>
-						<Route path='/credentials' element={<MyCredentials polyglot={POLYGLOT[lang]}/>}></Route>
-						<Route path='/transactions' element={<VpAudit polyglot={POLYGLOT[lang]}/>}></Route>
-						<Route path='/services' element={<ConnectedServices polyglot={POLYGLOT[lang]}/>}></Route>
+						<Route path='/consent' element={<Consent polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='*' element={<Navigate to="/login" replace />} />
           </Routes>
         </Layout>

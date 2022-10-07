@@ -3,7 +3,7 @@ import Select from 'react-select';
 import { CustomSelectProps } from '../../interfaces/SelectProps';
 import './CustomSelect.css';
 
-const CustomSelect: React.FC<CustomSelectProps> = ({items, onChange}) => {
+const CustomSelect: React.FC<CustomSelectProps> = ({items, isMulti, onChange}) => {
 
   return(
     <Select
@@ -27,6 +27,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({items, onChange}) => {
           options={items}
           onChange={onChange}
           isSearchable
+					isMulti={isMulti}
         />
   );
 }

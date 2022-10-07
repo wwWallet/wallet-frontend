@@ -81,11 +81,11 @@
   width: auto;
 }
 
-.find-issuer .buttons button:nth-child(1) {
+.find-issuer .buttons a:nth-child(1) {
   margin-right: 14%;
 }
 
-.find-issuer .buttons button:nth-child(2) {
+.find-issuer .buttons a:nth-child(2) {
   margin-left: 14%;
 }
 

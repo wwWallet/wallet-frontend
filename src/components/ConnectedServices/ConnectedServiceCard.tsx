@@ -1,4 +1,3 @@
-import Polyglot from "node-polyglot";
 import { Card } from "react-bootstrap";
 
 export interface ConnectedServiceCardProps {

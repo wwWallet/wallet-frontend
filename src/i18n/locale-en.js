@@ -88,8 +88,11 @@ export default {
       title: 'Find an Issuer',
       country: 'Country',
       institution: 'Institution',
-      step1: 'Βήμα 1: Select Country',
-      step2: 'Βήμα 2: Select Institution',
+			type: 'Type',
+      step1: 'Step 1: Select Country',
+      step2: 'Step 2: Select Institution',
+			step3: 'Step 3: Select Credential Type',
+			next: 'Next',
       back: 'Back'
     },
     logout: 'Logout'
@@ -148,6 +151,14 @@ export default {
     loading: 'Wait for credentials to be received',
     done: 'View your Credentials'
   },
+
+	Consent: {
+		title: 'Credential Exchange Consent',
+		description1: 'Trusted Issuer ',
+		description2: 'wants to send you verifiable credentials. Do you consent to this exchange?',
+		buttonConsent: 'Consent',
+		buttonDecline: 'Decline'
+	},
 
 
 ///////////////////////////////////////////////////////////

@@ -5,14 +5,20 @@ const STORE_BACKEND_PORT = 8001;
 const SIGNATORY_BACKEND_HOST = "localhost";
 const SIGNATORY_BACKEND_PORT = 8002;
 
+const FRONTEND_HOST = "localhost";
+const FRONTEND_PORT = 3000;
+
 const config = {
-	host: 'localhost',
+	host: FRONTEND_HOST,
 	storeBackend: {
 		url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}`,
-		vc_storage_url: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}/storage`
+		vcStorageUrl: `http://${STORE_BACKEND_HOST}:${STORE_BACKEND_PORT}/storage`
 	},
 	signatoryBackend: {
 		url: `http://${SIGNATORY_BACKEND_HOST}:${SIGNATORY_BACKEND_PORT}`,
+	},
+	oid4ci: {
+		redirectUri: `http://${FRONTEND_HOST}:${FRONTEND_PORT}/`
 	}
 }
 
