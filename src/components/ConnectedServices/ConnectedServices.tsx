@@ -11,19 +11,19 @@ const ConnectedServices: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		<div className="gunet-container stable">
 			<ConnectedServiceCard 
 				action={() => { window.location.href = '/' }}
-				title={polyglot.t('Wallet.tab4.vid')}
+				title={polyglot.t('Wallet.tab3.vid')}
 				logo={ministryLogo}
 			/>
 			<ConnectedServiceCard 
 				action={() => { window.location.href = '/' }}
-				title={polyglot.t('Wallet.tab4.diplomaHeader')}
-				subtitle={polyglot.t('Wallet.tab4.diplomaDesc')}
+				title={polyglot.t('Wallet.tab3.diplomaHeader')}
+				subtitle={polyglot.t('Wallet.tab3.diplomaDesc')}
 				logo={uniLogo}
 			/>
 			<ConnectedServiceCard 
 				action={() => { window.location.href = '/' }}
-				title={polyglot.t('Wallet.tab4.verifyHeader')}
-				subtitle={polyglot.t('Wallet.tab4.verifyDesc')}
+				title={polyglot.t('Wallet.tab3.verifyHeader')}
+				subtitle={polyglot.t('Wallet.tab3.verifyDesc')}
 				logo={verifierLogo}
 			/>
 		</div>
