@@ -1,5 +1,4 @@
 import React from 'react'
-import '../../static/style/Gunet.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faSearch, faUndo, faTools, faUniversity, faHandshake, faCode, faGlobeAfrica, faBriefcase, faCopyright } from '@fortawesome/free-solid-svg-icons'
 import './Footer.css';

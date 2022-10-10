@@ -1,16 +1,15 @@
 import axios from 'axios';
 import React, { useCallback, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { loginResponseDTO } from '../interfaces/login-register-dtos';
-import { LocationProps } from './types/LocationProps';
+import { loginResponseDTO } from '../../interfaces/login-register-dtos';
+import { LocationProps } from '../types/LocationProps';
 import './Login.css';
-import '../App.css';
-import './Form/Form.css';
-import './animations.css';
-import '../static/gunet/gunet.css';
+import '../../App.css';
+import '../Form/Form.css';
+import '../animations.css';
 import Polyglot from 'node-polyglot';
-import config from '../config/config.dev';
-import Authguard from './Authguard/Authguard';
+import config from '../../config/config.dev';
+import Authguard from '../Authguard/Authguard';
 
 
 const Login: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void }> = ({ polyglot, handleLanguage }) => {

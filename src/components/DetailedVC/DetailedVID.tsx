@@ -54,7 +54,7 @@ export const DetailedVID: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 		<div className="gunet-container">
 
 			{Object.keys(credential).length !== 0 &&
-				<ModalVID polyglot={polyglot} selectedDiploma={credential}/>
+				<ModalVID polyglot={polyglot} selectedVC={credential}/>
 			}
 			
 			<div className="vc-with-back">

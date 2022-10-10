@@ -11,12 +11,7 @@ const Logout: React.FC = () => {
 
 	}, [])
 
-
-	return (
-		<React.Fragment>
-
-		</React.Fragment>
-	);
+	return (<React.Fragment />);
 }
 
 export default Logout;

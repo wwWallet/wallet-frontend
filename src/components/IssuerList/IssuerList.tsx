@@ -7,7 +7,6 @@ import { SelectElement } from "../../interfaces/SelectProps";
 import CustomSelect from "../CustomSelect/CustomSelect";
 import Steps from "../Steps/Steps";
 import "./IssuerList.css"
-import CustomButton from "../Button/CustomButton";
 
 const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -100,6 +99,8 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 		const state: string = "secret";
 		localStorage.setItem('state', state);
+
+		// acqired from wallet store
 		localStorage.setItem('issuerUrl', issuerUrl);
 		localStorage.setItem('issuerDid', 'did:ebsi:zfGwMsrwZjJgpj6NmnjFMXM');
 
@@ -131,6 +132,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 						<div className="select-container">
 							<CustomSelect err={err} items={countries} onChange={(country) => setCountry(country.label)} />
 							{err && <p className={"err"}>{polyglot.t('Wallet.tab5.error1')}</p>}
+						</div>
 							<div className="buttons">
 								<a className="back-link" style={{ visibility: "hidden" }} onClick={prevStep}>
 									<span className="fa fa-arrow-left" />
@@ -141,7 +143,6 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<span className="fa fa-arrow-right" />
 								</a>
 							</div>
-						</div>
 					</React.Fragment>
 				}
 				{step === 2 &&
@@ -150,6 +151,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 						<div className="select-container">
 							<CustomSelect err={err} items={convertIssuersToDropdownItems(issuers)} onChange={(inst) => setInstitution(inst.label)} />
 							{err && <p className={"err"}>{polyglot.t('Wallet.tab5.error2')}</p>}
+							</div>
 							<div className="buttons">
 								<a className="back-link" onClick={prevStep}>
 									<span className="fa fa-arrow-left" />
@@ -160,7 +162,6 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<span className="fa fa-arrow-right" />
 								</a>
 							</div>
-						</div>
 					</React.Fragment>
 				}
 				{step === 3 &&
@@ -169,6 +170,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 						<div className="select-container">
 							<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
 							{err && <p className={"err"}>{polyglot.t('Wallet.tab5.error3')}</p>}
+							</div>
 							<div className="buttons">
 								<a className="back-link" onClick={prevStep}>
 									<span className="fa fa-arrow-left" />
@@ -179,7 +181,6 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<span className="fa fa-arrow-right" />
 								</a>
 							</div>
-						</div>
 					</React.Fragment>
 				}
 			</div>

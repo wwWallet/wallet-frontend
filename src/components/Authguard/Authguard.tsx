@@ -1,9 +1,7 @@
 
-import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import decode from 'jwt-decode';
-import Login from "../Login";
 
 const Authguard: any = (WrappedComponent: any, selectData: any) => {
 
@@ -14,7 +12,6 @@ const Authguard: any = (WrappedComponent: any, selectData: any) => {
 
 			const checkIsAuthenticated = () => {
 				console.log('location pathname = ', location.pathname == '/login')
-				// console.log('path = ', location.pathname, '   ',  window.location.href)
 				if (apptoken != "undefined" && apptoken != null && apptoken != "") {
 					console.log('AAA,  = ', apptoken)
 

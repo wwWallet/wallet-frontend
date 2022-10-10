@@ -1,7 +1,6 @@
 import React from 'react';
 import Footer from '../Footer/Footer';
 import Header from '../Header/Header';
-import '../../static/gunet/gunet.css'
 import './SecondaryLayout.scss';
 import Polyglot from 'node-polyglot';
 

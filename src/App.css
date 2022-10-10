@@ -1,3 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
+
+.gunet-container {
+	min-height: 70vh;
+	font-size: 20px;
+	width: 80%;
+	display: block;
+	margin: 0 auto;
+	margin-top: 60px;
+	font-family: 'Roboto Slab', sans-serif;
+}
+
+.login-button {
+	display: inline-block;
+	margin: 20px 0 20px;
+	padding: 14px 70px;
+	font-size: 18px;
+	min-width: auto;
+	cursor: pointer;
+	color: #fff;
+	font-weight: 700;
+	border: none;
+	border-radius: 8px;
+}
+
 .App {
     text-align: center;
   }
@@ -40,6 +65,8 @@
   .main-content {
     height: "100%"
   }
+
+
 
   .lds-ring {
     display: inline-block;
