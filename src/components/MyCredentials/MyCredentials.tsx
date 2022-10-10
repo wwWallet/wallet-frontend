@@ -14,7 +14,7 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	// load credentials from db
 	useEffect(() => {
 		setLoading(true);
-		axios.get(config.storeBackend.vc_storage_url + '/vc',
+		axios.get(config.storeBackend.vcStorageUrl + '/vc',
 			{
 				headers: {
 					Authorization: `Bearer ${localStorage.getItem('appToken')}`

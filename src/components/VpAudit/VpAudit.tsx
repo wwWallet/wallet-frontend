@@ -105,7 +105,7 @@ export const VpAudit: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 	const [filteredPresentations, setFilteredPresentations] = useState<ExtractedVpFormat[]>([]);
 
 	useEffect(() => {
-		axios.post(`${config.storeBackend.vc_storage_url}/vp/logs/get-by-did`,
+		axios.post(`${config.storeBackend.vcStorageUrl}/vp/logs/get-by-did`,
 		{ ebsi_token: localStorage.getItem('ebsi_token') },
 		{ 
 			headers : {
