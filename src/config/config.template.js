@@ -18,7 +18,12 @@ const config = {
 		url: `http://${SIGNATORY_BACKEND_HOST}:${SIGNATORY_BACKEND_PORT}`,
 	},
 	oid4ci: {
-		redirectUri: `http://${FRONTEND_HOST}:${FRONTEND_PORT}/`
+		redirectUri: `http://${FRONTEND_HOST}:${FRONTEND_PORT}/consent`
+	},
+	devIssuer: { // will be removed when issuer urls are stored on the TIR
+		usage: true,
+		did: 'did:ebsi:zfGwMsrwZjJgpj6NmnjFMXM',
+		url: 'http://localhost:8000'	
 	}
 }
 

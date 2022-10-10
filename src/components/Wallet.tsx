@@ -20,6 +20,21 @@ const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		setActiveTabText(text);
 	}
 
+	var prevScrollpos = window.pageYOffset;
+window.onscroll = function() {
+var currentScrollPos = window.pageYOffset;
+var mobileTabsElem = document.getElementById("mobile-tabs");
+		if (mobileTabsElem == null)
+			return;
+  if (prevScrollpos > currentScrollPos) {
+
+    mobileTabsElem.style.bottom = "0";
+  } else {
+    mobileTabsElem.style.bottom = "-200px";
+  }
+  prevScrollpos = currentScrollPos;
+}
+
 	return (
 		<React.Fragment>
 
@@ -48,7 +63,7 @@ const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 			</div>
 
 			{/* Bottom Tabs */}
-			<div className="tab bottom-tab">
+			<div id="mobile-tabs" className="tab bottom-tab">
 				<button className={`tablinks ${(activeTab === "credentials") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab1.title'), 'credentials')}>
 					{<span className="fa fa-bookmark blue" />}

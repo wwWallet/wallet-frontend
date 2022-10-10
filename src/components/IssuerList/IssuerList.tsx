@@ -101,15 +101,15 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		const state: string = "secret";
 		localStorage.setItem('state', state);
 		localStorage.setItem('issuerUrl', issuerUrl);
-		localStorage.setItem('issuerDid', 'did:ebsi:zfGwMsrwZjJgpj6NmnjFMXM');
+		localStorage.setItem('issuerDid', config.devIssuer.usage ? config.devIssuer.did : '');
 
 		const redirectUrl = new URL(`${issuerUrl}/issuer/authorize`);
 
 		redirectUrl.searchParams.append('response_type', 'code');
-		redirectUrl.searchParams.append('client_id', `${config.host}/consent`);
+		redirectUrl.searchParams.append('client_id', config.oid4ci.redirectUri);
 		redirectUrl.searchParams.append('state', state);
 		redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
-		redirectUrl.searchParams.append('redirect_uri', `${config.host}/consent`);
+		redirectUrl.searchParams.append('redirect_uri', config.oid4ci.redirectUri);
 		window.location.replace(redirectUrl);
 	}
 
@@ -174,7 +174,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<span className="fa fa-arrow-left" />
 									{polyglot.t('Wallet.tab5.back')}
 								</a>
-								<a className="next-link" onClick={() => authorizationRequest('http://195.134.100.169:8000')}>
+								<a className="next-link" onClick={() => authorizationRequest(config.devIssuer.usage ? config.devIssuer.url : 'http://issuer.must.be.selected')}>
 									{polyglot.t('Wallet.tab5.visitIssuer')}
 									<span className="fa fa-arrow-right" />
 								</a>

@@ -42,11 +42,21 @@ export interface PresentArguments {
 }
 export interface Credentials {
 	polyglot: Polyglot;
-    credentials: Credential[];
+  credentials: CredentialEntity[];
 	present?: PresentArguments;
 	loaded?: boolean;
 }
 
+
+export interface CredentialEntity {
+	id: number;
+	identifier: string;
+	jwt: string;
+	holderDID: string;
+	issuerDID: string;
+	issuerName: string;
+	type: string;
+}
 
 const FieldPack = (props: any) => {
 	return (
@@ -59,29 +69,6 @@ const FieldPack = (props: any) => {
 		  ))}
 		</tbody>
 	  </table>
-	)
-}
-
-const ShortVID = (props: any) => {
-	const isSelected = () => {
-		return (props.selected === true);
-	}
-	return (
-		<div className={!isSelected() ? 'diplomabox' : 'diplomabox-selected'} onClick={props.toggleSelect}>
-			<div className='headerbox'>
-				<div className='fields'>
-				<span className='field bold'>{props.polyglot.t('ShortVc.verifiableId')}</span>
-				<span className='field'>{props.credential.credentialSubject.id}</span>
-
-				</div>
-				<div className='action' 
-					// onClick={ () => navigate("/detailed/vid/"+props.credential.id, {replace: true, state: { path: window.location.href.substring(window.location.href.indexOf(location.pathname)) }}) } >
-					onClick={ props.handleSetSelectedVc } >
-				{/* <FontAwesomeIcon className='icon' icon={'bars'}/> */}
-				<span className="fa fa-bars" />
-				</div>
-			</div>
-		</div>
 	)
 }
 
@@ -134,19 +121,11 @@ export const RenderVC: React.FC<Credential> = ({ polyglot, credential, present, 
 		handleSetSelectedVc(credential);
 	}
 
-	if (credential.type.includes("VerifiableId")) {
-		return (
-			<div>
-				<ShortVID polyglot={polyglot} selected={isSelected} toggleSelect={toogle} credential={credential} handleSetSelectedVc={setSelectedVc}/>
-			</div>
-		);
-  }
-	else
-		return (
-			<div>
-				<ShortVC polyglot={polyglot} selected={isSelected} toggleSelect={toogle} credential={credential} handleSetSelectedVc={setSelectedVc}/>
-			</div>
-		);
+	return (
+		<div>
+			<ShortVC polyglot={polyglot} selected={isSelected} toggleSelect={toogle} credential={credential} handleSetSelectedVc={setSelectedVc}/>
+		</div>
+	);
 }
 
 
@@ -196,20 +175,30 @@ const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, present,
 	
 
 	const renderList = (): JSX.Element[] => {
-		return credentials.map((credential: any, index: any) => {
+		return credentials.map((credential: CredentialEntity, index: any) => {
 			return (
 				<div key={index} id={index} style={{marginTop: '20px'}}>
-					<RenderVC polyglot={polyglot} credential={credential} present={present} handleSetSelectedVc={handleSetSelectedVc}/>
+					{/* <RenderVC polyglot={polyglot} credential={credential} present={present} handleSetSelectedVc={handleSetSelectedVc}/> */}
+					<div className="SingleCredential">
+						<section className="CredentialPreviewFieldsContainer">
+
+							<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
+							<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerName}</div></div>
+						</section>
+
+					</div>
 				</div>
 			);
 		});
 	}
 
 	return (
-		<ul className='credentials-container'>
+		<div className='credentials-container'>
 			{ loaded ? 
 			<>
-				{renderList()} 
+				<div className="Credentials">
+					{renderList()} 
+				</div>
 				<Modal
 					className="my-modal"
 					overlayClassName="my-modal-wrapper"
@@ -272,7 +261,7 @@ const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, present,
 				</div>
 			</>
 			}
-		</ul>
+		</div>
 	)
 }
 

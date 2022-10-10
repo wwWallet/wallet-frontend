@@ -16,8 +16,6 @@ const Authguard: any = (WrappedComponent: any, selectData: any) => {
 				console.log('location pathname = ', location.pathname == '/login')
 				// console.log('path = ', location.pathname, '   ',  window.location.href)
 				if (apptoken != "undefined" && apptoken != null && apptoken != "") {
-					console.log('AAA,  = ', apptoken)
-
 					const { exp } = decode<{exp: number}>(apptoken);
 					console.log('exp = ', exp);
 					if (Date.now() >= exp * 1000) {

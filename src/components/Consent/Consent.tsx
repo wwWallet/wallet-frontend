@@ -14,6 +14,7 @@ interface TokenResponseDTO {
 }
 
 interface CredentialResponseDTO {
+	credential: string;
 }
 
 const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
@@ -117,6 +118,11 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		);
 
 		console.log(credentialResponse);
+		const credential = credentialResponse.data.credential;
+		console.log("Credential = ", credential)
+
+		axios.post(config.storeBackend.vcStorageUrl + '/vc', { vcjwt: credential }, { headers: { 'authorization': `Bearer ${localStorage.getItem('appToken')}`}});
+		window.location.href = '/';
 	}
 
 	const verifyIssuer = async (id_token: string): Promise<boolean> => {
