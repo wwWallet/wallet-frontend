@@ -7,9 +7,8 @@ import decode from 'jwt-decode';
 import { Button } from 'react-bootstrap';
 import CustomButton from '../Button/CustomButton';
 import './Authz.css';
-import { Spinner } from '../Spinner';
+import Spinner from '../Spinner/Spinner';
 import { userInfo } from 'os';
-import "../../static/gunet/gunet.css";
 import Polyglot from 'node-polyglot';
 // import { useNavigate } from 'react-router-dom';
 

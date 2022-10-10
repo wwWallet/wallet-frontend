@@ -8,17 +8,16 @@ import {
 } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Wallet from './components/Wallet';
-import RequestVCs from './components/RequestVCs';
+import RequestVCs from './components/RequestVCs/RequestVCs';
 import Register from './components/RegisterNoToken/Register';
 import Authz from './components/Authz/Authz';
-import Login from './components/Login';
-import Present from './components/Present';
+import Login from './components/Login/Login';
+import Present from './components/Present/Present';
 import Settings from './components/Settings/Settings';
 import DetailedVID from './components/DetailedVC/DetailedVID';
 import DetailedVC from './components/DetailedVC/DetailedVC';
-import Import from './components/ImportQR/Import';
-import Export from './components/ExportQR/Export';
-import TabTest from './TabTest';
+import Import from './components/ImportQR/ImportQR';
+import Export from './components/ExportQR/ExportQR';
 import Polyglot from 'node-polyglot';
 import LocaleEl from './i18n/locale-el';
 import LocaleEn from './i18n/locale-en';
@@ -82,7 +81,6 @@ function App() {
             <Route path='/detailed/vc/:id' element={< DetailedVC />} />
             <Route path='/settings'  element={< Settings polyglot={POLYGLOT[lang]}/>} />
             <Route path='/register' element={<Register polyglot={POLYGLOT[lang]}/>} />
-            <Route path='/test' element={<TabTest/>} />
             <Route path='/vc' element={< RequestVCs polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/auth' element={< Authz polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/present' element={<Present polyglot={POLYGLOT[lang]}/>}></Route>

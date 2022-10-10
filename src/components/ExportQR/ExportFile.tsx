@@ -2,8 +2,8 @@ import axios from 'axios';
 import Polyglot from 'node-polyglot';
 import React, { useRef, useState } from 'react';
 import { Modal } from 'react-bootstrap';
-import { exportRequestDTO } from '../interfaces/import-export-dto';
-import CustomButton from './Button/CustomButton';
+import { exportRequestDTO } from '../../interfaces/import-export-dto';
+import CustomButton from '../Button/CustomButton';
 
 const Export: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 

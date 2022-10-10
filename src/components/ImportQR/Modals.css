@@ -1,0 +1,9 @@
+.modal-success {
+	background-color: rgba(0, 155, 0, .75);
+	color: white;
+}
+
+.modal-fail {
+	background-color: rgba(255, 0, 0, .75);
+	color: white;
+}

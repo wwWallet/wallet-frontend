@@ -4,13 +4,12 @@ import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import {useCallback} from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Button from './Button/CustomButton';
-import CredentialList from './CredentialList/CredentialList';
+import Button from '../Button/CustomButton';
+import CredentialList from '../CredentialList/CredentialList';
 import decode from 'jwt-decode';
 import { Card } from 'react-bootstrap';
-import CustomButton from './Button/CustomButton';
-import { Spinner } from './Spinner';
-import "../static/gunet/gunet.css";
+import CustomButton from '../Button/CustomButton';
+import Spinner from '../Spinner/Spinner';
 import DatePicker from "react-datepicker";
 import Polyglot from 'node-polyglot';
 

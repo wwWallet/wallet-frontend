@@ -1,6 +1,5 @@
 import React from 'react';
 import './Header.css';
-import '../../static/style/Gunet.css';
 import eDiplomasLogo from '../../static/icons/eDiplomasLogo.svg'
 import walletLogo from '../../static/icons/digital-wallet.png'
 import LanguageSwitch from '../LanguageSwitch/LanguageSwitch';

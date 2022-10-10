@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useInterval } from "../hooks/useInterval";
+import { useInterval } from "../../hooks/useInterval";
 import axios from 'axios';
 
 const INTERVAL = 30000  // interval in ms

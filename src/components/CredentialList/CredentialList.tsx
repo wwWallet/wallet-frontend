@@ -10,8 +10,7 @@ import { faAward, faUniversity, faUserGraduate, faTimes } from '@fortawesome/fre
 import { Placeholder } from 'react-bootstrap';
 import Polyglot from 'node-polyglot';
 import Modal from 'react-modal';
-import '../../static/style/TokenEntry.css';
-import '../../static/style/PresentationCredentialCards.css';
+import './MyModal.css';
 import ModalVID from '../DetailedVC/ModalVID';
 import ModalDiploma from '../DetailedVC/ModalDiploma';
 import ModalCredential from '../DetailedVC/ModalCredential';
@@ -224,28 +223,19 @@ const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, present,
 
 						{selectedVc && Object.keys(selectedVc).length !== 0 && selectedVc.type.includes('VerifiableId') &&
 							<ModalVID
-								selectedDiploma={selectedVc}
-								copiableSignature
-								plainSignature={false}
-								qrSignature={false}
+								selectedVC={selectedVc}
 								polyglot={polyglot}
 							/>
 						}
 						{selectedVc && Object.keys(selectedVc).length !== 0 && selectedVc.type.includes('Europass') &&
 							<ModalDiploma
-								selectedDiploma={selectedVc}
-								copiableSignature
-								plainSignature={false}
-								qrSignature={false}
+								selectedVC={selectedVc}
 								polyglot={polyglot}
 							/>
 						}
 						{selectedVc && Object.keys(selectedVc).length !== 0 && !selectedVc.type.includes('Europass') && !selectedVc.type.includes('VerifiableId') &&
 							<ModalCredential
-								selectedDiploma={selectedVc}
-								copiableSignature
-								plainSignature={false}
-								qrSignature={false}
+								selectedVC={selectedVc}
 								polyglot={polyglot}
 							/>
 						}

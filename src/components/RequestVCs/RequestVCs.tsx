@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
-import '../App.css';
+import '../../App.css';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import Button from './Button/CustomButton';
-import CustomButton from './Button/CustomButton';
-import { Spinner } from './Spinner';
+import Button from '../Button/CustomButton';
+import CustomButton from '../Button/CustomButton';
+import Spinner from '../Spinner/Spinner';
 import Polyglot from 'node-polyglot';
 
 interface Ticket {

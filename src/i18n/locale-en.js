@@ -75,11 +75,7 @@ export default {
 			header: 'VP Audit Records'
     },
     tab3: {
-      title: 'Settings',
-      dataHub: 'Store my Verifiable Credentials into the ID Data Hub',
-    },
-    tab4: {
-      title: 'Services',
+			title: 'Services',
 			header: 'Connected Services',
       vid: 'Request a VID from the Greek EBSI Verifiable ID provider portal',
       diplomaHeader: 'Receive a Verifiable Diploma in just a few clicks',
@@ -87,7 +83,7 @@ export default {
       verifyHeader: 'Verify diplomas issued by Greek Higher Education Institutes in a privacy preserving way',
       verifyDesc: 'Available for specified authorized parties from the public and private sector'
     },
-    tab5: {
+    tab4: {
 			title: 'Issuers',
       header: 'Find an Issuer',
       country: 'Country',
@@ -103,6 +99,10 @@ export default {
 			error2: 'Please choose an institution',
 			error3: 'Please choose a credential type',
     },
+		tab5: {
+			title: 'Settings',
+			dataHub: 'Store my Verifiable Credentials into the ID Data Hub',
+		},
     logout: 'Logout'
   },
 
