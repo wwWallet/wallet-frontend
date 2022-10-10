@@ -33,16 +33,16 @@ const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab2.title'), 'transactions')}>
 					{polyglot.t('Wallet.tab2.title')}
 				</button>
-				<button className={`tablinks ${(activeTab === "settings") ? "active" : ""}`}
-					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab3.title'), 'settings')}>
-					{polyglot.t('Wallet.tab3.title')}
-				</button>
 				<button className={`tablinks ${(activeTab === "services") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab4.title'), 'services')}>
-					{polyglot.t('Wallet.tab4.title')}
+					{polyglot.t('Wallet.tab3.title')}
 				</button>
 				<button className={`tablinks ${(activeTab === "issue") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab5.title'), 'issue')}>
+					{polyglot.t('Wallet.tab4.title')}
+				</button>
+				<button className={`tablinks ${(activeTab === "settings") ? "active" : ""}`}
+					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab3.title'), 'settings')}>
 					{polyglot.t('Wallet.tab5.title')}
 				</button>
 			</div>
@@ -58,16 +58,16 @@ const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 					{<span className="fa fa-clock-o blue" />}
 				</button>
 				<button className={`tablinks ${(activeTab === "services") ? "active" : ""}`}
-					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab4.title'), 'services')}>
+					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab3.title'), 'services')}>
 					{<span className="fa fa-globe blue" />}
 				</button>
-				<button className={`tablinks ${(activeTab === "settings") ? "active" : ""}`}
-					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab3.title'), 'settings')}>
-					{<span className="fa fa-gear blue" />}
-				</button>
 				<button className={`tablinks ${(activeTab === "issue") ? "active" : ""}`}
-					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab5.title'), 'issue')}>
+					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab4.title'), 'issue')}>
 					{<span className="fa fa-university blue" />}
+				</button>
+				<button className={`tablinks ${(activeTab === "settings") ? "active" : ""}`}
+					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab5.title'), 'settings')}>
+					{<span className="fa fa-gear blue" />}
 				</button>
 			</div>
 
