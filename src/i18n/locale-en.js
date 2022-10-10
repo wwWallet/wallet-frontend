@@ -61,7 +61,8 @@ export default {
 
   Wallet: {
     tab1: {
-      title: 'My Credentials',
+      title: 'Credentials',
+			header: 'My Credentials',
       verifiableIdentifiers: 'Verifiable Identifiers',
       verifiableCredentials: 'Verifiable Credentials',
       emptyVID: "You don't have any Verifiable IDs yet",
@@ -70,14 +71,16 @@ export default {
       vidButton: 'Request VID from Gov.gr'
     },
     tab2: {
-      title: 'VP Audit Records',
+      title: 'Audit',
+			header: 'VP Audit Records'
     },
     tab3: {
       title: 'Settings',
       dataHub: 'Store my Verifiable Credentials into the ID Data Hub',
     },
     tab4: {
-      title: 'Connected Services',
+      title: 'Services',
+			header: 'Connected Services',
       vid: 'Request a VID from the Greek EBSI Verifiable ID provider portal',
       diplomaHeader: 'Receive a Verifiable Diploma in just a few clicks',
       diplomaDesc: 'Must be a Greek Higher Education Institute Graduate',
@@ -85,7 +88,8 @@ export default {
       verifyDesc: 'Available for specified authorized parties from the public and private sector'
     },
     tab5: {
-      title: 'Find an Issuer',
+			title: 'Issuers',
+      header: 'Find an Issuer',
       country: 'Country',
       institution: 'Institution',
 			type: 'Type',
@@ -93,7 +97,11 @@ export default {
       step2: 'Step 2: Select Institution',
 			step3: 'Step 3: Select Credential Type',
 			next: 'Next',
-      back: 'Back'
+      back: 'Back',
+			visitIssuer: 'Visit Issuer',
+			error1: 'Please choose a country',
+			error2: 'Please choose an institution',
+			error3: 'Please choose a credential type',
     },
     logout: 'Logout'
   },

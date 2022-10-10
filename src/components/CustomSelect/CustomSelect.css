@@ -1,8 +1,7 @@
-.find-issuer .dropdown {
-  width: 50%;
-  border-radius: 0;
+.dropdown.error div {
+	border-color: #ff0000;
 }
-  
+
 .find-issuer .dropdown .icon {
   border-radius: 0;
   border: none;

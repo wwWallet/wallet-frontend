@@ -33,8 +33,9 @@ const Header: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void 
 					</a>
 				</div>
 			</div>
-			<div id="subtitle" style={{ "marginLeft": "2%" }}>
+			<div id="subtitle">
 				<span>{polyglot.t('Header.description')}</span>
+				<a href="/logout" className="fa fa-sign-out logout" />
 			</div>
 			<div className='header-border'></div>
 		</div>

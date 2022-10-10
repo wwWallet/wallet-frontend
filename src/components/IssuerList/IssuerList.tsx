@@ -13,8 +13,11 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const [issuers, setIssuers] = useState<IssuerInterface[]>([]);
 	const [countries, setCountries] = useState<SelectElement[]>([]);
-	const [country, setCountry] = useState("");
+	const [err, setErr] = useState(false);
 	const [step, setStep] = useState<number>(1);
+
+	const [country, setCountry] = useState("");
+	const [institution, setInstitution] = useState("");
 
 	// getCountries on component load
 	useEffect(() => {
@@ -60,8 +63,21 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 
 	const loadIssuersByCountry = async (): Promise<void> => {
-		console.log('loadingissuersByCountry', country);
-		await getIssuersByCountry(country).then(() => setStep(2));
+		if(country === "")
+			handleError();
+		else {
+			await getIssuersByCountry(country);
+			nextStep();
+		}
+	}
+
+	const loadInstitutionMetadata = async (): Promise<void> => {
+		if(institution === "")
+			handleError();
+		else {
+			// get institution metadata for next step
+			nextStep();
+		}
 	}
 
 	const prevStep = () => {
@@ -70,6 +86,14 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const nextStep = () => {
 		setStep(step => step + 1);
+	}
+
+	const handleError = (timeout = 3000) => {
+		setErr(true);
+
+		setTimeout(() => {
+			setErr(false);
+		}, timeout);
 	}
 
 	const authorizationRequest = (issuerUrl: string) => {
@@ -91,69 +115,73 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	return (
 		<div className="find-issuer">
-			<div className="container">
-				<div className="content">
-					<h2 className="container-header">{polyglot.t('Wallet.tab5.title')}</h2>
-					<Steps active={step}
-						steps={[
-							polyglot.t('Wallet.tab5.country'),
-							polyglot.t('Wallet.tab5.institution'),
-							polyglot.t('Wallet.tab5.type')
-						]}
-					/>
+			<div className="content">
+				<h2 className="container-header">{polyglot.t('Wallet.tab5.title')}</h2>
+				<Steps active={step}
+					steps={[
+						polyglot.t('Wallet.tab5.country'),
+						polyglot.t('Wallet.tab5.institution'),
+						polyglot.t('Wallet.tab5.type')
+					]}
+				/>
 
-					{step === 1 &&
-						<React.Fragment>
-							<h2>{polyglot.t('Wallet.tab5.step1')}</h2>
-							<CustomSelect items={countries} onChange={(country) => { console.log(country); setCountry(country.label); }} />
+				{step === 1 &&
+					<React.Fragment>
+						<h2>{polyglot.t('Wallet.tab5.step1')}</h2>
+						<div className="select-container">
+							<CustomSelect err={err} items={countries} onChange={(country) => setCountry(country.label)} />
+							{err && <p className={"err"}>{polyglot.t('Wallet.tab5.error1')}</p>}
 							<div className="buttons">
-								<a className="back-link" onClick={loadIssuersByCountry}>
-									<span className="fa fa-arrow-right" />
+								<a className="back-link" style={{ visibility: "hidden" }} onClick={prevStep}>
+									<span className="fa fa-arrow-left" />
+									{polyglot.t('Wallet.tab5.back')}
+								</a>
+								<a className="next-link" onClick={loadIssuersByCountry}>
 									{polyglot.t('Wallet.tab5.next')}
+									<span className="fa fa-arrow-right" />
 								</a>
 							</div>
-						</React.Fragment>
-					}
-					{step === 2 &&
-						<React.Fragment>
-							<h2>{polyglot.t('Wallet.tab5.step2')}</h2>
-							<CustomSelect items={convertIssuersToDropdownItems(issuers)} onChange={() => { }} />
+						</div>
+					</React.Fragment>
+				}
+				{step === 2 &&
+					<React.Fragment>
+						<h2>{polyglot.t('Wallet.tab5.step2')}</h2>
+						<div className="select-container">
+							<CustomSelect err={err} items={convertIssuersToDropdownItems(issuers)} onChange={(inst) => setInstitution(inst.label)} />
+							{err && <p className={"err"}>{polyglot.t('Wallet.tab5.error2')}</p>}
 							<div className="buttons">
 								<a className="back-link" onClick={prevStep}>
 									<span className="fa fa-arrow-left" />
 									{polyglot.t('Wallet.tab5.back')}
 								</a>
-								<a className="back-link" onClick={nextStep}>
-									<span className="fa fa-arrow-right" />
+								<a className="next-link" onClick={loadInstitutionMetadata}>
 									{polyglot.t('Wallet.tab5.next')}
+									<span className="fa fa-arrow-right" />
 								</a>
 							</div>
-						</React.Fragment>
-					}
-					{step === 3 &&
-						<div>
-							<h2>{polyglot.t('Wallet.tab5.step3')}</h2>
-							<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
-							<CustomButton buttonDisabled={false} text={"Visit Issuer"}
-								onClick={() => authorizationRequest('http://195.134.100.169:8000')}
-							/>
 						</div>
-					}
-					{/* <div className="buttons">
-						{step > 1 &&
-							<a className="back-link" onClick={prevStep}>
-								<span className="fa fa-arrow-left" />
-								{polyglot.t('Wallet.tab5.back')}
-							</a>
-						}
-						{step < 3 &&
-							<a className="back-link" onClick={nextStep}>
-								<span className="fa fa-arrow-right" />
-								{polyglot.t('Wallet.tab5.next')}
-							</a>
-						}
-					</div> */}
-				</div>
+					</React.Fragment>
+				}
+				{step === 3 &&
+					<React.Fragment>
+						<h2>{polyglot.t('Wallet.tab5.step3')}</h2>
+						<div className="select-container">
+							<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
+							{err && <p className={"err"}>{polyglot.t('Wallet.tab5.error3')}</p>}
+							<div className="buttons">
+								<a className="back-link" onClick={prevStep}>
+									<span className="fa fa-arrow-left" />
+									{polyglot.t('Wallet.tab5.back')}
+								</a>
+								<a className="next-link" onClick={() => authorizationRequest('http://195.134.100.169:8000')}>
+									{polyglot.t('Wallet.tab5.visitIssuer')}
+									<span className="fa fa-arrow-right" />
+								</a>
+							</div>
+						</div>
+					</React.Fragment>
+				}
 			</div>
 		</div>
 	);

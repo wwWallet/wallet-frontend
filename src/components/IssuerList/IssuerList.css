@@ -14,8 +14,8 @@
 }
 
 .find-issuer .content {
-  padding-left: 40px;
-  padding-right: 40px;
+  padding-left: 10%;
+  padding-right: 10%;
 }
 
 .Organisation .container > * {
@@ -75,6 +75,8 @@
 .find-issuer .buttons {
   margin: 0 auto;
   margin-top: 70px;
+	display: flex;
+	justify-content: space-between;
 }
 
 .find-issuer .buttons button {
@@ -82,23 +84,40 @@
 }
 
 .find-issuer .buttons a:nth-child(1) {
-  margin-right: 14%;
+  margin-right: 2%;
 }
 
 .find-issuer .buttons a:nth-child(2) {
-  margin-left: 14%;
+  margin-left: 5%;
 }
 
 .find-issuer .fas {
   color: #003476;
 }
 
-.find-issuer .back-link {
+.find-issuer .back-link, .find-issuer .next-link {
   color: #003476 !important;
   font-size: 17px;
   cursor: pointer;
   outline: none;
   text-decoration: none !important;
+}
+
+.find-issuer .back-link span {
+	margin-right: 5px;
+}
+
+.find-issuer .next-link span {
+	margin-left: 5px;
+}
+
+.find-issuer .select-container {
+	width: 50%;
+}
+
+.select-container p.err {
+	margin-top: 1%;
+	color: red;
 }
 
 .find-issuer .Menu .selection {

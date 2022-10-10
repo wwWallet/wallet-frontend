@@ -1,0 +1,95 @@
+/* Style the tab */
+.tab, .mobile {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+	display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+  grid-auto-rows: auto;
+  grid-gap: 0;
+  margin-bottom: 50px;
+}
+
+.mobile, .bottom-tab {
+	display: none;
+	height: 80px;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+  background-color: inherit;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+.bottom-tab button {
+	height: 80px;
+	font-size: 32px;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover, .tab-toggle:hover {
+  background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+
+.tab-toggle {
+	width: fit-content;
+	text-align: left;
+	border: none;
+	background-color: white;
+	display: none;
+}
+
+.tab-toggle span {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.blue {
+	color: #003476;
+}
+
+@media only screen and (max-width: 800px) {
+  .tab {
+		display: none;
+  }
+
+	.bottom-tab {
+		display: grid;
+		position: fixed;
+		bottom: 0;
+		width: 100%;
+  }
+
+	.tab.mobile {
+		grid-template-columns: 1fr;
+		display: grid;
+		border-top: none;
+	}
+
+	.tab-toggle {
+		display: block;
+		/* background-color: #f1f1f1; */
+	}
+
+	.tab button:first-child {
+		border-top: none;
+	}
+}

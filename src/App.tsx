@@ -23,6 +23,7 @@ import Polyglot from 'node-polyglot';
 import LocaleEl from './i18n/locale-el';
 import LocaleEn from './i18n/locale-en';
 import Consent from './components/Consent/Consent';
+import Logout from './components/Logout/Logout';
 
 const POLYGLOT: any = {
   el: new Polyglot({ phrases: LocaleEl, locale: 'el' }),
@@ -88,6 +89,7 @@ function App() {
             <Route path='/import' element={<Import polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/export' element={<Export polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/consent' element={<Consent polyglot={POLYGLOT[lang]}/>}></Route>
+						<Route path='/logout' element={<Logout />}></Route>
             <Route path='*' element={<Navigate to="/login" replace />} />
           </Routes>
         </Layout>

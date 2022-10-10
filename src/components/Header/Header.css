@@ -33,9 +33,12 @@
 }
 
 #subtitle {
+	display: flex;
+	justify-content: space-between;
   font-family: 'Open Sans', sans-serif;
   font-weight: 600;
   font-size: 14px;
+	margin: 0 3%;
 }
 
 .header-dropdown {
@@ -187,6 +190,16 @@
 .language-switch button.active {
   border-bottom: 2px solid #00aeef;
   color: #00aeef !important;
+}
+
+.Header a.logout{
+	text-decoration: none;
+	color: white;
+	font-size: 1.2rem;
+}
+
+.Header a.logout:hover {
+	color: #00aeef;
 }
 
 @media screen and (max-width: 800px){

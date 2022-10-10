@@ -64,7 +64,7 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 		if (tokenResponse.status === 200) {
 			console.log('tokenRes: ', tokenResponse.data);
-			if(await verifyIssuer(tokenResponse.data.id_token) === false) {
+			if (await verifyIssuer(tokenResponse.data.id_token) === false) {
 				console.log('error');
 			}
 			await credentialRequest(tokenResponse.data);
@@ -86,12 +86,17 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				issuerDID: localStorage.getItem('issuerDid'),
 				c_nonce: tokenResponse.c_nonce,
 				rsaPublicKey: "secret"
+			},
+			{
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem('appToken')}`
+				}
 			}
 		);
 
-		if(getProofJWTRes.status !== 200)
+		if (getProofJWTRes.status !== 200)
 			console.log('error');
-		
+
 		const proofJWT: string = getProofJWTRes.data.proof;
 		console.log(proofJWT);
 
@@ -131,11 +136,11 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const getPublicKey = async () => {
 		const getPubKeyRes = await axios.get(`${config.signatoryBackend.url}/user/keys/public?alg=es256k`,
-		{
-			headers: {
-				'authorization': `Bearer ${localStorage.getItem('appToken')}`
-			}
-		})
+			{
+				headers: {
+					'authorization': `Bearer ${localStorage.getItem('appToken')}`
+				}
+			})
 
 		// to pairnw se morfh publicjwk
 		return getPubKeyRes.data;

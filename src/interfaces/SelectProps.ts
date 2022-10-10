@@ -6,5 +6,6 @@ export interface SelectElement {
 export interface CustomSelectProps {
     items: SelectElement[];
 		isMulti?: boolean;
+		err?: boolean;
     onChange(props: any): void;
 }
