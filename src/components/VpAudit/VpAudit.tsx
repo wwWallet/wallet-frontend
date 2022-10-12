@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import CredentialList, { Credentials, Credential } from "../CredentialList/CredentialList";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
@@ -7,7 +6,6 @@ import "./VpAudit.css";
 import decode from 'jwt-decode';
 import { Accordion, Card } from "react-bootstrap";
 import moment from 'moment';
-import CustomButton from "../Button/CustomButton";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 // import { faArrowDown, faArrowUp, faAward, faBars, faClock, faSubscript, faEdit } from '@fortawesome/free-solid-svg-icons'
 import Polyglot from "node-polyglot";

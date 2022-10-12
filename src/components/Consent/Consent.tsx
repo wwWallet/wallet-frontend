@@ -53,15 +53,26 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	}
 
 	const tokenRequest = async (): Promise<void> => {
-		console.log('coode', authCode);
-		const tokenResponse = await axios.post<TokenResponseDTO>(`${localStorage.getItem('issuerUrl')}/issuer/token`,
+		console.log('code = ', authCode);
+		let tokenEndpoint = "";
+		if (config.devIssuer.usage) {
+			tokenEndpoint = config.devIssuer.tokenEndpoint;
+		}
+
+		const params = new URLSearchParams();
+		params.append("grant_type", "authorization_code");
+		params.append("code", authCode);
+		params.append("redirect_uri", config.oid4ci.redirectUri);
+
+		const tokenResponse = await axios.post<TokenResponseDTO>(tokenEndpoint, params,
 			{
-				grant_type: "authorisation_code",
-				code: authCode,
-				code_verifier: generateCodeVerifier(),
-				redirect_uri: config.oid4ci.redirectUri
+				headers: {
+					"Conformance": config.devConformance.conformanceHeader,
+					"Content-Type": "application/x-www-form-urlencoded"
+				}
 			}
 		);
+		console.log("Token response = ", tokenResponse.data)
 
 		if (tokenResponse.status === 200) {
 			console.log('tokenRes: ', tokenResponse.data);
@@ -84,13 +95,14 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		const getProofJWTRes = await axios.post(
 			`${config.signatoryBackend.url}/issuance/construct/proof`,
 			{
-				issuerDID: localStorage.getItem('issuerDid'),
+				issuerUrl: localStorage.getItem('issuerUrl'),
 				c_nonce: tokenResponse.c_nonce,
 				rsaPublicKey: "secret"
 			},
 			{
 				headers: {
-					Authorization: `Bearer ${localStorage.getItem('appToken')}`
+					Authorization: `Bearer ${localStorage.getItem('appToken')}`,
+					Conformance: config.devConformance.conformanceHeader
 				}
 			}
 		);
@@ -101,9 +113,13 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		const proofJWT: string = getProofJWTRes.data.proof;
 		console.log(proofJWT);
 
-		const credentialResponse = await axios.post<CredentialResponseDTO>(`${localStorage.getItem('issuerUrl')}/issuer/credential`,
+		let credentialEndpoint = "";
+		if (config.devIssuer.usage) {
+			credentialEndpoint = config.devIssuer.credentialEndpoint;
+		}
+		const credentialResponse = await axios.post<CredentialResponseDTO>(credentialEndpoint,
 			{
-				type: tokenResponse.token_type,
+				type: config.devConformance.credential_type,
 				format: "jwt_vc",
 				proof: {
 					proof_type: "jwt",
@@ -138,18 +154,6 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		// 3. importJwk
 		// 4. jose.verifyJwt
 		// 5. verify jwt.iss
-	}
-
-	const getPublicKey = async () => {
-		const getPubKeyRes = await axios.get(`${config.signatoryBackend.url}/user/keys/public?alg=es256k`,
-			{
-				headers: {
-					'authorization': `Bearer ${localStorage.getItem('appToken')}`
-				}
-			})
-
-		// to pairnw se morfh publicjwk
-		return getPubKeyRes.data;
 	}
 
 

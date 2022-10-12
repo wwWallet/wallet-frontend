@@ -134,7 +134,7 @@ const Authz: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
             
             {requireCred ?
             <div style={{ marginTop: '40px'}}>
-                <CredentialList polyglot={polyglot} loaded={credentialsAreLoaded} credentials={credentials} present={{selectedSet: selectedSet, setSelectedSet: setSelectedSet,selectedSetLength: selectedSetLength, setSelectedSetLength: setSelectedSetLength}} />
+                <CredentialList polyglot={polyglot} loaded={credentialsAreLoaded} credentials={credentials} />
             </div>
             : <></>}
             <div style={{ marginTop: '40px'}}>

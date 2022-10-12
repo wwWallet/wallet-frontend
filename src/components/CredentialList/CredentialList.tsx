@@ -14,35 +14,12 @@ import './MyModal.css';
 import ModalVID from '../DetailedVC/ModalVID';
 import ModalDiploma from '../DetailedVC/ModalDiploma';
 import ModalCredential from '../DetailedVC/ModalCredential';
-interface IProps {
-    credentials: IState["credentials"]
-}
 
 
-interface SelectedParams {
-	isSelected: boolean;
-	setIsSelected: (x: boolean) => any;
-}
 
-export interface Credential {
-	polyglot: Polyglot;
-    credential: any;
-	type?: any;
-	present?: PresentArguments;
-	handleSetSelectedVc: (vc: any) => void;
-}
-
-
-export interface PresentArguments {
-	selectedSet: any[];
-	setSelectedSet: (x: any[]) => void;
-	selectedSetLength: number;
-	setSelectedSetLength: (x: number) => void;
-}
 export interface Credentials {
 	polyglot: Polyglot;
   credentials: CredentialEntity[];
-	present?: PresentArguments;
 	loaded?: boolean;
 }
 
@@ -53,79 +30,11 @@ export interface CredentialEntity {
 	jwt: string;
 	holderDID: string;
 	issuerDID: string;
-	issuerName: string;
+	issuerInstitution: string;
 	type: string;
 }
 
-const FieldPack = (props: any) => {
-	return (
-	  <table>
-		<tbody>
-		  {Object.keys(props.values).map(key => (
-			<tr>
-			  <td>{key}</td><td>{props.values[key]}</td>
-			</tr>
-		  ))}
-		</tbody>
-	  </table>
-	)
-}
 
-const ShortVC = (props: any) => {
-	const isSelected = () => {
-		return (props.selected === true);
-	}
-	return (
-		<div className={!isSelected() ? 'diplomabox' : 'diplomabox-selected'} onClick={props.toggleSelect}>
-			<div className='headerbox'>
-				<div className='fields'>
-				<span className='field bold'>{props.polyglot.t('ShortVc.verifiableCredential')}</span>
-				<span className='field bold'>{props.polyglot.t('ShortVc.diploma')}</span>
-				<span className='field'>{props.credential.credentialSubject.id}</span>
-				</div>
-				<div className='action' 
-					// onClick={ () => navigate("/detailed/vc/"+props.credential.id, {replace: true, state: { path: window.location.href.substring(window.location.href.indexOf(location.pathname)) }}) } >
-					onClick={ props.handleSetSelectedVc } >
-				{/* <FontAwesomeIcon className='icon' icon={'bars'}/> */}
-				<span className="fa fa-bars" />
-				</div>
-			</div>
-		</div>
-	)
-}
-export const RenderVC: React.FC<Credential> = ({ polyglot, credential, present, handleSetSelectedVc }) => {
-
-	const [isSelected, setIsSelected] = useState<boolean>(false);
-	const toogle = () => {
-		if (present !== undefined) {
-			if (present.selectedSet.includes(credential.id)) { // is selected
-				const idx = present.selectedSet.indexOf(credential.id);
-				present.selectedSet.splice(idx, 1);
-				setIsSelected(false);
-				present.setSelectedSetLength(present.selectedSetLength - 1)
-			}
-			else { // if not selected then toggle on
-				const already = present.selectedSet;
-				already.push(credential.id);
-				present.setSelectedSet(already);
-				present.setSelectedSetLength(present.selectedSetLength + 1)
-				setIsSelected(true);
-			}
-			console.log('updated selected set = ', present.selectedSet);
-		}
-
-	}
-
-	const setSelectedVc = () => {
-		handleSetSelectedVc(credential);
-	}
-
-	return (
-		<div>
-			<ShortVC polyglot={polyglot} selected={isSelected} toggleSelect={toogle} credential={credential} handleSetSelectedVc={setSelectedVc}/>
-		</div>
-	);
-}
 
 
 export const ShortVCPlaceholder = (props: any) => {
@@ -153,7 +62,7 @@ export const ShortVCPlaceholder = (props: any) => {
 	)
 }
 
-const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, present, loaded }) => {
+const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, loaded }) => {
 
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const [selectedVc, setSelectedVc] = useState<any>({});
@@ -182,7 +91,7 @@ const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, present,
 						<section className="CredentialPreviewFieldsContainer">
 
 							<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
-							<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerName}</div></div>
+							<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerInstitution}</div></div>
 						</section>
 
 					</div>

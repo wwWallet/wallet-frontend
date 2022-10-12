@@ -102,16 +102,44 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 		// acqired from wallet store
 		localStorage.setItem('issuerUrl', issuerUrl);
-		localStorage.setItem('issuerDid', config.devIssuer.usage ? config.devIssuer.did : '');
+		if (config.devIssuer.usage) {
+			localStorage.setItem('issuedDid', config.devIssuer.did);
+		}
+		else {
+			localStorage.setItem('issuerDid', "")
+		}
 
-		const redirectUrl = new URL(`${issuerUrl}/issuer/authorize`);
+		// this endpoint is meant to be fetched from the server metadata, once we know the server metadata url of the issuer
+		let authorizationEndpoint = "";
+		if (config.devIssuer.usage == true) {
+			authorizationEndpoint = config.devIssuer.authorizationEndpoint;
+		}
+		const redirectUrl = new URL(authorizationEndpoint);
 
 		redirectUrl.searchParams.append('response_type', 'code');
 		redirectUrl.searchParams.append('client_id', config.oid4ci.redirectUri);
 		redirectUrl.searchParams.append('state', state);
-		redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
+		console.log("Authorizatio det: ", config.devConformance.authorization_details)
+		if (config.devConformance.usage == true)
+			redirectUrl.searchParams.append('authorization_details', config.devConformance.authorization_details);
+		else
+			redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
 		redirectUrl.searchParams.append('redirect_uri', config.oid4ci.redirectUri);
-		window.location.replace(redirectUrl);
+		redirectUrl.searchParams.append('scope', 'openid')
+		// window.location.replace(redirectUrl);
+		console.log('URL = ', redirectUrl.toString())
+		// axios.get(redirectUrl.toString(), {headers: {Conformance: config.devConformance.conformanceHeader}}).then(result => {
+		// 	console.log('Result data = ', result.data)
+		// }).catch(e => {
+		// 	console.log('errs = ', e)
+		// })
+
+		fetch(redirectUrl, {
+			headers: {Conformance: config.devConformance.conformanceHeader}
+		}).then(res => {
+			console.log("Result = ", res)
+			window.location.href = res.url
+		})
 	}
 
 	return (

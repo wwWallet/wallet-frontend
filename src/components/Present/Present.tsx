@@ -112,8 +112,6 @@ const Present: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
           <CredentialList polyglot={polyglot}
             credentials={credentials}
             loaded={credentialsAreLoaded}
-            present={{selectedSet: selectedSet, setSelectedSet: setSelectedSet,
-              selectedSetLength: selectedSetLength, setSelectedSetLength: setSelectedSetLength}}
           />
       </div>
 
