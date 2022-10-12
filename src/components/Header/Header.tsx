@@ -4,6 +4,7 @@ import eDiplomasLogo from '../../static/icons/eDiplomasLogo.svg'
 import walletLogo from '../../static/icons/digital-wallet.png'
 import LanguageSwitch from '../LanguageSwitch/LanguageSwitch';
 import Polyglot from 'node-polyglot';
+import LogoutIcon from '../Logout/LogoutIcon';
 
 const Header: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void }> = ({ polyglot, handleLanguage }) => {
 
@@ -34,7 +35,7 @@ const Header: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void 
 			</div>
 			<div id="subtitle">
 				<span>{polyglot.t('Header.description')}</span>
-				<a href="/logout" className="fa fa-sign-out logout" />
+				<LogoutIcon />
 			</div>
 			<div className='header-border'></div>
 		</div>
