@@ -15,6 +15,8 @@ interface TokenResponseDTO {
 
 interface CredentialResponseDTO {
 	credential: string;
+	c_nonce: string;
+	c_nonce_expires_in: number;
 }
 
 const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
@@ -113,39 +115,60 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		if (issuerUrl == null) {
 			throw new Error("No issuer url was found");
 		}
-		const getProofJWTRes = await generateProofForNonce(issuerUrl, tokenResponse.c_nonce, 'pub');
 
-		if (getProofJWTRes.status !== 200)
-			console.log('error');
+		let c_nonce = tokenResponse.c_nonce;
+		while (1) {
+			const getProofJWTRes = await generateProofForNonce(issuerUrl, c_nonce, 'pub');
 
-		const proofJWT: string = getProofJWTRes.data.proof;
-		console.log(proofJWT);
+			if (getProofJWTRes.status !== 200)
+				console.log('error');
 
-		let credentialEndpoint = "";
-		if (config.devIssuer.usage) {
-			credentialEndpoint = config.devIssuer.credentialEndpoint;
-		}
-		const credentialResponse = await axios.post<CredentialResponseDTO>(credentialEndpoint,
-			{
-				type: config.devConformance.credential_type,
-				format: "jwt_vc",
-				proof: {
-					proof_type: "jwt",
-					jwt: proofJWT
-				}
-			},
-			{
-				headers: {
-					'authorization': `Bearer ${tokenResponse.access_token}`
-				}
+			const proofJWT: string = getProofJWTRes.data.proof;
+			console.log(proofJWT);
+
+			let credentialEndpoint = "";
+			if (config.devIssuer.usage) {
+				credentialEndpoint = config.devIssuer.credentialEndpoint;
 			}
-		);
+			const credentialResponse = await axios.post<CredentialResponseDTO>(credentialEndpoint,
+				{
+					type: config.devConformance.credential_type,
+					format: "jwt_vc",
+					proof: {
+						proof_type: "jwt",
+						jwt: proofJWT
+					}
+				},
+				{
+					headers: {
+						'authorization': `Bearer ${tokenResponse.access_token}`
+					}
+				}
+			);
+		
+			console.log("Cred res ", credentialResponse);
+			const credential = credentialResponse.data.credential;
+			console.log("Credential = ", credential)
+			console.log('old cnonce = ', c_nonce)
 
-		console.log(credentialResponse);
-		const credential = credentialResponse.data.credential;
-		console.log("Credential = ", credential)
+			// get the new c_nonce from the credential response
+			c_nonce = credentialResponse.data.c_nonce
 
-		axios.post(config.storeBackend.vcStorageUrl + '/vc', { vcjwt: credential }, { headers: { 'authorization': `Bearer ${localStorage.getItem('appToken')}`}});
+			console.log("New cnonce = ", c_nonce)
+
+
+			// is in conformance mode, then dont store the vc (this will produce errors)
+			if (!config.devConformance.usage)
+				await axios.post(config.storeBackend.vcStorageUrl + '/vc', { vcjwt: credential }, { headers: { 'authorization': `Bearer ${localStorage.getItem('appToken')}`}});
+
+			// conformance continues to give c_nonce to fetch the same credential
+			if (config.devConformance.usage)
+				break;
+			// if no other c_nonce was provided by the issuer, then stop making Credential Req
+			if (c_nonce == undefined)
+				break;
+
+		}
 		window.location.href = '/';
 	}
 
