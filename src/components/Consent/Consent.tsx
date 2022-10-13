@@ -90,14 +90,14 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		return "secret";
 	}
 
-	const credentialRequest = async (tokenResponse: TokenResponseDTO) => {
 
-		const getProofJWTRes = await axios.post(
+	const generateProofForNonce = async (issuerUrl: string, c_nonce: string, rsaPublicKey: any) => {
+		return await axios.post(
 			`${config.signatoryBackend.url}/issuance/construct/proof`,
 			{
-				issuerUrl: localStorage.getItem('issuerUrl'),
-				c_nonce: tokenResponse.c_nonce,
-				rsaPublicKey: "secret"
+				issuerUrl: issuerUrl,
+				c_nonce: c_nonce,
+				rsaPublicKey: rsaPublicKey 
 			},
 			{
 				headers: {
@@ -106,6 +106,14 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				}
 			}
 		);
+	}
+	const credentialRequest = async (tokenResponse: TokenResponseDTO) => {
+
+		const issuerUrl = localStorage.getItem('issuerUrl');
+		if (issuerUrl == null) {
+			throw new Error("No issuer url was found");
+		}
+		const getProofJWTRes = await generateProofForNonce(issuerUrl, tokenResponse.c_nonce, 'pub');
 
 		if (getProofJWTRes.status !== 200)
 			console.log('error');

@@ -22,7 +22,7 @@ const config = {
 	},
 	devIssuer: { // will be removed when issuer urls are stored on the TIR
 		usage: true,
-		did: 'did:ebsi:zfGwMsrwZjJgpj6NmnjFMXM',
+		did: '',
 		url: 'https://api.conformance.intebsi.xyz/conformance/v2',
 		authorizationEndpoint: "https://api.conformance.intebsi.xyz/conformance/v2/issuer-mock/authorize",
 		tokenEndpoint: "https://api.conformance.intebsi.xyz/conformance/v2/issuer-mock/token",

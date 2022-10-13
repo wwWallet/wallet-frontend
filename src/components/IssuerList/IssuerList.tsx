@@ -100,7 +100,6 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		const state: string = "secret";
 		localStorage.setItem('state', state);
 
-		// acqired from wallet store
 		localStorage.setItem('issuerUrl', issuerUrl);
 		if (config.devIssuer.usage) {
 			localStorage.setItem('issuedDid', config.devIssuer.did);
@@ -128,18 +127,14 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		redirectUrl.searchParams.append('scope', 'openid')
 		// window.location.replace(redirectUrl);
 		console.log('URL = ', redirectUrl.toString())
-		// axios.get(redirectUrl.toString(), {headers: {Conformance: config.devConformance.conformanceHeader}}).then(result => {
-		// 	console.log('Result data = ', result.data)
-		// }).catch(e => {
-		// 	console.log('errs = ', e)
-		// })
+		window.location.replace(redirectUrl);
 
-		fetch(redirectUrl, {
-			headers: {Conformance: config.devConformance.conformanceHeader}
-		}).then(res => {
-			console.log("Result = ", res)
-			window.location.href = res.url
-		})
+		// fetch(redirectUrl, {
+		// 	headers: {Conformance: config.devConformance.conformanceHeader}
+		// }).then(res => {
+		// 	console.log("Result = ", res)
+		// 	window.location.href = res.url
+		// })
 	}
 
 	return (
