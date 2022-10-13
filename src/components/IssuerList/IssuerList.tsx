@@ -140,7 +140,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	return (
 		<div className="find-issuer">
 			<div className="content">
-				<h2 className="container-header">{polyglot.t('Wallet.tab4.title')}</h2>
+				<h2 className="container-header step-title">{polyglot.t('Wallet.tab4.title')}</h2>
 				<Steps active={step}
 					steps={[
 						polyglot.t('Wallet.tab4.country'),
@@ -151,7 +151,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 				{step === 1 &&
 					<React.Fragment>
-						<h2>{polyglot.t('Wallet.tab4.step1')}</h2>
+						<h2 className="step-title">{polyglot.t('Wallet.tab4.step1')}</h2>
 						<div className="select-container">
 							<CustomSelect err={err} items={countries} onChange={(country) => setCountry(country.label)} />
 							{err && <p className={"err"}>{polyglot.t('Wallet.tab4.error1')}</p>}
@@ -170,7 +170,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				}
 				{step === 2 &&
 					<React.Fragment>
-						<h2>{polyglot.t('Wallet.tab4.step2')}</h2>
+						<h2 className="step-title">{polyglot.t('Wallet.tab4.step2')}</h2>
 						<div className="select-container">
 							<CustomSelect err={err} items={convertIssuersToDropdownItems(issuers)} onChange={(inst) => setInstitution(inst.label)} />
 							{err && <p className={"err"}>{polyglot.t('Wallet.tab4.error2')}</p>}
@@ -189,7 +189,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				}
 				{step === 3 &&
 					<React.Fragment>
-						<h2>{polyglot.t('Wallet.tab4.step3')}</h2>
+						<h2 className="step-title">{polyglot.t('Wallet.tab4.step3')}</h2>
 						<div className="select-container">
 							<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
 							{err && <p className={"err"}>{polyglot.t('Wallet.tab4.error3')}</p>}

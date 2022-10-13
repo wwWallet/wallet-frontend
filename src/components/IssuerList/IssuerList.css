@@ -1,106 +1,31 @@
-.find-issuer .container {
-  background-color: #fff;
-  margin-top: 160px;
-  min-height: 83vh;
-  width: 55vw;
-  margin-bottom: 80px;
-  padding-top: 30px;
-  padding-bottom: 80px;
-  box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.2);
-  animation: Show 0.4s;
-  animation-fill-mode: forwards;
-  position: static;
-  margin: 160px auto;
-}
-
 .find-issuer .content {
-  padding-left: 10%;
-  padding-right: 10%;
-}
-
-.Organisation .container > * {
-  animation: Show 0.4s;
-}
-
-.find-issuer .Header {
-  background-color: #003476;
-  position: absolute;
-}
-
-.ClientSelect .client-name {
-  color: #555;
-}
-
-.find-issuer .steps-wrapper {
-  margin-bottom: 40px;
-}
-
-.find-issuer .ui.steps {
-  text-align: left !important;
-  width: 100%;
-  border-radius: 0.1rem !important;
-}
-
-.find-issuer .ui.steps .step {
-  width: 30%;
-}
-
-.find-issuer .ui.steps .content {
-  color: #353f55;
-}
-
-.find-issuer .ui.steps .step:before {
-  color: #a7b3a3 !important;
-  padding-bottom: 4px;
-}
-
-.find-issuer .ui.steps .step.active,
-.find-issuer .ui.steps .step.active:after {
-  background-color: #f5f1f1 !important;
-}
-
-.find-issuer .step-description {
-  padding-bottom: 25px;
+	padding-left: 10%;
+	padding-right: 10%;
 }
 
 .find-issuer .container-header {
-  margin-bottom: 50px;
+	margin-bottom: 50px;
 }
 
-.find-issuer h2 {
-  color: #003476;
-  margin-bottom: 30px;
+.find-issuer h2.step-title {
+	color: #003476;
+	margin-bottom: 30px;
 }
 
 .find-issuer .buttons {
-  margin: 0 auto;
-  margin-top: 70px;
+	margin: 0 auto;
+	margin-top: 70px;
 	display: flex;
 	justify-content: space-between;
 }
 
-.find-issuer .buttons button {
-  width: auto;
-}
-
-.find-issuer .buttons a:nth-child(1) {
-  margin-right: 2%;
-}
-
-.find-issuer .buttons a:nth-child(2) {
-  margin-left: 5%;
-}
-
-.find-issuer .fas {
-  color: #003476;
-}
-
-.find-issuer .back-link, .find-issuer .next-link {
-  color: #003476 !important;
-  font-size: 17px;
-  cursor: pointer;
-  outline: none;
-  text-decoration: none !important;
+.find-issuer .back-link,
+.find-issuer .next-link {
+	color: #003476 !important;
+	font-size: 17px;
+	cursor: pointer;
+	outline: none;
+	text-decoration: none !important;
 }
 
 .find-issuer .back-link span {
@@ -118,90 +43,4 @@
 .select-container p.err {
 	margin-top: 1%;
 	color: red;
-}
-
-.find-issuer .Menu .selection {
-  background-image: linear-gradient(
-    #fafafa,
-    #fafafa 50%,
-    hsla(0, 0%, 85.5%, 0.288) 0,
-    hsla(0, 0%, 85.5%, 0.288)
-  ) !important;
-}
-
-.fancy .fas {
-  color: #fff;
-}
-
-@media only screen and (max-width: 1048px) {
-  .find-issuer .ui.container {
-    width: 80vw;
-  }
-}
-
-@media only screen and (max-width: 500px) {
-  .find-issuer .ui.container {
-    margin-top: 90px;
-  }
-}
-
-@media only screen and (max-width: 480px) {
-  .find-issuer .container {
-    background-color: #fff;
-    margin-top: 160px;
-    min-height: 83vh;
-    width: 100vw;
-    margin-bottom: 80px;
-    padding-top: 30px;
-    padding-bottom: 80px;
-    box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.2);
-    opacity: 0;
-    animation: Show 0.4s;
-    animation-fill-mode: forwards;
-    position: static;
-    margin: 100px auto;
-  }
-}
-
-@media only screen and (min-width: 480px) and (max-width: 900px) {
-  .find-issuer .container {
-    background-color: #fff;
-    margin-top: 160px;
-    min-height: 83vh;
-    width: 100vw;
-    margin-bottom: 80px;
-    padding-top: 30px;
-    padding-bottom: 80px;
-    box-shadow: 0px 3px 15px rgba(0, 0, 0, 0.2);
-    opacity: 0;
-    animation: Show 0.4s;
-    animation-fill-mode: forwards;
-    position: static;
-    margin: 100px auto;
-  }
-}
-
-@media only screen and (max-width: 329px) {
-  .find-issuer .ui.container {
-    width: 90vw !important;
-  }
-
-  .find-issuer .buttons {
-    margin-top: 40px;
-  }
-
-  .find-issuer .buttons .button,
-  .find-issuer .buttons .back-link {
-    display: block;
-  }
-
-  .find-issuer .buttons .back-link {
-    position: relative;
-    top: 120px;
-  }
-
-  .find-issuer .buttons button:nth-child(2) {
-    display: block;
-    margin: 0 auto;
-  }
 }

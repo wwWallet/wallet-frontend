@@ -1,5 +1,3 @@
-import classnames from 'classnames';
-import { Button } from 'react-bootstrap';
 import './CustomButton.css';
 
 type ButtonProps = {

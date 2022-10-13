@@ -7,9 +7,9 @@ import {
   Navigate
 } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
-import Wallet from './components/Wallet';
+import Wallet from './components/Wallet/Wallet';
 import RequestVCs from './components/RequestVCs/RequestVCs';
-import Register from './components/RegisterNoToken/Register';
+import Register from './components/Register/Register';
 import Authz from './components/Authz/Authz';
 import Login from './components/Login/Login';
 import Present from './components/Present/Present';

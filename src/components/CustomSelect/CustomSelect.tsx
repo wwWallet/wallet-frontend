@@ -1,7 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
 import { CustomSelectProps } from '../../interfaces/SelectProps';
-import './CustomSelect.css';
 
 const CustomSelect: React.FC<CustomSelectProps> = ({items, isMulti, err, onChange}) => {
 

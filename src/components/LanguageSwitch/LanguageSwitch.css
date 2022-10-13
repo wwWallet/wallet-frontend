@@ -1,32 +1,27 @@
 .language-switch {
-  margin-right: 50px;
-  font-size: 13.333px;
+	margin-right: 50px;
+	font-size: 13.333px;
 }
 
 .language-switch button {
-  border: none;
-  background-color: transparent;
-  color: #353f55;
-  /* font-weight: bold; */
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  padding: 0 5px;
-  padding-bottom: 3px;
-  margin: 0 8px;
-  outline: none;
-  z-index: 3;
-}
-
-.language-switch.mobile {
-  display: none;
+	border: none;
+	background-color: transparent;
+	color: #353f55;
+	border-bottom: 2px solid transparent;
+	cursor: pointer;
+	padding: 0 5px;
+	padding-bottom: 3px;
+	margin: 0 8px;
+	outline: none;
+	z-index: 3;
 }
 
 .language-switch button:hover {
-  color: #f1f1f1;
-  border-bottom: 2px solid #fdfdfd;
-  transition: all 0.3s;
+	color: #f1f1f1;
+	border-bottom: 2px solid #fdfdfd;
+	transition: all 0.3s;
 }
 
 .language-switch button.active {
-  border-bottom: 2px solid #353f55;
+	border-bottom: 2px solid #353f55;
 }

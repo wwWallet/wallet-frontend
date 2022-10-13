@@ -6,7 +6,6 @@ import CredentialList from '../CredentialList/CredentialList';
 import decode from 'jwt-decode';
 import { Button } from 'react-bootstrap';
 import CustomButton from '../Button/CustomButton';
-import './Authz.css';
 import Spinner from '../Spinner/Spinner';
 import { userInfo } from 'os';
 import Polyglot from 'node-polyglot';

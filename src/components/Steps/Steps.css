@@ -1,100 +1,91 @@
 .Steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
-  grid-auto-rows: auto;
-  grid-gap: 0;
-  counter-reset: step-counter;
-  margin-bottom: 50px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+	grid-auto-rows: auto;
+	grid-gap: 0;
+	counter-reset: step-counter;
+	margin-bottom: 50px;
 }
-  
+
 .Steps .step {
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  text-align: center;
-  counter-increment: step-counter;
-  padding: 1rem;
-  font-size: 14px;
-  position: relative;
+	border: 1px solid rgba(0, 0, 0, 0.3);
+	text-align: center;
+	counter-increment: step-counter;
+	padding: 1rem;
+	font-size: 14px;
+	position: relative;
 }
-  
+
 .Steps .step:not(:last-child) {
-  border-right: 0;
+	border-right: 0;
 }
-  
+
 .Steps .step:before {
-  content: counters(step-counter, '.');
-  color: rgb(0, 52, 118);
-  font-weight: bold;
-  padding-right: 10px;
-  font-size: 19px;
+	content: counters(step-counter, '.');
+	color: rgb(0, 52, 118);
+	font-weight: bold;
+	padding-right: 10px;
+	font-size: 19px;
 }
-  
+
 .Steps .step .content {
-  display: inline-block;
-  z-index: 1;
+	display: inline-block;
+	z-index: 1;
 }
-  
+
 .Steps .step.step:not(:last-child).active .content:after {
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  border-width: 0 1px 1px 0;
-  background-color: rgb(224, 224, 224);
-  right: -1px;
-  top: 50%;
-  position: absolute;
-  content: '';
-  height: 1.14285714em;
-  width: 1.14285714em;
-  transform: translateY(-50%) translateX(50%) rotate(-45deg);
-  display: block;
-  z-index: 2;
+	border: 1px solid rgba(0, 0, 0, 0.3);
+	border-width: 0 1px 1px 0;
+	background-color: rgb(224, 224, 224);
+	right: -1px;
+	top: 50%;
+	position: absolute;
+	content: '';
+	height: 1.14285714em;
+	width: 1.14285714em;
+	transform: translateY(-50%) translateX(50%) rotate(-45deg);
+	display: block;
+	z-index: 2;
 }
-  
+
 .Steps .step.active {
-  background-color: rgb(224, 224, 224);
-  font-weight: bold;
+	background-color: rgb(224, 224, 224);
+	font-weight: bold;
 }
-  
+
 .Steps .content {
-  padding-left: 0;
-  padding-right: 0;
+	padding-left: 0;
+	padding-right: 0;
 }
-  
-@media only screen and (max-width: 1651px) {
-  .Page > .content {
-    width: 100%;
-    box-sizing: border-box;
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-}
-  
+
 @media only screen and (max-width: 1215px) {
-  .Steps .step:before {
-    display: block;
-  }
+	.Steps .step:before {
+		display: block;
+	}
 }
-  
+
 @media only screen and (max-width: 480px) {
-  .Steps {
-    grid-template-columns: 1fr;
-  }
+	.Steps {
+		grid-template-columns: 1fr;
+	}
 
-  .Steps .step:not(:last-child) {
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    border-bottom: 0;
-  }
+	.Steps .step:not(:last-child) {
+		border: 1px solid rgba(0, 0, 0, 0.3);
+		border-bottom: 0;
+	}
 
-  .Steps .step.step:not(:last-child).active .content:after {
-    border: 1px solid rgba(0, 0, 0, 0.3);
-    border-width: 0 1px 1px 0;
-    background-color: rgb(224, 224, 224);
-    right: 50%;
-    top: 100%;
-    position: absolute;
-    content: '';
-    height: 1.14285714em;
-    width: 1.14285714em;
-    transform: translateY(-50%) translateX(50%) rotate(45deg);
-    display: block;
-    z-index: 2;
-  }
+	.Steps .step.step:not(:last-child).active .content:after {
+		border: 1px solid rgba(0, 0, 0, 0.3);
+		border-width: 0 1px 1px 0;
+		background-color: rgb(224, 224, 224);
+		right: 50%;
+		top: 100%;
+		position: absolute;
+		content: '';
+		height: 1.14285714em;
+		width: 1.14285714em;
+		transform: translateY(-50%) translateX(50%) rotate(45deg);
+		display: block;
+		z-index: 2;
+	}
 }

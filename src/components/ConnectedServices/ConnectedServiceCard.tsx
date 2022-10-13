@@ -1,4 +1,5 @@
 import { Card } from "react-bootstrap";
+import './ConnectedServices.css';
 
 export interface ConnectedServiceCardProps {
 	logo: any;
@@ -13,7 +14,7 @@ const ConnectedServiceCard: React.FC<ConnectedServiceCardProps> = ({ logo, title
 		<Card className='mb-2 anims redirectCard mrgn2 enhanced' onClick={action}>
 			<Card.Body>
 				<Card.Text>
-					<img className="service-thumbnail" id="ministry-logo" src={logo}></img>
+					<img className="service-thumbnail" src={logo}></img>
 					<strong>{title}</strong>
 					<br />
 					<span className="card-subtitle">{subtitle}</span>

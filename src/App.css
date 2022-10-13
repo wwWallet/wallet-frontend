@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap');
-
 .gunet-container {
 	min-height: 70vh;
 	font-size: 20px;
@@ -7,7 +5,6 @@
 	display: block;
 	margin: 0 auto;
 	margin-top: 60px;
-	font-family: 'Roboto Slab', sans-serif;
 }
 
 .login-button {
@@ -103,37 +100,6 @@
       transform: rotate(360deg);
     }
   }
-  
-/* 
-@font-face {
-  font-family: 'Roboto Slab';
-  src: url('/fonts/Roboto_Slab/RobotoSlab-Regular.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Josefin Sans';
-  src: url('/fonts/Josefin_Sans/JosefinSans-Bold.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Questrial';
-  src: url('/fonts/Questrial/Questrial-Regular.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'GFS Neohellenic';
-  src: url('/fonts/GFS_Neohellenic/GFSNeohellenic.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'GFS Neohellenic Bold';
-  src: url('/fonts/GFS_Neohellenic/GFSNeohellenicBold.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'Share Tech Mono';
-  src: url('/fonts/ShareTechMono-Regular.ttf') format('truetype');
-} */
 
 html {
   height: auto;
@@ -370,11 +336,6 @@ h1 {
   vertical-align: middle;
 }
 
-input,
-button {
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
-}
-
 .block {
   display: block;
 }
@@ -512,7 +473,6 @@ button {
 .ui.cards > .card .header {
   text-align: center;
   color: #353f55 !important;
-  font-family: 'Roboto Slab', sans-serif !important;
 }
 
 .ui.card,
@@ -579,11 +539,6 @@ button {
   color: #019aeb !important;
   color: #c3c3c3 !important;
   color: #ffffff !important;
-}
-
-#developer-header {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 42px;
 }
 
 .Results {
@@ -811,7 +766,6 @@ button {
     bottom: 0;
     background-color: rgb(255, 255, 255);
     font-size: 18px;
-    font-family: 'Roboto Slab', serif;
     text-align: center;
     padding-top: 5px;
     position: absolute;

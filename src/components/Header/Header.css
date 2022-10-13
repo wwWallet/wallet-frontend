@@ -1,5 +1,4 @@
 .Header .header-content {
-	font-family: 'Open Sans', sans-serif;
 	font-size: 35px;
 	color: #fff;
 	opacity: 1;
@@ -38,7 +37,6 @@
 #subtitle {
 	display: flex;
 	justify-content: space-between;
-	font-family: 'Open Sans', sans-serif;
 	font-weight: 600;
 	font-size: 14px;
 	margin: 0 3%;

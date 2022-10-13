@@ -1,0 +1,70 @@
+.Form input[type='password'] {
+	width: 300px;
+}
+
+.recenter {
+	text-align: center;
+	margin: auto;
+	left: 50%;
+	margin-bottom: 50px;
+}
+
+.fade-in-text {
+	color: black;
+	animation: fadeIn linear 0.7s;
+
+	-webkit-animation: fadeIn linear 0.7s;
+	-moz-animation: fadeIn linear 0.7s;
+	-o-animation: fadeIn linear 0.7s;
+	-ms-animation: fadeIn linear 0.7s;
+}
+
+@keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+@-moz-keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+@-webkit-keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+@-o-keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
+
+@-ms-keyframes fadeIn {
+	0% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 1;
+	}
+}
