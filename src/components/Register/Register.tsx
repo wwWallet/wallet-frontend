@@ -26,17 +26,21 @@ const Register: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	const navigate = useNavigate();
 	const goToWallet = useCallback(() => navigate(state?.path || "/", { replace: true }), [navigate]);
 
+	const username = useRef<HTMLInputElement>(null);
 	const passphrase = useRef<HTMLInputElement>(null);
+	const passphraseRpt = useRef<HTMLInputElement>(null);
 	const [invalidPassword, setInvalidPassword] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(false);
 
-	async function postToken(pass: string) {
+	async function postToken(username: string, passphrase: string, passphraseRpt: string) {
 		setLoading(true);
 		localStorage.clear();
 		await axios.post<registrationResponseDTO>(`${config.storeBackend.url}/user/register`,
 			{
-				"password": pass
+				"username": username,
+				"password": passphrase,
+				"repeatpw": passphraseRpt
 			}
 		).then(res => {
 			localStorage.setItem("did", res.data.did);
@@ -50,14 +54,18 @@ const Register: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const register = async () => {
 
-		if (passphrase.current != null && passphrase.current.value !== "") {
-			var pass: string = passphrase.current.value;
-			await postToken(pass);
-		}
-		else {
-			handleInvalidPassword();
+		if (passphraseRpt.current == null || passphraseRpt.current.value === "")
 			return;
-		}
+		if (passphrase.current == null || passphrase.current.value === "")
+			return;
+		if (username.current == null || username.current.value === "")
+			return
+
+		var user: string = username.current.value;
+		var pass: string = passphrase.current.value;
+		var passRpt: string = passphraseRpt.current.value;
+		await postToken(user, pass, passRpt);
+		return;
 	};
 
 	const handleInvalidPassword = (timeout = 3000) => {
@@ -91,7 +99,19 @@ const Register: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 							<p>{polyglot.t('Register.description2')}:</p>
 
 							<div className='Form input-group'>
+								<input className={invalidPassword ? 'invalid' : ''} id={'passphrase'} type={'text'} ref={username} />
+								{invalidPassword &&
+									<p className='invalid-feedback'>{polyglot.t('Login.invalidPassword')}</p>
+								}
+							</div>
+							<div className='Form input-group'>
 								<input className={invalidPassword ? 'invalid' : ''} id={'passphrase'} type={'password'} ref={passphrase} />
+								{invalidPassword &&
+									<p className='invalid-feedback'>{polyglot.t('Login.invalidPassword')}</p>
+								}
+							</div>
+							<div className='Form input-group'>
+								<input className={invalidPassword ? 'invalid' : ''} id={'passphrase'} type={'password'} ref={passphraseRpt} />
 								{invalidPassword &&
 									<p className='invalid-feedback'>{polyglot.t('Login.invalidPassword')}</p>
 								}

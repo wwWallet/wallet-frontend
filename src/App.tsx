@@ -75,8 +75,8 @@ function App() {
       <React.Fragment>
         <Layout polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}>
           <Routes>
-            <Route path='/login' element={< Login polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/>} />
-            <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]} handleLanguage={handleLanguage}/>} />
+            <Route path='/login' element={< Login polyglot={POLYGLOT[lang]} />} />
+            <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]} />} />
             <Route path='/detailed/vid/:id' element={< DetailedVID polyglot={POLYGLOT[lang]}/>} />
             <Route path='/detailed/vc/:id' element={< DetailedVC />} />
             <Route path='/settings'  element={< Settings polyglot={POLYGLOT[lang]}/>} />

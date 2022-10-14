@@ -27,7 +27,12 @@ export default {
 		buttonLogin: 'Σύνδεση',
 		buttonRegister: 'Εγγραφή',
 		buttonImport: 'Εισαγωγή υπάρχοντος πορτοφολιού',
-		invalidPassword: 'Εσφαλμένος κωδικός πρόσβασης'
+		error: {
+			emptyUsername: 'Παρακαλώ συμπληρώστε Όνομα Χρήστη',
+			emptyPassword: 'Παρακαλώ συμπληρώστε τον κωδικό σας',
+			invalidCredentials: 'Λανθασμένος συνδυασμός στοιχείων χρήστη',
+			networkError: 'Σφάλμα δικτύου'
+		}
 	},
 
 	Register: {

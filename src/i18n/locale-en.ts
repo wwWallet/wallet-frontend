@@ -27,7 +27,12 @@ export default {
 		buttonLogin: 'Login',
 		buttonRegister: 'Register',
 		buttonImport: 'Import existing wallet',
-		invalidPassword: 'Invalid password'
+		error: {
+			emptyUsername: 'Please enter your username',
+			emptyPassword: 'Please enter your password',
+			invalidCredentials: 'Credentials do not match',
+			networkError: 'Network Error'
+		}
 	},
 
 	Register: {

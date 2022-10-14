@@ -23,10 +23,12 @@ export const checkIsAuthenticated = (): boolean => {
 
 const Authguard: any = (WrappedComponent: any, selectData: any) => {
 
+	const reverseGuard: string[] = ['/login', '/register', '/import'];
+
 	const WrapperComp: any = (props: any) => {
 		const location = useLocation();
 
-		if (location.pathname != '/login') {
+		if (!reverseGuard.includes(location.pathname)) {
 			if (checkIsAuthenticated() == true)
 				return <WrappedComponent {...props} />
 			else
