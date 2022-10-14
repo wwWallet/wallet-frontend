@@ -23,6 +23,6 @@
   "include": [
     "src",
     "src/components",
-    "src/custom.d.ts", "src/config/config.template.js",
+    "src/custom.d.ts", "src/config/config.template.ts",
   ]
 }

@@ -36,5 +36,5 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # Config file
-src/config.js
 src/config/config.dev.js
+src/config/config.dev.ts
