@@ -1,5 +1,6 @@
 import React from 'react';
 import './Header.css';
+import './Ribbon.css';
 import eDiplomasLogo from '../../static/icons/eDiplomasLogo.svg'
 import walletLogo from '../../static/icons/digital-wallet.png'
 import LanguageSwitch from '../LanguageSwitch/LanguageSwitch';

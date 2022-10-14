@@ -4,8 +4,8 @@ import App from './App';
 import "./index.css";
 import 'font-awesome/css/font-awesome.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './i18n/locale-en.js';
-import './i18n/locale-el.js';
+import './i18n/locale-en.ts';
+import './i18n/locale-el.ts';
 
 // import { library } from "@fortawesome/fontawesome-svg-core";
 // import { faArrowDown, faArrowUp, faArrowLeft, faArrowRight, faBars } from '@fortawesome/free-solid-svg-icons';

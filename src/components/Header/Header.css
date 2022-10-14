@@ -42,44 +42,10 @@
 	margin: 0 3%;
 }
 
-.header-dropdown {
-	position: absolute;
-	right: 1%;
-	bottom: 50%;
-}
-
 .header-border {
 	width: 100%;
 	height: 4px;
 	background: linear-gradient(358.5deg, #00aeef .09%, #134a86);
-}
-
-.Header .right-area {
-	float: right;
-	display: inline-block;
-	text-align: center;
-	padding-right: 10%;
-}
-
-.Header .right-area #logout {
-	background-color: white;
-	height: 28px;
-	padding: 0 12px;
-	border-radius: 5px;
-	font-size: 12px;
-	margin-top: 30px;
-	color: #003476;
-	position: absolute;
-	right: 10.5%;
-	top: 60px;
-}
-
-.Header .right-area #img-govgr {
-	height: 50px;
-	width: 140px;
-	position: absolute;
-	top: 20%;
-	right: 10%;
 }
 
 #ediplomasLogo {
@@ -87,7 +53,6 @@
 	position: absolute;
 	top: 15px;
 }
-
 
 .logo-area {
 	height: 60px;
@@ -108,14 +73,6 @@
 	height: 50px;
 }
 
-#img-gunet {
-	width: 130px;
-	position: absolute;
-	top: 20px;
-	right: 110px;
-
-}
-
 .logo-text {
 	font-size: 24px;
 }
@@ -124,73 +81,6 @@
 	border-right: thin solid white;
 	height: 100%;
 	margin-left: 10px;
-}
-
-#img-govgr {
-	width: 130px;
-	position: absolute;
-	top: 50px;
-	right: 30px;
-
-}
-
-.ribbon {
-	width: 150px;
-	height: 150px;
-	overflow: hidden;
-	position: absolute;
-	top: 0;
-	right: 0;
-	pointer-events: none;
-}
-
-.ribbonText {
-	position: absolute;
-	display: block;
-	width: 225px;
-	padding: 15px 0;
-	background-color: #004494;
-	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
-	color: #fff;
-	font: 700 18px/1 "Lato", sans-serif;
-	text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
-	text-transform: uppercase;
-	text-align: center;
-	left: -15px;
-	top: 20px;
-	transform: rotate(45deg);
-	pointer-events: auto;
-}
-
-.ribbonText:hover,
-.ribbonText:focus,
-.ribbonText:active {
-	color: #fff;
-}
-
-.language-switch {
-	position: absolute;
-	color: #fff !important;
-	z-index: 3;
-	width: 150px;
-	text-align: right;
-	top: 50px;
-	right: 20px;
-	/* font-weight: bold; */
-}
-
-.language-switch button {
-	color: #fff !important;
-}
-
-.language-switch button:hover {
-	color: #00aeef !important;
-	border-bottom: 2px solid #00aeef;
-}
-
-.language-switch button.active {
-	border-bottom: 2px solid #00aeef;
-	color: #00aeef !important;
 }
 
 .Header a.logout {
@@ -205,17 +95,8 @@
 
 @media screen and (max-width: 800px) {
 
-	.Header .right-area #img-govgr {
-		top: 0;
-		right: 5px;
-	}
-
 	.Header .logo-split {
 		display: none;
-	}
-
-	#NavBar {
-		padding-top: 0;
 	}
 
 	.Header .header-content {

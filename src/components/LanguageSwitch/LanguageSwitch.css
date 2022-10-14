@@ -1,4 +1,11 @@
 .language-switch {
+	position: absolute;
+	color: #fff !important;
+	z-index: 3;
+	width: 150px;
+	text-align: right;
+	top: 50px;
+	right: 20px;
 	margin-right: 50px;
 	font-size: 13.333px;
 }
@@ -6,7 +13,7 @@
 .language-switch button {
 	border: none;
 	background-color: transparent;
-	color: #353f55;
+	color: #fff;
 	border-bottom: 2px solid transparent;
 	cursor: pointer;
 	padding: 0 5px;
@@ -17,11 +24,12 @@
 }
 
 .language-switch button:hover {
-	color: #f1f1f1;
-	border-bottom: 2px solid #fdfdfd;
+	color: #00aeef;
+	border-bottom: 2px solid #00aeef;
 	transition: all 0.3s;
 }
 
 .language-switch button.active {
-	border-bottom: 2px solid #353f55;
+	border-bottom: 2px solid #00aeef;
+	color: #00aeef;
 }

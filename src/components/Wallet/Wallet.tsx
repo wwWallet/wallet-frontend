@@ -7,7 +7,7 @@ import ConnectedServices from '../ConnectedServices/ConnectedServices';
 import IssuerList from '../IssuerList/IssuerList';
 import Authguard from '../Authguard/Authguard';
 import Tab from '../Tabs/Tab';
-import './Tabs/Tab.css';
+import '../Tabs/Tab.css';
 
 const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 

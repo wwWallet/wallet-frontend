@@ -6,9 +6,12 @@ body {
 	font-family: var(--main-fonts) !important;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	height: auto;
+  scroll-behavior: smooth;
 }
 
 html {
 	position: relative;
+	height: auto;
 	min-height: 100%;
 }
