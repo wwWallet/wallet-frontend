@@ -7,17 +7,25 @@ import { SelectElement } from "../../interfaces/SelectProps";
 import CustomSelect from "../CustomSelect/CustomSelect";
 import Steps from "../Steps/Steps";
 import "./IssuerList.css"
+import { useSearchParams } from "react-router-dom";
 
 const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const [issuers, setIssuers] = useState<IssuerInterface[]>([]);
 	const [countries, setCountries] = useState<SelectElement[]>([]);
 	const [err, setErr] = useState(false);
-	const [step, setStep] = useState<number>(1);
+	const [step, setStep] = useState<number>(3);
 
 	const [country, setCountry] = useState("");
 	const [institution, setInstitution] = useState("");
 
+	const [searchParams, setSearchParams] = useSearchParams();
+	const [issuerURL, setIssuerURL] = useState("");
+	// const issuerURL = searchParams.get("issuer");
+	// if (issuerURL == null) {
+	// 	window.location.href = '/';
+	// 	return;
+	// }
 	// getCountries on component load
 	useEffect(() => {
 
@@ -25,7 +33,12 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 			setCountries([{ value: 'Greece', label: 'Greece' }, { value: 'Italy', label: 'Italy' }]);
 		}
 
-		getCountries();
+		const issuer = searchParams.get("issuer");
+		if (issuer == null) {
+			return;
+		}
+		setIssuerURL(issuer);
+		// getCountries();
 	}, [])
 
 
@@ -140,16 +153,16 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	return (
 		<div className="find-issuer">
 			<div className="content">
-				<h2 className="container-header step-title">{polyglot.t('Wallet.tab4.title')}</h2>
-				<Steps active={step}
+				{/* <h2 className="container-header step-title">{polyglot.t('Wallet.tab4.title')}</h2> */}
+				{/* <Steps active={step}
 					steps={[
 						polyglot.t('Wallet.tab4.country'),
 						polyglot.t('Wallet.tab4.institution'),
 						polyglot.t('Wallet.tab4.type')
 					]}
-				/>
+				/> */}
 
-				{step === 1 &&
+				{/* {step === 1 &&
 					<React.Fragment>
 						<h2 className="step-title">{polyglot.t('Wallet.tab4.step1')}</h2>
 						<div className="select-container">
@@ -186,7 +199,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 								</a>
 							</div>
 					</React.Fragment>
-				}
+				} */}
 				{step === 3 &&
 					<React.Fragment>
 						<h2 className="step-title">{polyglot.t('Wallet.tab4.step3')}</h2>
@@ -199,7 +212,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<span className="fa fa-arrow-left" />
 									{polyglot.t('Wallet.tab4.back')}
 								</a>
-								<a className="next-link" onClick={() => authorizationRequest(config.devIssuer.usage ? config.devIssuer.url : 'http://issuer.must.be.selected')}>
+								<a className="next-link" onClick={() => authorizationRequest(config.devIssuer.usage ? config.devIssuer.url : issuerURL)}>
 									{polyglot.t('Wallet.tab4.visitIssuer')}
 									<span className="fa fa-arrow-right" />
 								</a>
