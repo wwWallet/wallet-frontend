@@ -37,6 +37,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		if (issuer == null) {
 			return;
 		}
+		localStorage.setItem('issuerUrl', issuer);
 		setIssuerURL(issuer);
 		// getCountries();
 	}, [])
@@ -75,7 +76,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 
 	const loadIssuersByCountry = async (): Promise<void> => {
-		if(country === "")
+		if (country === "")
 			handleError();
 		else {
 			await getIssuersByCountry(country);
@@ -84,7 +85,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	}
 
 	const loadInstitutionMetadata = async (): Promise<void> => {
-		if(institution === "")
+		if (institution === "")
 			handleError();
 		else {
 			// get institution metadata for next step
@@ -131,7 +132,6 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		redirectUrl.searchParams.append('response_type', 'code');
 		redirectUrl.searchParams.append('client_id', config.oid4ci.redirectUri);
 		redirectUrl.searchParams.append('state', state);
-		console.log("Authorizatio det: ", config.devConformance.authorization_details)
 		if (config.devConformance.usage == true)
 			redirectUrl.searchParams.append('authorization_details', config.devConformance.authorization_details);
 		else
@@ -151,10 +151,11 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	}
 
 	return (
-		<div className="find-issuer">
-			<div className="content">
-				{/* <h2 className="container-header step-title">{polyglot.t('Wallet.tab4.title')}</h2> */}
-				{/* <Steps active={step}
+		<div className="gunet-container">
+			<div className="find-issuer">
+				<div className="content">
+					{/* <h2 className="container-header step-title">{polyglot.t('Wallet.tab4.title')}</h2> */}
+					{/* <Steps active={step}
 					steps={[
 						polyglot.t('Wallet.tab4.country'),
 						polyglot.t('Wallet.tab4.institution'),
@@ -162,7 +163,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 					]}
 				/> */}
 
-				{/* {step === 1 &&
+					{/* {step === 1 &&
 					<React.Fragment>
 						<h2 className="step-title">{polyglot.t('Wallet.tab4.step1')}</h2>
 						<div className="select-container">
@@ -200,12 +201,12 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 							</div>
 					</React.Fragment>
 				} */}
-				{step === 3 &&
-					<React.Fragment>
-						<h2 className="step-title">{polyglot.t('Wallet.tab4.step3')}</h2>
-						<div className="select-container">
-							<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
-							{err && <p className={"err"}>{polyglot.t('Wallet.tab4.error3')}</p>}
+					{step === 3 &&
+						<React.Fragment>
+							<h2 className="step-title">{polyglot.t('Wallet.tab4.step3')}</h2>
+							<div className="select-container">
+								<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
+								{err && <p className={"err"}>{polyglot.t('Wallet.tab4.error3')}</p>}
 							</div>
 							<div className="buttons">
 								<a className="back-link" onClick={prevStep}>
@@ -217,8 +218,9 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<span className="fa fa-arrow-right" />
 								</a>
 							</div>
-					</React.Fragment>
-				}
+						</React.Fragment>
+					}
+				</div>
 			</div>
 		</div>
 	);

@@ -104,7 +104,7 @@ export default {
 			type: 'Type',
 			step1: 'Step 1: Select Country',
 			step2: 'Step 2: Select Institution',
-			step3: 'Step 3: Select Credential Type',
+			step3: 'Select Credential Type',
 			next: 'Next',
 			back: 'Back',
 			visitIssuer: 'Visit Issuer',

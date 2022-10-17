@@ -13,11 +13,13 @@
 .bottom-tab {
 	display: none;
 	height: 80px;
+	
 }
 
 /* Style the buttons that are used to open the tab content */
 .tab button {
 	background-color: inherit;
+	opacity: 0.3;
 	float: left;
 	border: none;
 	outline: none;
@@ -39,6 +41,7 @@
 /* Create an active/current tablink class */
 .tab button.active {
 	background-color: #ccc;
+	opacity: 1;
 }
 
 .blue {

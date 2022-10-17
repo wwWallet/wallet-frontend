@@ -51,10 +51,10 @@ var mobileTabsElem = document.getElementById("mobile-tabs");
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab4.title'), 'services')}>
 					{polyglot.t('Wallet.tab3.title')}
 				</button>
-				<button className={`tablinks ${(activeTab === "issue") ? "active" : ""}`}
+				{/* <button className={`tablinks ${(activeTab === "issue") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab5.title'), 'issue')}>
 					{polyglot.t('Wallet.tab4.title')}
-				</button>
+				</button> */}
 				<button className={`tablinks ${(activeTab === "settings") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab3.title'), 'settings')}>
 					{polyglot.t('Wallet.tab5.title')}
@@ -75,10 +75,10 @@ var mobileTabsElem = document.getElementById("mobile-tabs");
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab3.title'), 'services')}>
 					{<span className="fa fa-globe blue" />}
 				</button>
-				<button className={`tablinks ${(activeTab === "issue") ? "active" : ""}`}
+				{/* <button className={`tablinks ${(activeTab === "issue") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab4.title'), 'issue')}>
 					{<span className="fa fa-university blue" />}
-				</button>
+				</button> */}
 				<button className={`tablinks ${(activeTab === "settings") ? "active" : ""}`}
 					onClick={(event) => changeTab(event, polyglot.t('Wallet.tab5.title'), 'settings')}>
 					{<span className="fa fa-gear blue" />}
@@ -102,9 +102,9 @@ var mobileTabsElem = document.getElementById("mobile-tabs");
 				<ConnectedServices polyglot={polyglot} />
 			</Tab>
 
-			<Tab tabId={"issue"} activeId={activeTab}>
+			{/* <Tab tabId={"issue"} activeId={activeTab}>
 				<IssuerList polyglot={polyglot} />
-			</Tab>
+			</Tab> */}
 
 		</React.Fragment>
 	);
