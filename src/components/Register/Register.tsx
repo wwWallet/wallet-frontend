@@ -1,24 +1,15 @@
 import axios from 'axios';
-import React, { useRef, useState } from 'react';
-import { useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { registrationResponseDTO } from '../../interfaces/login-register-dtos';
+import React, { useCallback, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { LocationProps } from '../types/LocationProps';
-import CustomButton from '../Button/CustomButton';
-import RingLoader from "react-spinners/RingLoader";
+import { registrationResponseDTO } from '../../interfaces/login-register-dtos';
 import Polyglot from 'node-polyglot';
+import Authguard from '../Authguard/Authguard';
 import config from '../../config/config.dev';
+import { RegisterErrors } from '../types/RegisterErrors';
+import CustomButton from '../Button/CustomButton';
 import '../Form/Form.css';
 import './Register.css'
-
-
-const override: any = {
-	display: "block",
-	margin: "0 auto",
-	borderColor: "#003476"
-};
-
-const ringColor: string = "#003476";
 
 const Register: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -26,88 +17,122 @@ const Register: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	const navigate = useNavigate();
 	const goToWallet = useCallback(() => navigate(state?.path || "/", { replace: true }), [navigate]);
 
-	const passphrase = useRef<HTMLInputElement>(null);
-	const [invalidPassword, setInvalidPassword] = useState(false);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState(false);
+	const usernameField = useRef<HTMLInputElement>(null);
+	const passwordField = useRef<HTMLInputElement>(null);
+	const passwRptField = useRef<HTMLInputElement>(null);
+	const [error, setError] = useState<RegisterErrors>('');
 
-	async function postToken(pass: string) {
-		setLoading(true);
+	async function register(username: string, passwordField: string, passwRptField: string) {
+
+		// re-initialize errors when new login attempt is made
+		setError('');
 		localStorage.clear();
+
 		await axios.post<registrationResponseDTO>(`${config.storeBackend.url}/user/register`,
 			{
-				"password": pass
+				"username": username,
+				"password": passwordField,
+				"repeatpw": passwRptField
 			}
 		).then(res => {
 			localStorage.setItem("did", res.data.did);
 			localStorage.setItem("appToken", res.data.appToken);
 			goToWallet();
-		})
-			.catch(err => {
-				setError(true);
-			});
+		}
+		).catch(error => {
+			try {
+				if (error.response.data.err === 'USERNAME_ALREADY_EXISTS')
+					handleError('existingUsername');
+				else
+					handleError('networkError');
+			}
+			catch {
+				handleError('networkError');
+			}
+		});
 	}
 
-	const register = async () => {
+	const handleRegister = async () => {
 
-		if (passphrase.current != null && passphrase.current.value !== "") {
-			var pass: string = passphrase.current.value;
-			await postToken(pass);
-		}
-		else {
-			handleInvalidPassword();
+		if (usernameField.current == null || usernameField.current.value === "") {
+			handleError('emptyUsername');
 			return;
 		}
+		if (passwordField.current == null || passwordField.current.value === "") {
+			handleError('emptyPassword');
+			return;
+		}
+		if (passwRptField.current == null || passwRptField.current.value === "") {
+			handleError('emptyRepeatPassword');
+			return;
+		}
+		if (passwordField.current.value !== passwRptField.current.value) {
+			handleError('differentPasswords');
+			return;
+		}
+
+		var username: string = usernameField.current.value;
+		var password: string = passwordField.current.value;
+		var passwRpt: string = passwRptField.current.value;
+		await register(username, password, passwRpt);
 	};
 
-	const handleInvalidPassword = (timeout = 3000) => {
-		setInvalidPassword(true);
+	const goBack = async () => {
+		navigate('/login', { state: state });
+	};
+
+	const handleError = (error: RegisterErrors, timeout = 3000) => {
+		setError(error);
 
 		setTimeout(() => {
-			setInvalidPassword(false);
+			setError('');
 		}, timeout);
 	}
 
 
 	return (
-		<React.Fragment>
-			{error &&
-				<h1 style={{ color: 'red' }}>Error</h1>
-			}
-			{loading
-				? (
-					<div className="gunet-container">
-						<div className='recenter'>
-							<h2>{polyglot.t('Register.loading')}...</h2>
-						</div>
-						<RingLoader color={ringColor} loading={true} css={override} size={150} speedMultiplier={0.5} />
-					</div>
-				)
-				: (
-					<div className="gunet-container">
-						<div className="fade-in-text">
-							<h3>{polyglot.t('Register.title')}</h3>
-							<p>{polyglot.t('Register.description1')}</p>
-							<p>{polyglot.t('Register.description2')}:</p>
+		<div className="gunet-container">
+			<div className="fade-in-text">
+				<div id="Form">
+					<div className="form-flex">
+						<form onSubmit={(e: any) => { e.preventDefault(); handleRegister() }} className="form-flex form-box item">
 
-							<div className='Form input-group'>
-								<input className={invalidPassword ? 'invalid' : ''} id={'passphrase'} type={'password'} ref={passphrase} />
-								{invalidPassword &&
-									<p className='invalid-feedback'>{polyglot.t('Login.invalidPassword')}</p>
-								}
+							<h1 className="title item">
+								{polyglot.t('Register.title')}
+							</h1>
+							<p className="subtitle">
+								{polyglot.t('Register.description1')}
+							</p>
+							<p className="item">
+								{polyglot.t('Register.description2')}
+							</p>
+
+							<div className={`input-wrap item ${error.includes('Username') || error.includes('Credentials') ? 'invalid' : ''}`}>
+								<input className={'input-field'} id={'username'} type={'text'} placeholder={'Username'} ref={usernameField} />
+							</div>
+							<div className={`input-wrap item ${error.includes('Password') || error.includes('Credentials') ? 'invalid' : ''}`}>
+								<input className={'input-field'} id={'password'} type={'password'} placeholder={'Password'} ref={passwordField} />
+							</div>
+							<div className={`input-wrap item ${error.includes('Password') || error.includes('Credentials') ? 'invalid' : ''}`}>
+								<input className={'input-field'} id={'password-rpt'} type={'password'} placeholder={'Repeat password'} ref={passwRptField} />
+							</div>
+							{error &&
+								<p className='invalid-feedback'>{polyglot.t(`Register.error.${error}`)}</p>
+							}
+
+							<div id="buttons" className="item" style={{ marginTop: '30px' }}>
+								<button type="button" className="small login-button grey-button ui fancy button" onClick={goBack}>
+									{polyglot.t('Register.buttonBack')}
+								</button>
+								<CustomButton type={'submit'} text={polyglot.t('Register.buttonRegister')} />
 							</div>
 
-							<div style={{ marginTop: '30px' }}>
-								<CustomButton buttonDisabled={false} text={polyglot.t('Register.buttonBack')} style={{ borderRadius: "9px" }} onClick={() => navigate('/login')} />
-								<CustomButton buttonDisabled={false} text={polyglot.t('Register.buttonRegister')}
-									style={{ borderRadius: "9px" }} onClick={register} />
-							</div>
-						</div>
+						</form>
 					</div>
-				)
-			}
-		</React.Fragment>
+				</div>
+			</div>
+		</div>
 	);
 }
 
-export default Register;
+export default Authguard(Register, null);

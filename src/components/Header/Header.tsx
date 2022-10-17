@@ -16,7 +16,7 @@ const Header: React.FC<{ polyglot: Polyglot, handleLanguage(lang: string): void 
 				handleLanguage={handleLanguage}
 			/>
 			<div className="ribbon">
-				<a className="ribbonText" href="#">
+				<a className="ribbonText" onClick={() => {}}>
 					EBSI DEMO
 				</a>
 			</div>

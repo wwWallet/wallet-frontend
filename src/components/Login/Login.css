@@ -1,8 +1,3 @@
-.button {
-	margin-right: 20px;
-	margin-bottom: 20px;
-}
-
 .yellow-button {
 	background-color: #F9CA1A;
 	color: #000;
@@ -26,9 +21,5 @@
 }
 
 .login-content {
-	margin-top: 25px;
-}
-
-.passphrase-input-field {
-	width: 300px;
+	margin-top: 10%;
 }

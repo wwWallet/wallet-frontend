@@ -23,21 +23,34 @@ export default {
 	Login: {
 		header: 'eDiplomas Wallet',
 		description1: 'Your digital wallet for the university degrees and lifelong learning certifications',
-		description2: 'Insert your secret passphrase to login',
+		description2: 'Insert your credentials to login',
 		buttonLogin: 'Login',
 		buttonRegister: 'Register',
 		buttonImport: 'Import existing wallet',
-		invalidPassword: 'Invalid password'
+		error: {
+			emptyUsername: 'Please enter your username',
+			emptyPassword: 'Please enter your password',
+			invalidCredentials: 'Credentials do not match',
+			networkError: 'Network Error'
+		}
 	},
 
 	Register: {
 		title: 'Register',
-		description1: 'You must provide a secure password to protect your wallet',
-		description2: 'Choose a password',
+		description1: 'Use a username that you can memorize, and provide a secure password to protect your wallet',
+		description2: 'Choose your credentials',
 		buttonBack: 'Back',
 		buttonRegister: 'Register',
 		invalidPassword: 'Choose a password',
-		loading: 'Registering Wallet'
+		loading: 'Registering Wallet',
+		error: {
+			emptyUsername: 'Please enter your username',
+			emptyPassword: 'Please enter your password',
+			emptyRepeatPassword: 'Please repeat your password',
+			differentPasswords: 'Password confirmation is invalid',
+			existingUsername: 'A user with the chosen username already exists',
+			networkError: 'Network Error'
+		}
 	},
 
 	Import: {

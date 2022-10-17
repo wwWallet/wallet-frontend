@@ -1,16 +1,6 @@
-.Form input[type='password'] {
-	width: 300px;
-}
-
-.recenter {
-	text-align: center;
-	margin: auto;
-	left: 50%;
-	margin-bottom: 50px;
-}
-
 .fade-in-text {
 	color: black;
+	margin-top: 10%;
 	animation: fadeIn linear 0.7s;
 
 	-webkit-animation: fadeIn linear 0.7s;

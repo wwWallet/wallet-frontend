@@ -23,7 +23,7 @@
 	left: -15px;
 	top: 20px;
 	transform: rotate(45deg);
-	pointer-events: auto;
+	pointer-events: none;
 }
 
 .ribbonText:hover,

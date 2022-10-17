@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import moment from 'moment';
-import Tooltip from './Tooltip';
 
 import './Form.css';
+import './Tooltip.css';
 import '../../App.css';
 
 interface FormProps {
@@ -21,6 +21,18 @@ export const FormGroup: React.FC<{ children: JSX.Element }> = ({ children }) => 
 export const InputGroup: React.FC<{ children: JSX.Element }> = ({ children }) => {
 	return (<div className="input-group">{children}</div>);
 };
+
+export interface TooltipProps {
+	tip: string,
+	children: JSX.Element;
+}
+export const Tooltip: React.FC<TooltipProps> = ({ tip, children }) => {
+	return (
+		<span data-tip={tip} className="Tooltip">
+			{children}
+		</span>
+	);
+}
 
 interface LabelProps {
 	id: string,
