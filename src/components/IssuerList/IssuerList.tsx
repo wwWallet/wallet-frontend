@@ -30,7 +30,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	// getCountries on component load
 
 
-	const [credentialTypes, setCredentialTypes] = useState([]);
+	const [credentialTypes, setCredentialTypes] = useState<SelectElement[]>([]);
 
 	useEffect(() => {
 
@@ -42,23 +42,37 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		if (issuerURL == null) {
 			return;
 		}
-		// get issuer metadata based on the issuer url:
-		// issue server metadata is usually located at the /.well-known/oauth-authorization-server endpoint
-		// according to rfc8414
-		axios.get(issuerURL + '/.well-known/oauth-authorization-server').then(res => {
-			const metadata = res.data;
-			localStorage.setItem("issuerMetadata", JSON.stringify(metadata));
 
-			let credentialsSupported = getIssuerMetadata().credentials_supported;
-			Object.keys(credentialsSupported).map((value) => {
-				
+		const credentialTypeSchemaURL = searchParams.get("credential_type");
+
+		// if credential type is not defined on the initiation url,
+		// then fetch the Issuer Server Metadata
+		// IMPORTANT: Currently not implemented
+		if (credentialTypeSchemaURL == null) {
+
+			// get issuer metadata based on the issuer url:
+			// issue server metadata is usually located at the /.well-known/oauth-authorization-server endpoint
+			// according to rfc8414
+			axios.get(issuerURL + '/.well-known/oauth-authorization-server').then(res => {
+				const metadata = res.data;
+				localStorage.setItem("issuerMetadata", JSON.stringify(metadata));
+
+				let credentialsSupported = getIssuerMetadata().credentials_supported;
+				Object.keys(credentialsSupported).map((value) => {
+					// fill the credentialTypes variable
+				})
+
+			}).catch(e => {
+				console.log(e);	
+			});
+		}
+		else {
+			axios.get(credentialTypeSchemaURL).then(res => {
+				console.log("Credential schema = ", res.data);
+				const title = res.data["title"];
+				setCredentialTypes([ { value: 1, label: title } ]);
 			})
-
-		}).catch(e => {
-			// if no metadata endpoint was found, then redirect user to main page
-			// and halt the issuance flow
-			window.location.href = '/';
-		});
+		}
 		// getCountries();
 	}, [])
 
@@ -219,7 +233,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 						<React.Fragment>
 							<h2 className="step-title">{polyglot.t('Wallet.tab4.step3')}</h2>
 							<div className="select-container">
-								<CustomSelect isMulti={true} items={[]} onChange={() => { }} />
+								<CustomSelect isMulti={true} items={credentialTypes} onChange={() => { }} />
 								{err && <p className={"err"}>{polyglot.t('Wallet.tab4.error3')}</p>}
 							</div>
 							<div className="buttons">
