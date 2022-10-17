@@ -1,140 +1,63 @@
-.Form input[type='text'],
-.Form input[type='password'],
-.Form select {
-  border-radius: 5px;
-  border: 1px solid rgba(34, 36, 38, 0.15);
-  font-size: 18px;
-  padding: 0.6em 1em;
-  outline: 0;
-  transition: color 0.1s ease, border-color 0.1s ease;
-  width: 100%;
+#Form .form-flex {
+	display: flex;
+	flex-wrap: nowrap;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	align-content: center;
+	text-align: center;
 }
 
-.Form input.invalid {
-	border: 1px solid red;
+#Form .form-box {
+	width: 60%;
+	min-width: 300px;
+	border-radius: 4.2px;
+	box-shadow: 0px 3px 10px -2px rgba(0, 0, 0, 0.2);
 }
 
-.Form p.invalid-feedback {
+#Form .item {
+	flex: 0 0 auto;
+	margin: 10px;
+}
+
+#Form .title {
+	color: #003476;
+	margin-top: 5%;
+}
+
+#Form .subtitle {
+	color: #003476;
+	font-size: 0.8em;
+	margin: 0 10px;
+}
+
+#Form #buttons {
+	display: flex;
+	/* margin: 5% 0; */
+	margin-top: 5%;
+	margin-bottom: 5%;
+}
+
+#Form .input-wrap {
+	border-bottom: 2px solid #adadad;
+}
+
+#Form .input-wrap.invalid {
+	border-bottom: 2px solid red;
+}
+
+#Form p.invalid-feedback {
 	display: block;
 	color: red;
 }
 
-.Form input[type='text'].labeled,
-.Form select.labeled {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+#Form .input-wrap:focus-within {
+	border-bottom: 2px solid transparent;
+	border-image: linear-gradient(300deg, #00aeef 20%, #134a86);
+	border-image-slice: 1;
 }
 
-.Form input[type='text'].date {
-  text-align: center;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-}
-
-.Form input[type='text'].date:not(:last-child) {
-  border-radius: 0;
-}
-
-.Form input:focus {
-  border-color: #85b7d9;
-}
-
-.Form label:not(.checkbox-label) {
-  border: 1px solid rgb(236, 236, 236);
-  border-radius: 5px;
-  border-right: 0;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  background-color: rgb(236, 236, 236);
-  padding: calc(0.6em + 3px) 1em;
-  color: rgba(0, 0, 0, 0.7);
-  font-weight: 400;
-  font-size: 16px;
-  min-width: 90px;
-  text-align: center;
-}
-
-.Form .checkbox-label {
-  display: block;
-}
-
-.Form label.small {
-  min-width: 10px;
-  border-radius: 0;
-}
-
-.Form .input-group {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.Form button {
-  border-radius: 5px;
-  padding: 0.46647em 1.2828em;
-  color: white;
-  cursor: pointer;
-  border: 0;
-  font-size: 1.1rem;
-}
-
-.Form button.primary {
-  background-color: #00703c;
-}
-
-.Form button.primary:hover {
-  background-color: #004e2a;
-}
-
-.Form select option.placeholder {
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.Form .tooltip-label {
-  border-bottom: 1px dotted black;
-  cursor: help;
-}
-
-@media only screen and (max-width: 1200px) {
-  .Form input[type='text'] {
-    padding: 0.6em 0.3em;
-  }
-
-  .Form label:not(.checkbox-label) {
-    padding: calc(0.6em + 3px) 0.1em;
-  }
-
-  /* .Form label.small {
-    
-  } */
-
-  .Form input[type='text'].date {
-    padding: 0.6em 0.1em;
-  }
-}
-
-@media only screen and (max-width: 850px) {
-  .Form label:not(.checkbox-label) {
-    padding: calc(0.6em + 3px) 1em;
-  }
-}
-
-@media only screen and (max-width: 580px) {
-  .Form label:not(.checkbox-label) {
-    padding: calc(0.6em + 3px) 0.1em;
-  }
-}
-
-/* @media only screen and (max-width: 456px) {
-  .Form label:not(.checkbox-label) {
-    min-width: 88px;
-  }
-} */
-
-
-@media only screen and (max-width: 300px) {
-  .Form label:not(.checkbox-label) {
-    padding: calc(0.6em + 3px) 1px;
-  }
+#Form input {
+	border: none;
+	outline: none;
 }

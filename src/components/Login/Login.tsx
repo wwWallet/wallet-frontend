@@ -1,17 +1,15 @@
 import axios from 'axios';
 import React, { useCallback, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { loginResponseDTO } from '../../interfaces/login-register-dtos';
 import { LocationProps } from '../types/LocationProps';
+import { loginResponseDTO } from '../../interfaces/login-register-dtos';
+import Polyglot from 'node-polyglot';
+import Authguard from '../Authguard/Authguard';
+import config from '../../config/config.dev';
+import { LoginErrors } from '../types/LoginErrors';
 import './Login.css';
 import '../../App.css';
-// import '../Form/Form.css';
-import '../animations.css';
-import Polyglot from 'node-polyglot';
-import config from '../../config/config.dev';
-import Authguard from '../Authguard/Authguard';
-import { LoginErrors } from '../types/LoginErrors';
-
+import '../Form/Form.css';
 
 const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -23,7 +21,7 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	const passwordField = useRef<HTMLInputElement>(null);
 	const [error, setError] = useState<LoginErrors>('');
 
-	async function authn(username: string, password: string) {
+	async function login(username: string, password: string) {
 
 		// re-initialize errors when new login attempt is made
 		setError('');
@@ -50,7 +48,7 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		});
 	}
 
-	const login = async () => {
+	const handleLogin = async () => {
 
 		if (usernameField.current == null || usernameField.current.value === "") {
 			handleError('emptyUsername');
@@ -62,16 +60,14 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		}
 		var username: string = usernameField.current.value;
 		var password: string = passwordField.current.value;
-		await authn(username, password);
+		await login(username, password);
 	};
 
-	const importWallet = async (e: any) => {
-		e.preventDefault();
+	const importWallet = async () => {
 		navigate('/import', { state: state });
 	};
 
-	const register = async (e: any) => {
-		e.preventDefault();
+	const register = async () => {
 		navigate('/register', { state: state });
 	};
 
@@ -88,26 +84,26 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	return (
 		<div id="home-content">
 			<div className="gunet-container">
-				<h1>{polyglot.t('Login.header')}</h1>
-				<span>{polyglot.t('Login.description1')}</span>
 				<div className='login-content'>
+					<div id="Form">
+						<div className="form-flex">
+							<form onSubmit={(e: any) => { e.preventDefault(); handleLogin() }} className="form-flex form-box item">
 
-					<div id="LoginForm">
-						<div className="login-flex">
-							<form onSubmit={(e: any) => { e.preventDefault(); login() }} className="login-flex login-box item">
-
-								<h1 className="item">
-									Title
+								<h1 className="title item">
+									{polyglot.t('Login.header')}
 								</h1>
 
+								<p className="subtitle">
+									{polyglot.t('Login.description1')}
+								</p>
 								<p className="item">
-									Description
+									{polyglot.t('Login.description2')}
 								</p>
 
-								<div className={`input-wrap item ${error.includes('Username') ? 'invalid' : ''}`}>
+								<div className={`input-wrap item ${error.includes('Username') || error.includes('Credentials') ? 'invalid' : ''}`}>
 									<input className={'input-field'} id={'username'} type={'text'} placeholder={'Username'} ref={usernameField} />
 								</div>
-								<div className={`input-wrap item ${error.includes('Password') ? 'invalid' : ''}`}>
+								<div className={`input-wrap item ${error.includes('Password') || error.includes('Credentials') ? 'invalid' : ''}`}>
 									<input className={'input-field'} id={'password'} type={'password'} placeholder={'password'} ref={passwordField} />
 								</div>
 								{error &&
@@ -115,21 +111,20 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 								}
 
 								<div id="buttons" className="item">
-									<button type="submit" className="ui fancy button">
+									<button type="submit" className="small login-button ui fancy button">
 										{polyglot.t('Login.buttonLogin')}
 									</button>
-									<button type="button" className="yellow-button fancy button" onClick={register}>
+									<button type="button" className="small login-button yellow-button ui fancy button" onClick={register}>
 										{polyglot.t('Login.buttonRegister')}
 									</button>
-									<button type="button" className="grey-button fancy button" onClick={importWallet}>
+									<button type="button" className="small login-button grey-button ui fancy button" onClick={importWallet}>
 										{polyglot.t('Login.buttonImport')}
 									</button>
 								</div>
-							</form>
 
+							</form>
 						</div>
 					</div>
-
 				</div>
 			</div>
 		</div >
