@@ -23,3 +23,44 @@
 .login-content {
 	margin-top: 10%;
 }
+
+
+.hint {
+	font-weight: 200;
+	font-size: smaller;
+	opacity: 0.5;
+}
+
+
+
+
+.Register {
+	background-color: #fff;
+	/* color: rgb(0, 162, 255); */
+	color: #003476;
+	transition: 0.4s;
+	border: none;
+	/* width: 100%; */
+	cursor: pointer;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.arrow {
+	margin-left: 22px;
+}
+
+.Register:hover {
+	opacity: 0.5;
+	text-decoration: underline;
+}
+
+.next-icon {
+	margin-left: 5px;
+	transition: 0.4s;
+}
+
+/* select what next-icon will do when we hover over proceed class */
+.Register:hover .next-icon {
+	margin-left: 10px;
+}

@@ -87,7 +87,7 @@ function App() {
             <Route path='/present' element={<Present polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/import' element={<Import polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/export' element={<Export polyglot={POLYGLOT[lang]}/>}></Route>
-						<Route path='/consent' element={<Consent polyglot={POLYGLOT[lang]}/>}></Route>
+						<Route path='/consent' element={<Consent lang={lang} polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/initiate_issuance' element={<IssuerList polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/logout' element={<Logout />}></Route>
             <Route path='*' element={<Navigate to="/login" replace />} />

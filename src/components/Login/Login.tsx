@@ -97,7 +97,7 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									{polyglot.t('Login.description1')}
 								</p>
 								<p className="item">
-									{polyglot.t('Login.description2')}
+									<i className='hint'>{polyglot.t('Login.description2')}</i>
 								</p>
 
 								<div className={`input-wrap item ${error.includes('Username') || error.includes('Credentials') ? 'invalid' : ''}`}>
@@ -114,12 +114,13 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 									<button type="submit" className="small login-button ui fancy button">
 										{polyglot.t('Login.buttonLogin')}
 									</button>
-									<button type="button" className="small login-button yellow-button ui fancy button" onClick={register}>
+									<button type="button" className="Register small" onClick={register}>
 										{polyglot.t('Login.buttonRegister')}
+										<i className='fa fa-angle-right fa-sm next-icon' aria-hidden="true"></i>
 									</button>
-									<button type="button" className="small login-button grey-button ui fancy button" onClick={importWallet}>
+									{/* <button type="button" className="small login-button grey-button ui fancy button" onClick={importWallet}>
 										{polyglot.t('Login.buttonImport')}
-									</button>
+									</button> */}
 								</div>
 
 							</form>

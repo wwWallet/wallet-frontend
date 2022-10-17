@@ -4,6 +4,26 @@ import Polyglot from "node-polyglot";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import config from "../../config/config.dev";
+import './Consent.css';
+
+export const getIssuerMetadata = (): {
+		issuer: string,
+		authorization_endpoint: string,
+		token_endpoint: string,
+		credential_endpoint: string,
+		credentials_supported: any,
+		credential_issuer: {
+			id: string,
+			display: any[]
+		}
+	} => {
+		const issuerMetadataString: string | null = localStorage.getItem("issuerMetadata");
+		if (issuerMetadataString == null) {
+			window.location.href = '/';
+			throw new Error("No metadata were found");
+		}
+		return JSON.parse(issuerMetadataString);
+	}
 
 interface TokenResponseDTO {
 	access_token: string;
@@ -19,15 +39,22 @@ interface CredentialResponseDTO {
 	c_nonce_expires_in: number;
 }
 
-const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
+const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglot }) => {
 
-	const [issuerName, setIssuerName] = useState("issuer");
+	const [issuerName, setIssuerName] = useState("");
 
 	const [authCode, setAuthCode] = useState("");
 
 	const [searchParams] = useSearchParams();
 
 	useEffect(() => {
+		const displayList = getIssuerMetadata().credential_issuer.display;
+		// set issuer name from the Display object
+		for (const d of displayList) {
+			if (d["locale"].toLowerCase().startsWith(lang)) {
+				setIssuerName(d["name"]);
+			}
+		}
 		const authRes = authorizationResponse();
 		if (!authRes.ok) {
 			// error
@@ -35,6 +62,18 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		else
 			setAuthCode(authRes.code);
 	}, [])
+
+	useEffect(() => { // if lang is changed, then update the issuerName
+		const displayList = getIssuerMetadata().credential_issuer.display;
+		// set issuer name from the Display object
+		for (const d of displayList) {
+			console.log('d = ', d.locale)
+			console.log('lang = ', lang)
+			if (d["locale"].toLowerCase().startsWith(lang)) {
+				setIssuerName(d["name"]);
+			}
+		}
+	}, [lang]);
 
 	const authorizationResponse = (): { ok: boolean, code: string } => {
 		const code = searchParams.get('code');
@@ -54,13 +93,18 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		return (state === localStorage.getItem('state'));
 	}
 
+
+
+
 	const tokenRequest = async (): Promise<void> => {
 		console.log('code = ', authCode);
-		let tokenEndpoint = "";
+
+
+
+		let tokenEndpoint = getIssuerMetadata().token_endpoint;
 		if (config.devIssuer.usage) {
 			tokenEndpoint = config.devIssuer.tokenEndpoint;
 		}
-
 		const params = new URLSearchParams();
 		params.append("grant_type", "authorization_code");
 		params.append("code", authCode);
@@ -97,7 +141,7 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		return await axios.post(
 			`${config.signatoryBackend.url}/issuance/construct/proof`,
 			{
-				issuerUrl: issuerUrl,
+				issuerUrl: getIssuerMetadata().issuer,
 				c_nonce: c_nonce,
 				rsaPublicKey: rsaPublicKey 
 			},
@@ -111,8 +155,9 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	}
 	const credentialRequest = async (tokenResponse: TokenResponseDTO) => {
 
-		const issuerUrl = localStorage.getItem('issuerUrl');
+		const issuerUrl = getIssuerMetadata().issuer;
 		if (issuerUrl == null) {
+			window.location.href = '/';
 			throw new Error("No issuer url was found");
 		}
 
@@ -126,7 +171,7 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 			const proofJWT: string = getProofJWTRes.data.proof;
 			console.log(proofJWT);
 
-			let credentialEndpoint = "";
+			let credentialEndpoint = getIssuerMetadata().credential_endpoint;
 			if (config.devIssuer.usage) {
 				credentialEndpoint = config.devIssuer.credentialEndpoint;
 			}
@@ -191,7 +236,11 @@ const Consent: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	return (
 		<div className="gunet-container">
 			<h1>{polyglot.t('Consent.title')}</h1>
-			<h4>{polyglot.t('Consent.description1')} {issuerName} {polyglot.t('Consent.description2')}</h4>
+			<img className="issuerLogo" src={getIssuerMetadata().credential_issuer.display[0]["logo"]} alt="Issuer's logo" height={200}/>
+			<h4>{polyglot.t('Consent.description1')} 
+				<b><i>{` "${issuerName}" `}</i></b>
+				{polyglot.t('Consent.description2')}
+			</h4>
 			<button
 				className="small login-button ui fancy button"
 				onClick={tokenRequest}>

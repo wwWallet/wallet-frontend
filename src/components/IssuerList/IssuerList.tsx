@@ -8,6 +8,7 @@ import CustomSelect from "../CustomSelect/CustomSelect";
 import Steps from "../Steps/Steps";
 import "./IssuerList.css"
 import { useSearchParams } from "react-router-dom";
+import { getIssuerMetadata } from "../Consent/Consent";
 
 const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -27,18 +28,37 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	// 	return;
 	// }
 	// getCountries on component load
+
+
+	const [credentialTypes, setCredentialTypes] = useState([]);
+
 	useEffect(() => {
 
 		const getCountries = async () => {
 			setCountries([{ value: 'Greece', label: 'Greece' }, { value: 'Italy', label: 'Italy' }]);
 		}
 
-		const issuer = searchParams.get("issuer");
-		if (issuer == null) {
+		const issuerURL = searchParams.get("issuer");
+		if (issuerURL == null) {
 			return;
 		}
-		localStorage.setItem('issuerUrl', issuer);
-		setIssuerURL(issuer);
+		// get issuer metadata based on the issuer url:
+		// issue server metadata is usually located at the /.well-known/oauth-authorization-server endpoint
+		// according to rfc8414
+		axios.get(issuerURL + '/.well-known/oauth-authorization-server').then(res => {
+			const metadata = res.data;
+			localStorage.setItem("issuerMetadata", JSON.stringify(metadata));
+
+			let credentialsSupported = getIssuerMetadata().credentials_supported;
+			Object.keys(credentialsSupported).map((value) => {
+				
+			})
+
+		}).catch(e => {
+			// if no metadata endpoint was found, then redirect user to main page
+			// and halt the issuance flow
+			window.location.href = '/';
+		});
 		// getCountries();
 	}, [])
 
@@ -115,15 +135,9 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		localStorage.setItem('state', state);
 
 		localStorage.setItem('issuerUrl', issuerUrl);
-		if (config.devIssuer.usage) {
-			localStorage.setItem('issuedDid', config.devIssuer.did);
-		}
-		else {
-			localStorage.setItem('issuerDid', "")
-		}
 
 		// this endpoint is meant to be fetched from the server metadata, once we know the server metadata url of the issuer
-		let authorizationEndpoint = "";
+		let authorizationEndpoint = getIssuerMetadata().authorization_endpoint;
 		if (config.devIssuer.usage == true) {
 			authorizationEndpoint = config.devIssuer.authorizationEndpoint;
 		}
@@ -137,7 +151,7 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		else
 			redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
 		redirectUrl.searchParams.append('redirect_uri', config.oid4ci.redirectUri);
-		redirectUrl.searchParams.append('scope', 'openid')
+		redirectUrl.searchParams.append('scope', 'openid');
 		// window.location.replace(redirectUrl);
 		console.log('URL = ', redirectUrl.toString())
 		window.location.replace(redirectUrl);
