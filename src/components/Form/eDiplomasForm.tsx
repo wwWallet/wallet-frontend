@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
 import moment from 'moment';
 
-import './Form.css';
-import './Tooltip.css';
+import './eDiplomasForm.css';
+import './eDiplomasTooltip.css';
 import '../../App.css';
 
 interface FormProps {

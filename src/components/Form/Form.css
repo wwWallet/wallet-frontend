@@ -61,3 +61,12 @@
 	border: none;
 	outline: none;
 }
+
+@media screen and (max-width: 350px) {
+
+	#Form .form-box {
+		width: 100%;
+		min-width: 0;
+	}
+
+}
