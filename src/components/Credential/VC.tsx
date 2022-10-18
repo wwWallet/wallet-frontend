@@ -1,5 +1,6 @@
-
+import jwtDecode from 'jwt-decode';
 import React, { useEffect, useState } from 'react'
+import { CredentialEntity } from '../CredentialList/CredentialList';
 import './VC.css';
 const credential = {
 	id: "urn:id:222323",
@@ -50,41 +51,44 @@ function generateDataFromVC(object: any, depth: number): JSX.Element {
   }
 
 	if (Array.isArray(object)) {
+		let i = 0;
 		let parsedData: JSX.Element = <>
 			{object.map((value: any) => {
-				return <> 
+				return <div key={i++}> 
 					{generateDataFromVC(value, depth+1)}
 					<br />
-				</>
+				</div>
 			})}
 		</>
 		return parsedData;
 	}
 
 
-  console.log("Object = ", object)
 	let parsedData: JSX.Element = <>
-		{Object.keys(object).map((key: any) => {
-			console.log('key = ', typeof key, ' , ', object[key], ' depth = ', depth)
-			return <>
+		{/* if typeof object[key] is not 'object' then render it first */}
+		{/* For each key, render the object of that key */}
+		{Object.keys(object).sort((a: string, b: string) => typeof object[a] == 'object' ? 1 : -1).map((key: any) => {
+			return <div key={key}>
 				{ ['string', 'number'].includes(typeof object[key]) ? <></> : styleAccordingToDepth(key, depth) }
 				{ ['string', 'number'].includes(typeof object[key]) ? <div className='layout'><div>{key + ": "} </div><div>{object[key]}</div></div> : generateDataFromVC(object[key], Array.isArray(object[key]) ? depth : depth+1) }
 				<br />
-			</>
+			</div>
 		})}
 	</>;
-	console.log("Out, ", parsedData)
   return parsedData
 }
 
-const VC = () => {
+const VC: React.FC<{credential: CredentialEntity}> = ({credential}) => {
 
-	const [renderedCredential, setRenderedCredential] = useState<JSX.Element>();
-
+	const [vc, setVc] = useState({});
+	useEffect(() => {
+		const content = jwtDecode(credential.jwt) as any
+		setVc(content.vc)
+	}, [])
 	return <>
 		<div id="VC">
 
-			{generateDataFromVC(credential, 0)}
+			{generateDataFromVC(vc, 0)}
 		</div>
 	</>
 }

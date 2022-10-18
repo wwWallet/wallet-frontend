@@ -103,7 +103,7 @@ const Credential: React.FC<{credential: CredentialEntity}> = ({credential}) => {
 						</button>
 					</div>
 					<div className='content'>
-						<VC />
+						<VC credential={credential} />
 					</div>
 				</Modal>
 		</div>
