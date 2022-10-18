@@ -14,6 +14,7 @@ import './MyModal.css';
 import ModalVID from '../DetailedVC/ModalVID';
 import ModalDiploma from '../DetailedVC/ModalDiploma';
 import ModalCredential from '../DetailedVC/ModalCredential';
+import VC from '../Credential/VC';
 
 
 
@@ -62,6 +63,55 @@ export const ShortVCPlaceholder = (props: any) => {
 	)
 }
 
+
+const Credential: React.FC<{credential: CredentialEntity}> = ({credential}) => {
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+	const [selectedVc, setSelectedVc] = useState<any>({});
+	const handleSetSelectedVc = (vc: any) => {
+		setSelectedVc(vc);
+		console.log('selected vc: ', vc);
+		setIsOpen(true);
+	}
+	const handleSetIsOpen = (open: boolean) => {
+		setIsOpen(open);
+	}
+	const handleOpenModal = () => {
+		setIsOpen(true);
+	}
+	const handleCloseModal = () => {
+		setIsOpen(false);
+	}
+	
+	return <>
+		<div>
+			<div className="SingleCredential" onClick={() => setIsOpen(true)}>
+				<section className="CredentialPreviewFieldsContainer">
+					<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
+					<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerInstitution}</div></div>
+				</section>
+			</div>
+				<Modal
+					className="my-modal"
+					overlayClassName="my-modal-wrapper"
+					isOpen={isOpen}
+					ariaHideApp={false}
+					onRequestClose={() => setIsOpen(false)}
+				>
+					<div className="header">
+						<button type="button" onClick={handleCloseModal}>
+							<FontAwesomeIcon className="CloseModal" icon={faTimes} />
+						</button>
+					</div>
+					<div className='content'>
+						<VC />
+					</div>
+				</Modal>
+		</div>
+
+		
+	</>
+}
+
 const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, loaded }) => {
 
 	const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -85,16 +135,8 @@ const CredentialList: React.FC<Credentials> = ({ polyglot, credentials, loaded }
 	const renderList = (): JSX.Element[] => {
 		return credentials.map((credential: CredentialEntity, index: any) => {
 			return (
-				<div key={index} id={index} style={{marginTop: '20px'}}>
-					{/* <RenderVC polyglot={polyglot} credential={credential} present={present} handleSetSelectedVc={handleSetSelectedVc}/> */}
-					<div className="SingleCredential">
-						<section className="CredentialPreviewFieldsContainer">
-
-							<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
-							<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerInstitution}</div></div>
-						</section>
-
-					</div>
+				<div key={index} id={index} style={{marginTop: '20px'}} >
+					<Credential credential={credential} />
 				</div>
 			);
 		});

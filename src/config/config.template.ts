@@ -20,6 +20,9 @@ const config = {
 	oid4ci: {
 		redirectUri: `http://${FRONTEND_HOST}:${FRONTEND_PORT}/consent`
 	},
+	oid4vp: {
+		authorizationEndpoint: `http://${FRONTEND_HOST}:${FRONTEND_PORT}/authorize`
+	},
 	devIssuer: { // will be removed when issuer urls are stored on the TIR
 		usage: false,
 		did: 'did:ebsi:zfGwMsrwZjJgpj6NmnjFMXM',

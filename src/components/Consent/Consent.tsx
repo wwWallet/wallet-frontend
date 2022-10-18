@@ -141,7 +141,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		return await axios.post(
 			`${config.signatoryBackend.url}/issuance/construct/proof`,
 			{
-				issuerUrl: getIssuerMetadata().issuer,
+				issuerUrl: config.devConformance.usage == true ? config.devIssuer.url : getIssuerMetadata().issuer,
 				c_nonce: c_nonce,
 				rsaPublicKey: rsaPublicKey 
 			},
@@ -214,7 +214,9 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 				break;
 
 		}
-		window.location.href = '/';
+
+		if (!config.devConformance.usage)
+			window.location.href = '/';
 	}
 
 	const verifyIssuer = async (id_token: string): Promise<boolean> => {

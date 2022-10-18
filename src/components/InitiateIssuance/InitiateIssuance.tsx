@@ -6,11 +6,11 @@ import config from '../../config/config.dev';
 import { SelectElement } from "../../interfaces/SelectProps";
 import CustomSelect from "../CustomSelect/CustomSelect";
 import Steps from "../Steps/Steps";
-import "./IssuerList.css"
+import "./InitiateIssuance.css"
 import { useSearchParams } from "react-router-dom";
 import { getIssuerMetadata } from "../Consent/Consent";
 
-const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
+const InitiateIssuance: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const [issuers, setIssuers] = useState<IssuerInterface[]>([]);
 	const [countries, setCountries] = useState<SelectElement[]>([]);
@@ -254,4 +254,4 @@ const IssuerList: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	);
 }
 
-export default IssuerList;
+export default InitiateIssuance;

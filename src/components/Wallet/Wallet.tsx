@@ -4,7 +4,6 @@ import MyCredentials from '../MyCredentials/MyCredentials';
 import Settings from '../Settings/Settings';
 import VpAudit from '../VpAudit/VpAudit';
 import ConnectedServices from '../ConnectedServices/ConnectedServices';
-import IssuerList from '../IssuerList/IssuerList';
 import Authguard from '../Authguard/Authguard';
 import Tab from '../Tabs/Tab';
 import '../Tabs/Tab.css';
