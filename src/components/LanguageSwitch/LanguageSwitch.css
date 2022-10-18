@@ -1,13 +1,12 @@
 .language-switch {
-	position: absolute;
 	color: #fff !important;
 	z-index: 3;
-	width: 150px;
+	width: auto;
 	text-align: right;
-	top: 50px;
-	right: 20px;
-	margin-right: 50px;
+	bottom: 15px;
+	margin-right: 5px;
 	font-size: 13.333px;
+	width: 100px;
 }
 
 .language-switch button {

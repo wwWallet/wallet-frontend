@@ -1,11 +1,12 @@
 .ribbon {
 	width: 150px;
-	height: 150px;
+	height: 138.75px;
 	overflow: hidden;
 	position: absolute;
 	top: 0;
 	right: 0;
 	pointer-events: none;
+	z-index: 2;
 }
 
 .ribbonText {
@@ -24,10 +25,12 @@
 	top: 20px;
 	transform: rotate(45deg);
 	pointer-events: none;
+	z-index: 2;
 }
 
 .ribbonText:hover,
 .ribbonText:focus,
 .ribbonText:active {
 	color: #fff;
+	z-index: 2;
 }
