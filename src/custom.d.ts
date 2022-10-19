@@ -8,6 +8,16 @@ declare module "*.png" {
 	export default content;
 }
 
+declare module "*.jpg" {
+	const content: any;
+	export default content;
+}
+
+declare module "*.webp" {
+	const content: any;
+	export default content;
+}
+
 declare module "react-datepicker" {
 	const content: any;
 	export default content;

@@ -179,6 +179,23 @@ export default {
 		description2: 'wants to send you verifiable credentials. Do you consent to this exchange?',
 		buttonConsent: 'Consent',
 		buttonDecline: 'Decline',
-		VerifyIssuerLoadingScreen: "Verifying issuer..."
+		VerifyIssuerLoadingScreen: "Verifying issuer...",
+		errorTitle: 'Error',
+		errorMsg: 'Caution! Issuer Verification failed. Perhaps you are using a non-trusted issuer, or the issuer has been compromised.',
+		errorMsg2: 'This may also be a network error. Details:',
+		errorMsg3: 'You will be redirected to your home page.'
+	},
+
+	Error: {
+		'': '',
+		'error': 'Error',
+		'code': 'Error Code',
+		'1000': 'Invalid Authentication Response',
+		'1001': 'Network Error on Token Request',
+		'1002': 'No Issuer URL was found',
+		'1003': 'Error generating proof for nonce',
+		'1004': 'Network Error on Credential Request',
+		'1005': 'No Issuer Metadata were found',
+		'1006': 'Error creating redirectUrl. Check your config.',
 	},
 };

@@ -120,6 +120,16 @@
 	float: right;
 }
 
+.my-modal .modal-success {
+	background-color: rgba(0, 155, 0, .75);
+	color: white;
+}
+
+.my-modal .modal-fail {
+	background-color: rgba(255, 0, 0, .75);
+	color: white;
+}
+
 @media only screen and (max-width: 768px) {
 	.my-modal .content .side_description {
 		font-size: 18px !important;

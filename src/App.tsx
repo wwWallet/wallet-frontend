@@ -22,6 +22,7 @@ import LocaleEn from './i18n/locale-en';
 import Consent from './components/Consent/Consent';
 import Logout from './components/Logout/Logout';
 import InitiateIssuance from './components/InitiateIssuance/InitiateIssuance';
+import Error from './components/Error/Error';
 
 const POLYGLOT: any = {
   el: new Polyglot({ phrases: LocaleEl, locale: 'el' }),
@@ -86,6 +87,7 @@ function App() {
 						<Route path='/consent' element={<Consent lang={lang} polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/initiate_issuance' element={<InitiateIssuance polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/logout' element={<Logout />}></Route>
+						<Route path='/error' element={<Error polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='*' element={<Navigate to="/login" replace />} />
           </Routes>
         </Layout>

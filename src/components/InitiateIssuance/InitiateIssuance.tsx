@@ -40,6 +40,7 @@ const InitiateIssuance: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 		const issuerURL = searchParams.get("issuer");
 		if (issuerURL == null) {
+			window.location.href = '/error?code=1002';
 			return;
 		}
 
@@ -57,7 +58,15 @@ const InitiateIssuance: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				const metadata = res.data;
 				localStorage.setItem("issuerMetadata", JSON.stringify(metadata));
 
-				let credentialsSupported = getIssuerMetadata().credentials_supported;
+				let credentialsSupported;
+				try {
+					credentialsSupported = getIssuerMetadata().credentials_supported;
+				}
+				catch (err) {
+					window.location.href = '/error?code=1005';
+					return;
+				}
+
 				Object.keys(credentialsSupported).map((value) => {
 					// fill the credentialTypes variable
 				})
@@ -135,7 +144,8 @@ const InitiateIssuance: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	}
 
 	const prevStep = () => {
-		setStep(step => step - 1);
+		window.location.href = '/';
+		// setStep(step => step - 1);
 	}
 
 	const nextStep = () => {
@@ -158,24 +168,40 @@ const InitiateIssuance: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		localStorage.setItem('issuerUrl', issuerUrl);
 
 		// this endpoint is meant to be fetched from the server metadata, once we know the server metadata url of the issuer
-		let authorizationEndpoint = getIssuerMetadata().authorization_endpoint;
+		let authorizationEndpoint;
+		try {
+			authorizationEndpoint = getIssuerMetadata().authorization_endpoint;
+		}
+		catch(err) {
+			window.location.href = '/error?code=1005';
+			return;
+		}
 		if (config.devIssuer.usage == true) {
 			authorizationEndpoint = config.devIssuer.authorizationEndpoint;
 		}
-		const redirectUrl = new URL(authorizationEndpoint);
 
-		redirectUrl.searchParams.append('response_type', 'code');
-		redirectUrl.searchParams.append('client_id', config.oid4ci.redirectUri);
-		redirectUrl.searchParams.append('state', state);
-		if (config.devConformance.usage == true)
-			redirectUrl.searchParams.append('authorization_details', config.devConformance.authorization_details);
-		else
-			redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
-		redirectUrl.searchParams.append('redirect_uri', config.oid4ci.redirectUri);
-		redirectUrl.searchParams.append('scope', 'openid');
-		// window.location.replace(redirectUrl);
-		console.log('URL = ', redirectUrl.toString())
-		window.location.replace(redirectUrl);
+		try {
+
+			const redirectUrl = new URL(authorizationEndpoint);
+
+			redirectUrl.searchParams.append('response_type', 'code');
+			redirectUrl.searchParams.append('client_id', config.oid4ci.redirectUri);
+			redirectUrl.searchParams.append('state', state);
+			if (config.devConformance.usage == true)
+				redirectUrl.searchParams.append('authorization_details', config.devConformance.authorization_details);
+			else
+				redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
+			redirectUrl.searchParams.append('redirect_uri', config.oid4ci.redirectUri);
+			redirectUrl.searchParams.append('scope', 'openid');
+			// window.location.replace(redirectUrl);
+			console.log('URL = ', redirectUrl.toString())
+			window.location.replace(redirectUrl);
+		
+		}
+		catch (err) {
+			console.log('Error creating redirectUrl. Check your config. Details: ', err);
+			window.location.href = '/error?code=1006'
+		}
 
 		// fetch(redirectUrl, {
 		// 	headers: {Conformance: config.devConformance.conformanceHeader}

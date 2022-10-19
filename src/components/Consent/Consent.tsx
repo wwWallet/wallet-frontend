@@ -1,32 +1,36 @@
+import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import axios from "axios";
 import { importJWK, jwtVerify, KeyLike } from "jose";
 import jwtDecode from "jwt-decode";
 import Polyglot from "node-polyglot";
 import { useEffect, useState } from "react";
+import Modal from "react-modal";
 import { useSearchParams } from "react-router-dom";
 import RingLoader from "react-spinners/RingLoader";
 import config from "../../config/config.dev";
 import { DidDocument, PublicKeyJwk, VerificationMethod } from "../types/DidDocument";
 import './Consent.css';
+// TODO: move MyModal.css somewhere else
+import '../CredentialList/MyModal.css';
 
 export const getIssuerMetadata = (): {
-		issuer: string,
-		authorization_endpoint: string,
-		token_endpoint: string,
-		credential_endpoint: string,
-		credentials_supported: any,
-		credential_issuer: {
-			id: string,
-			display: any[]
-		}
-	} => {
-		const issuerMetadataString: string | null = localStorage.getItem("issuerMetadata");
-		if (issuerMetadataString == null) {
-			window.location.href = '/';
-			throw new Error("No metadata were found");
-		}
-		return JSON.parse(issuerMetadataString);
+	issuer: string,
+	authorization_endpoint: string,
+	token_endpoint: string,
+	credential_endpoint: string,
+	credentials_supported: any,
+	credential_issuer: {
+		id: string,
+		display: any[]
 	}
+} => {
+	const issuerMetadataString: string | null = localStorage.getItem("issuerMetadata");
+	if (issuerMetadataString == null) {
+		throw new Error("No metadata were found");
+	}
+	return JSON.parse(issuerMetadataString);
+}
 
 interface TokenResponseDTO {
 	access_token: string;
@@ -61,8 +65,27 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 	const [searchParams] = useSearchParams();
 	const [loading, setLoading] = useState(false);
 
+	const [errModal, setErrModal] = useState(false);
+	const handleOpenErrModal = () => {
+		setErrModal(true);
+	}
+	const handleCloseErrModal = () => {
+		setErrModal(false);
+		window.location.href = '/';
+	}
+	const [err, setErr] = useState("");
+
 	useEffect(() => {
-		const displayList = getIssuerMetadata().credential_issuer.display;
+		var displayList;
+		try {
+			// only need to guard getIssuerMetadata() with try-catch blocks on the two useEffect functions
+			// if component mounts and they work, then we assume we are ok later in the function.
+			displayList = getIssuerMetadata().credential_issuer.display;
+		}
+		catch (err) {
+			window.location.href = '/error?code=1005';
+			return;
+		}
 		// set issuer name from the Display object
 		for (const d of displayList) {
 			if (d["locale"].toLowerCase().startsWith(lang)) {
@@ -71,14 +94,23 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		}
 		const authRes = authorizationResponse();
 		if (!authRes.ok) {
-			// error
+			setErr('Invalid Authentication Response');
+			window.location.href = '/error?code=1004';
+			return;
 		}
 		else
 			setAuthCode(authRes.code);
 	}, [])
 
 	useEffect(() => { // if lang is changed, then update the issuerName
-		const displayList = getIssuerMetadata().credential_issuer.display;
+		var displayList;
+		try {
+			displayList = getIssuerMetadata().credential_issuer.display;
+		}
+		catch (err) {
+			window.location.href = '/error?code=1005';
+			return;
+		}
 		// set issuer name from the Display object
 		for (const d of displayList) {
 			console.log('d = ', d.locale)
@@ -125,26 +157,42 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		params.append("code", authCode);
 		params.append("redirect_uri", config.oid4ci.redirectUri);
 
-		const tokenResponse = await axios.post<TokenResponseDTO>(tokenEndpoint, params,
-			{
-				headers: {
-					"Conformance": config.devConformance.conformanceHeader,
-					"Content-Type": "application/x-www-form-urlencoded"
+		var tokenResponse;
+		try {
+			tokenResponse = await axios.post<TokenResponseDTO>(tokenEndpoint, params,
+				{
+					headers: {
+						"Conformance": config.devConformance.conformanceHeader,
+						"Content-Type": "application/x-www-form-urlencoded"
+					}
 				}
-			}
-		);
+			);
+		}
+		catch (err) {
+			setErr('Network Error on Token Request');
+			window.location.href = '/error?code=1000'
+			return;
+		}
+
 		console.log("Token response = ", tokenResponse.data)
 
 		if (tokenResponse.status === 200) {
 			console.log('tokenRes: ', tokenResponse.data);
 			const verifyIssuerResponse = await verifyIssuer(tokenResponse.data.id_token);
-			if (verifyIssuerResponse.status === false) {
-				console.log('Error verifying Issuer Response: ', verifyIssuerResponse.error);
+			if (verifyIssuerResponse.status === true) {
+				await credentialRequest(tokenResponse.data);
 			}
-			await credentialRequest(tokenResponse.data);
+			else {
+				console.log('Error verifying Issuer Response: ', verifyIssuerResponse.error);
+				setErr(verifyIssuerResponse.error);
+				handleOpenErrModal();
+			}
+
 		}
-		else
+		else {
 			console.log("error");
+			setErr(tokenResponse.status.toString());
+		}
 
 	}
 
@@ -159,7 +207,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			{
 				issuerUrl: config.devConformance.usage == true ? config.devIssuer.url : getIssuerMetadata().issuer,
 				c_nonce: c_nonce,
-				rsaPublicKey: rsaPublicKey 
+				rsaPublicKey: rsaPublicKey
 			},
 			{
 				headers: {
@@ -173,16 +221,21 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 		const issuerUrl = getIssuerMetadata().issuer;
 		if (issuerUrl == null) {
-			window.location.href = '/';
-			throw new Error("No issuer url was found");
+			setErr('No issuer url was found');
+			window.location.href = '/error?code=1001';
+			return;
 		}
 
 		let c_nonce = tokenResponse.c_nonce;
 		while (1) {
 			const getProofJWTRes = await generateProofForNonce(issuerUrl, c_nonce, 'pub');
 
-			if (getProofJWTRes.status !== 200)
+			if (getProofJWTRes.status !== 200) {
 				console.log('error');
+				setErr('Error generating proof for nonce');
+				window.location.href = '/error?code=1002';
+				return;
+			}
 
 			const proofJWT: string = getProofJWTRes.data.proof;
 			console.log(proofJWT);
@@ -191,22 +244,31 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			if (config.devIssuer.usage) {
 				credentialEndpoint = config.devIssuer.credentialEndpoint;
 			}
-			const credentialResponse = await axios.post<CredentialResponseDTO>(credentialEndpoint,
-				{
-					type: config.devConformance.credential_type,
-					format: "jwt_vc",
-					proof: {
-						proof_type: "jwt",
-						jwt: proofJWT
+
+			var credentialResponse;
+			try {
+				credentialResponse = await axios.post<CredentialResponseDTO>(credentialEndpoint,
+					{
+						type: config.devConformance.credential_type,
+						format: "jwt_vc",
+						proof: {
+							proof_type: "jwt",
+							jwt: proofJWT
+						}
+					},
+					{
+						headers: {
+							'authorization': `Bearer ${tokenResponse.access_token}`
+						}
 					}
-				},
-				{
-					headers: {
-						'authorization': `Bearer ${tokenResponse.access_token}`
-					}
-				}
-			);
-		
+				);
+			}
+			catch (err) {
+				setErr('Network Error on Credential Request');
+				window.location.href = '/error?code=1003';
+				return;
+			}
+
 			console.log("Cred res ", credentialResponse);
 			const credential = credentialResponse.data.credential;
 			console.log("Credential = ", credential)
@@ -220,7 +282,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 			// is in conformance mode, then dont store the vc (this will produce errors)
 			if (!config.devConformance.usage)
-				await axios.post(config.storeBackend.vcStorageUrl + '/vc', { vcjwt: credential }, { headers: { 'authorization': `Bearer ${localStorage.getItem('appToken')}`}});
+				await axios.post(config.storeBackend.vcStorageUrl + '/vc', { vcjwt: credential }, { headers: { 'authorization': `Bearer ${localStorage.getItem('appToken')}` } });
 
 			// conformance continues to give c_nonce to fetch the same credential
 			if (config.devConformance.usage)
@@ -235,20 +297,20 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			window.location.href = '/';
 	}
 
-	const verifyIssuer = async (id_token: string): Promise<{status: boolean, error?: string}> => {
+	const verifyIssuer = async (id_token: string): Promise<{ status: boolean, error: string }> => {
 
 		var decoded_header: any;
 		try {
-		 decoded_header = jwtDecode(id_token,{header: true}) as any;
+			decoded_header = jwtDecode(id_token, { header: true }) as any;
 		}
 		catch {
-			return {status: false, error: 'error decoding jwt header'};
+			return { status: false, error: 'error decoding jwt header' };
 		}
 
 		if (decoded_header.alg == undefined)
-			return {status: false, error: 'alg not included in jwt header'};
+			return { status: false, error: 'alg not included in jwt header' };
 		if (decoded_header.kid == undefined)
-			return {status: false, error: 'kid not included in jwt header'};
+			return { status: false, error: 'kid not included in jwt header' };
 
 		// 1. Find kid
 		const alg: string = decoded_header.alg;
@@ -261,20 +323,34 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 
 		// 2. Seek TIR to check if did belongs to a Trusted Issuer
-		const searchIssuerInTIR = await axios.get(`${config.ebsi.tirRegistryUrl}/${did}`);
+		var searchIssuerInTIR;
+		try {
+			searchIssuerInTIR = await axios.get(`${config.ebsi.tirRegistryUrl}/${did}`);
+		}
+		catch (err) {
+			return { status: false, error: 'Network Error querying TIR' };
+		}
+
 		if (searchIssuerInTIR.status == 404)
-			return {status: false, error: 'DID does not belong to a Trusted Issuer'};
+			return { status: false, error: 'DID does not belong to a Trusted Issuer' };
 
 		else if (searchIssuerInTIR.status !== 200)
-			return {status: false, error: 'Error checking if DID belongs to a Trusted Issuer'};
+			return { status: false, error: 'Error checking if DID belongs to a Trusted Issuer' };
 
 		// 3. Seek DID Registry to get DID Document
-		const getDidDocument = await axios.get<DidDocument>(`${config.ebsi.didRegistryUrl}/${did}`);
+		var getDidDocument;
+		try {
+			getDidDocument = await axios.get<DidDocument>(`${config.ebsi.didRegistryUrl}/${did}`);
+		}
+		catch (err) {
+			return { status: false, error: 'Network Error querying DID Document Registry' };
+		}
+
 		if (getDidDocument.status == 404)
-			return {status: false, error: 'DID document not found in DID Registry'};
-		
+			return { status: false, error: 'DID document not found in DID Registry' };
+
 		else if (getDidDocument.status !== 200)
-			return {status: false, error: 'Error fetching DID document from DID Registry'};
+			return { status: false, error: 'Error fetching DID document from DID Registry' };
 
 		const didDocument = getDidDocument.data;
 
@@ -285,7 +361,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		const methods: VerificationMethod[] = didDocument.verificationMethod;
 		for (let i = 0; i < methods.length; i++) {
 			const method = methods[i];
-			if(method.id === kid) {
+			if (method.id === kid) {
 				publicKeyJwk = method.publicKeyJwk;
 				break;
 			}
@@ -303,50 +379,65 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 				issuer: getIssuerMetadata().issuer
 			})
 		}
-		catch(err) {
+		catch (err) {
 			console.log('verification error: ', err);
-			return {status: false, error: (err as any).toString()}
+			return { status: false, error: (err as any).toString() }
 		}
 
 		console.log('verification OK!');
-		return {status: true};
+		return { status: true, error: '' };
 	}
 
 
 	return (
 		<>
-			{!loading ?
-					<div className="gunet-container">
-						<h1>{polyglot.t('Consent.title')}</h1>
-						<img className="issuerLogo" src={getIssuerMetadata().credential_issuer.display[0]["logo"]} alt="Issuer's logo" height={200}/>
-						<h4>{polyglot.t('Consent.description1')} 
-							<b><i>{` "${issuerName}" `}</i></b>
-							{polyglot.t('Consent.description2')}
-						</h4>
-						<button
-							className="small login-button ui fancy button"
-							onClick={tokenRequest}>
-							{polyglot.t('Consent.buttonConsent')}
-						</button>
-						<button
-							className="small login-button ui fancy button"
-							onClick={() => { }}>
-							{polyglot.t('Consent.buttonDecline')}
-						</button>
+			{!loading
+				?
+				<div className="gunet-container">
+					<h1>{polyglot.t('Consent.title')}</h1>
+					<img className="issuerLogo" src={getIssuerMetadata().credential_issuer.display[0]["logo"]} alt="Issuer's logo" height={200} />
+					<h4>{polyglot.t('Consent.description1')}
+						<b><i>{` "${issuerName}" `}</i></b>
+						{polyglot.t('Consent.description2')}
+					</h4>
+					<button
+						className="small login-button ui fancy button"
+						onClick={tokenRequest}>
+						{polyglot.t('Consent.buttonConsent')}
+					</button>
+					<button
+						className="small login-button ui fancy button"
+						onClick={() => { }}>
+						{polyglot.t('Consent.buttonDecline')}
+					</button>
+				</div>
+				:
+				<div className="gunet-container Loading">
+					<div className='recenter'>
+						<h2>{polyglot.t('Consent.VerifyIssuerLoadingScreen')}</h2>
 					</div>
-			: <></>}
-
-
-
-			{loading ? 
-					<div className="gunet-container Loading">
-						<div className='recenter'>
-							<h2>{polyglot.t('Consent.VerifyIssuerLoadingScreen')}</h2>
-						</div>
-						<RingLoader color={ringColor} loading={true} css={override} size={300} speedMultiplier={0.3} />
-					</div>
-				: <></>
-			}
+					<RingLoader color={ringColor} loading={true} css={override} size={300} speedMultiplier={0.3} />
+				</div>}
+			<Modal
+				className="my-modal"
+				overlayClassName="my-modal-wrapper"
+				isOpen={errModal}
+				ariaHideApp={false}
+				onRequestClose={handleCloseErrModal}
+			>
+				<div className="modal-fail header">
+					<h4>{polyglot.t('Consent.errorTitle')}</h4>
+					<button type="button" onClick={handleCloseErrModal}>
+						<FontAwesomeIcon className="CloseModal" icon={faTimes} />
+					</button>
+				</div>
+				<div className='content'>
+					<p>{polyglot.t('Consent.errorMsg')}</p>
+					<p>{polyglot.t('Consent.errorMsg2')}</p>
+					<p>{err}</p>
+					<p>{polyglot.t('Consent.errorMsg3')}</p>
+				</div>
+			</Modal>
 		</>
 	);
 }

@@ -1,0 +1,56 @@
+.error {
+  max-width: 85%;
+	min-width: 200px;
+  display: flex;
+	flex-wrap: wrap-reverse;
+	align-items: center;
+  font-size: 18px;
+  padding-bottom: 80px;
+  min-height: calc(100vh - 450px);
+  margin: 120px auto 0;
+}
+
+.error h1 {
+  color: #000;
+  font-size: 35px!important;
+  margin: 2.8rem 0 1.68rem;
+  opacity: .6;
+  font-weight: 800;
+}
+
+.error h2 {
+  font-size: 1.6em;
+  color: #686767;
+}
+
+.error .btn-group {
+  margin-top: 1%;
+}
+
+.error .back-link .fa {
+  margin-left: 0;
+}
+
+.error-code {
+  margin-top: 2%;
+  color: gray;
+  font-size: 14px;
+}
+
+.error-image {
+	height: 256px;
+}
+
+.error-content {
+	min-width: 200px;
+}
+
+@media screen and (max-width: 400px){
+  .error-image {
+    height: 128px;
+  }
+
+  .error-content {
+    font-size: 15px;
+  }
+}
