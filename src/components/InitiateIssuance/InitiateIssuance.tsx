@@ -67,11 +67,18 @@ const InitiateIssuance: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 			});
 		}
 		else {
-			axios.get(credentialTypeSchemaURL).then(res => {
-				console.log("Credential schema = ", res.data);
-				const title = res.data["title"];
-				setCredentialTypes([ { value: 1, label: title } ]);
-			})
+			axios.get(issuerURL + '/.well-known/oauth-authorization-server').then(res => {
+				const metadata = res.data;
+				localStorage.setItem("issuerMetadata", JSON.stringify(metadata));
+
+				axios.get(credentialTypeSchemaURL).then(res => {
+					console.log("Credential schema = ", res.data);
+					const title = res.data["title"];
+					setCredentialTypes([ { value: 1, label: title } ]);
+				});
+			});
+
+
 		}
 		// getCountries();
 	}, [])
