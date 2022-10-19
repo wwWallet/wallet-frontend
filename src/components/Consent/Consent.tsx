@@ -1,11 +1,12 @@
 import axios from "axios";
-import { importJWK, jwtVerify } from "jose";
+import { importJWK, jwtVerify, KeyLike } from "jose";
 import jwtDecode from "jwt-decode";
 import Polyglot from "node-polyglot";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import RingLoader from "react-spinners/RingLoader";
 import config from "../../config/config.dev";
+import { DidDocument, PublicKeyJwk, VerificationMethod } from "../types/DidDocument";
 import './Consent.css';
 
 export const getIssuerMetadata = (): {
@@ -138,7 +139,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			console.log('tokenRes: ', tokenResponse.data);
 			const verifyIssuerResponse = await verifyIssuer(tokenResponse.data.id_token);
 			if (verifyIssuerResponse.status === false) {
-				console.log('error');
+				console.log('Error verifying Issuer Response: ', verifyIssuerResponse.error);
 			}
 			await credentialRequest(tokenResponse.data);
 		}
@@ -236,8 +237,6 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 	const verifyIssuer = async (id_token: string): Promise<{status: boolean, error?: string}> => {
 
-		console.log('id token: ', id_token);
-
 		var decoded_header: any;
 		try {
 		 decoded_header = jwtDecode(id_token,{header: true}) as any;
@@ -246,9 +245,9 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			return {status: false, error: 'error decoding jwt header'};
 		}
 
-		if (decoded_header.alg != undefined)
+		if (decoded_header.alg == undefined)
 			return {status: false, error: 'alg not included in jwt header'};
-		if (decoded_header.kid != undefined)
+		if (decoded_header.kid == undefined)
 			return {status: false, error: 'kid not included in jwt header'};
 
 		// 1. Find kid
@@ -256,35 +255,34 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		const kid: string = decoded_header.kid;
 		const did: string = kid.split('#')[0];
 
-		// check if issuer
-		// TODO: ADD TIR REGISTRY TO CONFIG
 		// TODO: Verifying Issuer loading...
 		// Modal OK
 		// Modal CAUTION! Issuer not trusted, returning...
 
 
 		// 2. Seek TIR to check if did belongs to a Trusted Issuer
-		const tirRegistryUrl: string = 'https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/'
-		const didRegistryUrl: string = 'https://api.preprod.ebsi.eu/did-registry/v3/identifiers/'
+		const searchIssuerInTIR = await axios.get(`${config.ebsi.tirRegistryUrl}/${did}`);
+		if (searchIssuerInTIR.status == 404)
+			return {status: false, error: 'DID does not belong to a Trusted Issuer'};
 
-		const checkIfIssuerRes = await axios.get(tirRegistryUrl+did);
-		if (!checkIfIssuerRes) { // if res status != 200
-			// return err did is not a trusted issuer
-			return {status: false, error: ''}
-		}
+		else if (searchIssuerInTIR.status !== 200)
+			return {status: false, error: 'Error checking if DID belongs to a Trusted Issuer'};
 
-		const getDidDocRes = await axios.get(didRegistryUrl+did);
-		if (!getDidDocRes) { // if res status != 200
-			// return err cannot get did document
-			return {status: false, error: ''}
-		}
+		// 3. Seek DID Registry to get DID Document
+		const getDidDocument = await axios.get<DidDocument>(`${config.ebsi.didRegistryUrl}/${did}`);
+		if (getDidDocument.status == 404)
+			return {status: false, error: 'DID document not found in DID Registry'};
+		
+		else if (getDidDocument.status !== 200)
+			return {status: false, error: 'Error fetching DID document from DID Registry'};
 
-		console.log('diddocres: ', getDidDocRes.data);
+		const didDocument = getDidDocument.data;
 
-		const diddoc = getDidDocRes.data;
-		var publicKeyJwk: any = {};
-		// get correct method
-		const methods: any[] = diddoc.verificationMethod;
+		// 4. Find public key from did document based on kid
+		var publicKeyJwk: PublicKeyJwk = {};
+
+		// 4.1. get correct method
+		const methods: VerificationMethod[] = didDocument.verificationMethod;
 		for (let i = 0; i < methods.length; i++) {
 			const method = methods[i];
 			if(method.id === kid) {
@@ -293,13 +291,12 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			}
 		}
 
-		console.log('pkjwk: ', publicKeyJwk);
-
-		// import jwk (transform jwk to keylike)
+		// 4.2. Transform jwk to KeyLike
 		const key = await importJWK(publicKeyJwk, alg);
 
-		console.log('key ====== ', key);
-
+		// 5. Verify JWT:
+		// 	5.1. aud must be same as our redirectUri
+		// 	5.2. iss must be same as our issuer metadata
 		try {
 			await jwtVerify(id_token, key, {
 				audience: config.oid4ci.redirectUri,
@@ -308,31 +305,11 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		}
 		catch(err) {
 			console.log('verification error: ', err);
-			// err  verifying jwt
-			return {status: false, error: ''}
+			return {status: false, error: (err as any).toString()}
 		}
 
 		console.log('verification OK!');
-		return {status: true, error: ''};
-		// const kid: string = tokenResponse.id_token;
-
-		// id_token: jwt pou periexei to iss (issuer did)
-		// 1. find kid from token response.id_token
-		// 2. get issuer's public key (based on kid) from did registry using issuer's did (from local storage)
-		// 3. importJwk
-		// 4. jose.verifyJwt
-		// ----!5. verify jwt.iss (only if tir registry contains issuer URL)
-
-		// υπογεγραμμενο με ES256 (to ES256K δεν υποστηριζεται απο browser)
-		// find kid
-		// seek tir to check if it's an issuer
-		// seek did registry to get did document (by given did with given key)
-		// find public key based on kid
-		
-		// importjwk -> transform jwk to keylike
-		// verify it using jose
-
-
+		return {status: true};
 	}
 
 
