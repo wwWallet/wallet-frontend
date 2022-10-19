@@ -14,8 +14,6 @@ import Authz from './components/Authz/Authz';
 import Login from './components/Login/Login';
 import Present from './components/Present/Present';
 import Settings from './components/Settings/Settings';
-import DetailedVID from './components/DetailedVC/DetailedVID';
-import DetailedVC from './components/DetailedVC/DetailedVC';
 import Import from './components/ImportQR/ImportQR';
 import Export from './components/ExportQR/ExportQR';
 import Polyglot from 'node-polyglot';
@@ -78,8 +76,6 @@ function App() {
           <Routes>
             <Route path='/login' element={< Login polyglot={POLYGLOT[lang]} />} />
             <Route path='/'  element={< Wallet polyglot={POLYGLOT[lang]} />} />
-            <Route path='/detailed/vid/:id' element={< DetailedVID polyglot={POLYGLOT[lang]}/>} />
-            <Route path='/detailed/vc/:id' element={< DetailedVC />} />
             <Route path='/settings'  element={< Settings polyglot={POLYGLOT[lang]}/>} />
             <Route path='/register' element={<Register polyglot={POLYGLOT[lang]}/>} />
             <Route path='/vc' element={< RequestVCs polyglot={POLYGLOT[lang]}/>}></Route>
