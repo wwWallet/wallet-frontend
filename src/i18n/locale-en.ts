@@ -178,6 +178,7 @@ export default {
 		description1: 'Trusted Issuer ',
 		description2: 'wants to send you verifiable credentials. Do you consent to this exchange?',
 		buttonConsent: 'Consent',
-		buttonDecline: 'Decline'
+		buttonDecline: 'Decline',
+		VerifyIssuerLoadingScreen: "Verifying issuer..."
 	},
 };

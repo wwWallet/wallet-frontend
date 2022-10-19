@@ -2,3 +2,23 @@
 	margin-top: 40px;
 	margin-bottom: 40px;
 }
+
+
+
+.recenter {
+	text-align: center;
+	margin: auto;
+	left: 50%;
+	margin-bottom: 50px;
+}
+
+.Loading {
+	/* position: fixed; */
+
+	z-index: 1;
+	opacity: 0.8;
+	margin: 5% auto;
+	top: 100px;
+	left: 0;
+	right: 0;
+}

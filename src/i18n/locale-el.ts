@@ -175,7 +175,8 @@ export default {
 		description1: 'Ο Έμπιστος Εκδότης',
 		description2: 'θέλει να σας αποστείλλει ψηφιακά πιστοποιητικά. Συναινείτε σε αυτήν την συναλλαγή;',
 		buttonConsent: 'Συναίνεση',
-		buttonDecline: 'Απόρριψη'
+		buttonDecline: 'Απόρριψη',
+		VerifyIssuerLoadingScreen: "Επαλήθευση εκδότη πιστοποιητικών..."
 	},
 
 };

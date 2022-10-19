@@ -4,6 +4,7 @@ import jwtDecode from "jwt-decode";
 import Polyglot from "node-polyglot";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import RingLoader from "react-spinners/RingLoader";
 import config from "../../config/config.dev";
 import './Consent.css';
 
@@ -40,6 +41,16 @@ interface CredentialResponseDTO {
 	c_nonce_expires_in: number;
 }
 
+
+
+const override: any = {
+	display: "block",
+	margin: "0 auto",
+	borderColor: "#003476"
+};
+
+const ringColor: string = "#003476";
+
 const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglot }) => {
 
 	const [issuerName, setIssuerName] = useState("");
@@ -47,6 +58,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 	const [authCode, setAuthCode] = useState("");
 
 	const [searchParams] = useSearchParams();
+	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		const displayList = getIssuerMetadata().credential_issuer.display;
@@ -101,6 +113,7 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		console.log('code = ', authCode);
 
 
+		setLoading(true);
 
 		let tokenEndpoint = getIssuerMetadata().token_endpoint;
 		if (config.devIssuer.usage) {
@@ -324,24 +337,40 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 
 	return (
-		<div className="gunet-container">
-			<h1>{polyglot.t('Consent.title')}</h1>
-			<img className="issuerLogo" src={getIssuerMetadata().credential_issuer.display[0]["logo"]} alt="Issuer's logo" height={200}/>
-			<h4>{polyglot.t('Consent.description1')} 
-				<b><i>{` "${issuerName}" `}</i></b>
-				{polyglot.t('Consent.description2')}
-			</h4>
-			<button
-				className="small login-button ui fancy button"
-				onClick={tokenRequest}>
-				{polyglot.t('Consent.buttonConsent')}
-			</button>
-			<button
-				className="small login-button ui fancy button"
-				onClick={() => { }}>
-				{polyglot.t('Consent.buttonDecline')}
-			</button>
-		</div>
+		<>
+			{!loading ?
+					<div className="gunet-container">
+						<h1>{polyglot.t('Consent.title')}</h1>
+						<img className="issuerLogo" src={getIssuerMetadata().credential_issuer.display[0]["logo"]} alt="Issuer's logo" height={200}/>
+						<h4>{polyglot.t('Consent.description1')} 
+							<b><i>{` "${issuerName}" `}</i></b>
+							{polyglot.t('Consent.description2')}
+						</h4>
+						<button
+							className="small login-button ui fancy button"
+							onClick={tokenRequest}>
+							{polyglot.t('Consent.buttonConsent')}
+						</button>
+						<button
+							className="small login-button ui fancy button"
+							onClick={() => { }}>
+							{polyglot.t('Consent.buttonDecline')}
+						</button>
+					</div>
+			: <></>}
+
+
+
+			{loading ? 
+					<div className="gunet-container Loading">
+						<div className='recenter'>
+							<h2>{polyglot.t('Consent.VerifyIssuerLoadingScreen')}</h2>
+						</div>
+						<RingLoader color={ringColor} loading={true} css={override} size={300} speedMultiplier={0.3} />
+					</div>
+				: <></>
+			}
+		</>
 	);
 }
 
