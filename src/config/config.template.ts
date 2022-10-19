@@ -36,6 +36,10 @@ const config = {
 		credential_type: "https://api.conformance.intebsi.xyz/trusted-schemas-registry/v2/schemas/zDMJPVx4yD3dMZ8n2pP5YEFwofkK5j65a7zwbhonsBVsf",
 		conformanceHeader: "67005bfa-5f9d-4199-8a70-0bb842a3f15f",
 		authorization_details: `[{"type":"openid_credential","credential_type":"https://api.conformance.intebsi.xyz/trusted-schemas-registry/v2/schemas/zDMJPVx4yD3dMZ8n2pP5YEFwofkK5j65a7zwbhonsBVsf","format":"jwt_vc"}]`,
+	},
+	ebsi: {
+		tirRegistryUrl: 'https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers',
+		didRegistryUrl: 'https://api.preprod.ebsi.eu/did-registry/v3/identifiers'
 	}
 }
 
