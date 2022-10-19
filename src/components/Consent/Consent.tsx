@@ -1,4 +1,5 @@
 import axios from "axios";
+import { importJWK, jwtVerify } from "jose";
 import jwtDecode from "jwt-decode";
 import Polyglot from "node-polyglot";
 import { useEffect, useState } from "react";
@@ -122,7 +123,8 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 		if (tokenResponse.status === 200) {
 			console.log('tokenRes: ', tokenResponse.data);
-			if (await verifyIssuer(tokenResponse.data.id_token) === false) {
+			const verifyIssuerResponse = await verifyIssuer(tokenResponse.data.id_token);
+			if (verifyIssuerResponse.status === false) {
 				console.log('error');
 			}
 			await credentialRequest(tokenResponse.data);
@@ -219,11 +221,86 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			window.location.href = '/';
 	}
 
-	const verifyIssuer = async (id_token: string): Promise<boolean> => {
+	const verifyIssuer = async (id_token: string): Promise<{status: boolean, error?: string}> => {
 
-		const decoded_id_token = jwtDecode(id_token);
-		console.log(decoded_id_token)
-		return true;
+		console.log('id token: ', id_token);
+
+		var decoded_header: any;
+		try {
+		 decoded_header = jwtDecode(id_token,{header: true}) as any;
+		}
+		catch {
+			return {status: false, error: 'error decoding jwt header'};
+		}
+
+		if (decoded_header.alg != undefined)
+			return {status: false, error: 'alg not included in jwt header'};
+		if (decoded_header.kid != undefined)
+			return {status: false, error: 'kid not included in jwt header'};
+
+		// 1. Find kid
+		const alg: string = decoded_header.alg;
+		const kid: string = decoded_header.kid;
+		const did: string = kid.split('#')[0];
+
+		// check if issuer
+		// TODO: ADD TIR REGISTRY TO CONFIG
+		// TODO: Verifying Issuer loading...
+		// Modal OK
+		// Modal CAUTION! Issuer not trusted, returning...
+
+
+		// 2. Seek TIR to check if did belongs to a Trusted Issuer
+		const tirRegistryUrl: string = 'https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/'
+		const didRegistryUrl: string = 'https://api.preprod.ebsi.eu/did-registry/v3/identifiers/'
+
+		const checkIfIssuerRes = await axios.get(tirRegistryUrl+did);
+		if (!checkIfIssuerRes) { // if res status != 200
+			// return err did is not a trusted issuer
+			return {status: false, error: ''}
+		}
+
+		const getDidDocRes = await axios.get(didRegistryUrl+did);
+		if (!getDidDocRes) { // if res status != 200
+			// return err cannot get did document
+			return {status: false, error: ''}
+		}
+
+		console.log('diddocres: ', getDidDocRes.data);
+
+		const diddoc = getDidDocRes.data;
+		var publicKeyJwk: any = {};
+		// get correct method
+		const methods: any[] = diddoc.verificationMethod;
+		for (let i = 0; i < methods.length; i++) {
+			const method = methods[i];
+			if(method.id === kid) {
+				publicKeyJwk = method.publicKeyJwk;
+				break;
+			}
+		}
+
+		console.log('pkjwk: ', publicKeyJwk);
+
+		// import jwk (transform jwk to keylike)
+		const key = await importJWK(publicKeyJwk, alg);
+
+		console.log('key ====== ', key);
+
+		try {
+			await jwtVerify(id_token, key, {
+				audience: config.oid4ci.redirectUri,
+				issuer: getIssuerMetadata().issuer
+			})
+		}
+		catch(err) {
+			console.log('verification error: ', err);
+			// err  verifying jwt
+			return {status: false, error: ''}
+		}
+
+		console.log('verification OK!');
+		return {status: true, error: ''};
 		// const kid: string = tokenResponse.id_token;
 
 		// id_token: jwt pou periexei to iss (issuer did)
@@ -231,7 +308,18 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 		// 2. get issuer's public key (based on kid) from did registry using issuer's did (from local storage)
 		// 3. importJwk
 		// 4. jose.verifyJwt
-		// 5. verify jwt.iss
+		// ----!5. verify jwt.iss (only if tir registry contains issuer URL)
+
+		// υπογεγραμμενο με ES256 (to ES256K δεν υποστηριζεται απο browser)
+		// find kid
+		// seek tir to check if it's an issuer
+		// seek did registry to get did document (by given did with given key)
+		// find public key based on kid
+		
+		// importjwk -> transform jwk to keylike
+		// verify it using jose
+
+
 	}
 
 

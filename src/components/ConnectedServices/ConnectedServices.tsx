@@ -15,7 +15,7 @@ const ConnectedServices: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				logo={ministryLogo}
 			/>
 			<ConnectedServiceCard 
-				action={() => { window.location.href = '/' }}
+				action={() => { window.location.href = 'http://localhost:8000' }}
 				title={polyglot.t('Wallet.tab3.diplomaHeader')}
 				subtitle={polyglot.t('Wallet.tab3.diplomaDesc')}
 				logo={uniLogo}
