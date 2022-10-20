@@ -26,3 +26,4 @@ yarn start
 * **1004**: Network Error on Credential Request
 * **1005**: No issuer metadata were found
 * **1006**: Error creating redirectUrl. Check your config.
+* **1007**: Error verifying issuer
