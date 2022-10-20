@@ -271,6 +271,14 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 
 			console.log("Cred res ", credentialResponse);
 			const credential = credentialResponse.data.credential;
+
+			const verifyIssuerRes = await verifyIssuerFromCredential(credential);
+			if (verifyIssuerRes.status != true) {
+				setErr('error verifying issuer' + verifyIssuerRes.error);
+				window.location.href = '/error?code=1006';
+				return;
+			}
+
 			console.log("Credential = ", credential)
 			console.log('old cnonce = ', c_nonce)
 
@@ -377,6 +385,116 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 			await jwtVerify(id_token, key, {
 				audience: config.oid4ci.redirectUri,
 				issuer: getIssuerMetadata().issuer
+			})
+		}
+		catch (err) {
+			console.log('verification error: ', err);
+			return { status: false, error: (err as any).toString() }
+		}
+
+		console.log('verification OK!');
+		return { status: true, error: '' };
+	}
+
+	const verifyIssuerFromCredential = async (credential: string): Promise<{ status: boolean, error: string }> => {
+		// verify issuer -> take vc, check issuer did = kid, kid, alg (no aud)
+		// payload sub == localstorage holder did
+		console.log('credential: ', credential);
+
+		var decoded_header: any;
+		// var decoded_payload: any;
+		try {
+			decoded_header = jwtDecode(credential, { header: true }) as any;
+			// decoded_payload = jwtDecode(credential, { header: false }) as any;
+		}
+		catch {
+			return { status: false, error: 'error decoding jwt' };
+		}
+
+		if (decoded_header.alg == undefined)
+			return { status: false, error: 'alg not included in jwt header' };
+		if (decoded_header.kid == undefined)
+			return { status: false, error: 'kid not included in jwt header' };
+		if (decoded_header.typ !== 'JWT')
+			return { status: false, error: 'credential type is not JWT' };
+
+		// 1. Find kid
+		const alg: string = decoded_header.alg;
+		const kid: string = decoded_header.kid;
+		const did: string = kid.split('#')[0];
+
+		// 2. Seek TIR to check if did belongs to a Trusted Issuer
+		var searchIssuerInTIR;
+		try {
+			searchIssuerInTIR = await axios.get(`${config.ebsi.tirRegistryUrl}/${did}`);
+		}
+		catch (err) {
+			return { status: false, error: 'Network Error querying TIR' };
+		}
+
+		if (searchIssuerInTIR.status == 404)
+			return { status: false, error: 'DID does not belong to a Trusted Issuer' };
+
+		else if (searchIssuerInTIR.status !== 200)
+			return { status: false, error: 'Error checking if DID belongs to a Trusted Issuer' };
+
+		// 3. Seek DID Registry to get DID Document
+		var getDidDocument;
+		try {
+			getDidDocument = await axios.get<DidDocument>(`${config.ebsi.didRegistryUrl}/${did}`);
+		}
+		catch (err) {
+			return { status: false, error: 'Network Error querying DID Document Registry' };
+		}
+
+		if (getDidDocument.status == 404)
+			return { status: false, error: 'DID document not found in DID Registry' };
+
+		else if (getDidDocument.status !== 200)
+			return { status: false, error: 'Error fetching DID document from DID Registry' };
+
+		const didDocument = getDidDocument.data;
+
+		// 4. Find public key from did document based on kid
+		var publicKeyJwk: PublicKeyJwk = {};
+
+		// 4.1. get correct method
+		const methods: VerificationMethod[] = didDocument.verificationMethod;
+		for (let i = 0; i < methods.length; i++) {
+			const method = methods[i];
+			if (method.id === kid) {
+				publicKeyJwk = method.publicKeyJwk;
+				break;
+			}
+		}
+
+		// 4.2. Transform jwk to KeyLike
+		var key: KeyLike | Uint8Array;
+		try {
+			key = await importJWK(publicKeyJwk, alg);
+		}
+		catch (err) {
+			return { status: false, error: 'Error decoding JWK. Perhaps algorithm is not supported. Details: ' + (err as any).toString };
+		}
+
+		// 5. Verify JWT:
+		// 	5.1. issuer did must be same as the kid
+		// 	5.2. subject did must be same as our local storage user did
+
+		const localUserDid: string | null = localStorage.getItem('did');
+		var userDid: string;
+		if (typeof localUserDid == 'string')
+			userDid = localUserDid;
+		else {
+			console.log('user did not found in local storage');
+			return { status: false, error: 'user did not found in local storage' };
+		}
+
+
+		try {
+			await jwtVerify(credential, key, {
+				issuer: did,
+				// subject: userDid
 			})
 		}
 		catch (err) {
