@@ -100,7 +100,6 @@ const VC: React.FC<{ credential: any, handleSetPath(value: string): void, name?:
 		if (typeof credential == 'object') {
 			const obj: any = Object.keys(credential).map(
 				(value) => {
-					console.log(credential[value]);
 					if (typeof credential[value] == 'object') {
 
 						if (Array.isArray(credential[value])) {

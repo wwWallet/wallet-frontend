@@ -104,7 +104,6 @@ const Credential: React.FC<{credential: CredentialEntity, polyglot: Polyglot}> =
 
 
 	const handleSetPath = (key: string) => {
-		console.log(`setting path to ${(path === '') ? key : `${path}.${key}`}`);
 		setPath( (path: string) => (path === '') ? key : `${path}.${key}`);
 	}
 
