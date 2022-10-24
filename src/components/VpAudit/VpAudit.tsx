@@ -102,56 +102,56 @@ export const VpAudit: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 	const [presentations, setPresentations] = useState<ExtractedVpFormat[]>([]);
 	const [filteredPresentations, setFilteredPresentations] = useState<ExtractedVpFormat[]>([]);
 
-	useEffect(() => {
-		axios.post(`${config.storeBackend.vcStorageUrl}/vp/logs/get-by-did`,
-		{ ebsi_token: localStorage.getItem('ebsi_token') },
-		{ 
-			headers : {
-				Authorization: `Bearer ${localStorage.getItem('appToken')}`
-		}})
-		.then(res => {
-			const vp_list: VP[] = res.data.vp_list;
-			let ext_vp_list: ExtractedVpFormat[] = [];
-			console.log('full list = ', vp_list)
-			const allVcTypes: string[] = [];
-			for (let i = 0; i < vp_list.length; i++) {
-				const {exp, iat, vp } = decode<{exp: number, iat: number, vp: any}>(vp_list[i].vpJWT);
-				var extractedVp: ExtractedVpFormat = { // VP format to be viewed in the browser
-					id: vp_list[i].id,
-					expiresIn: (new Date(exp*1000)).toString(), // from unix to Date()
-					issuedAt: (new Date(iat*1000)).toString(),
-					containedTypes: [],
-					polyglot: polyglot
-				};
-				const credJWTlist: any[] = vp.verifiableCredential;
-				for (let j = 0; j < credJWTlist.length; j++) {
-					const {exp, iat, jti} = decode<{exp: number, iat: number, jti: string}>(credJWTlist[j]);
-					if (jti.includes(":vid:")) {
-						extractedVp.containedTypes.push("V-ID");
-						if (!allVcTypes.includes("V-ID")) allVcTypes.push("V-ID");
-					}
-					else if (jti.includes(":university:diploma:")) {
-						extractedVp.containedTypes.push("University Diploma");
-						if (!allVcTypes.includes("University Diploma")) allVcTypes.push("University Diploma");
+	// useEffect(() => {
+	// 	axios.post(`${config.storeBackend.vcStorageUrl}/vp/logs/get-by-did`,
+	// 	{ ebsi_token: localStorage.getItem('ebsi_token') },
+	// 	{ 
+	// 		headers : {
+	// 			Authorization: `Bearer ${localStorage.getItem('appToken')}`
+	// 	}})
+	// 	.then(res => {
+	// 		const vp_list: VP[] = res.data.vp_list;
+	// 		let ext_vp_list: ExtractedVpFormat[] = [];
+	// 		console.log('full list = ', vp_list)
+	// 		const allVcTypes: string[] = [];
+	// 		for (let i = 0; i < vp_list.length; i++) {
+	// 			const {exp, iat, vp } = decode<{exp: number, iat: number, vp: any}>(vp_list[i].vpJWT);
+	// 			var extractedVp: ExtractedVpFormat = { // VP format to be viewed in the browser
+	// 				id: vp_list[i].id,
+	// 				expiresIn: (new Date(exp*1000)).toString(), // from unix to Date()
+	// 				issuedAt: (new Date(iat*1000)).toString(),
+	// 				containedTypes: [],
+	// 				polyglot: polyglot
+	// 			};
+	// 			const credJWTlist: any[] = vp.verifiableCredential;
+	// 			for (let j = 0; j < credJWTlist.length; j++) {
+	// 				const {exp, iat, jti} = decode<{exp: number, iat: number, jti: string}>(credJWTlist[j]);
+	// 				if (jti.includes(":vid:")) {
+	// 					extractedVp.containedTypes.push("V-ID");
+	// 					if (!allVcTypes.includes("V-ID")) allVcTypes.push("V-ID");
+	// 				}
+	// 				else if (jti.includes(":university:diploma:")) {
+	// 					extractedVp.containedTypes.push("University Diploma");
+	// 					if (!allVcTypes.includes("University Diploma")) allVcTypes.push("University Diploma");
 
-					}
-				}
-				ext_vp_list.push(extractedVp);
+	// 				}
+	// 			}
+	// 			ext_vp_list.push(extractedVp);
 				
-				console.log('contents = ', vp)
-			}
+	// 			console.log('contents = ', vp)
+	// 		}
 
-			// sort by Issuance date. Latest issued first
-			ext_vp_list = ext_vp_list.sort((a: ExtractedVpFormat, b: ExtractedVpFormat) => moment(a.issuedAt).unix() > moment(b.issuedAt).unix() ? -1 : 1)
-			setPresentations(ext_vp_list);
-			setFilteredPresentations([...ext_vp_list]);
-			const vc_second = [...allVcTypes];
-			setAvailableVcTypes(vc_second);
-			setActiveVcTypesFilter(new Array(vc_second.length).fill(true));
-			console.log('Boolean array = ', new Array(vc_second.length).fill(true));
-			console.log('VP list  = ', ext_vp_list)
-		});
-	}, []);
+	// 		// sort by Issuance date. Latest issued first
+	// 		ext_vp_list = ext_vp_list.sort((a: ExtractedVpFormat, b: ExtractedVpFormat) => moment(a.issuedAt).unix() > moment(b.issuedAt).unix() ? -1 : 1)
+	// 		setPresentations(ext_vp_list);
+	// 		setFilteredPresentations([...ext_vp_list]);
+	// 		const vc_second = [...allVcTypes];
+	// 		setAvailableVcTypes(vc_second);
+	// 		setActiveVcTypesFilter(new Array(vc_second.length).fill(true));
+	// 		console.log('Boolean array = ', new Array(vc_second.length).fill(true));
+	// 		console.log('VP list  = ', ext_vp_list)
+	// 	});
+	// }, []);
 
 
 

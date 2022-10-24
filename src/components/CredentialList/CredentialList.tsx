@@ -10,25 +10,11 @@ import Modal from 'react-modal';
 import './MyModal.css';
 import VC from '../Credential/VC';
 import jwtDecode from 'jwt-decode';
+import { CredentialEntity, Credentials } from '../../interfaces/credential.interface';
 
 
 
-export interface Credentials {
-	polyglot: Polyglot;
-  credentials: CredentialEntity[];
-	loaded?: boolean;
-}
 
-
-export interface CredentialEntity {
-	id: number;
-	identifier: string;
-	jwt: string;
-	holderDID: string;
-	issuerDID: string;
-	issuerInstitution: string;
-	type: string;
-}
 
 
 
@@ -108,7 +94,7 @@ const Credential: React.FC<{credential: CredentialEntity, polyglot: Polyglot}> =
 	}
 
 	return (
-		<div>
+		<div className="PlainCredential">
 			<div className="SingleCredential" onClick={handleOpenModal}>
 				<section className="CredentialPreviewFieldsContainer">
 					<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
