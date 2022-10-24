@@ -1,16 +1,18 @@
-import config from "../../config/config.dev";
 import axios from "axios";
 import Polyglot from "node-polyglot";
-import decode from 'jwt-decode';
 import React, { useEffect, useState } from "react";
-import CredentialList from "../CredentialList/CredentialList";
+import config from "../../config/config.dev";
 import { CredentialEntity } from "../../interfaces/credential.interface";
+// import { removeElementFromStringArray } from "../../utils/GeneralUtils";
+import SelectableCredentialList from "./SelectableCredentialList";
 
-const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
+const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
 	const [credentials, setCredentials] = useState<any[]>([]);
+
+	const [selected, setSelected] = useState<string[]>([]);
 
 	// load credentials from db
 	useEffect(() => {
@@ -38,8 +40,25 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		});
 	}, []);
 
+	const handleSelectVc = (credentialId: string) => {
+		setSelected((vcs) => vcs = [...vcs, credentialId]);
+	}
+
+	const handleDeselectVc = (credentialId: string) => {
+		setSelected((vcs) => removeElementFromStringArray(vcs, credentialId));
+	}
+
+	const removeElementFromStringArray = (array: string[], elem: string): string[] => {
+		const index: number = array.indexOf(elem);
+		let newArray: string[] = array.slice(); // copy array
+		newArray.splice(index, 1);	// remove that element
+		return newArray;
+	}
+
 	return (
 		<div className="gunet-container">
+			<h1>{polyglot.t('Authz.title')}</h1>
+			<p>{polyglot.t('Authz.description1')}</p>
 			{message ?
 				<React.Fragment>
 					<div className="message">{message}</div>
@@ -53,16 +72,23 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				:
 				<div>
 					<h4>{polyglot.t('Wallet.tab1.verifiableCredentials')}</h4>
-					<CredentialList polyglot={polyglot} credentials={credentials} loaded={loading} />
+					<SelectableCredentialList polyglot={polyglot} credentials={credentials.slice(0,2)} loaded={loading}
+						handleSelectVc={handleSelectVc} handleDeselectVc={handleDeselectVc}
+					/>
 					{!credentials.length && !loading &&
 						<div className="message">
 							{polyglot.t('Wallet.tab1.emptyVC')}
 						</div>
 					}
+					<button
+						className="login-button ui fancy button"
+						onClick={() => { console.log('Selected VCs: ', selected) }}>
+						{polyglot.t('Authz.buttonAuthorize')}
+					</button>
 				</div>
 			}
 		</div>
 	);
 }
 
-export default MyCredentials;
+export default Authorize;

@@ -1,6 +1,5 @@
 import jwtDecode from 'jwt-decode';
 import React, { useEffect, useState } from 'react'
-import { CredentialEntity } from '../CredentialList/CredentialList';
 import './VC.css';
 
 // const credential = {

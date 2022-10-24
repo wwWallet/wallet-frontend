@@ -1,6 +1,8 @@
 :root {
 	--main-fonts: Helvetica, sans-serif;
 	--ediplomas-blue: #003476;
+	--ediplomas-secondary: #6dcff6;
+	--ediplomas-white: #c7eafb;
 }
 
 body {
