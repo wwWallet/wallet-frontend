@@ -3,7 +3,7 @@ import Polyglot from "node-polyglot";
 import React, { useEffect, useState } from "react";
 import config from "../../config/config.dev";
 import { CredentialEntity } from "../../interfaces/credential.interface";
-// import { removeElementFromStringArray } from "../../utils/GeneralUtils";
+import { removeElementFromStringArray } from "../../utils/GeneralUtils";
 import SelectableCredentialList from "./SelectableCredentialList";
 
 const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
@@ -46,13 +46,6 @@ const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
 	const handleDeselectVc = (credentialId: string) => {
 		setSelected((vcs) => removeElementFromStringArray(vcs, credentialId));
-	}
-
-	const removeElementFromStringArray = (array: string[], elem: string): string[] => {
-		const index: number = array.indexOf(elem);
-		let newArray: string[] = array.slice(); // copy array
-		newArray.splice(index, 1);	// remove that element
-		return newArray;
 	}
 
 	return (

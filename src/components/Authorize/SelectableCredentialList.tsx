@@ -12,20 +12,19 @@ import Checkbox from '../Checkbox/Checkbox';
 const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Polyglot, handleSelectVc(identifier: string): void, handleDeselectVc(identifier: string): void}> = ({credential, polyglot, handleSelectVc, handleDeselectVc}) => {
 
 	const [selected, setSelected] = useState<boolean>(false);
-	const handleCheck = (identifier: string) => {
-
-		setSelected((selected) => {
-
-			selected
-			?
-				handleDeselectVc(identifier)
-			:
-				handleSelectVc(identifier);
-			
-			return !selected;
-		});
-
+	const handleCheck = () => {
+		setSelected((selected) => selected = !selected);
 	}
+
+	useEffect(() => {
+    
+		selected
+			?
+				handleSelectVc(credential.identifier)
+			:
+				handleDeselectVc(credential.identifier);
+
+  }, [selected]);
 
 	const [isOpen, setIsOpen] = useState<boolean>(false);
 	const handleOpenModal = () => {
@@ -38,8 +37,8 @@ const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Po
 	return (
 		<div className='SelectableCredential'>
 			<div className={`SplitCredential ${selected ? 'selected' : ''}`}>
-				<div className='selection' onClick={() => handleCheck(credential.identifier)}>
-					<Checkbox id={credential.identifier} checked={selected} onChange={() => handleCheck(credential.identifier)} />
+				<div className='selection' onClick={handleCheck}>
+					<Checkbox id={credential.identifier} checked={selected} onChange={handleCheck} />
 				</div>
 				<div className="SingleCredential" onClick={handleOpenModal}>
 					<section className="CredentialPreviewFieldsContainer">
