@@ -1,0 +1,20 @@
+.hintPresentation {
+	opacity: 0.6;
+	font-size: smaller;
+	font-style: italic;
+}
+
+.presentationDisclaimer {
+	background-color: #f1f1f1;
+	font-size: 16px;
+	font-style: italic;
+	display: block;
+	width: fit-content;
+	padding-left: 10px;
+	padding-right: 10px;
+	margin-bottom: 50px;
+}
+
+.disclaimerIcon {
+	margin-right: 5px;
+}
