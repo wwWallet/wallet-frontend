@@ -1,0 +1,16 @@
+
+
+#VerificationResults .resultIcon {
+	font-size: 80px;
+	color: var(--ediplomas-blue);
+}
+
+#VerificationResults .layout {
+	margin-top: 150px;
+  width: 100%;
+  display: flex;
+	flex-direction: column;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}

@@ -18,6 +18,7 @@
     "https": "^1.0.0",
     "i18next": "^21.8.9",
     "jose": "^4.10.0",
+    "jsonpath-plus": "^7.2.0",
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.3",
     "node-polyglot": "^2.4.2",

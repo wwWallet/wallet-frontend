@@ -142,9 +142,9 @@ export default {
 	},
 
 	Authz: {
-		title: 'Select Verifiable IDs',
-		description1: 'In this step you can select the Verifiable ID credentials you want to present on',
-		description2: 'in order to prove your identity',
+		title: 'Select Verifiable Credentials',
+		description1: 'In this step you can select the Verifiable Credentials you want to present.',
+		description2: 'Only credentials that conform with the type of credentials the verifier requested are shown.',
 		titleNoCred: 'Authorize connection with your Wallet',
 		descriptionNoCred1: 'Do you authorize',
 		descriptionNoCred2: 'to connect with your wallet?',
