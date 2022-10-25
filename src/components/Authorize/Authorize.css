@@ -1,0 +1,43 @@
+.AuthorizeSplit {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+}
+
+.AuthorizeButton button {
+	position: sticky;
+	top: 50vh;
+}
+
+.authorize-bar {
+	display: none;
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 80px;
+	z-index: 1;
+	margin: 0;
+	background-color: var(--ediplomas-blue);
+	color: white;
+}
+
+.authorize-bar:hover {
+	background-color: var(--ediplomas-blue-hover);
+	transition: 0.1s ease-in-out;
+}
+
+@media only screen and (max-width: 700px) {
+
+	.AuthorizeSplit {
+		justify-content: center;
+	}
+
+	.authorize-bar {
+		display: block;
+	}
+
+	.authorize-btn {
+		display: none;
+	}
+}
