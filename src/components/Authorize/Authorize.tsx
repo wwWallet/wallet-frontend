@@ -5,6 +5,7 @@ import config from "../../config/config.dev";
 import { CredentialEntity } from "../../interfaces/credential.interface";
 import { removeElementFromStringArray } from "../../utils/GeneralUtils";
 import SelectableCredentialList from "./SelectableCredentialList";
+import './Authorize.css';
 
 const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
@@ -48,6 +49,10 @@ const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 		setSelected((vcs) => removeElementFromStringArray(vcs, credentialId));
 	}
 
+	const authorize = () => {
+		console.log('Selected VCs: ', selected)
+	}
+
 	return (
 		<div className="gunet-container">
 			<h1>{polyglot.t('Authz.title')}</h1>
@@ -55,27 +60,30 @@ const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 			{message ?
 				<React.Fragment>
 					<div className="message">{message}</div>
-					<br />
-					{/* <button
-						className="login-button ui fancy button"
-						onClick={() => { window.location.href = '/' }}>
-						{polyglot.t('Wallet.tab1.vidButton')} {' '}
-					</button> */}
 				</React.Fragment>
 				:
-				<div>
-					<h4>{polyglot.t('Wallet.tab1.verifiableCredentials')}</h4>
-					<SelectableCredentialList polyglot={polyglot} credentials={credentials.slice(0,2)} loaded={loading}
-						handleSelectVc={handleSelectVc} handleDeselectVc={handleDeselectVc}
-					/>
-					{!credentials.length && !loading &&
-						<div className="message">
-							{polyglot.t('Wallet.tab1.emptyVC')}
-						</div>
-					}
+				<div className="AuthorizeSplit">
+					<div className="AuthorizeContent">
+						<h4>{polyglot.t('Wallet.tab1.verifiableCredentials')}</h4>
+						<SelectableCredentialList polyglot={polyglot} credentials={credentials} loaded={loading}
+							handleSelectVc={handleSelectVc} handleDeselectVc={handleDeselectVc}
+						/>
+						{!credentials.length && !loading &&
+							<div className="message">
+								{polyglot.t('Wallet.tab1.emptyVC')}
+							</div>
+						}
+					</div>
+					<div className="AuthorizeButton">
+						<button
+							className="login-button ui fancy button authorize-btn"
+							onClick={authorize}>
+							{polyglot.t('Authz.buttonAuthorize')}
+						</button>
+					</div>
 					<button
-						className="login-button ui fancy button"
-						onClick={() => { console.log('Selected VCs: ', selected) }}>
+						className="authorize-bar"
+						onClick={authorize}>
 						{polyglot.t('Authz.buttonAuthorize')}
 					</button>
 				</div>
