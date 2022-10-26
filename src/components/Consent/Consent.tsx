@@ -1,15 +1,12 @@
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Polyglot from "node-polyglot";
 import { useEffect, useState } from "react";
-import Modal from "react-modal";
 import { useSearchParams } from "react-router-dom";
 import RingLoader from "react-spinners/RingLoader";
 import config from "../../config/config.dev";
 import './Consent.css';
-import '../CredentialList/MyModal.css'; // TODO: move MyModal.css somewhere else
 import { credentialRequest, getIssuerMetadata, tokenRequest, verifyIssuer, verifyState } from "../../utils/IssuanceUtils";
 import { TokenResponseDTO } from "../../interfaces/Issuance-dto";
+import ErrorModal from "../Modals/ErrorModal";
 
 
 
@@ -169,27 +166,9 @@ const Consent: React.FC<{ lang: string, polyglot: Polyglot }> = ({ lang, polyglo
 						<h2>{polyglot.t('Consent.VerifyIssuerLoadingScreen')}</h2>
 					</div>
 					<RingLoader color={ringColor} loading={true} css={override} size={300} speedMultiplier={0.3} />
-				</div>}
-			<Modal
-				className="my-modal"
-				overlayClassName="my-modal-wrapper"
-				isOpen={errModal}
-				ariaHideApp={false}
-				onRequestClose={handleCloseErrModal}
-			>
-				<div className="modal-fail header">
-					<h4>{polyglot.t('Consent.errorTitle')}</h4>
-					<button type="button" onClick={handleCloseErrModal}>
-						<FontAwesomeIcon className="CloseModal" icon={faTimes} />
-					</button>
 				</div>
-				<div className='content'>
-					<p>{polyglot.t('Consent.errorMsg')}</p>
-					<p>{polyglot.t('Consent.errorMsg2')}</p>
-					<p>{err}</p>
-					<p>{polyglot.t('Consent.errorMsg3')}</p>
-				</div>
-			</Modal>
+			}
+			<ErrorModal isOpen={errModal} handleClose={handleCloseErrModal} polyglot={polyglot} err={err} />
 		</>
 	);
 }

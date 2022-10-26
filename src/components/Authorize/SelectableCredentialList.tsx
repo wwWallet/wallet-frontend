@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react'
 import './SelectableCredentialList.css';
 import '../CredentialList/DetailDiploma.css'
 import Polyglot from 'node-polyglot';
-import '../CredentialList/MyModal.css';
 import { ShortVCPlaceholder } from '../CredentialList/CredentialList';
-import CredentialModal from '../CredentialModal/CredentialModal';
+import CredentialModal from '../Modals/CredentialModal';
 import { CredentialEntity, SelectableCredentials } from '../../interfaces/credential.interface';
 import Checkbox from '../Checkbox/Checkbox';
 

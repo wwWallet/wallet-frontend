@@ -1,15 +1,12 @@
 import config from "../../config/config.dev";
 import axios from "axios";
 import Polyglot from "node-polyglot";
-import decode from 'jwt-decode';
 import React, { useEffect, useState } from "react";
 import CredentialList from "../CredentialList/CredentialList";
 import { CredentialEntity } from "../../interfaces/credential.interface";
-import Modal from 'react-modal';
 import './MyCredentials.css';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faTimes } from "@fortawesome/free-solid-svg-icons";
-import CustomSelect from "../CustomSelect/CustomSelect";
+import FilterCredentialsModal from "../Modals/FilterCredentialsModal";
+import { SelectElement } from "../../interfaces/SelectProps";
 
 const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -54,17 +51,13 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 		});
 	}, []);
 
+	const credentialTypes: SelectElement[] = [{value: 'All', label: 'All'}, {value: 'Europass', label: 'Europass'}];
+
 	return (
 		<div className="gunet-container">
 			{message ?
 				<React.Fragment>
 					<div className="message">{message}</div>
-					<br />
-					{/* <button
-						className="login-button ui fancy button"
-						onClick={() => { window.location.href = '/' }}>
-						{polyglot.t('Wallet.tab1.vidButton')} {' '}
-					</button> */}
 				</React.Fragment>
 				:
 				<div>
@@ -78,32 +71,7 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 							{polyglot.t('Wallet.tab1.emptyVC')}
 						</div>
 					}
-
-					<Modal
-						className="my-modal"
-						overlayClassName="my-modal-wrapper"
-						isOpen={modalSettings}
-						ariaHideApp={false}
-						onRequestClose={handleCloseModal}
-					>
-						<div className="modal-header">
-							<h4>Filter Credentials</h4>
-							<button type="button" id="close" onClick={handleCloseModal}>
-								<FontAwesomeIcon className="CloseModal" icon={faTimes} />
-							</button>
-						</div>
-						<div className='content'>
-							<div className="filter-vc-container">
-									Credential Type:
-									<CustomSelect items={[{value: 'All', label: 'All'}, {value: 'Europass', label: 'Europass'}]} onChange={ () => {}}/>
-									<button
-										className="small login-button ui fancy button authorize-btn"
-										onClick={ () => {handleCloseModal()} }>
-										Apply
-									</button>
-								</div>
-						</div>
-					</Modal>
+					<FilterCredentialsModal isOpen={modalSettings} handleClose={handleCloseModal} credentialTypes={credentialTypes} />
 				</div>
 			}
 		</div>

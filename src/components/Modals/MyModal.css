@@ -1,3 +1,7 @@
+.Reactmodal__Body--open {
+	overflow: hidden;
+}
+
 .my-modal-wrapper {
 	position: fixed;
 	inset: 0px;
@@ -5,86 +9,66 @@
 	z-index: 3;
 }
 
-.Reactmodal__Body--open {
-	overflow: hidden;
-}
-
 .my-modal {
-	/* TODO: Make my-modal prevail above Header (now it is hidden behind it) */
 	width: 70%;
 	min-width: 500px;
 	background-color: rgba(255, 255, 255, 1);
-	/* background-color: rgba(100,100,100, 1); */
 	overflow-y: auto;
-	/* height: 70vh; */
 	height: 85vh;
 	display: block;
 	margin: 0 auto;
 	z-index: 3;
 	position: fixed;
 	left: 15%;
-	/* top: 20vh; */
 	top: 5vh;
 }
 
-.my-modal .content {
-	min-height: 50vh;
-	/* padding: 10px 40px; */
-	margin-top: 80px;
-	height: calc(100% - 80px - 20px);
-}
-
-.my-modal .header {
+.my-modal .modal-header {
 	font-size: 20px;
-	background-color: #003476;
-	color: rgb(255, 255, 255);
+	background-color: var(--ediplomas-blue);
+	color: white;
 	padding: 0 40px;
-	position: fixed !important;
-	width: 70%;
 	box-sizing: border-box;
 	z-index: 100;
 	height: 77.188px;
+	position: sticky;
+	top: 0;
+}
+
+.my-modal .modal-header.flex {
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
 }
 
-.my-modal .modal-header {
-	font-size: 20px;
-	background-color: #003476;
-	color: rgb(255, 255, 255);
-	padding: 0 40px;
-	position: fixed !important;
-	width: 70%;
-	box-sizing: border-box;
-	z-index: 100;
-	height: 77.188px;
+.my-modal .modal-header.success {
+	background-color: rgba(0, 155, 0, .75);
 }
 
-.my-modal .header.center {
+.my-modal .modal-header.fail {
+	background-color: rgba(255, 0, 0, .75);
+}
+
+.my-modal .modal-header.flex.center {
 	justify-content: flex-start;
 }
 
-.my-modal .header .main-header {
+.my-modal .modal-header.flex .modal-header-content {
+	width: 100%;
 	display: flex;
 	justify-content: space-between;
 	align-items: baseline;
 }
 
-.my-modal .header h4 {
+.my-modal .modal-header h4 {
 	display: inline-block;
 	margin-top: 26px;
-	/* margin-bottom: 26px; */
 	font-weight: 700;
 	font-size: 20px;
 }
 
-/* .my-modal .header p {
-	display: inline-block;
-	font-size: 11px;
-} */
-
-.my-modal button#close {
+.my-modal .modal-header button#close,
+.my-modal .modal-header button#back {
 	background-color: rgba(255, 255, 255, 0);
 	color: white;
 	font-size: 20px;
@@ -93,20 +77,14 @@
 	border-radius: 50%;
 }
 
-.my-modal .header button#back {
-	background-color: rgba(255, 255, 255, 0);
-	color: white;
-	/* font-size: 11px; */
-	border: 0;
-	cursor: pointer;
-	border-radius: 50%;
-	/* margin-bottom: 10%; */
-}
-
-.my-modal .header .obj-breadcrumb {
-	/* height: 15px; */
+.my-modal .modal-header .obj-breadcrumb {
 	font-size: 20px;
 	text-align: center;
+}
+
+.my-modal .content {
+	min-height: 50vh;
+	display: block;
 }
 
 .my-modal .content table {
@@ -162,35 +140,39 @@
 	float: right;
 }
 
-.my-modal .modal-success {
-	background-color: rgba(0, 155, 0, .75);
-	color: white;
-}
-
-.my-modal .modal-fail {
-	background-color: rgba(255, 0, 0, .75);
-	color: white;
-}
-
 @media only screen and (max-width: 768px) {
-	.my-modal .content .side_description {
-		font-size: 18px !important;
-		padding-right: 0px !important;
+
+	.my-modal {
+		width: 100%;
+		min-width: 250px;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		height: 100vh;
 	}
 
-	.my-modal .header {
+	.my-modal .modal-header {
 		position: fixed;
 		width: 100%;
 		padding-left: 10px;
 	}
 
-	.my-modal .header button {
+	.my-modal .modal-header button {
 		right: 5%;
 	}
 
 	.my-modal .content {
 		padding: 80px 5px;
 		margin-top: 0;
+	}
+
+	.my-modal .content .side_description {
+		font-size: 18px !important;
+		padding-right: 0px !important;
+	}
+
+	.my-modal .content .inner-td {
+		width: 100%;
 	}
 
 	.my-modal #closemodal {
@@ -204,19 +186,6 @@
 
 	.my-modal .actions .left {
 		float: none;
-	}
-
-	.my-modal {
-		width: 100%;
-		min-width: 250px;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		height: 100vh;
-	}
-
-	.my-modal .content .inner-td {
-		width: 100%;
 	}
 }
 

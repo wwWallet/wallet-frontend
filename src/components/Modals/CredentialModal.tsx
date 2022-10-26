@@ -6,11 +6,10 @@ import { faArrowLeft, faTimes } from '@fortawesome/free-solid-svg-icons'
 import Polyglot from 'node-polyglot';
 import VC from "../Credential/VC";
 import { CredentialEntity } from "../../interfaces/credential.interface";
-// todo: import CSS
+import './MyModal.css';
 
 const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglot, isOpen: boolean, closeModal(): void}> = ({credential, polyglot, isOpen, closeModal}) => {
 
-	// const [isOpen, setIsOpen] = useState<boolean>(false);
 	const handleCloseModal = () => {
 		closeModal();
 		setPath("");
@@ -48,6 +47,8 @@ const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglo
 		setPath((path: string) => (path === '') ? key : `${path}.${key}`);
 	}
 
+	console.log(path);
+
 	return (
 		<Modal
 			className="my-modal"
@@ -56,8 +57,8 @@ const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglo
 			ariaHideApp={false}
 			onRequestClose={handleCloseModal}
 		>
-			<div className={`header ${path == '' ? 'center' : ''}`}>
-				<div className="main-header">
+			<div className={`modal-header flex ${path === '' ? 'center' : ''}`}>
+				<div className="modal-header-content">
 					<div>
 						<button type="button" id="back" onClick={handleBack}
 							style={path == '' ? { 'visibility': 'hidden' } : {}}
