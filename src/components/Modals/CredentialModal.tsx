@@ -47,8 +47,6 @@ const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglo
 		setPath((path: string) => (path === '') ? key : `${path}.${key}`);
 	}
 
-	console.log(path);
-
 	return (
 		<Modal
 			className="my-modal"

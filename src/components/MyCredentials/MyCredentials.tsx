@@ -7,13 +7,18 @@ import { CredentialEntity } from "../../interfaces/credential.interface";
 import './MyCredentials.css';
 import FilterCredentialsModal from "../Modals/FilterCredentialsModal";
 import { SelectElement } from "../../interfaces/SelectProps";
+import { credentialHasSelectedTypes, extractAllCredentialTypes } from "../../utils/credentialUtils";
 
 const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
-	const [credentials, setCredentials] = useState<any[]>([]);
 
+	const [credentials, setCredentials] = useState<any[]>([]);
+	const [selectedCredentials, setSelectedCredentials] = useState<any[]>([]);
+
+	const [credentialTypes, setCredentialTypes] = useState<SelectElement[]>([]);
+	const [selectedCredentialTypes, setSelectedCredentialTypes] = useState<SelectElement[]>([]);
 
 	// modal
 	const [modalSettings, setModalSettings] = useState<boolean>(false);
@@ -27,7 +32,7 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	// load credentials from db
 	useEffect(() => {
-		setLoading(true);
+		setLoading(false);
 		axios.get<{vc_list: CredentialEntity[]}>(config.storeBackend.vcStorageUrl + '/vc',
 			{
 				headers: {
@@ -36,22 +41,45 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 			}
 		).then(res => {
 			const fetchedCredentials: any[] = res.data.vc_list;
-
-			// for (let i = 0; i < res.data.vc_list.length; i++) {
-			// 	const { vc } = decode<{ vc: any }>(res.data.vc_list[i].jwt);
-			// 	fetchedCredentials.push(vc);
-			// }
 			console.log("Credentials = ", res.data)
 			setCredentials(fetchedCredentials);
 			if (fetchedCredentials.length == 0) {
 				setMessage(polyglot.t('Wallet.tab1.emptyVC'));
 			}
 			setLoading(true);
-
+			
 		});
 	}, []);
 
-	const credentialTypes: SelectElement[] = [{value: 'All', label: 'All'}, {value: 'Europass', label: 'Europass'}];
+	// Set Credential Types from user types
+	useEffect(() => {
+		setCredentialTypes(extractAllCredentialTypes(credentials));
+	}, [credentials]);
+
+	const handleSelectTypes = (types: SelectElement[]) => {
+		setSelectedCredentialTypes(types);
+		handleCloseModal();
+	}
+
+	// Filter visible (selected) credentials
+	useEffect(() => {
+
+		// If no filters added, show all credentials
+		if(selectedCredentialTypes.length == 0) {
+			setSelectedCredentials(credentials);
+			return;
+		}
+
+		const visibleCredentials: any[] = [];
+
+		credentials.forEach( (credential) => {
+			if (credentialHasSelectedTypes(credential, selectedCredentialTypes) == true)
+				visibleCredentials.push(credential);
+		});
+
+		setSelectedCredentials(visibleCredentials);
+
+	}, [credentials, selectedCredentialTypes])
 
 	return (
 		<div className="gunet-container">
@@ -63,15 +91,17 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				<div>
 					<h4>{polyglot.t('Wallet.tab1.verifiableCredentials')}</h4>
 					<div className='filter-vc'>
-						<span className="hamburger fa fa-cog" onClick={handleOpenModal}/>
+						<span className="hamburger fa fa-bars" onClick={handleOpenModal}/>
 					</div>
-					<CredentialList polyglot={polyglot} credentials={credentials} loaded={loading} />
+					<CredentialList polyglot={polyglot} credentials={selectedCredentials} loaded={loading} />
 					{!credentials.length && !loading &&
 						<div className="message">
 							{polyglot.t('Wallet.tab1.emptyVC')}
 						</div>
 					}
-					<FilterCredentialsModal isOpen={modalSettings} handleClose={handleCloseModal} credentialTypes={credentialTypes} />
+					<FilterCredentialsModal isOpen={modalSettings}
+						handleClose={handleCloseModal} handleSelect={handleSelectTypes}
+						credentialTypes={credentialTypes} selectedCredentialTypes={selectedCredentialTypes}/>
 				</div>
 			}
 		</div>
