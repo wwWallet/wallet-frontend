@@ -186,6 +186,12 @@ export default {
 		errorMsg3: 'You will be redirected to your home page.'
 	},
 
+	FilterCredentials: {
+		title: 'Filter Credentials',
+		type: 'Credential Type',
+		apply: 'Apply'
+	},
+
 	Error: {
 		'': '',
 		'error': 'Error',

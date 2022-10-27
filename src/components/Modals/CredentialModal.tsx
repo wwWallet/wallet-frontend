@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import Modal from 'react-modal';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faTimes } from '@fortawesome/free-solid-svg-icons'
-import Polyglot from 'node-polyglot';
 import VC from "../Credential/VC";
-import { CredentialEntity, VCPayload } from "../../interfaces/credential.interface";
+import { VCPayload } from "../../interfaces/credential.interface";
 import './MyModal.css';
 import { decodeVC } from "../../utils/credentialUtils";
+import { CredentialModalProps } from "../../interfaces/modals.interface";
 
-const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglot, isOpen: boolean, closeModal(): void}> = ({credential, polyglot, isOpen, closeModal}) => {
+const CredentialModal: React.FC<CredentialModalProps> = ({credential, polyglot, isOpen, closeModal}) => {
 
 	const handleCloseModal = () => {
 		closeModal();

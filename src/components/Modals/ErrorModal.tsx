@@ -1,10 +1,10 @@
 import Modal from 'react-modal';
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Polyglot from 'node-polyglot';
 import './MyModal.css';
+import { ErrorModalProps } from '../../interfaces/modals.interface';
 
-const ErrorModal: React.FC<{isOpen: boolean, handleClose(): void, polyglot: Polyglot, err: string}> = ({isOpen, handleClose, polyglot, err}) => {
+const ErrorModal: React.FC<ErrorModalProps> = ({isOpen, handleClose, polyglot, err}) => {
 
 	return (
 		<Modal

@@ -5,10 +5,11 @@ import CustomSelect from "../CustomSelect/CustomSelect";
 import { SelectElement } from '../../interfaces/SelectProps';
 import { useState } from 'react';
 import './MyModal.css';
+import { FilterCredentialModalProps } from '../../interfaces/modals.interface';
 
-const FilterCredentialsModal: React.FC<{ isOpen: boolean, 
-	handleClose(): void, handleSelect(types: SelectElement[]): void,
-	credentialTypes: SelectElement[], selectedCredentialTypes: SelectElement[] }> = ({ isOpen, handleClose, handleSelect, credentialTypes, selectedCredentialTypes }) => {
+const FilterCredentialsModal: React.FC<FilterCredentialModalProps> = (
+	{ isOpen, handleClose, handleSelect,
+		credentialTypes, selectedCredentialTypes, polyglot }) => {
 
 	const [types, setTypes] = useState<SelectElement[]>([]);
 
@@ -25,19 +26,19 @@ const FilterCredentialsModal: React.FC<{ isOpen: boolean,
 			onRequestClose={handleClose}
 		>
 			<div className="modal-header">
-				<h4>Filter Credentials</h4>
+				<h4>{polyglot.t('FilterCredentials.title')}</h4>
 				<button type="button" id="close" onClick={handleClose}>
 					<FontAwesomeIcon className="CloseModal" icon={faTimes} />
 				</button>
 			</div>
 			<div className='content'>
 				<div className="filter-vc-container">
-					Credential Type:
+					{polyglot.t('FilterCredentials.type')}:
 					<CustomSelect defaultVal={selectedCredentialTypes} items={credentialTypes} isMulti onChange={handleTypes} />
 					<button
 						className="small login-button ui fancy button authorize-btn"
 						onClick={() => { handleSelect(types) }}>
-						Apply
+						{polyglot.t('FilterCredentials.apply')}
 					</button>
 				</div>
 			</div>

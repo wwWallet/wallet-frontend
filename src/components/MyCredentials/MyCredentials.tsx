@@ -101,7 +101,8 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 					}
 					<FilterCredentialsModal isOpen={modalSettings}
 						handleClose={handleCloseModal} handleSelect={handleSelectTypes}
-						credentialTypes={credentialTypes} selectedCredentialTypes={selectedCredentialTypes}/>
+						credentialTypes={credentialTypes} selectedCredentialTypes={selectedCredentialTypes}
+						polyglot={polyglot}/>
 				</div>
 			}
 		</div>
