@@ -36,7 +36,7 @@ export const authorizationRequest = (issuerUrl: string): { redirectUrl?: URL, er
 	catch (err) {
 		return { errCode: 1005 };
 	}
-	if (config.devIssuer.usage == true) {
+	if (config.devIssuer.usage === true) {
 		authorizationEndpoint = config.devIssuer.authorizationEndpoint;
 	}
 
@@ -48,7 +48,7 @@ export const authorizationRequest = (issuerUrl: string): { redirectUrl?: URL, er
 		redirectUrl.searchParams.append('response_type', 'code');
 		redirectUrl.searchParams.append('client_id', config.oid4ci.redirectUri);
 		redirectUrl.searchParams.append('state', state);
-		if (config.devConformance.usage == true)
+		if (config.devConformance.usage === true)
 			redirectUrl.searchParams.append('authorization_details', config.devConformance.authorization_details);
 		else
 			redirectUrl.searchParams.append('authorization_details', `%5B%7B%22type%22%3A%22openid_credential%22%2C%22credential_type%22%3A%22https%3A%2F%2Fapi.preprod.ebsi.eu%2Ftrusted-schemas-registry%2Fv1%2Fschemas%2F0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8%22%2C%22format%22%3A%22jwt_vc%22%7D%5D`);
@@ -160,7 +160,7 @@ export const credentialRequest = async (tokenResponse: TokenResponseDTO): Promis
 		const credential = credentialResponse.data.credential;
 
 		const verifyIssuerRes = await verifyIssuerFromCredential(credential);
-		if (verifyIssuerRes.status != true) {
+		if (verifyIssuerRes.status !== true) {
 			return { success: false, errorCode: 1007, errorText: verifyIssuerRes.error };
 		}
 
@@ -181,7 +181,7 @@ export const credentialRequest = async (tokenResponse: TokenResponseDTO): Promis
 		if (config.devConformance.usage)
 			break;
 		// if no other c_nonce was provided by the issuer, then stop making Credential Req
-		if (c_nonce == undefined)
+		if (c_nonce === undefined)
 			break;
 
 	}
@@ -195,7 +195,7 @@ export const generateProofForNonce = async (issuerUrl: string, c_nonce: string, 
 	return await axios.post<{ proof: string }>(
 		`${config.signatoryBackend.url}/issuance/construct/proof`,
 		{
-			issuerUrl: config.devConformance.usage == true ? config.devIssuer.url : getIssuerMetadata().issuer,
+			issuerUrl: config.devConformance.usage === true ? config.devIssuer.url : getIssuerMetadata().issuer,
 			c_nonce: c_nonce,
 			rsaPublicKey: rsaPublicKey
 		},
@@ -224,9 +224,9 @@ export const verifyIssuer = async (id_token: string): Promise<{ status: boolean,
 		return { status: false, error: 'error decoding jwt header' };
 	}
 
-	if (decoded_header.alg == undefined)
+	if (decoded_header.alg === undefined)
 		return { status: false, error: 'alg not included in jwt header' };
-	if (decoded_header.kid == undefined)
+	if (decoded_header.kid === undefined)
 		return { status: false, error: 'kid not included in jwt header' };
 
 	// 1. Find kid
@@ -243,7 +243,7 @@ export const verifyIssuer = async (id_token: string): Promise<{ status: boolean,
 		return { status: false, error: 'Network Error querying TIR' };
 	}
 
-	if (searchIssuerInTIR.status == 404)
+	if (searchIssuerInTIR.status === 404)
 		return { status: false, error: 'DID does not belong to a Trusted Issuer' };
 
 	else if (searchIssuerInTIR.status !== 200)
@@ -258,7 +258,7 @@ export const verifyIssuer = async (id_token: string): Promise<{ status: boolean,
 		return { status: false, error: 'Network Error querying DID Document Registry' };
 	}
 
-	if (getDidDocument.status == 404)
+	if (getDidDocument.status === 404)
 		return { status: false, error: 'DID document not found in DID Registry' };
 
 	else if (getDidDocument.status !== 200)
@@ -311,9 +311,9 @@ export const verifyIssuerFromCredential = async (credential: string): Promise<{ 
 		return { status: false, error: 'error decoding jwt' };
 	}
 
-	if (decoded_header.alg == undefined)
+	if (decoded_header.alg === undefined)
 		return { status: false, error: 'alg not included in jwt header' };
-	if (decoded_header.kid == undefined)
+	if (decoded_header.kid === undefined)
 		return { status: false, error: 'kid not included in jwt header' };
 	if (decoded_header.typ !== 'JWT')
 		return { status: false, error: 'credential type is not JWT' };
@@ -332,7 +332,7 @@ export const verifyIssuerFromCredential = async (credential: string): Promise<{ 
 		return { status: false, error: 'Network Error querying TIR' };
 	}
 
-	if (searchIssuerInTIR.status == 404)
+	if (searchIssuerInTIR.status === 404)
 		return { status: false, error: 'DID does not belong to a Trusted Issuer' };
 
 	else if (searchIssuerInTIR.status !== 200)
@@ -347,7 +347,7 @@ export const verifyIssuerFromCredential = async (credential: string): Promise<{ 
 		return { status: false, error: 'Network Error querying DID Document Registry' };
 	}
 
-	if (getDidDocument.status == 404)
+	if (getDidDocument.status === 404)
 		return { status: false, error: 'DID document not found in DID Registry' };
 
 	else if (getDidDocument.status !== 200)
@@ -383,7 +383,7 @@ export const verifyIssuerFromCredential = async (credential: string): Promise<{ 
 
 	const localUserDid: string | null = localStorage.getItem('did');
 	var userDid: string;
-	if (typeof localUserDid == 'string')
+	if (typeof localUserDid === 'string')
 		userDid = localUserDid;
 	else {
 		console.log('user did not found in local storage');

@@ -8,12 +8,9 @@ export interface Credentials {
 
 export interface CredentialEntity {
 	id: number;
-	identifier: string;
-	jwt: string;
 	holderDID: string;
-	issuerDID: string;
-	issuerInstitution: string;
-	type: string;
+	credential: string;
+	type: "jwt_vc" | "ldp_vc";
 }
 
 export interface SelectableCredentials {
@@ -22,4 +19,24 @@ export interface SelectableCredentials {
 	loaded?: boolean;
 	handleSelectVc(credentialId: string): void;
 	handleDeselectVc(credentialId: string): void;
+}
+
+export interface VerifiableCredential {
+	vc: VCPayload;
+	iss: string;
+	iat: number;
+	nbf: number;
+	jti: string;
+}
+
+export interface VCPayload {
+	credentialSubject: any;
+	"@context": string[];
+	type: string[];
+	issuer: string,
+	issuanceDate: string,
+	issued: string,
+	validFrom: string,
+	id: string,
+	credentialSchema: any
 }

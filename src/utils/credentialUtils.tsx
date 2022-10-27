@@ -1,7 +1,8 @@
 import jwtDecode from "jwt-decode";
+import { CredentialEntity, VerifiableCredential } from "../interfaces/credential.interface";
 import { SelectElement } from "../interfaces/SelectProps";
 
-export const extractAllCredentialTypes = (credentials: any[]): SelectElement[] => {
+export const extractAllCredentialTypes = (credentials: CredentialEntity[]): SelectElement[] => {
 
 	// Get all User types as strings
 	const userTypes: string[] = [];
@@ -31,15 +32,11 @@ export const extractAllCredentialTypes = (credentials: any[]): SelectElement[] =
 	return credentialTypes;
 }
 
-export const getCredentialTypes = (credential: any): string[] => {
-	
-	if(credential.jwt == undefined) {
-		throw new Error('Credential has no JWT field');
-	}
+export const getCredentialTypes = (credential: CredentialEntity): string[] => {
 
-	var decodedCredential: any;
+	var decodedCredential: VerifiableCredential;
 	try {
-		decodedCredential = jwtDecode(credential.jwt);
+		decodedCredential = decodeVC(credential);
 	}
 	catch (err) {
 		throw new Error(`Failed to decode credential. Error: ${err}`);
@@ -69,4 +66,69 @@ export const credentialHasSelectedTypes = (credential: any, types: SelectElement
 			return true;
 	}
 	return false;
+}
+
+export const decodeVC = (credential: CredentialEntity): VerifiableCredential => {
+	if (credential.type === "jwt_vc") {
+		const decodedCredential = jwtDecode(credential.credential);
+		if(isVerifiableCredential(decodedCredential))
+			return decodedCredential as VerifiableCredential;
+		else
+			throw new Error("Decoded Credential is invalid");
+	}
+	
+	else if (credential.type === "ldp_vc")
+		throw new Error("Unsupported Type. ldp_vc credentials not supported yet");
+	else
+		throw new Error("Unknown credential type");
+}
+
+export const isVerifiableCredential = (credential: any): boolean => {
+
+	try {
+		if(!isVCPayload(credential.vc)) {
+			console.log('invalid credential payload');
+			return false;
+		}
+
+		if(credential.iss === undefined) {
+			console.log('credential iss missing');
+			return false;
+		}
+
+		if(credential.iat === undefined) {
+			console.log('credential iat missing');
+			return false;
+		}
+
+		if(credential.nbf === undefined) {
+			console.log('credential nbf missing');
+			return false;
+		}
+
+		if(credential.jti === undefined) {
+			console.log('credential jti missing');
+			return false;
+		}
+
+		return true;
+	}
+	catch {
+		return false;
+	}
+}
+
+export const isVCPayload = (credential: any): boolean => {
+
+	try {
+		if(credential.credentialSubject === undefined) {
+			console.log('credentialSubject missing');
+			return false;
+		}
+
+		return true;
+	}
+	catch {
+		return false;
+	}
 }

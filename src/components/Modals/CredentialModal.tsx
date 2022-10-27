@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import Modal from 'react-modal';
-import jwtDecode from 'jwt-decode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faTimes } from '@fortawesome/free-solid-svg-icons'
 import Polyglot from 'node-polyglot';
 import VC from "../Credential/VC";
-import { CredentialEntity } from "../../interfaces/credential.interface";
+import { CredentialEntity, VCPayload } from "../../interfaces/credential.interface";
 import './MyModal.css';
+import { decodeVC } from "../../utils/credentialUtils";
 
 const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglot, isOpen: boolean, closeModal(): void}> = ({credential, polyglot, isOpen, closeModal}) => {
 
@@ -15,7 +15,7 @@ const CredentialModal: React.FC<{credential: CredentialEntity, polyglot: Polyglo
 		setPath("");
 	}
 
-	const [credentialPayload, setCredentialPayload] = useState<any>((jwtDecode(credential.jwt) as any).vc);
+	const [credentialPayload, setCredentialPayload] = useState<VCPayload>((decodeVC(credential)).vc);
 	const [object, setObject] = useState<any>(undefined);
 	const [path, setPath] = useState("");
 

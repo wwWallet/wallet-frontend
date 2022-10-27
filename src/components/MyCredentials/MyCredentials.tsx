@@ -14,8 +14,8 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	const [loading, setLoading] = useState(false);
 	const [message, setMessage] = useState("");
 
-	const [credentials, setCredentials] = useState<any[]>([]);
-	const [selectedCredentials, setSelectedCredentials] = useState<any[]>([]);
+	const [credentials, setCredentials] = useState<CredentialEntity[]>([]);
+	const [selectedCredentials, setSelectedCredentials] = useState<CredentialEntity[]>([]);
 
 	const [credentialTypes, setCredentialTypes] = useState<SelectElement[]>([]);
 	const [selectedCredentialTypes, setSelectedCredentialTypes] = useState<SelectElement[]>([]);
@@ -40,10 +40,10 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 				}
 			}
 		).then(res => {
-			const fetchedCredentials: any[] = res.data.vc_list;
+			const fetchedCredentials: CredentialEntity[] = res.data.vc_list;
 			console.log("Credentials = ", res.data)
 			setCredentials(fetchedCredentials);
-			if (fetchedCredentials.length == 0) {
+			if (fetchedCredentials.length === 0) {
 				setMessage(polyglot.t('Wallet.tab1.emptyVC'));
 			}
 			setLoading(true);
@@ -65,15 +65,15 @@ const MyCredentials: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 	useEffect(() => {
 
 		// If no filters added, show all credentials
-		if(selectedCredentialTypes.length == 0) {
+		if(selectedCredentialTypes.length === 0) {
 			setSelectedCredentials(credentials);
 			return;
 		}
 
-		const visibleCredentials: any[] = [];
+		const visibleCredentials: CredentialEntity[] = [];
 
 		credentials.forEach( (credential) => {
-			if (credentialHasSelectedTypes(credential, selectedCredentialTypes) == true)
+			if (credentialHasSelectedTypes(credential, selectedCredentialTypes) === true)
 				visibleCredentials.push(credential);
 		});
 

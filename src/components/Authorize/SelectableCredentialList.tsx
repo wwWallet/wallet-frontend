@@ -6,6 +6,7 @@ import { ShortVCPlaceholder } from '../CredentialList/CredentialList';
 import CredentialModal from '../Modals/CredentialModal';
 import { CredentialEntity, SelectableCredentials } from '../../interfaces/credential.interface';
 import Checkbox from '../Checkbox/Checkbox';
+import { decodeVC } from '../../utils/credentialUtils';
 
 
 const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Polyglot, handleSelectVc(identifier: string): void, handleDeselectVc(identifier: string): void}> = ({credential, polyglot, handleSelectVc, handleDeselectVc}) => {
@@ -19,9 +20,9 @@ const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Po
     
 		selected
 			?
-				handleSelectVc(credential.identifier)
+				handleSelectVc(credential.id.toString())
 			:
-				handleDeselectVc(credential.identifier);
+				handleDeselectVc(credential.id.toString());
 
   }, [selected]);
 
@@ -37,12 +38,12 @@ const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Po
 		<div className='SelectableCredential'>
 			<div className={`SplitCredential ${selected ? 'selected' : ''}`}>
 				<div className='selection' onClick={handleCheck}>
-					<Checkbox id={credential.identifier} checked={selected} onChange={handleCheck} />
+					<Checkbox id={credential.id.toString()} checked={selected} onChange={handleCheck} />
 				</div>
 				<div className="SingleCredential" onClick={handleOpenModal}>
 					<section className="CredentialPreviewFieldsContainer">
-						<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
-						<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerInstitution}</div></div>
+						<div className="CredentialPreviewItem"><div className="CredentialType">{decodeVC(credential).vc.type[0]}</div></div>
+						<div className="CredentialPreviewItem"><div className="CredentialIssuer">{decodeVC(credential).vc.issuer}</div></div>
 					</section>
 				</div>
 			</div>

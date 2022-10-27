@@ -1,14 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import './CredentialList.css';
 import './DetailDiploma.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowDown, faArrowLeft, faArrowUp, faBars } from '@fortawesome/free-solid-svg-icons'
-import { faAward, faUniversity, faUserGraduate, faTimes } from '@fortawesome/free-solid-svg-icons'
 import { Placeholder } from 'react-bootstrap';
 import Polyglot from 'node-polyglot';
-import jwtDecode from 'jwt-decode';
 import { CredentialEntity, Credentials } from '../../interfaces/credential.interface';
 import CredentialModal from '../Modals/CredentialModal';
+import { decodeVC } from '../../utils/credentialUtils';
 
 
 
@@ -50,8 +47,8 @@ const Credential: React.FC<{credential: CredentialEntity, polyglot: Polyglot}> =
 		<div className="PlainCredential">
 			<div className="SingleCredential" onClick={handleOpenModal}>
 				<section className="CredentialPreviewFieldsContainer">
-					<div className="CredentialPreviewItem"><div className="CredentialType">{credential.type}</div></div>
-					<div className="CredentialPreviewItem"><div className="CredentialIssuer">{credential.issuerInstitution}</div></div>
+					<div className="CredentialPreviewItem"><div className="CredentialType">{decodeVC(credential).vc.type[0]}</div></div>
+					<div className="CredentialPreviewItem"><div className="CredentialIssuer">{decodeVC(credential).vc.issuer}</div></div>
 				</section>
 			</div>
 			<CredentialModal credential={credential} polyglot={polyglot} isOpen={isOpen} closeModal={handleCloseModal}/>

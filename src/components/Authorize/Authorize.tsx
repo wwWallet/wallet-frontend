@@ -56,7 +56,7 @@ const Authorize: React.FC<{polyglot: Polyglot}> = ({polyglot}) => {
 
 	const sendPresentation = () => {
 		const selectedCredentialEntities: CredentialEntity[] = credentials.filter((credential: CredentialEntity) => {
-			return selected.includes(credential.identifier);
+			return selected.includes(credential.id.toString());
 		});
 
 		const requestBody: CreateVpRequestDTO = {
