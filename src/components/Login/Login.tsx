@@ -33,6 +33,7 @@ const Login: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 			}
 		).then(res => {
 			localStorage.setItem("appToken", res.data.appToken);
+			localStorage.setItem("did", res.data.did);
 			goToWallet();
 		}
 		).catch(error => {

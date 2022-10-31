@@ -7,7 +7,10 @@ import CredentialModal from '../Modals/CredentialModal';
 import { CredentialEntity, SelectableCredentials } from '../../interfaces/credential.interface';
 import Checkbox from '../Checkbox/Checkbox';
 import { decodeVC } from '../../utils/credentialUtils';
-
+import axios from 'axios';
+import config from '../../config/config.dev';
+import { base64url } from 'jose';
+import '../CredentialList/CredentialList.css';
 
 const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Polyglot, handleSelectVc(identifier: string): void, handleDeselectVc(identifier: string): void}> = ({credential, polyglot, handleSelectVc, handleDeselectVc}) => {
 
@@ -34,19 +37,43 @@ const SelectableCredential: React.FC<{credential: CredentialEntity, polyglot: Po
 		setIsOpen(false);
 	}
 
+	const [issuerName, setIssuerName] = useState<string>("");
+	const [readableIssuanceDate, setReadableIssuanceDate] = useState<string>("");
+
+	useEffect(() => {
+		// get issuer from jwtpayload
+		const payload = JSON.parse(new TextDecoder().decode(base64url.decode(credential.credential.split('.')[1])));
+		const issuerDID = payload.vc.issuer;
+		// fetch issuer name from tir
+		axios.get(config.ebsi.tirRegistryUrl + '/' + issuerDID).then(res => {
+			const body = res.data.attributes[0].body;
+			const name = JSON.parse(new TextDecoder().decode(base64url.decode(body))).institution;
+			setIssuerName(name);
+		});
+		const date = new Date(decodeVC(credential).vc.issuanceDate);
+		const format = date.toDateString()
+		setReadableIssuanceDate(format);
+	}, []);
+
 	return (
-		<div className='SelectableCredential'>
-			<div className={`SplitCredential ${selected ? 'selected' : ''}`}>
-				<div className='selection' onClick={handleCheck}>
-					<Checkbox id={credential.id.toString()} checked={selected} onChange={handleCheck} />
-				</div>
-				<div className="SingleCredential" onClick={handleOpenModal}>
-					<section className="CredentialPreviewFieldsContainer">
-						<div className="CredentialPreviewItem"><div className="CredentialType">{decodeVC(credential).vc.type[0]}</div></div>
-						<div className="CredentialPreviewItem"><div className="CredentialIssuer">{decodeVC(credential).vc.issuer}</div></div>
-					</section>
+		<div id="SelectableCredential" >
+			<div className="SelectableCredential">
+				<div className={`SplitCredential ${selected ? 'selected' : ''}`}>
+					<div className='selection' onClick={handleCheck}>
+						<Checkbox id={credential.id.toString()} checked={selected} onChange={handleCheck} />
+					</div>
+					<div className="SingleCredential" onClick={handleOpenModal}>
+						<section className="CredentialPreviewFieldsContainer">
+							<section className="BoxHeader">
+								<div className="BoxHeaderItem"> <div className="CredentialIssuer">{issuerName}</div></div>
+								<div className="BoxHeaderItem"> {" • " + readableIssuanceDate}</div>
+							</section>
+							<div className="CredentialPreviewItem"><div className="CredentialType">{decodeVC(credential).vc.type[0]}</div></div>
+						</section>
+					</div>
 				</div>
 			</div>
+
 			<CredentialModal credential={credential} polyglot={polyglot} isOpen={isOpen} closeModal={handleCloseModal}/>
 		</div>
 	);
