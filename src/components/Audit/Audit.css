@@ -1,0 +1,105 @@
+#Audit {
+}
+
+
+#Audit .table-container {
+  width: 80%;
+  font-size: 20px;
+  display: block;
+  margin: 0 auto;
+  margin-top: 60px;
+  font-family: 'Roboto Slab', sans-serif;
+
+}
+
+#Audit .striped {
+  width: 100%;
+  display: table;
+  border-collapse: collapse;
+  border-spacing: 0
+}
+
+#Audit .striped tr {
+  border-bottom: none;
+}
+#Audit .striped tr:nth-child(2n+1) {
+  background-color: rgba(242, 242, 242, 0.5);
+}
+
+#Audit .striped td, .striped th {
+  padding: 18px 10px;
+  display: table-cell;
+  text-align: left;
+  vertical-align: middle;
+}
+
+#Audit .striped th {
+  background-color: #f1f1f1;
+}
+
+#Audit table#org-info tr.double {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);;
+}
+
+#Audit table#org-info tr.single {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+}
+
+#Audit table#org-info td {
+  display: flex;
+  width: 100%;
+}
+
+#Audit table#org-info td:nth-last-of-type(2) {
+  display: table-cell;
+  align-self: center;
+
+}
+
+@media screen and (max-width: 470px) {
+  .striped {
+    font-size: 15px;
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+#Audit .striped:not(#org-info):not(#client-info):not(.invitation-results) tr:hover {
+  background-color: #f1f1f1;
+}
+
+#Audit .idCol, .statusCol {
+  display:none
+}
+
+#Audit .striped .idCol, .striped .statusCol {
+  display:none
+}
+
+#Audit .applications-table {
+  margin: auto;
+  max-height: 700px;
+  overflow-y: auto;
+}
+
+#Audit .spaced-table {
+  margin-bottom: 4%;
+}
+
+#Audit .filter-vp {
+	margin-bottom: 15px;
+}
+
+#Audit .hamburger {
+	cursor: pointer;
+
+	padding: 5px 8px;
+	border: solid;
+	border-radius: 5px;
+	border-width: 2px;
+	border-color: var(--ediplomas-blue);
+	background-color: var(--ediplomas-blue);
+	color: #fff;
+}

@@ -69,7 +69,7 @@ export const credentialHasSelectedTypes = (credential: any, types: SelectElement
 }
 
 export const decodeVC = (credential: CredentialEntity): VerifiableCredential => {
-	if (credential.type === "jwt_vc") {
+	if (credential.format === "jwt_vc") {
 		const decodedCredential = jwtDecode(credential.credential);
 		if(isVerifiableCredential(decodedCredential))
 			return decodedCredential as VerifiableCredential;
@@ -77,7 +77,7 @@ export const decodeVC = (credential: CredentialEntity): VerifiableCredential => 
 			throw new Error("Decoded Credential is invalid");
 	}
 	
-	else if (credential.type === "ldp_vc")
+	else if (credential.format === "ldp_vc")
 		throw new Error("Unsupported Type. ldp_vc credentials not supported yet");
 	else
 		throw new Error("Unknown credential type");

@@ -10,9 +10,7 @@ import Layout from './components/Layout/Layout';
 import Wallet from './components/Wallet/Wallet';
 import RequestVCs from './components/RequestVCs/RequestVCs';
 import Register from './components/Register/Register';
-import Authz from './components/Authz/Authz';
 import Login from './components/Login/Login';
-import Present from './components/Present/Present';
 import Settings from './components/Settings/Settings';
 import Import from './components/ImportQR/ImportQR';
 import Export from './components/ExportQR/ExportQR';
@@ -25,6 +23,7 @@ import InitiateIssuance from './components/InitiateIssuance/InitiateIssuance';
 import Error from './components/Error/Error';
 import Authorize from './components/Authorize/Authorize';
 import VerificationResults from './components/VerificationResults/VerificationResults';
+import Audit from './components/Audit/Audit';
 
 const POLYGLOT: any = {
   el: new Polyglot({ phrases: LocaleEl, locale: 'el' }),
@@ -82,8 +81,6 @@ function App() {
             <Route path='/settings'  element={< Settings polyglot={POLYGLOT[lang]}/>} />
             <Route path='/register' element={<Register polyglot={POLYGLOT[lang]}/>} />
             <Route path='/vc' element={< RequestVCs polyglot={POLYGLOT[lang]}/>}></Route>
-            <Route path='/auth' element={< Authz polyglot={POLYGLOT[lang]}/>}></Route>
-            <Route path='/present' element={<Present polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/import' element={<Import polyglot={POLYGLOT[lang]}/>}></Route>
             <Route path='/export' element={<Export polyglot={POLYGLOT[lang]}/>}></Route>
 						<Route path='/consent' element={<Consent lang={lang} polyglot={POLYGLOT[lang]}/>}></Route>

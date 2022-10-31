@@ -34,7 +34,8 @@
 }
 
 .custom-checkbox input[type="checkbox"]:checked + label {
-  background-color: var(--ediplomas-blue);
+  /* background-color: var(--ediplomas-blue); */
+	background-color:  var(--custom-selected);
 }
 
 .custom-checkbox input[type="checkbox"]:checked + label:after {
