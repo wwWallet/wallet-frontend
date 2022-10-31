@@ -6,7 +6,7 @@ export const Settings: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
 	return (
 		<div className="gunet-container">
-			<Export polyglot={polyglot} />
+			{/* <Export polyglot={polyglot} /> */}
 		</div>
 	)
 }

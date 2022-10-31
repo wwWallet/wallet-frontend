@@ -10,7 +10,7 @@ export interface CredentialEntity {
 	id: number;
 	holderDID: string;
 	credential: string;
-	type: "jwt_vc" | "ldp_vc";
+	format: "jwt_vc" | "ldp_vc";
 }
 
 export interface SelectableCredentials {

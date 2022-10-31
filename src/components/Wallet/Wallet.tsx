@@ -7,6 +7,7 @@ import ConnectedServices from '../ConnectedServices/ConnectedServices';
 import Authguard from '../Authguard/Authguard';
 import Tab from '../Tabs/Tab';
 import '../Tabs/Tab.css';
+import Audit from '../Audit/Audit';
 
 const Wallet: React.FC<{ polyglot: Polyglot }> = ({ polyglot }) => {
 
@@ -90,7 +91,7 @@ var mobileTabsElem = document.getElementById("mobile-tabs");
 			</Tab>
 
 			<Tab tabId={"transactions"} activeId={activeTab}>
-				<VpAudit polyglot={polyglot} />
+				<Audit polyglot={polyglot} />
 			</Tab>
 
 			<Tab tabId={"settings"} activeId={activeTab}>
