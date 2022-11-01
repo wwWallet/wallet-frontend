@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { getSchemaDefinition, getSchemaFromPath } from '../../utils/viewCredentialUtils';
 import './VC.css';
 
 // const credential = {
@@ -77,64 +78,112 @@ import './VC.css';
 // 	return parsedData
 // }
 
-const VC: React.FC<{ credential: any, handleSetPath(value: string): void, name?: string }> = ({ credential, name, handleSetPath }) => {
+const specificationRequiredFields: string[] = ['title', 'eCTSCreditPoints','educationLevel','volumeOfLearning'];
+const gradeRequiredFields: string[] = ['wasDerivedFrom', 'grade']
+const requiredFields: string[] = specificationRequiredFields.concat(gradeRequiredFields);
+const VC: React.FC<{ credential: any, handleSetPath(value: string, name?: string): void, name?: string, schemas: any[], path: string }> = ({ credential, name, handleSetPath, schemas, path }) => {
 
-	// const innerRoute = (name: string) => {
-
-	// 	setVcRoute((vcRoute: string) => {
-	// 		vcRoute = `${vcRoute}.${name}`;
-	// 	})
-	// }
-
-	var i: number = 0;
-
-	// const [vc, setVc] = useState({});
+	var i = 0;
 	const [displayedVc, setDisplayedVc] = useState<any>(undefined);
-	// const [vcRoute, setVcRoute] = useState("");
 
 
 	useEffect(() => {
 
+		var customSchemas: any[] = [];
+		for (const schema of schemas) {
+			const customSchema = getSchemaFromPath(schema, schema, path);
+			if (customSchema!==null)
+				customSchemas.push(customSchema);
+		}
+
 		if (typeof credential == 'object') {
 			const obj: any = Object.keys(credential).map(
 				(value) => {
+					var showFlag: boolean = false;
+					var dateFlag: boolean = false;
+					if(requiredFields.includes(value))
+						showFlag = true;
+					var name: string = value;
+
+					for (const schema of customSchemas) {
+						var object = getSchemaFromPath(schemas[0], schema, value);
+						if(object!==null) {
+
+							if (object.anyOf!==undefined) {
+								object = getSchemaDefinition(schemas[0], schemas[0], object.anyOf[0]["$ref"]);
+							}
+
+							if (object.title!==undefined) {
+								showFlag = true;
+								name = object.title;
+								if(object.format && object.format === 'date-time')
+									dateFlag = true;
+								break;
+							}
+
+							if (!isNaN(+value) && credential[+value].title !== undefined) { // handle arrays
+								showFlag = true;
+								name = credential[+value].title;
+								break;
+							}
+						}
+					}
+
 					if (typeof credential[value] == 'object') {
 
 						if (Array.isArray(credential[value])) {
 							const len: number = credential[value].length
-							return (
-								<div className="card obj-card" key={i++} onClick={() => handleSetPath(value)}>
-									<div className="key">{value}</div>
-									<div className="value">{`Array with ${len} object${len !== 1 ? 's' : ''}`}</div>
-								</div>
-							);
+							var isObj = false;
+							if(len > 0 && typeof(credential[value][0]) == 'object')
+								isObj = true;
+							if(showFlag === true)
+								return (
+									<div className="card obj-card" key={i++} onClick={isObj ? () => handleSetPath(value, name) : () => {}}>
+										<div className="key">{name}</div>
+										<div className="value">
+											{isObj
+											?
+											`Array with ${len} object${len !== 1 ? 's' : ''}`
+											:
+											`${credential[value].toString()}`
+											}
+										</div>
+									</div>
+								);
 						}
 
 						else {
-
-							var name: string = value;
 							if (Array.isArray(credential)) {
 								if(!isNaN(+value) && credential[+value].title !== undefined)
 									name = credential[+value].title;
 							}
 
 							const len: number = Object.keys(credential[value]).length;
-							return (
-								<div className="card obj-card" key={i++} onClick={() => handleSetPath(value)}>
-									<div className="key">{name}</div>
-									<div className="value">{`Object with ${len} attribute${len !== 1 ? 's' : ''}`}</div>
-								</div>
-							);
+							if(showFlag === true)
+								return (
+									<div className="card obj-card" key={i++} onClick={() => handleSetPath(value, name)}>
+										<div className="key">{name}</div>
+										<div className="value">{`Object with ${len} attribute${len !== 1 ? 's' : ''}`}</div>
+									</div>
+								);
 						}
 					}
 					else {
-						return (
-							<div className="card val-card" key={i++}>
-								<div className="key">{value}</div>
-								<div className="value">{credential[value]}</div>
-							</div>
-						);
+						if(showFlag === true)
+							return (
+								<div className="card val-card" key={i++}>
+									<div className="key">{name}</div>
+									<div className="value">
+									{
+										dateFlag ?
+										new Date(credential[value]).toDateString() :
+										credential[value]
+									}
+									</div>
+								</div>
+							);
 					}
+					return (<div key={i++}></div>);
 				}
 			)
 			setDisplayedVc(obj);
@@ -149,9 +198,6 @@ const VC: React.FC<{ credential: any, handleSetPath(value: string): void, name?:
 
 	return (
 		<React.Fragment>
-			{/* <h1 className='object-title'>
-				{name !== "" ? name : "Credential"}
-			</h1> */}
 			<div id="VC">
 				{displayedVc}
 			</div>

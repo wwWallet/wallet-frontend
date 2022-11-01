@@ -7,21 +7,38 @@ import { VCPayload } from "../../interfaces/credential.interface";
 import './MyModal.css';
 import { decodeVC } from "../../utils/credentialUtils";
 import { CredentialModalProps } from "../../interfaces/modals.interface";
+import { getSchemasFromObject } from "../../utils/viewCredentialUtils";
 
 const CredentialModal: React.FC<CredentialModalProps> = ({credential, polyglot, isOpen, closeModal}) => {
+
+	const [credentialPayload, setCredentialPayload] = useState<VCPayload>();
+	const [object, setObject] = useState<any>(undefined);
+	const [path, setPath] = useState("");
+	const [titles, setTitles] = useState<string[]>([]);	// Titles stack for backtracking
+	const [schemas, setSchemas] = useState<any[]>([]);
 
 	const handleCloseModal = () => {
 		closeModal();
 		setPath("");
+		setTitles([]);
 	}
 
-	const [credentialPayload, setCredentialPayload] = useState<VCPayload>((decodeVC(credential)).vc);
-	const [object, setObject] = useState<any>(undefined);
-	const [path, setPath] = useState("");
+	useEffect(() => {
+		setCredentialPayload((decodeVC(credential)).vc)
+	}, [credential])
 
 	useEffect(() => {
 		setObject(calculateObject(credentialPayload, path))
-	}, [path])
+	}, [credentialPayload, path])
+
+	
+	useEffect( () => {
+		const getSchemas = async () => {
+			const schemasRes: any[] = await getSchemasFromObject(credentialPayload);
+			setSchemas(schemasRes);
+		}
+		getSchemas();
+	})
 
 	const calculateObject = (object: any, path: string) => {
 		if (path === '')
@@ -40,11 +57,13 @@ const CredentialModal: React.FC<CredentialModalProps> = ({credential, polyglot, 
 
 	const handleBack = () => {
 		setPath((path: string) => backtrackPath(path));
+		setTitles((titles) => titles = titles.slice(0,-1));
 	}
 
-
-	const handleSetPath = (key: string) => {
+	const handleSetPath = (key: string, name?: string) => {
 		setPath((path: string) => (path === '') ? key : `${path}.${key}`);
+		if(name)
+			setTitles((titles) => titles = [...titles, name]);
 	}
 
 	return (
@@ -55,17 +74,17 @@ const CredentialModal: React.FC<CredentialModalProps> = ({credential, polyglot, 
 			ariaHideApp={false}
 			onRequestClose={handleCloseModal}
 		>
-			<div className={`modal-header flex ${path === '' ? 'center' : ''}`}>
+			<div className={"modal-header flex center"}>
 				<div className="modal-header-content">
 					<div>
 						<button type="button" id="back" onClick={handleBack}
-							style={path == '' ? { 'visibility': 'hidden' } : {}}
+							style={path === '' ? { 'visibility': 'hidden' } : {}}
 						>
 							<FontAwesomeIcon className="CloseModal" icon={faArrowLeft} />
 						</button>
-						{path.split('.').length > 1
+						{titles.length > 0
 							?
-							<h4>{path.split('.')[path.split('.').length - 2]}</h4>
+							<h4>{titles[titles.length-1]}</h4>
 							:
 							<h4>{polyglot.t('ShortVc.verifiableCredential')}</h4>
 						}
@@ -74,14 +93,14 @@ const CredentialModal: React.FC<CredentialModalProps> = ({credential, polyglot, 
 						<FontAwesomeIcon className="CloseModal" icon={faTimes} />
 					</button>
 				</div>
-				{path !== '' &&
+				{/* {path !== '' &&
 					<div className="obj-breadcrumb">
 						{path}
 					</div>
-				}
+				} */}
 			</div>
 			<div className='content'>
-				<VC handleSetPath={handleSetPath} credential={object} /*name={path.split('.').slice().join('.')}*/ />
+				<VC handleSetPath={handleSetPath} credential={object} path={path} schemas={schemas} />
 			</div>
 		</Modal>
 	);
