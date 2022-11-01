@@ -105,17 +105,24 @@ const VC: React.FC<{ credential: any, handleSetPath(value: string): void, name?:
 							return (
 								<div className="card obj-card" key={i++} onClick={() => handleSetPath(value)}>
 									<div className="key">{value}</div>
-									<div className="value">{`Array with ${len} object${len != 1 ? 's' : ''}`}</div>
+									<div className="value">{`Array with ${len} object${len !== 1 ? 's' : ''}`}</div>
 								</div>
 							);
 						}
 
 						else {
+
+							var name: string = value;
+							if (Array.isArray(credential)) {
+								if(!isNaN(+value) && credential[+value].title !== undefined)
+									name = credential[+value].title;
+							}
+
 							const len: number = Object.keys(credential[value]).length;
 							return (
 								<div className="card obj-card" key={i++} onClick={() => handleSetPath(value)}>
-									<div className="key">{value}</div>
-									<div className="value">{`Object with ${len} attribute${len != 1 ? 's' : ''}`}</div>
+									<div className="key">{name}</div>
+									<div className="value">{`Object with ${len} attribute${len !== 1 ? 's' : ''}`}</div>
 								</div>
 							);
 						}
