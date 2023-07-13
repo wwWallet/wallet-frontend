@@ -22,10 +22,10 @@ const Layout = ({ children }) => {
           <GiHamburgerMenu size={24} />
         </button>
       </header>
-      <div className={`flex-grow bg-gray-100 p-6 ${isOpen ? '' : 'mt-10 pt-10 sm:mt-0 sm:pt-6' }`}>
-          {children}
-        </div>
-
+      
+      <div className={`flex-grow bg-gray-100 p-6 ${isOpen ? 'overflow-y-hidden' : 'mt-10 pt-10 sm:mt-0 sm:pt-6' }`}>
+        {children}
+      </div>
     </div>
   );
 };

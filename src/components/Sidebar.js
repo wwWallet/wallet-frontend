@@ -26,7 +26,7 @@ const Sidebar = ({isOpen, toggle}) => {
     >
       {/* Mobile Header */}
       <div className="sm:hidden flex items-center justify-between mb-4">
-        <img src={logo} alt="Logo" className="w-8 h-auto" />
+        <img src={logo} alt="Logo" className="w-16 h-auto" />
         <h1 className="text-white text-lg font-bold">
           eDiplomas <br/>
           Digital Wallet
@@ -37,7 +37,7 @@ const Sidebar = ({isOpen, toggle}) => {
       </div>
 
       {/* Logo */}
-      <div className="flex flex-col h-full">
+      <div className="flex flex-col">
         <div className="hidden sm:flex justify-between items-center mb-4">
           <img src={logo} alt="Logo" className="w-20 h-auto mb-2 mr-2" />
           <h1 className="text-white text-lg font-bold">
@@ -82,10 +82,10 @@ const Sidebar = ({isOpen, toggle}) => {
 				</li>
 			</ul>
         {/* Footer */}
-        <div className="bg-custom-blue text-white text-sm p-2 mt-auto">
+      </div>
+			<div className="absolute bottom-0 bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
           Powered by <a href="https://www.gunet.gr/" rel="noreferrer" target="_blank" className="underline">GUnet</a>
         </div>
-      </div>
     </div>
   );
 };
