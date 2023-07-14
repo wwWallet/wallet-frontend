@@ -12,6 +12,15 @@ const Home = () => {
     { id: 2, src: cred_card, alt: 'Image 2' },
     { id: 3, src: cred_card, alt: 'Image 3' },
     { id: 4, src: cred_card, alt: 'Image 4' },
+		{ id: 5, src: cred_card, alt: 'Image 3' },
+    { id: 6, src: cred_card, alt: 'Image 4' },
+		{ id: 7, src: cred_card, alt: 'Image 3' },
+    { id: 8, src: cred_card, alt: 'Image 4' },
+		{ id: 9, src: cred_card, alt: 'Image 3' },
+    { id: 10, src: cred_card, alt: 'Image 4' },
+		{ id: 11, src: cred_card, alt: 'Image 4' },
+		{ id: 12, src: cred_card, alt: 'Image 4' },
+		{ id: 13, src: cred_card, alt: 'Image 4' },
     // Add more images here
   ];
 
