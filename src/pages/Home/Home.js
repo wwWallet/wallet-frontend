@@ -8,19 +8,19 @@ import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 const Home = () => {
   const images = [
-    { id: 1, src: cred_card, alt: 'Image 1' },
-    { id: 2, src: cred_card, alt: 'Image 2' },
-    { id: 3, src: cred_card, alt: 'Image 3' },
-    { id: 4, src: cred_card, alt: 'Image 4' },
-		{ id: 5, src: cred_card, alt: 'Image 3' },
-    { id: 6, src: cred_card, alt: 'Image 4' },
-		{ id: 7, src: cred_card, alt: 'Image 3' },
-    { id: 8, src: cred_card, alt: 'Image 4' },
-		{ id: 9, src: cred_card, alt: 'Image 3' },
-    { id: 10, src: cred_card, alt: 'Image 4' },
-		{ id: 11, src: cred_card, alt: 'Image 4' },
-		{ id: 12, src: cred_card, alt: 'Image 4' },
-		{ id: 13, src: cred_card, alt: 'Image 4' },
+    { id: 1,  src: cred_card, alt: 'Image 1' },
+    { id: 2,  src: cred_card, alt: 'Image 2' },
+    { id: 3,  src: cred_card, alt: 'Image 3' },
+    { id: 4,  src: cred_card, alt: 'Image 4' },
+		{ id: 5,  src: cred_card, alt: 'Image 5' },
+    { id: 6,  src: cred_card, alt: 'Image 6' },
+		{ id: 7,  src: cred_card, alt: 'Image 7' },
+    { id: 8,  src: cred_card, alt: 'Image 8' },
+		{ id: 9,  src: cred_card, alt: 'Image 9' },
+    { id: 10, src: cred_card, alt: 'Image 10' },
+		{ id: 11, src: cred_card, alt: 'Image 11' },
+		{ id: 12, src: cred_card, alt: 'Image 12' },
+		{ id: 13, src: cred_card, alt: 'Image 13' },
     // Add more images here
   ];
 
@@ -36,7 +36,7 @@ const Home = () => {
 
   return (
     <Layout>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-14">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-14">
         {images.map((image) => (
           <div
             key={image.id}
