@@ -46,7 +46,10 @@ const History = () => {
 	return (
     <Layout>
       <div className="px-4 sm:px-6 w-full">
-        <h1 className="text-2xl font-bold text-custom-blue">History</h1>
+				<h1 className="text-2xl mb-2 font-bold text-custom-blue">History</h1>
+				<hr className="mb-2 border-t border-custom-blue/80" />
+				<p className="italic pd-2 text-gray-700">View history of credential transmissions, detailing when and to which verifiers you sent</p>
+
         <div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
             {history.map((item) => (
                 <div 

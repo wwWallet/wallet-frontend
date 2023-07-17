@@ -36,45 +36,55 @@ const Home = () => {
 
   return (
     <Layout>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-14">
-        {images.map((image) => (
-          <div
-            key={image.id}
-            className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-            onClick={() => openFullscreen(image)}
-          >
-            <img src={image.src} alt={image.alt} className="w-full h-auto rounded-xl" />
-          </div>
-        ))}
-        <div
-          className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-        >
-          <img
-            src={addImage}
-            alt="add new credential"
-            className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
-          />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <BsPlusCircle size={60} className="text-white mb-2" />
-            <span className="text-white font-semibold">Add New Credential</span>
-          </div>
-        </div>
-      </div>
-      {fullscreenImage && (
-        <div className=" fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
-          <img
-            src={fullscreenImage.src}
-            alt={fullscreenImage.alt}
-            className="max-w-full max-h-full rounded-xl"
-          />
-          <button
-            className="absolute top-4 right-4 text-white text-2xl"
-            onClick={closeFullscreen}
-          >
-            <AiOutlineCloseCircle size={40}/>
-          </button>
-        </div>
-      )}
+			<div className="px-4 sm:px-6 w-full">
+
+				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Credentials</h1>
+				<hr className="mb-2 border-t border-custom-blue/80" />
+				<p className="italic pd-2 text-gray-700">View all of your credentials, and use the 'Add new credentials' card to add more</p>
+				<div className='my-4'>
+
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-14">
+						{images.map((image) => (
+							<div
+								key={image.id}
+								className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+								onClick={() => openFullscreen(image)}
+							>
+								<img src={image.src} alt={image.alt} className="w-full h-auto rounded-xl" />
+							</div>
+						))}
+						<div
+							className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+						>
+							<img
+								src={addImage}
+								alt="add new credential"
+								className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+							/>
+							<div className="absolute inset-0 flex flex-col items-center justify-center">
+								<BsPlusCircle size={60} className="text-white mb-2" />
+								<span className="text-white font-semibold">Add New Credential</span>
+							</div>
+						</div>
+					</div>
+					{fullscreenImage && (
+						<div className=" fixed inset-0 flex items-center justify-center bg-black bg-opacity-75">
+							<img
+								src={fullscreenImage.src}
+								alt={fullscreenImage.alt}
+								className="max-w-full max-h-full rounded-xl"
+							/>
+							<button
+								className="absolute top-4 right-4 text-white text-2xl"
+								onClick={closeFullscreen}
+							>
+								<AiOutlineCloseCircle size={40}/>
+							</button>
+						</div>
+					)}
+				</div>
+
+			</div>
     </Layout>
   );
 };
