@@ -23,7 +23,7 @@ const Layout = ({ children }) => {
         </button>
       </header>
       
-      <div className="w-4/5 flex flex-col flex-grow">
+      <div className="w-3/5 flex flex-col flex-grow">
         {/* Sidebar */}
         <div className={`sticky top-0 h-screen overflow-y-auto bg-custom-blue text-white p-6 sm:w-64 ${isOpen ? 'block' : 'hidden'}`}>
           <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
