@@ -147,10 +147,7 @@ const Issuers = () => {
   return (
     <Layout>
       <div className="px-4 sm:px-6">
-			<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
-			<hr className="mb-2 border-t border-custom-blue/80" />
-			<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
-
+			<h1 className="text-2xl font-bold text-custom-blue">Issuers</h1>
         <div className="my-4">
           <input
             type="text"

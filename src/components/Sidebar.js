@@ -56,7 +56,7 @@ const Sidebar = ({ isOpen, toggle }) => {
         <hr className="my-4 border-t border-white/20" />
 
         {/* User */}
-        <div className="px-2 flex items-center mt-2 mb-2">
+        <div className="flex items-center mt-2 mb-2">
           <FaUserCircle size={30} className="mr-2" />
           <span className="text-white">Username</span>
         </div>
