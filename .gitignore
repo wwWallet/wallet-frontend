@@ -4,6 +4,8 @@
 package_lock.json
 /build
 
+.env
+
 # Logs
 logs
 *.log
