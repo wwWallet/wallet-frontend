@@ -2,12 +2,13 @@ import React from 'react';
 import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
-
 import { useLocation, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import logo from '../assets/images/ediplomasLogo.svg';
 
 const Sidebar = ({ isOpen, toggle }) => {
+
+	const username = Cookies.get('username');
 	const location=useLocation();
   const navigate = useNavigate();
 
@@ -34,9 +35,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 		>
       {/* Mobile Header */}
       <div className="sm:hidden flex items-center justify-between mb-4">
-        <img src={logo} alt="Logo" className="w-16 h-auto" />
-        <h1  className="text-white text-lg font-bold">
-          eDiplomas <br />
+				<img src={logo} alt="Logo" className="w-16 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
+        <h1
+          className="text-white text-lg font-bold cursor-pointer"
+          onClick={() => handleNavigate('/')}
+        	>          
+					eDiplomas <br />
           Digital Wallet
         </h1>
         <button onClick={toggle}>
@@ -47,10 +51,18 @@ const Sidebar = ({ isOpen, toggle }) => {
       {/* Logo */}
       <div className="flex flex-col">
         <div className="hidden sm:flex justify-between items-center mb-4">
-          <img src={logo} alt="Logo" className="w-22 h-22 mb-2 mr-2" />
-          <h1 className="text-white text-lg font-bold">
-            eDiplomas <br />
-            Digital Wallet
+					<img
+            src={logo}
+            alt="Logo"
+            className="w-22 h-22 mb-2 mr-2 cursor-pointer"
+            onClick={() => handleNavigate('/')}
+        	/>          
+					<h1
+          	className="text-white text-lg font-bold cursor-pointer"
+          	onClick={() => handleNavigate('/')}
+          	>            
+						eDiplomas <br />
+          	Digital Wallet
           </h1>
           <button className="sm:hidden" onClick={toggle}>
             <AiOutlineClose size={30} />
@@ -61,7 +73,7 @@ const Sidebar = ({ isOpen, toggle }) => {
         {/* User */}
         <div className="px-2 flex items-center mt-2 mb-2">
           <FaUserCircle size={30} className="mr-2" />
-          <span className="text-white">Username</span>
+          <span className="text-white">{username}</span>
         </div>
         <hr className="my-4 border-t border-white/20" />
 

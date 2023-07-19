@@ -15,54 +15,50 @@ const Login = () => {
 
   const walletBackendUrl = 'https://university-ebsi.ediplomas.gr/wallet';
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+const handleLogin = async (event) => {
+  event.preventDefault();
 
-		console.log(username,password);
-    if (username === '' || password === '') {
-      setError('Please fill in all required fields');
-      return;
-    }
+  if (username === '' || password === '') {
+    setError('Please fill in all required fields');
+    return;
+  }
 
-    try {
-      const response = await loginUser(username, password);
-      const appToken = response.appToken;
-			console.log(appToken);
+  try {
+    const response = await loginUser(username, password);
+    const appToken = response.appToken;
+    Cookies.set('loggedIn', true);
+    Cookies.set('username', username);
+    Cookies.set('appToken', appToken);
+    navigate('/');
+  } catch (error) {
+    setError('Incorrect username or password');
+  }
+};
 
-			console.log('set loged in');
-      Cookies.set('loggedIn', true);
-			navigate('/');
-			
-    } catch (error) {
-      setError('Incorrect username or password');
-    }
-  };
+const handleSignup = async (event) => {
+  event.preventDefault();
 
-  const handleSignup = async (event) => {
-    event.preventDefault();
+  if (username === '' || password === '' || confirmPassword === '') {
+    setError('Please fill in all required fields');
+    return;
+  }
 
-    if (username === '' || password === '' || confirmPassword === '') {
-      setError('Please fill in all required fields');
-      return;
-    }
+  if (password !== confirmPassword) {
+    setError('Passwords do not match');
+    return;
+  }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    try {
-
-			const response= await signupUser(username, password);
-      const appToken = response.appToken;
-      storeAppToken(appToken);
-      Cookies.set('loggedIn', true);
-      navigate('/');
-
-    } catch (error) {
-      setError('Failed to create user account, username already exists');
-    }
-  };
+  try {
+    const response = await signupUser(username, password);
+    const appToken = response.appToken;
+    Cookies.set('loggedIn', true);
+    Cookies.set('username', username);
+    Cookies.set('appToken', appToken);
+    navigate('/');
+  } catch (error) {
+    setError('Failed to create user account, username already exists');
+  }
+};
 
   const loginUser = async (username, password) => {
     try {
@@ -97,9 +93,6 @@ const Login = () => {
     }
   };
 
-  const storeAppToken = (appToken) => {
-    sessionStorage.setItem('appToken', appToken);
-  };
 
   return (
     <section className="bg-gray-50 dark:bg-gray-900">

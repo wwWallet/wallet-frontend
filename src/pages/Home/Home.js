@@ -65,9 +65,9 @@ const Home = () => {
             alt="add new credential"
             className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
           />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <BsPlusCircle size={60} className="text-white mb-2" />
-            <span className="text-white font-semibold">Add New Credential</span>
+					<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+						<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
+						<span className="text-white font-semibold">Add New Credential</span>
           </div>
         </div>
       </div>
