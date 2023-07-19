@@ -5,8 +5,13 @@ import cred_card from '../../assets/images/cred.png';
 import addImage from '../../assets/images/cred.png';
 import { BsPlusCircle } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const Home = () => {
+
+	const walletBackendUrl = 'https://university-ebsi.ediplomas.gr/wallet';
+
   const images = [
     { id: 1, src: cred_card, alt: 'Image 1' },
     { id: 2,  src: cred_card, alt: 'Image 2' },
@@ -35,6 +40,27 @@ const Home = () => {
   const handleAddCredential = () => {
     navigate('/issuers');
   };
+
+
+	// const getData = async () => {
+	// 	try {
+	// 		const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
+	// 		console.log(appToken);
+	// 		const response = await axios.get(`${walletBackendUrl}/storage/vc`, {
+	// 			headers: {
+	// 				Authorization: `Bearer ${appToken}`,
+	// 			},
+	// 		});
+
+	// 		// Handle the response data
+	// 		console.log(response);
+	// 	} catch (error) {
+	// 		console.error('Failed to fetch data', error);
+	// 	}
+	// };
+
+	// // Call the function to fetch data
+	// getData();
 
   return (
     <Layout>
