@@ -5,12 +5,10 @@ import cred_card from '../../assets/images/cred.png';
 import addImage from '../../assets/images/cred.png';
 import { BsPlusCircle } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+// import axios from 'axios';
+// import Cookies from 'js-cookie';
 
 const Home = () => {
-
-	const walletBackendUrl = 'https://university-ebsi.ediplomas.gr/wallet';
 
   const images = [
     { id: 1, src: cred_card, alt: 'Image 1' },

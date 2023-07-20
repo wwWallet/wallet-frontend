@@ -2,63 +2,148 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
-
+import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import logo from '../../assets/images/ediplomasLogo.svg';
+import { AiOutlineUnlock, AiOutlineLock } from 'react-icons/ai';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [error, setError] = useState('');
   const [isLogin, setIsLogin] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  const walletBackendUrl = 'https://university-ebsi.ediplomas.gr/wallet';
+  const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
-const handleLogin = async (event) => {
-  event.preventDefault();
+  const { username, password, confirmPassword } = formData;
 
-  if (username === '' || password === '') {
-    setError('Please fill in all required fields');
-    return;
-  }
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [name]: value,
+    }));
+    setError(''); // Clear the error message
+  };
 
-  try {
-    const response = await loginUser(username, password);
-    const appToken = response.appToken;
-    Cookies.set('loggedIn', true);
-    Cookies.set('username', username);
-    Cookies.set('appToken', appToken);
-    navigate('/');
-  } catch (error) {
-    setError('Incorrect username or password');
-  }
-};
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
 
-const handleSignup = async (event) => {
-  event.preventDefault();
+    if (username === '' || password === '') {
+      setError('Please fill in all required fields');
+      return;
+    }
 
-  if (username === '' || password === '' || confirmPassword === '') {
-    setError('Please fill in all required fields');
-    return;
-  }
+    if (!isLogin && password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    setError('Passwords do not match');
-    return;
-  }
+    // Validate password criteria
 
-  try {
-    const response = await signupUser(username, password);
-    const appToken = response.appToken;
-    Cookies.set('loggedIn', true);
-    Cookies.set('username', username);
-    Cookies.set('appToken', appToken);
-    navigate('/');
-  } catch (error) {
-    setError('Failed to create user account, username already exists');
-  }
-};
+		if (!isLogin){
+
+			const isLengthValid = password.length >= 8;
+			const hasCapitalLetter = /[A-Z]/.test(password);
+			const hasNumber = /[0-9]/.test(password);
+			const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+	
+			if (!isLengthValid || !hasCapitalLetter || !hasNumber || !hasSpecialChar) {
+				const errorMessages = [];
+				const criteriaStyle = 'text-sm';
+	
+				errorMessages.push(
+					<div>
+						<p className="text-red-500 font-bold">Weak password</p>
+							{!isLengthValid ? (
+								<p className="text-red-500">
+									<span className={criteriaStyle}>
+										<AiOutlineUnlock className="inline-block mr-2" />
+										Minimum length: 8 characters
+									</span>
+								</p>
+							) : (
+								<p className="text-green-500">
+									<span className={criteriaStyle}>
+										<AiOutlineLock className="inline-block mr-2" />
+										Minimum length: 8 characters
+									</span>
+								</p>
+							)}
+							{!hasCapitalLetter ? (
+								<p className="text-red-500">
+									<span className={criteriaStyle}>
+										<AiOutlineUnlock className="inline-block mr-2" />
+										At least one capital letter
+									</span>
+								</p>
+							) : (
+								<p className="text-green-500">
+									<span className={criteriaStyle}>
+										<AiOutlineLock className="inline-block mr-2" />
+										At least one capital letter
+									</span>
+								</p>
+							)}
+							{!hasNumber ? (
+								<p className="text-red-500">
+									<span className={criteriaStyle}>
+										<AiOutlineUnlock className="inline-block mr-2" />
+										At least one number
+									</span>
+								</p>
+							) : (
+								<p className="text-green-500">
+									<span className={criteriaStyle}>
+										<AiOutlineLock className="inline-block mr-2" />
+										At least one number
+									</span>
+								</p>
+							)}
+							{!hasSpecialChar ? (
+								<p className="text-red-500">
+									<span className={criteriaStyle}>
+										<AiOutlineUnlock className="inline-block mr-2" />
+										At least one special character
+									</span>
+								</p>
+							) : (
+								<p className="text-green-500">
+									<span className={criteriaStyle}>
+										<AiOutlineLock className="inline-block mr-2" />
+										At least one special character
+									</span>
+								</p>
+							)}
+					</div>
+				);
+	
+				setError(<div>{errorMessages}</div>);
+				return;
+			}
+		}
+
+    setIsSubmitting(true);
+
+    try {
+      const response = isLogin ? await loginUser(username, password) : await signupUser(username, password);
+      const { appToken } = response;
+      Cookies.set('loggedIn', true);
+      Cookies.set('username', username);
+      Cookies.set('appToken', appToken);
+      navigate('/');
+    } catch (error) {
+      setError(
+        isLogin ? 'Incorrect username or password' : 'Failed to create user account, username already exists'
+      );
+    }
+
+    setIsSubmitting(false);
+  };
 
   const loginUser = async (username, password) => {
     try {
@@ -66,11 +151,7 @@ const handleSignup = async (event) => {
         username,
         password,
       });
-
-      // Handle the response as needed
-			console.log(response.data);
       return response.data;
-
     } catch (error) {
       console.error('Failed to log in user', error);
       throw error;
@@ -83,16 +164,45 @@ const handleSignup = async (event) => {
         username,
         password,
       });
-
-      // Handle the response as needed
-			console.log(response.data);
       return response.data;
     } catch (error) {
-      console.error('Failed to sign up user, the username already exists', error);
+      console.error('Failed to sign up user', error);
       throw error;
     }
   };
 
+  const toggleForm = (event) => {
+    event.preventDefault();
+    setIsLogin(!isLogin);
+    setError('');
+    setFormData({
+      username: '',
+      password: '',
+      confirmPassword: '',
+    });
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const getPasswordStrength = (password) => {
+    const lengthScore = password.length >= 8 ? 25 : 0;
+    const capitalScore = /[A-Z]/.test(password) ? 25 : 0;
+    const numberScore = /[0-9]/.test(password) ? 25 : 0;
+    const specialCharScore = /[^A-Za-z0-9]/.test(password) ? 25 : 0;
+
+    return lengthScore + capitalScore + numberScore + specialCharScore;
+  };
+
+  const passwordStrength = getPasswordStrength(password);
 
   return (
     <section className="bg-gray-100 dark:bg-gray-900">
@@ -101,72 +211,118 @@ const handleSignup = async (event) => {
           <img className="w-20" src={logo} alt="logo" />
         </a>
         <h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-          Welcome to eDiplomas <br></br> Digital Wallet
+          Welcome to eDiplomas <br /> Digital Wallet
         </h1>
         <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
           <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
               {isLogin ? 'Login' : 'Sign Up'}
             </h1>
-            <form className="space-y-4 md:space-y-6" onSubmit={isLogin ? handleLogin : handleSignup}>
+            <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
               {error && <p className="text-red-500">{error}</p>}
-              <div className="mb-4">
+              <div className="mb-4 relative">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
+                  <FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
                   Username
                 </label>
                 <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="username"
                   type="text"
+                  name="username"
                   placeholder="Enter your username"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={handleInputChange}
+                  aria-label="Username"
                 />
               </div>
-              <div className="mb-6">
+              <div className="mb-6 relative">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+                  <FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
                   Password
                 </label>
-                <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input
+                    className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={handleInputChange}
+                    aria-label="Password"
+                  />
+                  <div className="absolute inset-y-0 right-3 flex items-center">
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="text-gray-500 focus:outline-none"
+                    >
+                      {showPassword ? <FaEyeSlash /> : <FaEye />}
+                    </button>
+                  </div>
+                </div>
+								{!isLogin && password !== '' && (
+									<div className="flex items-center mt-1">
+										<p className="text-sm text-gray-600 mr-2">Strength</p>
+										<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
+											<div
+												className={`h-full rounded-full ${
+													passwordStrength < 50
+														? 'bg-red-500'
+														: passwordStrength >= 50 && passwordStrength < 100
+														? 'bg-yellow-500'
+														: 'bg-green-500'
+												}`}
+												style={{ width: `${passwordStrength}%` }}
+											></div>
+										</div>
+									</div>
+								)}
               </div>
               {!isLogin && (
-                <div className="mb-6">
+                <div className="mb-6 relative">
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirm-password">
+                    <FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
                     Confirm Password
                   </label>
-                  <input
-                    className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Confirm your password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
+                  <div className="relative">
+                    <input
+                      className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                      id="confirm-password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={handleInputChange}
+                      aria-label="Confirm Password"
+                    />
+                    <div className="absolute inset-y-0 right-3 flex items-center">
+                      <button
+                        type="button"
+                        onClick={toggleConfirmPasswordVisibility}
+                        className="text-gray-500 focus:outline-none"
+                      >
+                        {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 
               <button
                 className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                 type="submit"
+                disabled={isSubmitting}
               >
-                {isLogin ? 'Login' : 'Sign Up'}
+                {isSubmitting ? 'Submitting...' : isLogin ? 'Login' : 'Sign Up'}
               </button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                 {isLogin ? 'New here? ' : 'Already have an account? '}
                 <a
                   href="/"
                   className="font-medium text-blue-600 hover:underline dark:text-blue-500"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setIsLogin(!isLogin);
-                  }}
+                  onClick={toggleForm}
                 >
                   {isLogin ? 'Sign Up' : 'Login'}
                 </a>
