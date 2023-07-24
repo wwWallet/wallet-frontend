@@ -5,8 +5,13 @@ import axios from 'axios';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import { AiOutlineUnlock, AiOutlineLock } from 'react-icons/ai';
+import { useTranslation } from 'react-i18next'; // Import useTranslation hook
+import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+
 
 const Login = () => {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -34,12 +39,12 @@ const Login = () => {
     event.preventDefault();
 
     if (username === '' || password === '') {
-      setError('Please fill in all required fields');
+      setError(t('fillInFieldsError'));
       return;
     }
 
     if (!isLogin && password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordsNotMatchError'));
       return;
     }
 
@@ -58,19 +63,19 @@ const Login = () => {
 	
 				errorMessages.push(
 					<div>
-						<p className="text-red-500 font-bold">Weak password</p>
+						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
 							{!isLengthValid ? (
 								<p className="text-red-500">
 									<span className={criteriaStyle}>
 										<AiOutlineUnlock className="inline-block mr-2" />
-										Minimum length: 8 characters
+										{t('passwordLength')}
 									</span>
 								</p>
 							) : (
 								<p className="text-green-500">
 									<span className={criteriaStyle}>
 										<AiOutlineLock className="inline-block mr-2" />
-										Minimum length: 8 characters
+										{t('passwordLength')}
 									</span>
 								</p>
 							)}
@@ -78,14 +83,14 @@ const Login = () => {
 								<p className="text-red-500">
 									<span className={criteriaStyle}>
 										<AiOutlineUnlock className="inline-block mr-2" />
-										At least one capital letter
+										{t('capitalLetter')}
 									</span>
 								</p>
 							) : (
 								<p className="text-green-500">
 									<span className={criteriaStyle}>
 										<AiOutlineLock className="inline-block mr-2" />
-										At least one capital letter
+										{t('capitalLetter')}
 									</span>
 								</p>
 							)}
@@ -93,14 +98,14 @@ const Login = () => {
 								<p className="text-red-500">
 									<span className={criteriaStyle}>
 										<AiOutlineUnlock className="inline-block mr-2" />
-										At least one number
+										{t('number')}
 									</span>
 								</p>
 							) : (
 								<p className="text-green-500">
 									<span className={criteriaStyle}>
 										<AiOutlineLock className="inline-block mr-2" />
-										At least one number
+										{t('number')}
 									</span>
 								</p>
 							)}
@@ -108,14 +113,14 @@ const Login = () => {
 								<p className="text-red-500">
 									<span className={criteriaStyle}>
 										<AiOutlineUnlock className="inline-block mr-2" />
-										At least one special character
+										{t('specialCharacter')}
 									</span>
 								</p>
 							) : (
 								<p className="text-green-500">
 									<span className={criteriaStyle}>
 										<AiOutlineLock className="inline-block mr-2" />
-										At least one special character
+										{t('specialCharacter')}
 									</span>
 								</p>
 							)}
@@ -138,7 +143,7 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       setError(
-        isLogin ? 'Incorrect username or password' : 'Failed to create user account, username already exists'
+        isLogin ? t('incorrectCredentialsError') : t('usernameExistsError')
       );
     }
 
@@ -211,26 +216,30 @@ const Login = () => {
           <img className="w-20" src={logo} alt="logo" />
         </a>
         <h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-          Welcome to eDiplomas <br /> Digital Wallet
+				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')} 
         </h1>
-        <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-          <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
+        <div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+          {/* Dropdown to change language */}
+          <div className="absolute top-2 right-2">
+            <LanguageSelector />
+          </div>
+					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-              {isLogin ? 'Login' : 'Sign Up'}
+              {isLogin ? t('login') : t('signUp')}
             </h1>
             <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
               {error && <p className="text-red-500">{error}</p>}
               <div className="mb-4 relative">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
                   <FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
-                  Username
+                  {t('usernameLabel')}
                 </label>
                 <input
                   className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   id="username"
                   type="text"
                   name="username"
-                  placeholder="Enter your username"
+                  placeholder={t('enterUsername')}
                   value={username}
                   onChange={handleInputChange}
                   aria-label="Username"
@@ -239,7 +248,7 @@ const Login = () => {
               <div className="mb-6 relative">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                   <FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
-                  Password
+                  {t('passwordLabel')}
                 </label>
                 <div className="relative">
                   <input
@@ -247,7 +256,7 @@ const Login = () => {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
-                    placeholder="Enter your password"
+                    placeholder={t('enterPassword')}
                     value={password}
                     onChange={handleInputChange}
                     aria-label="Password"
@@ -264,7 +273,7 @@ const Login = () => {
                 </div>
 								{!isLogin && password !== '' && (
 									<div className="flex items-center mt-1">
-										<p className="text-sm text-gray-600 mr-2">Strength</p>
+										<p className="text-sm text-gray-600 mr-2">{t('strength')}</p>
 										<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
 											<div
 												className={`h-full rounded-full ${
@@ -284,7 +293,7 @@ const Login = () => {
                 <div className="mb-6 relative">
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirm-password">
                     <FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
-                    Confirm Password
+                    {t('confirmPasswordLabel')}
                   </label>
                   <div className="relative">
                     <input
@@ -292,7 +301,7 @@ const Login = () => {
                       id="confirm-password"
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="confirmPassword"
-                      placeholder="Confirm your password"
+                      placeholder={t('enterconfirmPasswordLabel')}
                       value={confirmPassword}
                       onChange={handleInputChange}
                       aria-label="Confirm Password"
@@ -315,16 +324,16 @@ const Login = () => {
                 type="submit"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Submitting...' : isLogin ? 'Login' : 'Sign Up'}
+                {isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
               </button>
               <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                {isLogin ? 'New here? ' : 'Already have an account? '}
+								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
                 <a
                   href="/"
                   className="font-medium text-blue-600 hover:underline dark:text-blue-500"
                   onClick={toggleForm}
                 >
-                  {isLogin ? 'Sign Up' : 'Login'}
+                  {isLogin ? t('signUp') : t('login')}
                 </a>
               </p>
             </form>

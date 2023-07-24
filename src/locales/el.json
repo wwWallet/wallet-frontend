@@ -1,0 +1,28 @@
+{
+  "welcomeMessagepart1": "Καλώς ήρθατε στο eDiplomas",
+  "welcomeMessagepart2": "Ψηφιακό Πορτοφόλι",
+  "login": "Σύνδεση",
+  "signUp": "Εγγραφή",
+  "usernameLabel": "Όνομα χρήστη",
+	"enterUsername": "Εισάγετε το όνομα χρήστη",
+  "passwordLabel": "Κωδικός πρόσβασης",
+	"enterPassword": "Εισάγετε το κωδικό πρόσβασης",
+  "confirmPasswordLabel": "Επιβεβαίωση κωδικού",
+	"enterconfirmPasswordLabel": "Εισάγετε την επιβεβαίωση κωδικού",
+  "fillInFieldsError": "Παρακαλούμε συμπληρώστε όλα τα απαιτούμενα πεδία",
+  "passwordsNotMatchError": "Οι κωδικοί πρόσβασης δεν ταιριάζουν",
+  "weakPasswordError": "Αδύναμος κωδικός πρόσβασης",
+  "passwordLength": "Ελάχιστο μήκος: 8 χαρακτήρες",
+  "capitalLetter": "Τουλάχιστον ένα κεφαλαίο γράμμα",
+  "number": "Τουλάχιστον ένας αριθμός",
+  "specialCharacter": "Τουλάχιστον ένας ειδικός χαρακτήρας",
+  "submitting": "Υποβολή...",
+  "loginSubmit": "Σύνδεση",
+  "signUpSubmit": "Εγγραφή",
+  "incorrectCredentialsError": "Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης",
+  "usernameExistsError": "Απέτυχε η δημιουργία λογαριασμού χρήστη, το όνομα χρήστη υπάρχει ήδη",
+  "newHereQuestion": "Είστε νέος εδώ; ",
+  "alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό; ",
+	"strength": "Ισχύς"
+
+}
