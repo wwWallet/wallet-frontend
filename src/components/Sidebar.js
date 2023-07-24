@@ -107,9 +107,9 @@ const Sidebar = ({ isOpen, toggle }) => {
             <span>Issuers</span>
           </li>
           <li
-            onClick={() => handleNavigate('/settings')}
+            onClick={() => handleNavigate('#')}
             className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${
-              location.pathname === '/settings' ? 'bg-white text-custom-blue' : ''
+              location.pathname === '#' ? 'bg-white text-custom-blue' : ''
             }`}
           >
             <IoIosSend size={30} />

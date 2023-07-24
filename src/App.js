@@ -5,7 +5,7 @@ import Login from './pages/Login/Login';
 import Home from './pages/Home/Home';
 import Issuers from './pages/Issuers/Issuers';
 import History from './pages/History/History';
-
+import NotFound from './pages/NotFound/NotFound';
 import PrivateRoute from './components/PrivateRoute';
 
 function App() {
@@ -17,7 +17,7 @@ function App() {
           <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 					<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
 					<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>
