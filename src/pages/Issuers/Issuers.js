@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 
 function highlightBestSequence(issuer, search) {
@@ -19,34 +21,45 @@ const Issuers = () => {
   const [issuers, setIssuers] = useState([]);
   const [filteredIssuers, setFilteredIssuers] = useState([]);
 
+	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
+
+	const customRecord = {
+    id: "did:ebsi:zyhE5cJ7VVqYT4gZmoKadFt", // Replace with a unique ID for your custom record
+    name: 'National and Kapodistrian University of Athens (NKUA)',
+  };
+
   // Generate issuers only once
-  useEffect(() => {
-  const generateIssuers = () => {
+	useEffect(() => {
+    const generateIssuers = () => {
       const generatedIssuers = [];
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-    for (let i = 1; i <= 100; i++) {
-      let name = '';
+      for (let i = 1; i <= 50; i++) {
+        let name = '';
 
-      // Generate a random text length between 5 and 20 characters
-      const length = Math.floor(Math.random() * 240) + 5;
+        // Generate a random text length between 5 and 20 characters
+        const length = Math.floor(Math.random() * 240) + 5;
 
-      // Generate a random title with varying text lengths
-      for (let j = 0; j < length; j++) {
-        const randomIndex = Math.floor(Math.random() * letters.length);
-        name += letters[randomIndex];
+        // Generate a random title with varying text lengths
+        for (let j = 0; j < length; j++) {
+          const randomIndex = Math.floor(Math.random() * letters.length);
+          name += letters[randomIndex];
 
           // Add a space with a 20% probability
           if (Math.random() < 0.2) {
             name += ' ';
           }
-      }
+        }
 
         generatedIssuers.push({ id: i, name });
-    }
+      }
+
+      // Randomly select an issuer from the generated list to be the custom record
+      const randomIndex = Math.floor(Math.random() * generatedIssuers.length);
+      generatedIssuers.splice(randomIndex, 0, customRecord);
 
       return generatedIssuers;
-  };
+    };
 
     const generatedIssuers = generateIssuers();
     setIssuers(generatedIssuers);
@@ -60,16 +73,50 @@ const Issuers = () => {
   };
 
 
-	// Filter issuers based on search query and sort by best match
 	useEffect(() => {
-		const filtered = searchQuery.trim() === '' ? issuers : issuers.filter((issuer) => {
+		const filtered = issuers.filter((issuer) => {
 			const name = issuer.name.toLowerCase();
 			const query = searchQuery.toLowerCase();
 			return name.includes(query);
 		});
-
-		setFilteredIssuers(filtered);
+	
+		// Check if there are no search results
+		const hasSearchResults = filtered.length > 0;
+	
+		// Create a new filtered array with the custom record included only when there are no search results
+		const filteredWithCustom = hasSearchResults ? filtered : [...issuers, customRecord];
+	
+		setFilteredIssuers(filteredWithCustom);
 	}, [searchQuery, issuers]);
+	
+	
+	
+
+
+	const handleIssuerClick = (did) => {
+
+		const payload = {
+			legal_person_did: did,
+		};
+	
+		const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
+		console.log(appToken);
+		axios.post(`${walletBackendUrl}/issuance/generate/authorization/request`,
+				payload,
+				{ headers: 
+					{ Authorization: `Bearer ${appToken}`,},
+				}
+			)
+			.then((response) => {
+				const { redirect_to } = response.data;
+				// Redirect to the URL received from the backend
+				window.location.href = redirect_to;
+			})
+			.catch((error) => {
+				// Handle errors from the backend if needed
+				console.error('Error sending request to backend:', error);
+			});
+		};
 
 
   return (
@@ -97,6 +144,8 @@ const Issuers = () => {
               key={issuer.id}
               className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
               style={{ wordBreak: 'break-all' }}
+							onClick={() => handleIssuerClick(issuer.id, issuer.name)}
+
             >
             <div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.name, searchQuery) }} />
             </li>

@@ -11,6 +11,7 @@ import Issuers from './pages/Issuers/Issuers';
 import History from './pages/History/History';
 import NotFound from './pages/NotFound/NotFound';
 import PrivateRoute from './components/PrivateRoute';
+import useCheckURL from './components/useCheckURL'; // Import the custom hook
 
 // Import i18next and set up translations
 import i18n from 'i18next';
@@ -33,6 +34,9 @@ i18n
   });
 
 function App() {
+
+	const isValidURL = useCheckURL(window.location.href);
+
   return (
     // Wrap the app with I18nextProvider to provide translations to all components
     <I18nextProvider i18n={i18n}>
@@ -43,7 +47,15 @@ function App() {
             <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
             <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
             <Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-            <Route path="*" element={<NotFound />} />
+						<Route path="*" element=
+							{ isValidURL === null ? null : isValidURL ? 
+								(
+									<PrivateRoute> <Home /></PrivateRoute>
+              	) : (
+        	        <NotFound />
+              	)
+              }
+            />
           </Routes>
         </div>
       </Router>
