@@ -19,6 +19,9 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 import enTranslation from './locales/en.json'; // Import translation files for each language
 import elTranslation from './locales/el.json';
 
+import Notification from './components/Notification';
+
+
 i18n
   .use(initReactI18next)
   .init({
@@ -42,12 +45,14 @@ function App() {
     <I18nextProvider i18n={i18n}>
       <Router>
         <div>
+				<Notification />
+
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
             <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
             <Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-						<Route path="*" element=
+						{/* <Route path="*" element=
 							{ isValidURL === null ? null : isValidURL ? 
 								(
 									<PrivateRoute> <Home /></PrivateRoute>
@@ -55,7 +60,7 @@ function App() {
         	        <NotFound />
               	)
               }
-            />
+            /> */}
           </Routes>
         </div>
       </Router>
