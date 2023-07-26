@@ -36,36 +36,37 @@ i18n
     }
   });
 
-function App() {
+	function App() {
+		const url = window.location.href;
+		const isValidURL = useCheckURL(url);
+	
 
-	const isValidURL = useCheckURL(window.location.href);
-
-  return (
-    // Wrap the app with I18nextProvider to provide translations to all components
-    <I18nextProvider i18n={i18n}>
-      <Router>
-        <div>
-				<Notification />
-
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-            <Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-						{/* <Route path="*" element=
-							{ isValidURL === null ? null : isValidURL ? 
-								(
-									<PrivateRoute> <Home /></PrivateRoute>
-              	) : (
-        	        <NotFound />
-              	)
-              }
-            /> */}
-          </Routes>
-        </div>
-      </Router>
-    </I18nextProvider>
-  );
-}
-
-export default App;
+		return (
+			// Wrap the app with I18nextProvider to provide translations to all components
+			<I18nextProvider i18n={i18n}>
+				<Router>
+					<div>
+						<Notification />
+						<Routes>
+							<Route path="/login" element={<Login />} />
+							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
+							<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
+							<Route
+								path="*"
+								element={
+									isValidURL === null ? null : isValidURL ? (
+										<PrivateRoute> <Home /></PrivateRoute>
+									) : (
+										<NotFound />
+									)
+								}
+							/>
+						</Routes>
+					</div>
+				</Router>
+			</I18nextProvider>
+		);
+	}
+	
+	export default App;

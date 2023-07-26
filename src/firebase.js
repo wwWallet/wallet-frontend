@@ -19,8 +19,7 @@ const messaging = getMessaging();
 
 export const requestForToken = async () => {
   try {
-		console.log('tryyyyyyy');
-		const currentToken = await getToken(messaging, { vapidKey: "BOe8jyNkwYdw343bhwKCAGn6VKfuz_qN--1Bl5mAhBNlgsFq-TitW5oQobMWvxPqN5nO9bQtCqbYEEAGBp-h3Z0" });
+		const currentToken = await getToken(messaging, { vapidKey:process.env.VAPIDKEY });
 		if (currentToken) {
 			console.log('current token for client: ', currentToken);
 		} else {
