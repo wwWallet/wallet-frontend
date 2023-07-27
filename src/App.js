@@ -21,6 +21,19 @@ import elTranslation from './locales/el.json';
 
 import Notification from './components/Notification';
 
+// Check that service workers are supported
+if ('serviceWorker' in navigator) {
+  // Use window load event to keep the page load performant
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then(registration => {
+        console.log('Service Worker registered! Scope is: ', registration.scope);
+      })
+      .catch(err => {
+        console.log('Service Worker registration failed: ', err);
+      });
+  });
+}
 
 i18n
   .use(initReactI18next)
