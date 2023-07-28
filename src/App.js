@@ -1,6 +1,6 @@
 
 // Import libraries
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 // Import css file
 import './App.css';
@@ -53,6 +53,25 @@ i18n
 		const url = window.location.href;
 		const isValidURL = useCheckURL(url);
 	
+		useEffect(() => {
+			// Add a message event listener to receive messages from the service worker
+			navigator.serviceWorker.addEventListener('message', handleMessage);
+	
+			// Clean up the event listener when the component unmounts
+			return () => {
+				navigator.serviceWorker.removeEventListener('message', handleMessage);
+			};
+		}, []);
+	
+		// Handle messages received from the service worker
+		const handleMessage = (event) => {
+
+			console.log('handle ulr from app')
+			if (event.data.type === 'navigate') {
+				// Redirect the current tab to the specified URL
+				window.location.href = event.data.url;
+			}
+		};
 
 		return (
 			// Wrap the app with I18nextProvider to provide translations to all components

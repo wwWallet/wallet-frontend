@@ -141,8 +141,6 @@ const Login = () => {
       Cookies.set('username', username);
       Cookies.set('appToken', appToken);
 
-			await requestForToken();
-
       navigate('/');
     } catch (error) {
       setError(
@@ -167,10 +165,14 @@ const Login = () => {
   };
 
   const signupUser = async (username, password) => {
+		const fcm_token = await requestForToken();
+		const browser_fcm_token=fcm_token;
     try {
       const response = await axios.post(`${walletBackendUrl}/user/register`, {
         username,
         password,
+				fcm_token,
+				browser_fcm_token,
       });
       return response.data;
     } catch (error) {
