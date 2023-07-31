@@ -1,28 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import cred_card from '../../assets/images/cred.png';
 import addImage from '../../assets/images/cred.png';
 import { BsPlusCircle } from 'react-icons/bs';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-// import axios from 'axios';
-// import Cookies from 'js-cookie';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const Home = () => {
+  const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
+  const [images, setImages] = useState([]);
 
-  const images = [
-    { id: 1, src: cred_card, alt: 'Image 1' },
-    { id: 2,  src: cred_card, alt: 'Image 2' },
-    { id: 3,  src: cred_card, alt: 'Image 3' },
-    { id: 4,  src: cred_card, alt: 'Image 4' },
-		{ id: 5,  src: cred_card, alt: 'Image 5' },
-    // { id: 6,  src: cred_card, alt: 'Image 6' },
-		// { id: 7,  src: cred_card, alt: 'Image 7' },
-    // { id: 8,  src: cred_card, alt: 'Image 8' },
-		// { id: 9,  src: cred_card, alt: 'Image 9' },
-    // { id: 10, src: cred_card, alt: 'Image 10' },
-    // Add more images here
-  ];
+  // const images = [
+  //   { id: 1, src: cred_card, alt: 'Image 1' },
+  //   { id: 2,  src: cred_card, alt: 'Image 2' },
+  //   { id: 3,  src: cred_card, alt: 'Image 3' },
+  //   { id: 4,  src: cred_card, alt: 'Image 4' },
+	// 	{ id: 5,  src: cred_card, alt: 'Image 5' },
+  //   // { id: 6,  src: cred_card, alt: 'Image 6' },
+	// 	// { id: 7,  src: cred_card, alt: 'Image 7' },
+  //   // { id: 8,  src: cred_card, alt: 'Image 8' },
+	// 	// { id: 9,  src: cred_card, alt: 'Image 9' },
+  //   // { id: 10, src: cred_card, alt: 'Image 10' },
+  //   // Add more images here
+  // ];
 
 	const [fullscreenImage, setFullscreenImage] = useState(null);
   const navigate = useNavigate();
@@ -40,25 +41,34 @@ const Home = () => {
   };
 
 
-	// const getData = async () => {
-	// 	try {
-	// 		const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
-	// 		console.log(appToken);
-	// 		const response = await axios.get(`${walletBackendUrl}/storage/vc`, {
-	// 			headers: {
-	// 				Authorization: `Bearer ${appToken}`,
-	// 			},
-	// 		});
+	useEffect(() => {
 
-	// 		// Handle the response data
-	// 		console.log(response);
-	// 	} catch (error) {
-	// 		console.error('Failed to fetch data', error);
-	// 	}
-	// };
+	const getData = async () => {
+		try {
+			const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
+			const response = await axios.get(`${walletBackendUrl}/storage/vc`, {
+				headers: {
+					Authorization: `Bearer ${appToken}`,
+				},
+			});
 
-	// // Call the function to fetch data
-	// getData();
+			const newImages = response.data.vc_list.map((item) => ({
+				id: item.id,
+				src: item.logoURL, // Use the logoURL from the vc_list item as the image source
+				alt: item.issuerFriendlyName, // Use the issuerFriendlyName from the vc_list item as the image alt text
+			}));
+			setImages(newImages);
+			// Handle the response data
+			console.log('Res:',newImages);
+		} catch (error) {
+			console.error('Failed to fetch data', error);
+		}
+	};
+
+    // Call the function to fetch data when the component is mounted
+    getData();
+  }, []); // The empty dependency array ensures that the effect runs only once on component mount.
+
 
   return (
     <Layout>

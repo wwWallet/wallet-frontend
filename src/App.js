@@ -84,8 +84,7 @@ i18n
 							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
 							<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-							<Route
-								path="*"
+							<Route path="/cb"
 								element={
 									isValidURL === null ? null : isValidURL ? (
 										<PrivateRoute> <Home /></PrivateRoute>

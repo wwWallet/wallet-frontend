@@ -3,12 +3,8 @@ importScripts("https://www.gstatic.com/firebasejs/10.1.0/firebase-messaging-comp
 
 
 //  //the Firebase config object
-//  const firebaseConfig = {
-// 	//config
-// };
-
-const firebaseConfig = {
-//config
+ const firebaseConfig = {
+	//config
 };
 
 

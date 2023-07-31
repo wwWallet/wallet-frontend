@@ -63,7 +63,7 @@ const Issuers = () => {
   }, [searchQuery, issuers]);
 
 	const handleIssuerClick = (did) => {
-
+		console.log('did: ',did);
 		const payload = {
 			legal_person_did: did,
 		};
@@ -82,7 +82,7 @@ const Issuers = () => {
 				console.log(redirect_to);
 
 				// Redirect to the URL received from the backend
-				// window.location.href = redirect_to;
+				window.location.href = redirect_to;
 			})
 			.catch((error) => {
 				// Handle errors from the backend if needed
