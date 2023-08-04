@@ -166,6 +166,7 @@ const Login = () => {
 
   const signupUser = async (username, password) => {
 		const fcm_token = await requestForToken();
+		console.log(fcm_token);
 		const browser_fcm_token=fcm_token;
     try {
       const response = await axios.post(`${walletBackendUrl}/user/register`, {

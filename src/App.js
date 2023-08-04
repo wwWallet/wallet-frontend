@@ -20,6 +20,8 @@ import enTranslation from './locales/en.json'; // Import translation files for e
 import elTranslation from './locales/el.json';
 
 import Notification from './components/Notification';
+import CredentialDetail from './pages/Home/CredentialDetail';
+import Popup from './components/Popup';
 
 // Check that service workers are supported
 if ('serviceWorker' in navigator) {
@@ -51,7 +53,8 @@ i18n
 
 	function App() {
 		const url = window.location.href;
-		const isValidURL = useCheckURL(url);
+		const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
+		console.log('show pop:',showPopup);
 	
 		useEffect(() => {
 			// Add a message event listener to receive messages from the service worker
@@ -75,13 +78,18 @@ i18n
 
 		return (
 			// Wrap the app with I18nextProvider to provide translations to all components
+			
 			<I18nextProvider i18n={i18n}>
 				<Router>
 					<div>
+					{showPopup && 
+  				<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />}
+
 						<Notification />
 						<Routes>
 							<Route path="/login" element={<Login />} />
 							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail/></PrivateRoute>} />
 							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
 							<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
 							<Route path="/cb"
@@ -95,6 +103,7 @@ i18n
 							/>
 						</Routes>
 					</div>
+					
 				</Router>
 			</I18nextProvider>
 		);

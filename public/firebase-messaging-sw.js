@@ -4,7 +4,13 @@ importScripts("https://www.gstatic.com/firebasejs/10.1.0/firebase-messaging-comp
 
 //  //the Firebase config object
  const firebaseConfig = {
-	//config
+	apiKey: "AIzaSyAfAxdW05Q-fWlMEUEBkPr8avW6GRNjUcE",
+  authDomain: "ediplomas-wallet.firebaseapp.com",
+  projectId: "ediplomas-wallet",
+  storageBucket: "ediplomas-wallet.appspot.com",
+  messagingSenderId: "598999145142",
+  appId: "1:598999145142:web:9561c751460a10b6836417",
+  measurementId: "G-SY9LQ8597Y"
 };
 
 
