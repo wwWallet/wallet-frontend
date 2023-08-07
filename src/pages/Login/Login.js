@@ -7,7 +7,7 @@ import logo from '../../assets/images/ediplomasLogo.svg';
 import { AiOutlineUnlock, AiOutlineLock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-
+import { requestForToken } from '../../firebase'; // Adjust the path to your firebase.js file
 
 const Login = () => {
   const { t } = useTranslation();
@@ -140,6 +140,7 @@ const Login = () => {
       Cookies.set('loggedIn', true);
       Cookies.set('username', username);
       Cookies.set('appToken', appToken);
+
       navigate('/');
     } catch (error) {
       setError(
@@ -164,10 +165,15 @@ const Login = () => {
   };
 
   const signupUser = async (username, password) => {
+		const fcm_token = await requestForToken();
+		console.log(fcm_token);
+		const browser_fcm_token=fcm_token;
     try {
       const response = await axios.post(`${walletBackendUrl}/user/register`, {
         username,
         password,
+				fcm_token,
+				browser_fcm_token,
       });
       return response.data;
     } catch (error) {

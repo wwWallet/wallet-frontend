@@ -23,78 +23,47 @@ const Issuers = () => {
 
 	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
-	const customRecord = {
-    id: "did:ebsi:zyhE5cJ7VVqYT4gZmoKadFt", // Replace with a unique ID for your custom record
-    name: 'National and Kapodistrian University of Athens (NKUA)',
-  };
+  useEffect(() => {
+    const fetchIssuers = async () => {
+			const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
 
-  // Generate issuers only once
-	useEffect(() => {
-    const generateIssuers = () => {
-      const generatedIssuers = [];
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
-      for (let i = 1; i <= 50; i++) {
-        let name = '';
-
-        // Generate a random text length between 5 and 20 characters
-        const length = Math.floor(Math.random() * 240) + 5;
-
-        // Generate a random title with varying text lengths
-        for (let j = 0; j < length; j++) {
-          const randomIndex = Math.floor(Math.random() * letters.length);
-          name += letters[randomIndex];
-
-          // Add a space with a 20% probability
-          if (Math.random() < 0.2) {
-            name += ' ';
-          }
-        }
-
-        generatedIssuers.push({ id: i, name });
+      try {
+        const response = await axios.get(`${walletBackendUrl}/legal_person/issuers/all`,
+				{ headers: 
+					{ Authorization: `Bearer ${appToken}`,},
+				}
+				);
+        const fetchedIssuers = response.data;
+        setIssuers(fetchedIssuers);
+        setFilteredIssuers(fetchedIssuers);
+      } catch (error) {
+        console.error('Error fetching issuers:', error);
       }
-
-      // Randomly select an issuer from the generated list to be the custom record
-      const randomIndex = Math.floor(Math.random() * generatedIssuers.length);
-      generatedIssuers.splice(randomIndex, 0, customRecord);
-
-      return generatedIssuers;
     };
 
-    const generatedIssuers = generateIssuers();
-    setIssuers(generatedIssuers);
-    setFilteredIssuers(generatedIssuers);
+    fetchIssuers();
   }, []);
 
-  // Handle search query changes
   const handleSearch = (event) => {
     const query = event.target.value;
     setSearchQuery(query);
   };
 
+  useEffect(() => {
+    const filtered = issuers.filter((issuer) => {
+      const friendlyName = issuer.friendlyName.toLowerCase();
+      const query = searchQuery.toLowerCase();
+      return friendlyName.includes(query);
+    });
 
-	useEffect(() => {
-		const filtered = issuers.filter((issuer) => {
-			const name = issuer.name.toLowerCase();
-			const query = searchQuery.toLowerCase();
-			return name.includes(query);
-		});
-	
-		// Check if there are no search results
-		const hasSearchResults = filtered.length > 0;
-	
-		// Create a new filtered array with the custom record included only when there are no search results
-		const filteredWithCustom = hasSearchResults ? filtered : [...issuers, customRecord];
-	
-		setFilteredIssuers(filteredWithCustom);
-	}, [searchQuery, issuers]);
-	
-	
-	
+    const hasSearchResults = filtered.length > 0;
+    const filteredWithCustom = hasSearchResults ? filtered : issuers;
 
+    setFilteredIssuers(filteredWithCustom);
+  }, [searchQuery, issuers]);
 
 	const handleIssuerClick = (did) => {
-
+		console.log('did: ',did);
 		const payload = {
 			legal_person_did: did,
 		};
@@ -108,7 +77,10 @@ const Issuers = () => {
 				}
 			)
 			.then((response) => {
+
 				const { redirect_to } = response.data;
+				console.log(redirect_to);
+
 				// Redirect to the URL received from the backend
 				window.location.href = redirect_to;
 			})
@@ -119,42 +91,40 @@ const Issuers = () => {
 		};
 
 
-  return (
-    <Layout>
-      <div className="px-4 sm:px-6">
-			<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
-			<hr className="mb-2 border-t border-custom-blue/80" />
-			<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
-
-        <div className="my-4">
-          <input
-            type="text"
-            placeholder="Search issuers..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-        </div>
-        <ul
-          className="max-h-screen-80 overflow-y-auto space-y-2"
-          style={{ maxHeight: '80vh' }}
-        >
-          {filteredIssuers.map((issuer) => (
-            <li
-              key={issuer.id}
-              className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
-              style={{ wordBreak: 'break-all' }}
-							onClick={() => handleIssuerClick(issuer.id, issuer.name)}
-
-            >
-            <div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.name, searchQuery) }} />
-            </li>
-          ))}
-
-        </ul>
-      </div>
-    </Layout>
-  );
-};
-
-export default Issuers;
+		return (
+			<Layout>
+				<div className="px-4 sm:px-6">
+					<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
+					<hr className="mb-2 border-t border-custom-blue/80" />
+					<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
+	
+					<div className="my-4">
+						<input
+							type="text"
+							placeholder="Search issuers..."
+							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							value={searchQuery}
+							onChange={handleSearch}
+						/>
+					</div>
+					<ul
+						className="max-h-screen-80 overflow-y-auto space-y-2"
+						style={{ maxHeight: '80vh' }}
+					>
+						{filteredIssuers.map((issuer) => (
+							<li
+								key={issuer.id}
+								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
+								style={{ wordBreak: 'break-all' }}
+								onClick={() => handleIssuerClick(issuer.did)}
+							>
+								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
+							</li>
+						))}
+					</ul>
+				</div>
+			</Layout>
+		);
+	};
+	
+	export default Issuers;
