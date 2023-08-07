@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
-import addImage from '../../assets/credentials/cred.png';
+import addImage from '../../assets/images/cred.png';
 import { BsPlusCircle } from 'react-icons/bs';
-import { AiOutlineCloseCircle } from 'react-icons/ai';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
