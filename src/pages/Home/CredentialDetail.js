@@ -39,7 +39,7 @@ const CredentialDetail = () => {
 
         const decodedString = parseJwt(targetImage.credential);
         setJsonData(decodedString);
-				console.log('jsonData',jsonData);
+				console.log(decodedString);
       } catch (error) {
         console.error('Failed to fetch data', error);
       }

@@ -9,6 +9,7 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 import enTranslation from './locales/en.json'; // Import translation files for each language
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
+import Notification from './components/Notification'; // Import the custom hook
 
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
@@ -16,7 +17,6 @@ const Issuers = React.lazy(() => import('./pages/Issuers/Issuers'));
 const History = React.lazy(() => import('./pages/History/History'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
-const Notification = React.lazy(() => import('./components/Notification'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const Popup = React.lazy(() => import('./components/Popup'));
 
@@ -68,10 +68,12 @@ i18n
 	
 		// Handle messages received from the service worker
 		const handleMessage = (event) => {
-
 			if (event.data.type === 'navigate') {
-				// Redirect the current tab to the specified URL
-				window.location.href = event.data.url;
+				// Remove any parameters from the URL
+				const homeURL = window.location.origin + window.location.pathname;
+				console.log('-->',homeURL);
+				// Redirect the current tab to the home URL
+				window.location.href = homeURL;
 			}
 		};
 		return (

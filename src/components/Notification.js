@@ -1,58 +1,67 @@
-import React, {useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import {onMessageListener } from '../firebase';
-import { AiOutlineClose } from 'react-icons/ai'; // Import close icon
+import { onMessageListener } from '../firebase';
+import { AiOutlineClose } from 'react-icons/ai';
 import logo from '../assets/images/ediplomasLogo.svg';
 
+const ToastDisplay = ({ id, notification }) => {
+  return (
+    <div
+      className="flex justify-between items-center p-3 bg-white rounded-lg text-gray-600 max-w-3xl mx-auto cursor-pointer"
+      onClick={() => window.location.href = '/'}
+    >
+      <div className="flex items-center justify-start mr-6">
+        <img src={logo} alt="Logo" className="h-15" />
+      </div>
+      <div className="flex-grow text-center">
+        <p className="font-bold text-lg">{notification?.title}</p>
+        <p>{notification?.body}</p>
+      </div>
+      <button onClick={(e) => {
+        toast.dismiss(id);
+        e.stopPropagation();
+      }}
+        className="focus:outline-none ml-6"
+      >
+        <AiOutlineClose size={24} />
+      </button>
+    </div>
+  );
+};
+
 const Notification = () => {
-  const [notification, setNotification] = useState({title: '', body: ''});
-  
-	function ToastDisplay({ id }) {
-		return (
-			<div 
-      className="flex justify-between items-center p-3 bg-white rounded-lg text-gray-600 max-w-3xl mx-auto cursor-pointer" 
-			onClick={() => window.location.href = '/'}>
-				<div className="flex items-center justify-start mr-6">
-					<img src={logo} alt="Logo" className="h-15"/>
-				</div>
-				<div className="flex-grow text-center">
-					<p className="font-bold text-lg">{notification?.title}</p>
-					<p>{notification?.body}</p>
-				</div>
+  const [notification, setNotification] = useState({ title: '', body: '' });
 
-				<button onClick={(e) => { 
-									toast.dismiss(id); 
-									e.stopPropagation(); // Prevents the redirection when close button is clicked
-								}} 
-								className="focus:outline-none ml-6">
-					<AiOutlineClose size={24} />
-				</button>
-			</div>
-		);
-	};
-	
-
-  const notify = () =>  toast((t) => <ToastDisplay id={t.id} />, {
+  const notify = () => toast((t) => <ToastDisplay id={t.id} notification={notification} />, {
     onClick: () => {
-        window.location.href = "/"; // or history.push("/") if using react-router
+      window.location.href = "/";
     }
   });
 
   useEffect(() => {
-    if (notification?.title ){
-     notify()
+    if (notification?.title) {
+      notify();
     }
-  }, [notification])
+  }, [notification]);
 
-  onMessageListener()
-    .then((payload) => {
-      setNotification({title: payload?.notification?.title, body: payload?.notification?.body});     
-    })
-    .catch((err) => console.log('failed: ', err));
+  useEffect(() => {
+    const unregisterMessageListener = onMessageListener()
+      .then((payload) => {
+        setNotification({ title: payload?.notification?.title, body: payload?.notification?.body });
+      })
+      .catch((err) => console.log('failed: ', err));
+
+    // Clean up the listener when the component unmounts
+    return () => {
+      unregisterMessageListener();
+    };
+  }, []);
 
   return (
-     <Toaster/>
-  )
-}
+    <div>
+      <Toaster />
+    </div>
+  );
+};
 
 export default Notification;

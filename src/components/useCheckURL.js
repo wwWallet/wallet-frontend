@@ -71,14 +71,13 @@ function useCheckURL(urlToCheck) {
         const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
         const isResponseHandled = await handleAuthorizationResponse(urlToCheck);
 				
-				if (isRequestHandled ===true){
-					console.log('need');
-				}
+
         if (isRequestHandled || isResponseHandled) {
           setIsValidURL(true);
         } else {
           setIsValidURL(false);
         }
+
       })();
     }
   }, [urlToCheck, isLoggedIn, walletBackendUrl, appToken]);
