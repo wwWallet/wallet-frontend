@@ -5,62 +5,62 @@ import axios from 'axios';
 
 
 function highlightBestSequence(issuer, search) {
-  if (typeof issuer !== 'string' || typeof search !== 'string') {
-    return issuer;
-  }
+	if (typeof issuer !== 'string' || typeof search !== 'string') {
+		return issuer;
+	}
 
-  const searchRegex = new RegExp(search, 'gi');
-  const highlighted = issuer.replace(searchRegex, '<span class="font-bold text-custom-blue">$&</span>');
+	const searchRegex = new RegExp(search, 'gi');
+	const highlighted = issuer.replace(searchRegex, '<span class="font-bold text-custom-blue">$&</span>');
 
-  return highlighted;
+	return highlighted;
 }
 
 
 const Issuers = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [issuers, setIssuers] = useState([]);
-  const [filteredIssuers, setFilteredIssuers] = useState([]);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [issuers, setIssuers] = useState([]);
+	const [filteredIssuers, setFilteredIssuers] = useState([]);
 
 	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
-  useEffect(() => {
-    const fetchIssuers = async () => {
+	useEffect(() => {
+		const fetchIssuers = async () => {
 			const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
 
-      try {
-        const response = await axios.get(`${walletBackendUrl}/legal_person/issuers/all`,
+			try {
+				const response = await axios.get(`${walletBackendUrl}/legal_person/issuers/all`,
 				{ headers: 
 					{ Authorization: `Bearer ${appToken}`,},
 				}
 				);
-        const fetchedIssuers = response.data;
-        setIssuers(fetchedIssuers);
-        setFilteredIssuers(fetchedIssuers);
-      } catch (error) {
-        console.error('Error fetching issuers:', error);
-      }
-    };
+				const fetchedIssuers = response.data;
+				setIssuers(fetchedIssuers);
+				setFilteredIssuers(fetchedIssuers);
+			} catch (error) {
+				console.error('Error fetching issuers:', error);
+			}
+		};
 
-    fetchIssuers();
-  }, []);
+		fetchIssuers();
+	}, []);
 
-  const handleSearch = (event) => {
-    const query = event.target.value;
-    setSearchQuery(query);
-  };
+	const handleSearch = (event) => {
+		const query = event.target.value;
+		setSearchQuery(query);
+	};
 
-  useEffect(() => {
-    const filtered = issuers.filter((issuer) => {
-      const friendlyName = issuer.friendlyName.toLowerCase();
-      const query = searchQuery.toLowerCase();
-      return friendlyName.includes(query);
-    });
+	useEffect(() => {
+		const filtered = issuers.filter((issuer) => {
+			const friendlyName = issuer.friendlyName.toLowerCase();
+			const query = searchQuery.toLowerCase();
+			return friendlyName.includes(query);
+		});
 
-    const hasSearchResults = filtered.length > 0;
-    const filteredWithCustom = hasSearchResults ? filtered : issuers;
+		const hasSearchResults = filtered.length > 0;
+		const filteredWithCustom = hasSearchResults ? filtered : issuers;
 
-    setFilteredIssuers(filteredWithCustom);
-  }, [searchQuery, issuers]);
+		setFilteredIssuers(filteredWithCustom);
+	}, [searchQuery, issuers]);
 
 	const handleIssuerClick = (did) => {
 		console.log('did: ',did);

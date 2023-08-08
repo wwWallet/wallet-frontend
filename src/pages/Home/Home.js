@@ -7,14 +7,14 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const Home = () => {
-  const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
-  const [credentials, setCredentials] = useState([]);
-  const navigate = useNavigate();
+	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
+	const [credentials, setCredentials] = useState([]);
+	const navigate = useNavigate();
 
 
-  const handleAddCredential = () => {
-    navigate('/issuers');
-  };
+	const handleAddCredential = () => {
+		navigate('/issuers');
+	};
 
 
 	useEffect(() => {
@@ -42,18 +42,18 @@ const Home = () => {
 		}
 	};
 
-    // Call the function to fetch data when the component is mounted
-    getData();
+		// Call the function to fetch data when the component is mounted
+		getData();
 
-  }, []); // The empty dependency array ensures that the effect runs only once on component mount.
+	}, []); // The empty dependency array ensures that the effect runs only once on component mount.
 	
 	const handleImageClick = (image) => {
-    // Navigate to the ImageDetailPage with the clicked image details
-    navigate(`/credential/${image.id}`);
-  };
+		// Navigate to the ImageDetailPage with the clicked image details
+		navigate(`/credential/${image.id}`);
+	};
 
-  return (
-    <Layout>
+	return (
+		<Layout>
 			<div className="px-4 sm:px-6 w-full">
 
 				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Credentials</h1>
@@ -62,37 +62,37 @@ const Home = () => {
 				<div className='my-4'>
 
 					<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
-        {credentials.map((image) => (
-          <div
-            key={image.id}
-            className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+				{credentials.map((image) => (
+					<div
+						key={image.id}
+						className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 						onClick={() => handleImageClick(image)}
 
-          >
-            <img src={image.src} alt={image.alt} className="w-full h-auto rounded-xl" />
-          </div>
-        ))}
-        <div
-          className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+					>
+						<img src={image.src} alt={image.alt} className="w-full h-auto rounded-xl" />
+					</div>
+				))}
+				<div
+					className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 							onClick={handleAddCredential}
 
-        >
-          <img
-            src={addImage}
-            alt="add new credential"
-            className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
-          />
+				>
+					<img
+						src={addImage}
+						alt="add new credential"
+						className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+					/>
 					<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 						<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
 						<span className="text-white font-semibold">Add New Credential</span>
-          </div>
-        </div>
-      </div>
+					</div>
+				</div>
+			</div>
 			</div>
 
 			</div>
-    </Layout>
-  );
+		</Layout>
+	);
 };
 
 export default Home;
