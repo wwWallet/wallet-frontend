@@ -9,6 +9,16 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import { requestForToken } from '../../firebase'; // Adjust the path to your firebase.js file
 
+
+const PasswordCriterionMessage = ({ text, ok }) => (
+	<p className={ok ? "text-green-500" : "text-red-500"}>
+		<span className="text-sm">
+			<AiOutlineUnlock className="inline-block mr-2" />
+			{text}
+		</span>
+	</p>
+);
+
 const Login = () => {
 	const { t } = useTranslation();
 
@@ -49,85 +59,21 @@ const Login = () => {
 		}
 
 		// Validate password criteria
-
 		if (!isLogin){
+			const validations = [
+				{ ok: password.length >= 8, text: t('passwordLength') },
+				{ ok: /[A-Z]/.test(password), text: t('capitalLetter') },
+				{ ok: /[0-9]/.test(password), text: t('number') },
+				{ ok: /[^A-Za-z0-9]/.test(password), text: t('specialCharacter') },
+			];
 
-			const isLengthValid = password.length >= 8;
-			const hasCapitalLetter = /[A-Z]/.test(password);
-			const hasNumber = /[0-9]/.test(password);
-			const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-
-			if (!isLengthValid || !hasCapitalLetter || !hasNumber || !hasSpecialChar) {
-				const errorMessages = [];
-				const criteriaStyle = 'text-sm';
-
-				errorMessages.push(
+			if (!validations.every(({ ok }) => ok)) {
+				setError(
 					<div>
 						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
-							{!isLengthValid ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('passwordLength')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('passwordLength')}
-									</span>
-								</p>
-							)}
-							{!hasCapitalLetter ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('capitalLetter')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('capitalLetter')}
-									</span>
-								</p>
-							)}
-							{!hasNumber ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('number')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('number')}
-									</span>
-								</p>
-							)}
-							{!hasSpecialChar ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('specialCharacter')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('specialCharacter')}
-									</span>
-								</p>
-							)}
+						{validations.map(({ok, text}) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
 					</div>
 				);
-
-				setError(<div>{errorMessages}</div>);
 				return;
 			}
 		}
