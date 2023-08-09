@@ -69,10 +69,10 @@ const Login = () => {
 
 			if (!validations.every(({ ok }) => ok)) {
 				setError(
-					<div>
+					<>
 						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
 						{validations.map(({ok, text}) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
-					</div>
+					</>
 				);
 				return;
 			}
@@ -183,8 +183,7 @@ const Login = () => {
 						</h1>
 
 						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-							{error && <p className="text-red-500">{error}</p>}
-
+							{error && <div className="text-red-500">{error}</div>}
 							<div className="mb-4 relative">
 								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
 									<FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
