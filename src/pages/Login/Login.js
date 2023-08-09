@@ -9,6 +9,21 @@ import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 
 
+const FormInputRow = ({
+	IconComponent,
+	children,
+	label,
+	name,
+}) => (
+	<div className="mb-4 relative">
+		<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={name}>
+			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500" />
+			{label}
+		</label>
+		{children}
+	</div>
+);
+
 const PasswordCriterionMessage = ({ text, ok }) => (
 	<p className={ok ? "text-green-500" : "text-red-500"}>
 		<span className="text-sm">
@@ -190,11 +205,7 @@ const Login = () => {
 
 						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 							{error && <div className="text-red-500">{error}</div>}
-							<div className="mb-4 relative">
-								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-									<FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
-									{t('usernameLabel')}
-								</label>
+							<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
 								<input
 									className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 									id="username"
@@ -205,13 +216,9 @@ const Login = () => {
 									onChange={handleInputChange}
 									aria-label="Username"
 								/>
-							</div>
+							</FormInputRow>
 
-							<div className="mb-6 relative">
-								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-									<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
-									{t('passwordLabel')}
-								</label>
+							<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
 								<PasswordField
 									ariaLabel="Password"
 									name="password"
@@ -220,14 +227,10 @@ const Login = () => {
 									value={password}
 								/>
 								{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={ passwordStrength }/>}
-							</div>
+							</FormInputRow>
 
 							{!isLogin && (
-								<div className="mb-6 relative">
-									<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirm-password">
-										<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
-										{t('confirmPasswordLabel')}
-									</label>
+								<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
 									<PasswordField
 										ariaLabel="Confirm Password"
 										name="confirmPassword"
@@ -235,7 +238,7 @@ const Login = () => {
 										placeholder={t('enterconfirmPasswordLabel')}
 										value={confirmPassword}
 									/>
-								</div>
+								</FormInputRow>
 							)}
 
 							<button
