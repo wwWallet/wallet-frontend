@@ -152,7 +152,6 @@ const Login = () => {
 	};
 
 	const loginUser = async (username, password) => {
-		const fcm_token = await requestForToken();
 		try {
 			const response = await axios.post(`${walletBackendUrl}/user/login`, {
 				username,
