@@ -166,20 +166,25 @@ const Login = () => {
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 					<img className="w-20" src={logo} alt="logo" />
 				</a>
+
 				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')}
 				</h1>
+
 				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}
 					<div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div>
+
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
 						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 							{isLogin ? t('login') : t('signUp')}
 						</h1>
+
 						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 							{error && <p className="text-red-500">{error}</p>}
+
 							<div className="mb-4 relative">
 								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
 									<FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
@@ -196,6 +201,7 @@ const Login = () => {
 									aria-label="Username"
 								/>
 							</div>
+
 							<div className="mb-6 relative">
 								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
 									<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
@@ -240,6 +246,7 @@ const Login = () => {
 									</div>
 								)}
 							</div>
+
 							{!isLogin && (
 								<div className="mb-6 relative">
 									<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirm-password">
@@ -277,6 +284,7 @@ const Login = () => {
 							>
 								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
 							</button>
+
 							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
 								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
 								<a
