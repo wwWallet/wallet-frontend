@@ -33,12 +33,13 @@ const PasswordCriterionMessage = ({ text, ok }) => (
 	</p>
 );
 
-const PasswordField = ({
+const FormInputField = ({
 	ariaLabel,
 	name,
 	onChange,
 	placeholder,
 	value,
+	type,
 }) => {
 	const [show, setShow] = useState(false);
 	const onToggleShow = () => { setShow(!show); };
@@ -47,22 +48,25 @@ const PasswordField = ({
 		<div className="relative">
 			<input
 				className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-				type={show ? 'text' : 'password'}
+				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
 				value={value}
 				onChange={onChange}
 				aria-label={ariaLabel}
 			/>
-			<div className="absolute inset-y-0 right-3 flex items-center">
-				<button
-					type="button"
-					onClick={onToggleShow}
-					className="text-gray-500 focus:outline-none"
-				>
-					{show ? <FaEyeSlash /> : <FaEye />}
-				</button>
-			</div>
+
+			{type === 'password' && (
+				<div className="absolute inset-y-0 right-3 flex items-center">
+					<button
+						type="button"
+						onClick={onToggleShow}
+						className="text-gray-500 focus:outline-none"
+					>
+						{show ? <FaEyeSlash /> : <FaEye />}
+					</button>
+				</div>
+			)}
 		</div>
 	);
 };
@@ -206,36 +210,36 @@ const Login = () => {
 						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 							{error && <div className="text-red-500">{error}</div>}
 							<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
-								<input
-									className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-									id="username"
-									type="text"
+								<FormInputField
+									ariaLabel="Username"
 									name="username"
-									placeholder={t('enterUsername')}
-									value={username}
 									onChange={handleInputChange}
-									aria-label="Username"
+									placeholder={t('enterUsername')}
+									type="text"
+									value={username}
 								/>
 							</FormInputRow>
 
 							<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
-								<PasswordField
+								<FormInputField
 									ariaLabel="Password"
 									name="password"
 									onChange={handleInputChange}
 									placeholder={t('enterPassword')}
+									type="password"
 									value={password}
 								/>
-								{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={ passwordStrength }/>}
+								{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
 							</FormInputRow>
 
 							{!isLogin && (
 								<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
-									<PasswordField
+									<FormInputField
 										ariaLabel="Confirm Password"
 										name="confirmPassword"
 										onChange={handleInputChange}
 										placeholder={t('enterconfirmPasswordLabel')}
+										type="password"
 										value={confirmPassword}
 									/>
 								</FormInputRow>
