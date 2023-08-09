@@ -18,6 +18,40 @@ const PasswordCriterionMessage = ({ text, ok }) => (
 	</p>
 );
 
+const PasswordField = ({
+	ariaLabel,
+	name,
+	onChange,
+	placeholder,
+	value,
+}) => {
+	const [show, setShow] = useState(false);
+	const onToggleShow = () => { setShow(!show); };
+
+	return (
+		<div className="relative">
+			<input
+				className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+				type={show ? 'text' : 'password'}
+				name={name}
+				placeholder={placeholder}
+				value={value}
+				onChange={onChange}
+				aria-label={ariaLabel}
+			/>
+			<div className="absolute inset-y-0 right-3 flex items-center">
+				<button
+					type="button"
+					onClick={onToggleShow}
+					className="text-gray-500 focus:outline-none"
+				>
+					{show ? <FaEyeSlash /> : <FaEye />}
+				</button>
+			</div>
+		</div>
+	);
+};
+
 const Login = () => {
 	const { t } = useTranslation();
 
@@ -104,17 +138,6 @@ const Login = () => {
 		});
 	};
 
-	const [showPassword, setShowPassword] = useState(false);
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-	const toggleConfirmPasswordVisibility = () => {
-		setShowConfirmPassword(!showConfirmPassword);
-	};
-
-	const togglePasswordVisibility = () => {
-		setShowPassword(!showPassword);
-	};
-
 	const getPasswordStrength = (password) => {
 		const lengthScore = password.length >= 8 ? 25 : 0;
 		const capitalScore = /[A-Z]/.test(password) ? 25 : 0;
@@ -172,27 +195,13 @@ const Login = () => {
 									<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
 									{t('passwordLabel')}
 								</label>
-								<div className="relative">
-									<input
-										className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-										id="password"
-										type={showPassword ? 'text' : 'password'}
-										name="password"
-										placeholder={t('enterPassword')}
-										value={password}
-										onChange={handleInputChange}
-										aria-label="Password"
-									/>
-									<div className="absolute inset-y-0 right-3 flex items-center">
-										<button
-											type="button"
-											onClick={togglePasswordVisibility}
-											className="text-gray-500 focus:outline-none"
-										>
-											{showPassword ? <FaEyeSlash /> : <FaEye />}
-										</button>
-									</div>
-								</div>
+								<PasswordField
+									ariaLabel="Password"
+									name="password"
+									onChange={handleInputChange}
+									placeholder={t('enterPassword')}
+									value={password}
+								/>
 								{!isLogin && password !== '' && (
 									<div className="flex items-center mt-1">
 										<p className="text-sm text-gray-600 mr-2">{t('strength')}</p>
@@ -218,27 +227,13 @@ const Login = () => {
 										<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
 										{t('confirmPasswordLabel')}
 									</label>
-									<div className="relative">
-										<input
-											className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-											id="confirm-password"
-											type={showConfirmPassword ? 'text' : 'password'}
-											name="confirmPassword"
-											placeholder={t('enterconfirmPasswordLabel')}
-											value={confirmPassword}
-											onChange={handleInputChange}
-											aria-label="Confirm Password"
-										/>
-										<div className="absolute inset-y-0 right-3 flex items-center">
-											<button
-												type="button"
-												onClick={toggleConfirmPasswordVisibility}
-												className="text-gray-500 focus:outline-none"
-											>
-												{showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-											</button>
-										</div>
-									</div>
+									<PasswordField
+										ariaLabel="Confirm Password"
+										name="confirmPassword"
+										onChange={handleInputChange}
+										placeholder={t('enterconfirmPasswordLabel')}
+										value={confirmPassword}
+									/>
 								</div>
 							)}
 
