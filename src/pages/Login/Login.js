@@ -52,6 +52,23 @@ const PasswordField = ({
 	);
 };
 
+const PasswordStrength = ({ label, value }) => (
+	< div className="flex items-center mt-1" >
+		<p className="text-sm text-gray-600 mr-2">{label}</p>
+		<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
+			<div
+				className={`h-full rounded-full ${value < 50
+						? 'bg-red-500'
+						: value >= 50 && value < 100
+							? 'bg-yellow-500'
+							: 'bg-green-500'
+					}`}
+				style={{ width: `${value}%` }}
+			></div>
+		</div>
+	</div>
+);
+
 const Login = () => {
 	const { t } = useTranslation();
 
@@ -202,23 +219,7 @@ const Login = () => {
 									placeholder={t('enterPassword')}
 									value={password}
 								/>
-								{!isLogin && password !== '' && (
-									<div className="flex items-center mt-1">
-										<p className="text-sm text-gray-600 mr-2">{t('strength')}</p>
-										<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
-											<div
-												className={`h-full rounded-full ${
-													passwordStrength < 50
-														? 'bg-red-500'
-														: passwordStrength >= 50 && passwordStrength < 100
-														? 'bg-yellow-500'
-														: 'bg-green-500'
-												}`}
-												style={{ width: `${passwordStrength}%` }}
-											></div>
-										</div>
-									</div>
-								)}
+								{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={ passwordStrength }/>}
 							</div>
 
 							{!isLogin && (
