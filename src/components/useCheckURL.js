@@ -15,7 +15,7 @@ function useCheckURL(urlToCheck) {
 	useEffect(() => {
 
 		async function handleAuthorizationRequest(url) {
-			
+
 			try {
 				const response = await axios.post(
 					walletBackendUrl + "/presentation/handle/authorization/request",
@@ -33,7 +33,7 @@ function useCheckURL(urlToCheck) {
 						window.location.href = redirect_to; // Navigate to the redirect URL
 					}else{
 						console.log('need action');
-						
+
 						setConformantCredentialsMap(conformantCredentialsMap.VID);
 						setShowPopup(true);
 
@@ -70,7 +70,7 @@ function useCheckURL(urlToCheck) {
 			(async () => {
 				const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
 				const isResponseHandled = await handleAuthorizationResponse(urlToCheck);
-				
+
 
 				if (isRequestHandled || isResponseHandled) {
 					setIsValidURL(true);

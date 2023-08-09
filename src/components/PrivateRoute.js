@@ -9,7 +9,7 @@ const PrivateRoute = ({ children }) => {
 	// const handleauthrespn{
 
 	// 	//take url req to bck handleAuthorizationResponse
-	// 	//if 200 go to root / 
+	// 	//if 200 go to root /
 	// }
 
 	if (!isLoggedIn) {

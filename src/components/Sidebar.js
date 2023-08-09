@@ -26,7 +26,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		}
 	};
 	return (
-		<div 
+		<div
 			className={`${
 				isOpen
 					? 'w-full fixed h-full z-50 bg-custom-blue text-white p-5'

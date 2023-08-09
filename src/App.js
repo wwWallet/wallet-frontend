@@ -56,16 +56,16 @@ i18n
 
 		const url = window.location.href;
 		const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
-	
+
 		useEffect(() => {
 			navigator.serviceWorker.addEventListener('message', handleMessage);
-	
+
 			// Clean up the event listener when the component unmounts
 			return () => {
 				navigator.serviceWorker.removeEventListener('message', handleMessage);
 			};
 		}, []);
-	
+
 		// Handle messages received from the service worker
 		const handleMessage = (event) => {
 			if (event.data.type === 'navigate') {
@@ -97,7 +97,7 @@ i18n
 							/>
 						</Routes>
 						<Notification />
-						{showPopup && 
+						{showPopup &&
 							<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
 						}
 					</Suspense>
@@ -105,5 +105,5 @@ i18n
 			</I18nextProvider>
 		);
 	}
-	
+
 	export default App;

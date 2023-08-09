@@ -56,11 +56,11 @@ const Login = () => {
 			const hasCapitalLetter = /[A-Z]/.test(password);
 			const hasNumber = /[0-9]/.test(password);
 			const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-	
+
 			if (!isLengthValid || !hasCapitalLetter || !hasNumber || !hasSpecialChar) {
 				const errorMessages = [];
 				const criteriaStyle = 'text-sm';
-	
+
 				errorMessages.push(
 					<div>
 						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
@@ -126,7 +126,7 @@ const Login = () => {
 							)}
 					</div>
 				);
-	
+
 				setError(<div>{errorMessages}</div>);
 				return;
 			}
@@ -222,7 +222,7 @@ const Login = () => {
 					<img className="w-20" src={logo} alt="logo" />
 				</a>
 				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')} 
+				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')}
 				</h1>
 				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}

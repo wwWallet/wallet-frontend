@@ -27,7 +27,7 @@ const Home = () => {
 					Authorization: `Bearer ${appToken}`,
 				},
 			});
-			
+
 			console.log(response.data);
 			const newImages = response.data.vc_list.map((item) => ({
 				id: item.id,
@@ -46,7 +46,7 @@ const Home = () => {
 		getData();
 
 	}, []); // The empty dependency array ensures that the effect runs only once on component mount.
-	
+
 	const handleImageClick = (image) => {
 		// Navigate to the ImageDetailPage with the clicked image details
 		navigate(`/credential/${image.id}`);

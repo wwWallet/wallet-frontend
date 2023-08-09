@@ -29,7 +29,7 @@ const Issuers = () => {
 
 			try {
 				const response = await axios.get(`${walletBackendUrl}/legal_person/issuers/all`,
-				{ headers: 
+				{ headers:
 					{ Authorization: `Bearer ${appToken}`,},
 				}
 				);
@@ -67,12 +67,12 @@ const Issuers = () => {
 		const payload = {
 			legal_person_did: did,
 		};
-	
+
 		const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
 		console.log(appToken);
 		axios.post(`${walletBackendUrl}/issuance/generate/authorization/request`,
 				payload,
-				{ headers: 
+				{ headers:
 					{ Authorization: `Bearer ${appToken}`,},
 				}
 			)
@@ -97,7 +97,7 @@ const Issuers = () => {
 					<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
 					<hr className="mb-2 border-t border-custom-blue/80" />
 					<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
-	
+
 					<div className="my-4">
 						<input
 							type="text"
@@ -126,5 +126,5 @@ const Issuers = () => {
 			</Layout>
 		);
 	};
-	
+
 	export default Issuers;
