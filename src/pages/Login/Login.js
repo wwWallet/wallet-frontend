@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
-import axios from 'axios';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import logo from '../../assets/images/ediplomasLogo.svg';
-import { AiOutlineUnlock, AiOutlineLock } from 'react-icons/ai';
+import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
+
+import * as api from '../../api';
+import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-import { requestForToken } from '../../firebase'; // Adjust the path to your firebase.js file
 
 
 const PasswordCriterionMessage = ({ text, ok }) => (
@@ -31,8 +30,6 @@ const Login = () => {
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const navigate = useNavigate();
-
-	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 	const { username, password, confirmPassword } = formData;
 
@@ -81,12 +78,11 @@ const Login = () => {
 		setIsSubmitting(true);
 
 		try {
-			const response = isLogin ? await loginUser(username, password) : await signupUser(username, password);
-			const { appToken } = response;
-			Cookies.set('loggedIn', true);
-			Cookies.set('username', username);
-			Cookies.set('appToken', appToken);
-
+			if (isLogin) {
+				await api.login(username, password);
+			} else {
+				await api.signup(username, password);
+			}
 			navigate('/');
 		} catch (error) {
 			setError(
@@ -95,36 +91,6 @@ const Login = () => {
 		}
 
 		setIsSubmitting(false);
-	};
-
-	const loginUser = async (username, password) => {
-		try {
-			const response = await axios.post(`${walletBackendUrl}/user/login`, {
-				username,
-				password,
-			});
-			return response.data;
-		} catch (error) {
-			console.error('Failed to log in user', error);
-			throw error;
-		}
-	};
-
-	const signupUser = async (username, password) => {
-		const fcm_token = await requestForToken();
-		const browser_fcm_token=fcm_token;
-		try {
-			const response = await axios.post(`${walletBackendUrl}/user/register`, {
-				username,
-				password,
-				fcm_token,
-				browser_fcm_token,
-			});
-			return response.data;
-		} catch (error) {
-			console.error('Failed to sign up user', error);
-			throw error;
-		}
 	};
 
 	const toggleForm = (event) => {
