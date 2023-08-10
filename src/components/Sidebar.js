@@ -7,6 +7,24 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import * as api from '../api';
 import logo from '../assets/images/ediplomasLogo.svg';
 
+
+const NavItem = ({
+	children,
+	handleNavigate,
+	location,
+	path,
+}) => {
+	return (
+		<li
+			onClick={() => handleNavigate(path)}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${location.pathname === path ? 'bg-white text-custom-blue' : ''
+				}`}
+		>
+			{children}
+		</li>
+	);
+};
+
 const Sidebar = ({ isOpen, toggle }) => {
 
 	const { username } = api.getSession();
@@ -26,6 +44,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		// toggle(); // Close the sidebar after navigation (optional)
 		}
 	};
+
 	return (
 		<div
 			className={`${
@@ -76,47 +95,30 @@ const Sidebar = ({ isOpen, toggle }) => {
 					<FaUserCircle size={30} className="mr-2" />
 					<span className="text-white">{username}</span>
 				</div>
+
 				<hr className="my-4 border-t border-white/20" />
 
 				{/* Nav Menu */}
 				<ul>
-					<li
-						onClick={() => handleNavigate('/')}
-						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${
-							location.pathname === '/' ? 'bg-white text-custom-blue' : ''
-						}`}
-					>
+					<NavItem path="/" location={location} handleNavigate={handleNavigate}>
 						<FaWallet size={30} />
 						<span>Credentials</span>
-					</li>
-					<li
-						onClick={() => handleNavigate('/history')}
-						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${
-							location.pathname === '/history' ? 'bg-white text-custom-blue' : ''
-						}`}
-					>
+					</NavItem>
+					<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
 						<IoIosTime size={30} />
 						<span>History</span>
-					</li>
-					<li
-						onClick={() => handleNavigate('/issuers')}
-						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${
-							location.pathname === '/issuers' ? 'bg-white text-custom-blue' : ''
-						}`}
-					>
+					</NavItem>
+					<NavItem path="/issuers" location={location} handleNavigate={handleNavigate}>
 						<IoIosAddCircle size={30} />
 						<span>Issuers</span>
-					</li>
-					<li
-						onClick={() => handleNavigate('/verifiers')}
-						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${
-							location.pathname === '/verifiers' ? 'bg-white text-custom-blue' : ''
-						}`}
-					>
+					</NavItem>
+					<NavItem path="/verifiers" location={location} handleNavigate={handleNavigate}>
 						<IoIosSend size={30} />
 						<span>Verifiers</span>
-					</li>
+					</NavItem>
+
 					<hr className="my-4 border-t border-white/20" />
+
 					<li
 						onClick={handleLogout}
 						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-light-red hover:text-custom-blue `}
