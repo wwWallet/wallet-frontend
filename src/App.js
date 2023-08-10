@@ -52,58 +52,58 @@ i18n
 		}
 	});
 
-	function App() {
+function App() {
 
-		const url = window.location.href;
-		const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
+	const url = window.location.href;
+	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
-		useEffect(() => {
-			navigator.serviceWorker.addEventListener('message', handleMessage);
+	useEffect(() => {
+		navigator.serviceWorker.addEventListener('message', handleMessage);
 
-			// Clean up the event listener when the component unmounts
-			return () => {
-				navigator.serviceWorker.removeEventListener('message', handleMessage);
-			};
-		}, []);
-
-		// Handle messages received from the service worker
-		const handleMessage = (event) => {
-			if (event.data.type === 'navigate') {
-				// Remove any parameters from the URL
-				const homeURL = window.location.origin + window.location.pathname;
-				console.log('-->',homeURL);
-				// Redirect the current tab to the home URL
-				window.location.href = homeURL;
-			}
+		// Clean up the event listener when the component unmounts
+		return () => {
+			navigator.serviceWorker.removeEventListener('message', handleMessage);
 		};
-		return (
-			<I18nextProvider i18n={i18n}>
-				<Router>
-					<Suspense fallback={<Spinner />}>
-						<Routes>
-							<Route path="/login" element={<Login />} />
-							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
-							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-							<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-							<Route path="/cb"
-								element={
-									isValidURL === null ? null : isValidURL ? (
-										<PrivateRoute><Home /></PrivateRoute>
-									) : (
-										<NotFound />
-									)
-								}
-							/>
-						</Routes>
-						<Notification />
-						{showPopup &&
-							<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
-						}
-					</Suspense>
-				</Router>
-			</I18nextProvider>
-		);
-	}
+	}, []);
 
-	export default App;
+	// Handle messages received from the service worker
+	const handleMessage = (event) => {
+		if (event.data.type === 'navigate') {
+			// Remove any parameters from the URL
+			const homeURL = window.location.origin + window.location.pathname;
+			console.log('-->',homeURL);
+			// Redirect the current tab to the home URL
+			window.location.href = homeURL;
+		}
+	};
+	return (
+		<I18nextProvider i18n={i18n}>
+			<Router>
+				<Suspense fallback={<Spinner />}>
+					<Routes>
+						<Route path="/login" element={<Login />} />
+						<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
+						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
+						<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
+						<Route path="/cb"
+							element={
+								isValidURL === null ? null : isValidURL ? (
+									<PrivateRoute><Home /></PrivateRoute>
+								) : (
+									<NotFound />
+								)
+							}
+						/>
+					</Routes>
+					<Notification />
+					{showPopup &&
+						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
+					}
+				</Suspense>
+			</Router>
+		</I18nextProvider>
+	);
+}
+
+export default App;
