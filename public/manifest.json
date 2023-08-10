@@ -1,41 +1,41 @@
 {
-  "short_name": "ediplomas DW",
-  "name": "eDiplomas Digital Wallet",
-  "icons": [
-    {
-      "src": "wallet_16.png",
-      "sizes": "16x16",
-      "type": "image/png"
-    },
+	"short_name": "ediplomas DW",
+	"name": "eDiplomas Digital Wallet",
+	"icons": [
 		{
-      "src": "wallet_24.png",
-      "sizes": "24x24",
-      "type": "image/png"
-    },
+			"src": "wallet_16.png",
+			"sizes": "16x16",
+			"type": "image/png"
+		},
 		{
-      "src": "wallet_32.png",
-      "sizes": "32x32",
-      "type": "image/png"
-    },
+			"src": "wallet_24.png",
+			"sizes": "24x24",
+			"type": "image/png"
+		},
 		{
-      "src": "wallet_64.png",
-      "sizes": "64x64",
-      "type": "image/png"
-    },
-    {
-      "src": "wallet_192.png",
-      "sizes": "192x192",
+			"src": "wallet_32.png",
+			"sizes": "32x32",
+			"type": "image/png"
+		},
+		{
+			"src": "wallet_64.png",
+			"sizes": "64x64",
+			"type": "image/png"
+		},
+		{
+			"src": "wallet_192.png",
+			"sizes": "192x192",
 			"type": "image/png"
 
-    },
-    {
-      "src": "wallet_512.png",
-      "sizes": "512x512",
+		},
+		{
+			"src": "wallet_512.png",
+			"sizes": "512x512",
 			"type": "image/png"
-    }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+		}
+	],
+	"start_url": ".",
+	"display": "standalone",
+	"theme_color": "#000000",
+	"background_color": "#ffffff"
 }

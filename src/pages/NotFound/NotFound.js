@@ -3,11 +3,11 @@ import logo from '../../assets/images/ediplomasLogo.svg';
 import { useNavigate } from 'react-router-dom';
 
 const NotFound = () => {
-  const navigate = useNavigate();
+	const navigate = useNavigate();
 
-  const handleBackToHome = () => {
-    navigate('/');
-  };
+	const handleBackToHome = () => {
+		navigate('/');
+	};
 	return(
 	<section className="bg-gray-100 dark:bg-gray-900">
 	<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-screen pb-20">
@@ -24,12 +24,12 @@ const NotFound = () => {
 				</h1>
 
 				<p className='text-center'>Sorry, the page you're looking for cannot be accessed</p>
-        <button
-          onClick={handleBackToHome}
-          className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        >
-          Back to Home
-        </button>
+				<button
+					onClick={handleBackToHome}
+					className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+				>
+					Back to Home
+				</button>
 			</div>
 		</div>
 	</div>

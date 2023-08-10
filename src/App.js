@@ -25,47 +25,47 @@ const Popup = React.lazy(() => import('./components/Popup'));
 
 // Check that service workers are supported
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      .then(registration => {
-        console.log('Service Worker registered! Scope is: ', registration.scope);
-      })
-      .catch(err => {
-        console.log('Service Worker registration failed: ', err);
-        // Add your error handling code here. For instance:
-        alert('Failed to register service worker. Some features may not work properly.');
-      });
-  });
+	window.addEventListener('load', () => {
+		navigator.serviceWorker.register('/firebase-messaging-sw.js')
+			.then(registration => {
+				console.log('Service Worker registered! Scope is: ', registration.scope);
+			})
+			.catch(err => {
+				console.log('Service Worker registration failed: ', err);
+				// Add your error handling code here. For instance:
+				alert('Failed to register service worker. Some features may not work properly.');
+			});
+	});
 }
 
 i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: enTranslation },
-      el: { translation: elTranslation }
-    },
-    fallbackLng: 'en', 
-    debug: false,
-    interpolation: {
-      escapeValue: false 
-    }
-  });
+	.use(initReactI18next)
+	.init({
+		resources: {
+			en: { translation: enTranslation },
+			el: { translation: elTranslation }
+		},
+		fallbackLng: 'en',
+		debug: false,
+		interpolation: {
+			escapeValue: false
+		}
+	});
 
 	function App() {
 
 		const url = window.location.href;
 		const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
-	
+
 		useEffect(() => {
 			navigator.serviceWorker.addEventListener('message', handleMessage);
-	
+
 			// Clean up the event listener when the component unmounts
 			return () => {
 				navigator.serviceWorker.removeEventListener('message', handleMessage);
 			};
 		}, []);
-	
+
 		// Handle messages received from the service worker
 		const handleMessage = (event) => {
 			if (event.data.type === 'navigate') {
@@ -97,7 +97,7 @@ i18n
 							/>
 						</Routes>
 						<Notification />
-						{showPopup && 
+						{showPopup &&
 							<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
 						}
 					</Suspense>
@@ -105,5 +105,5 @@ i18n
 			</I18nextProvider>
 		);
 	}
-	
+
 	export default App;
