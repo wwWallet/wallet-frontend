@@ -9,6 +9,7 @@ import * as api from '../../api';
 import { toBase64Url } from '../../util';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import SeparatorLine from '../../components/SeparatorLine';
 
 
 const FormInputRow = ({
@@ -300,6 +301,8 @@ const Login = () => {
 							>
 								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
 							</button>
+
+							<SeparatorLine>OR</SeparatorLine>
 
 							{isLogin && (
 								<>
