@@ -95,7 +95,7 @@ const WebauthnRegistation = ({
 				}
 			}
 		},
-		[dialog.current, beginData],
+		[dialog, beginData],
 	);
 
 	const registrationInProgress = Boolean(beginData || pendingCredential);

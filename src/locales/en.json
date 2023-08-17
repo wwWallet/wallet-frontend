@@ -19,6 +19,7 @@
 	"passwordLength": "Minimum length: 8 characters",
 	"passwordsNotMatchError": "Passwords do not match",
 	"signUp": "Sign Up",
+	"signUpPasskey": "Sign up with passkey",
 	"signUpSubmit": "Sign Up",
 	"specialCharacter": "At least one special character",
 	"strength": "Strength",

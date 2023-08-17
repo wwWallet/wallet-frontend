@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
@@ -91,6 +91,169 @@ const PasswordStrength = ({ label, value }) => (
 	</div>
 );
 
+const WebauthnSignup = ({
+	active,
+	isSubmitting,
+	setInactive,
+	setIsSubmitting,
+	setPasskeyError,
+}) => {
+	const [beginData, setBeginData] = useState();
+	const [name, setName] = useState("");
+	const [createInProgress, setCreateInProgress] = useState(false);
+	const dialog = useRef();
+	const navigate = useNavigate();
+	const { t } = useTranslation();
+
+	const begin = useCallback(
+		async () => {
+			setIsSubmitting();
+			setPasskeyError();
+
+			const beginResp = await api.post('/user/register-webauthn-begin', {});
+			console.log("begin", beginResp);
+
+			if (beginResp.data.challengeId) {
+				setBeginData(beginResp.data);
+				setName("");
+			} else {
+				setBeginData();
+				setPasskeyError(t('passkeyFailedServerError'));
+				setIsSubmitting(false);
+				setInactive();
+			}
+		},
+		[setInactive, setIsSubmitting, setPasskeyError, t],
+	);
+
+	const onSubmitName = async (event) => {
+		event.preventDefault();
+
+		try {
+			setCreateInProgress(true);
+			const credential = await navigator.credentials.create({
+				...beginData.createOptions,
+				publicKey: {
+					...beginData.createOptions.publicKey,
+					user: {
+						...beginData.createOptions.publicKey.user,
+						name,
+						displayName: name,
+					},
+				},
+			});
+			setCreateInProgress(false);
+			console.log("created", credential);
+
+			const finishResp = await api.post('/user/register-webauthn-finish', {
+				challengeId: beginData.challengeId,
+				credential: {
+					type: credential.type,
+					id: credential.id,
+					rawId: credential.id,
+					response: {
+						attestationObject: toBase64Url(credential.response.attestationObject),
+						clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+						transports: credential.response.getTransports(),
+					},
+					authenticatorAttachment: credential.authenticatorAttachment,
+					clientExtensionResults: credential.getClientExtensionResults(),
+				},
+			});
+			api.setSessionCookies(null, finishResp);
+			navigate('/');
+			setIsSubmitting(false);
+			setInactive();
+		} catch (e) {
+      setBeginData();
+			setCreateInProgress(false);
+			setPasskeyError(t('passkeyFailedTryAgain'));
+		}
+	};
+
+	const onCancel = () => {
+		console.log("onCancel");
+		setBeginData();
+		setIsSubmitting(false);
+		setInactive();
+	};
+
+	useEffect(
+		() => {
+			if (dialog.current) {
+				if (active) {
+					dialog.current.showModal();
+				} else {
+					dialog.current.close();
+				}
+			}
+		},
+		[active, dialog],
+	);
+
+	useEffect(
+		() => {
+			if (active && !beginData) {
+				begin();
+			}
+		},
+		[active, begin, beginData],
+	);
+
+	return (
+		<dialog
+			ref={dialog}
+			className="p-4 pt-8 text-center rounded"
+			style={{ minHeight: '20em', minWidth: '30em' }}
+			onCancel={onCancel}
+		>
+			<form method="dialog" onSubmit={onSubmitName}>
+				{createInProgress
+					? (
+						<>
+							<p>Please interact with your authenticator...</p>
+						</>
+					)
+					: (
+						<>
+							<p className="mb-2">Choose a name for your passkey:</p>
+							<FormInputRow label={t('passkeyNameLabel')} name="name" IconComponent={FaUser}>
+								<FormInputField
+									ariaLabel="Passkey name"
+									name="name"
+									onChange={(event) => setName(event.target.value)}
+									placeholder={t('enterPasskeyName')}
+									type="text"
+									value={name}
+								/>
+							</FormInputRow>
+						</>
+					)
+				}
+
+				<div className="pt-2">
+					<button
+						type="button"
+						className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+						onClick={onCancel}
+						disabled={isSubmitting}
+					>
+						Cancel
+					</button>
+
+					<button
+						type="submit"
+						className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+						disabled={isSubmitting || createInProgress}
+					>
+						Create passkey
+					</button>
+				</div>
+			</form>
+		</dialog>
+	);
+};
+
 const Login = () => {
 	const { t } = useTranslation();
 
@@ -103,6 +266,7 @@ const Login = () => {
 	const [passkeyError, setPasskeyError] = useState('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isSignupPasskey, setIsSignupPasskey] = useState(false);
 	const navigate = useNavigate();
 
 	const { username, password, confirmPassword } = formData;
@@ -212,6 +376,10 @@ const Login = () => {
 		setIsSubmitting(false);
 	};
 
+	const onSignupPasskey = () => {
+		setIsSignupPasskey(true);
+	};
+
 	const toggleForm = (event) => {
 		event.preventDefault();
 		setIsLogin(!isLogin);
@@ -304,20 +472,16 @@ const Login = () => {
 
 							<SeparatorLine>OR</SeparatorLine>
 
-							{isLogin && (
-								<>
-									<button
-										className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
-										type="button"
-										disabled={isSubmitting}
-										onClick={onLoginPasskey}
-									>
-										<GoPasskeyFill className="inline text-xl mr-2" />
-										{isSubmitting ? t('submitting') : t('loginPasskey')}
-									</button>
-									{passkeyError && <div className="text-red-500">{passkeyError}</div>}
-								</>
-							)}
+							<button
+								className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+								type="button"
+								disabled={isSubmitting}
+								onClick={isLogin ? onLoginPasskey : onSignupPasskey}
+							>
+								<GoPasskeyFill className="inline text-xl mr-2" />
+								{isSubmitting ? t('submitting') : isLogin ? t('loginPasskey') : t('signupPasskey')}
+							</button>
+							{passkeyError && <div className="text-red-500">{passkeyError}</div>}
 
 							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
 								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
@@ -330,6 +494,14 @@ const Login = () => {
 								</a>
 							</p>
 						</form>
+
+						<WebauthnSignup
+							active={isSignupPasskey}
+							isSubmitting={isSubmitting}
+							setInactive={() => setIsSignupPasskey(false)}
+							setIsSubmitting={setIsSubmitting}
+							setPasskeyError={setPasskeyError}
+						/>
 					</div>
 				</div>
 			</div>
