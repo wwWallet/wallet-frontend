@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
@@ -7,11 +7,11 @@ import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
-function getAppToken() {
+function getAppToken(): string | undefined {
 	return Cookies.get('appToken');
 }
 
-function transformResponse(data) {
+function transformResponse(data: any): any {
 	if (data) {
 		return jsonParseTaggedBinary(data);
 	} else {
@@ -19,7 +19,7 @@ function transformResponse(data) {
 	}
 }
 
-export async function get(path) {
+export async function get(path: string): Promise<AxiosResponse> {
 	return await axios.get(
 		`${walletBackendUrl}${path}`,
 		{
@@ -31,7 +31,7 @@ export async function get(path) {
 	);
 }
 
-export async function post(path, body) {
+export async function post(path: string, body: object): Promise<AxiosResponse> {
 	return await axios.post(
 		`${walletBackendUrl}${path}`,
 		body,
@@ -46,7 +46,7 @@ export async function post(path, body) {
 	);
 }
 
-export async function del(path) {
+export async function del(path: string): Promise<AxiosResponse> {
 	return await axios.delete(
 		`${walletBackendUrl}${path}`,
 		{
@@ -57,28 +57,28 @@ export async function del(path) {
 		});
 }
 
-export function getSession() {
+export function getSession(): { username?: string } {
 	return {
 		username: Cookies.get('username'),
 	};
 }
 
-export function isLoggedIn() {
+export function isLoggedIn(): boolean {
 	return getSession().username !== undefined;
 }
 
-export function clearSession() {
+export function clearSession(): void {
 	Cookies.remove('username');
 	Cookies.remove('appToken');
 }
 
-function setSessionCookies(username, response) {
+function setSessionCookies(username: string, response: AxiosResponse): void {
 	const { appToken } = response.data;
 	Cookies.set('username', username);
 	Cookies.set('appToken', appToken);
 }
 
-export async function login(username, password) {
+export async function login(username: string, password: string): Promise<AxiosResponse> {
 	try {
 		const response = await post('/user/login', { username, password });
 		setSessionCookies(username, response);
@@ -91,7 +91,7 @@ export async function login(username, password) {
 	}
 };
 
-export async function signup(username, password) {
+export async function signup(username: string, password: string): Promise<AxiosResponse> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
