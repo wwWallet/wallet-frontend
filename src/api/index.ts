@@ -72,7 +72,7 @@ export function clearSession(): void {
 	Cookies.remove('appToken');
 }
 
-function setSessionCookies(username: string, response: AxiosResponse): void {
+export function setSessionCookies(username: string, response: AxiosResponse): void {
 	const { appToken } = response.data;
 	Cookies.set('username', username);
 	Cookies.set('appToken', appToken);

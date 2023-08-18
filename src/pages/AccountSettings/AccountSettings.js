@@ -225,8 +225,7 @@ const Home = () => {
 
 				{userData && (
 					<>
-						<p className="pd-2 text-gray-700">Username: {userData.username}</p>
-						<p className="pd-2 text-gray-700">Public key: {JSON.stringify(userData.publicKey)}</p>
+						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Username: {userData.username}</h2>
 
 						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Passkeys</h2>
 

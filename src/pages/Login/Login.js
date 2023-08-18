@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { GoPasskeyFill } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
+import { toBase64Url } from '../../util';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 
@@ -97,6 +99,7 @@ const Login = () => {
 		confirmPassword: '',
 	});
 	const [error, setError] = useState('');
+	const [passkeyError, setPasskeyError] = useState('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const navigate = useNavigate();
@@ -158,6 +161,51 @@ const Login = () => {
 			setError(
 				isLogin ? t('incorrectCredentialsError') : t('usernameExistsError')
 			);
+		}
+
+		setIsSubmitting(false);
+	};
+
+	const onLoginPasskey = async () => {
+		setIsSubmitting(true);
+		setPasskeyError();
+
+		const beginResp = await api.post('/user/login-webauthn-begin', {});
+		console.log("begin", beginResp);
+		const beginData = beginResp.data;
+
+		if (beginData.challengeId) {
+			try {
+				const credential = await navigator.credentials.get(beginData.getOptions);
+				console.log("asserted", credential);
+
+				try {
+					const finishResp = await api.post('/user/login-webauthn-finish', {
+						challengeId: beginData.challengeId,
+						credential: {
+							type: credential.type,
+							id: credential.id,
+							rawId: credential.id,
+							response: {
+								authenticatorData: toBase64Url(credential.response.authenticatorData),
+								clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+								signature: toBase64Url(credential.response.signature),
+								userHandle: toBase64Url(credential.response.userHandle),
+							},
+							authenticatorAttachment: credential.authenticatorAttachment,
+							clientExtensionResults: credential.getClientExtensionResults(),
+						},
+					});
+					api.setSessionCookies(finishResp.data.username, finishResp);
+					navigate('/');
+				} catch (e) {
+					setPasskeyError(t('passkeyInvalid'));
+				}
+			} catch (e) {
+				setPasskeyError(t('passkeyFailedTryAgain'));
+			}
+		} else {
+			setPasskeyError(t('passkeyFailedServerError'));
 		}
 
 		setIsSubmitting(false);
@@ -252,6 +300,21 @@ const Login = () => {
 							>
 								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
 							</button>
+
+							{isLogin && (
+								<>
+									<button
+										className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+										type="button"
+										disabled={isSubmitting}
+										onClick={onLoginPasskey}
+									>
+										<GoPasskeyFill className="inline text-xl mr-2" />
+										{isSubmitting ? t('submitting') : t('loginPasskey')}
+									</button>
+									{passkeyError && <div className="text-red-500">{passkeyError}</div>}
+								</>
+							)}
 
 							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
 								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
