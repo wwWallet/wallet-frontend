@@ -3,7 +3,7 @@ import { FaTrash } from 'react-icons/fa';
 
 import * as api from '../../api';
 import Layout from '../../components/Layout';
-import { toBase64Url } from '../../util';
+import { compareBy, toBase64Url } from '../../util';
 
 
 const WebauthnRegistation = ({
@@ -234,7 +234,7 @@ const Home = () => {
 						{userData.webauthnCredentials.length > 0
 							? (
 								<ul className="mt-4">
-									{userData.webauthnCredentials.toSorted((a, b) => new Date(a.createTime) - new Date(b.createTime)).map(cred => (
+									{userData.webauthnCredentials.toSorted(compareBy(cred => new Date(cred.createTime))).map(cred => (
 										<WebauthnCredential
 											key={cred.id}
 											credential={cred}

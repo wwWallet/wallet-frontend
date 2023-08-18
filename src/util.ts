@@ -58,3 +58,17 @@ function reviverTaggedBinaryToUint8Array(key: string, value: any): any {
 export function jsonParseTaggedBinary(json: string): any {
   return JSON.parse(json, reviverTaggedBinaryToUint8Array);
 }
+
+export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
+	return (a: T, b: T) => {
+		const fa = f(a);
+		const fb = f(b);
+		if (fa < fb) {
+			return -1;
+		} else if (fb < fa) {
+			return 1;
+		} else {
+			return 0;
+		}
+	};
+}
