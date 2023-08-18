@@ -2,24 +2,27 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 
 import * as api from '../../api';
+import { UserData, WebauthnCredential } from '../../api/types';
 import Layout from '../../components/Layout';
 import { compareBy, toBase64Url } from '../../util';
 
 
 const WebauthnRegistation = ({
 	onSuccess,
+}: {
+	onSuccess: () => void,
 }) => {
-	const [beginData, setBeginData] = useState();
-	const [pendingCredential, setPendingCredential] = useState();
+	const [beginData, setBeginData] = useState(null);
+	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const dialog = useRef();
+	const dialog = useRef<HTMLDialogElement>();
 
 	const onBegin = useCallback(
 		async () => {
-			setBeginData();
+			setBeginData(null);
 			setIsSubmitting(true);
-			setPendingCredential();
+			setPendingCredential(null);
 
 			const beginResp = await api.post('/user/session/webauthn/register-begin', {});
 			console.log("begin", beginResp);
@@ -34,8 +37,8 @@ const WebauthnRegistation = ({
 					setPendingCredential(credential);
 				} catch (e) {
 					console.error("Failed to register", e);
-					setBeginData();
-					setPendingCredential();
+					setBeginData(null);
+					setPendingCredential(null);
 				}
 				setIsSubmitting(false);
 			}
@@ -45,8 +48,8 @@ const WebauthnRegistation = ({
 
 	const onCancel = () => {
 		console.log("onCancel");
-		setPendingCredential();
-		setBeginData();
+		setPendingCredential(null);
+		setBeginData(null);
 		setIsSubmitting(false);
 	};
 
@@ -169,7 +172,13 @@ const WebauthnRegistation = ({
 };
 
 
-const WebauthnCredential = ({ credential, onDelete }) => (
+const WebauthnCredentialItem = ({
+	credential,
+	onDelete,
+}: {
+	credential: WebauthnCredential,
+	onDelete: () => void,
+}) => (
 	<li
 		className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md"
 	>
@@ -190,7 +199,7 @@ const WebauthnCredential = ({ credential, onDelete }) => (
 
 
 const Home = () => {
-	const [userData, setUserData] = useState();
+	const [userData, setUserData] = useState<UserData>(null);
 
 	const refreshData = useCallback(
 		async () => {
@@ -211,7 +220,7 @@ const Home = () => {
 		[refreshData],
 	);
 
-	const deleteWebauthnCredential = async (id) => {
+	const deleteWebauthnCredential = async (id: string) => {
 		await api.del(`/user/session/webauthn/credential/${id}`);
 		refreshData();
 	};
@@ -234,8 +243,8 @@ const Home = () => {
 						{userData.webauthnCredentials.length > 0
 							? (
 								<ul className="mt-4">
-									{userData.webauthnCredentials.toSorted(compareBy(cred => new Date(cred.createTime))).map(cred => (
-										<WebauthnCredential
+									{userData.webauthnCredentials.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime))).map(cred => (
+										<WebauthnCredentialItem
 											key={cred.id}
 											credential={cred}
 											onDelete={() => deleteWebauthnCredential(cred.id)}
