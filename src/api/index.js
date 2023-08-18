@@ -2,12 +2,21 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
+import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 function getAppToken() {
 	return Cookies.get('appToken');
+}
+
+function transformResponse(data) {
+	if (data) {
+		return jsonParseTaggedBinary(data);
+	} else {
+		return data;
+	}
 }
 
 export async function get(path) {
@@ -17,7 +26,9 @@ export async function get(path) {
 			headers: {
 				Authorization: `Bearer ${getAppToken()}`,
 			},
-		});
+			transformResponse,
+		},
+	);
 }
 
 export async function post(path, body) {
@@ -29,8 +40,21 @@ export async function post(path, body) {
 				Authorization: `Bearer ${getAppToken()}`,
 				'Content-Type': 'application/json',
 			},
+			transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
+			transformResponse,
 		},
 	);
+}
+
+export async function del(path) {
+	return await axios.delete(
+		`${walletBackendUrl}${path}`,
+		{
+			headers: {
+				Authorization: `Bearer ${getAppToken()}`,
+			},
+			transformResponse,
+		});
 }
 
 export function getSession() {
