@@ -9,6 +9,16 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import { requestForToken } from '../../firebase'; // Adjust the path to your firebase.js file
 
+
+const PasswordCriterionMessage = ({ text, ok }) => (
+	<p className={ok ? "text-green-500" : "text-red-500"}>
+		<span className="text-sm">
+			<AiOutlineUnlock className="inline-block mr-2" />
+			{text}
+		</span>
+	</p>
+);
+
 const Login = () => {
 	const { t } = useTranslation();
 
@@ -49,85 +59,21 @@ const Login = () => {
 		}
 
 		// Validate password criteria
-
 		if (!isLogin){
+			const validations = [
+				{ ok: password.length >= 8, text: t('passwordLength') },
+				{ ok: /[A-Z]/.test(password), text: t('capitalLetter') },
+				{ ok: /[0-9]/.test(password), text: t('number') },
+				{ ok: /[^A-Za-z0-9]/.test(password), text: t('specialCharacter') },
+			];
 
-			const isLengthValid = password.length >= 8;
-			const hasCapitalLetter = /[A-Z]/.test(password);
-			const hasNumber = /[0-9]/.test(password);
-			const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
-
-			if (!isLengthValid || !hasCapitalLetter || !hasNumber || !hasSpecialChar) {
-				const errorMessages = [];
-				const criteriaStyle = 'text-sm';
-
-				errorMessages.push(
-					<div>
+			if (!validations.every(({ ok }) => ok)) {
+				setError(
+					<>
 						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
-							{!isLengthValid ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('passwordLength')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('passwordLength')}
-									</span>
-								</p>
-							)}
-							{!hasCapitalLetter ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('capitalLetter')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('capitalLetter')}
-									</span>
-								</p>
-							)}
-							{!hasNumber ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('number')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('number')}
-									</span>
-								</p>
-							)}
-							{!hasSpecialChar ? (
-								<p className="text-red-500">
-									<span className={criteriaStyle}>
-										<AiOutlineUnlock className="inline-block mr-2" />
-										{t('specialCharacter')}
-									</span>
-								</p>
-							) : (
-								<p className="text-green-500">
-									<span className={criteriaStyle}>
-										<AiOutlineLock className="inline-block mr-2" />
-										{t('specialCharacter')}
-									</span>
-								</p>
-							)}
-					</div>
+						{validations.map(({ok, text}) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
+					</>
 				);
-
-				setError(<div>{errorMessages}</div>);
 				return;
 			}
 		}
@@ -152,7 +98,6 @@ const Login = () => {
 	};
 
 	const loginUser = async (username, password) => {
-		const fcm_token = await requestForToken();
 		try {
 			const response = await axios.post(`${walletBackendUrl}/user/login`, {
 				username,
@@ -221,20 +166,24 @@ const Login = () => {
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 					<img className="w-20" src={logo} alt="logo" />
 				</a>
+
 				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')}
 				</h1>
+
 				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}
 					<div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div>
+
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
 						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 							{isLogin ? t('login') : t('signUp')}
 						</h1>
+
 						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-							{error && <p className="text-red-500">{error}</p>}
+							{error && <div className="text-red-500">{error}</div>}
 							<div className="mb-4 relative">
 								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
 									<FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
@@ -251,6 +200,7 @@ const Login = () => {
 									aria-label="Username"
 								/>
 							</div>
+
 							<div className="mb-6 relative">
 								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
 									<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
@@ -295,6 +245,7 @@ const Login = () => {
 									</div>
 								)}
 							</div>
+
 							{!isLogin && (
 								<div className="mb-6 relative">
 									<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirm-password">
@@ -332,6 +283,7 @@ const Login = () => {
 							>
 								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
 							</button>
+
 							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
 								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
 								<a
