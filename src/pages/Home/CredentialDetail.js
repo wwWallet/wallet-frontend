@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link, useParams } from 'react-router-dom';
-import Cookies from 'js-cookie';
-import Layout from '../../components/Layout';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi'; // Import the icon
 
+import * as api from '../../api';
+import Layout from '../../components/Layout';
+
+
 const CredentialDetail = () => {
 	const { id } = useParams();
-	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 	const [image, setImage] = useState(null);
 	const [jsonData, setJsonData] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false); // New state for the modal
@@ -26,12 +26,7 @@ const CredentialDetail = () => {
 	useEffect(() => {
 		const getData = async () => {
 			try {
-				const appToken = Cookies.get('appToken');
-				const response = await axios.get(`${walletBackendUrl}/storage/vc`, {
-					headers: {
-						Authorization: `Bearer ${appToken}`,
-					},
-				});
+				const response = await api.get('/storage/vc');
 
 				const allImages = response.data.vc_list;
 				const targetImage = allImages.find((img) => img.id.toString() === id);
@@ -46,7 +41,7 @@ const CredentialDetail = () => {
 		};
 
 		getData();
-	}, [id,walletBackendUrl]);
+	}, [id]);
 
 
 	return (

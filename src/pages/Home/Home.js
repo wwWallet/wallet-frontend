@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BsPlusCircle } from 'react-icons/bs';
+
+import * as api from '../../api';
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
-import { BsPlusCircle } from 'react-icons/bs';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+
 
 const Home = () => {
-	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 	const [credentials, setCredentials] = useState([]);
 	const navigate = useNavigate();
 
@@ -21,12 +21,7 @@ const Home = () => {
 
 	const getData = async () => {
 		try {
-			const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
-			const response = await axios.get(`${walletBackendUrl}/storage/vc`, {
-				headers: {
-					Authorization: `Bearer ${appToken}`,
-				},
-			});
+			const response = await api.get('/storage/vc');
 
 			console.log(response.data);
 			const newImages = response.data.vc_list.map((item) => ({

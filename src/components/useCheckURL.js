@@ -1,26 +1,23 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
+
+import * as api from '../api';
+
 
 function useCheckURL(urlToCheck) {
-	const isLoggedIn = Cookies.get('loggedIn');
+	const isLoggedIn = api.isLoggedIn();
 	const [isValidURL, setIsValidURL] = useState(null);
 	const [showPopup, setShowPopup] = useState(false);
 	const [selectedValue, setSelectedValue] = useState(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
-
-	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
-	const appToken = Cookies.get('appToken');
 
 	useEffect(() => {
 
 		async function handleAuthorizationRequest(url) {
 
 			try {
-				const response = await axios.post(
-					walletBackendUrl + "/presentation/handle/authorization/request",
+				const response = await api.post(
+					"/presentation/handle/authorization/request",
 					{ authorization_request: url },
-					{ headers: { "Authorization": `Bearer ${appToken}` } }
 				);
 
 				console.log("handleAuthorizationRequest:", response.data.redirect_to);
@@ -52,10 +49,9 @@ function useCheckURL(urlToCheck) {
 
 		async function handleAuthorizationResponse(url) {
 			try {
-				const response = await axios.post(
-					walletBackendUrl + "/issuance/handle/authorization/response",
+				const response = await api.post(
+					"/issuance/handle/authorization/response",
 					{ authorization_response_url: url },
-					{ headers: { "Authorization": `Bearer ${appToken}` } }
 				);
 				console.log("handleAuthorizationResponse:", response);
 				return true;
@@ -80,15 +76,14 @@ function useCheckURL(urlToCheck) {
 
 			})();
 		}
-	}, [urlToCheck, isLoggedIn, walletBackendUrl, appToken]);
+	}, [urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
 		if (selectedValue) {
 			console.log(selectedValue);
 
-			axios.post(walletBackendUrl + "/presentation/generate/authorization/response",
+			api.post("/presentation/generate/authorization/response",
 			{ verifiable_credentials_map: {title: "VC Selection",selectedValue} },
-			{ headers: { "Authorization": `Bearer ${appToken}` }}
 		).then(success => {
 			console.log(success);
 			const { redirect_to } = success.data;

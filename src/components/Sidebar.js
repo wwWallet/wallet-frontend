@@ -3,17 +3,18 @@ import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+
+import * as api from '../api';
 import logo from '../assets/images/ediplomasLogo.svg';
 
 const Sidebar = ({ isOpen, toggle }) => {
 
-	const username = Cookies.get('username');
+	const { username } = api.getSession();
 	const location=useLocation();
 	const navigate = useNavigate();
 
 	const handleLogout = () => {
-		Cookies.remove('loggedIn');
+		api.clearSession();
 		navigate('/login');
 	};
 

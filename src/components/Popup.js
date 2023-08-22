@@ -1,23 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import Cookies from 'js-cookie';
 import { useNavigate } from 'react-router-dom';
 
+import * as api from '../api';
+
+
 function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredentialsMap }) {
-	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 	const [images, setImages] = useState([]);
 	const navigate = useNavigate();
 
 	useEffect(() => {
 		const getData = async () => {
 			try {
-				const appToken = Cookies.get('appToken');
-				const response = await axios.get(`${walletBackendUrl}/storage/vc`, {
-					headers: {
-						Authorization: `Bearer ${appToken}`,
-					},
-				});
-
+				const response = await api.get('/storage/vc');
 				const simplifiedCredentials = response.data.vc_list
 							.filter(vc => conformantCredentialsMap.includes(vc.credentialIdentifier))
 							.map(vc => ({

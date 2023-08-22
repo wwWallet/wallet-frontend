@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+
+import * as api from '../../api';
 import Layout from '../../components/Layout';
-import Cookies from 'js-cookie';
-import axios from 'axios';
 
 
 function highlightBestSequence(issuer, search) {
@@ -21,18 +21,10 @@ const Issuers = () => {
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
 
-	const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
-
 	useEffect(() => {
 		const fetchIssuers = async () => {
-			const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
-
 			try {
-				const response = await axios.get(`${walletBackendUrl}/legal_person/issuers/all`,
-				{ headers:
-					{ Authorization: `Bearer ${appToken}`,},
-				}
-				);
+				const response = await api.get('/legal_person/issuers/all');
 				const fetchedIssuers = response.data;
 				setIssuers(fetchedIssuers);
 				setFilteredIssuers(fetchedIssuers);
@@ -68,16 +60,8 @@ const Issuers = () => {
 			legal_person_did: did,
 		};
 
-		const appToken = Cookies.get('appToken'); // Retrieve the app token from cookies
-		console.log(appToken);
-		axios.post(`${walletBackendUrl}/issuance/generate/authorization/request`,
-				payload,
-				{ headers:
-					{ Authorization: `Bearer ${appToken}`,},
-				}
-			)
+		api.post('/issuance/generate/authorization/request', payload)
 			.then((response) => {
-
 				const { redirect_to } = response.data;
 				console.log(redirect_to);
 
@@ -89,7 +73,6 @@ const Issuers = () => {
 				console.error('Error sending request to backend:', error);
 			});
 		};
-
 
 		return (
 			<Layout>
