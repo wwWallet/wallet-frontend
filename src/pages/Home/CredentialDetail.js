@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-import { BiRightArrowAlt,BiSolidCategoryAlt,BiSolidUserCircle } from 'react-icons/bi'; // Import the icon
+import { BiRightArrowAlt,BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
 import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
-import {MdTitle,MdGrade} from 'react-icons/md';
+import { MdTitle, MdGrade } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
 
 import * as api from '../../api';
@@ -94,12 +94,12 @@ const CredentialDetail = () => {
 				<p className="italic text-gray-700">View all the information about the chosen credential.</p>
 			</div>
 
-			<div className="flex flex-col px-4 sm:px-6 mt-4">
+			<div className="flex flex-col lg:flex-row px-4 sm:px-6 mt-4">
 				{/* Block 1: Image */}
-				<div className='p-5'>
+				<div className='p-5 lg:w-1/2'>
 					{image && image.logoURL ? (
 					// Open the modal when the image is clicked
-					<div className="relative rounded-xl xl:w-1/3 md:w-3/5 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setImageModalOpen(true)}>
+					<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setImageModalOpen(true)}>
 					<img src={image.logoURL} alt={image.logoURL} className="w-full object-cover rounded-xl" />
 
 				</div>
@@ -109,7 +109,7 @@ const CredentialDetail = () => {
 				</div>
 
 				{/* Block 2: Information List */}
-				<div className="p-5">
+				<div className="p-5 lg:w-1/2">
 					<table className="min-w-auto ">
 						<tbody className=" divide-y-4 divide-gray-100">
 							{image && type && expdate && (
