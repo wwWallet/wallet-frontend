@@ -1,10 +1,11 @@
 
-# Wallet Frontend
+# eDiplomas Digital Wallet
 
-Welcome to the Wallet Frontend repository! This is a React app designed to manage wallet-related tasks. It offers various components and features that you can use to build a wallet management application.
+Welcome to the eDiplomas Digital Wallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
+
 
 ## Table of Contents
-- [Introduction](#introduction)
+- [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -12,9 +13,17 @@ Welcome to the Wallet Frontend repository! This is a React app designed to manag
 - [Contributing](#contributing)
 - [License](#license)
 
-## Introduction
+## Features
 
-This frontend application is built with React and Tailwind CSS and provides a user-friendly interface for managing wallet-related tasks. It includes features such as authentication, notifications, routing, and more. The app is organized using various components and pages, allowing for easy customization and extension.
+Our Web Wallet provides a range of features tailored to enhance the credential management experience:
+
+- **Credential Display:** Users can easily view their stored digital credentials in a structured manner, making it simple to keep track of their qualifications.
+
+- **Issuer Interaction:** Seamless integration with issuers allows users to request and receive new digital credentials directly within the wallet.
+
+- **Verifier Presentation:** Users can present their credentials to verifiers using the wallet, providing a secure and efficient method of showcasing their qualifications.
+
+- **Presentation History:** The wallet maintains a history of credential presentations, allowing users to review and track when and where they've shared their credentials.
 
 ## Prerequisites
 
