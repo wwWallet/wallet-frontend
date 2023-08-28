@@ -9,5 +9,7 @@ COPY --chown=node:node . .
 RUN yarn install && yarn cache clean -f
 
 ENV NODE_ENV development
+RUN chown -R node:node  /home/node/app/node_modules
+USER node
 
 CMD [ "yarn", "start" ]
