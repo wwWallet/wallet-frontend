@@ -5,6 +5,7 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
+import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 
@@ -30,6 +31,7 @@ const Login = () => {
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const navigate = useNavigate();
+	const keystore = useLocalStorageKeystore();
 
 	const { username, password, confirmPassword } = formData;
 
@@ -81,7 +83,8 @@ const Login = () => {
 			if (isLogin) {
 				await api.login(username, password);
 			} else {
-				await api.signup(username, password);
+				const keys = await keystore.createWallet();
+				await api.signup(username, password, keys);
 			}
 			navigate('/');
 		} catch (error) {

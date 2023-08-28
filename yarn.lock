@@ -1189,7 +1189,7 @@
     jose "^4.14.4"
     multiformats "^9.9.0"
 
-"@cef-ebsi/key-did-resolver@^1.0.0":
+"@cef-ebsi/key-did-resolver@^1.0.0", "@cef-ebsi/key-did-resolver@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-1.1.0.tgz#3523a824c34ac0a52c416d1c91938541e153a05d"
   integrity sha512-fx8otCet0vRM/PnndGHHhuWBy5EpX142RsfKT3DTH8/a3Yjkdo8S+C9bGHbDdc6PowPyp4FgF/6XVQUH45iu1A==

@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
+import { WalletKey } from '@gunet/ssi-sdk';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -57,10 +58,9 @@ export async function del(path: string): Promise<AxiosResponse> {
 		});
 }
 
-export function getSession(): { username?: string, did?: string } {
+export function getSession(): { username?: string } {
 	return {
 		username: Cookies.get('username'),
-		did: Cookies.get('did'),
 	};
 }
 
@@ -70,14 +70,12 @@ export function isLoggedIn(): boolean {
 
 export function clearSession(): void {
 	Cookies.remove('username');
-	Cookies.remove('did');
 	Cookies.remove('appToken');
 }
 
 function setSessionCookies(username: string, response: AxiosResponse): void {
-	const { appToken, did } = response.data;
+	const { appToken } = response.data;
 	Cookies.set('username', username);
-	Cookies.set('did', did);
 	Cookies.set('appToken', appToken);
 }
 
@@ -94,7 +92,7 @@ export async function login(username: string, password: string): Promise<AxiosRe
 	}
 };
 
-export async function signup(username: string, password: string): Promise<AxiosResponse> {
+export async function signup(username: string, password: string, keys: WalletKey): Promise<AxiosResponse> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
@@ -104,6 +102,7 @@ export async function signup(username: string, password: string): Promise<AxiosR
 			password,
 			fcm_token,
 			browser_fcm_token,
+			keys,
 		});
 		setSessionCookies(username, response);
 
