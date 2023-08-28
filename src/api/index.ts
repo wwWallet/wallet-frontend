@@ -57,9 +57,10 @@ export async function del(path: string): Promise<AxiosResponse> {
 		});
 }
 
-export function getSession(): { username?: string } {
+export function getSession(): { username?: string, did?: string } {
 	return {
 		username: Cookies.get('username'),
+		did: Cookies.get('did'),
 	};
 }
 
@@ -69,12 +70,14 @@ export function isLoggedIn(): boolean {
 
 export function clearSession(): void {
 	Cookies.remove('username');
+	Cookies.remove('did');
 	Cookies.remove('appToken');
 }
 
 function setSessionCookies(username: string, response: AxiosResponse): void {
-	const { appToken } = response.data;
+	const { appToken, did } = response.data;
 	Cookies.set('username', username);
+	Cookies.set('did', did);
 	Cookies.set('appToken', appToken);
 }
 
