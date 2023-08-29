@@ -8,6 +8,7 @@ import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../../util';
 
 
 const PasswordCriterionMessage = ({ text, ok }) => (
@@ -81,10 +82,26 @@ const Login = () => {
 
 		try {
 			if (isLogin) {
-				await api.login(username, password);
+				const response = await api.login(username, password);
+				const { pbkdf2Params } = response;
+				try {
+					await keystore.unlock(password, jsonParseTaggedBinary(pbkdf2Params));
+				} catch (e) {
+					console.error("Failed to unlock local keystore", e);
+				}
+
 			} else {
-				const keys = await keystore.createWallet();
-				await api.signup(username, password, keys);
+				try {
+					const { pbkdf2Params, publicData } = await keystore.init(password);
+					try {
+				    await api.signup(username, password, publicData, jsonStringifyTaggedBinary(pbkdf2Params));
+					} catch (e) {
+						console.error("Signup failed", e);
+					}
+
+				} catch (e) {
+					console.error("Failed to initialize local keystore", e);
+				}
 			}
 			navigate('/');
 		} catch (error) {

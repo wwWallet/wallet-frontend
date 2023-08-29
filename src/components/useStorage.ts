@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
 
@@ -40,7 +41,7 @@ function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) =>
 		let storedValue = initialValue;
 		try {
 			if (storedValueStr !== null) {
-				storedValue = JSON.parse(storedValueStr);
+				storedValue = jsonParseTaggedBinary(storedValueStr);
 			}
 		} catch (e) {
 			// Fall back to initialValue
@@ -52,7 +53,7 @@ function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) =>
 			() => {
 				try {
 					if (!(currentValue === initialValue && storage.getItem(name) === null)) {
-						storage.setItem(name, JSON.stringify(currentValue));
+						storage.setItem(name, jsonStringifyTaggedBinary(currentValue));
 					}
 				} catch (e) {
 					console.error(`Failed to update session storage "${name}"`, e);
@@ -65,7 +66,7 @@ function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) =>
 			() => {
 				const listener = (event: StorageEvent) => {
 					if (event.key === name && event.storageArea === storage) {
-						setValue(JSON.parse(event.newValue));
+						setValue(jsonParseTaggedBinary(event.newValue));
 					}
 				};
 				window.addEventListener('storage', listener);

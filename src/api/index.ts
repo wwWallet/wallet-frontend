@@ -92,7 +92,7 @@ export async function login(username: string, password: string): Promise<AxiosRe
 	}
 };
 
-export async function signup(username: string, password: string, keys: WalletKey): Promise<AxiosResponse> {
+export async function signup(username: string, password: string, keys: WalletKey, pbkdf2Params: string): Promise<AxiosResponse> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
@@ -103,6 +103,7 @@ export async function signup(username: string, password: string, keys: WalletKey
 			fcm_token,
 			browser_fcm_token,
 			keys,
+			pbkdf2Params,
 		});
 		setSessionCookies(username, response);
 
