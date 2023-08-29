@@ -61,6 +61,10 @@ function useCheckURL(urlToCheck: string): {
 				return true;
 
 			} catch (e) {
+				if (e.response.status === 404) {
+					return true;
+				}
+
 				console.log("Failed handleAuthorizationResponse:", e);
 				return false;
 			}
