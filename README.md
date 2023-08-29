@@ -1,5 +1,6 @@
 
 
+
 # eDiplomas Digital Wallet
 
 Welcome to the eDiplomas Digital Wallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
@@ -56,17 +57,17 @@ The project uses environment variables to manage different configurations. A `.e
    ```
    Now, open the .env file and fill in the variables according to your own configuration. Below is an explanation for each variable:
 
-	 HOST: The IP address where your app will be running (default is '0.0.0.0').
-	 PORT: The port on which your app will run (default is 3000). 
-	 VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
-	 REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
-	 REACT_APP_FIREBASE_API_KEY: Your API key for Firebase. 
-	 REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
-	 REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
-	 REACT_APP_FIREBASE_STORAGE_BUCKET: Your Firebase storage bucket.
-	 REACT_APP_FIREBASE_MESSAGING_SENDER_ID: Your Firebase Messaging Sender ID.
-	 REACT_APP_FIREBASE_APP_ID: Your Firebase App ID. 
-	 REACT_APP_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
+	 - HOST: The IP address where your app will be running (default is '0.0.0.0').
+	 - PORT: The port on which your app will run (default is 3000).
+	 - VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
+	 - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
+	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase. 
+	 - REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
+	 - REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
+	 - REACT_APP_FIREBASE_STORAGE_BUCKET: Your Firebase storage bucket.
+	 - REACT_APP_FIREBASE_MESSAGING_SENDER_ID: Your Firebase Messaging Sender ID.
+	 - REACT_APP_FIREBASE_APP_ID: Your Firebase App ID. 
+	 - REACT_APP_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
 
 4. Install dependencies:
 	```bash
