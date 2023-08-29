@@ -83,18 +83,18 @@ const Login = () => {
 		try {
 			if (isLogin) {
 				const response = await api.login(username, password);
-				const { pbkdf2Params } = response;
+				const { pbkdf2Params, privateData } = response;
 				try {
-					await keystore.unlock(password, jsonParseTaggedBinary(pbkdf2Params));
+					await keystore.unlock(password, jsonParseTaggedBinary(pbkdf2Params), privateData);
 				} catch (e) {
 					console.error("Failed to unlock local keystore", e);
 				}
 
 			} else {
 				try {
-					const { pbkdf2Params, publicData } = await keystore.init(password);
+					const { pbkdf2Params, publicData, privateData } = await keystore.init(password);
 					try {
-				    await api.signup(username, password, publicData, jsonStringifyTaggedBinary(pbkdf2Params));
+				    await api.signup(username, password, publicData, jsonStringifyTaggedBinary(pbkdf2Params), privateData);
 					} catch (e) {
 						console.error("Signup failed", e);
 					}

@@ -135,6 +135,14 @@ export function useLocalStorageKeystore() {
 				}
 			};
 
+			const setPublicData = async (publicData: PublicData, encryptionKey: CryptoKey): Promise<void> => {
+				const publicDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(publicData));
+				const publicDataJwe = await new jose.CompactEncrypt(publicDataCleartext)
+					.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
+					.encrypt(encryptionKey);
+				setPublicDataJwe(publicDataJwe);
+			};
+
 			const getPrivateKey = async (): Promise<CryptoKey> => {
 				if (wrappedPrivateKey) {
 					return await crypto.subtle.unwrapKey(
@@ -151,7 +159,7 @@ export function useLocalStorageKeystore() {
 				}
 			};
 
-			const unlock = async (password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> => {
+			const unlock = async (password: string, pbkdf2Params: Pbkdf2Params, privateData?: string): Promise<CryptoKey> => {
 				const passwordKey = await crypto.subtle.importKey(
 					"raw",
 					new TextEncoder().encode(password),
@@ -171,10 +179,32 @@ export function useLocalStorageKeystore() {
 				await dbWrite(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
 				setWrappedEncryptionKey(await wrapEncryptionKey(encryptionKey, sessionKey));
 
+				if (privateData) {
+					const {
+						publicKey,
+						did,
+						alg,
+						verificationMethod,
+						wrappedPrivateKey,
+					} = jsonParseTaggedBinary(new TextDecoder().decode(
+						(await jose.compactDecrypt(privateData, encryptionKey)).plaintext
+					));
+					setPublicData(
+						{
+							publicKey,
+							did,
+							alg,
+							verificationMethod,
+						},
+						encryptionKey,
+					);
+					setWrappedPrivateKey(wrappedPrivateKey);
+				}
+
 				return encryptionKey;
 			};
 
-			const createWallet = async (encryptionKey: CryptoKey): Promise<{ alg: string, did: string, publicKey: JWK, verificationMethod: string }> => {
+			const createWallet = async (encryptionKey: CryptoKey): Promise<{ publicData: PublicData, privateData: string }> => {
 				const alg = "ES256";
 				const { publicKey, privateKey } = await jose.generateKeyPair(alg, { extractable: true });
 
@@ -189,6 +219,7 @@ export function useLocalStorageKeystore() {
 					aesGcmParams: privateKeyAesGcmParams,
 					unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
 				};
+				setWrappedPrivateKey(wrappedPrivateKey);
 
 				const publicKeyJWK = await jose.exportJWK(publicKey);
 				const did = util.createDid(publicKeyJWK);
@@ -198,20 +229,25 @@ export function useLocalStorageKeystore() {
 					alg: alg,
 					verificationMethod: did + "#" + did.split(':')[2]
 				};
+				setPublicData(publicData, encryptionKey);
 
-				const publicDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(publicData));
-				const publicDataJwe = await new jose.CompactEncrypt(publicDataCleartext)
+				const privateData = {
+					...publicData,
+					wrappedPrivateKey,
+				};
+				const privateDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
+				const privateDataJwe = await new jose.CompactEncrypt(privateDataCleartext)
 					.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
 					.encrypt(encryptionKey);
 
-				setPublicDataJwe(publicDataJwe);
-				setWrappedPrivateKey(wrappedPrivateKey);
-
-				return publicData;
+				return {
+					publicData,
+					privateData: privateDataJwe,
+				};
 			};
 
 			return {
-				init: async (password: string): Promise<{ pbkdf2Params: Pbkdf2Params, publicData: PublicData }> => {
+				init: async (password: string): Promise<{ pbkdf2Params: Pbkdf2Params, publicData: PublicData, privateData: string }> => {
 					console.log("init");
 
 					const pbkdf2Params: Pbkdf2Params = {
@@ -222,11 +258,12 @@ export function useLocalStorageKeystore() {
 					};
 
 					const encryptionKey = await unlock(password, pbkdf2Params);
-					const publicData = await createWallet(encryptionKey);
+					const { publicData, privateData } = await createWallet(encryptionKey);
 
 					return {
 						pbkdf2Params,
 						publicData,
+						privateData,
 					};
 				},
 
@@ -252,7 +289,6 @@ export function useLocalStorageKeystore() {
 				},
 
 				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => {
-					console.log("signJwtPresentation", nonce, audience, verifiableCredentials);
 					const publicData = await getPublicData();
 					const privateKey = await getPrivateKey();
 
