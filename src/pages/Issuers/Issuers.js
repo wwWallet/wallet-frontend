@@ -111,11 +111,14 @@ const Issuers = () => {
 							onChange={handleSearch}
 						/>
 					</div>
-					<ul className="max-h-screen-80 overflow-y-auto space-y-2" style={{ maxHeight: '80vh' }}>
-						{filteredIssuers.length === 0 ? (
-							<p className="text-gray-700 mt-4">No matching issuers found.</p>
-						) : (
-							filteredIssuers.map((issuer) => (
+					{filteredIssuers.length === 0 ? (
+          <p className="text-gray-700 mt-4">No matching issuers found.</p>
+        ) : (
+          <ul
+            className="max-h-screen-80 overflow-y-auto space-y-2"
+            style={{ maxHeight: '80vh' }}
+          >
+							{filteredIssuers.map((issuer) => (
 								<li
 									key={issuer.id}
 									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
@@ -123,11 +126,12 @@ const Issuers = () => {
 									onClick={() => handleIssuerClick(issuer.did)}
 								>
 									<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
-								</li>
-							))
-						)}
-					</ul>
-				</div>
+									</li>
+            ))}
+          </ul>
+        )}
+      </div>
+
 				{showPopup && (
   <div className="fixed inset-0 flex items-center justify-center z-50">
     <div className="absolute inset-0 bg-black opacity-50"></div>
