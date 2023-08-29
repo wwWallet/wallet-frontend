@@ -9,9 +9,7 @@ Welcome to the eDiplomas Digital Wallet Frontend repository! This application is
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Components](#components)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Features
 
@@ -78,4 +76,64 @@ The project uses environment variables to manage different configurations. A `.e
    ```bash
    yarn start
    ```
-   Your app should now be running at http://localhost:3000.
+
+## Usage
+Once the development server is running, you can access the app by visiting http://localhost:3000 in your web browser. The app provides various pages and components that you can interact with. Explore the features and enjoy using the Wallet Frontend!
+
+## Firebase
+This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
+
+1. **Firebase Configuration (`src/firebase.js`):**
+
+	The `firebase.js` file in the `src` directory and provide your Firebase configuration details. This file initializes the Firebase app and sets up the messaging service.
+
+2. **Firebase Messaging Service Worker (`public/firebase-messaging-sw.js`):**
+
+   This service worker is responsible for handling background messages and notification clicks. When a background message is received, it triggers a notification, and when the user clicks on a notification, it can perform custom actions.
+
+## Tailwind CSS
+
+This project utilizes **Tailwind CSS**, a utility-first CSS framework that enables rapid development of custom user interfaces with minimal effort. Tailwind CSS offers a collection of utility classes that make styling components and layouts a breeze, eliminating the need for writing extensive custom CSS.
+
+### Styling with Utility Classes
+
+To apply styles using Tailwind CSS, you can directly add utility classes to your HTML or JSX components. For example, to apply padding, margin, text color, and more:
+
+```html
+<div class="p-4 m-2 text-blue-500">Styled with Tailwind CSS</div>
+```
+### Customization
+Tailwind CSS provides an extensive set of default styles, but you can also customize them to match your project's design. The **tailwind.config.js** file in the project's root directory allows you to customize colors, fonts, spacing, breakpoints, and more.
+
+### Learn More
+Explore the [Tailwind CSS documentation](https://tailwindcss.com/docs/installation) to learn about all the utility classes, configuration options, and techniques for building beautiful UIs efficiently.
+
+## Contributing
+
+We welcome contributions from the community to help improve the Wallet Frontend project. If you'd like to contribute, follow these steps:
+
+1.	**Create a New Branch:**
+	Create a new branch for your feature or bug fix
+	```bash 
+	git checkout -b my-feature
+	```
+	Replace my-feature with a descriptive name.
+
+2.	**Make Changes:**
+	Make the necessary changes in your code editor.
+
+3.	**Commit Changes:**
+	Commit your changes with a descriptive commit message:
+	```bash 
+	git commit -m "Add new feature"
+	```
+4.	**Push Changes:**
+	Push your changes to your new branrch:
+	```bash 
+	git push --set-upstream origin my-feature
+	```	
+5.	**Create a Pull Request:**
+	Open a pull request on the original repository. Provide a detailed description of your changes and their purpose.
+
+6.	**Review and Merge:**
+	Your pull request will be reviewed by the maintainers. Make any requested changes and address feedback. Once approved, your changes will be merged into master branch of the project.
