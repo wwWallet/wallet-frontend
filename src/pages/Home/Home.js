@@ -49,9 +49,17 @@ const Home = () => {
 
 	return (
 		<Layout>
-			<div className="px-4 sm:px-6 w-full">
+		<div className="px-4 sm:px-6 w-full">
+				<div className="flex justify-between items-center">
+					<h1 className="text-2xl font-bold text-custom-blue">Credentials</h1>
+					<button
+						className="px-4 py-2 m-2 text-white bg-custom-light-blue hover:bg-custom-blue focus:ring-4 focus:outline-none focus:ring-custom-light-blue font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-custom-blue dark:hover:bg-custom-blue dark:focus:ring-custom-blue"
+						onClick={handleAddCredential}
+					>
+						Add Credential
+					</button>
+				</div>
 
-				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Credentials</h1>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic pd-2 text-gray-700">View all of your credentials, and use the 'Add new credentials' card to add more</p>
 				<div className='my-4'>
