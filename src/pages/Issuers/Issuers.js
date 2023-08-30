@@ -95,76 +95,76 @@ const Issuers = () => {
 		setShowPopup(false);
 	};
 
-		return (
-			<Layout>
-				<div className="px-4 sm:px-6">
-					<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
-					<hr className="mb-2 border-t border-custom-blue/80" />
-					<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
+	return (
+		<Layout>
+			<div className="px-4 sm:px-6">
+				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
+				<hr className="mb-2 border-t border-custom-blue/80" />
+				<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
 
-					<div className="my-4">
-						<input
-							type="text"
-							placeholder="Search issuers..."
-							className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-							value={searchQuery}
-							onChange={handleSearch}
-						/>
+				<div className="my-4">
+					<input
+						type="text"
+						placeholder="Search issuers..."
+						className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						value={searchQuery}
+						onChange={handleSearch}
+					/>
+				</div>
+				{filteredIssuers.length === 0 ? (
+					<p className="text-gray-700 mt-4">No matching issuers found.</p>
+				) : (
+					<ul
+						className="max-h-screen-80 overflow-y-auto space-y-2"
+						style={{ maxHeight: '80vh' }}
+					>
+						{filteredIssuers.map((issuer) => (
+							<li
+								key={issuer.id}
+								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
+								style={{ wordBreak: 'break-all' }}
+								onClick={() => handleIssuerClick(issuer.did)}
+							>
+								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
+								</li>
+						))}
+					</ul>
+				)}
+			</div>
+
+			{showPopup && (
+				<div className="fixed inset-0 flex items-center justify-center z-50">
+					<div className="absolute inset-0 bg-black opacity-50"></div>
+					<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+						{loading ? (
+							<div className="flex items-center justify-center h-24">
+								<Spinner />
+							</div>
+						) : (
+							<>
+								<h2 className="text-lg font-bold mb-2 text-custom-blue">
+									<FaShare size={20} className="inline mr-1 mb-1" /> 
+									Selected Issuer: {selectedIssuer?.friendlyName}
+								</h2>
+								<hr className="mb-2 border-t border-custom-blue/80" />
+								<p className="mb-2 mt-4">
+									You have selected {selectedIssuer?.friendlyName}. If you continue, you will be redirected in the current tab to the issuer's page.
+								</p>
+								<div className="flex justify-end space-x-2 pt-4">
+									<button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" onClick={handleCancel}>
+										Cancel
+									</button>
+									<button className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={handleContinue}>
+										Continue
+									</button>
+								</div>
+							</>
+						)}
 					</div>
-					{filteredIssuers.length === 0 ? (
-          <p className="text-gray-700 mt-4">No matching issuers found.</p>
-        ) : (
-          <ul
-            className="max-h-screen-80 overflow-y-auto space-y-2"
-            style={{ maxHeight: '80vh' }}
-          >
-							{filteredIssuers.map((issuer) => (
-								<li
-									key={issuer.id}
-									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
-									style={{ wordBreak: 'break-all' }}
-									onClick={() => handleIssuerClick(issuer.did)}
-								>
-									<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
-									</li>
-            ))}
-          </ul>
-        )}
-      </div>
+				</div>
+			)}
+		</Layout>
+	);
+};
 
-				{showPopup && (
-  <div className="fixed inset-0 flex items-center justify-center z-50">
-    <div className="absolute inset-0 bg-black opacity-50"></div>
-    <div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
-      {loading ? (
-        <div className="flex items-center justify-center h-24">
-          <Spinner />
-        </div>
-      ) : (
-        <>
-          <h2 className="text-lg font-bold mb-2 text-custom-blue">
-            <FaShare size={20} className="inline mr-1 mb-1" /> 
-            Selected Issuer: {selectedIssuer?.friendlyName}
-          </h2>
-          <hr className="mb-2 border-t border-custom-blue/80" />
-          <p className="mb-2 mt-4">
-            You have selected {selectedIssuer?.friendlyName}. If you continue, you will be redirected in the current tab to the issuer's page.
-          </p>
-          <div className="flex justify-end space-x-2 pt-4">
-            <button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" onClick={handleCancel}>
-              Cancel
-            </button>
-            <button className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={handleContinue}>
-              Continue
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  </div>
-)}
-			</Layout>
-		);
-	};
-
-	export default Issuers;
+export default Issuers;
