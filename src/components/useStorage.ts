@@ -8,9 +8,9 @@ function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHand
 	return (name: string, [value, setValue]: UseStateHandle<T>) => {
 		const setAllValues = useCallback(
 			(setValueArg: SetStateAction<any>) => {
-				for (const setValueHandle of setValueHandles[name]) {
+				setValueHandles[name].forEach((setValueHandle: Dispatch<SetStateAction<T>>) => {
 					setValueHandle(setValueArg);
-				}
+				});
 			},
 			[name],
 		);
