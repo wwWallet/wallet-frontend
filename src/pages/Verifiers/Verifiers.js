@@ -22,10 +22,12 @@ const Verifiers = () => {
   const [filteredVerifiers, setFilteredVerifiers] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedVerifier, setSelectedVerifier] = useState(null);
-	
+	const [selectedScope, setSelectedScope] = useState(null);
+
 	const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+
     const fetchVerifiers = async () => {
       try {
         const fetchedVerifiers = [
@@ -35,8 +37,20 @@ const Verifiers = () => {
             did: "did:ebsi:dfsjhjhfdjhdfjdf",
             friendlyName: "Acme Corp",
             id: 1,
-            url: "http://127.0.0.1:4445"
+            url: "http://127.0.0.1:4445",
+						scopes: [ { scope_name: "vid",  description: "Present your Verifiable ID" }, { scope_name: "ver",  description: "Random verification test" } ]
+
           },
+					{
+						client_id: "",
+            client_secret: "",
+            did: "did:ebsi:jkljklkjjkljk",
+            friendlyName: "National Authority",
+						id: 2, 
+						name: "National Authority",
+						url: "http://wallet-enterprise-vid-issuer:8003" ,
+						scopes: [ { scope_name: "vid",  description: "Present your Verifiable ID" }, { scope_name: "ver",  description: "Random verification test" } ]
+					}
         ];
         setVerifiers(fetchedVerifiers);
         setFilteredVerifiers(fetchedVerifiers);
@@ -66,6 +80,7 @@ const Verifiers = () => {
 	const handleVerifierClick = async (did) => {
 		const clickedVerifier = verifiers.find((verifier) => verifier.did === did);
 		if (clickedVerifier) {
+			setSelectedScope(null); // Reset the selected scope
 			setSelectedVerifier(clickedVerifier);
 			setShowPopup(true);
 		}
@@ -78,11 +93,20 @@ const Verifiers = () => {
 
 	const handleContinue = () => {
 		setLoading(true);
-		
-		console.log('Continue with:', selectedVerifier);
-		
+				
+		console.log('Continue with:', selectedVerifier, 'and scope:', selectedScope);
+
+
 		if (selectedVerifier && selectedVerifier.url) {
-			const newTab = window.open(selectedVerifier.url, '_blank');
+
+			const url = new URL("http://wallet-enterprise-vid-issuer:8003/verification/authorize");
+			url.searchParams.append("scope", "")
+			url.searchParams.append("redirect_uri", "");
+			url.searchParams.append("client_id", "")
+			url.searchParams.append("response_type", "")
+			url.searchParams.append("state", "")
+		
+			const newTab = window.open(url.toString(), '_blank');
 			if (newTab) {
 				newTab.focus();
 			}
@@ -91,6 +115,7 @@ const Verifiers = () => {
 		setLoading(false);
 		setShowPopup(false);
 	};
+
 
   return (
     <Layout>
@@ -150,6 +175,23 @@ const Verifiers = () => {
 								<p className="mb-2 mt-4">
 									You have selected {selectedVerifier?.friendlyName}. If you continue, you will be redirected in a new tab to the verifier's page.
 								</p>
+
+								<div className="mt-4">
+									<label htmlFor="scopes" className="block text-sm font-medium text-gray-600">Select Scope</label>
+									<select
+										id="scopes"
+										name="scopes"
+										className="mt-1 p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+										value={selectedScope}
+										onChange={(e) => setSelectedScope(e.target.value)}
+									>
+										<option value="" disabled>Select a scope</option>
+										{selectedVerifier?.scopes.map((scope, index) => (
+											<option key={index} value={scope.scope_name}>{scope.description}</option>
+										))}
+									</select>
+								</div>
+
 								<div className="flex justify-end space-x-2 pt-4">
 									<button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" onClick={handleCancel}>
 										Cancel
