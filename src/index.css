@@ -13,6 +13,10 @@ code {
 }
 
 
+
+.slick-slide > div {
+  margin: 0 5px !important;
+}
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
