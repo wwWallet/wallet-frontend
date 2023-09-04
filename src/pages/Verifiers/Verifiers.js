@@ -30,28 +30,7 @@ const Verifiers = () => {
 
     const fetchVerifiers = async () => {
       try {
-        const fetchedVerifiers = [
-          {
-            client_id: "",
-            client_secret: "",
-            did: "did:ebsi:dfsjhjhfdjhdfjdf",
-            friendlyName: "Acme Corp",
-            id: 1,
-            url: "http://127.0.0.1:4445",
-						scopes: [ { scope_name: "vid",  description: "Present your Verifiable ID" }, { scope_name: "ver",  description: "Random verification test" } ]
-
-          },
-					{
-						client_id: "",
-            client_secret: "",
-            did: "did:ebsi:jkljklkjjkljk",
-            friendlyName: "National Authority",
-						id: 2, 
-						name: "National Authority",
-						url: "http://wallet-enterprise-vid-issuer:8003" ,
-						scopes: [ { scope_name: "vid",  description: "Present your Verifiable ID" }, { scope_name: "ver",  description: "Random verification test" } ]
-					}
-        ];
+				const fetchedVerifiers = await api.getAllVerifiers();
         setVerifiers(fetchedVerifiers);
         setFilteredVerifiers(fetchedVerifiers);
       } catch (error) {
@@ -69,9 +48,9 @@ const Verifiers = () => {
 
   useEffect(() => {
     const filtered = verifiers.filter((verifier) => {
-      const friendlyName = verifier.friendlyName.toLowerCase();
+      const name = verifier.name.toLowerCase();
       const query = searchQuery.toLowerCase();
-      return friendlyName.includes(query);
+      return name.includes(query);
     });
 
 		setFilteredVerifiers(filtered);
@@ -97,20 +76,12 @@ const Verifiers = () => {
 		console.log('Continue with:', selectedVerifier, 'and scope:', selectedScope);
 
 
-		if (selectedVerifier && selectedVerifier.url) {
-
-			const url = new URL("http://wallet-enterprise-vid-issuer:8003/verification/authorize");
-			url.searchParams.append("scope", "")
-			url.searchParams.append("redirect_uri", "");
-			url.searchParams.append("client_id", "")
-			url.searchParams.append("response_type", "")
-			url.searchParams.append("state", "")
-		
-			const newTab = window.open(url.toString(), '_blank');
-			if (newTab) {
-				newTab.focus();
-			}
-		}
+		// if (selectedVerifier && selectedVerifier.url) {		
+		// 	// const newTab = window.open(url.toString(), '_blank');
+		// 	// if (newTab) {
+		// 	// 	newTab.focus();
+		// 	// }
+		// }
 		
 		setLoading(false);
 		setShowPopup(false);
@@ -148,7 +119,7 @@ const Verifiers = () => {
                 style={{ wordBreak: 'break-all' }}
                 onClick={() => handleVerifierClick(verifier.did)}
               >
-                <div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.friendlyName, searchQuery) }} />
+                <div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
               </li>
             ))}
           </ul>
@@ -169,11 +140,11 @@ const Verifiers = () => {
 							<>
 								<h2 className="text-lg font-bold mb-2 text-custom-blue">
 									<FaShare size={20} className="inline mr-1 mb-1" /> 
-									Selected Verifier: {selectedVerifier?.friendlyName}
+									Selected Verifier: {selectedVerifier?.name}
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
 								<p className="mb-2 mt-4">
-									You have selected {selectedVerifier?.friendlyName}. If you continue, you will be redirected in a new tab to the verifier's page.
+									You have selected {selectedVerifier?.name}. If you continue, you will be redirected in a new tab to the verifier's page.
 								</p>
 
 								<div className="mt-4">

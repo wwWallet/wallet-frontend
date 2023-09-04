@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
+import { Verifier } from './types';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -111,3 +112,16 @@ export async function signup(username: string, password: string): Promise<AxiosR
 		throw error;
 	}
 };
+
+export async function getAllVerifiers(): Promise<Verifier[]> {
+	try {
+		const result = await get('/verifiers/all');
+		const { verifiers } = result.data;
+		console.log("verifiers = ", verifiers)
+		return verifiers;
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
