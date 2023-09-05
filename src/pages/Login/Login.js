@@ -178,6 +178,7 @@ const WebauthnSignupLogin = ({
 					try {
 						const finishResp = await api.post('/user/register-webauthn-finish', {
 							challengeId: beginData.challengeId,
+							displayName: name,
 							credential: {
 								type: credential.type,
 								id: credential.id,
