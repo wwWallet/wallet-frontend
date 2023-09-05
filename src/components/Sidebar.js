@@ -27,7 +27,7 @@ const NavItem = ({
 
 const Sidebar = ({ isOpen, toggle }) => {
 
-	const { username } = api.getSession();
+	const { username, displayName } = api.getSession();
 	const location=useLocation();
 	const navigate = useNavigate();
 
@@ -94,7 +94,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<ul>
 					<NavItem path="/account" location={location} handleNavigate={handleNavigate}>
 						<FaUserCircle size={30} />
-						<span>{username}</span>
+						<span>{displayName || username}</span>
 					</NavItem>
 
 					<hr className="my-4 border-t border-white/20" />
