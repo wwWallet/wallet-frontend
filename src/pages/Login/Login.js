@@ -85,7 +85,8 @@ const Login = () => {
 				const response = await api.login(username, password);
 				const { pbkdf2Params, privateData } = response;
 				try {
-					await keystore.unlock(password, jsonParseTaggedBinary(pbkdf2Params), privateData);
+					const encryptionKey = await keystore.unlockPassword(password, jsonParseTaggedBinary(pbkdf2Params));
+					await keystore.unlock(encryptionKey, privateData);
 				} catch (e) {
 					console.error("Failed to unlock local keystore", e);
 				}

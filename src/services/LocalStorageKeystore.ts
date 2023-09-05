@@ -159,7 +159,7 @@ export function useLocalStorageKeystore() {
 				}
 			};
 
-			const unlock = async (password: string, pbkdf2Params: Pbkdf2Params, privateData?: string): Promise<CryptoKey> => {
+			const unlockPassword = async (password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> => {
 				const passwordKey = await crypto.subtle.importKey(
 					"raw",
 					new TextEncoder().encode(password),
@@ -168,40 +168,38 @@ export function useLocalStorageKeystore() {
 					["deriveKey"],
 				);
 
+				return await derivePbkdf2EncryptionKey(pbkdf2Params, passwordKey);
+			};
+
+			const unlock = async (encryptionKey: CryptoKey, privateData: string): Promise<void> => {
 				const sessionKey = await crypto.subtle.generateKey(
 					{ name: "AES-KW", length: 256 },
 					false,
 					["wrapKey", "unwrapKey"],
 				);
 
-				const encryptionKey = await derivePbkdf2EncryptionKey(pbkdf2Params, passwordKey);
-
 				await dbWrite(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
 				setWrappedEncryptionKey(await wrapEncryptionKey(encryptionKey, sessionKey));
 
-				if (privateData) {
-					const {
+				const {
+					publicKey,
+					did,
+					alg,
+					verificationMethod,
+					wrappedPrivateKey,
+				} = jsonParseTaggedBinary(new TextDecoder().decode(
+					(await jose.compactDecrypt(privateData, encryptionKey)).plaintext
+				));
+				setPublicData(
+					{
 						publicKey,
 						did,
 						alg,
 						verificationMethod,
-						wrappedPrivateKey,
-					} = jsonParseTaggedBinary(new TextDecoder().decode(
-						(await jose.compactDecrypt(privateData, encryptionKey)).plaintext
-					));
-					setPublicData(
-						{
-							publicKey,
-							did,
-							alg,
-							verificationMethod,
-						},
-						encryptionKey,
-					);
-					setWrappedPrivateKey(wrappedPrivateKey);
-				}
-
-				return encryptionKey;
+					},
+					encryptionKey,
+				);
+				setWrappedPrivateKey(wrappedPrivateKey);
 			};
 
 			const createWallet = async (encryptionKey: CryptoKey): Promise<{ publicData: PublicData, privateData: string }> => {
@@ -257,8 +255,9 @@ export function useLocalStorageKeystore() {
 						salt: crypto.getRandomValues(new Uint8Array(32)),
 					};
 
-					const encryptionKey = await unlock(password, pbkdf2Params);
+					const encryptionKey = await unlockPassword(password, pbkdf2Params);
 					const { publicData, privateData } = await createWallet(encryptionKey);
+					await unlock(encryptionKey, privateData);
 
 					return {
 						pbkdf2Params,
@@ -268,6 +267,7 @@ export function useLocalStorageKeystore() {
 				},
 
 				unlock,
+				unlockPassword,
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
 					const publicData = await getPublicData();
