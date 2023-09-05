@@ -74,15 +74,11 @@ const Verifiers = () => {
 		setLoading(true);
 				
 		console.log('Continue with:', selectedVerifier, 'and scope:', selectedScope);
+		const { id } = selectedVerifier;
+		api.initiatePresentationExchange(id, selectedScope).then(({ redirect_to }) => {
+			window.location.href = redirect_to;
+		}).catch(e => { console.error(e); })
 
-
-		// if (selectedVerifier && selectedVerifier.url) {		
-		// 	// const newTab = window.open(url.toString(), '_blank');
-		// 	// if (newTab) {
-		// 	// 	newTab.focus();
-		// 	// }
-		// }
-		
 		setLoading(false);
 		setShowPopup(false);
 	};
@@ -158,7 +154,7 @@ const Verifiers = () => {
 									>
 										<option value="" disabled>Select a scope</option>
 										{selectedVerifier?.scopes.map((scope, index) => (
-											<option key={index} value={scope.scope_name}>{scope.description}</option>
+											<option key={index} value={scope.name}>{scope.name}</option>
 										))}
 									</select>
 								</div>

@@ -125,3 +125,16 @@ export async function getAllVerifiers(): Promise<Verifier[]> {
 		throw error;
 	}
 }
+
+
+export async function initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }> {
+	try {
+		const result = await post('/presentation/initiate', { verifier_id, scope_name });
+		const { redirect_to } = result.data;
+		return { redirect_to };
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
