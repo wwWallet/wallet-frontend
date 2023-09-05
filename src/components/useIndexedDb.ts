@@ -34,13 +34,13 @@ export function useIndexedDb(
 ): [DatabaseTransaction, DatabaseTransaction] {
 	return useMemo(
 		() => {
-			const db = openIndexedDb(dbName, version, upgrade);
+			const openDb = async () => await openIndexedDb(dbName, version, upgrade);
 
 			const read: DatabaseTransaction = async (objectStores, f): Promise<any> => {
-				return await dbTransaction(await db, objectStores, "readonly", f);
+				return await dbTransaction(await openDb(), objectStores, "readonly", f);
 			};
 			const write: DatabaseTransaction = async (objectStores, f): Promise<any> => {
-				return await dbTransaction(await db, objectStores, "readwrite", f);
+				return await dbTransaction(await openDb(), objectStores, "readwrite", f);
 			};
 
 			return [read, write];
