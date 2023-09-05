@@ -142,7 +142,6 @@ const WebauthnSignup = ({
 					},
 				},
 			});
-			setCreateInProgress(false);
 			console.log("created", credential);
 
 			const finishResp = await api.post('/user/register-webauthn-finish', {
@@ -165,10 +164,10 @@ const WebauthnSignup = ({
 			setIsSubmitting(false);
 			setInactive();
 		} catch (e) {
-      setBeginData();
-			setCreateInProgress(false);
+			setBeginData();
 			setPasskeyError(t('passkeyFailedTryAgain'));
 		}
+		setCreateInProgress(false);
 	};
 
 	const onCancel = () => {
