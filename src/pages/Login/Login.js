@@ -468,31 +468,31 @@ const Login = () => {
 							>
 								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
 							</button>
-
-							<SeparatorLine>OR</SeparatorLine>
-
-							<button
-								className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
-								type="button"
-								disabled={isSubmitting}
-								onClick={isLogin ? onLoginPasskey : onSignupPasskey}
-							>
-								<GoPasskeyFill className="inline text-xl mr-2" />
-								{isSubmitting ? t('submitting') : isLogin ? t('loginPasskey') : t('signupPasskey')}
-							</button>
-							{passkeyError && <div className="text-red-500">{passkeyError}</div>}
-
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
-								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
-								<a
-									href="/"
-									className="font-medium text-blue-600 hover:underline dark:text-blue-500"
-									onClick={toggleForm}
-								>
-									{isLogin ? t('signUp') : t('login')}
-								</a>
-							</p>
 						</form>
+
+						<SeparatorLine>OR</SeparatorLine>
+
+						<button
+							className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							type="button"
+							disabled={isSubmitting}
+							onClick={isLogin ? onLoginPasskey : onSignupPasskey}
+						>
+							<GoPasskeyFill className="inline text-xl mr-2" />
+							{isSubmitting ? t('submitting') : isLogin ? t('loginPasskey') : t('signupPasskey')}
+						</button>
+						{passkeyError && <div className="text-red-500">{passkeyError}</div>}
+
+						<p className="text-sm font-light text-gray-500 dark:text-gray-400">
+							{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
+							<a
+								href="/"
+								className="font-medium text-blue-600 hover:underline dark:text-blue-500"
+								onClick={toggleForm}
+							>
+								{isLogin ? t('signUp') : t('login')}
+							</a>
+						</p>
 
 						<WebauthnSignup
 							active={isSignupPasskey}
