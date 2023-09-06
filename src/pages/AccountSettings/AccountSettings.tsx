@@ -234,7 +234,7 @@ const Home = () => {
 
 				{userData && (
 					<>
-						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Username: {userData.username}</h2>
+						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Account: {userData.displayName}</h2>
 
 						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Passkeys</h2>
 

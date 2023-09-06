@@ -1,7 +1,6 @@
 export type UserData = {
-	username?: string;
+	displayName: string;
 	did: string;
-	hasPassword: boolean;
 	publicKey: JsonWebKey;
 	webauthnUserHandle: string;
 	webauthnCredentials: WebauthnCredential[];
