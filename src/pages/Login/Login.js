@@ -8,7 +8,6 @@ import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../../util';
 
 
 const PasswordCriterionMessage = ({ text, ok }) => (
@@ -82,10 +81,9 @@ const Login = () => {
 
 		try {
 			if (isLogin) {
-				const response = await api.login(username, password);
-				const { pbkdf2Params, privateData } = response;
+				const { privateData } = await api.login(username, password);
 				try {
-					const encryptionKey = await keystore.unlockPassword(password, jsonParseTaggedBinary(pbkdf2Params));
+					const encryptionKey = await keystore.unlockPassword(password, privateData.pbkdf2Params);
 					await keystore.unlock(encryptionKey, privateData);
 				} catch (e) {
 					console.error("Failed to unlock local keystore", e);
@@ -93,9 +91,9 @@ const Login = () => {
 
 			} else {
 				try {
-					const { pbkdf2Params, publicData, privateData } = await keystore.init(password);
+					const { publicData, privateData } = await keystore.init(password);
 					try {
-				    await api.signup(username, password, publicData, jsonStringifyTaggedBinary(pbkdf2Params), privateData);
+				    await api.signup(username, password, publicData, privateData);
 					} catch (e) {
 						console.error("Signup failed", e);
 					}

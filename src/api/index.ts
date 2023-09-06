@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
-import { WalletKey } from '@gunet/ssi-sdk';
+import { EncryptedContainer, PublicData } from '../services/LocalStorageKeystore';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -84,7 +84,10 @@ export async function login(username: string, password: string): Promise<AxiosRe
 		const response = await post('/user/login', { username, password });
 		setSessionCookies(username, response);
 
-		return response.data;
+		return {
+			...response.data,
+			privateData: jsonParseTaggedBinary(response.data.privateData),
+		};
 
 	} catch (error) {
 		console.error('Failed to log in', error);
@@ -92,7 +95,7 @@ export async function login(username: string, password: string): Promise<AxiosRe
 	}
 };
 
-export async function signup(username: string, password: string, keys: WalletKey, pbkdf2Params: string, privateData: string): Promise<AxiosResponse> {
+export async function signup(username: string, password: string, publicData: PublicData, privateData: EncryptedContainer): Promise<AxiosResponse> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
@@ -102,9 +105,8 @@ export async function signup(username: string, password: string, keys: WalletKey
 			password,
 			fcm_token,
 			browser_fcm_token,
-			keys,
-			pbkdf2Params,
-			privateData,
+			keys: publicData,
+			privateData: jsonStringifyTaggedBinary(privateData),
 		});
 		setSessionCookies(username, response);
 
