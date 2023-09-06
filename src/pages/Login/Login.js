@@ -1,15 +1,13 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
-import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
 import { toBase64Url } from '../../util';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-import SeparatorLine from '../../components/SeparatorLine';
 
 
 const FormInputRow = ({
@@ -27,15 +25,6 @@ const FormInputRow = ({
 	</div>
 );
 
-const PasswordCriterionMessage = ({ text, ok }) => (
-	<p className={ok ? "text-green-500" : "text-red-500"}>
-		<span className="text-sm">
-			<AiOutlineUnlock className="inline-block mr-2" />
-			{text}
-		</span>
-	</p>
-);
-
 const FormInputField = ({
 	ariaLabel,
 	name,
@@ -44,52 +33,20 @@ const FormInputField = ({
 	value,
 	type,
 }) => {
-	const [show, setShow] = useState(false);
-	const onToggleShow = () => { setShow(!show); };
-
 	return (
 		<div className="relative">
 			<input
 				className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-				type={show ? 'text' : type}
+				type={type || "text"}
 				name={name}
 				placeholder={placeholder}
 				value={value}
 				onChange={onChange}
 				aria-label={ariaLabel}
 			/>
-
-			{type === 'password' && (
-				<div className="absolute inset-y-0 right-3 flex items-center">
-					<button
-						type="button"
-						onClick={onToggleShow}
-						className="text-gray-500 focus:outline-none"
-					>
-						{show ? <FaEyeSlash /> : <FaEye />}
-					</button>
-				</div>
-			)}
 		</div>
 	);
 };
-
-const PasswordStrength = ({ label, value }) => (
-	< div className="flex items-center mt-1" >
-		<p className="text-sm text-gray-600 mr-2">{label}</p>
-		<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
-			<div
-				className={`h-full rounded-full ${value < 50
-						? 'bg-red-500'
-						: value >= 50 && value < 100
-							? 'bg-yellow-500'
-							: 'bg-green-500'
-					}`}
-				style={{ width: `${value}%` }}
-			></div>
-		</div>
-	</div>
-);
 
 const WebauthnSignupLogin = ({
 	isLogin,
@@ -137,7 +94,7 @@ const WebauthnSignupLogin = ({
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
 						});
-						api.setSessionCookies(finishResp.data.username, finishResp);
+						api.setSessionCookies(finishResp);
 						navigate('/');
 					} catch (e) {
 						setError(t('passkeyInvalid'));
@@ -192,7 +149,7 @@ const WebauthnSignupLogin = ({
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
 						});
-						api.setSessionCookies(null, finishResp);
+						api.setSessionCookies(finishResp);
 						navigate('/');
 					} catch (e) {
 						setError(t('passkeySignupFailedServerError'));
@@ -283,99 +240,13 @@ const WebauthnSignupLogin = ({
 const Login = () => {
 	const { t } = useTranslation();
 
-	const [formData, setFormData] = useState({
-		username: '',
-		password: '',
-		confirmPassword: '',
-	});
-	const [error, setError] = useState('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const navigate = useNavigate();
-
-	const { username, password, confirmPassword } = formData;
-
-	const handleInputChange = (event) => {
-		const { name, value } = event.target;
-		setFormData((prevFormData) => ({
-			...prevFormData,
-			[name]: value,
-		}));
-		setError(''); // Clear the error message
-	};
-
-	const handleFormSubmit = async (event) => {
-		event.preventDefault();
-
-		if (username === '' || password === '') {
-			setError(t('fillInFieldsError'));
-			return;
-		}
-
-		if (!isLogin && password !== confirmPassword) {
-			setError(t('passwordsNotMatchError'));
-			return;
-		}
-
-		// Validate password criteria
-		if (!isLogin){
-			const validations = [
-				{ ok: password.length >= 8, text: t('passwordLength') },
-				{ ok: /[A-Z]/.test(password), text: t('capitalLetter') },
-				{ ok: /[0-9]/.test(password), text: t('number') },
-				{ ok: /[^A-Za-z0-9]/.test(password), text: t('specialCharacter') },
-			];
-
-			if (!validations.every(({ ok }) => ok)) {
-				setError(
-					<>
-						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
-						{validations.map(({ok, text}) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
-					</>
-				);
-				return;
-			}
-		}
-
-		setIsSubmitting(true);
-
-		try {
-			if (isLogin) {
-				await api.login(username, password);
-			} else {
-				await api.signup(username, password);
-			}
-			navigate('/');
-		} catch (error) {
-			setError(
-				isLogin ? t('incorrectCredentialsError') : t('usernameExistsError')
-			);
-		}
-
-		setIsSubmitting(false);
-	};
 
 	const toggleForm = (event) => {
 		event.preventDefault();
 		setIsLogin(!isLogin);
-		setError('');
-		setFormData({
-			username: '',
-			password: '',
-			confirmPassword: '',
-		});
 	};
-
-	const getPasswordStrength = (password) => {
-		const lengthScore = password.length >= 8 ? 25 : 0;
-		const capitalScore = /[A-Z]/.test(password) ? 25 : 0;
-		const numberScore = /[0-9]/.test(password) ? 25 : 0;
-		const specialCharScore = /[^A-Za-z0-9]/.test(password) ? 25 : 0;
-
-		return lengthScore + capitalScore + numberScore + specialCharScore;
-	};
-
-	const passwordStrength = getPasswordStrength(password);
 
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900">
@@ -398,55 +269,6 @@ const Login = () => {
 						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 							{isLogin ? t('login') : t('signUp')}
 						</h1>
-
-						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-							{error && <div className="text-red-500">{error}</div>}
-							<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
-								<FormInputField
-									ariaLabel="Username"
-									name="username"
-									onChange={handleInputChange}
-									placeholder={t('enterUsername')}
-									type="text"
-									value={username}
-								/>
-							</FormInputRow>
-
-							<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
-								<FormInputField
-									ariaLabel="Password"
-									name="password"
-									onChange={handleInputChange}
-									placeholder={t('enterPassword')}
-									type="password"
-									value={password}
-								/>
-								{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
-							</FormInputRow>
-
-							{!isLogin && (
-								<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
-									<FormInputField
-										ariaLabel="Confirm Password"
-										name="confirmPassword"
-										onChange={handleInputChange}
-										placeholder={t('enterconfirmPasswordLabel')}
-										type="password"
-										value={confirmPassword}
-									/>
-								</FormInputRow>
-							)}
-
-							<button
-								className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-								type="submit"
-								disabled={isSubmitting}
-							>
-								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
-							</button>
-						</form>
-
-						<SeparatorLine>OR</SeparatorLine>
 
 						<WebauthnSignupLogin
 							isLogin={isLogin}

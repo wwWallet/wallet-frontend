@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
-import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 
@@ -57,61 +56,26 @@ export async function del(path: string): Promise<AxiosResponse> {
 		});
 }
 
-export function getSession(): { username?: string, displayName?: string } {
+export function getSession(): { did?: string, displayName?: string } {
 	return {
-		username: Cookies.get('username'),
 		displayName: Cookies.get('displayName'),
+		did: Cookies.get('did'),
 	};
 }
 
 export function isLoggedIn(): boolean {
-	return getSession().username !== undefined;
+	return getSession().did !== undefined;
 }
 
 export function clearSession(): void {
-	Cookies.remove('username');
+	Cookies.remove('did');
 	Cookies.remove('displayName');
 	Cookies.remove('appToken');
 }
 
-export function setSessionCookies(username: string, response: AxiosResponse): void {
-	const { appToken, displayName } = response.data;
-	Cookies.set('username', username);
+export function setSessionCookies(response: AxiosResponse): void {
+	const { appToken, did, displayName } = response.data;
+	Cookies.set('did', did);
 	Cookies.set('displayName', displayName);
 	Cookies.set('appToken', appToken);
 }
-
-export async function login(username: string, password: string): Promise<AxiosResponse> {
-	try {
-		const response = await post('/user/login', { username, password });
-		setSessionCookies(username, response);
-
-		return response.data;
-
-	} catch (error) {
-		console.error('Failed to log in', error);
-		throw error;
-	}
-};
-
-export async function signup(username: string, password: string): Promise<AxiosResponse> {
-	const fcm_token = await requestForToken();
-	const browser_fcm_token = fcm_token;
-
-	try {
-		const response = await post('/user/register', {
-			username,
-			password,
-			fcm_token,
-			browser_fcm_token,
-			displayName: username,
-		});
-		setSessionCookies(username, response);
-
-		return response.data;
-
-	} catch (error) {
-		console.error('Failed to sign up', error);
-		throw error;
-	}
-};
