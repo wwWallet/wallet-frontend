@@ -1,19 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Dispatch, SetStateAction } from 'react';
 
 import * as api from '../api';
 
 
-function useCheckURL(urlToCheck) {
-	const isLoggedIn = api.isLoggedIn();
-	const [isValidURL, setIsValidURL] = useState(null);
-	const [showPopup, setShowPopup] = useState(false);
-	const [selectedValue, setSelectedValue] = useState(null);
+function useCheckURL(urlToCheck: string): {
+	isValidURL: boolean | null,
+	showPopup: boolean,
+	setShowPopup: Dispatch<SetStateAction<boolean>>,
+	setSelectedValue: Dispatch<SetStateAction<string | null>>,
+	conformantCredentialsMap: any,
+} {
+	const isLoggedIn: boolean = api.isLoggedIn();
+	const [isValidURL, setIsValidURL] = useState<boolean | null>(null);
+	const [showPopup, setShowPopup] = useState<boolean>(false);
+	const [selectedValue, setSelectedValue] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 
 	useEffect(() => {
 
-		async function handleAuthorizationRequest(url) {
-
+		async function handleAuthorizationRequest(url: string): Promise<boolean> {
 			try {
 				const response = await api.post(
 					"/presentation/handle/authorization/request",
@@ -44,10 +49,9 @@ function useCheckURL(urlToCheck) {
 				console.log("Failed handleAuthorizationRequest:", e);
 				return false;
 			}
-
 		};
 
-		async function handleAuthorizationResponse(url) {
+		async function handleAuthorizationResponse(url: string): Promise<boolean> {
 			try {
 				const response = await api.post(
 					"/issuance/handle/authorization/response",
@@ -57,6 +61,10 @@ function useCheckURL(urlToCheck) {
 				return true;
 
 			} catch (e) {
+				if (e.response.status === 404) {
+					return true;
+				}
+
 				console.log("Failed handleAuthorizationResponse:", e);
 				return false;
 			}
@@ -67,13 +75,11 @@ function useCheckURL(urlToCheck) {
 				const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
 				const isResponseHandled = await handleAuthorizationResponse(urlToCheck);
 
-
 				if (isRequestHandled || isResponseHandled) {
 					setIsValidURL(true);
 				} else {
 					setIsValidURL(false);
 				}
-
 			})();
 		}
 	}, [urlToCheck, isLoggedIn]);
@@ -83,16 +89,16 @@ function useCheckURL(urlToCheck) {
 			console.log(selectedValue);
 
 			api.post("/presentation/generate/authorization/response",
-			{ verifiable_credentials_map: {title: "VC Selection",selectedValue} },
-		).then(success => {
-			console.log(success);
-			const { redirect_to } = success.data;
-			window.location.href = redirect_to; // Navigate to the redirect URL
+				{ verifiable_credentials_map: { title: "VC Selection", selectedValue } },
+			).then(success => {
+				console.log(success);
+				const { redirect_to } = success.data;
+				window.location.href = redirect_to; // Navigate to the redirect URL
 
-		}).catch(e => {
-			console.error("Failed to generate authorization response")
-			console.error(e.response.data);
-		});
+			}).catch(e => {
+				console.error("Failed to generate authorization response")
+				console.error(e.response.data);
+			});
 
 		}
 	}, [selectedValue]);
