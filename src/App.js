@@ -14,6 +14,7 @@ import Notification from './components/Notification'; // Import the custom hook
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const Issuers = React.lazy(() => import('./pages/Issuers/Issuers'));
+const Verifiers = React.lazy(() => import('./pages/Verifiers/Verifiers'));
 const History = React.lazy(() => import('./pages/History/History'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
@@ -86,6 +87,7 @@ function App() {
 						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
 						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
 						<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
+						<Route path="/verifiers" element={<PrivateRoute><Verifiers /></PrivateRoute>} />
 						<Route path="/cb"
 							element={
 								isValidURL === null ? null : isValidURL ? (
