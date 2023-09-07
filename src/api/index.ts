@@ -160,3 +160,57 @@ export async function loginWebauthn(): Promise<AxiosResponse> {
 		throw { errorId: 'passkeyLoginFailedServerError' };
 	}
 };
+
+export async function signupWebauthn(name: string): Promise<AxiosResponse> {
+	try {
+		const beginResp = await post('/user/register-webauthn-begin', {});
+		console.log("begin", beginResp);
+		const beginData = beginResp.data;
+
+		try {
+			const credential = await navigator.credentials.create({
+				...beginData.createOptions,
+				publicKey: {
+					...beginData.createOptions.publicKey,
+					user: {
+						...beginData.createOptions.publicKey.user,
+						name,
+						displayName: name,
+					},
+				},
+			}) as PublicKeyCredential;
+			const response = credential.response as AuthenticatorAttestationResponse;
+			console.log("created", credential);
+
+			try {
+				const finishResp = await post('/user/register-webauthn-finish', {
+					challengeId: beginData.challengeId,
+					displayName: name,
+					credential: {
+						type: credential.type,
+						id: credential.id,
+						rawId: credential.id,
+						response: {
+							attestationObject: toBase64Url(response.attestationObject),
+							clientDataJSON: toBase64Url(response.clientDataJSON),
+							transports: response.getTransports(),
+						},
+						authenticatorAttachment: credential.authenticatorAttachment,
+						clientExtensionResults: credential.getClientExtensionResults(),
+					},
+				});
+				setSessionCookies(null, finishResp);
+
+				return finishResp;
+			} catch (e) {
+				throw { errorId: 'passkeySignupFailedServerError' };
+			}
+
+		} catch (e) {
+			throw { errorId: 'passkeySignupFailedTryAgain' };
+		}
+
+	} catch (e) {
+		throw { errorId: 'passkeySignupFinishFailedServerError' };
+	}
+}
