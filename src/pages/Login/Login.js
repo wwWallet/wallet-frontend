@@ -1,13 +1,31 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { GoPasskeyFill } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
+import { toBase64Url } from '../../util';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import SeparatorLine from '../../components/SeparatorLine';
 
+
+const FormInputRow = ({
+	IconComponent,
+	children,
+	label,
+	name,
+}) => (
+	<div className="mb-4 relative">
+		<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor={name}>
+			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500" />
+			{label}
+		</label>
+		{children}
+	</div>
+);
 
 const PasswordCriterionMessage = ({ text, ok }) => (
 	<p className={ok ? "text-green-500" : "text-red-500"}>
@@ -17,6 +35,250 @@ const PasswordCriterionMessage = ({ text, ok }) => (
 		</span>
 	</p>
 );
+
+const FormInputField = ({
+	ariaLabel,
+	name,
+	onChange,
+	placeholder,
+	value,
+	type,
+}) => {
+	const [show, setShow] = useState(false);
+	const onToggleShow = () => { setShow(!show); };
+
+	return (
+		<div className="relative">
+			<input
+				className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+				type={show ? 'text' : type}
+				name={name}
+				placeholder={placeholder}
+				value={value}
+				onChange={onChange}
+				aria-label={ariaLabel}
+			/>
+
+			{type === 'password' && (
+				<div className="absolute inset-y-0 right-3 flex items-center">
+					<button
+						type="button"
+						onClick={onToggleShow}
+						className="text-gray-500 focus:outline-none"
+					>
+						{show ? <FaEyeSlash /> : <FaEye />}
+					</button>
+				</div>
+			)}
+		</div>
+	);
+};
+
+const PasswordStrength = ({ label, value }) => (
+	< div className="flex items-center mt-1" >
+		<p className="text-sm text-gray-600 mr-2">{label}</p>
+		<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
+			<div
+				className={`h-full rounded-full ${value < 50
+						? 'bg-red-500'
+						: value >= 50 && value < 100
+							? 'bg-yellow-500'
+							: 'bg-green-500'
+					}`}
+				style={{ width: `${value}%` }}
+			></div>
+		</div>
+	</div>
+);
+
+const WebauthnSignupLogin = ({
+	isLogin,
+	isSubmitting,
+	setIsSubmitting,
+}) => {
+	const [inProgress, setInProgress] = useState(false);
+	const [name, setName] = useState("");
+	const [error, setError] = useState('');
+	const navigate = useNavigate();
+	const { t } = useTranslation();
+
+	useEffect(
+		() => {
+			setError("");
+		},
+		[isLogin],
+	);
+
+	const onLogin = useCallback(
+		async () => {
+			try {
+				const beginResp = await api.post('/user/login-webauthn-begin', {});
+				console.log("begin", beginResp);
+				const beginData = beginResp.data;
+
+				try {
+					const credential = await navigator.credentials.get(beginData.getOptions);
+					console.log("asserted", credential);
+
+					try {
+						const finishResp = await api.post('/user/login-webauthn-finish', {
+							challengeId: beginData.challengeId,
+							credential: {
+								type: credential.type,
+								id: credential.id,
+								rawId: credential.id,
+								response: {
+									authenticatorData: toBase64Url(credential.response.authenticatorData),
+									clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+									signature: toBase64Url(credential.response.signature),
+									userHandle: toBase64Url(credential.response.userHandle),
+								},
+								authenticatorAttachment: credential.authenticatorAttachment,
+								clientExtensionResults: credential.getClientExtensionResults(),
+							},
+						});
+						api.setSessionCookies(finishResp.data.username, finishResp);
+						navigate('/');
+					} catch (e) {
+						setError(t('passkeyInvalid'));
+					}
+
+				} catch (e) {
+					setError(t('passkeyLoginFailedTryAgain'));
+				}
+
+			} catch (e) {
+				setError(t('passkeyLoginFailedServerError'));
+			}
+		},
+		[navigate, t],
+	);
+
+	const onSignup = useCallback(
+		async (name) => {
+			try {
+				const beginResp = await api.post('/user/register-webauthn-begin', {});
+				console.log("begin", beginResp);
+				const beginData = beginResp.data;
+
+				try {
+					const credential = await navigator.credentials.create({
+						...beginData.createOptions,
+						publicKey: {
+							...beginData.createOptions.publicKey,
+							user: {
+								...beginData.createOptions.publicKey.user,
+								name,
+								displayName: name,
+							},
+						},
+					});
+					console.log("created", credential);
+
+					try {
+						const finishResp = await api.post('/user/register-webauthn-finish', {
+							challengeId: beginData.challengeId,
+							displayName: name,
+							credential: {
+								type: credential.type,
+								id: credential.id,
+								rawId: credential.id,
+								response: {
+									attestationObject: toBase64Url(credential.response.attestationObject),
+									clientDataJSON: toBase64Url(credential.response.clientDataJSON),
+									transports: credential.response.getTransports(),
+								},
+								authenticatorAttachment: credential.authenticatorAttachment,
+								clientExtensionResults: credential.getClientExtensionResults(),
+							},
+						});
+						api.setSessionCookies(null, finishResp);
+						navigate('/');
+					} catch (e) {
+						setError(t('passkeySignupFailedServerError'));
+					}
+
+				} catch (e) {
+					setError(t('passkeySignupFailedTryAgain'));
+				}
+
+			} catch (e) {
+				setError(t('passkeySignupFinishFailedServerError'));
+			}
+		},
+		[navigate, t],
+	);
+
+	const onSubmit = async (event) => {
+		event.preventDefault();
+
+		setError();
+		setInProgress(true);
+		setIsSubmitting(true);
+
+		if (isLogin) {
+			await onLogin();
+
+		} else {
+			await onSignup(name);
+		}
+
+		setInProgress(false);
+		setIsSubmitting(false);
+	};
+
+	const onCancel = () => {
+		console.log("onCancel");
+		setInProgress(false);
+		setIsSubmitting(false);
+	};
+
+	return (
+		<form onSubmit={onSubmit}>
+			{inProgress
+				? (
+					<>
+						<p>Please interact with your authenticator...</p>
+						<button
+							type="button"
+							className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							onClick={onCancel}
+						>
+							Cancel
+						</button>
+					</>
+				)
+				: (
+					<>
+						{!isLogin && (
+							<>
+								<FormInputRow label={t('choosePasskeyUsername')} name="name" IconComponent={FaUser}>
+									<FormInputField
+										ariaLabel="Passkey name"
+										name="name"
+										onChange={(event) => setName(event.target.value)}
+										placeholder={t('enterPasskeyName')}
+										type="text"
+										value={name}
+									/>
+								</FormInputRow>
+							</>)}
+
+						<button
+							className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							type="submit"
+							disabled={isSubmitting}
+						>
+							<GoPasskeyFill className="inline text-xl mr-2" />
+							{isSubmitting ? t('submitting') : isLogin ? t('loginPasskey') : t('signupPasskey')}
+						</button>
+						{error && <div className="text-red-500">{error}</div>}
+					</>
+				)
+			}
+		</form>
+	);
+};
 
 const Login = () => {
 	const { t } = useTranslation();
@@ -104,17 +366,6 @@ const Login = () => {
 		});
 	};
 
-	const [showPassword, setShowPassword] = useState(false);
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-	const toggleConfirmPasswordVisibility = () => {
-		setShowConfirmPassword(!showConfirmPassword);
-	};
-
-	const togglePasswordVisibility = () => {
-		setShowPassword(!showPassword);
-	};
-
 	const getPasswordStrength = (password) => {
 		const lengthScore = password.length >= 8 ? 25 : 0;
 		const capitalScore = /[A-Z]/.test(password) ? 25 : 0;
@@ -150,96 +401,40 @@ const Login = () => {
 
 						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 							{error && <div className="text-red-500">{error}</div>}
-							<div className="mb-4 relative">
-								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
-									<FaUser className="absolute left-3 top-10 z-10 text-gray-500" />
-									{t('usernameLabel')}
-								</label>
-								<input
-									className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-									id="username"
-									type="text"
+							<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
+								<FormInputField
+									ariaLabel="Username"
 									name="username"
-									placeholder={t('enterUsername')}
-									value={username}
 									onChange={handleInputChange}
-									aria-label="Username"
+									placeholder={t('enterUsername')}
+									type="text"
+									value={username}
 								/>
-							</div>
+							</FormInputRow>
 
-							<div className="mb-6 relative">
-								<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
-									<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
-									{t('passwordLabel')}
-								</label>
-								<div className="relative">
-									<input
-										className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-										id="password"
-										type={showPassword ? 'text' : 'password'}
-										name="password"
-										placeholder={t('enterPassword')}
-										value={password}
-										onChange={handleInputChange}
-										aria-label="Password"
-									/>
-									<div className="absolute inset-y-0 right-3 flex items-center">
-										<button
-											type="button"
-											onClick={togglePasswordVisibility}
-											className="text-gray-500 focus:outline-none"
-										>
-											{showPassword ? <FaEyeSlash /> : <FaEye />}
-										</button>
-									</div>
-								</div>
-								{!isLogin && password !== '' && (
-									<div className="flex items-center mt-1">
-										<p className="text-sm text-gray-600 mr-2">{t('strength')}</p>
-										<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
-											<div
-												className={`h-full rounded-full ${
-													passwordStrength < 50
-														? 'bg-red-500'
-														: passwordStrength >= 50 && passwordStrength < 100
-														? 'bg-yellow-500'
-														: 'bg-green-500'
-												}`}
-												style={{ width: `${passwordStrength}%` }}
-											></div>
-										</div>
-									</div>
-								)}
-							</div>
+							<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
+								<FormInputField
+									ariaLabel="Password"
+									name="password"
+									onChange={handleInputChange}
+									placeholder={t('enterPassword')}
+									type="password"
+									value={password}
+								/>
+								{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
+							</FormInputRow>
 
 							{!isLogin && (
-								<div className="mb-6 relative">
-									<label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirm-password">
-										<FaLock className="absolute left-3 top-10 z-10 text-gray-500" />
-										{t('confirmPasswordLabel')}
-									</label>
-									<div className="relative">
-										<input
-											className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-											id="confirm-password"
-											type={showConfirmPassword ? 'text' : 'password'}
-											name="confirmPassword"
-											placeholder={t('enterconfirmPasswordLabel')}
-											value={confirmPassword}
-											onChange={handleInputChange}
-											aria-label="Confirm Password"
-										/>
-										<div className="absolute inset-y-0 right-3 flex items-center">
-											<button
-												type="button"
-												onClick={toggleConfirmPasswordVisibility}
-												className="text-gray-500 focus:outline-none"
-											>
-												{showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-											</button>
-										</div>
-									</div>
-								</div>
+								<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+									<FormInputField
+										ariaLabel="Confirm Password"
+										name="confirmPassword"
+										onChange={handleInputChange}
+										placeholder={t('enterconfirmPasswordLabel')}
+										type="password"
+										value={confirmPassword}
+									/>
+								</FormInputRow>
 							)}
 
 							<button
@@ -249,18 +444,26 @@ const Login = () => {
 							>
 								{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
 							</button>
-
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
-								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
-								<a
-									href="/"
-									className="font-medium text-blue-600 hover:underline dark:text-blue-500"
-									onClick={toggleForm}
-								>
-									{isLogin ? t('signUp') : t('login')}
-								</a>
-							</p>
 						</form>
+
+						<SeparatorLine>OR</SeparatorLine>
+
+						<WebauthnSignupLogin
+							isLogin={isLogin}
+							isSubmitting={isSubmitting}
+							setIsSubmitting={setIsSubmitting}
+						/>
+
+						<p className="text-sm font-light text-gray-500 dark:text-gray-400">
+							{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
+							<a
+								href="/"
+								className="font-medium text-blue-600 hover:underline dark:text-blue-500"
+								onClick={toggleForm}
+							>
+								{isLogin ? t('signUp') : t('login')}
+							</a>
+						</p>
 					</div>
 				</div>
 			</div>
