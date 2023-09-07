@@ -74,8 +74,8 @@ export function clearSession(): void {
 	Cookies.remove('appToken');
 }
 
-export function setSessionCookies(username: string, response: AxiosResponse): void {
-	const { appToken, displayName } = response.data;
+export function setSessionCookies(response: AxiosResponse): void {
+	const { appToken, displayName, username } = response.data;
 	Cookies.set('username', username);
 	Cookies.set('displayName', displayName);
 	Cookies.set('appToken', appToken);
@@ -84,7 +84,7 @@ export function setSessionCookies(username: string, response: AxiosResponse): vo
 export async function login(username: string, password: string): Promise<AxiosResponse> {
 	try {
 		const response = await post('/user/login', { username, password });
-		setSessionCookies(username, response);
+		setSessionCookies(response);
 
 		return response.data;
 
@@ -106,7 +106,7 @@ export async function signup(username: string, password: string): Promise<AxiosR
 			browser_fcm_token,
 			displayName: username,
 		});
-		setSessionCookies(username, response);
+		setSessionCookies(response);
 
 		return response.data;
 
@@ -144,7 +144,7 @@ export async function loginWebauthn(): Promise<AxiosResponse> {
 						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 				});
-				setSessionCookies(finishResp.data.username, finishResp);
+				setSessionCookies(finishResp);
 
 				return finishResp;
 
@@ -199,7 +199,7 @@ export async function signupWebauthn(name: string): Promise<AxiosResponse> {
 						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 				});
-				setSessionCookies(null, finishResp);
+				setSessionCookies(finishResp);
 
 				return finishResp;
 			} catch (e) {
