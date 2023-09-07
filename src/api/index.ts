@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
+import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -113,5 +113,50 @@ export async function signup(username: string, password: string): Promise<AxiosR
 	} catch (error) {
 		console.error('Failed to sign up', error);
 		throw error;
+	}
+};
+
+export async function loginWebauthn(): Promise<AxiosResponse> {
+	try {
+		const beginResp = await post('/user/login-webauthn-begin', {});
+		console.log("begin", beginResp);
+		const beginData = beginResp.data;
+
+		try {
+			const credential = await navigator.credentials.get(beginData.getOptions) as PublicKeyCredential;
+			const response = credential.response as AuthenticatorAssertionResponse;
+			console.log("asserted", credential);
+
+			try {
+				const finishResp = await post('/user/login-webauthn-finish', {
+					challengeId: beginData.challengeId,
+					credential: {
+						type: credential.type,
+						id: credential.id,
+						rawId: credential.id,
+						response: {
+							authenticatorData: toBase64Url(response.authenticatorData),
+							clientDataJSON: toBase64Url(response.clientDataJSON),
+							signature: toBase64Url(response.signature),
+							userHandle: toBase64Url(response.userHandle),
+						},
+						authenticatorAttachment: credential.authenticatorAttachment,
+						clientExtensionResults: credential.getClientExtensionResults(),
+					},
+				});
+				setSessionCookies(finishResp.data.username, finishResp);
+
+				return finishResp;
+
+			} catch (e) {
+				throw { errorId: 'passkeyInvalid' };
+			}
+
+		} catch (e) {
+			throw { errorId: 'passkeyLoginFailedTryAgain' };
+		}
+
+	} catch (e) {
+		throw { errorId: 'passkeyLoginFailedServerError' };
 	}
 };

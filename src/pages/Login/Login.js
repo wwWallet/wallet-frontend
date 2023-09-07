@@ -112,43 +112,26 @@ const WebauthnSignupLogin = ({
 	const onLogin = useCallback(
 		async () => {
 			try {
-				const beginResp = await api.post('/user/login-webauthn-begin', {});
-				console.log("begin", beginResp);
-				const beginData = beginResp.data;
-
-				try {
-					const credential = await navigator.credentials.get(beginData.getOptions);
-					console.log("asserted", credential);
-
-					try {
-						const finishResp = await api.post('/user/login-webauthn-finish', {
-							challengeId: beginData.challengeId,
-							credential: {
-								type: credential.type,
-								id: credential.id,
-								rawId: credential.id,
-								response: {
-									authenticatorData: toBase64Url(credential.response.authenticatorData),
-									clientDataJSON: toBase64Url(credential.response.clientDataJSON),
-									signature: toBase64Url(credential.response.signature),
-									userHandle: toBase64Url(credential.response.userHandle),
-								},
-								authenticatorAttachment: credential.authenticatorAttachment,
-								clientExtensionResults: credential.getClientExtensionResults(),
-							},
-						});
-						api.setSessionCookies(finishResp.data.username, finishResp);
-						navigate('/');
-					} catch (e) {
-						setError(t('passkeyInvalid'));
-					}
-
-				} catch (e) {
-					setError(t('passkeyLoginFailedTryAgain'));
-				}
-
+				await api.loginWebauthn();
+				navigate('/');
 			} catch (e) {
-				setError(t('passkeyLoginFailedServerError'));
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (e.errorId) {
+					case 'passkeyInvalid':
+						setError(t('passkeyInvalid'));
+						break;
+
+					case 'passkeyLoginFailedTryAgain':
+						setError(t('passkeyLoginFailedTryAgain'));
+						break;
+
+					case 'passkeyLoginFailedServerError':
+						setError(t('passkeyLoginFailedServerError'));
+						break;
+
+					default:
+						throw e;
+				}
 			}
 		},
 		[navigate, t],
