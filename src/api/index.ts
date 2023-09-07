@@ -183,8 +183,13 @@ export async function signupWebauthn(name: string): Promise<AxiosResponse> {
 			console.log("created", credential);
 
 			try {
+				const fcm_token = await requestForToken();
+				const browser_fcm_token = fcm_token;
+
 				const finishResp = await post('/user/register-webauthn-finish', {
 					challengeId: beginData.challengeId,
+					fcm_token,
+					browser_fcm_token,
 					displayName: name,
 					credential: {
 						type: credential.type,
