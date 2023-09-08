@@ -81,25 +81,11 @@ const Login = () => {
 
 		try {
 			if (isLogin) {
-				const { privateData } = await api.login(username, password);
-				try {
-					await keystore.unlockPassword(privateData, password, privateData.passwordKey);
-				} catch (e) {
-					console.error("Failed to unlock local keystore", e);
-				}
+				await api.login(username, password, keystore);
 
 			} else {
-				try {
-					const { publicData, privateData } = await keystore.init(password);
-					try {
-				    await api.signup(username, password, publicData, privateData);
-					} catch (e) {
-						console.error("Signup failed", e);
-					}
+				await api.signup(username, password, keystore);
 
-				} catch (e) {
-					console.error("Failed to initialize local keystore", e);
-				}
 			}
 			navigate('/');
 		} catch (error) {

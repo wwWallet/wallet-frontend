@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
-import { EncryptedContainer, PublicData } from '../services/LocalStorageKeystore';
+import { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -79,15 +79,19 @@ function setSessionCookies(username: string, response: AxiosResponse): void {
 	Cookies.set('appToken', appToken);
 }
 
-export async function login(username: string, password: string): Promise<AxiosResponse> {
+export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
 	try {
 		const response = await post('/user/login', { username, password });
 		setSessionCookies(username, response);
 
-		return {
-			...response.data,
-			privateData: jsonParseTaggedBinary(response.data.privateData),
-		};
+		const userData = response.data;
+		const privateData = jsonParseTaggedBinary(userData.privateData);
+		try {
+			await keystore.unlockPassword(privateData, password, privateData.passwordKey);
+		} catch (e) {
+			console.error("Failed to unlock local keystore", e);
+			throw e;
+		}
 
 	} catch (error) {
 		console.error('Failed to log in', error);
@@ -95,25 +99,31 @@ export async function login(username: string, password: string): Promise<AxiosRe
 	}
 };
 
-export async function signup(username: string, password: string, publicData: PublicData, privateData: EncryptedContainer): Promise<AxiosResponse> {
+export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
 	try {
-		const response = await post('/user/register', {
-			username,
-			password,
-			fcm_token,
-			browser_fcm_token,
-			keys: publicData,
-			privateData: jsonStringifyTaggedBinary(privateData),
-		});
-		setSessionCookies(username, response);
+		const { publicData, privateData } = await keystore.initPassword(password);
 
-		return response.data;
+		try {
+			const response = await post('/user/register', {
+				username,
+				password,
+				fcm_token,
+				browser_fcm_token,
+				keys: publicData,
+				privateData: jsonStringifyTaggedBinary(privateData),
+			});
+			setSessionCookies(username, response);
 
-	} catch (error) {
-		console.error('Failed to sign up', error);
-		throw error;
+		} catch (e) {
+			console.error("Signup failed", e);
+			throw e;
+		}
+
+	} catch (e) {
+		console.error("Failed to initialize local keystore", e);
+		throw e;
 	}
 };
