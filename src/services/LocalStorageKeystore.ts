@@ -75,12 +75,11 @@ async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
 		wrappingKey,
 		partialKeyInfo.unwrapAlgo,
 	));
-	const keyInfo: WrappedKeyInfo = {
+
+	return {
 		...partialKeyInfo,
 		wrappedKey,
 	};
-
-	return keyInfo;
 }
 
 async function unwrapMainKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo): Promise<CryptoKey> {
