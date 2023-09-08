@@ -154,6 +154,16 @@ export function useLocalStorageKeystore() {
 		() => {
 			console.log("New LocalStorageKeystore instance");
 
+			const createSessionKey = async (): Promise<CryptoKey> => {
+				const sessionKey = await crypto.subtle.generateKey(
+					{ name: "AES-KW", length: 256 },
+					false,
+					["wrapKey", "unwrapKey"],
+				);
+				await dbWrite(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
+				return sessionKey;
+			}
+
 			const getSessionKey = async (): Promise<CryptoKey> => {
 				try {
 					const result = await dbRead(
@@ -203,13 +213,7 @@ export function useLocalStorageKeystore() {
 			};
 
 			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer): Promise<void> => {
-				const sessionKey = await crypto.subtle.generateKey(
-					{ name: "AES-KW", length: 256 },
-					false,
-					["wrapKey", "unwrapKey"],
-				);
-
-				await dbWrite(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
+				const sessionKey = await createSessionKey();
 				setWrappedEncryptionKey(await wrapEncryptionKey(mainKey, sessionKey));
 				setPrivateData(privateData);
 			};
