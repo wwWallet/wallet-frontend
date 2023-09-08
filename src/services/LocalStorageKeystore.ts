@@ -286,6 +286,24 @@ export function useLocalStorageKeystore() {
 				};
 			};
 
+			const init = async (wrappedMainKey: WrappedKeyInfo, wrappingKey: CryptoKey, keyInfo: { passwordKey?: PasswordKeyInfo }): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+				console.log("init");
+
+				const mainKey = await unwrapMainKey(wrappingKey, wrappedMainKey);
+
+				const { publicData, privateDataJwe } = await createWallet(mainKey);
+				const privateData: EncryptedContainer = {
+					...keyInfo,
+					jwe: privateDataJwe,
+				};
+				await unlock(mainKey, privateData);
+
+				return {
+					publicData,
+					privateData,
+				};
+			};
+
 			return {
 				close: async (): Promise<void> => {
 					idb.destroy(); // This can take a long time, so don't await it
@@ -293,7 +311,7 @@ export function useLocalStorageKeystore() {
 					clearSessionStorage();
 				},
 
-				init: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("init");
 
 					const pbkdf2Params: Pbkdf2Params = {
@@ -308,19 +326,8 @@ export function useLocalStorageKeystore() {
 						mainKey: wrappedMainKey,
 						pbkdf2Params,
 					};
-					const mainKey = await unwrapMainKey(passwordKey, wrappedMainKey);
 
-					const { publicData, privateDataJwe } = await createWallet(mainKey);
-					const privateData: EncryptedContainer = {
-						jwe: privateDataJwe,
-						passwordKey: passwordKeyInfo,
-					};
-					await unlock(mainKey, privateData);
-
-					return {
-						publicData,
-						privateData,
-					};
+					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo });
 				},
 
 				unlockPassword,
