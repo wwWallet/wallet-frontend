@@ -244,9 +244,9 @@ export function useLocalStorageKeystore() {
 					alg: alg,
 					verificationMethod: did + "#" + did.split(':')[2]
 				};
-				const privateData = {
+				const privateData: PrivateData = {
 					...publicData,
-					privateKey: wrappedPrivateKey,
+					wrappedPrivateKey,
 				}
 
 				const privateDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
