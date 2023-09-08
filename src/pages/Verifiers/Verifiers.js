@@ -23,6 +23,7 @@ const Verifiers = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedVerifier, setSelectedVerifier] = useState(null);
 	const [selectedScope, setSelectedScope] = useState(null);
+  const [attemptedContinueWithoutScope, setAttemptedContinueWithoutScope] = useState(false);
 
 	const [loading, setLoading] = useState(false);
 
@@ -72,15 +73,28 @@ const Verifiers = () => {
 
 	const handleContinue = () => {
 		setLoading(true);
-				
+		setAttemptedContinueWithoutScope(true); // Set the flag to true
+		
 		console.log('Continue with:', selectedVerifier, 'and scope:', selectedScope);
-		const { id } = selectedVerifier;
-		api.initiatePresentationExchange(id, selectedScope).then(({ redirect_to }) => {
-			window.location.href = redirect_to;
-		}).catch(e => { console.error(e); })
 
-		setLoading(false);
-		setShowPopup(false);
+		if (!selectedScope) {
+			setLoading(false);
+			return; // Return early if no scope is selected
+		}
+
+		const { id } = selectedVerifier;
+		api.initiatePresentationExchange(id, selectedScope)
+			.then(({ redirect_to }) => {
+				window.location.href = redirect_to;
+			})
+			.catch(e => {
+				console.error(e);
+			})
+			.finally(() => {
+				setLoading(false);
+				setShowPopup(false);
+				setAttemptedContinueWithoutScope(false); // Reset the flag
+			});
 	};
 
 
@@ -139,6 +153,9 @@ const Verifiers = () => {
 									Selected Verifier: {selectedVerifier?.name}
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
+								{attemptedContinueWithoutScope && !selectedScope && (
+									<p className="text-red-500 text-sm mt-1">Please select a scope before continuing.</p>
+								)}
 								<p className="mb-2 mt-4">
 									You have selected {selectedVerifier?.name}. If you continue, you will be redirected in a new tab to the verifier's page.
 								</p>
@@ -151,12 +168,13 @@ const Verifiers = () => {
 										className="mt-1 p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
 										value={selectedScope}
 										onChange={(e) => setSelectedScope(e.target.value)}
-									>
-										<option value="" disabled>Select a scope</option>
+										required
+									>  <option value="" hidden>Select a scope</option>
 										{selectedVerifier?.scopes.map((scope, index) => (
 											<option key={index} value={scope.name}>{scope.name}</option>
 										))}
 									</select>
+
 								</div>
 
 								<div className="flex justify-end space-x-2 pt-4">
