@@ -77,7 +77,7 @@ type WrappedPrivateKey = {
 }
 
 
-async function initMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
+async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
 	const partialKeyInfo: { unwrapAlgo: "AES-KW", unwrappedKeyAlgo: "AES-GCM" } = {
 		unwrapAlgo: "AES-KW",
 		unwrappedKeyAlgo: "AES-GCM",
@@ -277,7 +277,7 @@ export function useLocalStorageKeystore() {
 						salt: crypto.getRandomValues(new Uint8Array(32)),
 					};
 					const passwordKey = await derivePasswordKey(password, pbkdf2Params);
-					const wrappedMainKey = await initMainKey(passwordKey);
+					const wrappedMainKey = await createMainKey(passwordKey);
 					const passwordKeyInfo = {
 						mainKey: wrappedMainKey,
 						pbkdf2Params,
