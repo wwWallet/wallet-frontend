@@ -13,29 +13,29 @@ import { useIndexedDb } from "../components/useIndexedDb";
 
 export type EncryptedContainer = {
 	jwe: string;
-	pbkdf2Params: Pbkdf2Params;
+	passwordKey?: PasswordKeyInfo;
 }
 
 // Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
 const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
 const pbkdfIterations: number = 600000;
 
+type WrappedKeyInfo = {
+	wrappedKey: Uint8Array,
+	unwrapAlgo: "AES-KW",
+	unwrappedKeyAlgo: "AES-GCM",
+}
+
+type PasswordKeyInfo = {
+	mainKey: WrappedKeyInfo,
+	pbkdf2Params: Pbkdf2Params;
+}
 
 type WebauthnPrfEncryptionKeyInfo = {
 	credentialId: Uint8Array,
 	prfSalt: Uint8Array,
 	hkdfSalt: Uint8Array,
 	hkdfInfo: Uint8Array,
-}
-
-async function derivePbkdf2EncryptionKey(params: Pbkdf2Params, passwordKey: CryptoKey): Promise<CryptoKey> {
-	return await crypto.subtle.deriveKey(
-		params,
-		passwordKey,
-		{ name: "AES-GCM", length: 256 },
-		true,
-		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
-	);
 }
 
 async function wrapEncryptionKey(encryptionKey: CryptoKey, wrappingKey: CryptoKey): Promise<ArrayBuffer> {
@@ -71,6 +71,69 @@ type WrappedPrivateKey = {
 	aesGcmParams: AesGcmParams,
 	unwrappedKeyAlgo: EcKeyImportParams,
 }
+
+
+async function initMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
+	const partialKeyInfo: { unwrapAlgo: "AES-KW", unwrappedKeyAlgo: "AES-GCM" } = {
+		unwrapAlgo: "AES-KW",
+		unwrappedKeyAlgo: "AES-GCM",
+	};
+
+	const mainKeyAlgorithm = { name: partialKeyInfo.unwrappedKeyAlgo, length: 256 };
+	const mainKey = await crypto.subtle.generateKey(
+		mainKeyAlgorithm,
+		true,
+		["encrypt"],
+	);
+
+	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(
+		"raw",
+		mainKey,
+		wrappingKey,
+		partialKeyInfo.unwrapAlgo,
+	));
+	const keyInfo: WrappedKeyInfo = {
+		...partialKeyInfo,
+		wrappedKey,
+	};
+
+	return keyInfo;
+}
+
+async function unwrapMainKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo): Promise<CryptoKey> {
+	return await crypto.subtle.unwrapKey(
+		"raw",
+		keyInfo.wrappedKey,
+		wrappingKey,
+		keyInfo.unwrapAlgo,
+		keyInfo.unwrappedKeyAlgo,
+		true,
+		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
+	);
+}
+
+async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> {
+	const keyMaterial = await crypto.subtle.importKey(
+		"raw",
+		new TextEncoder().encode(password),
+		"PBKDF2",
+		false,
+		["deriveKey"],
+	);
+
+	return await crypto.subtle.deriveKey(
+		pbkdf2Params,
+		keyMaterial,
+		{ name: "AES-KW", length: 256 },
+		true,
+		["wrapKey", "unwrapKey"],
+	);
+};
+
+async function unlockPassword(password: string, keyInfo: PasswordKeyInfo): Promise<CryptoKey> {
+	const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
+	return await unwrapMainKey(passwordKey, keyInfo.mainKey);
+};
 
 export function useLocalStorageKeystore() {
 	const [publicDataJwe, setPublicDataJwe] = useLocalStorage<string | null>("publicData", null);
@@ -124,11 +187,11 @@ export function useLocalStorageKeystore() {
 				}
 			};
 
-			const setPublicData = async (publicData: PublicData, encryptionKey: CryptoKey): Promise<void> => {
+			const setPublicData = async (publicData: PublicData, mainKey: CryptoKey): Promise<void> => {
 				const publicDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(publicData));
 				const publicDataJwe = await new jose.CompactEncrypt(publicDataCleartext)
 					.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
-					.encrypt(encryptionKey);
+					.encrypt(mainKey);
 				setPublicDataJwe(publicDataJwe);
 			};
 
@@ -148,19 +211,7 @@ export function useLocalStorageKeystore() {
 				}
 			};
 
-			const unlockPassword = async (password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> => {
-				const passwordKey = await crypto.subtle.importKey(
-					"raw",
-					new TextEncoder().encode(password),
-					"PBKDF2",
-					false,
-					["deriveKey"],
-				);
-
-				return await derivePbkdf2EncryptionKey(pbkdf2Params, passwordKey);
-			};
-
-			const unlock = async (encryptionKey: CryptoKey, privateData: EncryptedContainer): Promise<void> => {
+			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer): Promise<void> => {
 				const sessionKey = await crypto.subtle.generateKey(
 					{ name: "AES-KW", length: 256 },
 					false,
@@ -168,7 +219,7 @@ export function useLocalStorageKeystore() {
 				);
 
 				await dbWrite(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
-				setWrappedEncryptionKey(await wrapEncryptionKey(encryptionKey, sessionKey));
+				setWrappedEncryptionKey(await wrapEncryptionKey(mainKey, sessionKey));
 
 				const {
 					publicKey,
@@ -177,7 +228,7 @@ export function useLocalStorageKeystore() {
 					verificationMethod,
 					wrappedPrivateKey,
 				} = jsonParseTaggedBinary(new TextDecoder().decode(
-					(await jose.compactDecrypt(privateData.jwe, encryptionKey)).plaintext
+					(await jose.compactDecrypt(privateData.jwe, mainKey)).plaintext
 				));
 				setPublicData(
 					{
@@ -186,12 +237,12 @@ export function useLocalStorageKeystore() {
 						alg,
 						verificationMethod,
 					},
-					encryptionKey,
+					mainKey,
 				);
 				setWrappedPrivateKey(wrappedPrivateKey);
 			};
 
-			const createWallet = async (encryptionKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
+			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
 				const alg = "ES256";
 				const { publicKey, privateKey } = await jose.generateKeyPair(alg, { extractable: true });
 
@@ -202,7 +253,7 @@ export function useLocalStorageKeystore() {
 					tagLength: 128,
 				};
 				const wrappedPrivateKey: WrappedPrivateKey = {
-					privateKey: await crypto.subtle.wrapKey("jwk", privateKey as CryptoKey, encryptionKey, privateKeyAesGcmParams),
+					privateKey: await crypto.subtle.wrapKey("jwk", privateKey as CryptoKey, mainKey, privateKeyAesGcmParams),
 					aesGcmParams: privateKeyAesGcmParams,
 					unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
 				};
@@ -216,7 +267,7 @@ export function useLocalStorageKeystore() {
 					alg: alg,
 					verificationMethod: did + "#" + did.split(':')[2]
 				};
-				setPublicData(publicData, encryptionKey);
+				setPublicData(publicData, mainKey);
 
 				const privateData = {
 					...publicData,
@@ -225,7 +276,7 @@ export function useLocalStorageKeystore() {
 				const privateDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
 				const privateDataJwe = await new jose.CompactEncrypt(privateDataCleartext)
 					.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
-					.encrypt(encryptionKey);
+					.encrypt(mainKey);
 
 				return {
 					publicData,
@@ -243,14 +294,20 @@ export function useLocalStorageKeystore() {
 						iterations: pbkdfIterations,
 						salt: crypto.getRandomValues(new Uint8Array(32)),
 					};
-
-					const encryptionKey = await unlockPassword(password, pbkdf2Params);
-					const { publicData, privateDataJwe } = await createWallet(encryptionKey);
-					const privateData: EncryptedContainer = {
-						jwe: privateDataJwe,
+					const passwordKey = await derivePasswordKey(password, pbkdf2Params);
+					const wrappedMainKey = await initMainKey(passwordKey);
+					const passwordKeyInfo = {
+						mainKey: wrappedMainKey,
 						pbkdf2Params,
 					};
-					await unlock(encryptionKey, privateData);
+					const mainKey = await unwrapMainKey(passwordKey, wrappedMainKey);
+
+					const { publicData, privateDataJwe } = await createWallet(mainKey);
+					const privateData: EncryptedContainer = {
+						jwe: privateDataJwe,
+						passwordKey: passwordKeyInfo,
+					};
+					await unlock(mainKey, privateData);
 
 					return {
 						publicData,
