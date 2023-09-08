@@ -159,8 +159,18 @@ async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): 
 	);
 };
 
+export interface LocalStorageKeystore {
+	close(): Promise<void>,
 
-export function useLocalStorageKeystore() {
+	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
+
+	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
+	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
+	generateOpenid4vciProof(audience: string, nonce: string): Promise<{ proof_jwt: string }>,
+}
+
+export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [privateDataJwe, setPrivateDataJwe] = useLocalStorage<string | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
 	const clearLocalStorage = useClearLocalStorage();
