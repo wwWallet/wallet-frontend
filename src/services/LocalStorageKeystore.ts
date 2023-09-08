@@ -160,10 +160,6 @@ async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): 
 	);
 };
 
-async function unlockPassword(password: string, keyInfo: PasswordKeyInfo): Promise<CryptoKey> {
-	const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
-	return await unwrapMainKey(passwordKey, keyInfo.mainKey);
-};
 
 export function useLocalStorageKeystore() {
 	const [privateDataJwe, setPrivateDataJwe] = useLocalStorage<string | null>("privateData", null);
@@ -259,6 +255,12 @@ export function useLocalStorageKeystore() {
 				setPrivateDataJwe(reencryptedPrivateData);
 			};
 
+			const unlockPassword = async (privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void> => {
+				const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
+				const mainKey = await unwrapMainKey(passwordKey, keyInfo.mainKey);
+				return await unlock(mainKey, privateData);
+			};
+
 			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
 				const alg = "ES256";
 				const { publicKey, privateKey } = await jose.generateKeyPair(alg, { extractable: true });
@@ -322,7 +324,6 @@ export function useLocalStorageKeystore() {
 					};
 				},
 
-				unlock,
 				unlockPassword,
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {

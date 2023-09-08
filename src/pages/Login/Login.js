@@ -83,8 +83,7 @@ const Login = () => {
 			if (isLogin) {
 				const { privateData } = await api.login(username, password);
 				try {
-					const encryptionKey = await keystore.unlockPassword(password, privateData.passwordKey);
-					await keystore.unlock(encryptionKey, privateData);
+					await keystore.unlockPassword(privateData, password, privateData.passwordKey);
 				} catch (e) {
 					console.error("Failed to unlock local keystore", e);
 				}
