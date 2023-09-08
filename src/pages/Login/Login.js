@@ -101,6 +101,7 @@ const WebauthnSignupLogin = ({
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const keystore = useLocalStorageKeystore();
 
 	useEffect(
 		() => {
@@ -112,7 +113,7 @@ const WebauthnSignupLogin = ({
 	const onLogin = useCallback(
 		async () => {
 			try {
-				await api.loginWebauthn();
+				await api.loginWebauthn(keystore);
 				navigate('/');
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
@@ -134,13 +135,24 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[navigate, t],
+		[keystore, navigate, t],
 	);
 
 	const onSignup = useCallback(
 		async (name) => {
 			try {
-				await api.signupWebauthn(name);
+				try {
+					try {
+						await api.signupWebauthn(name, keystore);
+					} catch (e) {
+						console.error("Signup failed", e);
+					}
+
+				} catch (e) {
+					console.error("Failed to initialize local keystore", e);
+				}
+
+
 				navigate('/');
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
@@ -162,7 +174,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[navigate, t],
+		[keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {

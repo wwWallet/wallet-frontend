@@ -14,6 +14,7 @@ import { useIndexedDb } from "../components/useIndexedDb";
 export type EncryptedContainer = {
 	jwe: string;
 	passwordKey?: PasswordKeyInfo;
+	prfKeys: WebauthnPrfEncryptionKeyInfo[];
 }
 
 // Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
@@ -31,7 +32,8 @@ type PasswordKeyInfo = {
 	pbkdf2Params: Pbkdf2Params;
 }
 
-type WebauthnPrfEncryptionKeyInfo = {
+export type WebauthnPrfEncryptionKeyInfo = {
+	mainKey: WrappedKeyInfo,
 	credentialId: Uint8Array,
 	prfSalt: Uint8Array,
 	hkdfSalt: Uint8Array,
@@ -159,11 +161,32 @@ async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): 
 	);
 };
 
+async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkdfInfo: BufferSource): Promise<CryptoKey> {
+	const hkdfKey = await crypto.subtle.importKey(
+		"raw",
+		prfOutput,
+		"HKDF",
+		false,
+		["deriveKey"],
+	);
+
+	return await crypto.subtle.deriveKey(
+		{ name: "HKDF", hash: "SHA-256", salt: hkdfSalt, info: hkdfInfo },
+		hkdfKey,
+		{ name: "AES-KW", length: 256 },
+		true,
+		["wrapKey", "unwrapKey"],
+	);
+};
+
 export interface LocalStorageKeystore {
 	close(): Promise<void>,
 
 	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	initPrf(credential: PublicKeyCredential, prfSalt: Uint8Array, prfOutput: BufferSource): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+
 	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
+	unlockPrf(privateData: EncryptedContainer, prfOutput: BufferSource, keyInfo: WebauthnPrfEncryptionKeyInfo): Promise<void>,
 
 	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
@@ -270,6 +293,12 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				return await unlock(mainKey, privateData);
 			};
 
+			const unlockPrf = async (privateData: EncryptedContainer, prfOutput: BufferSource, keyInfo: WebauthnPrfEncryptionKeyInfo): Promise<void> => {
+				const prfKey = await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo);
+				const mainKey = await unwrapMainKey(prfKey, keyInfo.mainKey);
+				return await unlock(mainKey, privateData);
+			};
+
 			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
 				const alg = "ES256";
 				const { publicKey, privateKey } = await jose.generateKeyPair(alg, { extractable: true });
@@ -296,7 +325,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				};
 			};
 
-			const init = async (wrappedMainKey: WrappedKeyInfo, wrappingKey: CryptoKey, keyInfo: { passwordKey?: PasswordKeyInfo }): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+			const init = async (wrappedMainKey: WrappedKeyInfo, wrappingKey: CryptoKey, keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] }): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 				console.log("init");
 
 				const mainKey = await unwrapMainKey(wrappingKey, wrappedMainKey);
@@ -322,7 +351,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-					console.log("init");
+					console.log("initPassword");
 
 					const pbkdf2Params: Pbkdf2Params = {
 						name: "PBKDF2",
@@ -335,12 +364,32 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					const passwordKeyInfo = {
 						mainKey: wrappedMainKey,
 						pbkdf2Params,
+						prfKeys: [],
 					};
 
-					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo });
+					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys:[] });
+				},
+
+				initPrf: async (credential: PublicKeyCredential, prfSalt: Uint8Array, prfOutput: BufferSource): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+					console.log("initPrf");
+
+					const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
+					const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
+					const prfKey = await derivePrfKey(prfOutput, hkdfSalt, hkdfInfo);
+					const wrappedMainKey = await createMainKey(prfKey);
+					const keyInfo: WebauthnPrfEncryptionKeyInfo = {
+						mainKey: wrappedMainKey,
+						credentialId: new Uint8Array(credential.rawId),
+						prfSalt,
+						hkdfSalt,
+						hkdfInfo,
+					};
+
+					return await init(wrappedMainKey, prfKey, { prfKeys: [keyInfo] });
 				},
 
 				unlockPassword,
+				unlockPrf,
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
 					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
