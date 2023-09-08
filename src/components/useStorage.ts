@@ -93,3 +93,21 @@ export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHa
 		// sessionStorage is not available.
 		: (name: string, initialValue: any) => useGlobalState(name, useState(initialValue))
 );
+
+export const useClearLocalStorage = () => useCallback(
+	() => {
+		if (window.localStorage) {
+			window.localStorage.clear();
+		}
+	},
+	[],
+);
+
+export const useClearSessionStorage = () => useCallback(
+	() => {
+		if (window.sessionStorage) {
+			window.sessionStorage.clear();
+		}
+	},
+	[],
+);

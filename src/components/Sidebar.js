@@ -6,15 +6,18 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import * as api from '../api';
 import logo from '../assets/images/ediplomasLogo.svg';
+import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 const Sidebar = ({ isOpen, toggle }) => {
 
 	const { username } = api.getSession();
 	const location=useLocation();
 	const navigate = useNavigate();
+	const keystore = useLocalStorageKeystore();
 
-	const handleLogout = () => {
+	const handleLogout = async () => {
 		api.clearSession();
+		await keystore.close();
 		navigate('/login');
 	};
 

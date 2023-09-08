@@ -31,7 +31,7 @@ export function useIndexedDb(
 	dbName: string,
 	version: number,
 	upgrade: (db: IDBDatabase, prevVersion: number, newVersion: number) => void,
-): [DatabaseTransaction, DatabaseTransaction] {
+): { read: DatabaseTransaction, write: DatabaseTransaction, destroy: () => Promise<void>} {
 	return useMemo(
 		() => {
 			const openDb = async () => await openIndexedDb(dbName, version, upgrade);
@@ -42,8 +42,15 @@ export function useIndexedDb(
 			const write: DatabaseTransaction = async (objectStores, f): Promise<any> => {
 				return await dbTransaction(await openDb(), objectStores, "readwrite", f);
 			};
+			const destroy = async (): Promise<void> => {
+				return new Promise((resolve, reject) => {
+					const request = window.indexedDB.deleteDatabase(dbName);
+					request.onsuccess = () => resolve();
+					request.onerror = (event) => reject(event);
+				});
+			}
 
-			return [read, write];
+			return { read, write, destroy };
 		},
 		[dbName, version, upgrade],
 	);

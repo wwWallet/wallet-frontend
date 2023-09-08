@@ -6,7 +6,7 @@ import { SignVerifiablePresentationJWT } from "@gunet/ssi-sdk";
 import { util } from '@cef-ebsi/key-did-resolver';
 
 import { verifiablePresentationSchemaURL } from "../constants";
-import { useLocalStorage, useSessionStorage } from "../components/useStorage";
+import { useClearLocalStorage, useClearSessionStorage, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
@@ -142,8 +142,10 @@ async function unlockPassword(password: string, keyInfo: PasswordKeyInfo): Promi
 export function useLocalStorageKeystore() {
 	const [privateData, setPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [wrappedEncryptionKey, setWrappedEncryptionKey] = useSessionStorage<BufferSource | null>("encryptionKey", null);
+	const clearLocalStorage = useClearLocalStorage();
+	const clearSessionStorage = useClearSessionStorage();
 
-	const [dbRead, dbWrite] = useIndexedDb("wallet-frontend", 1, useCallback((db, prevVersion, newVersion) => {
+	const idb = useIndexedDb("wallet-frontend", 1, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
 			const objectStore = db.createObjectStore("keys", { keyPath: "id" });
 			objectStore.createIndex("id", "id", { unique: true });
@@ -160,13 +162,13 @@ export function useLocalStorageKeystore() {
 					false,
 					["wrapKey", "unwrapKey"],
 				);
-				await dbWrite(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
+				await idb.write(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
 				return sessionKey;
 			}
 
 			const getSessionKey = async (): Promise<CryptoKey> => {
 				try {
-					const result = await dbRead(
+					const result = await idb.read(
 						["keys"], (tr) => tr.objectStore("keys").get("sessionKey")
 					);
 					return result.sessionKey;
@@ -259,6 +261,12 @@ export function useLocalStorageKeystore() {
 			};
 
 			return {
+				close: async (): Promise<void> => {
+					await idb.destroy();
+					clearLocalStorage();
+					clearSessionStorage();
+				},
+
 				init: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("init");
 
@@ -360,8 +368,9 @@ export function useLocalStorageKeystore() {
 			};
 		},
 		[
-			dbRead,
-			dbWrite,
+			clearLocalStorage,
+			clearSessionStorage,
+			idb,
 			privateData,
 			setPrivateData,
 			setWrappedEncryptionKey,
