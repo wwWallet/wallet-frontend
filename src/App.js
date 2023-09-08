@@ -21,7 +21,7 @@ const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const Popup = React.lazy(() => import('./components/Popup'));
-
+const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
 
@@ -90,6 +90,8 @@ function App() {
 						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
 						<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
 						<Route path="/verifiers" element={<PrivateRoute><Verifiers /></PrivateRoute>} />
+						<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
+
 						<Route path="/cb"
 							element={
 								isValidURL === null ? null : isValidURL ? (

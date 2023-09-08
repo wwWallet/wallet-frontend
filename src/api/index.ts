@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
+import { Verifier } from './types';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 
 
@@ -116,6 +117,31 @@ export async function signup(username: string, password: string): Promise<AxiosR
 	}
 };
 
+export async function getAllVerifiers(): Promise<Verifier[]> {
+	try {
+		const result = await get('/verifiers/all');
+		const { verifiers } = result.data;
+		console.log("verifiers = ", verifiers)
+		return verifiers;
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
+
+
+export async function initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }> {
+	try {
+		const result = await post('/presentation/initiate', { verifier_id, scope_name });
+		const { redirect_to } = result.data;
+		return { redirect_to };
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
 export async function loginWebauthn(): Promise<AxiosResponse> {
 	try {
 		const beginResp = await post('/user/login-webauthn-begin', {});
