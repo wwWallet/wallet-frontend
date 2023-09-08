@@ -2,8 +2,9 @@ import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
+import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { LocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { UserData, Verifier } from './types';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -58,9 +59,10 @@ export async function del(path: string): Promise<AxiosResponse> {
 		});
 }
 
-export function getSession(): { username?: string } {
+export function getSession(): { username?: string, displayName?: string } {
 	return {
 		username: Cookies.get('username'),
+		displayName: Cookies.get('displayName'),
 	};
 }
 
@@ -70,21 +72,23 @@ export function isLoggedIn(): boolean {
 
 export function clearSession(): void {
 	Cookies.remove('username');
+	Cookies.remove('displayName');
 	Cookies.remove('appToken');
 }
 
-function setSessionCookies(username: string, response: AxiosResponse): void {
-	const { appToken } = response.data;
+export function setSessionCookies(response: AxiosResponse): void {
+	const { appToken, displayName, username } = response.data;
 	Cookies.set('username', username);
+	Cookies.set('displayName', displayName);
 	Cookies.set('appToken', appToken);
 }
 
 export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
 	try {
 		const response = await post('/user/login', { username, password });
-		setSessionCookies(username, response);
+		setSessionCookies(response);
 
-		const userData = response.data;
+		const userData = response.data as UserData;
 		const privateData = jsonParseTaggedBinary(userData.privateData);
 		try {
 			await keystore.unlockPassword(privateData, password, privateData.passwordKey);
@@ -112,10 +116,11 @@ export async function signup(username: string, password: string, keystore: Local
 				password,
 				fcm_token,
 				browser_fcm_token,
+				displayName: username,
 				keys: publicData,
 				privateData: jsonStringifyTaggedBinary(privateData),
 			});
-			setSessionCookies(username, response);
+			setSessionCookies(response);
 
 		} catch (e) {
 			console.error("Signup failed", e);
@@ -126,4 +131,133 @@ export async function signup(username: string, password: string, keystore: Local
 		console.error("Failed to initialize local keystore", e);
 		throw e;
 	}
+}
+
+export async function getAllVerifiers(): Promise<Verifier[]> {
+	try {
+		const result = await get('/verifiers/all');
+		const { verifiers } = result.data;
+		console.log("verifiers = ", verifiers)
+		return verifiers;
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
+
+
+export async function initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }> {
+	try {
+		const result = await post('/presentation/initiate', { verifier_id, scope_name });
+		const { redirect_to } = result.data;
+		return { redirect_to };
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
+export async function loginWebauthn(): Promise<AxiosResponse> {
+	try {
+		const beginResp = await post('/user/login-webauthn-begin', {});
+		console.log("begin", beginResp);
+		const beginData = beginResp.data;
+
+		try {
+			const credential = await navigator.credentials.get(beginData.getOptions) as PublicKeyCredential;
+			const response = credential.response as AuthenticatorAssertionResponse;
+			console.log("asserted", credential);
+
+			try {
+				const finishResp = await post('/user/login-webauthn-finish', {
+					challengeId: beginData.challengeId,
+					credential: {
+						type: credential.type,
+						id: credential.id,
+						rawId: credential.id,
+						response: {
+							authenticatorData: toBase64Url(response.authenticatorData),
+							clientDataJSON: toBase64Url(response.clientDataJSON),
+							signature: toBase64Url(response.signature),
+							userHandle: toBase64Url(response.userHandle),
+						},
+						authenticatorAttachment: credential.authenticatorAttachment,
+						clientExtensionResults: credential.getClientExtensionResults(),
+					},
+				});
+				setSessionCookies(finishResp);
+
+				return finishResp;
+
+			} catch (e) {
+				throw { errorId: 'passkeyInvalid' };
+			}
+
+		} catch (e) {
+			throw { errorId: 'passkeyLoginFailedTryAgain' };
+		}
+
+	} catch (e) {
+		throw { errorId: 'passkeyLoginFailedServerError' };
+	}
 };
+
+export async function signupWebauthn(name: string): Promise<AxiosResponse> {
+	try {
+		const beginResp = await post('/user/register-webauthn-begin', {});
+		console.log("begin", beginResp);
+		const beginData = beginResp.data;
+
+		try {
+			const credential = await navigator.credentials.create({
+				...beginData.createOptions,
+				publicKey: {
+					...beginData.createOptions.publicKey,
+					user: {
+						...beginData.createOptions.publicKey.user,
+						name,
+						displayName: name,
+					},
+				},
+			}) as PublicKeyCredential;
+			const response = credential.response as AuthenticatorAttestationResponse;
+			console.log("created", credential);
+
+			try {
+				const fcm_token = await requestForToken();
+				const browser_fcm_token = fcm_token;
+
+				const finishResp = await post('/user/register-webauthn-finish', {
+					challengeId: beginData.challengeId,
+					fcm_token,
+					browser_fcm_token,
+					displayName: name,
+					credential: {
+						type: credential.type,
+						id: credential.id,
+						rawId: credential.id,
+						response: {
+							attestationObject: toBase64Url(response.attestationObject),
+							clientDataJSON: toBase64Url(response.clientDataJSON),
+							transports: response.getTransports(),
+						},
+						authenticatorAttachment: credential.authenticatorAttachment,
+						clientExtensionResults: credential.getClientExtensionResults(),
+					},
+				});
+				setSessionCookies(finishResp);
+
+				return finishResp;
+			} catch (e) {
+				throw { errorId: 'passkeySignupFailedServerError' };
+			}
+
+		} catch (e) {
+			throw { errorId: 'passkeySignupFailedTryAgain' };
+		}
+
+	} catch (e) {
+		throw { errorId: 'passkeySignupFinishFailedServerError' };
+	}
+}

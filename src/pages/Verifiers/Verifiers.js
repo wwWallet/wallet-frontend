@@ -22,22 +22,16 @@ const Verifiers = () => {
   const [filteredVerifiers, setFilteredVerifiers] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedVerifier, setSelectedVerifier] = useState(null);
-	
+	const [selectedScope, setSelectedScope] = useState(null);
+  const [attemptedContinueWithoutScope, setAttemptedContinueWithoutScope] = useState(false);
+
 	const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+
     const fetchVerifiers = async () => {
       try {
-        const fetchedVerifiers = [
-          {
-            client_id: "",
-            client_secret: "",
-            did: "did:ebsi:dfsjhjhfdjhdfjdf",
-            friendlyName: "Acme Corp",
-            id: 1,
-            url: "http://127.0.0.1:4445"
-          },
-        ];
+				const fetchedVerifiers = await api.getAllVerifiers();
         setVerifiers(fetchedVerifiers);
         setFilteredVerifiers(fetchedVerifiers);
       } catch (error) {
@@ -55,9 +49,9 @@ const Verifiers = () => {
 
   useEffect(() => {
     const filtered = verifiers.filter((verifier) => {
-      const friendlyName = verifier.friendlyName.toLowerCase();
+      const name = verifier.name.toLowerCase();
       const query = searchQuery.toLowerCase();
-      return friendlyName.includes(query);
+      return name.includes(query);
     });
 
 		setFilteredVerifiers(filtered);
@@ -66,6 +60,7 @@ const Verifiers = () => {
 	const handleVerifierClick = async (did) => {
 		const clickedVerifier = verifiers.find((verifier) => verifier.did === did);
 		if (clickedVerifier) {
+			setSelectedScope(null); // Reset the selected scope
 			setSelectedVerifier(clickedVerifier);
 			setShowPopup(true);
 		}
@@ -78,19 +73,30 @@ const Verifiers = () => {
 
 	const handleContinue = () => {
 		setLoading(true);
+		setAttemptedContinueWithoutScope(true); // Set the flag to true
 		
-		console.log('Continue with:', selectedVerifier);
-		
-		if (selectedVerifier && selectedVerifier.url) {
-			const newTab = window.open(selectedVerifier.url, '_blank');
-			if (newTab) {
-				newTab.focus();
-			}
+		console.log('Continue with:', selectedVerifier, 'and scope:', selectedScope);
+
+		if (!selectedScope) {
+			setLoading(false);
+			return; // Return early if no scope is selected
 		}
-		
-		setLoading(false);
-		setShowPopup(false);
+
+		const { id } = selectedVerifier;
+		api.initiatePresentationExchange(id, selectedScope)
+			.then(({ redirect_to }) => {
+				window.location.href = redirect_to;
+			})
+			.catch(e => {
+				console.error(e);
+			})
+			.finally(() => {
+				setLoading(false);
+				setShowPopup(false);
+				setAttemptedContinueWithoutScope(false); // Reset the flag
+			});
 	};
+
 
   return (
     <Layout>
@@ -123,7 +129,7 @@ const Verifiers = () => {
                 style={{ wordBreak: 'break-all' }}
                 onClick={() => handleVerifierClick(verifier.did)}
               >
-                <div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.friendlyName, searchQuery) }} />
+                <div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
               </li>
             ))}
           </ul>
@@ -144,12 +150,33 @@ const Verifiers = () => {
 							<>
 								<h2 className="text-lg font-bold mb-2 text-custom-blue">
 									<FaShare size={20} className="inline mr-1 mb-1" /> 
-									Selected Verifier: {selectedVerifier?.friendlyName}
+									Selected Verifier: {selectedVerifier?.name}
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
+								{attemptedContinueWithoutScope && !selectedScope && (
+									<p className="text-red-500 text-sm mt-1">Please select a scope before continuing.</p>
+								)}
 								<p className="mb-2 mt-4">
-									You have selected {selectedVerifier?.friendlyName}. If you continue, you will be redirected in a new tab to the verifier's page.
+									You have selected {selectedVerifier?.name}. If you continue, you will be redirected in a new tab to the verifier's page.
 								</p>
+
+								<div className="mt-4">
+									<label htmlFor="scopes" className="block text-sm font-medium text-gray-600">Select Scope</label>
+									<select
+										id="scopes"
+										name="scopes"
+										className="mt-1 p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+										value={selectedScope}
+										onChange={(e) => setSelectedScope(e.target.value)}
+										required
+									>  <option value="" hidden>Select a scope</option>
+										{selectedVerifier?.scopes.map((scope, index) => (
+											<option key={index} value={scope.name}>{scope.name}</option>
+										))}
+									</select>
+
+								</div>
+
 								<div className="flex justify-end space-x-2 pt-4">
 									<button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800" onClick={handleCancel}>
 										Cancel

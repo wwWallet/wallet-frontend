@@ -1,5 +1,5 @@
 // Import Libraries
-import React, {useEffect, Suspense } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Spinner from './components/Spinner'; // Make sure this Spinner component exists and renders the spinner you want
@@ -11,6 +11,7 @@ import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import Notification from './components/Notification'; // Import the custom hook
 
+const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const Issuers = React.lazy(() => import('./pages/Issuers/Issuers'));
@@ -20,7 +21,7 @@ const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const Popup = React.lazy(() => import('./components/Popup'));
-
+const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
 
@@ -83,11 +84,14 @@ function App() {
 				<Suspense fallback={<Spinner />}>
 					<Routes>
 						<Route path="/login" element={<Login />} />
+						<Route path="/account" element={<AccountSettings />} />
 						<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
 						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
 						<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
 						<Route path="/verifiers" element={<PrivateRoute><Verifiers /></PrivateRoute>} />
+						<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
+
 						<Route path="/cb"
 							element={
 								isValidURL === null ? null : isValidURL ? (
