@@ -38,27 +38,6 @@ type WebauthnPrfEncryptionKeyInfo = {
 	hkdfInfo: Uint8Array,
 }
 
-async function wrapEncryptionKey(encryptionKey: CryptoKey, wrappingKey: CryptoKey): Promise<ArrayBuffer> {
-	return await crypto.subtle.wrapKey(
-		"raw",
-		encryptionKey,
-		wrappingKey,
-		"AES-KW",
-	);
-}
-
-async function unwrapEncryptionKey(wrappedKey: BufferSource, wrappingKey: CryptoKey): Promise<CryptoKey> {
-	return await crypto.subtle.unwrapKey(
-		"raw",
-		wrappedKey,
-		wrappingKey,
-		"AES-KW",
-		"AES-GCM",
-		false,
-		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
-	);
-}
-
 export type PublicData = {
 	publicKey: JWK,
 	did: string,
@@ -111,9 +90,56 @@ async function unwrapMainKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo): P
 		wrappingKey,
 		keyInfo.unwrapAlgo,
 		keyInfo.unwrappedKeyAlgo,
-		true,
+		false,
 		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
 	);
+}
+
+async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
+	return await crypto.subtle.unwrapKey(
+		"jwk",
+		wrappedPrivateKey.privateKey,
+		wrappingKey,
+		wrappedPrivateKey.aesGcmParams,
+		wrappedPrivateKey.unwrappedKeyAlgo,
+		extractable,
+		["sign"],
+	);
+};
+
+async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
+	const privateKeyAesGcmParams: AesGcmParams = {
+		name: "AES-GCM",
+		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
+		additionalData: new Uint8Array([]),
+		tagLength: 128,
+	};
+	return {
+		privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
+		aesGcmParams: privateKeyAesGcmParams,
+		unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
+	};
+};
+
+async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
+	const cleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
+	return await new jose.CompactEncrypt(cleartext)
+		.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
+		.encrypt(encryptionKey);
+};
+
+async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
+	return jsonParseTaggedBinary(
+		new TextDecoder().decode(
+			(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
+		));
+};
+
+async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, toKey: CryptoKey): Promise<string> {
+	const privateData = await decryptPrivateData(privateDataJwe, fromKey);
+	const privateKey = await unwrapPrivateKey(privateData.wrappedPrivateKey, fromKey, true);
+	privateData.wrappedPrivateKey = await wrapPrivateKey(privateKey, toKey);
+	return await encryptPrivateData(privateData, toKey);
 }
 
 async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> {
@@ -140,8 +166,8 @@ async function unlockPassword(password: string, keyInfo: PasswordKeyInfo): Promi
 };
 
 export function useLocalStorageKeystore() {
-	const [privateData, setPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
-	const [wrappedEncryptionKey, setWrappedEncryptionKey] = useSessionStorage<BufferSource | null>("encryptionKey", null);
+	const [privateDataJwe, setPrivateDataJwe] = useLocalStorage<string | null>("privateData", null);
+	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
 	const clearLocalStorage = useClearLocalStorage();
 	const clearSessionStorage = useClearSessionStorage();
 
@@ -156,85 +182,88 @@ export function useLocalStorageKeystore() {
 		() => {
 			console.log("New LocalStorageKeystore instance");
 
-			const createSessionKey = async (): Promise<CryptoKey> => {
-				const sessionKey = await crypto.subtle.generateKey(
+			const createOuterSessionKey = async (): Promise<CryptoKey> => {
+				const outerSessionKey = await crypto.subtle.generateKey(
 					{ name: "AES-KW", length: 256 },
 					false,
 					["wrapKey", "unwrapKey"],
 				);
-				await idb.write(["keys"], (tr) => tr.objectStore("keys").put({ id: "sessionKey", sessionKey }));
-				return sessionKey;
+				await idb.write(["keys"], (tr) => tr.objectStore("keys").put({
+					id: "sessionKey",
+					value: outerSessionKey,
+				}));
+				return outerSessionKey;
 			}
 
-			const getSessionKey = async (): Promise<CryptoKey> => {
+			const getOuterSessionKey = async (): Promise<CryptoKey> => {
 				try {
 					const result = await idb.read(
 						["keys"], (tr) => tr.objectStore("keys").get("sessionKey")
 					);
-					return result.sessionKey;
+					return result.value;
 				} catch (e) {
 					console.log("Failed to retreive session key", e);
 					throw new Error("Failed to retreive session key");
 				}
 			};
 
-			const getEncryptionKey = async (): Promise<CryptoKey> => {
-				if (wrappedEncryptionKey) {
-					try {
-						return await unwrapEncryptionKey(wrappedEncryptionKey, await getSessionKey());
-					} catch (e) {
-						console.error("Failed to unwrap encryption key", e);
-						throw e;
-					}
-				} else {
-					throw new Error("Encryption key not initialized.");
-				}
+			const createInnerSessionKey = async (outerSessionKey: CryptoKey): Promise<CryptoKey> => {
+				const innerSessionKey = await crypto.subtle.generateKey(
+					{ name: "AES-GCM", length: 256 },
+					true,
+					["encrypt", "wrapKey"],
+				);
+				const wrappedInnerSessionKey = await crypto.subtle.wrapKey(
+					"raw",
+					innerSessionKey,
+					outerSessionKey,
+					"AES-KW",
+				);
+				setInnerSessionKey(wrappedInnerSessionKey);
+				return innerSessionKey;
 			}
 
-			const getPrivateData = async (): Promise<PrivateData> => {
-				if (privateData) {
-					return jsonParseTaggedBinary(
+			const getInnerSessionKey = async (outerSessionKey: CryptoKey): Promise<CryptoKey> => {
+				if (innerSessionKey) {
+					return await crypto.subtle.unwrapKey(
+						"raw",
+						innerSessionKey,
+						outerSessionKey,
+						"AES-KW",
+						"AES-GCM",
+						false,
+						["decrypt", "unwrapKey"],
+					);
+				} else {
+					throw new Error("Session key not initialized");
+				}
+			};
+
+			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
+				if (privateDataJwe) {
+					const innerSessionKey = await getInnerSessionKey(await getOuterSessionKey());
+					const privateData = jsonParseTaggedBinary(
 						new TextDecoder().decode(
-							(await jose.compactDecrypt(privateData.jwe, await getEncryptionKey())).plaintext
+							(await jose.compactDecrypt(privateDataJwe, innerSessionKey)).plaintext
 						));
+					return [privateData, innerSessionKey];
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
 			};
 
-			const getPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey): Promise<CryptoKey> => {
-				return await crypto.subtle.unwrapKey(
-					"jwk",
-					wrappedPrivateKey.privateKey,
-					await getEncryptionKey(),
-					wrappedPrivateKey.aesGcmParams,
-					wrappedPrivateKey.unwrappedKeyAlgo,
-					false,
-					["sign"],
-				);
-			};
-
 			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer): Promise<void> => {
-				const sessionKey = await createSessionKey();
-				setWrappedEncryptionKey(await wrapEncryptionKey(mainKey, sessionKey));
-				setPrivateData(privateData);
+				const outerSessionKey = await createOuterSessionKey();
+				const innerSessionKey = await createInnerSessionKey(outerSessionKey);
+				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, innerSessionKey);
+				setPrivateDataJwe(reencryptedPrivateData);
 			};
 
 			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
 				const alg = "ES256";
 				const { publicKey, privateKey } = await jose.generateKeyPair(alg, { extractable: true });
 
-				const privateKeyAesGcmParams: AesGcmParams = {
-					name: "AES-GCM",
-					iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
-					additionalData: new Uint8Array([]),
-					tagLength: 128,
-				};
-				const wrappedPrivateKey: WrappedPrivateKey = {
-					privateKey: await crypto.subtle.wrapKey("jwk", privateKey as CryptoKey, mainKey, privateKeyAesGcmParams),
-					aesGcmParams: privateKeyAesGcmParams,
-					unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-				};
+				const wrappedPrivateKey: WrappedPrivateKey = await wrapPrivateKey(privateKey as CryptoKey, mainKey);
 
 				const publicKeyJWK = await jose.exportJWK(publicKey);
 				const did = util.createDid(publicKeyJWK);
@@ -248,11 +277,7 @@ export function useLocalStorageKeystore() {
 					...publicData,
 					wrappedPrivateKey,
 				}
-
-				const privateDataCleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
-				const privateDataJwe = await new jose.CompactEncrypt(privateDataCleartext)
-					.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
-					.encrypt(mainKey);
+				const privateDataJwe = await encryptPrivateData(privateData, mainKey);
 
 				return {
 					publicData,
@@ -301,8 +326,8 @@ export function useLocalStorageKeystore() {
 				unlockPassword,
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
-					const { alg, did, wrappedPrivateKey } = await getPrivateData();
-					const privateKey = await getPrivateKey(wrappedPrivateKey);
+					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
+					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, innerSessionKey);
 					const jws = await new SignJWT({ nonce: nonce })
 						.setProtectedHeader({
 							alg,
@@ -320,8 +345,8 @@ export function useLocalStorageKeystore() {
 				},
 
 				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => {
-					const { alg, did, wrappedPrivateKey } = await getPrivateData();
-					const privateKey = await getPrivateKey(wrappedPrivateKey);
+					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
+					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, innerSessionKey);
 
 					const jws = await new SignVerifiablePresentationJWT()
 						.setProtectedHeader({
@@ -348,8 +373,8 @@ export function useLocalStorageKeystore() {
 				},
 
 				generateOpenid4vciProof: async (audience: string, nonce: string): Promise<{ proof_jwt: string }> => {
-					const { alg, did, wrappedPrivateKey } = await getPrivateData();
-					const privateKey = await getPrivateKey(wrappedPrivateKey);
+					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
+					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, innerSessionKey);
 					const header = {
 						alg,
 						typ: "openid4vci-proof+jwt",
@@ -371,10 +396,10 @@ export function useLocalStorageKeystore() {
 			clearLocalStorage,
 			clearSessionStorage,
 			idb,
-			privateData,
-			setPrivateData,
-			setWrappedEncryptionKey,
-			wrappedEncryptionKey,
+			innerSessionKey,
+			privateDataJwe,
+			setInnerSessionKey,
+			setPrivateDataJwe,
 		],
 	);
 }
