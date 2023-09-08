@@ -287,7 +287,7 @@ export function useLocalStorageKeystore() {
 
 			return {
 				close: async (): Promise<void> => {
-					await idb.destroy();
+					idb.destroy(); // This can take a long time, so don't await it
 					clearLocalStorage();
 					clearSessionStorage();
 				},
