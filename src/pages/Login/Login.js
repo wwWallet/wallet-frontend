@@ -6,7 +6,6 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
-import { toBase64Url } from '../../util';
 import logo from '../../assets/images/ediplomasLogo.svg';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import SeparatorLine from '../../components/SeparatorLine';
@@ -112,43 +111,26 @@ const WebauthnSignupLogin = ({
 	const onLogin = useCallback(
 		async () => {
 			try {
-				const beginResp = await api.post('/user/login-webauthn-begin', {});
-				console.log("begin", beginResp);
-				const beginData = beginResp.data;
-
-				try {
-					const credential = await navigator.credentials.get(beginData.getOptions);
-					console.log("asserted", credential);
-
-					try {
-						const finishResp = await api.post('/user/login-webauthn-finish', {
-							challengeId: beginData.challengeId,
-							credential: {
-								type: credential.type,
-								id: credential.id,
-								rawId: credential.id,
-								response: {
-									authenticatorData: toBase64Url(credential.response.authenticatorData),
-									clientDataJSON: toBase64Url(credential.response.clientDataJSON),
-									signature: toBase64Url(credential.response.signature),
-									userHandle: toBase64Url(credential.response.userHandle),
-								},
-								authenticatorAttachment: credential.authenticatorAttachment,
-								clientExtensionResults: credential.getClientExtensionResults(),
-							},
-						});
-						api.setSessionCookies(finishResp.data.username, finishResp);
-						navigate('/');
-					} catch (e) {
-						setError(t('passkeyInvalid'));
-					}
-
-				} catch (e) {
-					setError(t('passkeyLoginFailedTryAgain'));
-				}
-
+				await api.loginWebauthn();
+				navigate('/');
 			} catch (e) {
-				setError(t('passkeyLoginFailedServerError'));
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (e.errorId) {
+					case 'passkeyInvalid':
+						setError(t('passkeyInvalid'));
+						break;
+
+					case 'passkeyLoginFailedTryAgain':
+						setError(t('passkeyLoginFailedTryAgain'));
+						break;
+
+					case 'passkeyLoginFailedServerError':
+						setError(t('passkeyLoginFailedServerError'));
+						break;
+
+					default:
+						throw e;
+				}
 			}
 		},
 		[navigate, t],
@@ -157,53 +139,26 @@ const WebauthnSignupLogin = ({
 	const onSignup = useCallback(
 		async (name) => {
 			try {
-				const beginResp = await api.post('/user/register-webauthn-begin', {});
-				console.log("begin", beginResp);
-				const beginData = beginResp.data;
-
-				try {
-					const credential = await navigator.credentials.create({
-						...beginData.createOptions,
-						publicKey: {
-							...beginData.createOptions.publicKey,
-							user: {
-								...beginData.createOptions.publicKey.user,
-								name,
-								displayName: name,
-							},
-						},
-					});
-					console.log("created", credential);
-
-					try {
-						const finishResp = await api.post('/user/register-webauthn-finish', {
-							challengeId: beginData.challengeId,
-							displayName: name,
-							credential: {
-								type: credential.type,
-								id: credential.id,
-								rawId: credential.id,
-								response: {
-									attestationObject: toBase64Url(credential.response.attestationObject),
-									clientDataJSON: toBase64Url(credential.response.clientDataJSON),
-									transports: credential.response.getTransports(),
-								},
-								authenticatorAttachment: credential.authenticatorAttachment,
-								clientExtensionResults: credential.getClientExtensionResults(),
-							},
-						});
-						api.setSessionCookies(null, finishResp);
-						navigate('/');
-					} catch (e) {
-						setError(t('passkeySignupFailedServerError'));
-					}
-
-				} catch (e) {
-					setError(t('passkeySignupFailedTryAgain'));
-				}
-
+				await api.signupWebauthn(name);
+				navigate('/');
 			} catch (e) {
-				setError(t('passkeySignupFinishFailedServerError'));
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (e.errorId) {
+					case 'passkeySignupFailedServerError':
+						setError(t('passkeySignupFailedServerError'));
+						break;
+
+					case 'passkeySignupFailedTryAgain':
+						setError(t('passkeySignupFailedTryAgain'));
+						break;
+
+					case 'passkeySignupFinishFailedServerError':
+						setError(t('passkeySignupFinishFailedServerError'));
+						break;
+
+					default:
+						throw e;
+				}
 			}
 		},
 		[navigate, t],
