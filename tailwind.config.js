@@ -11,6 +11,7 @@ module.exports = {
 			},
 			colors: {
 				'custom-blue': '#003476',
+				'custom-blue-hover': '#002b62',
 				'custom-light-blue': '#68caf1',
 				'light-red': '#ffcccc'
 			}
