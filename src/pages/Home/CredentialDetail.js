@@ -4,49 +4,23 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import * as api from '../../api';
+
 import Layout from '../../components/Layout';
-import CredentialInfo from '../../components/Home/CredentialInfo'; // Import the new component
-import parseJwt from '../../functions/ParseJwt';
+import CredentialInfo from '../../components/Home/CredentialInfo';
+import { fetchCredentialData } from '../../components/Home/apiUtils';
 
 const CredentialDetail = () => {
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
-
-	const [isImageModalOpen, setImageModalOpen] = useState(false); // New state for the modal
-
+	const [isImageModalOpen, setImageModalOpen] = useState(false);
 
 	useEffect(() => {
 		const getData = async () => {
-			try {
-				const response = await api.get('/storage/vc');
-
-				const allImages = response.data.vc_list;
-				const targetImage = allImages.find((img) => img.id.toString() === id);
-				console.log(targetImage)
-				const newImages = targetImage
-				? [targetImage].map((item) => ({
-						id: item.id,
-						src: item.logoURL,
-						alt: item.issuerFriendlyName,
-						data: parseJwt(item.credential)["vc"]['credentialSubject'],
-						type: parseJwt(item.credential)['vc']["type"]["2"],
-						expdate: parseJwt(item.credential)['vc']["expirationDate"],
-					}))
-				: [];
-			
-				console.log(newImages)
-
-			setCredentials(newImages[0]);
-
-			} catch (error) {
-				console.error('Failed to fetch data', error);
-			}
+			const newCredential = await fetchCredentialData(id);
+			setCredentials(newCredential);
 		};
-
 		getData();
 	}, [id]);
-
 
 	return (
 		<Layout>

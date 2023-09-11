@@ -6,11 +6,10 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 
-import * as api from '../../api';
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
 import CredentialInfo from '../../components/Home/CredentialInfo';
-import parseJwt from '../../functions/ParseJwt';
+import { fetchCredentialData } from '../../components/Home/apiUtils';
 
 const Home = () => {
   const [credentials, setCredentials] = useState([]);
@@ -45,28 +44,13 @@ const Home = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        const response = await api.get('/storage/vc');
-        const newImages = response.data.vc_list.map((item) => ({
-          id: item.id,
-          src: item.logoURL,
-          alt: item.issuerFriendlyName,
-					data: parseJwt(item.credential)["vc"]['credentialSubject'],
-					type: parseJwt(item.credential)['vc']["type"]["2"],
-					expdate: parseJwt(item.credential)['vc']["expirationDate"],
-
-        }));
-
-
-        setCredentials(newImages);
-      } catch (error) {
-        console.error('Failed to fetch data', error);
-      }
-    };
-    getData();
-  }, []);
+	useEffect(() => {
+		const getData = async () => {
+			const temp_cred = await fetchCredentialData();
+			setCredentials(temp_cred);
+		};
+		getData();
+	}, []);
 
   const handleAddCredential = () => {
     navigate('/issuers');

@@ -32,8 +32,8 @@ const getFieldIcon = (fieldName) => {
 
 const CredentialInfo = ({ credential }) => {
   return (
-    <div className="pt-5 mx-2 px-1 lg:w-1/2 overflow-x-auto">
-      <table className="min-w-full">
+    <div className=" pt-5 mx-2 px-1 lg:w-1/2 overflow-x-auto">
+      <table className="lg:w-4/5">
         <tbody className="divide-y-4 divide-gray-100">
           {credential && (
             <>
