@@ -57,17 +57,19 @@ const Home = () => {
   const navigate = useNavigate();
   const sliderRef = useRef();
 
-  const settings = {
-    dots: false,
-		arrows: false, // Disable default arrows
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    afterChange: (current) => setCurrentSlide(current + 1),
-		style: {margin: '0 10px'}, // Add margin between slides
-
-  };
+	const settings = {
+		dots: false,
+		arrows: false,
+		infinite: true,
+		speed: 500,
+		slidesToShow: 1,
+		slidesToScroll: 1,
+		afterChange: (current) => setCurrentSlide(current + 1),
+		centerMode: true, // Enable center mode
+		centerPadding: '10px', // Set the padding between adjacent images to 2 pixels
+		style: { margin: '0 10px' },
+	};
+	
 
   useEffect(() => {
     const handleResize = () => {
@@ -108,13 +110,13 @@ const Home = () => {
     navigate('/issuers');
   };
 
-  const handleImageClick = (image) => {
-    navigate(`/credential/${image.id}`);
+  const handleImageClick = (credential) => {
+    navigate(`/credential/${credential.id}`);
   };
 
   return (
     <Layout>
-      <div className="px-4 sm:px-6 w-full">
+      <div className="sm:px-6 w-full">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">Credentials</h1>
           <button
@@ -124,7 +126,7 @@ const Home = () => {
             <div className="flex items-center">
               <BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
               <span className="sm:inline">Add</span>
-              <span className="hidden sm:inline"> Credentials</span>
+              <span className="hidden sm:inline">&nbsp; Credentials</span>
             </div>
           </button>
         </div>
@@ -134,14 +136,14 @@ const Home = () => {
           {isSmallScreen ? (
           	<>
 							<Slider ref={sliderRef} {...settings}>
-								{credentials.map((image) => (
+								{credentials.map((credential) => (
 									<>
 									<div
-										key={image.id}
+										key={credential.id}
 										className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-										onClick={() => handleImageClick(image)}
+										onClick={() => handleImageClick(credential)}
 									>
-										<img src={image.src} alt={image.alt} className="w-full h-auto rounded-xl" />
+										<img src={credential.src} alt={credential.alt} className="w-full h-auto rounded-xl" />
 									</div>
 									<div className="flex items-center justify-end mt-2 mr-3">
 								<span className="mr-4">{currentSlide} of {credentials.length}</span>
@@ -152,80 +154,80 @@ const Home = () => {
 									<BiRightArrow size={22} />
 								</button>
 							</div>
-										{/* Block 2: Information List */}
-									<div className="pt-5 lg:w-1/2">
-									<table className="min-w-auto ">
-										<tbody className=" divide-y-4 divide-gray-100">
+								{/* Block 2: Information List */}
+								<div className="pt-5 mx-2 px-1 lg:w-1/2 overflow-x-auto">
+  <table className="min-w-full">
+    <tbody className="divide-y-4 divide-gray-100">
 												<>
 													<tr className="text-left bg-white">
-														<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
+														<td className="font-bold text-custom-blue py-2 px-2 align-left rounded-l-xl">
 															{getFieldIcon('type')}
 														</td>
-														<td className="py-2 px-2 rounded-r-xl">{image.type}</td>
+														<td className="py-2 px-2 rounded-r-xl w-full">{credential.type}</td>
 													</tr>
 													<tr className="text-left bg-white">
 														<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 															{getFieldIcon('expdate')}
 														</td>
-														<td className="py-2 px-2 rounded-r-xl">{image.expdate}</td>
+														<td className="py-2 px-2 rounded-r-xl">{credential.expdate}</td>
 													</tr>
 												</>
 
 												<>
-													{image.type === 'VerifiableId' && (
+													{credential.type === 'VerifiableId' && (
 														<>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('dateOfBirth')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.dateOfBirth}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.dateOfBirth}</td>
 															</tr>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('familyName')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.familyName}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.familyName}</td>
 															</tr>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('firstName')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.firstName}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.firstName}</td>
 															</tr>
 														</>
 													)}
 
-													{image.type === 'Bachelor' && (
+													{credential.type === 'Bachelor' && (
 														<>
-															<tr className="text-left bg-white">
+															<tr className="text-left bg-white w-full">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('diplomaTitle')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.diplomaTitle}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.diplomaTitle}</td>
 															</tr>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('eqfLevel')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.eqfLevel}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.eqfLevel}</td>
 															</tr>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('familyName')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.familyName}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.familyName}</td>
 															</tr>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('firstName')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.firstName}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.firstName}</td>
 															</tr>
 															<tr className="text-left bg-white">
 																<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
 																	{getFieldIcon('grade')}
 																</td>
-																<td className="py-2 px-2 rounded-r-xl">{image.data.grade}</td>
+																<td className="py-2 px-2 rounded-r-xl">{credential.data.grade}</td>
 															</tr>
 														</>
 													)}
@@ -233,20 +235,20 @@ const Home = () => {
 
 										</tbody>
 									</table>
-								</div>
+							</div>
 								</>
 								))}
 					 		</Slider>
 				 		</>
           	) : (
 							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
-								{credentials.map((image) => (
+								{credentials.map((credential) => (
 									<div
-										key={image.id}
+										key={credential.id}
 										className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-										onClick={() => handleImageClick(image)}
+										onClick={() => handleImageClick(credential)}
 									>
-										<img src={image.src} alt={image.alt} className="w-full h-auto rounded-xl" />
+										<img src={credential.src} alt={credential.alt} className="w-full h-auto rounded-xl" />
 									</div>
 								))}
 								<div
