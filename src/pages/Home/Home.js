@@ -5,6 +5,7 @@ import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
+import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
@@ -15,6 +16,9 @@ const Home = () => {
   const [credentials, setCredentials] = useState([]);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
+	const [isImageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedCredential, setSelectedCredential] = useState(null);
+
   const navigate = useNavigate();
   const sliderRef = useRef();
 
@@ -57,8 +61,9 @@ const Home = () => {
   };
 
   const handleImageClick = (credential) => {
-    navigate(`/credential/${credential.id}`);
+			navigate(`/credential/${credential.id}`);
   };
+
 
   return (
     <Layout>
@@ -84,25 +89,20 @@ const Home = () => {
 							<Slider ref={sliderRef} {...settings}>
 								{credentials.map((credential) => (
 									<>
-									<div
-										key={credential.id}
-										className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-										onClick={() => handleImageClick(credential)}
-									>
-										<img src={credential.src} alt={credential.alt} className="w-full h-auto rounded-xl" />
-									</div>
-									<div className="flex items-center justify-end mt-2 mr-3">
-								<span className="mr-4">{currentSlide} of {credentials.length}</span>
-								<button className="" onClick={() => sliderRef.current.slickPrev()}>
-									<BiLeftArrow size={22} />
-								</button>
-								<button onClick={() => sliderRef.current.slickNext()}>
-									<BiRightArrow size={22} />
-								</button>
-							</div>
-								{/* Block 2: Information List */}
-                <CredentialInfo credential={credential} /> {/* Display credential info */}
-								</>
+										<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => {setImageModalOpen(true);setSelectedCredential(credential);}}>
+											<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+										</div>
+										<div className="flex items-center justify-end mt-2 mr-3">
+											<span className="mr-4">{currentSlide} of {credentials.length}</span>
+											<button className="" onClick={() => sliderRef.current.slickPrev()}>
+												<BiLeftArrow size={22} />
+											</button>
+											<button onClick={() => sliderRef.current.slickNext()}>
+												<BiRightArrow size={22} />
+											</button>
+										</div>
+                		<CredentialInfo credential={credential} />
+									</>
 								))}
 					 		</Slider>
 				 		</>
@@ -135,6 +135,20 @@ const Home = () => {
           	)}
         </div>
       </div>
+			{/* Modal for Fullscreen credential */}
+			{isImageModalOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+					<div className="relative">
+						<img src={selectedCredential.src} alt={selectedCredential.src} className="max-w-full max-h-full rounded-xl" />
+					</div>
+					<button
+							className="absolute top-20 md:top-4 sm:top-4 right-4 text-white text-2xl z-10"
+							onClick={() => setImageModalOpen(false)}
+					>
+							<AiOutlineCloseCircle size={40} />
+					</button>
+				</div>
+			)}
     </Layout>
   );
 };

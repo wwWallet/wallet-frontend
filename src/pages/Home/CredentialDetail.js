@@ -46,9 +46,9 @@ const CredentialDetail = () => {
 					{credential && credential.src ? (
 					// Open the modal when the credential is clicked
 					<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setImageModalOpen(true)}>
-					<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+						<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
 
-				</div>
+					</div>
 					) : (
 						<p>No credential available</p>
 					)}
