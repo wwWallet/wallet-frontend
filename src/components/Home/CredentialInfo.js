@@ -41,7 +41,7 @@ const CredentialInfo = ({ credential }) => {
                 <td className="font-bold text-custom-blue py-2 px-2 align-left rounded-l-xl">
                   {getFieldIcon('type')}
                 </td>
-                <td className="py-2 px-2 rounded-r-xl ">{credential.type}</td>
+                <td className="py-2 px-2 rounded-r-xl w-full">{credential.type}</td>
               </tr>
               <tr className="text-left bg-white">
                 <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
