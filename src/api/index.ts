@@ -130,6 +130,20 @@ export async function getAllVerifiers(): Promise<Verifier[]> {
 	}
 }
 
+export async function getAllPresentations(): Promise<AxiosResponse> {
+	try {
+		const result = await get('/storage/vp');
+		console.log(result);
+		const { vp } = result.data;
+		console.log("vp = ", vp)
+		return vp;
+	}
+	catch(error) {
+		console.error("Failed to fetch all verifiers", error);
+		throw error;
+	}
+}
+
 
 export async function initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }> {
 	try {

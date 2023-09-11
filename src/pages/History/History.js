@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import * as api from '../../api';
+
 import Layout from '../../components/Layout';
 
 // Generate some mock history data
@@ -34,6 +36,21 @@ const generateHistory = () => {
 
 const History = () => {
 	const [history, setHistory] = useState([]);
+
+
+	useEffect(() => {
+
+    const fetchVerifiers = async () => {
+      try {
+				const fetchedPresentations = await api.getAllPresentations();
+				console.log(fetchedPresentations);
+      } catch (error) {
+        console.error('Error fetching verifiers:', error);
+      }
+    };
+
+    fetchVerifiers();
+  }, []);
 
 	// Generate history only once
 	useEffect(() => {
