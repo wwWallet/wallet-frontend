@@ -10,6 +10,8 @@ import enTranslation from './locales/en.json'; // Import translation files for e
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import Notification from './components/Notification'; // Import the custom hook
+import useHandleServerMessages from './components/useHandleServerMessages'; // Import the custom hook
+
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
@@ -22,13 +24,6 @@ const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const Popup = React.lazy(() => import('./components/Popup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
-
-const socket = new WebSocket(`ws://wallet-backend-server:8002`);
-        
-socket.addEventListener('open', (event) => {
-	console.log('WebSocket connection opened');
-	socket.send("First message")
-});
 
 
 // Check that service workers are supported
@@ -62,6 +57,7 @@ i18n
 
 function App() {
 
+	const {} = useHandleServerMessages();
 	const url = window.location.href;
 	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
