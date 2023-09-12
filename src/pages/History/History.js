@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
@@ -68,14 +67,18 @@ const History = () => {
 
   return (
     <Layout>
-      <div className="px-4 sm:px-6 w-full">
+      <div className="sm:px-6 w-full">
         <h1 className="text-2xl mb-2 font-bold text-custom-blue">History</h1>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">
           View history of credential transmissions, detailing when and to which verifiers you sent
         </p>
 
-        <div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
+				{history.length === 0 ? (
+          <p className="text-gray-700 mt-4">No history presentations found.</p>
+        ) : (
+					<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
+
           {history.map((item) => (
             <div
               key={item.id}
@@ -88,16 +91,25 @@ const History = () => {
             </div>
           ))}
         </div>
+        )}
       </div>
 
       {isImageModalOpen && (
-				<div className="fixed inset-0 flex items-center justify-center z-50">
-  				<div className="absolute inset-0 bg-black opacity-50"></div>
+				<div className="fixed inset-0 flex items-center justify-center z-50" >
+  				<div className="absolute inset-0 bg-black opacity-50" onClick={() => setImageModalOpen(false)}></div>
 					<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[66.67%] max-h-[80vh] z-10 relative mx-6 mx-4">
+						
 						{/* Popup content */}
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
-							Presented Credentials
-						</h2>
+						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+							<h2 className="right text-lg font-bold p-2 mb-2 text-custom-blue">
+								Presented Credentials
+							</h2>
+							<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setImageModalOpen(false)}>
+								<svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+								</svg>
+							</button>
+            </div>
 						<hr className="mb-2 border-t border-custom-blue/80" />
 
 						{/* Display presented credentials */}
@@ -125,13 +137,6 @@ const History = () => {
 							</Slider>
 						</div>
 					</div>
-
-					<button
-						className="absolute top-4 right-2  text-white text-2xl z-10"
-						onClick={() => setImageModalOpen(false)}
-					>
-						<AiOutlineCloseCircle size={40} />
-					</button>
 				</div>	
       )}
     </Layout>
