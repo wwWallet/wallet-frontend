@@ -23,10 +23,14 @@
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.14.1",
     "react-scripts": "5.0.1",
+    "sockjs": "^0.3.24",
+    "sockjs-client": "^1.6.1",
+    "stream": "^0.0.2",
     "tailwindcss": "^3.3.2",
     "typescript": "^5.1.6",
     "uuid": "^9.0.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "ws": "^8.14.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0",

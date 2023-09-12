@@ -66,8 +66,18 @@ function App() {
 	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
 	useEffect(() => {
-		navigator.serviceWorker.addEventListener('message', handleMessage);
+		
+		let ws = new WebSocket('ws://127.0.0.1:8080');
+		ws.onopen = function() {
+				console.log('open')
+		}
+		ws.onmessage = function(ev) {
+				let _data = JSON.parse(ev.data);
 
+				console.log(_data);
+		}
+		
+		navigator.serviceWorker.addEventListener('message', handleMessage);
 		// Clean up the event listener when the component unmounts
 		return () => {
 			navigator.serviceWorker.removeEventListener('message', handleMessage);
