@@ -133,16 +133,14 @@ export async function getAllVerifiers(): Promise<Verifier[]> {
 export async function getAllPresentations(): Promise<AxiosResponse> {
 	try {
 		const result = await get('/storage/vp');
-		console.log(result);
-		const { vp } = result.data;
-		console.log("vp = ", vp)
-		return vp;
+		return result.data; // Return the Axios response.
 	}
 	catch(error) {
-		console.error("Failed to fetch all verifiers", error);
+		console.error("Failed to fetch all presentations", error);
 		throw error;
 	}
 }
+
 
 
 export async function initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }> {
