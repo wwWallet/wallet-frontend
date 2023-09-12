@@ -10,7 +10,6 @@ import enTranslation from './locales/en.json'; // Import translation files for e
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import Notification from './components/Notification'; // Import the custom hook
-import useHandleServerMessages from './components/useHandleServerMessages'; // Import the custom hook
 
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
@@ -57,7 +56,6 @@ i18n
 
 function App() {
 
-	const {} = useHandleServerMessages();
 	const url = window.location.href;
 	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
