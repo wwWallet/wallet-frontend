@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import * as api from '../../api';
-
-import Layout from '../../components/Layout';
-import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-
-import { useNavigate } from 'react-router-dom';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 
+import * as api from '../../api';
+import Layout from '../../components/Layout';
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 
 const History = () => {
@@ -20,7 +17,6 @@ const History = () => {
 
 	const [currentSlide, setCurrentSlide] = useState(1);
 
-  const navigate = useNavigate();
   const sliderRef = useRef();
 
 	const settings = {
@@ -37,7 +33,6 @@ const History = () => {
 	};
 
   const handleHistoryItemClick = async (ivci) => {
-    ivci = [...ivci, '1']; // Add a new value to ivci
 
     // Fetch all credentials
     const temp_cred = await fetchCredentialData();
