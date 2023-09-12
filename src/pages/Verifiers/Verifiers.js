@@ -166,7 +166,7 @@ const Verifiers = () => {
 										id="scopes"
 										name="scopes"
 										className="mt-1 p-2 w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-										value={selectedScope}
+										value={`${selectedScope ? selectedScope : ""}`}
 										onChange={(e) => setSelectedScope(e.target.value)}
 										required
 									>  <option value="" hidden>Select a scope</option>

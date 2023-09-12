@@ -104,7 +104,7 @@ const History = () => {
 						<div className=" p-2">
 							<Slider ref={sliderRef} {...settings}>
 							{matchingCredentials.map((credential) => (
-								<>
+								<React.Fragment key={credential.id}>
 									<div className="relative rounded-xl xl:w-full md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full">
 										<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
 									</div>
@@ -120,7 +120,7 @@ const History = () => {
 									<div className="max-h-[30vh] overflow-y-auto mx-2">
 									<CredentialInfo credential={credential} />
 									</div>
-								</>
+								</React.Fragment>
 							))}
 							</Slider>
 						</div>
