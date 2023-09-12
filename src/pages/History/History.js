@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as api from '../../api';
 
 import Layout from '../../components/Layout';
-import { fetchCredentialData } from '../../components/Home/apiUtils';
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +11,7 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 
-import CredentialInfo from '../../components/Home/CredentialInfo';
+import CredentialInfo from '../../components/Credentials/CredentialInfo';
 
 const History = () => {
   const [history, setHistory] = useState([]);
@@ -97,48 +97,47 @@ const History = () => {
 
       {isImageModalOpen && (
 				<div className="fixed inset-0 flex items-center justify-center z-50">
-  <div className="absolute inset-0 bg-black opacity-50"></div>
-  <div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[66.67%] max-h-[80vh] z-10 relative mx-6 mx-4">
-            {/* Popup content */}
-            <h2 className="text-lg font-bold mb-2 text-custom-blue">
-              Presented Credentials
-            </h2>
-            <hr className="mb-2 border-t border-custom-blue/80" />
+  				<div className="absolute inset-0 bg-black opacity-50"></div>
+					<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[66.67%] max-h-[80vh] z-10 relative mx-6 mx-4">
+						{/* Popup content */}
+						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+							Presented Credentials
+						</h2>
+						<hr className="mb-2 border-t border-custom-blue/80" />
 
-            {/* Display matching credentials */}
-            <div className=" p-2">
- 							<Slider ref={sliderRef} {...settings}>
-							 {matchingCredentials.map((credential) => (
-								 <>
-									 <div className="relative rounded-xl xl:w-full md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full">
-										 <img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
-									 </div>
-									 <div className="flex items-center justify-end mt-2 mr-3">
-										 <span className="mr-4">{currentSlide} of {matchingCredentials.length}</span>
-										 <button className="" onClick={() => sliderRef.current.slickPrev()}>
-											 <BiLeftArrow size={22} />
-										 </button>
-										 <button onClick={() => sliderRef.current.slickNext()}>
-											 <BiRightArrow size={22} />
-										 </button>
-									 </div>
-									 <div className="max-h-[30vh] overflow-y-auto mx-2">
-									 <CredentialInfo credential={credential} />
-									 </div>
-								 </>
-							 ))}
+						{/* Display presented credentials */}
+						<div className=" p-2">
+							<Slider ref={sliderRef} {...settings}>
+							{matchingCredentials.map((credential) => (
+								<>
+									<div className="relative rounded-xl xl:w-full md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full">
+										<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+									</div>
+									<div className="flex items-center justify-end mt-2 mr-3">
+										<span className="mr-4">{currentSlide} of {matchingCredentials.length}</span>
+										<button className="" onClick={() => sliderRef.current.slickPrev()}>
+											<BiLeftArrow size={22} />
+										</button>
+										<button onClick={() => sliderRef.current.slickNext()}>
+											<BiRightArrow size={22} />
+										</button>
+									</div>
+									<div className="max-h-[30vh] overflow-y-auto mx-2">
+									<CredentialInfo credential={credential} />
+									</div>
+								</>
+							))}
 							</Slider>
-            </div>
-          </div>
+						</div>
+					</div>
 
-				<button
-							className="absolute top-4 right-2  text-white text-2xl z-10"
-							onClick={() => setImageModalOpen(false)}
+					<button
+						className="absolute top-4 right-2  text-white text-2xl z-10"
+						onClick={() => setImageModalOpen(false)}
 					>
-							<AiOutlineCloseCircle size={40} />
+						<AiOutlineCloseCircle size={40} />
 					</button>
-				</div>
-				
+				</div>	
       )}
     </Layout>
   );
