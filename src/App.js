@@ -23,6 +23,12 @@ const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'
 const Popup = React.lazy(() => import('./components/Popup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
+const socket = new WebSocket(`ws://wallet-backend-server:8002`);
+        
+socket.addEventListener('open', (event) => {
+	console.log('WebSocket connection opened');
+	socket.send("First message")
+});
 
 
 // Check that service workers are supported
