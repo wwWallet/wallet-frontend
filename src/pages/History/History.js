@@ -84,7 +84,7 @@ const History = () => {
               onClick={() => handleHistoryItemClick(item.ivci)}
             >
               <div className="font-bold">{item.audience}</div>
-              <div>{new Date(item.issuanceDate).toLocaleDateString()}</div>
+							<div>{new Date(Date(item.issuanceDate)).toLocaleString()}</div>
             </div>
           ))}
         </div>
