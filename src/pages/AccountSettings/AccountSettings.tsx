@@ -205,6 +205,7 @@ const Home = () => {
 		async () => {
 			try {
 				const response = await api.get('/user/session/account-info');
+				console.log(response.data);
 				setUserData(response.data);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -227,15 +228,22 @@ const Home = () => {
 
 	return (
 		<Layout>
-			<div className="px-4 sm:px-6 w-full">
+			<div className="sm:px-6 w-full">
 
 				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings</h1>
 				<hr className="mb-2 border-t border-custom-blue/80" />
+        <p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
 
 				{userData && (
 					<>
-						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Account: {userData.displayName}</h2>
+						<h2 className=" mt-4 mb-2 font-bold text-custom-blue">Account: {userData.displayName}</h2>
 
+						<div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Login information</h1>
+							<hr className="mb-2 border-t border-gray-300"/>
+
+
+						</div>
 						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Passkeys</h2>
 
 						<WebauthnRegistation onSuccess={() => refreshData()} />
