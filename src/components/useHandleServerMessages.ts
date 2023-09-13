@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useLocalStorageKeystore } from "../services/LocalStorageKeystore";
 import { ClientSocketMessage, SignatureAction, WalletKeystoreRequest } from "../types/shared.types";
-
+import Cookies from 'js-cookie';
 
 export default function useHandleServerMessages(): {} {
+
 
 	const keystore = useLocalStorageKeystore();
 	let socket: WebSocket;
@@ -14,7 +15,13 @@ export default function useHandleServerMessages(): {} {
 
 		socket.addEventListener('open', (event) => {
 			console.log('WebSocket connection opened');
-			socket.send("First message")
+			const appToken = Cookies.get("appToken");
+			console.log("App token = ", appToken)
+			if (!appToken) {
+				return;
+			}
+			// send handshake request
+			socket.send(JSON.stringify({ appToken: appToken }))
 		});
 
 		const handleGenerateOpenid4vciProofSigningRequest = async ({ message_id, audience, nonce }: { message_id: string, audience: string, nonce: string}) => {
