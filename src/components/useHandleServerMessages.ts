@@ -24,6 +24,32 @@ export default function useHandleServerMessages(): {} {
 			socket.send(JSON.stringify({ appToken: appToken }))
 		});
 
+		const handleCreateIdToken = async ({ message_id, audience, nonce }: { message_id: string, audience: string, nonce: string}) => {
+			const { id_token } = await keystore.createIdToken(audience, nonce)
+			console.log("id token = ", id_token);
+			const outgoingMessage: ClientSocketMessage = {
+				message_id: message_id,
+				response: {
+					action: SignatureAction.createIdToken,
+					id_token: id_token
+				}
+			}
+			socket.send(JSON.stringify(outgoingMessage));
+		}
+
+		const handleSignJwtPresentation = async ({ message_id, audience, nonce, verifiableCredentials }: { message_id: string, audience: string, nonce: string, verifiableCredentials: any[]}) => {
+			const { vpjwt } = await keystore.signJwtPresentation(audience, nonce, verifiableCredentials)
+			console.log("vp jwt = ", vpjwt);
+			const outgoingMessage: ClientSocketMessage = {
+				message_id: message_id,
+				response: {
+					action: SignatureAction.signJwtPresentation,
+					vpjwt: vpjwt
+				}
+			}
+			socket.send(JSON.stringify(outgoingMessage));
+		}
+
 		const handleGenerateOpenid4vciProofSigningRequest = async ({ message_id, audience, nonce }: { message_id: string, audience: string, nonce: string}) => {
 			const { proof_jwt } = await keystore.generateOpenid4vciProof(audience, nonce)
 			console.log("proof jwt = ", proof_jwt);
@@ -41,10 +67,16 @@ export default function useHandleServerMessages(): {} {
 			try {
 				const message = JSON.parse(event.data);
 				const { message_id, request } = message as { message_id: string, request: WalletKeystoreRequest };
-				if (request.action == SignatureAction.generateOpenid4vciProof) {
+				if (request.action == SignatureAction.createIdToken) {
+					handleCreateIdToken({ message_id, ...request });
+				}
+				else if (request.action == SignatureAction.signJwtPresentation) {
+					handleSignJwtPresentation({ message_id, ...request });
+				}
+				else if (request.action == SignatureAction.generateOpenid4vciProof) {
 					handleGenerateOpenid4vciProofSigningRequest({ message_id, ...request });
 				}
-				console.log("Message reeceived = ", event.data)
+				console.log("Message received = ", event.data)
 			}
 			catch(e) {
 				console.log('failed to parse message')
