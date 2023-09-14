@@ -86,25 +86,45 @@ const Home = () => {
         <div className='my-4'>
           {isSmallScreen ? (
           	<>
-							<Slider ref={sliderRef} {...settings}>
-								{credentials.map((credential) => (
-									<>
-										<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => {setImageModalOpen(true);setSelectedCredential(credential);}}>
-											<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
-										</div>
-										<div className="flex items-center justify-end mt-2 mr-3">
-											<span className="mr-4">{currentSlide} of {credentials.length}</span>
-											<button className="" onClick={() => sliderRef.current.slickPrev()}>
-												<BiLeftArrow size={22} />
-											</button>
-											<button onClick={() => sliderRef.current.slickNext()}>
-												<BiRightArrow size={22} />
-											</button>
-										</div>
-                		<CredentialInfo credential={credential} />
-									</>
-								))}
-					 		</Slider>
+
+							{credentials.length === 0 ? (
+								<div
+									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+									onClick={handleAddCredential}
+								>
+									<img
+										src={addImage}
+										alt="add new credential"
+										className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+									/>
+									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
+										<span className="text-white font-semibold">Add New Credential</span>
+									</div>
+								</div>
+							) : (
+								<>
+									<Slider ref={sliderRef} {...settings}>
+										{credentials.map((credential) => (
+											<>
+												<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => {setImageModalOpen(true);setSelectedCredential(credential);}}>
+													<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+												</div>
+												<div className="flex items-center justify-end mt-2 mr-3">
+													<span className="mr-4">{currentSlide} of {credentials.length}</span>
+													<button className="" onClick={() => sliderRef.current.slickPrev()}>
+														<BiLeftArrow size={22} />
+													</button>
+													<button onClick={() => sliderRef.current.slickNext()}>
+														<BiRightArrow size={22} />
+													</button>
+												</div>
+												<CredentialInfo credential={credential} />
+											</>
+										))}
+									</Slider>
+								</>
+							)}
 				 		</>
           	) : (
 							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
