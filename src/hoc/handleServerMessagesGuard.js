@@ -26,7 +26,8 @@ export default function handleServerMessagesGuard(Component) {
 			return new Promise((resolve, reject) => {
 				socket.onmessage = event => {
 					try {
-						if (event.data.toString() == "FIN_INIT") {
+						const { type } = JSON.parse(event.data.toString());
+						if (type == "FIN_INIT") {
 							console.log("init fin")
 							setHandshakeEstablished(true);
 							resolve({});
