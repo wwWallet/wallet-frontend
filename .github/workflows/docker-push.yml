@@ -1,0 +1,19 @@
+name: Build and push Docker image
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    # Permissions for GITHUB_TOKEN
+    permissions:
+      contents: read  # To check out repo
+      packages: write # To read NPM registry and push Docker image
+
+    uses: gunet/wallet-ecosystem/.github/workflows/docker-build-push.yml@master
+    with:
+      image-tag: ghcr.io/gunet/wallet-frontend:latest
+      docker-push: true
