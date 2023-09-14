@@ -1,8 +1,6 @@
 import { useEffect, useState, Dispatch, SetStateAction } from 'react';
-
 import * as api from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
-import useHandleServerMessages from './useHandleServerMessages'; // Import the custom hook
 
 
 function useCheckURL(urlToCheck: string): {
@@ -18,7 +16,6 @@ function useCheckURL(urlToCheck: string): {
 	const [selectedValue, setSelectedValue] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 	const keystore = useLocalStorageKeystore();
-	const {} = useHandleServerMessages();
 
 	useEffect(() => {
 

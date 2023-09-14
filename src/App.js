@@ -10,6 +10,7 @@ import enTranslation from './locales/en.json'; // Import translation files for e
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import Notification from './components/Notification'; // Import the custom hook
+import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
@@ -112,4 +113,4 @@ function App() {
 	);
 }
 
-export default App;
+export default handleServerMessagesGuard(App);
