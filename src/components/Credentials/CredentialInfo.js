@@ -6,6 +6,7 @@ import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
 import { MdTitle, MdGrade } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
+import {formatDate }from '../../functions/DateFormat';
 
 const getFieldIcon = (fieldName) => {
   switch (fieldName) {
@@ -47,7 +48,7 @@ const CredentialInfo = ({ credential }) => {
                 <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                   {getFieldIcon('expdate')}
                 </td>
-                <td className="py-2 px-2 rounded-r-xl">{credential.expdate}</td>
+                <td className="py-2 px-2 rounded-r-xl">{formatDate(credential.expdate)}</td>
               </tr>
               {credential.type === 'VerifiableId' && (
                 <>
@@ -55,7 +56,7 @@ const CredentialInfo = ({ credential }) => {
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('dateOfBirth')}
                     </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.dateOfBirth}</td>
+										<td className="py-2 px-2 rounded-r-xl">{credential.data.dateOfBirth}</td>
                   </tr>
                   <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
