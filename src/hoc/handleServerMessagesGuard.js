@@ -5,12 +5,14 @@ import { useLocalStorageKeystore } from "../services/LocalStorageKeystore";
 import Spinner from '../components/Spinner';
 import { SigningRequestHandlerService } from '../services/SigningRequestHandlers';
 
+const REACT_APP_WS_URL = process.env.REACT_APP_WS_URL;
+
 export default function handleServerMessagesGuard(Component) {
 	return (props) => {
 		const appToken = Cookies.get("appToken");
 
 		const [ handshakeEstablished, setHandshakeEstablished ] = useState(false);
-		const socket = new WebSocket(`ws://wallet-backend-server:8002`);
+		const socket = new WebSocket(REACT_APP_WS_URL);
 		const keystore = new useLocalStorageKeystore();
 		const signingRequestHandlerService = SigningRequestHandlerService();
 
