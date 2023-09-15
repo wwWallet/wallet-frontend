@@ -12,6 +12,7 @@ export async function fetchCredentialData(id = null) {
       const newImages = targetImage
         ? [targetImage].map((item) => ({
             id: item.id,
+						credentialIdentifier:item.credentialIdentifier,
             src: item.logoURL,
             alt: item.issuerFriendlyName,
             data: parseJwt(item.credential)["vc"]['credentialSubject'],
@@ -24,6 +25,7 @@ export async function fetchCredentialData(id = null) {
     } else {
       const newImages = response.data.vc_list.map((item) => ({
         id: item.id,
+				credentialIdentifier:item.credentialIdentifier,
         src: item.logoURL,
         alt: item.issuerFriendlyName,
         data: parseJwt(item.credential)["vc"]['credentialSubject'],
