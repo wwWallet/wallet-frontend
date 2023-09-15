@@ -8,6 +8,8 @@ import * as api from '../../api';
 import Layout from '../../components/Layout';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
+import {formatDate} from '../../functions/DateFormat';
+
 
 const History = () => {
   const [history, setHistory] = useState([]);
@@ -87,7 +89,7 @@ const History = () => {
               onClick={() => handleHistoryItemClick(item.ivci)}
             >
               <div className="font-bold">{item.audience}</div>
-							<div>{new Date(item.issuanceDate * 1000).toUTCString()}</div>
+							<div>{formatDate(new Date(item.issuanceDate * 1000).toISOString())}</div>
             </div>
           ))}
         </div>

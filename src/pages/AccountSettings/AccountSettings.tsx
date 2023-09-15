@@ -6,6 +6,7 @@ import * as api from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import Layout from '../../components/Layout';
 import { compareBy, toBase64Url } from '../../util';
+import {formatDate} from '../../functions/DateFormat';
 
 
 const WebauthnRegistation = ({
@@ -173,19 +174,6 @@ const WebauthnRegistation = ({
 			</dialog>
 		</>
 	);
-};
-
-// Correct the types for DateTimeFormatOptions
-const formatDate = (dateString: string) => {
-  const options: Intl.DateTimeFormatOptions = { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric', 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    second: '2-digit' 
-  };
-  return new Date(dateString).toLocaleString(undefined, options);
 };
 
 
