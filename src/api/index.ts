@@ -14,6 +14,7 @@ enum CookieName {
 	appToken = 'appToken',
 	displayName ='displayName',
 	username = 'username',
+	webauthnCredentialCredentialId = 'webauthnCredentialCredentialId',
 };
 
 function getAppToken(): string | undefined {
@@ -66,10 +67,15 @@ export async function del(path: string): Promise<AxiosResponse> {
 		});
 }
 
-export function getSession(): { [CookieName.username]?: string, [CookieName.displayName]?: string } {
+export function getSession(): {
+	[CookieName.username]?: string,
+	[CookieName.displayName]?: string,
+	[CookieName.webauthnCredentialCredentialId]?: string,
+} {
 	return [
 		CookieName.username,
 		CookieName.displayName,
+		CookieName.webauthnCredentialCredentialId,
 	].reduce(
 		(result, name) => ({ ...result, [name]: Cookies.get(name) }),
 		{},
@@ -86,16 +92,17 @@ export function clearSession(): void {
 	});
 }
 
-export function setSessionCookies(response: AxiosResponse): void {
+export function setSessionCookies(response: AxiosResponse, credential: PublicKeyCredential | null): void {
 	Object.values(CookieName).forEach((name) => {
 		Cookies.set(name, response.data[name]);
 	});
+	Cookies.set(CookieName.webauthnCredentialCredentialId, credential?.id);
 }
 
 export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
 	try {
 		const response = await post('/user/login', { username, password });
-		setSessionCookies(response);
+		setSessionCookies(response, null);
 
 		const userData = response.data as UserData;
 		const privateData = jsonParseTaggedBinary(userData.privateData);
@@ -129,7 +136,7 @@ export async function signup(username: string, password: string, keystore: Local
 				keys: publicData,
 				privateData: jsonStringifyTaggedBinary(privateData),
 			});
-			setSessionCookies(response);
+			setSessionCookies(response, null);
 
 		} catch (e) {
 			console.error("Signup failed", e);
@@ -243,7 +250,7 @@ export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<voi
 						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 				});
-				setSessionCookies(finishResp);
+				setSessionCookies(finishResp, credential);
 
 				const userData = finishResp.data as UserData;
 				const privateData = jsonParseTaggedBinary(userData.privateData);
@@ -333,7 +340,7 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 				});
-				setSessionCookies(finishResp);
+				setSessionCookies(finishResp, credential);
 
 			} catch (e) {
 				throw { errorId: 'passkeySignupFailedServerError' };
