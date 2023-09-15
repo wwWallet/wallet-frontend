@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
+import { BsPlusCircle } from 'react-icons/bs';
 
 import * as api from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
@@ -106,11 +107,14 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-				className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-				onClick={onBegin}
+            className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+						onClick={onBegin}
 				disabled={registrationInProgress}
 			>
-				Add passkey
+				<div className="flex items-center">
+					<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
+					Addpasskey
+				</div>
 			</button>
 
 			<dialog
@@ -171,31 +175,50 @@ const WebauthnRegistation = ({
 	);
 };
 
+// Correct the types for DateTimeFormatOptions
+const formatDate = (dateString: string) => {
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit' 
+  };
+  return new Date(dateString).toLocaleString(undefined, options);
+};
+
 
 const WebauthnCredentialItem = ({
-	credential,
-	onDelete,
+  credential,
+  onDelete,
+  showDelete = true,  // new prop to control the visibility of the delete button
 }: {
-	credential: WebauthnCredential,
-	onDelete: () => void,
-}) => (
-	<li
-		className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md"
-	>
-		<p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
-		<p>Created: {credential.createTime}</p>
-		<p>Last used: {credential.lastUseTime}</p>
-		<p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
-		<button
-			className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-			type="button"
-			onClick={onDelete}
-			aria-label={`Delete passkey "${credential.nickname || credential.id}"`}
-		>
-			<FaTrash />
-		</button>
-	</li>
+  credential: WebauthnCredential,
+  onDelete: () => void,
+  showDelete?: boolean, // make it optional so existing usage won't break
+
+	
+}
+) => (
+  <div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
+    <p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
+		<p>Created: {formatDate(credential.createTime)}</p>
+    <p>Last used: {formatDate(credential.lastUseTime)}</p>
+    <p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
+    {showDelete && (
+      <button
+        className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        type="button"
+        onClick={onDelete}
+        aria-label={`Delete passkey "${credential.nickname || credential.id}"`}
+      >
+        <FaTrash />
+      </button>
+    )}
+  </div>
 );
+
 
 
 const Home = () => {
@@ -205,6 +228,7 @@ const Home = () => {
 		async () => {
 			try {
 				const response = await api.get('/user/session/account-info');
+				console.log(response.data);
 				setUserData(response.data);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -225,39 +249,60 @@ const Home = () => {
 		refreshData();
 	};
 
+	// Determine the logged-in passkey
+	const loggedInPasskey = userData?.webauthnCredentials
+	.filter(cred => cred.lastUseTime !== cred.createTime)
+	.sort((a, b) => new Date(b.lastUseTime).getTime() - new Date(a.lastUseTime).getTime())[0]
+	|| userData?.webauthnCredentials
+	.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime())[0];
+
 	return (
 		<Layout>
-			<div className="px-4 sm:px-6 w-full">
-
-				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings</h1>
-				<hr className="mb-2 border-t border-custom-blue/80" />
-
+			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Account: {userData.displayName}</h2>
+						<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings : {userData.displayName} </h1>
+						<hr className="mb-2 border-t border-custom-blue/80" />
+        		<p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
 
-						<h2 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Passkeys</h2>
-
-						<WebauthnRegistation onSuccess={() => refreshData()} />
-
-						{userData.webauthnCredentials.length > 0
-							? (
-								<ul className="mt-4">
-									{userData.webauthnCredentials.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime))).map(cred => (
-										<WebauthnCredentialItem
-											key={cred.id}
-											credential={cred}
-											onDelete={() => deleteWebauthnCredential(cred.id)}
-										/>
-									))}
-								</ul>
-							)
-							: (
-								<p className="pd-2 text-gray-700">You have no passkeys.</p>
+						<div className="mt-2 mb-2 py-2">
+            	<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Logged in passkey</h1>
+            	<hr className="mb-2 border-t border-gray-300"/>
+							{loggedInPasskey && (
+								<WebauthnCredentialItem
+									key={loggedInPasskey.id}
+									credential={loggedInPasskey}
+									onDelete={() => {}}
+									showDelete={false}  // Set showDelete to false
+								
+								/>
 							)}
+          	</div>
+						<div className="mt-2 mb-2 py-2">
+						<div className="flex justify-between items-center">
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Other Passkeys</h1>
+							<WebauthnRegistation onSuccess={() => refreshData()} />
+						</div>
+            	<hr className="mb-2 border-t border-gray-500"/>
+
+							<ul className="mt-4">
+							{userData.webauthnCredentials
+								.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+								.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+								.map(cred => (
+									<WebauthnCredentialItem
+										key={cred.id}
+										credential={cred}
+										onDelete={() => deleteWebauthnCredential(cred.id)}
+										showDelete={true}  // Set showDelete to false
+
+									/>
+								))}
+						</ul>
+						</div>
+
 					</>
 				)}
-
 			</div>
 		</Layout>
 	);

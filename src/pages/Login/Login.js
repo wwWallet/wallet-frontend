@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
 import logo from '../../assets/images/ediplomasLogo.svg';
-import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+// import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import SeparatorLine from '../../components/SeparatorLine';
 
 
@@ -333,8 +333,8 @@ const Login = () => {
 	const passwordStrength = getPasswordStrength(password);
 
 	return (
-		<section className="bg-gray-100 dark:bg-gray-900">
-			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-screen pb-20">
+		<section className="bg-gray-100 dark:bg-gray-900 h-full">
+			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 					<img className="w-20" src={logo} alt="logo" />
 				</a>
@@ -345,9 +345,9 @@ const Login = () => {
 
 				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}
-					<div className="absolute top-2 right-2">
+					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
-					</div>
+					</div> */}
 
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
 						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
