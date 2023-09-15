@@ -13,6 +13,7 @@ export type UserData = {
 	publicKey: JsonWebKey;
 	webauthnUserHandle: string;
 	webauthnCredentials: WebauthnCredential[];
+	privateData: string;
 }
 
 export type WebauthnCredential = {

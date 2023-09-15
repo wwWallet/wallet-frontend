@@ -1,6 +1,6 @@
 import { useEffect, useState, Dispatch, SetStateAction } from 'react';
-
 import * as api from '../api';
+import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
 function useCheckURL(urlToCheck: string): {
@@ -15,10 +15,27 @@ function useCheckURL(urlToCheck: string): {
 	const [showPopup, setShowPopup] = useState<boolean>(false);
 	const [selectedValue, setSelectedValue] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
+	const keystore = useLocalStorageKeystore();
 
 	useEffect(() => {
 
 		async function handleAuthorizationRequest(url: string): Promise<boolean> {
+			console.log("handleAuthorizationRequest begin:", url);
+
+			function finish({ conformantCredentialsMap, verifierDomainName, redirect_to }) {
+				console.log(conformantCredentialsMap, verifierDomainName, redirect_to);
+				if (redirect_to) {
+					window.location.href = redirect_to; // Navigate to the redirect URL
+				} else {
+					console.log('need action');
+
+					setConformantCredentialsMap(conformantCredentialsMap.VID);
+					setShowPopup(true);
+				}
+
+				return true;
+			}
+
 			try {
 				const response = await api.post(
 					"/presentation/handle/authorization/request",
@@ -29,25 +46,43 @@ function useCheckURL(urlToCheck: string): {
 
 				if(response.statusText==="OK"){
 					console.log(response.data);
-					const { conformantCredentialsMap, verifierDomainName, redirect_to } = response.data;
-					console.log(conformantCredentialsMap, verifierDomainName, redirect_to);
-					if (redirect_to) {
-						window.location.href = redirect_to; // Navigate to the redirect URL
-					}else{
-						console.log('need action');
+					return finish(response.data);
 
-						setConformantCredentialsMap(conformantCredentialsMap.VID);
-						setShowPopup(true);
-
-					}
-
-					return true;
-				}else{
+				} else {
 					return false;
 				}
+
 			} catch (e) {
-				console.log("Failed handleAuthorizationRequest:", e);
-				return false;
+				if (e.response.status === 409) {
+					console.log("Signature request:", e.response.data);
+					const { nonce, audience } = e.response.data;
+					try {
+						const { id_token } = await keystore.createIdToken(nonce, audience);
+
+						const response = await api.post(
+							"/presentation/handle/authorization/request",
+							{ authorization_request: url, id_token },
+						);
+
+						console.log("handleAuthorizationRequest 2:", response.data.redirect_to);
+
+						if (response.statusText === "OK") {
+							console.log(response.data);
+							return finish(response.data);
+
+						} else {
+							return false;
+						}
+
+					} catch (e) {
+						console.log("Failed to create ID token:", e);
+						return false;
+					}
+
+				} else {
+					console.log("Failed handleAuthorizationRequest:", e);
+					return false;
+				}
 			}
 		};
 
@@ -63,6 +98,26 @@ function useCheckURL(urlToCheck: string): {
 			} catch (e) {
 				if (e.response.status === 404) {
 					return true;
+
+				} else if (e.response.status === 409) {
+					console.log("Signature request:", e.response.data);
+					const { audience, nonce } = e.response.data;
+
+					try {
+						const { proof_jwt } = await keystore.generateOpenid4vciProof(audience, nonce);
+
+						const response = await api.post(
+							"/issuance/handle/authorization/response",
+							{ authorization_response_url: url, proof_jwt },
+						);
+						console.log("handleAuthorizationResponse 2:", response);
+						return true;
+
+					} catch (e) {
+						console.log("Failed to create Openid4vci proof:", e);
+						return false;
+
+					}
 				}
 
 				console.log("Failed handleAuthorizationResponse:", e);
@@ -82,7 +137,7 @@ function useCheckURL(urlToCheck: string): {
 				}
 			})();
 		}
-	}, [urlToCheck, isLoggedIn]);
+	}, [keystore, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
 		if (selectedValue) {
@@ -95,13 +150,39 @@ function useCheckURL(urlToCheck: string): {
 				const { redirect_to } = success.data;
 				window.location.href = redirect_to; // Navigate to the redirect URL
 
-			}).catch(e => {
-				console.error("Failed to generate authorization response")
-				console.error(e.response.data);
-			});
+			}).catch(async e => {
+				if (e.response.status === 409) {
+					console.log("Signature request:", e.response.data);
 
+					const { nonce, audience, verifiableCredentials } = e.response.data;
+					try {
+						const { vpjwt } = await keystore.signJwtPresentation(nonce, audience, verifiableCredentials);
+						api.post("/presentation/generate/authorization/response", {
+							verifiable_credentials_map: { title: "VC Selection", selectedValue },
+							vpjwt,
+						}).then(success => {
+							console.log(success);
+							const { redirect_to } = success.data;
+							window.location.href = redirect_to; // Navigate to the redirect URL
+
+						}).catch(e => {
+							console.error("Failed to generate authorization response")
+							console.error(e.response.data);
+						});
+
+					} catch (e) {
+						console.error("Failed to sign JWT presentation", e);
+						throw e;
+					}
+
+				} else {
+
+					console.error("Failed to generate authorization response")
+					console.error(e.response.data);
+				}
+			});
 		}
-	}, [selectedValue]);
+	}, [keystore, selectedValue]);
 
 	return { isValidURL, showPopup, setShowPopup, setSelectedValue, conformantCredentialsMap };
 }

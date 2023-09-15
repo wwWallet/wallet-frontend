@@ -10,6 +10,8 @@ import enTranslation from './locales/en.json'; // Import translation files for e
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import Notification from './components/Notification'; // Import the custom hook
+import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
+
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
@@ -22,7 +24,6 @@ const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const Popup = React.lazy(() => import('./components/Popup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
-
 
 
 // Check that service workers are supported
@@ -60,8 +61,8 @@ function App() {
 	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
 	useEffect(() => {
+		
 		navigator.serviceWorker.addEventListener('message', handleMessage);
-
 		// Clean up the event listener when the component unmounts
 		return () => {
 			navigator.serviceWorker.removeEventListener('message', handleMessage);
@@ -112,4 +113,4 @@ function App() {
 	);
 }
 
-export default App;
+export default handleServerMessagesGuard(App);

@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@cef-ebsi/key-did-resolver": "^1.1.0",
+    "@gunet/ssi-sdk": "^1.0.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -25,7 +27,9 @@
     "slick-carousel": "^1.8.1",
     "tailwindcss": "^3.3.2",
     "typescript": "^5.1.6",
-    "web-vitals": "^2.1.4"
+    "uuid": "^9.0.0",
+    "web-vitals": "^2.1.4",
+    "ws": "^8.14.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
@@ -33,7 +37,8 @@
     "@types/js-cookie": "^3.0.3",
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7"
+    "@types/react-dom": "^18.2.7",
+    "@types/uuid": "^9.0.2"
   },
   "scripts": {
     "start": "react-scripts start",

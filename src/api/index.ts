@@ -1,9 +1,10 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
 import { requestForToken } from '../firebase';
-import { Verifier } from './types';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import { LocalStorageKeystore, WebauthnPrfEncryptionKeyInfo } from '../services/LocalStorageKeystore';
+import { UserData, Verifier } from './types';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -82,12 +83,19 @@ export function setSessionCookies(response: AxiosResponse): void {
 	Cookies.set('appToken', appToken);
 }
 
-export async function login(username: string, password: string): Promise<AxiosResponse> {
+export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
 	try {
 		const response = await post('/user/login', { username, password });
 		setSessionCookies(response);
 
-		return response.data;
+		const userData = response.data as UserData;
+		const privateData = jsonParseTaggedBinary(userData.privateData);
+		try {
+			await keystore.unlockPassword(privateData, password, privateData.passwordKey);
+		} catch (e) {
+			console.error("Failed to unlock local keystore", e);
+			throw e;
+		}
 
 	} catch (error) {
 		console.error('Failed to log in', error);
@@ -95,27 +103,35 @@ export async function login(username: string, password: string): Promise<AxiosRe
 	}
 };
 
-export async function signup(username: string, password: string): Promise<AxiosResponse> {
+export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
 	try {
-		const response = await post('/user/register', {
-			username,
-			password,
-			fcm_token,
-			browser_fcm_token,
-			displayName: username,
-		});
-		setSessionCookies(response);
+		const { publicData, privateData } = await keystore.initPassword(password);
 
-		return response.data;
+		try {
+			const response = await post('/user/register', {
+				username,
+				password,
+				fcm_token,
+				browser_fcm_token,
+				displayName: username,
+				keys: publicData,
+				privateData: jsonStringifyTaggedBinary(privateData),
+			});
+			setSessionCookies(response);
 
-	} catch (error) {
-		console.error('Failed to sign up', error);
-		throw error;
+		} catch (e) {
+			console.error("Signup failed", e);
+			throw e;
+		}
+
+	} catch (e) {
+		console.error("Failed to initialize local keystore", e);
+		throw e;
 	}
-};
+}
 
 export async function getAllVerifiers(): Promise<Verifier[]> {
 	try {
@@ -154,7 +170,43 @@ export async function initiatePresentationExchange(verifier_id: number, scope_na
 		throw error;
 	}
 }
-export async function loginWebauthn(): Promise<AxiosResponse> {
+async function getPrfOutput(
+	credential: PublicKeyCredential,
+	rpId: string,
+	prf: { eval: { first: BufferSource } } | { evalByCredential: { [credentialId: string]: { first: BufferSource } }},
+): Promise<[ArrayBuffer, PublicKeyCredential]> {
+	type PrfExtensionOutput = { enabled: boolean, results?: { first?: ArrayBuffer } };
+	const clientExtensionOutputs = credential.getClientExtensionResults() as { prf?: PrfExtensionOutput };
+
+	if (clientExtensionOutputs?.prf?.results?.first) {
+		return [clientExtensionOutputs?.prf?.results?.first, credential];
+
+	} else if (clientExtensionOutputs?.prf?.enabled || (credential.response as any).signature) {
+		const getCredential = await navigator.credentials.get({
+			publicKey: {
+				rpId,
+				challenge: crypto.getRandomValues(new Uint8Array(32)),
+				allowCredentials: [{
+					type: "public-key",
+					id: credential.rawId,
+				}],
+				extensions: { prf } as AuthenticationExtensionsClientInputs,
+			},
+		}) as PublicKeyCredential;
+
+		const extOutputs = getCredential.getClientExtensionResults() as { prf?: PrfExtensionOutput };
+		if (extOutputs?.prf?.results?.first) {
+			return [extOutputs.prf.results.first, getCredential];
+		} else {
+			throw { errorId: "prf_not_supported" };
+		}
+
+	} else {
+		throw { errorId: "prf_not_supported" };
+	}
+}
+
+export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<void> {
 	try {
 		const beginResp = await post('/user/login-webauthn-begin', {});
 		console.log("begin", beginResp);
@@ -184,7 +236,24 @@ export async function loginWebauthn(): Promise<AxiosResponse> {
 				});
 				setSessionCookies(finishResp);
 
-				return finishResp;
+				const userData = finishResp.data as UserData;
+				const privateData = jsonParseTaggedBinary(userData.privateData);
+
+				const [prfOutput, prfCredential] = await getPrfOutput(
+					credential,
+					beginData.getOptions.publicKey.rpId,
+					{
+						evalByCredential: privateData.prfKeys.reduce(
+							(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfEncryptionKeyInfo) => {
+								result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
+								return result;
+							},
+							{},
+						),
+					}
+				);
+				const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
+				await keystore.unlockPrf(privateData, prfOutput, keyInfo);
 
 			} catch (e) {
 				throw { errorId: 'passkeyInvalid' };
@@ -199,13 +268,14 @@ export async function loginWebauthn(): Promise<AxiosResponse> {
 	}
 };
 
-export async function signupWebauthn(name: string): Promise<AxiosResponse> {
+export async function signupWebauthn(name: string, keystore: LocalStorageKeystore): Promise<void> {
 	try {
 		const beginResp = await post('/user/register-webauthn-begin', {});
 		console.log("begin", beginResp);
 		const beginData = beginResp.data;
 
 		try {
+			const prfSalt = crypto.getRandomValues(new Uint8Array(32))
 			const credential = await navigator.credentials.create({
 				...beginData.createOptions,
 				publicKey: {
@@ -215,10 +285,20 @@ export async function signupWebauthn(name: string): Promise<AxiosResponse> {
 						name,
 						displayName: name,
 					},
+					extensions: {
+						prf: {
+							eval: {
+								first: prfSalt,
+							},
+						},
+					},
 				},
 			}) as PublicKeyCredential;
 			const response = credential.response as AuthenticatorAttestationResponse;
 			console.log("created", credential);
+
+			const [prfOutput, ] = await getPrfOutput(credential, beginData.createOptions.publicKey.rp.id, { eval: { first: prfSalt } });
+			const { publicData, privateData } = await keystore.initPrf(credential, prfSalt, new Uint8Array(prfOutput));
 
 			try {
 				const fcm_token = await requestForToken();
@@ -229,6 +309,8 @@ export async function signupWebauthn(name: string): Promise<AxiosResponse> {
 					fcm_token,
 					browser_fcm_token,
 					displayName: name,
+					keys: publicData,
+					privateData: jsonStringifyTaggedBinary(privateData),
 					credential: {
 						type: credential.type,
 						id: credential.id,
@@ -244,7 +326,6 @@ export async function signupWebauthn(name: string): Promise<AxiosResponse> {
 				});
 				setSessionCookies(finishResp);
 
-				return finishResp;
 			} catch (e) {
 				throw { errorId: 'passkeySignupFailedServerError' };
 			}
