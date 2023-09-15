@@ -9,8 +9,15 @@ import { UserData, Verifier } from './types';
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
+
+enum CookieName {
+	appToken = 'appToken',
+	displayName ='displayName',
+	username = 'username',
+};
+
 function getAppToken(): string | undefined {
-	return Cookies.get('appToken');
+	return Cookies.get(CookieName.appToken);
 }
 
 function transformResponse(data: any): any {
@@ -59,11 +66,14 @@ export async function del(path: string): Promise<AxiosResponse> {
 		});
 }
 
-export function getSession(): { username?: string, displayName?: string } {
-	return {
-		username: Cookies.get('username'),
-		displayName: Cookies.get('displayName'),
-	};
+export function getSession(): { [CookieName.username]?: string, [CookieName.displayName]?: string } {
+	return [
+		CookieName.username,
+		CookieName.displayName,
+	].reduce(
+		(result, name) => ({ ...result, [name]: Cookies.get(name) }),
+		{},
+	);
 }
 
 export function isLoggedIn(): boolean {
@@ -71,16 +81,15 @@ export function isLoggedIn(): boolean {
 }
 
 export function clearSession(): void {
-	Cookies.remove('username');
-	Cookies.remove('displayName');
-	Cookies.remove('appToken');
+	Object.values(CookieName).forEach((name) => {
+		Cookies.remove(name);
+	});
 }
 
 export function setSessionCookies(response: AxiosResponse): void {
-	const { appToken, displayName, username } = response.data;
-	Cookies.set('username', username);
-	Cookies.set('displayName', displayName);
-	Cookies.set('appToken', appToken);
+	Object.values(CookieName).forEach((name) => {
+		Cookies.set(name, response.data[name]);
+	});
 }
 
 export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
