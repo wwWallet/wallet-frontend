@@ -32,18 +32,18 @@ const getFieldIcon = (fieldName) => {
 
 const CredentialInfo = ({ credential }) => {
   return (
-    <div className=" pt-5 mx-2 px-1 lg:w-1/2 overflow-x-auto">
+    <div className=" pt-5 pr-2 w-full">
       <table className="lg:w-4/5">
-        <tbody className="divide-y-4 divide-gray-100">
+        <tbody className="divide-y-4 divide-transparent">
           {credential && (
             <>
-              <tr className="text-left bg-white">
+              <tr className="text-left">
                 <td className="font-bold text-custom-blue py-2 px-2 align-left rounded-l-xl">
                   {getFieldIcon('type')}
                 </td>
                 <td className="py-2 px-2 rounded-r-xl w-full">{credential.type}</td>
               </tr>
-              <tr className="text-left bg-white">
+              <tr className="text-left ">
                 <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                   {getFieldIcon('expdate')}
                 </td>
@@ -51,19 +51,19 @@ const CredentialInfo = ({ credential }) => {
               </tr>
               {credential.type === 'VerifiableId' && (
                 <>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('dateOfBirth')}
                     </td>
                     <td className="py-2 px-2 rounded-r-xl">{credential.data.dateOfBirth}</td>
                   </tr>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('familyName')}
                     </td>
                     <td className="py-2 px-2 rounded-r-xl">{credential.data.familyName}</td>
                   </tr>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('firstName')}
                     </td>
@@ -73,31 +73,31 @@ const CredentialInfo = ({ credential }) => {
               )}
               {credential.type === 'Bachelor' && (
                 <>
-                  <tr className="text-left bg-white w-full">
+                  <tr className="text-left  w-full">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('diplomaTitle')}
                     </td>
                     <td className="py-2 px-2 rounded-r-xl">{credential.data.diplomaTitle}</td>
                   </tr>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('eqfLevel')}
                     </td>
                     <td className="py-2 px-2 rounded-r-xl">{credential.data.eqfLevel}</td>
                   </tr>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('familyName')}
                     </td>
                     <td className="py-2 px-2 rounded-r-xl">{credential.data.familyName}</td>
                   </tr>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('firstName')}
                     </td>
                     <td className="py-2 px-2 rounded-r-xl">{credential.data.firstName}</td>
                   </tr>
-                  <tr className="text-left bg-white">
+                  <tr className="text-left ">
                     <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
                       {getFieldIcon('grade')}
                     </td>

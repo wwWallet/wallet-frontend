@@ -6,8 +6,8 @@ import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
 
 import Layout from '../../components/Layout';
-import CredentialInfo from '../../components/Home/CredentialInfo';
-import { fetchCredentialData } from '../../components/Home/apiUtils';
+import CredentialInfo from '../../components/Credentials/CredentialInfo';
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const CredentialDetail = () => {
 	const { id } = useParams();

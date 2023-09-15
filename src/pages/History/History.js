@@ -1,70 +1,146 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
+import Slider from 'react-slick';
+import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick-theme.css";
+
+import * as api from '../../api';
 import Layout from '../../components/Layout';
-
-// Generate some mock history data
-const generateHistory = () => {
-	const history = [];
-	const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
-	for (let i = 1; i <= 100; i++) {
-		let name = '';
-
-		// Generate a random text length between 5 and 20 characters
-		const length = Math.floor(Math.random() * 50) + 5;
-
-		// Generate a random title with varying text lengths
-		for (let j = 0; j < length; j++) {
-			const randomIndex = Math.floor(Math.random() * letters.length);
-			name += letters[randomIndex];
-
-			// Add a space with a 20% probability
-			if (Math.random() < 0.2) {
-				name += ' ';
-			}
-		}
-
-		// Generate a random date between now and 30 days ago
-		const date = new Date(Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000));
-
-		history.push({ id: i, name, date });
-	}
-
-	return history;
-};
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import CredentialInfo from '../../components/Credentials/CredentialInfo';
 
 const History = () => {
-	const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [matchingCredentials, setMatchingCredentials] = useState([]);
+	const [isImageModalOpen, setImageModalOpen] = useState(false);
 
-	// Generate history only once
-	useEffect(() => {
-		const generatedHistory = generateHistory();
-		// Sort by date in descending order
-		generatedHistory.sort((a, b) => b.date - a.date);
-		setHistory(generatedHistory);
-	}, []);
+	const [currentSlide, setCurrentSlide] = useState(1);
 
-	return (
-		<Layout>
-			<div className="px-4 sm:px-6 w-full">
-				<h1 className="text-2xl mb-2 font-bold text-custom-blue">History</h1>
-				<hr className="mb-2 border-t border-custom-blue/80" />
-				<p className="italic pd-2 text-gray-700">View history of credential transmissions, detailing when and to which verifiers you sent</p>
+  const sliderRef = useRef();
 
-				<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
-						{history.map((item) => (
-								<div
-									key={item.id}
-									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
-									style={{ wordBreak: 'break-all' }}
-								>
-									<div className="font-bold">{item.name}</div>
-									<div>{item.date.toLocaleDateString('en-GB')} {item.date.toLocaleTimeString()}</div>
-								</div>
-						))}
-				</div>
-			</div>
-		</Layout>
-	);
+	const settings = {
+		dots: false,
+		arrows: false,
+		infinite: true,
+		speed: 500,
+		slidesToShow: 1,
+		slidesToScroll: 1,
+		afterChange: (current) => setCurrentSlide(current + 1),
+		centerMode: true, // Enable center mode
+		centerPadding: '10px', // Set the padding between adjacent images to 2 pixels
+		style: { margin: '0 10px' },
+	};
+
+  const handleHistoryItemClick = async (ivci) => {
+
+    // Fetch all credentials
+    const temp_cred = await fetchCredentialData();
+
+    // Filter credentials to keep only those with matching IDs in ivci
+    const matchingCreds = temp_cred.filter((cred) => ivci.includes(cred.credentialIdentifier));
+
+    // Set matching credentials and show the popup
+    setMatchingCredentials(matchingCreds);
+    setImageModalOpen(true);
+  };
+
+  useEffect(() => {
+    const fetchVerifiers = async () => {
+      try {
+        const fetchedPresentations = await api.getAllPresentations();
+        // Extract and map the vp_list from fetchedPresentations.
+        const vpListFromApi = fetchedPresentations.vp_list.map((item) => ({
+          id: item.id,
+          ivci: item.includedVerifiableCredentialIdentifiers,
+          audience: item.audience,
+          issuanceDate: item.issuanceDate,
+        }));
+
+        setHistory(vpListFromApi);
+      } catch (error) {
+        console.error('Error fetching verifiers:', error);
+      }
+    };
+
+    fetchVerifiers();
+  }, []);
+
+  return (
+    <Layout>
+      <div className="sm:px-6 w-full">
+        <h1 className="text-2xl mb-2 font-bold text-custom-blue">History</h1>
+        <hr className="mb-2 border-t border-custom-blue/80" />
+        <p className="italic pd-2 text-gray-700">
+          View history of credential transmissions, detailing when and to which verifiers you sent
+        </p>
+
+				{history.length === 0 ? (
+          <p className="text-gray-700 mt-4">No history presentations found.</p>
+        ) : (
+					<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
+
+          {history.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
+              style={{ wordBreak: 'break-all' }}
+              onClick={() => handleHistoryItemClick(item.ivci)}
+            >
+              <div className="font-bold">{item.audience}</div>
+							<div>{new Date(item.issuanceDate * 1000).toUTCString()}</div>
+            </div>
+          ))}
+        </div>
+        )}
+      </div>
+
+      {isImageModalOpen && (
+				<div className="fixed inset-0 flex items-center justify-center z-50" >
+  				<div className="absolute inset-0 bg-black opacity-50" onClick={() => setImageModalOpen(false)}></div>
+					<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[66.67%] max-h-[80vh] z-10 relative mx-6 mx-4">
+						
+						{/* Popup content */}
+						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+							<h2 className="right text-lg font-bold p-2 mb-2 text-custom-blue">
+								Presented Credentials
+							</h2>
+							<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setImageModalOpen(false)}>
+								<svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+										<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+								</svg>
+							</button>
+            </div>
+						<hr className="mb-2 border-t border-custom-blue/80" />
+
+						{/* Display presented credentials */}
+						<div className=" p-2">
+							<Slider ref={sliderRef} {...settings}>
+							{matchingCredentials.map((credential) => (
+								<React.Fragment key={credential.id}>
+									<div className="relative rounded-xl xl:w-full md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full">
+										<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+									</div>
+									<div className="flex items-center justify-end mt-2 mr-3">
+										<span className="mr-4">{currentSlide} of {matchingCredentials.length}</span>
+										<button className="" onClick={() => sliderRef.current.slickPrev()}>
+											<BiLeftArrow size={22} />
+										</button>
+										<button onClick={() => sliderRef.current.slickNext()}>
+											<BiRightArrow size={22} />
+										</button>
+									</div>
+									<div className="max-h-[30vh] overflow-y-auto mx-2">
+									<CredentialInfo credential={credential} />
+									</div>
+								</React.Fragment>
+							))}
+							</Slider>
+						</div>
+					</div>
+				</div>	
+      )}
+    </Layout>
+  );
 };
 
 export default History;

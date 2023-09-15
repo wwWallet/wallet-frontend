@@ -9,8 +9,8 @@ import { AiOutlineCloseCircle } from 'react-icons/ai';
 
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
-import CredentialInfo from '../../components/Home/CredentialInfo';
-import { fetchCredentialData } from '../../components/Home/apiUtils';
+import CredentialInfo from '../../components/Credentials/CredentialInfo';
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const Home = () => {
   const [credentials, setCredentials] = useState([]);
@@ -51,6 +51,7 @@ const Home = () => {
 	useEffect(() => {
 		const getData = async () => {
 			const temp_cred = await fetchCredentialData();
+			console.log(temp_cred);
 			setCredentials(temp_cred);
 		};
 		getData();
