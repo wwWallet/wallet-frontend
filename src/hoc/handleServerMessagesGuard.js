@@ -7,17 +7,20 @@ import { SigningRequestHandlerService } from '../services/SigningRequestHandlers
 
 export default function handleServerMessagesGuard(Component) {
 	return (props) => {
+		const appToken = Cookies.get("appToken");
+
 		const [ handshakeEstablished, setHandshakeEstablished ] = useState(false);
 		const socket = new WebSocket(`ws://wallet-backend-server:8002`);
 		const keystore = new useLocalStorageKeystore();
 		const signingRequestHandlerService = SigningRequestHandlerService();
 
+
 		socket.addEventListener('open', (event) => {
 			console.log('WebSocket connection opened');
-			const appToken = Cookies.get("appToken");
 			if (!appToken) {
 				return;
 			}
+			console.log("Sending...")
 			// send handshake request
 			socket.send(JSON.stringify({ type: "INIT", appToken: appToken }))
 		});
@@ -63,7 +66,7 @@ export default function handleServerMessagesGuard(Component) {
 			}
 		})
 
-		if (handshakeEstablished) {
+		if (handshakeEstablished === true || !appToken) {
 			return (<Component {...props} />);
 		}
 		else {
