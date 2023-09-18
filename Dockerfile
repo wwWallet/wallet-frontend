@@ -2,7 +2,6 @@ FROM node:16-bullseye-slim AS builder
 
 WORKDIR /home/node/app
 COPY . .
-COPY .env.prod .env
 
 RUN yarn install --frozen-lockfile && yarn cache clean -f && yarn build
 
