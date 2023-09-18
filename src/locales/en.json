@@ -1,6 +1,7 @@
 {
 	"alreadyHaveAccountQuestion": "Already have an account? ",
 	"capitalLetter": "At least one capital letter",
+	"addPasskey": "Add passkey",
 	"choosePasskeyUsername": "What should we call you?",
 	"confirmPasswordLabel": "Confirm Password",
 	"enterPasskeyName": "Choose a name for yourself",

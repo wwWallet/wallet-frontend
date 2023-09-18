@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
 import { BsPlusCircle } from 'react-icons/bs';
 
@@ -19,6 +20,7 @@ const WebauthnRegistation = ({
 	const [nickname, setNickname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const dialog = useRef<HTMLDialogElement>();
+	const { t } = useTranslation();
 
 	const onBegin = useCallback(
 		async () => {
@@ -114,7 +116,7 @@ const WebauthnRegistation = ({
 			>
 				<div className="flex items-center">
 					<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-					Addpasskey
+					{t('addPasskey')}
 				</div>
 			</button>
 
