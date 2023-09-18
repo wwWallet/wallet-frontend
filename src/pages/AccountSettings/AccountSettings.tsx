@@ -261,8 +261,7 @@ const Home = () => {
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
 									onDelete={() => {}}
-									showDelete={false}  // Set showDelete to false
-
+									showDelete={false}
 								/>
 							)}
 						</div>
@@ -282,8 +281,7 @@ const Home = () => {
 											key={cred.id}
 											credential={cred}
 											onDelete={() => deleteWebauthnCredential(cred.id)}
-											showDelete={true}  // Set showDelete to false
-
+											showDelete={userData?.webauthnCredentials?.length > 1}
 										/>
 									))}
 							</ul>
