@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaShare } from 'react-icons/fa';
 
 import * as api from '../api';
 
@@ -43,21 +44,15 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 	};
 
 	return (
-		<div className='fixed z-50 inset-0 overflow-y-auto' aria-labelledby='modal-title' role='dialog' aria-modal='true'>
-			<div className='flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0'>
-				<div className='fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity' aria-hidden='true'></div>
-
-				<div className='inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full'>
-					<div className='bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4'>
-						<div className='flex justify-between items-center'>
-							<h3 className='text-lg leading-6 font-medium text-gray-900' id='modal-title'>Select an option</h3>
-							<button
-								onClick={handleCancel}
-								className='bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded'>
-								Cancel
-							</button>
-						</div>
-						<div className='mt-2 flex flex-wrap justify-center'>
+		<div className="fixed inset-0 flex items-center justify-center z-50">
+		<div className="absolute inset-0 bg-black opacity-50"></div>
+		<div className="bg-white p-4 rounded-lg shadow-lg w-full h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
+					<h2 className="text-lg font-bold mb-2 text-custom-blue">
+									<FaShare size={20} className="inline mr-1 mb-1" /> 
+									Selecte an Option:
+								</h2>
+								<hr className="mb-2 border-t border-custom-blue/80" />
+						<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto h-[60vh]'>
 							{images.map(image => (
 								<div className="m-5">
 									<img
@@ -70,10 +65,14 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 								</div>
 							))}
 						</div>
+						<button
+								onClick={handleCancel}
+								className='text-sm px-4 py-2 mb-2 bg-red-500 hover:bg-red-700 text-white font-medium rounded-lg'>
+								Cancel
+							</button>
 					</div>
 				</div>
-			</div>
-		</div>
+
 	);
 }
 
