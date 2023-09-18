@@ -98,7 +98,7 @@ function App() {
 								isValidURL === null ? null : isValidURL ? (
 									<PrivateRoute><Home /></PrivateRoute>
 								) : (
-									<NotFound />
+									<Home />
 								)
 							}
 						/>
