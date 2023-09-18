@@ -49,7 +49,7 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 		<div className="bg-white p-4 rounded-lg shadow-lg w-full h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
 					<h2 className="text-lg font-bold mb-2 text-custom-blue">
 									<FaShare size={20} className="inline mr-1 mb-1" /> 
-									Selecte an Option:
+									Select an Option:
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
 						<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto h-[60vh]'>
