@@ -43,10 +43,20 @@ export function useIndexedDb(
 				return await dbTransaction(await openDb(), objectStores, "readwrite", f);
 			};
 			const destroy = async (): Promise<void> => {
+				console.log("Requesting deletion of IndexedDB:", dbName);
+				const t0 = window.performance?.now();
 				return new Promise((resolve, reject) => {
 					const request = window.indexedDB.deleteDatabase(dbName);
-					request.onsuccess = () => resolve();
-					request.onerror = (event) => reject(event);
+					request.onsuccess = () => {
+						const dt = window.performance?.now() - t0;
+						console.log("Successfully deleted IndexedDB", dbName, "in", dt / 1000, "s");
+						return resolve();
+					};
+					request.onerror = (event) => {
+						const dt = window.performance?.now() - t0;
+						console.error("Failed to delete IndexedDB", dbName, "in", dt / 1000, "s", event);
+						return reject(event);
+					};
 				});
 			}
 
