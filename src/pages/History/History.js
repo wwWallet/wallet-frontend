@@ -47,9 +47,10 @@ const History = () => {
   };
 
   useEffect(() => {
-    const fetchVerifiers = async () => {
+    const fetchedPresentations = async () => {
       try {
         const fetchedPresentations = await api.getAllPresentations();
+				console.log(fetchedPresentations.vp_list);
         // Extract and map the vp_list from fetchedPresentations.
         const vpListFromApi = fetchedPresentations.vp_list.map((item) => ({
           id: item.id,
@@ -64,7 +65,7 @@ const History = () => {
       }
     };
 
-    fetchVerifiers();
+    fetchedPresentations();
   }, []);
 
   return (
@@ -99,7 +100,7 @@ const History = () => {
       {isImageModalOpen && (
 				<div className="fixed inset-0 flex items-center justify-center z-50" >
   				<div className="absolute inset-0 bg-black opacity-50" onClick={() => setImageModalOpen(false)}></div>
-					<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[66.67%] max-h-[80vh] z-10 relative mx-6 mx-4">
+					<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[33.33%] max-h-[100vh] z-10 relative mx-6 mx-4">
 						
 						{/* Popup content */}
 						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">

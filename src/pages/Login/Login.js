@@ -209,7 +209,7 @@ const WebauthnSignupLogin = ({
 						<p>Please interact with your authenticator...</p>
 						<button
 							type="button"
-							className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							onClick={onCancel}
 						>
 							Cancel
@@ -233,7 +233,7 @@ const WebauthnSignupLogin = ({
 							</>)}
 
 						<button
-							className="w-full text-gray-700 bg-gray-50 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
 							disabled={isSubmitting}
 						>
@@ -370,7 +370,7 @@ const Login = () => {
 							{isLogin ? t('login') : t('signUp')}
 						</h1>
 
-						<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+						{/* <form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 							{error && <div className="text-red-500">{error}</div>}
 							<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
 								<FormInputField
@@ -417,7 +417,7 @@ const Login = () => {
 							</button>
 						</form>
 
-						<SeparatorLine>OR</SeparatorLine>
+						<SeparatorLine>OR</SeparatorLine> */}
 
 						<WebauthnSignupLogin
 							isLogin={isLogin}
