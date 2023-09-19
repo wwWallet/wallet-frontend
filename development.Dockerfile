@@ -16,7 +16,9 @@ WORKDIR /app
 ENV NODE_ENV development
 CMD [ "yarn", "start-docker" ]
 
+# src/ and public/ will be mounted from host, but we need some config files in the image for startup
+COPY . .
+RUN rm .npmrc
+
 # Set user last so everything is readonly by default
 USER node
-
-# Don't need the rest of the sources since they'll be mounted from host
