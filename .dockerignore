@@ -1,3 +1,10 @@
 node_modules
 build
+dist
 .env
+.git
+.gitattributes
+.gitignore
+.npmrc.template
+.vscode
+README.md
