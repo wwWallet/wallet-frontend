@@ -16,13 +16,23 @@ async function openIndexedDb(
 	});
 }
 
-async function dbTransaction<T>(db: IDBDatabase, objectStores: string[], mode: IDBTransactionMode, f: TransactionFunc<T>): Promise<T> {
+async function dbTransaction<T>(
+	openDb: () => Promise<IDBDatabase>,
+	objectStores: string[],
+	mode: IDBTransactionMode,
+	f: TransactionFunc<T>,
+): Promise<T> {
+	const db = await openDb();
 	const tr = db.transaction(objectStores, mode);
-	return await new Promise((resolve, reject) => {
-		const req = f(tr);
-		req.onsuccess = () => resolve(req.result);
-		req.onerror = (event) => reject(event);
-	});
+	try {
+		return await new Promise<T>((resolve, reject) => {
+			const req = f(tr);
+			req.onsuccess = () => resolve(req.result);
+			req.onerror = (event) => reject(event);
+		});
+	} finally {
+		db.close();
+	}
 }
 
 export type TransactionFunc<T> = (transaction: IDBTransaction) => IDBRequest<T>;
@@ -38,11 +48,12 @@ export function useIndexedDb(
 			const openDb = async () => await openIndexedDb(dbName, version, upgrade);
 
 			const read: DatabaseTransaction = async (objectStores, f) => {
-				return await dbTransaction(await openDb(), objectStores, "readonly", f);
+				return await dbTransaction(openDb, objectStores, "readonly", f);
 			};
 			const write: DatabaseTransaction = async (objectStores, f) => {
-				return await dbTransaction(await openDb(), objectStores, "readwrite", f);
+				return await dbTransaction(openDb, objectStores, "readwrite", f);
 			};
+
 			const destroy = async (): Promise<void> => {
 				return new Promise((resolve, reject) => {
 					const request = window.indexedDB.deleteDatabase(dbName);
