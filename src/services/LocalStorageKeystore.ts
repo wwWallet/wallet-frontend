@@ -21,7 +21,7 @@ export type EncryptedContainer = {
 const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
 const pbkdfIterations: number = 600000;
 
-type WrappedKeyInfo = {
+export type WrappedKeyInfo = {
 	wrappedKey: Uint8Array,
 	unwrapAlgo: "AES-KW",
 	unwrappedKeyAlgo: KeyAlgorithm,
@@ -259,6 +259,7 @@ async function getPrfOutput(
 
 export interface LocalStorageKeystore {
 	close(): Promise<void>,
+	updatePrivateDataCache(privateData: EncryptedContainer): void,
 
 	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
 	initPrf(
@@ -491,6 +492,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					await idb.destroy();
 					clearLocalStorage();
 					clearSessionStorage();
+				},
+
+				updatePrivateDataCache: (privateData: EncryptedContainer): void => {
+					setPrivateDataCache(privateData);
 				},
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {

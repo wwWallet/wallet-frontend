@@ -1,19 +1,24 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
-import { BsPlusCircle } from 'react-icons/bs';
+import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import * as api from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import Layout from '../../components/Layout';
-import { compareBy, toBase64Url } from '../../util';
+import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import {formatDate} from '../../functions/DateFormat';
+import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 
 
 const WebauthnRegistation = ({
+	existingPrfKey,
 	onSuccess,
+	wrappedMainKey,
 }: {
+	existingPrfKey?: CryptoKey,
 	onSuccess: () => void,
+	wrappedMainKey?: WrappedKeyInfo,
 }) => {
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -21,6 +26,8 @@ const WebauthnRegistation = ({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const dialog = useRef<HTMLDialogElement>();
 	const { t } = useTranslation();
+	const keystore = useLocalStorageKeystore();
+	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
 
 	const onBegin = useCallback(
 		async () => {
@@ -61,8 +68,15 @@ const WebauthnRegistation = ({
 		event.preventDefault();
 		console.log("onFinish", event);
 
-		if (beginData && pendingCredential) {
+		if (beginData && pendingCredential && existingPrfKey && wrappedMainKey) {
 			setIsSubmitting(true);
+
+			const newPrivateData = await keystore.addPrf(
+				pendingCredential,
+				beginData.createOptions.publicKey.rp.id,
+				existingPrfKey,
+				wrappedMainKey,
+			);
 
 			try {
 				await api.post('/user/session/webauthn/register-finish', {
@@ -80,15 +94,18 @@ const WebauthnRegistation = ({
 						authenticatorAttachment: pendingCredential.authenticatorAttachment,
 						clientExtensionResults: pendingCredential.getClientExtensionResults(),
 					},
+					privateData: jsonStringifyTaggedBinary(newPrivateData),
 				});
 				onSuccess();
 				setNickname("");
+				keystore.updatePrivateDataCache(newPrivateData);
+
 			} catch (e) {
 				console.error("Failed to finish registration", e);
 			}
 			onCancel();
 		} else {
-			console.error("Invalid state:", beginData, pendingCredential);
+			console.error("Invalid state:", beginData, pendingCredential, existingPrfKey, wrappedMainKey);
 		}
 	};
 
@@ -110,9 +127,9 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-				className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+				className={`px-2 py-2 mb-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
 				onClick={onBegin}
-				disabled={registrationInProgress}
+				disabled={registrationInProgress || !unlocked}
 			>
 				<div className="flex items-center">
 					<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
@@ -178,6 +195,75 @@ const WebauthnRegistation = ({
 	);
 };
 
+const WebauthnUnlock = ({
+	onLock,
+	onUnlock,
+	unlocked,
+}: {
+	onLock: () => void,
+	onUnlock: (prfKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
+	unlocked: boolean,
+}) => {
+	const [inProgress, setInProgress] = useState(false);
+	const [error, setError] = useState('');
+	const keystore = useLocalStorageKeystore();
+	const { t } = useTranslation();
+
+	useEffect(
+		() => {
+			setError("");
+		},
+		[],
+	);
+
+	const onBeginUnlock = useCallback(
+		async () => {
+			setInProgress(true);
+			try {
+				const [prfKey, keyInfo] = await keystore.getPrfKeyFromSession();
+				onUnlock(prfKey, keyInfo.mainKey);
+			} catch (e) {
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (e.errorId) {
+					case 'passkeyInvalid':
+						setError(t('passkeyInvalid'));
+						break;
+
+					case 'passkeyLoginFailedTryAgain':
+						setError(t('passkeyLoginFailedTryAgain'));
+						break;
+
+					default:
+						throw e;
+				}
+			} finally {
+				setInProgress(false);
+			}
+		},
+		[keystore, onUnlock, t],
+	);
+
+	return (
+		<button
+			className="px-2 py-2 mr-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+			onClick={unlocked ? onLock : onBeginUnlock}
+			disabled={inProgress}
+		>
+			<div className="flex items-center">
+				{unlocked
+					? <>
+						<BsUnlock size={20} className="text-white mr-2 sm:inline" />
+						{t('lockPasskeyManagement')}
+					</>
+					: <>
+						<BsLock size={20} className="text-white mr-2 sm:inline" />
+						{t('unlockPasskeyManagement')}
+					</>
+				}
+			</div>
+		</button>
+	);
+};
 
 const WebauthnCredentialItem = ({
 	credential,
@@ -214,6 +300,9 @@ const WebauthnCredentialItem = ({
 const Home = () => {
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
+	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
+	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
+	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
 
 	const refreshData = useCallback(
 		async () => {
@@ -267,7 +356,24 @@ const Home = () => {
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
 								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Other Passkeys</h1>
-								<WebauthnRegistation onSuccess={() => refreshData()} />
+								<div>
+									<WebauthnUnlock
+										unlocked={unlocked}
+										onLock={() => {
+											setExistingPrfKey(null);
+											setWrappedMainKey(null);
+										}}
+										onUnlock={(prfKey, wrappedMainKey) => {
+											setExistingPrfKey(prfKey);
+											setWrappedMainKey(wrappedMainKey);
+										}}
+									/>
+									<WebauthnRegistation
+										existingPrfKey={existingPrfKey}
+										wrappedMainKey={wrappedMainKey}
+										onSuccess={() => refreshData()}
+									/>
+								</div>
 							</div>
 							<hr className="mb-2 border-t border-gray-500" />
 
@@ -280,7 +386,7 @@ const Home = () => {
 											key={cred.id}
 											credential={cred}
 											onDelete={() => deleteWebauthnCredential(cred.id)}
-											showDelete={userData?.webauthnCredentials?.length > 1}
+											showDelete={unlocked && userData?.webauthnCredentials?.length > 1}
 										/>
 									))}
 							</ul>
