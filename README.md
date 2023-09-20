@@ -1,6 +1,7 @@
 
 
 
+
 # eDiplomas Digital Wallet
 
 Welcome to the eDiplomas Digital Wallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
@@ -11,6 +12,8 @@ Welcome to the eDiplomas Digital Wallet Frontend repository! This application is
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
+- [PRF Compatibility](#prf-compatibility)
+- [Firebase](#firebase)
 - [Contributing](#contributing)
 
 ## Features
@@ -61,7 +64,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - PORT: The port on which your app will run (default is 3000).
 	 - VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
 	 - REACT_APP_WS_URL: The URL of the websocket service.
-         - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
+	 - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
 	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase. 
 	 - REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
 	 - REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
@@ -82,6 +85,37 @@ The project uses environment variables to manage different configurations. A `.e
 
 ## Usage
 Once the development server is running, you can access the app by visiting http://localhost:3000 in your web browser. The app provides various pages and components that you can interact with. Explore the features and enjoy using the Wallet Frontend!
+
+## PRF Compatibility
+
+The eDiplomas Digital Wallet Frontend offers compatibility with PRF for a seamless and secure registration and authentication process. Below, we present specific compatibility scenarios based on the operating system, with WebAuthn compatibility included for reference.
+
+### Compatibility Description
+
+PRF (Passwordless Registration Framework) simplifies the process of registering and authenticating users without passwords, enhancing both security and user experience. While WebAuthn is compatible with various authentication methods, this table focuses on PRF compatibility.
+
+### PRF Compatibility Scenarios for Google Chrome (version 116 and later)
+
+| Operating System | Authenticator                          | PRF Compatibility |
+|------------------|----------------------------------------|--------------------|
+| Linux            | YubiKey (USB)                          | ✔                  |
+| Linux            | Android (Bluetooth)                    | ✔                  |
+| Linux            | iOS (Bluetooth)                        | -                  |
+| Windows          | YubiKey                                | -                  |
+| Windows          | Android (Bluetooth)                    | -                  |
+| Windows          | iOS (Bluetooth)                        | -                  |
+| Windows          | Windows (Same Hardware)                | ❌                  |
+| MacOS            | YubiKey (USB)                          | ✔                  |
+| MacOS            | MacOS (Same Hardware)                  | ❌                  |
+| MacOS            | Android (Bluetooth)                    | ✔                  |
+| MacOS            | iOS (Bluetooth)                        | -                  |
+| Android          | Android (Same Hardware)                | ✔                  |
+| iOS              | iOS     (Same Hardware)                | -                  |
+
+
+Android
+
+Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The eDiplomas Digital Wallet Frontend aims to provide a secure and flexible authentication experience with a focus on PRF compatibility.
 
 ## Firebase
 This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
