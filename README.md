@@ -60,7 +60,8 @@ The project uses environment variables to manage different configurations. A `.e
 	 - HOST: The IP address where your app will be running (default is '0.0.0.0').
 	 - PORT: The port on which your app will run (default is 3000).
 	 - VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
-	 - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
+	 - REACT_APP_WS_URL: The URL of the websocket service.
+         - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
 	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase. 
 	 - REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
 	 - REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
