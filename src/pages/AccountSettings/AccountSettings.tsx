@@ -108,8 +108,8 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-            className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-						onClick={onBegin}
+				className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+				onClick={onBegin}
 				disabled={registrationInProgress}
 			>
 				<div className="flex items-center">
@@ -178,33 +178,33 @@ const WebauthnRegistation = ({
 
 
 const WebauthnCredentialItem = ({
-  credential,
-  onDelete,
-  showDelete = true,  // new prop to control the visibility of the delete button
+	credential,
+	onDelete,
+	showDelete = true,  // new prop to control the visibility of the delete button
 }: {
-  credential: WebauthnCredential,
-  onDelete: () => void,
-  showDelete?: boolean, // make it optional so existing usage won't break
+	credential: WebauthnCredential,
+	onDelete: () => void,
+	showDelete?: boolean, // make it optional so existing usage won't break
 
-	
+
 }
 ) => (
-  <div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
-    <p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
+	<div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
+		<p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
 		<p>Created: {formatDate(credential.createTime)}</p>
-    <p>Last used: {formatDate(credential.lastUseTime)}</p>
-    <p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
-    {showDelete && (
-      <button
-        className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-        type="button"
-        onClick={onDelete}
-        aria-label={`Delete passkey "${credential.nickname || credential.id}"`}
-      >
-        <FaTrash />
-      </button>
-    )}
-  </div>
+		<p>Last used: {formatDate(credential.lastUseTime)}</p>
+		<p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
+		{showDelete && (
+			<button
+				className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+				type="button"
+				onClick={onDelete}
+				aria-label={`Delete passkey "${credential.nickname || credential.id}"`}
+			>
+				<FaTrash />
+			</button>
+		)}
+	</div>
 );
 
 
@@ -251,44 +251,41 @@ const Home = () => {
 					<>
 						<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings : {userData.displayName} </h1>
 						<hr className="mb-2 border-t border-custom-blue/80" />
-        		<p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
+						<p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
 
 						<div className="mt-2 mb-2 py-2">
-            	<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Logged in passkey</h1>
-            	<hr className="mb-2 border-t border-gray-300"/>
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Logged in passkey</h1>
+							<hr className="mb-2 border-t border-gray-300" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
 									onDelete={() => {}}
-									showDelete={false}  // Set showDelete to false
-								
+									showDelete={false}
 								/>
 							)}
-          	</div>
-						<div className="mt-2 mb-2 py-2">
-						<div className="flex justify-between items-center">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Other Passkeys</h1>
-							<WebauthnRegistation onSuccess={() => refreshData()} />
 						</div>
-            	<hr className="mb-2 border-t border-gray-500"/>
+						<div className="mt-2 mb-2 py-2">
+							<div className="flex justify-between items-center">
+								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Other Passkeys</h1>
+								<WebauthnRegistation onSuccess={() => refreshData()} />
+							</div>
+							<hr className="mb-2 border-t border-gray-500" />
 
 							<ul className="mt-4">
-							{userData.webauthnCredentials
-								.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
-								.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
-								.map(cred => (
-									<WebauthnCredentialItem
-										key={cred.id}
-										credential={cred}
-										onDelete={() => deleteWebauthnCredential(cred.id)}
-										showDelete={true}  // Set showDelete to false
-
-									/>
-								))}
-						</ul>
+								{userData.webauthnCredentials
+									.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+									.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+									.map(cred => (
+										<WebauthnCredentialItem
+											key={cred.id}
+											credential={cred}
+											onDelete={() => deleteWebauthnCredential(cred.id)}
+											showDelete={userData?.webauthnCredentials?.length > 1}
+										/>
+									))}
+							</ul>
 						</div>
-
 					</>
 				)}
 			</div>
