@@ -24,7 +24,7 @@ const pbkdfIterations: number = 600000;
 type WrappedKeyInfo = {
 	wrappedKey: Uint8Array,
 	unwrapAlgo: "AES-KW",
-	unwrappedKeyAlgo: "AES-GCM",
+	unwrappedKeyAlgo: KeyAlgorithm,
 }
 
 type PasswordKeyInfo = {
@@ -59,27 +59,23 @@ type WrappedPrivateKey = {
 
 
 async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
-	const partialKeyInfo: { unwrapAlgo: "AES-KW", unwrappedKeyAlgo: "AES-GCM" } = {
-		unwrapAlgo: "AES-KW",
-		unwrappedKeyAlgo: "AES-GCM",
-	};
-
-	const mainKeyAlgorithm = { name: partialKeyInfo.unwrappedKeyAlgo, length: 256 };
 	const mainKey = await crypto.subtle.generateKey(
-		mainKeyAlgorithm,
+		{ name: "AES-GCM", length: 256 },
 		true,
 		["encrypt"],
 	);
 
+	const wrapAlgo = "AES-KW";
 	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(
 		"raw",
 		mainKey,
 		wrappingKey,
-		partialKeyInfo.unwrapAlgo,
+		wrapAlgo,
 	));
 
 	return {
-		...partialKeyInfo,
+		unwrappedKeyAlgo: mainKey.algorithm,
+		unwrapAlgo: wrapAlgo,
 		wrappedKey,
 	};
 }
