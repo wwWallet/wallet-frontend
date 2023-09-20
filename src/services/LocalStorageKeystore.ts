@@ -64,17 +64,20 @@ async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
 		true,
 		["encrypt"],
 	);
+	return await wrapKey(wrappingKey, mainKey);
+}
 
+async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<WrappedKeyInfo> {
 	const wrapAlgo = "AES-KW";
 	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(
 		"raw",
-		mainKey,
+		keyToWrap,
 		wrappingKey,
 		wrapAlgo,
 	));
 
 	return {
-		unwrappedKeyAlgo: mainKey.algorithm,
+		unwrappedKeyAlgo: keyToWrap.algorithm,
 		unwrapAlgo: wrapAlgo,
 		wrappedKey,
 	};
