@@ -194,8 +194,9 @@ export interface LocalStorageKeystore {
 }
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
-	const [privateDataJwe, setPrivateDataJwe] = useLocalStorage<string | null>("privateData", null);
+	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
+	const [privateDataJwe, setPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
 	const clearLocalStorage = useClearLocalStorage();
 	const clearSessionStorage = useClearSessionStorage();
 
@@ -284,6 +285,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				const outerSessionKey = await createOuterSessionKey();
 				const innerSessionKey = await createInnerSessionKey(outerSessionKey);
 				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, innerSessionKey);
+				setPrivateDataCache(privateData);
 				setPrivateDataJwe(reencryptedPrivateData);
 			};
 
@@ -465,6 +467,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			innerSessionKey,
 			privateDataJwe,
 			setInnerSessionKey,
+			setPrivateDataCache,
 			setPrivateDataJwe,
 		],
 	);
