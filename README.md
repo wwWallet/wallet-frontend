@@ -113,8 +113,6 @@ PRF (Passwordless Registration Framework) simplifies the process of registering 
 | iOS              | iOS     (Same Hardware)                | -                  |
 
 
-Android
-
 Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The eDiplomas Digital Wallet Frontend aims to provide a secure and flexible authentication experience with a focus on PRF compatibility.
 
 ## Firebase
