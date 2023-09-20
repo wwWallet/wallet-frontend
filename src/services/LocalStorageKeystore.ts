@@ -87,16 +87,21 @@ async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<Wr
 	};
 }
 
-async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo): Promise<CryptoKey> {
+async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo, extractable: boolean = false): Promise<CryptoKey> {
 	return await crypto.subtle.unwrapKey(
 		"raw",
 		keyInfo.wrappedKey,
 		wrappingKey,
 		keyInfo.unwrapAlgo,
 		keyInfo.unwrappedKeyAlgo,
-		false,
+		extractable,
 		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
 	);
+}
+
+async function rewrapKey(wrappedKey: WrappedKeyInfo, unwrappingKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
+	const unwrappedKey = await unwrapKey(unwrappingKey, wrappedKey, true);
+	return await wrapKey(wrappingKey, unwrappedKey);
 }
 
 async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
@@ -261,8 +266,15 @@ export interface LocalStorageKeystore {
 		prfSalt: Uint8Array,
 		rpId: string,
 	): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	addPrf(
+		credential: PublicKeyCredential,
+		rpId: string,
+		existingPrfKey: CryptoKey,
+		wrappedMainKey: WrappedKeyInfo,
+	): Promise<EncryptedContainer>,
 	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
 	unlockPrf(privateData: EncryptedContainer, credential: PublicKeyCredential, rpId: string): Promise<void>,
+	getPrfKeyFromSession(): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]>,
 
 	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
@@ -270,6 +282,7 @@ export interface LocalStorageKeystore {
 }
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
+	const [webauthnRpId, setWebauthnRpId] = useLocalStorage<string | null>("webauthnRpId", null);
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
 	const [privateDataJwe, setPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
@@ -375,16 +388,23 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				credential: PublicKeyCredential | null,
 				prfSalt: Uint8Array,
 				rpId: string,
+				wrappedMainKey: WrappedKeyInfo | null,
+				unwrappingKey: CryptoKey | null,
 			): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> => {
 				const [prfOutput, ] = await getPrfOutput(
 					credential,
 					rpId,
-					{ prfInput: { eval: { first: prfSalt } } },
+					{
+						allowCredentials: [{ type: "public-key", id: credential.rawId }],
+						prfInput: { eval: { first: prfSalt } },
+					},
 				);
 				const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
 				const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
 				const prfKey = await derivePrfKey(prfOutput, hkdfSalt, hkdfInfo);
-				const mainKey = await createMainKey(prfKey);
+				const mainKey = wrappedMainKey
+					? await rewrapKey(wrappedMainKey, unwrappingKey, prfKey)
+					: await createMainKey(prfKey);
 				const keyInfo: WebauthnPrfEncryptionKeyInfo = {
 					mainKey,
 					credentialId: new Uint8Array(credential.rawId),
@@ -417,7 +437,9 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			): Promise<void> => {
 				const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId);
 				const mainKey = await unwrapKey(prfKey, keyInfo.mainKey);
-				return await unlock(mainKey, privateData);
+				const result = await unlock(mainKey, privateData);
+				setWebauthnRpId(rpId);
+				return result;
 			};
 
 			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
@@ -493,12 +515,41 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 				initPrf: async (credential: PublicKeyCredential, prfSalt: Uint8Array, rpId: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPrf");
-					const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId);
-					return await init(keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] });
+					const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, null, null);
+					const result = await init(keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] });
+					setWebauthnRpId(rpId);
+					return result;
+				},
+
+				addPrf: async (
+					credential: PublicKeyCredential,
+					rpId: string,
+					existingPrfKey: CryptoKey,
+					wrappedMainKey: WrappedKeyInfo,
+				): Promise<EncryptedContainer> => {
+					const prfSalt = crypto.getRandomValues(new Uint8Array(32))
+					const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, wrappedMainKey, existingPrfKey);
+					const newPrivateData = {
+						...privateDataCache,
+						prfKeys: [
+							...privateDataCache.prfKeys,
+							keyInfo,
+						],
+					};
+					return newPrivateData;
 				},
 
 				unlockPassword,
 				unlockPrf,
+
+				getPrfKeyFromSession: async (): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> => {
+					if (privateDataCache && webauthnRpId) {
+						return await getPrfKey(privateDataCache, null, webauthnRpId);
+
+					} else {
+						throw new Error("Session not initialized");
+					}
+				},
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
 					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
@@ -572,10 +623,13 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			clearSessionStorage,
 			idb,
 			innerSessionKey,
+			privateDataCache,
 			privateDataJwe,
 			setInnerSessionKey,
 			setPrivateDataCache,
 			setPrivateDataJwe,
+			setWebauthnRpId,
+			webauthnRpId,
 		],
 	);
 }
