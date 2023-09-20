@@ -80,7 +80,7 @@ async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
 	};
 }
 
-async function unwrapMainKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo): Promise<CryptoKey> {
+async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo): Promise<CryptoKey> {
 	return await crypto.subtle.unwrapKey(
 		"raw",
 		keyInfo.wrappedKey,
@@ -287,13 +287,13 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 			const unlockPassword = async (privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void> => {
 				const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
-				const mainKey = await unwrapMainKey(passwordKey, keyInfo.mainKey);
+				const mainKey = await unwrapKey(passwordKey, keyInfo.mainKey);
 				return await unlock(mainKey, privateData);
 			};
 
 			const unlockPrf = async (privateData: EncryptedContainer, prfOutput: BufferSource, keyInfo: WebauthnPrfEncryptionKeyInfo): Promise<void> => {
 				const prfKey = await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo);
-				const mainKey = await unwrapMainKey(prfKey, keyInfo.mainKey);
+				const mainKey = await unwrapKey(prfKey, keyInfo.mainKey);
 				return await unlock(mainKey, privateData);
 			};
 
@@ -326,7 +326,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			const init = async (wrappedMainKey: WrappedKeyInfo, wrappingKey: CryptoKey, keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] }): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 				console.log("init");
 
-				const mainKey = await unwrapMainKey(wrappingKey, wrappedMainKey);
+				const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
 
 				const { publicData, privateDataJwe } = await createWallet(mainKey);
 				const privateData: EncryptedContainer = {
