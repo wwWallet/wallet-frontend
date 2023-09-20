@@ -211,6 +211,7 @@ const WebauthnCredentialItem = ({
 
 const Home = () => {
 	const [userData, setUserData] = useState<UserData>(null);
+	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 
 	const refreshData = useCallback(
 		async () => {
@@ -237,12 +238,8 @@ const Home = () => {
 		refreshData();
 	};
 
-	// Determine the logged-in passkey
-	const loggedInPasskey = userData?.webauthnCredentials
-	.filter(cred => cred.lastUseTime !== cred.createTime)
-	.sort((a, b) => new Date(b.lastUseTime).getTime() - new Date(a.lastUseTime).getTime())[0]
-	|| userData?.webauthnCredentials
-	.sort((a, b) => new Date(a.createTime).getTime() - new Date(b.createTime).getTime())[0];
+	const loggedInPasskey = userData?.webauthnCredentials.find(
+		cred => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId);
 
 	return (
 		<Layout>
