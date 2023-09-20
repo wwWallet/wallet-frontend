@@ -65,6 +65,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
 	 - REACT_APP_WS_URL: The URL of the websocket service.
 	 - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
+	 - REACT_APP_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
 	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase. 
 	 - REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
 	 - REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
@@ -102,7 +103,7 @@ PRF (Passwordless Registration Framework) simplifies the process of registering 
 | Linux            | Android (Bluetooth)                    | ✔                  |
 | Linux            | iOS (Bluetooth)                        | -                  |
 | Windows          | YubiKey                                | -                  |
-| Windows          | Android (Bluetooth)                    | -                  |
+| Windows          | Android (Bluetooth)                    | ✔                  |
 | Windows          | iOS (Bluetooth)                        | -                  |
 | Windows          | Windows (Same Hardware)                | ❌                  |
 | MacOS            | YubiKey (USB)                          | ✔                  |
