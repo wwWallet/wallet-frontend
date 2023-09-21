@@ -273,6 +273,7 @@ export interface LocalStorageKeystore {
 		existingPrfKey: CryptoKey,
 		wrappedMainKey: WrappedKeyInfo,
 	): Promise<EncryptedContainer>,
+	deletePrf(credentialId: Uint8Array): EncryptedContainer,
 	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
 	unlockPrf(privateData: EncryptedContainer, credential: PublicKeyCredential, rpId: string): Promise<void>,
 	getPrfKeyFromSession(): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]>,
@@ -540,6 +541,16 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							...privateDataCache.prfKeys,
 							keyInfo,
 						],
+					};
+					return newPrivateData;
+				},
+
+				deletePrf: (credentialId: Uint8Array): EncryptedContainer => {
+					const newPrivateData = {
+						...privateDataCache,
+						prfKeys: privateDataCache.prfKeys.filter((keyInfo) => (
+							toBase64Url(keyInfo.credentialId) !== toBase64Url(credentialId)
+						)),
 					};
 					return newPrivateData;
 				},

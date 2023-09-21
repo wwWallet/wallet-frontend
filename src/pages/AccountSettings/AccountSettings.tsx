@@ -299,6 +299,7 @@ const Home = () => {
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
 	const showDelete = unlocked && userData?.webauthnCredentials?.length > 1;
+	const keystore = useLocalStorageKeystore();
 
 	const refreshData = useCallback(
 		async () => {
@@ -320,8 +321,16 @@ const Home = () => {
 		[refreshData],
 	);
 
-	const deleteWebauthnCredential = async (id: string) => {
-		await api.del(`/user/session/webauthn/credential/${id}`);
+	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
+		const newPrivateData = keystore.deletePrf(credential.credentialId);
+		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
+			privateData: jsonStringifyTaggedBinary(newPrivateData),
+		});
+		if (deleteResp.status === 204) {
+			keystore.updatePrivateDataCache(newPrivateData);
+		} else {
+			console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
+		}
 		refreshData();
 	};
 
@@ -379,7 +388,7 @@ const Home = () => {
 										<WebauthnCredentialItem
 											key={cred.id}
 											credential={cred}
-											onDelete={showDelete && (() => deleteWebauthnCredential(cred.id))}
+											onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 										/>
 									))}
 							</ul>
