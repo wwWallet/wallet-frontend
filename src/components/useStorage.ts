@@ -36,7 +36,11 @@ function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHand
 }
 const useGlobalState: <T>(name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T> = makeUseGlobalState();
 
-function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) => UseStateHandle<T> {
+function makeUseStorage<T>(storage: Storage, description: string): (name: string, initialValue: T) => UseStateHandle<T> {
+	if (!storage) {
+		throw new Error(`${description} is not available.`);
+	}
+
 	return (name: string, initialValue: T) => {
 		const storedValueStr = storage.getItem(name);
 		let storedValue = initialValue;
@@ -57,7 +61,7 @@ function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) =>
 						storage.setItem(name, jsonStringifyTaggedBinary(currentValue));
 					}
 				} catch (e) {
-					console.error(`Failed to update session storage "${name}"`, e);
+					console.error(`Failed to update storage "${name}"`, e);
 				}
 			},
 			[currentValue, initialValue, name]
@@ -79,21 +83,17 @@ function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) =>
 			[name]
 		);
 
-		// Session storage is global state, so update all useState hooks whenever
+		// Browser storage is global state, so update all useState hooks whenever
 		// one of them changes.
 		return useGlobalState(name, [currentValue, setValue]);
 	};
 }
 
-export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> = makeUseStorage(localStorage);
-export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> = (
-	sessionStorage
-		? makeUseStorage(sessionStorage)
+export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
+	makeUseStorage(window.localStorage, "Local storage");
 
-		// Emulate the global state behaviour of session state even when
-		// sessionStorage is not available.
-		: (name: string, initialValue: any) => useGlobalState(name, useState(initialValue))
-);
+export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
+	makeUseStorage(window.sessionStorage, "Session storage");
 
 export const useClearLocalStorage = () => useCallback(
 	() => {
