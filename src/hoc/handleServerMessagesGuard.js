@@ -24,7 +24,7 @@ export default function handleServerMessagesGuard(Component) {
 			if (!appToken) {
 				return;
 			}
-			console.log("Sending...")
+			console.log("Sending...");
 			// send handshake request
 			socket.send(JSON.stringify({ type: "INIT", appToken: appToken }));
 			setIsSocketOpen(true); // Set the state to indicate that the connection is open
@@ -36,8 +36,8 @@ export default function handleServerMessagesGuard(Component) {
 					try {
 						console.log('--->',event.data.toString());
 						const { type } = JSON.parse(event.data.toString());
-						if (type == "FIN_INIT") {
-							console.log("init fin")
+						if (type === "FIN_INIT") {
+							console.log("init fin");
 							setHandshakeEstablished(true);
 
 							resolve({});
@@ -46,9 +46,9 @@ export default function handleServerMessagesGuard(Component) {
 					catch(e) {
 						reject(e);
 					}
-				}
+				};
 			});
-		}
+		};
 
 		useEffect(() => {
 			if (isSocketOpen) {
@@ -61,19 +61,19 @@ export default function handleServerMessagesGuard(Component) {
 			try {
 				const message = JSON.parse(event.data.toString());
 				const { message_id, request } = message;
-				if (request.action == SignatureAction.createIdToken) {
+				if (request.action === SignatureAction.createIdToken) {
 					signingRequestHandlerService.handleCreateIdToken(socket, keystore, { message_id, ...request });
 				}
-				else if (request.action == SignatureAction.signJwtPresentation) {
+				else if (request.action === SignatureAction.signJwtPresentation) {
 					signingRequestHandlerService.handleSignJwtPresentation(socket, keystore, { message_id, ...request });
 				}
-				else if (request.action == SignatureAction.generateOpenid4vciProof) {
+				else if (request.action === SignatureAction.generateOpenid4vciProof) {
 					signingRequestHandlerService.handleGenerateOpenid4vciProofSigningRequest(socket, keystore, { message_id, ...request });
 				}
 			}
 			catch(e) {
 			}
-		})
+		});
 
 		console.log('->',handshakeEstablished,appToken);
 		if (handshakeEstablished === true || !appToken) {
@@ -83,5 +83,5 @@ export default function handleServerMessagesGuard(Component) {
 
 			return (<Spinner />); // loading component
 		}
-	}
+	};
 }
