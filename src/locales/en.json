@@ -1,4 +1,5 @@
 {
+	"addPasskey": "Add passkey",
 	"alreadyHaveAccountQuestion": "Already have an account? ",
 	"capitalLetter": "At least one capital letter",
 	"addPasskey": "Add passkey",
@@ -11,6 +12,7 @@
 	"fillInFieldsError": "Please fill in all required fields",
 	"incorrectCredentialsError": "Incorrect username or password",
 	"login": "Login",
+	"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 	"loginPasskey": "Login with passkey",
 	"loginSubmit": "Login",
 	"newHereQuestion": "New here? ",
@@ -21,6 +23,7 @@
 	"passkeySignupFailedServerError": "Failed to initiate passkey creation, please try again later.",
 	"passkeySignupFailedTryAgain": "Passkey creation failed, please try again.",
 	"passkeySignupFinishFailedServerError": "Failed to finalize passkey creation, please try again later.",
+	"passkeySignupKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 	"passwordLabel": "Password",
 	"passwordLength": "Minimum length: 8 characters",
 	"passwordsNotMatchError": "Passwords do not match",
