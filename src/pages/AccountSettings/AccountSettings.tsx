@@ -268,15 +268,12 @@ const WebauthnUnlock = ({
 const WebauthnCredentialItem = ({
 	credential,
 	onDelete,
-	showDelete = true,  // new prop to control the visibility of the delete button
+	showDelete,
 }: {
 	credential: WebauthnCredential,
 	onDelete: () => void,
-	showDelete?: boolean, // make it optional so existing usage won't break
-
-
-}
-) => (
+	showDelete: boolean,
+}) => (
 	<div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
 		<p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
 		<p>Created: {formatDate(credential.createTime)}</p>
