@@ -268,18 +268,16 @@ const WebauthnUnlock = ({
 const WebauthnCredentialItem = ({
 	credential,
 	onDelete,
-	showDelete,
 }: {
 	credential: WebauthnCredential,
-	onDelete: () => void,
-	showDelete: boolean,
+	onDelete?: false | (() => void),
 }) => (
 	<div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
 		<p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
 		<p>Created: {formatDate(credential.createTime)}</p>
 		<p>Last used: {formatDate(credential.lastUseTime)}</p>
 		<p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
-		{showDelete && (
+		{onDelete && (
 			<button
 				className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 				type="button"
@@ -300,6 +298,7 @@ const Home = () => {
 	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
+	const showDelete = unlocked && userData?.webauthnCredentials?.length > 1;
 
 	const refreshData = useCallback(
 		async () => {
@@ -345,8 +344,6 @@ const Home = () => {
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
-									onDelete={() => {}}
-									showDelete={false}
 								/>
 							)}
 						</div>
@@ -382,8 +379,7 @@ const Home = () => {
 										<WebauthnCredentialItem
 											key={cred.id}
 											credential={cred}
-											onDelete={() => deleteWebauthnCredential(cred.id)}
-											showDelete={unlocked && userData?.webauthnCredentials?.length > 1}
+											onDelete={showDelete && (() => deleteWebauthnCredential(cred.id))}
 										/>
 									))}
 							</ul>
