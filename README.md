@@ -89,11 +89,12 @@ Once the development server is running, you can access the app by visiting http:
 
 ## PRF Compatibility
 
-The eDiplomas Digital Wallet Frontend offers compatibility with PRF for a seamless and secure registration and authentication process. Below, we present specific compatibility scenarios based on the operating system, with WebAuthn compatibility included for reference.
+The eDiplomas Digital Wallet Frontend is designed to be compatible with the PRF extension to WebAuthn, ensuring a streamlined and secure registration and authentication process. Below, we present specific compatibility scenarios based on the operating system, emphasizing both WebAuthn and PRF extension compatibility.
 
 ### Compatibility Description
 
-PRF (Passwordless Registration Framework) simplifies the process of registering and authenticating users without passwords, enhancing both security and user experience. While WebAuthn is compatible with various authentication methods, this table focuses on PRF compatibility.
+The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of a hash message authentication code stored on the security key during the retrieval of a credential. This mechanism is crucial for generating secret keys vital for encrypting user data. While WebAuthn supports various authentication methods, the focus of this table is the compatibility with the PRF extension.
+
 
 ### PRF Compatibility Scenarios for Google Chrome (version 116 and later)
 
@@ -102,7 +103,7 @@ PRF (Passwordless Registration Framework) simplifies the process of registering 
 | Linux            | YubiKey (USB)                          | ✔                  |
 | Linux            | Android (Bluetooth)                    | ✔                  |
 | Linux            | iOS (Bluetooth)                        | -                  |
-| Windows          | YubiKey                                | -                  |
+| Windows          | YubiKey (USB)                          | -                  |
 | Windows          | Android (Bluetooth)                    | ✔                  |
 | Windows          | iOS (Bluetooth)                        | -                  |
 | Windows          | Windows (Same Hardware)                | ❌                  |
@@ -114,7 +115,7 @@ PRF (Passwordless Registration Framework) simplifies the process of registering 
 | iOS              | iOS     (Same Hardware)                | -                  |
 
 
-Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The eDiplomas Digital Wallet Frontend aims to provide a secure and flexible authentication experience with a focus on PRF compatibility.
+Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The eDiplomas Digital Wallet Frontend is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
 ## Firebase
 This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
