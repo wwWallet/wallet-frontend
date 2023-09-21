@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
+import { Err, Ok, Result } from 'ts-results';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
@@ -99,7 +100,7 @@ export function setSessionCookies(response: AxiosResponse, credential: PublicKey
 	Cookies.set(CookieName.webauthnCredentialCredentialId, credential?.id);
 }
 
-export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
+export async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 	try {
 		const response = await post('/user/login', { username, password });
 		setSessionCookies(response, null);
@@ -108,18 +109,19 @@ export async function login(username: string, password: string, keystore: LocalS
 		const privateData = jsonParseTaggedBinary(userData.privateData);
 		try {
 			await keystore.unlockPassword(privateData, password, privateData.passwordKey);
+			return Ok.EMPTY;
 		} catch (e) {
 			console.error("Failed to unlock local keystore", e);
-			throw e;
+			return Err(e);
 		}
 
 	} catch (error) {
 		console.error('Failed to log in', error);
-		throw error;
+		return Err(error);
 	}
 };
 
-export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<void> {
+export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 	const fcm_token = await requestForToken();
 	const browser_fcm_token = fcm_token;
 
@@ -137,15 +139,16 @@ export async function signup(username: string, password: string, keystore: Local
 				privateData: jsonStringifyTaggedBinary(privateData),
 			});
 			setSessionCookies(response, null);
+			return Ok.EMPTY;
 
 		} catch (e) {
 			console.error("Signup failed", e);
-			throw e;
+			return Err(e);
 		}
 
 	} catch (e) {
 		console.error("Failed to initialize local keystore", e);
-		throw e;
+		return Err(e);
 	}
 }
 
@@ -222,11 +225,14 @@ async function getPrfOutput(
 	}
 }
 
-export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<void> {
-	try {
-		const beginResp = await post('/user/login-webauthn-begin', {});
-		console.log("begin", beginResp);
-		const beginData = beginResp.data;
+
+export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<
+	Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
+> {
+		try {
+			const beginResp = await post('/user/login-webauthn-begin', {});
+			console.log("begin", beginResp);
+			const beginData = beginResp.data;
 
 		try {
 			const credential = await navigator.credentials.get(beginData.getOptions) as PublicKeyCredential;
@@ -252,39 +258,47 @@ export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<voi
 				});
 				setSessionCookies(finishResp, credential);
 
-				const userData = finishResp.data as UserData;
-				const privateData = jsonParseTaggedBinary(userData.privateData);
+				try {
+					const userData = finishResp.data as UserData;
+					const privateData = jsonParseTaggedBinary(userData.privateData);
 
-				const [prfOutput, prfCredential] = await getPrfOutput(
-					credential,
-					beginData.getOptions.publicKey.rpId,
-					{
-						evalByCredential: privateData.prfKeys.reduce(
-							(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfEncryptionKeyInfo) => {
-								result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
-								return result;
-							},
-							{},
-						),
-					}
-				);
-				const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
-				await keystore.unlockPrf(privateData, prfOutput, keyInfo);
+					const [prfOutput, prfCredential] = await getPrfOutput(
+						credential,
+						beginData.getOptions.publicKey.rpId,
+						{
+							evalByCredential: privateData.prfKeys.reduce(
+								(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfEncryptionKeyInfo) => {
+									result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
+									return result;
+								},
+								{},
+							),
+						}
+					);
+					const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
+					await keystore.unlockPrf(privateData, prfOutput, keyInfo);
+					return Ok.EMPTY;
+				} catch (e) {
+					console.error("Failed to open keystore", e);
+					return Err('loginKeystoreFailed');
+				}
 
 			} catch (e) {
-				throw { errorId: 'passkeyInvalid' };
+				return Err('passkeyInvalid');
 			}
 
 		} catch (e) {
-			throw { errorId: 'passkeyLoginFailedTryAgain' };
+			return Err('passkeyLoginFailedTryAgain');
 		}
 
 	} catch (e) {
-		throw { errorId: 'passkeyLoginFailedServerError' };
+		return Err('passkeyLoginFailedServerError');
 	}
 };
 
-export async function signupWebauthn(name: string, keystore: LocalStorageKeystore): Promise<void> {
+export async function signupWebauthn(name: string, keystore: LocalStorageKeystore): Promise<
+	Result<void, 'passkeySignupFailedServerError' | 'passkeySignupFailedTryAgain' | 'passkeySignupFinishFailedServerError' | 'passkeySignupKeystoreFailed'>
+> {
 	try {
 		const beginResp = await post('/user/register-webauthn-begin', {});
 		console.log("begin", beginResp);
@@ -313,44 +327,50 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 			const response = credential.response as AuthenticatorAttestationResponse;
 			console.log("created", credential);
 
-			const [prfOutput, ] = await getPrfOutput(credential, beginData.createOptions.publicKey.rp.id, { eval: { first: prfSalt } });
-			const { publicData, privateData } = await keystore.initPrf(credential, prfSalt, new Uint8Array(prfOutput));
-
 			try {
-				const fcm_token = await requestForToken();
-				const browser_fcm_token = fcm_token;
+				const [prfOutput,] = await getPrfOutput(credential, beginData.createOptions.publicKey.rp.id, { eval: { first: prfSalt } });
+				const { publicData, privateData } = await keystore.initPrf(credential, prfSalt, new Uint8Array(prfOutput));
 
-				const finishResp = await post('/user/register-webauthn-finish', {
-					challengeId: beginData.challengeId,
-					fcm_token,
-					browser_fcm_token,
-					displayName: name,
-					keys: publicData,
-					privateData: jsonStringifyTaggedBinary(privateData),
-					credential: {
-						type: credential.type,
-						id: credential.id,
-						rawId: credential.id,
-						response: {
-							attestationObject: toBase64Url(response.attestationObject),
-							clientDataJSON: toBase64Url(response.clientDataJSON),
-							transports: response.getTransports(),
+				try {
+					const fcm_token = await requestForToken();
+					const browser_fcm_token = fcm_token;
+
+					const finishResp = await post('/user/register-webauthn-finish', {
+						challengeId: beginData.challengeId,
+						fcm_token,
+						browser_fcm_token,
+						displayName: name,
+						keys: publicData,
+						privateData: jsonStringifyTaggedBinary(privateData),
+						credential: {
+							type: credential.type,
+							id: credential.id,
+							rawId: credential.id,
+							response: {
+								attestationObject: toBase64Url(response.attestationObject),
+								clientDataJSON: toBase64Url(response.clientDataJSON),
+								transports: response.getTransports(),
+							},
+							authenticatorAttachment: credential.authenticatorAttachment,
+							clientExtensionResults: credential.getClientExtensionResults(),
 						},
-						authenticatorAttachment: credential.authenticatorAttachment,
-						clientExtensionResults: credential.getClientExtensionResults(),
-					},
-				});
-				setSessionCookies(finishResp, credential);
+					});
+					setSessionCookies(finishResp, credential);
+					return Ok.EMPTY;
+
+				} catch (e) {
+					return Err('passkeySignupFailedServerError');
+				}
 
 			} catch (e) {
-				throw { errorId: 'passkeySignupFailedServerError' };
+				return Err('passkeySignupKeystoreFailed');
 			}
 
 		} catch (e) {
-			throw { errorId: 'passkeySignupFailedTryAgain' };
+			return Err('passkeySignupFailedTryAgain');
 		}
 
 	} catch (e) {
-		throw { errorId: 'passkeySignupFinishFailedServerError' };
+		return Err('passkeySignupFinishFailedServerError');
 	}
 }

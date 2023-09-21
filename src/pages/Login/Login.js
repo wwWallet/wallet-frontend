@@ -115,12 +115,17 @@ const WebauthnSignupLogin = ({
 
 	const onLogin = useCallback(
 		async () => {
-			try {
-				await api.loginWebauthn(keystore);
+			const result = await api.loginWebauthn(keystore);
+      if (result.ok) {
 				navigate('/');
-			} catch (e) {
+
+      } else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e.errorId) {
+				switch (result.val) {
+					case 'loginKeystoreFailed':
+						setError(t('loginKeystoreFailed'));
+						break;
+
 					case 'passkeyInvalid':
 						setError(t('passkeyInvalid'));
 						break;
@@ -134,7 +139,7 @@ const WebauthnSignupLogin = ({
 						break;
 
 					default:
-						throw e;
+						throw result;
 				}
 			}
 		},
@@ -143,23 +148,13 @@ const WebauthnSignupLogin = ({
 
 	const onSignup = useCallback(
 		async (name) => {
-			try {
-				try {
-					try {
-						await api.signupWebauthn(name, keystore);
-					} catch (e) {
-						console.error("Signup failed", e);
-					}
-
-				} catch (e) {
-					console.error("Failed to initialize local keystore", e);
-				}
-
-
+			const result = await api.signupWebauthn(name, keystore);
+			if (result.ok) {
 				navigate('/');
-			} catch (e) {
+
+			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e.errorId) {
+				switch (result.val) {
 					case 'passkeySignupFailedServerError':
 						setError(t('passkeySignupFailedServerError'));
 						break;
@@ -172,8 +167,11 @@ const WebauthnSignupLogin = ({
 						setError(t('passkeySignupFinishFailedServerError'));
 						break;
 
+					case 'passkeySignupKeystoreFailed':
+						setError(t('passkeySignupKeystoreFailed'));
+
 					default:
-						throw e;
+						throw result;
 				}
 			}
 		},
@@ -311,19 +309,21 @@ const Login = () => {
 
 		setIsSubmitting(true);
 
-		try {
-			if (isLogin) {
-				await api.login(username, password, keystore);
-
+		if (isLogin) {
+			const result = await api.login(username, password, keystore);
+			if (result.ok) {
+				navigate('/');
 			} else {
-				await api.signup(username, password, keystore);
-
+				setError(t('incorrectCredentialsError'));
 			}
-			navigate('/');
-		} catch (error) {
-			setError(
-				isLogin ? t('incorrectCredentialsError') : t('usernameExistsError')
-			);
+
+		} else {
+			const result = await api.signup(username, password, keystore);
+			if (result.ok) {
+				navigate('/');
+			} else {
+				setError(t('usernameExistsError'));
+			}
 		}
 
 		setIsSubmitting(false);
