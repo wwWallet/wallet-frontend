@@ -19,6 +19,7 @@
 	"submitting": "Υποβολή...",
 	"loginSubmit": "Σύνδεση",
 	"signUpSubmit": "Εγγραφή",
+	"addPasskey": "Προσθήκη passkey",
 	"incorrectCredentialsError": "Λανθασμένο όνομα χρήστη ή κωδικός πρόσβασης",
 	"usernameExistsError": "Απέτυχε η δημιουργία λογαριασμού χρήστη, το όνομα χρήστη υπάρχει ήδη",
 	"newHereQuestion": "Είστε νέος εδώ; ",
