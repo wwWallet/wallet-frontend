@@ -14,7 +14,7 @@ export default function handleServerMessagesGuard(Component) {
 
 		const [ handshakeEstablished, setHandshakeEstablished ] = useState(false);
 		const socket = new WebSocket(REACT_APP_WS_URL);
-		const keystore = new useLocalStorageKeystore();
+		const keystore = useLocalStorageKeystore();
 		const signingRequestHandlerService = SigningRequestHandlerService();
 		const [isSocketOpen, setIsSocketOpen] = useState(false);
 
