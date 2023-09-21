@@ -54,17 +54,25 @@ function makeUseStorage<T>(storage: Storage, description: string): (name: string
 		}
 		const [currentValue, setValue] = useState(storedValue);
 
-		useEffect(
-			() => {
+		// Browser storage is global state, so update all useState hooks with the
+		// same name whenever one of them changes. The storage event is not fired
+		// when storage.setItem is called in the same Document.
+		const [, setAllValues] = useGlobalState(name, [currentValue, setValue]);
+
+		const updateValue = useCallback(
+			(action: SetStateAction<T>): void => {
+				const newValue =
+					action instanceof Function
+					? action(currentValue)
+					: action;
 				try {
-					if (!(currentValue === initialValue && storage.getItem(name) === null)) {
-						storage.setItem(name, jsonStringifyTaggedBinary(currentValue));
-					}
+					storage.setItem(name, jsonStringifyTaggedBinary(newValue));
 				} catch (e) {
 					console.error(`Failed to update storage "${name}"`, e);
 				}
+				setAllValues(newValue);
 			},
-			[currentValue, initialValue, name]
+			[currentValue, name, setAllValues],
 		);
 
 		useEffect(
@@ -83,9 +91,7 @@ function makeUseStorage<T>(storage: Storage, description: string): (name: string
 			[name]
 		);
 
-		// Browser storage is global state, so update all useState hooks whenever
-		// one of them changes.
-		return useGlobalState(name, [currentValue, setValue]);
+		return [currentValue, updateValue];
 	};
 }
 
