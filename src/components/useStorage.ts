@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useId, useState } from 'react';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
@@ -6,9 +6,11 @@ type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
 function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T> {
 	const setValueHandles = {};
 	return (name: string, [value, setValue]: UseStateHandle<T>) => {
+		const handleId = useId();
+
 		const setAllValues = useCallback(
 			(setValueArg: SetStateAction<any>) => {
-				setValueHandles[name].forEach((setValueHandle: Dispatch<SetStateAction<T>>) => {
+				Object.values(setValueHandles[name]).forEach((setValueHandle: Dispatch<SetStateAction<T>>) => {
 					setValueHandle(setValueArg);
 				});
 			},
@@ -18,16 +20,15 @@ function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHand
 		useEffect(
 			() => {
 				if (!setValueHandles[name]) {
-					setValueHandles[name] = [];
+					setValueHandles[name] = {};
 				}
-				setValueHandles[name].push(setValue);
+				setValueHandles[name][handleId] = setValue;
 
 				return () => {
-					const i = setValueHandles[name].indexOf(setValue);
-					setValueHandles[name].splice(i, 1);
+					delete setValueHandles[name][handleId];
 				};
 			},
-			[name, setValue]
+			[handleId, name, setValue]
 		);
 
 		return [value, setAllValues];
