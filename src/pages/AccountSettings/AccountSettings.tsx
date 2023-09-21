@@ -71,7 +71,7 @@ const WebauthnRegistation = ({
 		if (beginData && pendingCredential && existingPrfKey && wrappedMainKey) {
 			setIsSubmitting(true);
 
-			const newPrivateData = await keystore.addPrf(
+			const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 				pendingCredential,
 				beginData.createOptions.publicKey.rp.id,
 				existingPrfKey,
@@ -98,7 +98,7 @@ const WebauthnRegistation = ({
 				});
 				onSuccess();
 				setNickname("");
-				keystore.updatePrivateDataCache(newPrivateData);
+				await keystoreCommit();
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
@@ -322,12 +322,12 @@ const Home = () => {
 	);
 
 	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
-		const newPrivateData = keystore.deletePrf(credential.credentialId);
+		const [newPrivateData, keystoreCommit] = keystore.deletePrf(credential.credentialId);
 		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
 			privateData: jsonStringifyTaggedBinary(newPrivateData),
 		});
 		if (deleteResp.status === 204) {
-			keystore.updatePrivateDataCache(newPrivateData);
+			await keystoreCommit();
 		} else {
 			console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
 		}

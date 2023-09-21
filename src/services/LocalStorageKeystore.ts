@@ -257,9 +257,9 @@ async function getPrfOutput(
 }
 
 
+export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
 	close(): Promise<void>,
-	updatePrivateDataCache(privateData: EncryptedContainer): void,
 
 	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
 	initPrf(
@@ -272,8 +272,8 @@ export interface LocalStorageKeystore {
 		rpId: string,
 		existingPrfKey: CryptoKey,
 		wrappedMainKey: WrappedKeyInfo,
-	): Promise<EncryptedContainer>,
-	deletePrf(credentialId: Uint8Array): EncryptedContainer,
+	): Promise<[EncryptedContainer, CommitCallback]>,
+	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
 	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
 	unlockPrf(privateData: EncryptedContainer, credential: PublicKeyCredential, rpId: string): Promise<void>,
 	getPrfKeyFromSession(): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]>,
@@ -495,10 +495,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					clearSessionStorage();
 				},
 
-				updatePrivateDataCache: (privateData: EncryptedContainer): void => {
-					setPrivateDataCache(privateData);
-				},
-
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPassword");
 
@@ -532,7 +528,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					rpId: string,
 					existingPrfKey: CryptoKey,
 					wrappedMainKey: WrappedKeyInfo,
-				): Promise<EncryptedContainer> => {
+				): Promise<[EncryptedContainer, CommitCallback]> => {
 					const prfSalt = crypto.getRandomValues(new Uint8Array(32))
 					const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, wrappedMainKey, existingPrfKey);
 					const newPrivateData = {
@@ -542,17 +538,27 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							keyInfo,
 						],
 					};
-					return newPrivateData;
+					return [
+						newPrivateData,
+						async () => {
+							setPrivateDataCache(newPrivateData);
+						},
+					];
 				},
 
-				deletePrf: (credentialId: Uint8Array): EncryptedContainer => {
+				deletePrf: (credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
 					const newPrivateData = {
 						...privateDataCache,
 						prfKeys: privateDataCache.prfKeys.filter((keyInfo) => (
 							toBase64Url(keyInfo.credentialId) !== toBase64Url(credentialId)
 						)),
 					};
-					return newPrivateData;
+					return [
+						newPrivateData,
+						async () => {
+							setPrivateDataCache(newPrivateData);
+						},
+					];
 				},
 
 				unlockPassword,
