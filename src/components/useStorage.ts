@@ -2,8 +2,9 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useId, useState } fro
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
+type UseGlobalStateHook<T> = (name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T>;
 
-function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T> {
+function makeUseGlobalState<T>(): UseGlobalStateHook<T> {
 	const setValueHandles = {};
 	return (name: string, [value, setValue]: UseStateHandle<T>) => {
 		const handleId = useId();
@@ -34,9 +35,12 @@ function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHand
 		return [value, setAllValues];
 	};
 }
-const useGlobalState: <T>(name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T> = makeUseGlobalState();
 
-function makeUseStorage<T>(storage: Storage, description: string): (name: string, initialValue: T) => UseStateHandle<T> {
+function makeUseStorage<T>(
+	storage: Storage,
+	description: string,
+	useGlobalState: UseGlobalStateHook<T>,
+): (name: string, initialValue: T) => UseStateHandle<T> {
 	if (!storage) {
 		throw new Error(`${description} is not available.`);
 	}
@@ -96,10 +100,10 @@ function makeUseStorage<T>(storage: Storage, description: string): (name: string
 }
 
 export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
-	makeUseStorage(window.localStorage, "Local storage");
+	makeUseStorage(window.localStorage, "Local storage", makeUseGlobalState());
 
 export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
-	makeUseStorage(window.sessionStorage, "Session storage");
+	makeUseStorage(window.sessionStorage, "Session storage", makeUseGlobalState());
 
 export const useClearLocalStorage = () => useCallback(
 	() => {
