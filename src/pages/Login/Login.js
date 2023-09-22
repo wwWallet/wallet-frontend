@@ -102,6 +102,9 @@ const WebauthnSignupLogin = ({
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
+	const [needPrfRetry, setNeedPrfRetry] = useState(false);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState(null);
+	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
@@ -113,13 +116,24 @@ const WebauthnSignupLogin = ({
 		[isLogin],
 	);
 
+	const promptForPrfRetry = async () => {
+		setNeedPrfRetry(true);
+		return new Promise((resolve, reject) => {
+			setResolvePrfRetryPrompt(() => resolve);
+		}).finally(() => {
+			setNeedPrfRetry(false);
+			setPrfRetryAccepted(true);
+			setResolvePrfRetryPrompt(null);
+		});
+	};
+
 	const onLogin = useCallback(
-		async () => {
-			const result = await api.loginWebauthn(keystore, async () => true);
-      if (result.ok) {
+			async () => {
+				const result = await api.loginWebauthn(keystore, promptForPrfRetry);
+			if (result.ok) {
 				navigate('/');
 
-      } else {
+			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
 					case 'loginKeystoreFailed':
@@ -148,7 +162,7 @@ const WebauthnSignupLogin = ({
 
 	const onSignup = useCallback(
 		async (name) => {
-			const result = await api.signupWebauthn(name, keystore, async () => true);
+			const result = await api.signupWebauthn(name, keystore, promptForPrfRetry);
 			if (result.ok) {
 				navigate('/');
 
@@ -199,6 +213,9 @@ const WebauthnSignupLogin = ({
 	const onCancel = () => {
 		console.log("onCancel");
 		setInProgress(false);
+		setNeedPrfRetry(false);
+		setPrfRetryAccepted(false);
+		setResolvePrfRetryPrompt(null);
 		setIsSubmitting(false);
 	};
 
@@ -206,16 +223,56 @@ const WebauthnSignupLogin = ({
 		<form onSubmit={onSubmit}>
 			{inProgress
 				? (
-					<>
-						<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
-						<button
-							type="button"
-							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
-							onClick={onCancel}
-						>
-							Cancel
-						</button>
-					</>
+					needPrfRetry
+						? (
+							<div className="text-center">
+								{
+									prfRetryAccepted
+										? (
+											<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+										)
+										: (
+											<>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
+												<p className="dark:text-white pb-3">
+													{isLogin
+														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
+														: 'To finish setting up your wallet, please authenticate with your passkey once more.'
+													}
+												</p>
+											</>
+										)
+								}
+
+								<button
+									type="button"
+									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+									onClick={() => resolvePrfRetryPrompt(false)}
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+									onClick={() => resolvePrfRetryPrompt(true)}
+									disabled={prfRetryAccepted}
+								>
+									Continue
+								</button>
+							</div>
+						)
+						: (
+							<>
+								<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+								<button
+									type="button"
+									className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+									onClick={onCancel}
+								>
+									Cancel
+								</button>
+							</>
+						)
 				)
 				: (
 					<>

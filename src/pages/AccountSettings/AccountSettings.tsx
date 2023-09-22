@@ -59,10 +59,16 @@ const WebauthnRegistation = ({
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
+	const [nicknameChosen, setNicknameChosen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [needPrfRetry, setNeedPrfRetry] = useState(false);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
+	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
+
+	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
 		async () => {
@@ -96,25 +102,37 @@ const WebauthnRegistation = ({
 		console.log("onCancel");
 		setPendingCredential(null);
 		setBeginData(null);
+		setNeedPrfRetry(false);
+		setResolvePrfRetryPrompt(null);
+		setPrfRetryAccepted(false);
 		setIsSubmitting(false);
 	};
 
 	const onFinish = async (event) => {
 		event.preventDefault();
 		console.log("onFinish", event);
+		setNicknameChosen(true);
 
 		if (beginData && pendingCredential && existingPrfKey && wrappedMainKey) {
-			setIsSubmitting(true);
-
-			const [newPrivateData, keystoreCommit] = await keystore.addPrf(
-				pendingCredential,
-				beginData.createOptions.publicKey.rp.id,
-				existingPrfKey,
-				wrappedMainKey,
-				async () => true,
-			);
-
 			try {
+				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
+					pendingCredential,
+					beginData.createOptions.publicKey.rp.id,
+					existingPrfKey,
+					wrappedMainKey,
+					async () => {
+						setNeedPrfRetry(true);
+						return new Promise<boolean>((resolve, reject) => {
+							setResolvePrfRetryPrompt(() => resolve);
+						}).finally(() => {
+							setNeedPrfRetry(false);
+							setPrfRetryAccepted(true);
+							setResolvePrfRetryPrompt(null);
+						});
+					},
+				);
+
+				setIsSubmitting(true);
 				await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
 					nickname,
@@ -138,8 +156,10 @@ const WebauthnRegistation = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
+
+			} finally {
+				onCancel();
 			}
-			onCancel();
 		} else {
 			console.error("Invalid state:", beginData, pendingCredential, existingPrfKey, wrappedMainKey);
 		}
@@ -161,7 +181,7 @@ const WebauthnRegistation = ({
 			</button>
 
 			<Dialog
-				open={Boolean(beginData)}
+				open={stateChooseNickname}
 				onCancel={onCancel}
 			>
 				<form method="dialog" onSubmit={onFinish}>
@@ -211,6 +231,46 @@ const WebauthnRegistation = ({
 					</div>
 
 				</form>
+			</Dialog>
+
+			<Dialog
+				open={needPrfRetry && !prfRetryAccepted}
+				onCancel={() => resolvePrfRetryPrompt(false)}
+			>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
+				<p>Your passkey has been created.</p>
+				<p>To finish setting up, please authenticate with it once more.</p>
+
+				<button
+					type="button"
+					className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+					onClick={() => resolvePrfRetryPrompt(false)}
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					onClick={() => resolvePrfRetryPrompt(true)}
+					disabled={prfRetryAccepted}
+				>
+					Continue
+				</button>
+			</Dialog>
+
+			<Dialog
+				open={prfRetryAccepted}
+				onCancel={onCancel}
+			>
+				<p>Please authenticate with the new passkey...</p>
+
+				<button
+					type="button"
+					className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+					onClick={onCancel}
+				>
+					Cancel
+				</button>
 			</Dialog>
 		</>
 	);
