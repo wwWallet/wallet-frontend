@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { GoPasskeyFill } from 'react-icons/go';
+import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
@@ -221,6 +221,10 @@ const WebauthnSignupLogin = ({
 		setIsSubmitting(false);
 	};
 
+	const onForgetCachedUser = (cachedUser) => {
+		keystore.forgetCachedUser(cachedUser);
+	};
+
 	const onCancel = () => {
 		console.log("onCancel");
 		setInProgress(false);
@@ -304,9 +308,12 @@ const WebauthnSignupLogin = ({
 						{isLogin && (
 							<ul>
 								{cachedUsers.map((cachedUser) => (
-									<li key={cachedUser.cacheKey}>
+									<li
+										key={cachedUser.cacheKey}
+										className="w-full flex flex-row flex-nowrap"
+									>
 										<button
-											className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+											className="flex-grow text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 											type="button"
 											disabled={isSubmitting}
 											onClick={() => onLoginCachedUser(cachedUser)}
@@ -329,7 +336,7 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
-						{cachedUsers?.length > 0 && <SeparatorLine className="my-4"></SeparatorLine>}
+						{cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
 
 						<button
 							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"

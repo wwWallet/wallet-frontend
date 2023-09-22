@@ -289,6 +289,7 @@ export interface LocalStorageKeystore {
 	): Promise<void>,
 	getPrfKeyFromSession(promptForPrfRetry: () => Promise<boolean>): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]>,
 	getCachedUsers(): CachedUser[],
+	forgetCachedUser(user: CachedUser): void,
 
 	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
@@ -633,6 +634,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 				getCachedUsers: (): CachedUser[] => {
 					return [...(cachedUsers || [])];
+				},
+
+				forgetCachedUser: (user: CachedUser): void => {
+					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.cacheKey !== user.cacheKey));
 				},
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
