@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { onMessageListener } from '../firebase';
 import { AiOutlineClose } from 'react-icons/ai';
-import logo from '../assets/images/ediplomasLogo.svg';
+import logo from '../assets/images/logo.png';
 
 const ToastDisplay = ({ id, notification }) => {
 	return (
