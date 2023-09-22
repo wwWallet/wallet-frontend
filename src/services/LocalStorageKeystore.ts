@@ -217,8 +217,14 @@ async function getPrfOutput(
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
 	console.log("getPrfOutput", credential, rpId, prfInputs);
 
-	if (!credential) {
-		const cred = await navigator.credentials.get({
+	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput };
+	const canRetry = !clientExtensionOutputs?.prf || clientExtensionOutputs?.prf?.enabled;
+
+	if (clientExtensionOutputs?.prf?.results?.first) {
+		return [clientExtensionOutputs?.prf?.results?.first, credential];
+
+	} else if (canRetry) {
+		const retryCred = await navigator.credentials.get({
 			publicKey: {
 				rpId,
 				challenge: crypto.getRandomValues(new Uint8Array(32)),
@@ -226,30 +232,7 @@ async function getPrfOutput(
 				extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
 			},
 		}) as PublicKeyCredential;
-		return await getPrfOutput(cred, rpId, prfInputs);
-	}
-
-	const clientExtensionOutputs = credential.getClientExtensionResults() as { prf?: PrfExtensionOutput };
-
-	if (clientExtensionOutputs?.prf?.results?.first) {
-		return [clientExtensionOutputs?.prf?.results?.first, credential];
-
-	} else if (clientExtensionOutputs?.prf?.enabled || (credential.response as any).signature) {
-		const getCredential = await navigator.credentials.get({
-			publicKey: {
-				rpId,
-				challenge: crypto.getRandomValues(new Uint8Array(32)),
-				allowCredentials: prfInputs.allowCredentials,
-				extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
-			},
-		}) as PublicKeyCredential;
-
-		const extOutputs = getCredential.getClientExtensionResults() as { prf?: PrfExtensionOutput };
-		if (extOutputs?.prf?.results?.first) {
-			return [extOutputs.prf.results.first, getCredential];
-		} else {
-			throw { errorId: "prf_not_supported" };
-		}
+		return await getPrfOutput(retryCred, rpId, prfInputs);
 
 	} else {
 		throw { errorId: "prf_not_supported" };
