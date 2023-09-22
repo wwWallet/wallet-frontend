@@ -15,6 +15,7 @@ export default function handleServerMessagesGuard(Component) {
 		const socket = new WebSocket(REACT_APP_WS_URL);
 		const keystore = new useLocalStorageKeystore();
 		const signingRequestHandlerService = SigningRequestHandlerService();
+		const [isSocketOpen, setIsSocketOpen] = useState(false);
 
 
 		socket.addEventListener('open', (event) => {
@@ -24,17 +25,20 @@ export default function handleServerMessagesGuard(Component) {
 			}
 			console.log("Sending...")
 			// send handshake request
-			socket.send(JSON.stringify({ type: "INIT", appToken: appToken }))
+			socket.send(JSON.stringify({ type: "INIT", appToken: appToken }));
+			setIsSocketOpen(true); // Set the state to indicate that the connection is open
 		});
 
 		const waitForHandshake = async () => {
 			return new Promise((resolve, reject) => {
 				socket.onmessage = event => {
 					try {
+						console.log('--->',event.data.toString());
 						const { type } = JSON.parse(event.data.toString());
 						if (type == "FIN_INIT") {
 							console.log("init fin")
 							setHandshakeEstablished(true);
+
 							resolve({});
 						}
 					}
@@ -46,8 +50,11 @@ export default function handleServerMessagesGuard(Component) {
 		}
 
 		useEffect(() => {
-			waitForHandshake();
-		}, []);
+			if (isSocketOpen) {
+				waitForHandshake();
+				// You can perform other actions that depend on the socket being open here.
+			}
+		}, [isSocketOpen]);
 
 		socket.addEventListener('message', async (event) => {
 			try {
@@ -64,14 +71,15 @@ export default function handleServerMessagesGuard(Component) {
 				}
 			}
 			catch(e) {
-				console.log('failed to parse message')
 			}
 		})
 
+		console.log('->',handshakeEstablished,appToken);
 		if (handshakeEstablished === true || !appToken) {
 			return (<Component {...props} />);
 		}
 		else {
+
 			return (<Spinner />); // loading component
 		}
 	}
