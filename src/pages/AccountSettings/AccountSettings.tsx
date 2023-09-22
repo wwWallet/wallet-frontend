@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -10,6 +10,42 @@ import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import {formatDate} from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 
+
+const Dialog = ({
+	children,
+	open,
+	onCancel,
+}: {
+	children: ReactNode,
+	open: boolean,
+	onCancel: () => void,
+}) => {
+	const dialog = useRef<HTMLDialogElement>();
+
+	useEffect(
+		() => {
+			if (dialog.current) {
+				if (open) {
+					dialog.current.showModal();
+				} else {
+					dialog.current.close();
+				}
+			}
+		},
+		[dialog, open],
+	);
+
+	return (
+		<dialog
+			ref={dialog}
+			className="p-4 pt-8 text-center rounded"
+			style={{ minHeight: '20em', minWidth: '30em' }}
+			onCancel={onCancel}
+		>
+			{children}
+		</dialog>
+	);
+};
 
 const WebauthnRegistation = ({
 	existingPrfKey,
@@ -24,7 +60,6 @@ const WebauthnRegistation = ({
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const dialog = useRef<HTMLDialogElement>();
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
@@ -109,19 +144,6 @@ const WebauthnRegistation = ({
 		}
 	};
 
-	useEffect(
-		() => {
-			if (dialog.current) {
-				if (beginData) {
-					dialog.current.showModal();
-				} else {
-					dialog.current.close();
-				}
-			}
-		},
-		[dialog, beginData],
-	);
-
 	const registrationInProgress = Boolean(beginData || pendingCredential);
 
 	return (
@@ -137,10 +159,8 @@ const WebauthnRegistation = ({
 				</div>
 			</button>
 
-			<dialog
-				ref={dialog}
-				className="p-4 pt-8 text-center rounded"
-				style={{ minHeight: '20em', minWidth: '30em' }}
+			<Dialog
+				open={Boolean(beginData)}
 				onCancel={onCancel}
 			>
 				<form method="dialog" onSubmit={onFinish}>
@@ -190,7 +210,7 @@ const WebauthnRegistation = ({
 					</div>
 
 				</form>
-			</dialog>
+			</Dialog>
 		</>
 	);
 };
