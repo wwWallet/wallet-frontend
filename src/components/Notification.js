@@ -45,7 +45,7 @@ const Notification = () => {
 	}, [notification]);
 
 	useEffect(() => {
-		const unregisterMessageListener = () => onMessageListener()
+		const unregisterMessageListener = onMessageListener()
 			.then((payload) => {
 				setNotification({ title: payload?.notification?.title, body: payload?.notification?.body });
 			})
