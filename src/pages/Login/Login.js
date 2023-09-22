@@ -109,6 +109,8 @@ const WebauthnSignupLogin = ({
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
 
+	const cachedUsers = keystore.getCachedUsers();
+
 	useEffect(
 		() => {
 			setError("");
@@ -128,8 +130,8 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onLogin = useCallback(
-			async () => {
-				const result = await api.loginWebauthn(keystore, promptForPrfRetry);
+		async (cachedUser) => {
+			const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 			if (result.ok) {
 				navigate('/');
 
@@ -206,6 +208,15 @@ const WebauthnSignupLogin = ({
 			await onSignup(name);
 		}
 
+		setInProgress(false);
+		setIsSubmitting(false);
+	};
+
+	const onLoginCachedUser = async (cachedUser) => {
+		setError();
+		setInProgress(true);
+		setIsSubmitting(true);
+		await onLogin(cachedUser);
 		setInProgress(false);
 		setIsSubmitting(false);
 	};
@@ -290,13 +301,50 @@ const WebauthnSignupLogin = ({
 								</FormInputRow>
 							</>)}
 
+						{isLogin && (
+							<ul>
+								{cachedUsers.map((cachedUser) => (
+									<li key={cachedUser.cacheKey}>
+										<button
+											className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+											type="button"
+											disabled={isSubmitting}
+											onClick={() => onLoginCachedUser(cachedUser)}
+										>
+											<GoPasskeyFill className="inline text-xl mr-2" />
+											{isSubmitting ? t('submitting') : t('loginAsUser', { name: cachedUser.displayName })}
+										</button>
+
+										<button
+											className="text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+											type="button"
+											disabled={isSubmitting}
+											onClick={() => onForgetCachedUser(cachedUser)}
+											aria-label={t('forgetCachedUser', { name: cachedUser.displayName })}
+										>
+											<GoTrash className="inline text-xl" />
+										</button>
+									</li>
+								))}
+							</ul>
+						)}
+
+						{cachedUsers?.length > 0 && <SeparatorLine className="my-4"></SeparatorLine>}
+
 						<button
 							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
 							disabled={isSubmitting}
 						>
 							<GoPasskeyFill className="inline text-xl mr-2" />
-							{isSubmitting ? t('submitting') : isLogin ? t('loginPasskey') : t('signupPasskey')}
+							{isSubmitting
+								? t('submitting')
+								: isLogin
+									? cachedUsers?.length > 0
+										? t('loginOtherPasskey')
+										: t('loginPasskey')
+									: t('signupPasskey')
+							}
 						</button>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
