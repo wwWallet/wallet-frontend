@@ -409,7 +409,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 								{
 									cacheKey: uuidv4(),
 									displayName: user.displayName,
-									prfKeys: privateData.prfKeys,
+									prfKeys: privateData.prfKeys.map((keyInfo) => ({
+										credentialId: keyInfo.credentialId,
+										prfSalt: keyInfo.prfSalt,
+									})),
 								},
 								...(cachedUsers || []),
 							];
