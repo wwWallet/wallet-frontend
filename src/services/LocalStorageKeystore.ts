@@ -32,10 +32,13 @@ type PasswordKeyInfo = {
 	pbkdf2Params: Pbkdf2Params;
 }
 
-type WebauthnPrfEncryptionKeyInfo = {
-	mainKey: WrappedKeyInfo,
+type WebauthnPrfSaltInfo = {
 	credentialId: Uint8Array,
 	prfSalt: Uint8Array,
+}
+
+type WebauthnPrfEncryptionKeyInfo = WebauthnPrfSaltInfo & {
+	mainKey: WrappedKeyInfo,
 	hkdfSalt: Uint8Array,
 	hkdfInfo: Uint8Array,
 }
@@ -187,20 +190,20 @@ async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkd
 	);
 }
 
-function makePrfExtensionInputs(privateData: EncryptedContainer): {
+function makePrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]): {
 	allowCredentials: PublicKeyCredentialDescriptor[],
 	prfInput: PrfExtensionInput,
 } {
 	return {
-		allowCredentials: privateData.prfKeys.map(
-			(keyInfo: WebauthnPrfEncryptionKeyInfo) => ({
+		allowCredentials: prfKeys.map(
+			(keyInfo: WebauthnPrfSaltInfo) => ({
 				type: "public-key",
 				id: keyInfo.credentialId,
 			})
 		),
 		prfInput: {
-			evalByCredential: privateData.prfKeys.reduce(
-				(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfEncryptionKeyInfo) => {
+			evalByCredential: prfKeys.reduce(
+				(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfSaltInfo) => {
 					result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
 					return result;
 				},
@@ -425,7 +428,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				const [prfOutput, prfCredential] = await getPrfOutput(
 					credential,
 					rpId,
-					makePrfExtensionInputs(privateData),
+					makePrfExtensionInputs(privateData.prfKeys),
 					promptForPrfRetry,
 				);
 				const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
