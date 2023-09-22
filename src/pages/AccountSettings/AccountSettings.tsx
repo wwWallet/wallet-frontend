@@ -111,6 +111,7 @@ const WebauthnRegistation = ({
 				beginData.createOptions.publicKey.rp.id,
 				existingPrfKey,
 				wrappedMainKey,
+				async () => true,
 			);
 
 			try {
@@ -240,7 +241,7 @@ const WebauthnUnlock = ({
 		async () => {
 			setInProgress(true);
 			try {
-				const [prfKey, keyInfo] = await keystore.getPrfKeyFromSession();
+				const [prfKey, keyInfo] = await keystore.getPrfKeyFromSession(async () => true);
 				onUnlock(prfKey, keyInfo.mainKey);
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching

@@ -115,7 +115,7 @@ const WebauthnSignupLogin = ({
 
 	const onLogin = useCallback(
 		async () => {
-			const result = await api.loginWebauthn(keystore);
+			const result = await api.loginWebauthn(keystore, async () => true);
       if (result.ok) {
 				navigate('/');
 
@@ -148,7 +148,7 @@ const WebauthnSignupLogin = ({
 
 	const onSignup = useCallback(
 		async (name) => {
-			const result = await api.signupWebauthn(name, keystore);
+			const result = await api.signupWebauthn(name, keystore, async () => true);
 			if (result.ok) {
 				navigate('/');
 
