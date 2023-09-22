@@ -113,6 +113,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 | MacOS            | iOS (Bluetooth)                        | ❌                  |
 | Android          | Android (Same Hardware)                | ✔                  |
 | iOS              | iOS (Same Hardware)                    | ❌                  |
+| iOS              | YubiKey (NFC)					                | ❌                  |
 
 
 Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The eDiplomas Digital Wallet Frontend is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
