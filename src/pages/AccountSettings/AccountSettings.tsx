@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
 import { BsPlusCircle } from 'react-icons/bs';
 
-import * as api from '../../api';
+import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import Layout from '../../components/Layout';
 import { compareBy, toBase64Url } from '../../util';
@@ -15,6 +15,7 @@ const WebauthnRegistation = ({
 }: {
 	onSuccess: () => void,
 }) => {
+	const api = useApi();
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
@@ -47,7 +48,7 @@ const WebauthnRegistation = ({
 				setIsSubmitting(false);
 			}
 		},
-		[],
+		[api],
 	);
 
 	const onCancel = () => {
@@ -212,6 +213,7 @@ const WebauthnCredentialItem = ({
 
 
 const Home = () => {
+	const api = useApi();
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 
@@ -225,7 +227,7 @@ const Home = () => {
 				console.error('Failed to fetch data', error);
 			}
 		},
-		[setUserData],
+		[api, setUserData],
 	);
 
 	useEffect(

@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
 
-import * as api from '../api';
+import { useApi } from '../api';
 
 
 function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredentialsMap }) {
+  const api = useApi();
 	const [images, setImages] = useState([]);
 	const navigate = useNavigate();
 
@@ -27,7 +28,7 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 		};
 
 		getData();
-	}, []);
+	}, [api]);
 
 	const handleClick = (id) => {
 		setSelectedValue(id);

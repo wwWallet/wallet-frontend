@@ -1,10 +1,11 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import * as api from '../api';
+import { useApi } from '../api';
 
 
 const PrivateRoute = ({ children }) => {
+	const api = useApi();
 	const isLoggedIn = api.isLoggedIn();
 	const location = useLocation();
 

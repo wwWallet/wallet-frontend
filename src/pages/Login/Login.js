@@ -5,7 +5,7 @@ import { GoPasskeyFill } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
-import * as api from '../../api';
+import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/ediplomasLogo.svg';
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
@@ -99,6 +99,7 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 }) => {
+	const api = useApi();
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
@@ -143,7 +144,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[keystore, navigate, t],
+		[api, keystore, navigate, t],
 	);
 
 	const onSignup = useCallback(
@@ -175,7 +176,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[keystore, navigate, t],
+		[api, keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {
@@ -250,6 +251,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
+	const api = useApi();
 	const { t } = useTranslation();
 
 	const [formData, setFormData] = useState({
