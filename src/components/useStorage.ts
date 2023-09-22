@@ -46,17 +46,20 @@ function makeUseStorage<T>(
 	}
 
 	return (name: string, initialValue: T) => {
-		const storedValueStr = storage.getItem(name);
-		let storedValue = initialValue;
-		try {
-			if (storedValueStr !== null) {
-				storedValue = jsonParseTaggedBinary(storedValueStr);
+		const [currentValue, setValue] = useState(
+			() => {
+				const storedValueStr = storage.getItem(name);
+				try {
+					if (storedValueStr !== null) {
+						return jsonParseTaggedBinary(storedValueStr);
+					}
+				} catch (e) {
+					// Fall back to initialValue
+					storage.removeItem(name);
+				}
+				return initialValue;
 			}
-		} catch (e) {
-			// Fall back to initialValue
-			storage.removeItem(name);
-		}
-		const [currentValue, setValue] = useState(storedValue);
+		);
 
 		// Browser storage is global state, so update all useState hooks with the
 		// same name whenever one of them changes. The storage event is not fired
