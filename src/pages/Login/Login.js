@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
-import logo from '../../assets/images/ediplomasLogo.svg';
+import logo from '../../assets/images/logo.png';
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import SeparatorLine from '../../components/SeparatorLine';
 
@@ -467,11 +467,11 @@ const Login = () => {
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-					<img className="w-20" src={logo} alt="logo" />
+					<img className="w-40" src={logo} alt="logo" />
 				</a>
 
-				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')}
+				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+				{t('welcomeMessagepart1')} <span className='text-custom-blue'>{t('welcomeMessagepart2')}</span> 
 				</h1>
 
 				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">

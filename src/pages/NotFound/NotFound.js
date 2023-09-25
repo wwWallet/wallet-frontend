@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../../assets/images/ediplomasLogo.svg';
+import logo from '../../assets/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 
 const NotFound = () => {

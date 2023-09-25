@@ -40,6 +40,6 @@
 	"usernameExistsError": "Failed to create user account, username already exists",
 	"usernameLabel": "Username",
 	"weakPasswordError": "Weak password",
-	"welcomeMessagepart1": "Welcome to eDiplomas",
-	"welcomeMessagepart2": "Digital Wallet"
+	"welcomeMessagepart1": "Welcome to",
+	"welcomeMessagepart2": "wwWallet"
 }

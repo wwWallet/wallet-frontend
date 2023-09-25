@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { GiHamburgerMenu } from 'react-icons/gi';
-import logo from '../assets/images/ediplomasLogo.svg';
+import logo from '../assets/images/logo.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Layout = ({ children }) => {
