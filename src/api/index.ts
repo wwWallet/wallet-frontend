@@ -4,7 +4,7 @@ import { Err, Ok, Result } from 'ts-results';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { LocalStorageKeystore, WebauthnPrfEncryptionKeyInfo } from '../services/LocalStorageKeystore';
+import { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 
 
@@ -189,41 +189,6 @@ export async function initiatePresentationExchange(verifier_id: number, scope_na
 		throw error;
 	}
 }
-async function getPrfOutput(
-	credential: PublicKeyCredential,
-	rpId: string,
-	prf: { eval: { first: BufferSource } } | { evalByCredential: { [credentialId: string]: { first: BufferSource } }},
-): Promise<[ArrayBuffer, PublicKeyCredential]> {
-	type PrfExtensionOutput = { enabled: boolean, results?: { first?: ArrayBuffer } };
-	const clientExtensionOutputs = credential.getClientExtensionResults() as { prf?: PrfExtensionOutput };
-
-	if (clientExtensionOutputs?.prf?.results?.first) {
-		return [clientExtensionOutputs?.prf?.results?.first, credential];
-
-	} else if (clientExtensionOutputs?.prf?.enabled || (credential.response as any).signature) {
-		const getCredential = await navigator.credentials.get({
-			publicKey: {
-				rpId,
-				challenge: crypto.getRandomValues(new Uint8Array(32)),
-				allowCredentials: [{
-					type: "public-key",
-					id: credential.rawId,
-				}],
-				extensions: { prf } as AuthenticationExtensionsClientInputs,
-			},
-		}) as PublicKeyCredential;
-
-		const extOutputs = getCredential.getClientExtensionResults() as { prf?: PrfExtensionOutput };
-		if (extOutputs?.prf?.results?.first) {
-			return [extOutputs.prf.results.first, getCredential];
-		} else {
-			throw { errorId: "prf_not_supported" };
-		}
-
-	} else {
-		throw { errorId: "prf_not_supported" };
-	}
-}
 
 
 export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<
@@ -261,22 +226,7 @@ export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<
 				try {
 					const userData = finishResp.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
-
-					const [prfOutput, prfCredential] = await getPrfOutput(
-						credential,
-						beginData.getOptions.publicKey.rpId,
-						{
-							evalByCredential: privateData.prfKeys.reduce(
-								(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfEncryptionKeyInfo) => {
-									result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
-									return result;
-								},
-								{},
-							),
-						}
-					);
-					const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
-					await keystore.unlockPrf(privateData, prfOutput, keyInfo);
+					await keystore.unlockPrf(privateData, credential, beginData.getOptions.publicKey.rpId);
 					return Ok.EMPTY;
 				} catch (e) {
 					console.error("Failed to open keystore", e);
@@ -328,8 +278,7 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 			console.log("created", credential);
 
 			try {
-				const [prfOutput,] = await getPrfOutput(credential, beginData.createOptions.publicKey.rp.id, { eval: { first: prfSalt } });
-				const { publicData, privateData } = await keystore.initPrf(credential, prfSalt, new Uint8Array(prfOutput));
+				const { publicData, privateData } = await keystore.initPrf(credential, prfSalt, beginData.createOptions.publicKey.rp.id);
 
 				try {
 					const fcm_token = await requestForToken();
