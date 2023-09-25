@@ -5,7 +5,7 @@ import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import * as api from '../api';
-import logo from '../assets/images/ediplomasLogo.svg';
+import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
@@ -77,15 +77,14 @@ const Sidebar = ({ isOpen, toggle }) => {
 					<img
 						src={logo}
 						alt="Logo"
-						className="w-22 h-22 mb-2 mr-2 cursor-pointer"
+						className="w-20 h-22 mb-2 mr-2 cursor-pointer"
 						onClick={() => handleNavigate('/')}
 					/>
 					<h1
-						className="text-white text-lg font-bold cursor-pointer"
+						className="text-white text-xl font-bold cursor-pointer"
 						onClick={() => handleNavigate('/')}
 						>
-						eDiplomas <br />
-						Digital Wallet
+						wwWallet
 					</h1>
 					<button className="sm:hidden" onClick={toggle}>
 						<AiOutlineClose size={30} />
@@ -134,8 +133,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 			<div className="absolute bottom-0 bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
 				Powered by{' '}
-				<a href="https://www.gunet.gr/" rel="noreferrer" target="_blank" className="underline">
-					GUnet
+				<a href="https://www.wwwallet.org/" rel="noreferrer" target="_blank" className="underline">
+					wwWallet
 				</a>
 			</div>
 		</div>
