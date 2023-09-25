@@ -191,7 +191,7 @@ export async function initiatePresentationExchange(verifier_id: number, scope_na
 }
 
 
-export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<
+export async function loginWebauthn(keystore: LocalStorageKeystore, promptForPrfRetry: () => Promise<boolean>): Promise<
 	Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 > {
 		try {
@@ -226,7 +226,7 @@ export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<
 				try {
 					const userData = finishResp.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
-					await keystore.unlockPrf(privateData, credential, beginData.getOptions.publicKey.rpId);
+					await keystore.unlockPrf(privateData, credential, beginData.getOptions.publicKey.rpId, promptForPrfRetry);
 					return Ok.EMPTY;
 				} catch (e) {
 					console.error("Failed to open keystore", e);
@@ -246,7 +246,7 @@ export async function loginWebauthn(keystore: LocalStorageKeystore): Promise<
 	}
 };
 
-export async function signupWebauthn(name: string, keystore: LocalStorageKeystore): Promise<
+export async function signupWebauthn(name: string, keystore: LocalStorageKeystore, promptForPrfRetry: () => Promise<boolean>): Promise<
 	Result<void, 'passkeySignupFailedServerError' | 'passkeySignupFailedTryAgain' | 'passkeySignupFinishFailedServerError' | 'passkeySignupKeystoreFailed'>
 > {
 	try {
@@ -278,7 +278,12 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 			console.log("created", credential);
 
 			try {
-				const { publicData, privateData } = await keystore.initPrf(credential, prfSalt, beginData.createOptions.publicKey.rp.id);
+				const { publicData, privateData } = await keystore.initPrf(
+					credential,
+					prfSalt,
+					beginData.createOptions.publicKey.rp.id,
+					promptForPrfRetry,
+				);
 
 				try {
 					const fcm_token = await requestForToken();

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -10,6 +10,42 @@ import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import {formatDate} from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 
+
+const Dialog = ({
+	children,
+	open,
+	onCancel,
+}: {
+	children: ReactNode,
+	open: boolean,
+	onCancel: () => void,
+}) => {
+	const dialog = useRef<HTMLDialogElement>();
+
+	useEffect(
+		() => {
+			if (dialog.current) {
+				if (open) {
+					dialog.current.showModal();
+				} else {
+					dialog.current.close();
+				}
+			}
+		},
+		[dialog, open],
+	);
+
+	return (
+		<dialog
+			ref={dialog}
+			className="p-4 pt-8 text-center rounded"
+			style={{ minHeight: '20em', minWidth: '30em' }}
+			onCancel={onCancel}
+		>
+			{children}
+		</dialog>
+	);
+};
 
 const WebauthnRegistation = ({
 	existingPrfKey,
@@ -23,11 +59,16 @@ const WebauthnRegistation = ({
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
+	const [nicknameChosen, setNicknameChosen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const dialog = useRef<HTMLDialogElement>();
+	const [needPrfRetry, setNeedPrfRetry] = useState(false);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
+	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
+
+	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
 		async () => {
@@ -61,24 +102,37 @@ const WebauthnRegistation = ({
 		console.log("onCancel");
 		setPendingCredential(null);
 		setBeginData(null);
+		setNeedPrfRetry(false);
+		setResolvePrfRetryPrompt(null);
+		setPrfRetryAccepted(false);
 		setIsSubmitting(false);
 	};
 
 	const onFinish = async (event) => {
 		event.preventDefault();
 		console.log("onFinish", event);
+		setNicknameChosen(true);
 
 		if (beginData && pendingCredential && existingPrfKey && wrappedMainKey) {
-			setIsSubmitting(true);
-
-			const [newPrivateData, keystoreCommit] = await keystore.addPrf(
-				pendingCredential,
-				beginData.createOptions.publicKey.rp.id,
-				existingPrfKey,
-				wrappedMainKey,
-			);
-
 			try {
+				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
+					pendingCredential,
+					beginData.createOptions.publicKey.rp.id,
+					existingPrfKey,
+					wrappedMainKey,
+					async () => {
+						setNeedPrfRetry(true);
+						return new Promise<boolean>((resolve, reject) => {
+							setResolvePrfRetryPrompt(() => resolve);
+						}).finally(() => {
+							setNeedPrfRetry(false);
+							setPrfRetryAccepted(true);
+							setResolvePrfRetryPrompt(null);
+						});
+					},
+				);
+
+				setIsSubmitting(true);
 				await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
 					nickname,
@@ -102,25 +156,14 @@ const WebauthnRegistation = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
+
+			} finally {
+				onCancel();
 			}
-			onCancel();
 		} else {
 			console.error("Invalid state:", beginData, pendingCredential, existingPrfKey, wrappedMainKey);
 		}
 	};
-
-	useEffect(
-		() => {
-			if (dialog.current) {
-				if (beginData) {
-					dialog.current.showModal();
-				} else {
-					dialog.current.close();
-				}
-			}
-		},
-		[dialog, beginData],
-	);
 
 	const registrationInProgress = Boolean(beginData || pendingCredential);
 
@@ -137,10 +180,8 @@ const WebauthnRegistation = ({
 				</div>
 			</button>
 
-			<dialog
-				ref={dialog}
-				className="p-4 pt-8 text-center rounded"
-				style={{ minHeight: '20em', minWidth: '30em' }}
+			<Dialog
+				open={stateChooseNickname}
 				onCancel={onCancel}
 			>
 				<form method="dialog" onSubmit={onFinish}>
@@ -190,7 +231,47 @@ const WebauthnRegistation = ({
 					</div>
 
 				</form>
-			</dialog>
+			</Dialog>
+
+			<Dialog
+				open={needPrfRetry && !prfRetryAccepted}
+				onCancel={() => resolvePrfRetryPrompt(false)}
+			>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
+				<p>Your passkey has been created.</p>
+				<p>To finish setting up, please authenticate with it once more.</p>
+
+				<button
+					type="button"
+					className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+					onClick={() => resolvePrfRetryPrompt(false)}
+				>
+					Cancel
+				</button>
+				<button
+					type="button"
+					className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					onClick={() => resolvePrfRetryPrompt(true)}
+					disabled={prfRetryAccepted}
+				>
+					Continue
+				</button>
+			</Dialog>
+
+			<Dialog
+				open={prfRetryAccepted}
+				onCancel={onCancel}
+			>
+				<p>Please authenticate with the new passkey...</p>
+
+				<button
+					type="button"
+					className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+					onClick={onCancel}
+				>
+					Cancel
+				</button>
+			</Dialog>
 		</>
 	);
 };
@@ -220,7 +301,7 @@ const WebauthnUnlock = ({
 		async () => {
 			setInProgress(true);
 			try {
-				const [prfKey, keyInfo] = await keystore.getPrfKeyFromSession();
+				const [prfKey, keyInfo] = await keystore.getPrfKeyFromSession(async () => true);
 				onUnlock(prfKey, keyInfo.mainKey);
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
