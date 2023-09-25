@@ -310,10 +310,10 @@ const WebauthnSignupLogin = ({
 								{cachedUsers.map((cachedUser) => (
 									<li
 										key={cachedUser.cacheKey}
-										className="w-full flex flex-row flex-nowrap"
+										className="w-full flex flex-row flex-nowrap mb-2"
 									>
 										<button
-											className="flex-grow text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+											className="flex-grow text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center mr-2"
 											type="button"
 											disabled={isSubmitting}
 											onClick={() => onLoginCachedUser(cachedUser)}
@@ -339,7 +339,7 @@ const WebauthnSignupLogin = ({
 						{cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
 
 						<button
-							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
 							disabled={isSubmitting}
 						>
@@ -549,7 +549,7 @@ const Login = () => {
 							{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
 							<a
 								href="/"
-								className="font-medium text-blue-600 hover:underline dark:text-blue-500"
+								className="font-medium text-custom-blue hover:underline dark:text-blue-500"
 								onClick={toggleForm}
 							>
 								{isLogin ? t('signUp') : t('login')}
