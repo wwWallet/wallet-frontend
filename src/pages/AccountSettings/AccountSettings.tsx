@@ -1,6 +1,6 @@
-import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import * as api from '../../api';
@@ -349,27 +349,123 @@ const WebauthnUnlock = ({
 const WebauthnCredentialItem = ({
 	credential,
 	onDelete,
+	onRename,
 }: {
 	credential: WebauthnCredential,
 	onDelete?: false | (() => void),
-}) => (
-	<div className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md">
-		<p className="font-bold text-custom-blue">{credential.nickname || credential.id}</p>
-		<p>Created: {formatDate(credential.createTime)}</p>
-		<p>Last used: {formatDate(credential.lastUseTime)}</p>
-		<p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
-		{onDelete && (
-			<button
-				className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-				type="button"
-				onClick={onDelete}
-				aria-label={`Delete passkey "${credential.nickname || credential.id}"`}
-			>
-				<FaTrash />
-			</button>
-		)}
-	</div>
-);
+	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
+}) => {
+	const [nickname, setNickname] = useState(credential.nickname || '');
+	const [editing, setEditing] = useState(false);
+	const { t } = useTranslation();
+	const currentLabel = credential.nickname || `Unnamed passkey ${credential.id.substring(0, 8)}`;
+	const [submitting, setSubmitting] = useState(false);
+
+	const onKeyUp = useCallback(
+		(event: KeyboardEvent<HTMLInputElement>) => {
+			if (event.key === "Escape") {
+				setNickname(credential.nickname || '');
+				setEditing(false);
+			}
+		},
+		[],
+	);
+
+	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		setSubmitting(true);
+		try {
+			const result = await onRename(credential, nickname);
+			if (result) {
+				setEditing(false);
+			}
+		} finally {
+			setSubmitting(false);
+		}
+	};
+
+	return (
+		<form
+			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2"
+			onSubmit={onSubmit}
+		>
+			<div className="grow">
+				{editing
+					? (
+						<input
+							className="shadow appearance-none border rounded w-80 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+							type="text"
+							placeholder={t('passkeyNicknameInput')}
+							value={nickname}
+							onChange={(event) => setNickname(event.target.value)}
+							aria-label={t('passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
+							onKeyUp={onKeyUp}
+							disabled={submitting}
+						/>
+					)
+					: (
+						<p className="font-bold text-custom-blue">
+							{currentLabel}
+						</p>
+					)
+				}
+
+				<p>Created: {formatDate(credential.createTime)}</p>
+				<p>Last used: {formatDate(credential.lastUseTime)}</p>
+				<p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
+			</div>
+
+			<div className="">
+				{editing
+					? (
+						<>
+							<button
+								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+								type="button"
+								disabled={submitting}
+								onClick={() => setEditing(false)}
+								aria-label={t('cancelPasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+							>
+								{t('cancel')}
+							</button>
+							<button
+								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								type="submit"
+								disabled={submitting}
+								aria-label={t('savePasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+							>
+								{t('save')}
+							</button>
+						</>
+					)
+					: (
+						<>
+							<button
+								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								type="button"
+								onClick={() => setEditing(true)}
+								aria-label={t('renamePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+							>
+								<FaEdit className="mr-2" /> {t('renamePasskey')}
+							</button>
+						</>
+					)
+				}
+
+				{onDelete && (
+					<button
+						className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+						type="button"
+						onClick={onDelete}
+						aria-label={t('deletePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+					>
+						<FaTrash />
+					</button>
+				)}
+			</div>
+		</form>
+	);
+};
 
 
 
@@ -415,6 +511,19 @@ const Home = () => {
 		refreshData();
 	};
 
+	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
+		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/rename`, {
+			nickname,
+		});
+		refreshData();
+		if (deleteResp.status === 204) {
+			return true;
+		} else {
+			console.error("Failed to rename WebAuthn credential", deleteResp.status, deleteResp);
+			return false;
+		}
+	};
+
 	const loggedInPasskey = userData?.webauthnCredentials.find(
 		cred => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId);
 
@@ -434,6 +543,7 @@ const Home = () => {
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
+									onRename={onRenameWebauthnCredential}
 								/>
 							)}
 						</div>
@@ -470,6 +580,7 @@ const Home = () => {
 											key={cred.id}
 											credential={cred}
 											onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+											onRename={onRenameWebauthnCredential}
 										/>
 									))}
 							</ul>
