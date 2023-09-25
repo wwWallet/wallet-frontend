@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import { GiHamburgerMenu } from 'react-icons/gi';
-import logo from '../assets/images/logo.png';
+import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Layout = ({ children }) => {
@@ -28,9 +28,9 @@ const Layout = ({ children }) => {
 			{/* Header */}
 			<header className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 sm:hidden'}`}>
 				<div className="flex items-center">
-					<img src={logo} alt="Logo" className="w-8 h-auto mr-2 cursor-pointer" onClick={() => handleNavigate('/')}/>
-					<h1 className="text-white text-lg font-bold cursor-pointer" onClick={() => handleNavigate('/')} >eDiplomas Digital Wallet</h1>
+					<img src={logo} alt="Logo" className="w-10 h-auto mr-2 cursor-pointer" onClick={() => handleNavigate('/')}/>
 				</div>
+				<h1 className="text-white text-xl font-bold cursor-pointer" onClick={() => handleNavigate('/')} >wwWallet</h1>
 				<button className="text-white" onClick={toggleSidebar}>
 					<GiHamburgerMenu size={24} />
 				</button>
