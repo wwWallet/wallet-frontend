@@ -13,11 +13,19 @@ import { useIndexedDb } from "../components/useIndexedDb";
 
 type UserData = {
 	displayName: string;
+	webauthnUserHandle: Uint8Array;
 }
 
 export type CachedUser = {
 	cacheKey: string;
 	displayName: string;
+
+	// Authenticator may return `userHandle: null` when authenticating with
+	// non-empty `allowCredentials` (which we do when evaluating PRF), but the
+	// backend requires the user handle during login (which we do simultaneously
+	// with PRF evaluation for cached credentials)
+	userHandle: Uint8Array;
+
 	prfKeys: WebauthnPrfSaltInfo[];
 }
 
@@ -409,6 +417,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 								{
 									cacheKey: uuidv4(),
 									displayName: user.displayName,
+									userHandle: user.webauthnUserHandle,
 									prfKeys: privateData.prfKeys.map((keyInfo) => ({
 										credentialId: keyInfo.credentialId,
 										prfSalt: keyInfo.prfSalt,
