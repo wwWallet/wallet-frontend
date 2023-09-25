@@ -51,10 +51,6 @@ const Notification = () => {
 			})
 			.catch((err) => console.log('failed: ', err));
 
-		// Clean up the listener when the component unmounts
-		return () => {
-			unregisterMessageListener();
-		};
 	}, []);
 
 	return (
