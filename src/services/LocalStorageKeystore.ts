@@ -11,6 +11,16 @@ import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from ".
 import { useIndexedDb } from "../components/useIndexedDb";
 
 
+type UserData = {
+	displayName: string;
+}
+
+export type CachedUser = {
+	cacheKey: string;
+	displayName: string;
+	prfKeys: WebauthnPrfSaltInfo[];
+}
+
 export type EncryptedContainer = {
 	jwe: string;
 	passwordKey?: PasswordKeyInfo;
@@ -32,10 +42,13 @@ type PasswordKeyInfo = {
 	pbkdf2Params: Pbkdf2Params;
 }
 
-type WebauthnPrfEncryptionKeyInfo = {
-	mainKey: WrappedKeyInfo,
+type WebauthnPrfSaltInfo = {
 	credentialId: Uint8Array,
 	prfSalt: Uint8Array,
+}
+
+type WebauthnPrfEncryptionKeyInfo = WebauthnPrfSaltInfo & {
+	mainKey: WrappedKeyInfo,
 	hkdfSalt: Uint8Array,
 	hkdfInfo: Uint8Array,
 }
@@ -187,20 +200,20 @@ async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkd
 	);
 }
 
-function makePrfExtensionInputs(privateData: EncryptedContainer): {
+export function makePrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]): {
 	allowCredentials: PublicKeyCredentialDescriptor[],
 	prfInput: PrfExtensionInput,
 } {
 	return {
-		allowCredentials: privateData.prfKeys.map(
-			(keyInfo: WebauthnPrfEncryptionKeyInfo) => ({
+		allowCredentials: prfKeys.map(
+			(keyInfo: WebauthnPrfSaltInfo) => ({
 				type: "public-key",
 				id: keyInfo.credentialId,
 			})
 		),
 		prfInput: {
-			evalByCredential: privateData.prfKeys.reduce(
-				(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfEncryptionKeyInfo) => {
+			evalByCredential: prfKeys.reduce(
+				(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfSaltInfo) => {
 					result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
 					return result;
 				},
@@ -256,6 +269,7 @@ export interface LocalStorageKeystore {
 		prfSalt: Uint8Array,
 		rpId: string,
 		promptForPrfRetry: () => Promise<boolean>,
+		user: UserData,
 	): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
 	addPrf(
 		credential: PublicKeyCredential,
@@ -271,8 +285,11 @@ export interface LocalStorageKeystore {
 		credential: PublicKeyCredential,
 		rpId: string,
 		promptForPrfRetry: () => Promise<boolean>,
+		user: CachedUser | UserData,
 	): Promise<void>,
 	getPrfKeyFromSession(promptForPrfRetry: () => Promise<boolean>): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]>,
+	getCachedUsers(): CachedUser[],
+	forgetCachedUser(user: CachedUser): void,
 
 	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
@@ -280,6 +297,7 @@ export interface LocalStorageKeystore {
 }
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
+	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [webauthnRpId, setWebauthnRpId] = useLocalStorage<string | null>("webauthnRpId", null);
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
@@ -368,18 +386,45 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}
 			};
 
-			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer): Promise<void> => {
+			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer, user: CachedUser | UserData): Promise<void> => {
 				const outerSessionKey = await createOuterSessionKey();
 				const innerSessionKey = await createInnerSessionKey(outerSessionKey);
 				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, innerSessionKey);
 				setPrivateDataCache(privateData);
 				setPrivateDataJwe(reencryptedPrivateData);
+
+				if (user) {
+					setCachedUsers((cachedUsers) => {
+						if ("cacheKey" in user) {
+							// Move most recently used user to front of list
+							return [
+								user,
+								...(
+									(cachedUsers || []).filter((cu) => cu.cacheKey !== user.cacheKey)
+								),
+							];
+
+						} else {
+							return [
+								{
+									cacheKey: uuidv4(),
+									displayName: user.displayName,
+									prfKeys: privateData.prfKeys.map((keyInfo) => ({
+										credentialId: keyInfo.credentialId,
+										prfSalt: keyInfo.prfSalt,
+									})),
+								},
+								...(cachedUsers || []),
+							];
+						}
+					});
+				}
 			};
 
 			const unlockPassword = async (privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void> => {
 				const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
 				const mainKey = await unwrapKey(passwordKey, keyInfo.mainKey);
-				return await unlock(mainKey, privateData);
+				return await unlock(mainKey, privateData, null);
 			};
 
 			const createPrfKey = async (
@@ -425,7 +470,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				const [prfOutput, prfCredential] = await getPrfOutput(
 					credential,
 					rpId,
-					makePrfExtensionInputs(privateData),
+					makePrfExtensionInputs(privateData.prfKeys),
 					promptForPrfRetry,
 				);
 				const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
@@ -437,10 +482,11 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				credential: PublicKeyCredential,
 				rpId: string,
 				promptForPrfRetry: () => Promise<boolean>,
+				user: CachedUser | UserData | null,
 			): Promise<void> => {
 				const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
 				const mainKey = await unwrapKey(prfKey, keyInfo.mainKey);
-				const result = await unlock(mainKey, privateData);
+				const result = await unlock(mainKey, privateData, user);
 				setWebauthnRpId(rpId);
 				return result;
 			};
@@ -471,7 +517,12 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				};
 			};
 
-			const init = async (wrappedMainKey: WrappedKeyInfo, wrappingKey: CryptoKey, keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] }): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+			const init = async (
+				wrappedMainKey: WrappedKeyInfo,
+				wrappingKey: CryptoKey,
+				keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] },
+				user: UserData,
+			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 				console.log("init");
 
 				const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
@@ -481,7 +532,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					...keyInfo,
 					jwe: privateDataJwe,
 				};
-				await unlock(mainKey, privateData);
+				await unlock(mainKey, privateData, user);
 
 				return {
 					publicData,
@@ -492,7 +543,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			return {
 				close: async (): Promise<void> => {
 					await idb.destroy();
-					clearLocalStorage();
+					setPrivateDataCache(null);
+					setWebauthnRpId(null);
 					clearSessionStorage();
 				},
 
@@ -513,7 +565,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 						prfKeys: [],
 					};
 
-					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys:[] });
+					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys:[] }, null);
 				},
 
 				initPrf: async (
@@ -521,10 +573,11 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					prfSalt: Uint8Array,
 					rpId: string,
 					promptForPrfRetry: () => Promise<boolean>,
+					user: UserData,
 				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPrf");
 					const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, null, null, promptForPrfRetry);
-					const result = await init(keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] });
+					const result = await init(keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }, user);
 					setWebauthnRpId(rpId);
 					return result;
 				},
@@ -580,6 +633,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					} else {
 						throw new Error("Session not initialized");
 					}
+				},
+
+				getCachedUsers: (): CachedUser[] => {
+					return [...(cachedUsers || [])];
+				},
+
+				forgetCachedUser: (user: CachedUser): void => {
+					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.cacheKey !== user.cacheKey));
 				},
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
@@ -650,12 +711,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 		},
 		[
+			cachedUsers,
 			clearLocalStorage,
 			clearSessionStorage,
 			idb,
 			innerSessionKey,
 			privateDataCache,
 			privateDataJwe,
+			setCachedUsers,
 			setInnerSessionKey,
 			setPrivateDataCache,
 			setPrivateDataJwe,

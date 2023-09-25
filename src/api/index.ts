@@ -4,7 +4,7 @@ import { Err, Ok, Result } from 'ts-results';
 
 import { requestForToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { LocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 
 
@@ -191,7 +191,11 @@ export async function initiatePresentationExchange(verifier_id: number, scope_na
 }
 
 
-export async function loginWebauthn(keystore: LocalStorageKeystore, promptForPrfRetry: () => Promise<boolean>): Promise<
+export async function loginWebauthn(
+	keystore: LocalStorageKeystore,
+	promptForPrfRetry: () => Promise<boolean>,
+	cachedUser: CachedUser | undefined,
+): Promise<
 	Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 > {
 		try {
@@ -200,7 +204,21 @@ export async function loginWebauthn(keystore: LocalStorageKeystore, promptForPrf
 			const beginData = beginResp.data;
 
 		try {
-			const credential = await navigator.credentials.get(beginData.getOptions) as PublicKeyCredential;
+			const prfInputs = cachedUser && makePrfExtensionInputs(cachedUser.prfKeys);
+			const getOptions = prfInputs
+				? {
+					...beginData.getOptions,
+					publicKey: {
+						...beginData.getOptions.publicKey,
+						allowCredentials: prfInputs.allowCredentials,
+						extensions: {
+							...beginData.getOptions.extensions,
+							prf: prfInputs.prfInput,
+						},
+					},
+				}
+				: beginData.getOptions;
+			const credential = await navigator.credentials.get(getOptions) as PublicKeyCredential;
 			const response = credential.response as AuthenticatorAssertionResponse;
 			console.log("asserted", credential);
 
@@ -226,7 +244,13 @@ export async function loginWebauthn(keystore: LocalStorageKeystore, promptForPrf
 				try {
 					const userData = finishResp.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
-					await keystore.unlockPrf(privateData, credential, beginData.getOptions.publicKey.rpId, promptForPrfRetry);
+					await keystore.unlockPrf(
+						privateData,
+						credential,
+						beginData.getOptions.publicKey.rpId,
+						promptForPrfRetry,
+						cachedUser || userData,
+					);
 					return Ok.EMPTY;
 				} catch (e) {
 					console.error("Failed to open keystore", e);
@@ -283,6 +307,7 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 					prfSalt,
 					beginData.createOptions.publicKey.rp.id,
 					promptForPrfRetry,
+					{ displayName: name },
 				);
 
 				try {
