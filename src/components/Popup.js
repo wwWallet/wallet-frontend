@@ -46,13 +46,13 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 		<div className="absolute inset-0 bg-black opacity-50"></div>
-		<div className="bg-white p-4 rounded-lg shadow-lg w-full h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
+		<div className="bg-white p-4 rounded-lg shadow-lg w-full max-h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
 					<h2 className="text-lg font-bold mb-2 text-custom-blue">
 									<FaShare size={20} className="inline mr-1 mb-1" /> 
 									Select an Option:
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
-						<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto h-[60vh]'>
+						<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[60vh]'>
 							{images.map(image => (
 								<div className="m-5">
 									<img
