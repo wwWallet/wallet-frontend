@@ -13,18 +13,17 @@ import { useIndexedDb } from "../components/useIndexedDb";
 
 type UserData = {
 	displayName: string;
-	webauthnUserHandle: Uint8Array;
+	userHandle: Uint8Array;
 }
 
 export type CachedUser = {
-	cacheKey: string;
 	displayName: string;
 
 	// Authenticator may return `userHandle: null` when authenticating with
 	// non-empty `allowCredentials` (which we do when evaluating PRF), but the
 	// backend requires the user handle during login (which we do simultaneously
 	// with PRF evaluation for cached credentials)
-	userHandle: Uint8Array;
+	userHandleB64u: string;
 
 	prfKeys: WebauthnPrfSaltInfo[];
 }
@@ -306,7 +305,7 @@ export interface LocalStorageKeystore {
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [userCacheKey, setUserCacheKey] = useLocalStorage<string | null>("userCacheKey", null);
+	const [userHandleB64u, setUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 	const [webauthnRpId, setWebauthnRpId] = useLocalStorage<string | null>("webauthnRpId", null);
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
@@ -323,9 +322,9 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 	useEffect(
 		() => {
-			if (privateDataCache && userCacheKey) {
+			if (privateDataCache && userHandleB64u) {
 				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
-					if (cu.cacheKey === userCacheKey) {
+					if (cu.userHandleB64u === userHandleB64u) {
 						return {
 							...cu,
 							prfKeys: privateDataCache.prfKeys.map((keyInfo) => ({
@@ -339,7 +338,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}));
 			}
 		},
-		[privateDataCache, userCacheKey],
+		[privateDataCache, userHandleB64u],
 	);
 
 	return useMemo(
@@ -424,30 +423,24 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				setPrivateDataJwe(reencryptedPrivateData);
 
 				if (user) {
-					setCachedUsers((cachedUsers) => {
-						if ("cacheKey" in user) {
-							setUserCacheKey(user.cacheKey);
-							// Move most recently used user to front of list
-							return [
-								user,
-								...(
-									(cachedUsers || []).filter((cu) => cu.cacheKey !== user.cacheKey)
-								),
-							];
-
-						} else {
-							const cacheKey = uuidv4();
-							setUserCacheKey(cacheKey);
-							return [
-								{
-									cacheKey,
-									displayName: user.displayName,
-									userHandle: user.webauthnUserHandle,
-									prfKeys: [], // Placeholder - will be updated by useEffect above
-								},
-								...(cachedUsers || []),
-							];
+					const userHandleB64u = ("prfKeys" in user
+						? user.userHandleB64u
+						: toBase64Url(user.userHandle)
+					);
+					const newUser = ("prfKeys" in user
+						? user
+						: {
+							displayName: user.displayName,
+							userHandleB64u,
+							prfKeys: [], // Placeholder - will be updated by useEffect above
 						}
+					);
+
+					setUserHandleB64u(userHandleB64u);
+					setCachedUsers((cachedUsers) => {
+						// Move most recently used user to front of list
+						const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
+						return [newUser, ...otherUsers];
 					});
 				}
 			};
@@ -671,7 +664,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				forgetCachedUser: (user: CachedUser): void => {
-					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.cacheKey !== user.cacheKey));
+					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 				},
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
