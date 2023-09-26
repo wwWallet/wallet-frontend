@@ -170,7 +170,7 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-				className={`px-2 py-2 mb-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
+				className={`px-2 py-2 mb-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
 				onClick={onBegin}
 				disabled={registrationInProgress || !unlocked}
 			>
@@ -212,7 +212,7 @@ const WebauthnRegistation = ({
 					<div className="pt-2">
 						<button
 							type="button"
-							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-gray-100 mr-2"
 							onClick={onCancel}
 							disabled={isSubmitting}
 						>
@@ -222,7 +222,7 @@ const WebauthnRegistation = ({
 						{pendingCredential && (
 							<button
 								type="submit"
-								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								disabled={isSubmitting}
 							>
 								Save
@@ -243,14 +243,14 @@ const WebauthnRegistation = ({
 
 				<button
 					type="button"
-					className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 					onClick={() => resolvePrfRetryPrompt(false)}
 				>
 					Cancel
 				</button>
 				<button
 					type="button"
-					className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 					onClick={() => resolvePrfRetryPrompt(true)}
 					disabled={prfRetryAccepted}
 				>
@@ -266,7 +266,7 @@ const WebauthnRegistation = ({
 
 				<button
 					type="button"
-					className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 					onClick={onCancel}
 				>
 					Cancel
@@ -392,35 +392,59 @@ const WebauthnCredentialItem = ({
 			<div className="grow">
 				{editing
 					? (
-						<input
-							className="shadow appearance-none border rounded w-80 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-							type="text"
-							placeholder={t('passkeyNicknameInput')}
-							value={nickname}
-							onChange={(event) => setNickname(event.target.value)}
-							aria-label={t('passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
-							onKeyUp={onKeyUp}
-							disabled={submitting}
-						/>
+						<>
+							<div className="flex items-center">
+								<p className="font-bold">
+									Nickname:&nbsp;	
+								</p>
+								<input
+									className="shadow appearance-none border rounded-md w-80 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									type="text"
+									placeholder={t('passkeyNicknameInput')}
+									value={nickname}
+									onChange={(event) => setNickname(event.target.value)}
+									aria-label={t('passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
+									onKeyUp={onKeyUp}
+									disabled={submitting}
+								/>
+							</div>
+						</>
 					)
 					: (
-						<p className="font-bold text-custom-blue">
-							{currentLabel}
-						</p>
+						<div className="flex items-center">
+							<p className="font-bold">
+								Nickname:&nbsp;	
+							</p>
+							<p className="font-bold text-custom-blue">
+								{currentLabel}
+							</p>
+						</div>
 					)
 				}
-
-				<p>Created: {formatDate(credential.createTime)}</p>
-				<p>Last used: {formatDate(credential.lastUseTime)}</p>
-				<p>Can encrypt: {credential.prfCapable ? "Yes" : "No"}</p>
+				<p> 
+					<span className="font-semibold">
+						Created:&nbsp;	
+					</span>
+					{formatDate(credential.createTime)}
+					</p>
+				<p>
+					<span className="font-semibold">
+						Last used:&nbsp;	
+					</span>
+					{formatDate(credential.lastUseTime)}</p>
+				<p>
+					<span className="font-semibold">
+					Can encrypt:&nbsp;	
+					</span>
+					{credential.prfCapable ? "Yes" : "No"}</p>
 			</div>
 
-			<div className="">
+			<div className="items-start	 flex inline-flex">
 				{editing
 					? (
 						<>
 							<button
-								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 								type="button"
 								disabled={submitting}
 								onClick={() => setEditing(false)}
@@ -429,7 +453,7 @@ const WebauthnCredentialItem = ({
 								{t('cancel')}
 							</button>
 							<button
-								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								type="submit"
 								disabled={submitting}
 								aria-label={t('savePasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
@@ -441,12 +465,12 @@ const WebauthnCredentialItem = ({
 					: (
 						<>
 							<button
-								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								type="button"
 								onClick={() => setEditing(true)}
 								aria-label={t('renamePasskeyAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								<FaEdit className="mr-2" /> {t('renamePasskey')}
+								<FaEdit size={16} className="mr-2" /> {t('renamePasskey')}
 							</button>
 						</>
 					)
@@ -454,12 +478,12 @@ const WebauthnCredentialItem = ({
 
 				{onDelete && (
 					<button
-						className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+						className="text-white bg-red-700 text-sm hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-800 ml-2 px-4 py-2"
 						type="button"
 						onClick={onDelete}
 						aria-label={t('deletePasskeyAriaLabel', { passkeyLabel: currentLabel })}
 					>
-						<FaTrash />
+						<FaTrash size={16} />
 					</button>
 				)}
 			</div>
@@ -532,7 +556,7 @@ const Home = () => {
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings : {userData.displayName} </h1>
+						<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings: {userData.displayName} </h1>
 						<hr className="mb-2 border-t border-custom-blue/80" />
 						<p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
 
