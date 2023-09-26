@@ -2,9 +2,9 @@
 
 
 
-# eDiplomas Digital Wallet
+# wwWallet
 
-Welcome to the eDiplomas Digital Wallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
+Welcome to wwWallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
 
 
 ## Table of Contents
@@ -89,7 +89,7 @@ Once the development server is running, you can access the app by visiting http:
 
 ## PRF Compatibility
 
-The eDiplomas Digital Wallet Frontend is designed to be compatible with the PRF extension to WebAuthn, ensuring a streamlined and secure registration and authentication process. Below, we present specific compatibility scenarios based on the operating system, emphasizing both WebAuthn and PRF extension compatibility.
+The wwWallet Frontend is designed to be compatible with the PRF extension to WebAuthn, ensuring a streamlined and secure registration and authentication process. Below, we present specific compatibility scenarios based on the operating system, emphasizing both WebAuthn and PRF extension compatibility.
 
 ### Compatibility Description
 
@@ -116,7 +116,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 | iOS              | YubiKey (NFC)					                | ❌                  |
 
 
-Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The eDiplomas Digital Wallet Frontend is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
+Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The wwWallet Frontend is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
 ## Firebase
 This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
@@ -148,7 +148,7 @@ Explore the [Tailwind CSS documentation](https://tailwindcss.com/docs/installati
 
 ## Contributing
 
-We welcome contributions from the community to help improve the eDiplomas Digital Wallet Frontend repository. If you'd like to contribute, follow these steps:
+We welcome contributions from the community to help improve the wwWallet Frontend repository. If you'd like to contribute, follow these steps:
 
 1.	**Create a New Branch:**
 	Create a new branch for your feature or bug fix
