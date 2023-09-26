@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import * as jose from "jose";
 import { JWK, SignJWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
@@ -306,6 +306,7 @@ export interface LocalStorageKeystore {
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
+	const [userCacheKey, setUserCacheKey] = useLocalStorage<string | null>("userCacheKey", null);
 	const [webauthnRpId, setWebauthnRpId] = useLocalStorage<string | null>("webauthnRpId", null);
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
@@ -319,6 +320,27 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			objectStore.createIndex("id", "id", { unique: true });
 		}
 	}, []));
+
+	useEffect(
+		() => {
+			if (privateDataCache && userCacheKey) {
+				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
+					if (cu.cacheKey === userCacheKey) {
+						return {
+							...cu,
+							prfKeys: privateDataCache.prfKeys.map((keyInfo) => ({
+								credentialId: keyInfo.credentialId,
+								prfSalt: keyInfo.prfSalt,
+							})),
+						};
+					} else {
+						return cu;
+					}
+				}));
+			}
+		},
+		[privateDataCache, userCacheKey],
+	);
 
 	return useMemo(
 		() => {
@@ -404,6 +426,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				if (user) {
 					setCachedUsers((cachedUsers) => {
 						if ("cacheKey" in user) {
+							setUserCacheKey(user.cacheKey);
 							// Move most recently used user to front of list
 							return [
 								user,
@@ -413,15 +436,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							];
 
 						} else {
+							const cacheKey = uuidv4();
+							setUserCacheKey(cacheKey);
 							return [
 								{
-									cacheKey: uuidv4(),
+									cacheKey,
 									displayName: user.displayName,
 									userHandle: user.webauthnUserHandle,
-									prfKeys: privateData.prfKeys.map((keyInfo) => ({
-										credentialId: keyInfo.credentialId,
-										prfSalt: keyInfo.prfSalt,
-									})),
+									prfKeys: [], // Placeholder - will be updated by useEffect above
 								},
 								...(cachedUsers || []),
 							];
