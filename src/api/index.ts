@@ -233,7 +233,7 @@ export async function loginWebauthn(
 							authenticatorData: toBase64Url(response.authenticatorData),
 							clientDataJSON: toBase64Url(response.clientDataJSON),
 							signature: toBase64Url(response.signature),
-							userHandle: toBase64Url(response.userHandle),
+							userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
 						},
 						authenticatorAttachment: credential.authenticatorAttachment,
 						clientExtensionResults: credential.getClientExtensionResults(),
@@ -249,7 +249,12 @@ export async function loginWebauthn(
 						credential,
 						beginData.getOptions.publicKey.rpId,
 						promptForPrfRetry,
-						cachedUser || userData,
+						cachedUser || {
+							...userData,
+							// response.userHandle will always be non-null if cachedUser is
+							// null, because then allowCredentials was empty
+							userHandle: new Uint8Array(response.userHandle),
+						},
 					);
 					return Ok.EMPTY;
 				} catch (e) {
@@ -307,7 +312,7 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 					prfSalt,
 					beginData.createOptions.publicKey.rp.id,
 					promptForPrfRetry,
-					{ displayName: name },
+					{ displayName: name, userHandle: beginData.createOptions.publicKey.user.id },
 				);
 
 				try {

@@ -52,19 +52,18 @@ const Sidebar = ({ isOpen, toggle }) => {
 		<div
 			className={`${
 				isOpen
-					? 'w-full fixed h-full z-50 bg-custom-blue text-white p-5'
+					? 'w-full fixed h-full z-50 bg-custom-blue text-white p-4'
 					: ' hidden sm:block bg-custom-blue w-auto text-white h-full py-10 px-10'
 			}`}
 		>
 			{/* Mobile Header */}
 			<div className="sm:hidden flex items-center justify-between mb-4">
-				<img src={logo} alt="Logo" className="w-16 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
+				<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
 				<h1
-					className="text-white text-lg font-bold cursor-pointer"
+					className="text-white text-xl font-bold cursor-pointer"
 					onClick={() => handleNavigate('/')}
 					>
-					eDiplomas <br />
-					Digital Wallet
+					wwWallet
 				</h1>
 				<button onClick={toggle}>
 					{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
