@@ -10,8 +10,8 @@ const ToastDisplay = ({ id, notification }) => {
 			className="flex justify-between items-center p-3 bg-white rounded-lg text-gray-600 max-w-3xl mx-auto cursor-pointer"
 			onClick={() => window.location.href = '/'}
 		>
-			<div className="flex items-center justify-start mr-6">
-				<img src={logo} alt="Logo" className="h-15" />
+			<div className="w-1/3 flex items-center justify-start mr-6">
+				<img src={logo} alt="Logo" className="" />
 			</div>
 			<div className="flex-grow text-center">
 				<p className="font-bold text-lg">{notification?.title}</p>
