@@ -11,6 +11,7 @@ import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
 const Home = () => {
   const [credentials, setCredentials] = useState([]);
@@ -65,7 +66,17 @@ const Home = () => {
 			navigate(`/credential/${credential.id}`);
   };
 
+	// qr code part
+	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
 
+	const openQRScanner = () => {
+		setQRScannerOpen(true);
+	};
+
+	const closeQRScanner = () => {
+		setQRScannerOpen(false);
+	};
+	// end qr code part
   return (
     <Layout>
       <div className="sm:px-6 w-full">
@@ -81,6 +92,18 @@ const Home = () => {
               <span className="hidden sm:inline">&nbsp; Credentials</span>
             </div>
           </button>
+
+          <button
+            className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+            onClick={openQRScanner} // Open the QR code scanner modal
+          >
+            <div className="flex items-center">
+              {/* You can replace this icon with your QR code scanner icon */}
+              <BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
+              <span className="sm:inline">Scan QR Code</span>
+            </div>
+          </button>
+          
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">View all of your credentials, and use the 'Add new credentials' card to add more</p>
@@ -170,6 +193,13 @@ const Home = () => {
 					</button>
 				</div>
 			)}
+			      {/* QR Code Scanner Modal */}
+						{isQRScannerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          {/* Include your QR code scanner component here */}
+          <QRCodeScanner onClose={closeQRScanner} /> {/* Pass a prop to close the modal */}
+        </div>
+      )}
     </Layout>
   );
 };
