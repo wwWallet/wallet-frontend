@@ -93,16 +93,8 @@ function App() {
 						<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
 						<Route path="/verifiers" element={<PrivateRoute><Verifiers /></PrivateRoute>} />
 						<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
-
-						<Route path="/cb"
-							element={
-								isValidURL === null ? null : isValidURL ? (
-									<PrivateRoute><Home /></PrivateRoute>
-								) : (
-									<Home />
-								)
-							}
-						/>
+						<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
+						<Route path="*" element={<NotFound />} />
 					</Routes>
 					{showPopup &&
 						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
