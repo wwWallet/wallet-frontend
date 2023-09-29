@@ -11,7 +11,7 @@ import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import Notification from './components/Notification'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
-
+import HandlerNotification from './components/HandlerNotification';
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
@@ -83,6 +83,7 @@ function App() {
 		<I18nextProvider i18n={i18n}>
 			<Router>
 				<Suspense fallback={<Spinner />}>
+				<HandlerNotification>
 					<Routes>
 						<Route path="/login" element={<Login />} />
 						<Route path="/account" element={<AccountSettings />} />
@@ -103,10 +104,10 @@ function App() {
 							}
 						/>
 					</Routes>
-					<Notification />
 					{showPopup &&
 						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
 					}
+					</HandlerNotification>
 				</Suspense>
 			</Router>
 		</I18nextProvider>
