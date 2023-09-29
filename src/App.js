@@ -9,7 +9,6 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 import enTranslation from './locales/en.json'; // Import translation files for each language
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
-import Notification from './components/Notification'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
 
