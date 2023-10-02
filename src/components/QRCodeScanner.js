@@ -13,19 +13,24 @@ const QRCodeScanner = ({ onClose }) => {
     }
   };
 
+
+  const handleClose = () => {
+    setQRCodeData(''); // Clear the scanned data
+    onClose(); // Close the scanner modal
+  };
+
   const handleError = (error) => {
     console.error(error);
   };
 
   return (
-    <div className="qr-code-scanner">
+		<div className="qr-code-scanner">
       <h2>QR Code Scanner</h2>
+      <button onClick={handleClose}>Close</button> {/* Close button */}
       <QrReader
         delay={300}
         onError={handleError}
         onScan={handleScan}
-        // Ensure that you pass a valid function as the onResult prop.
-        onResult={handleScan} // This should be the correct prop name
         style={{ width: '100%' }}
       />
       {qrCodeData && (
