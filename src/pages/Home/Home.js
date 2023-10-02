@@ -57,7 +57,7 @@ const Home = () => {
 	}, []);
 
   const handleAddCredential = () => {
-    navigate('/issuers');
+    navigate('/add');
   };
 
   const handleImageClick = (credential) => {

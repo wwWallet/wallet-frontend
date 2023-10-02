@@ -25,8 +25,20 @@ const Verifiers = () => {
   const [selectedVerifier, setSelectedVerifier] = useState(null);
 	const [selectedScope, setSelectedScope] = useState(null);
   const [attemptedContinueWithoutScope, setAttemptedContinueWithoutScope] = useState(false);
-
 	const [loading, setLoading] = useState(false);
+	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+
+	useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
 
@@ -111,22 +123,24 @@ const Verifiers = () => {
 
   return (
     <Layout>
-      <div className="px-4 sm:px-6">
+      <div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">Send Credentials</h1>
-          <button
-            className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-            onClick={openQRScanner} // Open the QR code scanner modal
-          >
-            <div className="flex items-center">
-              <BsQrCodeScan size={20} className="text-white mr-2 sm:inline" />
+          
+					{ isSmallScreen && (
+						<button
+						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+						onClick={openQRScanner} // Open the QR code scanner modal
+					>
+						<div className="flex items-center">
+							<BsQrCodeScan size={20} className="text-white mr-2 sm:inline" />
 							<span className="sm:inline">Scan</span>
 
-            </div>
-          </button>
+						</div>
+					</button>
+					)}
           
         </div>
-        <h1 className="text-2xl mb-2 font-bold text-custom-blue">Verifiers</h1>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic text-gray-700">Search and choose a verifier for credential retrieval</p>
 
