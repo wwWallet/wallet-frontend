@@ -98,23 +98,32 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 
 ### PRF Compatibility Scenarios for Google Chrome (version 116 and later)
 
-| Operating System | Authenticator                          | PRF Compatibility |
-|------------------|----------------------------------------|--------------------|
-| Linux            | YubiKey (USB)                          | ✔                  |
-| Linux            | Android (Bluetooth)                    | ✔                  |
-| Linux            | iOS (Bluetooth)                        | -                  |
-| Windows          | YubiKey (USB)                          | -                  |
-| Windows          | Android (Bluetooth)                    | ✔                  |
-| Windows          | iOS (Bluetooth)                        | -                  |
-| Windows          | Windows (Same Hardware)                | ❌                  |
-| MacOS            | YubiKey (USB)                          | ✔                  |
-| MacOS            | MacOS (Same Hardware)                  | ❌                  |
-| MacOS            | Android (Bluetooth)                    | ✔                  |
-| MacOS            | iOS (Bluetooth)                        | ❌                  |
-| Android          | Android (Same Hardware)                | ✔                  |
-| iOS              | iOS (Same Hardware)                    | ❌                  |
-| iOS              | YubiKey (NFC)					                | ❌                  |
+| Operating System | Authenticator        | Transport     | PRF Compatibility |
+|------------------|----------------------|---------------|--------------------|
+| Linux            | YubiKey              | USB           | ✔                  |
+| Linux            | Android 					    | Hybrid     		| ✔                  |
+| Linux            | iOS 						      | Hybrid     		| ❌                  |
+| Windows          | YubiKey 				      | USB           | ✔                  |
+| Windows          | Android 				      | Hybrid     		| ✔                  |
+| Windows          | iOS 				          | Hybrid     		| ❌                  |
+| Windows          | Windows 					    | Internal      | ❌                  |
+| MacOS            | YubiKey 	            | USB           | ✔                  |
+| MacOS            | MacOS 	              | Internal      | ❌                  |
+| MacOS            | Android 				      | Hybrid     		| ✔                  |
+| MacOS            | iOS 				          | Hybrid     		| ❌                  |
+| Android          | Android 					    | Internal      | ✔                  |
+| iOS              | iOS 					        | Internal      | ❌                  |
+| iOS              | YubiKey 			        | NFC           | ❌                  |
 
+### PRF Compatibility Support by Operating System and Browsers
+
+| Operating System | Google Chrome | Microsoft Edge | Mozilla Firefox | Safari | Brave |
+|------------------|---------------|----------------|-----------------|--------|-------|
+| Linux            | ✔             | -              | -               | -      | ✔     |
+| Windows          | ✔             | ✔              | -               | -      | ✔     |
+| MacOS            | ✔             | ✔              | -               | ✔      | ✔     |
+| Android          | -             | -              | -               | -      | -     |
+| iOS              | -             | -              | -               | -      | -     |
 
 Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The wwWallet Frontend is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
