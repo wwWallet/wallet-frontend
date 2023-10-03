@@ -95,8 +95,17 @@ The wwWallet Frontend is designed to be compatible with the PRF extension to Web
 
 The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of a hash message authentication code stored on the security key during the retrieval of a credential. This mechanism is crucial for generating secret keys vital for encrypting user data. While WebAuthn supports various authentication methods, the focus of this table is the compatibility with the PRF extension.
 
+### PRF Compatibility Support by Operating System and Browsers
 
-### PRF Compatibility Scenarios for Google Chrome (version 116 and later)
+| Operating System | Google Chrome (v116+) | Microsoft Edge (lst) | Mozilla Firefox | Safari | Brave (lst) |
+|------------------|-----------------------|----------------------|-----------------|--------|-------------|
+| Linux            | ✔ 				    		     | ✔                    | -               | -      | ✔     			 |
+| Windows          | ✔ 								     | ✔            			  | -               | -      | ✔           |
+| MacOS            | ✔ 				    				 | ✔       			        | -               | -      | ✔           |
+| Android          | ✔ 								     | ✔    			          | -               | -      | ✔           |
+| iOS              | -          				   | -    			          | -               | -      | -           |
+
+### PRF Compatibility Scenarios
 
 | Operating System | Authenticator        | Transport     | PRF Compatibility |
 |------------------|----------------------|---------------|--------------------|
@@ -115,17 +124,8 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 | iOS              | iOS 					        | Internal      | ❌                  |
 | iOS              | YubiKey 			        | NFC           | ❌                  |
 
-### PRF Compatibility Support by Operating System and Browsers
 
-| Operating System | Google Chrome | Microsoft Edge | Mozilla Firefox | Safari | Brave |
-|------------------|---------------|----------------|-----------------|--------|-------|
-| Linux            | ✔             | -              | -               | -      | ✔     |
-| Windows          | ✔             | ✔              | -               | -      | ✔     |
-| MacOS            | ✔             | ✔              | -               | ✔      | ✔     |
-| Android          | -             | -              | -               | -      | -     |
-| iOS              | -             | -              | -               | -      | -     |
-
-Please note that these scenarios are specific to Google Chrome on different operating systems and authenticators. The wwWallet Frontend is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
+The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
 ## Firebase
 This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
