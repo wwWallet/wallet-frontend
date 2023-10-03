@@ -3,20 +3,34 @@ import { QrReader } from 'react-qr-reader';
 import { BsQrCodeScan } from 'react-icons/bs';
 import Spinner from './Spinner'; // Adjust the import path as needed
 
-const QRCodeScanner = ({ onClose, cameraActive }) => {
+const QRCodeScanner = ({ onClose }) => {
   const [qrCodeData, setQRCodeData] = useState('');
   const [error, setError] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleScan = (data) => {
     if (data) {
       setQRCodeData(data);
-      onClose(); // Close the scanner modal
+      // Check if the scanned data is a valid URL
+      if (isValidUrl(data)) {
+        setLoading(true); // Show spinner
+        setTimeout(() => {
+          window.location.href = data; // Redirect after a delay
+        }, 1000); // Adjust the delay as needed (in milliseconds)
+      } else {
+        onClose();
+      }
     }
   };
 
+  const isValidUrl = (url) => {
+    // For a simple check, you can use a regular expression
+    const urlPattern = /^(http|https):\/\/\S+$/;
+    return urlPattern.test(url);
+  };
+
   const handleClose = () => {
-    setQRCodeData('');
     onClose(); // Close the scanner modal
   };
 
@@ -26,7 +40,8 @@ const QRCodeScanner = ({ onClose, cameraActive }) => {
 
   useEffect(() => {
     // Check camera availability
-    navigator.mediaDevices.getUserMedia({ video: true })
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
       .then(() => {
         setCameraReady(true);
       })
@@ -35,25 +50,12 @@ const QRCodeScanner = ({ onClose, cameraActive }) => {
       });
   }, []);
 
-	  // Modify the useEffect to control the camera state
-		useEffect(() => {
-			if (cameraActive) {
-				// Check camera availability and start it
-				navigator.mediaDevices.getUserMedia({ video: true })
-					.then(() => {
-						setCameraReady(true);
-					})
-					.catch((err) => {
-						setError(err);
-					});
-			}
-			// eslint-disable-next-line react-hooks/exhaustive-deps
-		}, [cameraActive]);
 
   return (
     <div className="qr-code-scanner bg-white">
       <div className={`absolute inset-0 ${!cameraReady ? 'flex justify-center items-center' : ''}`}>
-        {!cameraReady && < Spinner />}
+        {!cameraReady && <Spinner />}
+        {loading && <Spinner />} {/* Display spinner while loading */}
       </div>
       {cameraReady && (
         <div className="bg-white p-4 rounded-lg shadow-lg w-[99%] max-h-[100vh] z-10 relative">
@@ -85,16 +87,10 @@ const QRCodeScanner = ({ onClose, cameraActive }) => {
           <QrReader
             delay={300}
             onError={handleError}
-            onScan={handleScan}
-            style={{ width: '100%', height: 'auto' }}
+            onResult={handleScan}
+            style={{ width: '100%' }}
           />
-
-          {qrCodeData && (
-            <div className="scanned-data">
-              <p>Scanned Data:</p>
-              <p>{qrCodeData}</p>
-            </div>
-          )}
+          
         </div>
       )}
     </div>
