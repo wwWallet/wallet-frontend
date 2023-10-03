@@ -110,15 +110,18 @@ const Verifiers = () => {
 			});
 	};
 
-	// qr code part
+	// QR Code part
 	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
+	const [cameraActive, setCameraActive] = useState(false);
 
 	const openQRScanner = () => {
 		setQRScannerOpen(true);
+		setCameraActive(true); // Start the camera when opening the scanner
 	};
 
 	const closeQRScanner = () => {
 		setQRScannerOpen(false);
+		setCameraActive(false); // Stop the camera when closing the scanner
 	};
 
   return (
@@ -230,10 +233,12 @@ const Verifiers = () => {
 
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-          {/* Include your QR code scanner component here */}
-          <QRCodeScanner onClose={closeQRScanner} /> {/* Pass a prop to close the modal */}
-        </div>
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={closeQRScanner}>
+        <QRCodeScanner
+          onClose={closeQRScanner}
+          cameraActive={cameraActive}
+        />
+				</div>
       )}
     </Layout>
   );

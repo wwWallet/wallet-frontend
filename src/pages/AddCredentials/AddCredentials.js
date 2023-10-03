@@ -109,23 +109,25 @@ const Issuers = () => {
 		setShowPopup(false);
 	};
 
-		// qr code part
-		const [isQRScannerOpen, setQRScannerOpen] = useState(false);
+	// QR Code part
+	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
+	const [cameraActive, setCameraActive] = useState(false);
 
-		const openQRScanner = () => {
-			setQRScannerOpen(true);
-		};
-	
-		const closeQRScanner = () => {
-			setQRScannerOpen(false);
-		};
+	const openQRScanner = () => {
+		setQRScannerOpen(true);
+		setCameraActive(true); // Start the camera when opening the scanner
+	};
+
+	const closeQRScanner = () => {
+		setQRScannerOpen(false);
+		setCameraActive(false); // Stop the camera when closing the scanner
+	};
 
 	return (
 		<Layout>
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">Add Credentials</h1>
-					
 					{ isSmallScreen && (
 						<button
 						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
@@ -206,11 +208,14 @@ const Issuers = () => {
 			)}
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-          {/* Include your QR code scanner component here */}
-          <QRCodeScanner onClose={closeQRScanner} /> {/* Pass a prop to close the modal */}
-        </div>
-      )}
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" onClick={closeQRScanner}>
+        <QRCodeScanner
+          onClose={closeQRScanner}
+          cameraActive={cameraActive}
+        />
+				</div>
+			)}
+
 		</Layout>
 	);
 };
