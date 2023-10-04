@@ -95,15 +95,15 @@ The wwWallet Frontend is designed to be compatible with the PRF extension to Web
 
 The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of a hash message authentication code stored on the security key during the retrieval of a credential. This mechanism is crucial for generating secret keys vital for encrypting user data. While WebAuthn supports various authentication methods, the focus of this table is the compatibility with the PRF extension.
 
-### PRF Compatibility Support by Operating System and Browsers
+### PRF Compatibility Support by Operating System and Latest Browser Versions
 
-| Operating System | Chrome (v116+) | Edge (lst) | Firefox | Opera (lts) | Safari | Brave (lst) |
-|------------------|----------------|------------|---------|-------------|--------|-------------|
-| Linux            | ✔ 				    	| -          | ❌      | -           |        | ✔     		   |
-| Windows          | ✔ 							| -          | ❌      | -           |        | ✔           |
-| MacOS            | ✔ 				      | ✔       	 | ❌      | ✔           | ❌     | ✔           |
-| Android          | ✔ 							| ✔    			 | ❌      | ✔           |        | ✔           |
-| iOS              | ❌          	 | ❌    		  | ❌      | ❌          | ❌     | ❌          | 
+| Operating System | Chrome (v116+) | Edge | Firefox | Opera  | Safari | Brave  |
+|------------------|----------------|------|---------|--------|--------|--------|
+| Linux            | ✔ 				    	| -    | ❌      | -      |        | ✔    	 |
+| Windows          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
+| MacOS            | ✔ 				      | ✔    | ❌      | ✔      | ❌     | ✔       |
+| Android          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
+| iOS              | ❌          	 | ❌    | ❌      | ❌     | ❌     | ❌      | 
 
 ### PRF Compatibility Scenarios
 
