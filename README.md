@@ -97,13 +97,13 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 
 ### PRF Compatibility Support by Operating System and Browsers
 
-| Operating System | Google Chrome (v116+) | Microsoft Edge (lst) | Mozilla Firefox | Safari | Brave (lst) |
-|------------------|-----------------------|----------------------|-----------------|--------|-------------|
-| Linux            | ✔ 				    		     | ✔                    | -               | -      | ✔     			 |
-| Windows          | ✔ 								     | ✔            			  | -               | -      | ✔           |
-| MacOS            | ✔ 				    				 | ✔       			        | -               | -      | ✔           |
-| Android          | ✔ 								     | ✔    			          | -               | -      | ✔           |
-| iOS              | -          				   | -    			          | -               | -      | -           |
+| Operating System | Chrome (v116+) | Edge (lst) | Firefox | Opera (lts) | Safari | Brave (lst) |
+|------------------|----------------|------------|---------|-------------|--------|-------------|
+| Linux            | ✔ 				    	| -          | ❌      | -           |        | ✔     		   |
+| Windows          | ✔ 							| -          | ❌      | -           |        | ✔           |
+| MacOS            | ✔ 				      | ✔       	 | ❌      | ✔           | ❌     | ✔           |
+| Android          | ✔ 							| ✔    			 | ❌      | ✔           |        | ✔           |
+| iOS              | ❌          	 | ❌    		  | ❌      | ❌          | ❌     | ❌          | 
 
 ### PRF Compatibility Scenarios
 
