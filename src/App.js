@@ -74,7 +74,6 @@ function App() {
 		if (event.data.type === 'navigate') {
 			// Remove any parameters from the URL
 			const homeURL = window.location.origin + window.location.pathname;
-			console.log('-->',homeURL);
 			// Redirect the current tab to the home URL
 			window.location.href = homeURL;
 		}

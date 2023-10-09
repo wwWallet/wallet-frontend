@@ -33,7 +33,6 @@ export default function handleServerMessagesGuard(Component) {
 			return new Promise((resolve, reject) => {
 				socket.onmessage = event => {
 					try {
-						console.log('--->',event.data.toString());
 						const { type } = JSON.parse(event.data.toString());
 						if (type == "FIN_INIT") {
 							console.log("init fin")
@@ -74,7 +73,6 @@ export default function handleServerMessagesGuard(Component) {
 			}
 		})
 
-		console.log('->',handshakeEstablished,appToken);
 		if (handshakeEstablished === true || !appToken) {
 			return (<Component {...props} />);
 		}
