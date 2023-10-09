@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { Err, Ok, Result } from 'ts-results';
 
-import { requestForToken } from '../firebase';
+import { fetchToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -122,7 +122,7 @@ export async function login(username: string, password: string, keystore: LocalS
 };
 
 export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
-	const fcm_token = await requestForToken();
+	const fcm_token = await fetchToken();
 	const browser_fcm_token = fcm_token;
 
 	try {
@@ -316,7 +316,7 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 				);
 
 				try {
-					const fcm_token = await requestForToken();
+					const fcm_token = await fetchToken();
 					const browser_fcm_token = fcm_token;
 
 					const finishResp = await post('/user/register-webauthn-finish', {
