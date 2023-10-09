@@ -109,21 +109,24 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 
 | Operating System | Authenticator        | Transport     | PRF Compatibility |
 |------------------|----------------------|---------------|--------------------|
-| Linux            | YubiKey              | USB           | ✔                  |
+| Linux            | FIDO Security Key    | USB           | ✔                  |
 | Linux            | Android 					    | Hybrid     		| ✔                  |
 | Linux            | iOS 						      | Hybrid     		| ❌                  |
-| Windows          | YubiKey 				      | USB           | ✔                  |
+| Windows          | FIDO Security Key    | USB           | ✔                  |
 | Windows          | Android 				      | Hybrid     		| ✔                  |
 | Windows          | iOS 				          | Hybrid     		| ❌                  |
 | Windows          | Windows 					    | Internal      | ❌                  |
-| MacOS            | YubiKey 	            | USB           | ✔                  |
+| MacOS            | FIDO Security Key 	  | USB           | ✔                  |
 | MacOS            | MacOS 	              | Internal      | ❌                  |
 | MacOS            | Android 				      | Hybrid     		| ✔                  |
 | MacOS            | iOS 				          | Hybrid     		| ❌                  |
 | Android          | Android 					    | Internal      | ✔                  |
 | iOS              | iOS 					        | Internal      | ❌                  |
-| iOS              | YubiKey 			        | NFC           | ❌                  |
+| iOS              | FIDO Security Key 	  | NFC           | ❌                  |
 
+
+***Note:** In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature. 
+For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.*
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
