@@ -1,22 +1,19 @@
-
-
-
-
-# wwWallet
+# <img src="https://demo.wwwallet.org/static/media/logo.4c2efe036042f9f1f0a8.png" width="150"/> wwWallet
 
 Welcome to wwWallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
 
 
-## Table of Contents
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-- [PRF Compatibility](#prf-compatibility)
-- [Firebase](#firebase)
-- [Contributing](#contributing)
+## 🚀 Table of Contents
+- ✨ [Features](#features)
+- 🔍 [Prerequisites](#prerequisites)
+- 📦 [Installation](#installation)
+- 🖥️ [Usage](#usage)
+- 🔐 [PRF Compatibility](#prf-compatibility)
+- 🔥 [Firebase](#firebase)
+- 🎨 [Tailwind CSS](#tailwind-css)
+- 💡 [Contributing](#contributing)
 
-## Features
+## ✨ Features
 
 Our Web Wallet provides a range of features tailored to enhance the credential management experience:
 
@@ -28,13 +25,13 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
 
 - **Presentation History:** The wallet maintains a history of credential presentations, allowing users to review and track when and where they've shared their credentials.
 
-## Prerequisites
+## 🔍 Prerequisites
 
 - Node.js
 - npm/yarn
 
 
-## Installation
+## 📦 Installation
 
  - Clone the repository:
 
@@ -84,10 +81,10 @@ The project uses environment variables to manage different configurations. A `.e
    yarn start
    ```
 
-## Usage
+## 🖥️ Usage
 Once the development server is running, you can access the app by visiting http://localhost:3000 in your web browser. The app provides various pages and components that you can interact with. Explore the features and enjoy using the Wallet Frontend!
 
-## PRF Compatibility
+## 🔐 PRF Compatibility
 
 The wwWallet Frontend is designed to be compatible with the PRF extension to WebAuthn, ensuring a streamlined and secure registration and authentication process. Below, we present specific compatibility scenarios based on the operating system, emphasizing both WebAuthn and PRF extension compatibility.
 
@@ -130,7 +127,7 @@ For a detailed list of security key models that support hmac-secret, you can ref
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
-## Firebase
+## 🔥 Firebase
 This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
 
 1. **Firebase Configuration (`src/firebase.js`):**
@@ -141,7 +138,7 @@ This application uses Firebase for authentication and messaging features. To int
 
    This service worker is responsible for handling background messages and notification clicks. When a background message is received, it triggers a notification, and when the user clicks on a notification, it can perform custom actions.
 
-## Tailwind CSS
+## 🎨 Tailwind CSS
 
 This project utilizes **Tailwind CSS**, a utility-first CSS framework that enables rapid development of custom user interfaces with minimal effort. Tailwind CSS offers a collection of utility classes that make styling components and layouts a breeze, eliminating the need for writing extensive custom CSS.
 
@@ -158,7 +155,7 @@ Tailwind CSS provides an extensive set of default styles, but you can also custo
 ### Learn More
 Explore the [Tailwind CSS documentation](https://tailwindcss.com/docs/installation) to learn about all the utility classes, configuration options, and techniques for building beautiful UIs efficiently.
 
-## Contributing
+## 💡 Contributing
 
 We welcome contributions from the community to help improve the wwWallet Frontend repository. If you'd like to contribute, follow these steps:
 
