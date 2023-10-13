@@ -4,19 +4,28 @@ import { BsQrCodeScan } from 'react-icons/bs';
 import Spinner from './Spinner'; // Adjust the import path as needed
 
 const QRCodeScanner = ({ onClose }) => {
-  const [qrCodeData, setQRCodeData] = useState('');
   const [error, setError] = useState(null);
   const [cameraReady, setCameraReady] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleScan = (data) => {
-    if (data) {
-      setQRCodeData(data);
+		if (data && data.text) {
+			const scannedUrl = data.text;
       // Check if the scanned data is a valid URL
-      if (isValidUrl(data)) {
+      if (isValidUrl(scannedUrl)) {
         setLoading(true); // Show spinner
         setTimeout(() => {
-          window.location.href = data; // Redirect after a delay
+					// Get the base URL (current domain)
+					const baseUrl = window.location.origin;
+					console.log('baseUrl',baseUrl);
+
+					console.log(scannedUrl);
+					const params = scannedUrl.split('?'); 
+					console.log('params',params[1]);
+
+					const cvUrl = `${baseUrl}/cb?${params[1]}`;
+					
+          window.location.href = cvUrl; // Redirect after a delay
         }, 1000); // Adjust the delay as needed (in milliseconds)
       } else {
         onClose();
