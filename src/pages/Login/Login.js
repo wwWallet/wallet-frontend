@@ -4,6 +4,7 @@ import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
+import { FaExclamationTriangle } from 'react-icons/fa';
 
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -474,13 +475,23 @@ const Login = () => {
 				{t('welcomeMessagepart1')} <span className='text-custom-blue'>{t('welcomeMessagepart2')}</span> 
 				</h1>
 
-				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+
+				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}
 					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div> */}
-
-					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
+					<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
+					<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+						Learn more about{' '}
+						<a
+							href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+							className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+						>
+							PRF compatibility regarding browser support and supported operating systems.
+						</a>
+					</p> 
+					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
 						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 							{isLogin ? t('login') : t('signUp')}
 						</h1>
