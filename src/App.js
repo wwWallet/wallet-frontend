@@ -61,12 +61,14 @@ function App() {
 	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
 	useEffect(() => {
-		
-		navigator.serviceWorker.addEventListener('message', handleMessage);
-		// Clean up the event listener when the component unmounts
-		return () => {
-			navigator.serviceWorker.removeEventListener('message', handleMessage);
-		};
+		if (navigator?.serviceWorker) {
+			navigator.serviceWorker.addEventListener('message', handleMessage);
+			// Clean up the event listener when the component unmounts
+			return () => {
+				navigator.serviceWorker.removeEventListener('message', handleMessage);
+			};
+		}
+
 	}, []);
 
 	// Handle messages received from the service worker
