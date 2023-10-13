@@ -3170,10 +3170,10 @@
     "@webassemblyjs/ast" "1.11.6"
     "@xtuc/long" "4.2.2"
 
-"@wwwallet/ssi-sdk@^1.0.1":
-  version "1.0.1"
-  resolved "https://npm.pkg.github.com/download/@wwwallet/ssi-sdk/1.0.1/5455b692af97b89a338c2939f35da9bbe9ef22c1#5455b692af97b89a338c2939f35da9bbe9ef22c1"
-  integrity sha512-d0A0WIdVIcUKhPy2aOnm3FW79BeJD5WRdqV2+o6kq/1+Fxm6Er0/V7P5JW3Zy35A4x1hIG0WgTggr+A69mF5vw==
+"@wwwallet/ssi-sdk@^1.0.2":
+  version "1.0.2"
+  resolved "https://npm.pkg.github.com/download/@wwWallet/ssi-sdk/1.0.2/90261aa1c8b0efdf9fa3b7708c8af8ced319ae1a#90261aa1c8b0efdf9fa3b7708c8af8ced319ae1a"
+  integrity sha512-dz+E1AE+odh7KohPbuW7Y7Pd+ig5B8SsYBwNn6xlr8GKy9/NiG8zZRAPNj43E1teEgUBP0jJXtCBUAMWGgAmvA==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
     "@cef-ebsi/key-did-resolver" "^1.0.0"
