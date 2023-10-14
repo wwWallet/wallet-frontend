@@ -109,13 +109,13 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<IoIosTime size={30} />
 						<span>History</span>
 					</NavItem>
-					<NavItem path="/issuers" location={location} handleNavigate={handleNavigate}>
+					<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 						<IoIosAddCircle size={30} />
-						<span>Issuers</span>
+						<span>Add Credentials</span>
 					</NavItem>
-					<NavItem path="/verifiers" location={location} handleNavigate={handleNavigate}>
+					<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 						<IoIosSend size={30} />
-						<span>Verifiers</span>
+						<span>Send Credentials</span>
 					</NavItem>
 
 					<hr className="my-4 border-t border-white/20" />
