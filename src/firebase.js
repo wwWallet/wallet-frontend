@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
 
 const firebaseConfig = {
 	apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -13,9 +13,23 @@ const firebaseConfig = {
 
 
 // Initialize Firebase
-export const firebase = initializeApp(firebaseConfig);
+let firebase = null;
+let messaging = null;
+let supported = false;
 
-const messaging = getMessaging();
+const initializeFirebase = async () => {
+	firebase = (await isSupported()) ? initializeApp(firebaseConfig) : null;
+	if (firebase != null)
+		supported = true;
+	console.log("Supported" , supported )
+	if (supported) {
+		messaging = getMessaging();
+	}
+	console.log("initialized firebase")
+}
+
+initializeFirebase();
+
 
  const initializeMessaging = async () => {
 	// Check for service worker
@@ -43,6 +57,9 @@ const messaging = getMessaging();
 };
 
  const requestForToken = async (messaging) => {
+   if (!supported) {
+		return undefined;
+	}
 	if (messaging) {
 			try {
 					const currentToken = await getToken(messaging, { vapidKey: process.env.VAPIDKEY });
@@ -73,10 +90,12 @@ export const fetchToken = async () => {
 	}
 };
 
-export const onMessageListener = () =>
-	new Promise((resolve) => {
-		onMessage(messaging, (payload) => {
-			resolve(payload);
-		});
-	});
+export const onMessageListener = () => 
 
+new Promise((resolve) => {
+  if (supported) {
+			onMessage(messaging, (payload) => {
+				resolve(payload);
+			});
+		}
+	});

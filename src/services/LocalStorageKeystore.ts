@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import * as jose from "jose";
 import { JWK, SignJWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
-import { SignVerifiablePresentationJWT } from "@gunet/ssi-sdk";
+import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 import { util } from '@cef-ebsi/key-did-resolver';
 
 import { verifiablePresentationSchemaURL } from "../constants";

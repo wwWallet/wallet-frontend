@@ -1,2 +1,2 @@
 //npm.pkg.github.com/:_authToken=${GITHUB_AUTH_TOKEN}
-@gunet:registry=https://npm.pkg.github.com/
+@wwwallet:registry=https://npm.pkg.github.com/
