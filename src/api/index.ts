@@ -123,7 +123,6 @@ export async function login(username: string, password: string, keystore: LocalS
 
 export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 	const fcm_token = await fetchToken();
-	const browser_fcm_token = fcm_token;
 
 	try {
 		const { publicData, privateData } = await keystore.initPassword(password);
@@ -133,7 +132,6 @@ export async function signup(username: string, password: string, keystore: Local
 				username,
 				password,
 				fcm_token,
-				browser_fcm_token,
 				displayName: username,
 				keys: publicData,
 				privateData: jsonStringifyTaggedBinary(privateData),
@@ -316,13 +314,12 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 				);
 
 				try {
+
 					const fcm_token = await fetchToken();
-					const browser_fcm_token = fcm_token;
 
 					const finishResp = await post('/user/register-webauthn-finish', {
 						challengeId: beginData.challengeId,
 						fcm_token,
-						browser_fcm_token,
 						displayName: name,
 						keys: publicData,
 						privateData: jsonStringifyTaggedBinary(privateData),
