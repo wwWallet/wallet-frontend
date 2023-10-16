@@ -4,15 +4,18 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
+import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import { fetchCredentialData,fetchAllCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const CredentialDetail = () => {
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
+	const [json_credential, setJsonCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
+	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -20,6 +23,14 @@ const CredentialDetail = () => {
 			setCredentials(newCredential);
 		};
 		getData();
+	}, [id]);
+
+	useEffect(() => {
+		const getAllData = async () => {
+			const AllnewCredential = await fetchAllCredentialData(id);
+			setJsonCredentials(JSON.stringify(AllnewCredential, null, 2));	
+		};
+		getAllData();
 	}, [id]);
 
 	return (
@@ -38,25 +49,63 @@ const CredentialDetail = () => {
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">View all the information about the chosen credential.</p>
-			</div>
 
-			<div className="flex flex-col lg:flex-row sm:px-6 mt-4">
-				{/* Block 1: credential */}
-				<div className='p-5 lg:w-1/2'>
-					{credential && credential.src ? (
-					// Open the modal when the credential is clicked
-					<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setImageModalOpen(true)}>
-						<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
 
+				<div className="flex flex-col lg:flex-row  mt-4">
+					{/* Block 1: credential */}
+					<div className='lg:w-1/2'>
+						{credential && credential.src ? (
+						// Open the modal when the credential is clicked
+						<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setImageModalOpen(true)}>
+							<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+
+						</div>
+						) : (
+							<p>No credential available</p>
+						)}
 					</div>
+
+					{/* Block 2: Information List */}
+					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
+				</div>
+
+
+				<div className="flex flex-col lg:flex-row mt-10">
+				<div className="lg:w-1/2">
+					<div className="mb-2 flex items-center">
+						<button
+							onClick={() => setShowJsonCredentials(!showJsonCredentials)}
+							className="px-2 py-2 mb-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+						>
+							{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
+							{showJsonCredentials ? (
+								<AiOutlineUp className="ml-1" />
+							) : (
+								<AiOutlineDown className="ml-1" />
+							)}
+						</button>
+					</div>
+					<hr className="my-2 border-t border-gray-500 py-2" />	
+
+					{showJsonCredentials && json_credential ? (
+						<div>
+							<textarea
+								rows="10"
+								readOnly
+								className="w-full border rounded p-2 rounded-xl"
+								value={json_credential}
+							/>
+						</div>
 					) : (
-						<p>No credential available</p>
+						<p></p>
 					)}
 				</div>
 
-				{/* Block 2: Information List */}
-				{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
+
+				</div>
 			</div>
+
+
 			{/* Modal for Fullscreen credential */}
 			{isImageModalOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">

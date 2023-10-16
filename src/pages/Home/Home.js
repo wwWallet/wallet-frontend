@@ -9,14 +9,16 @@ import { AiOutlineCloseCircle } from 'react-icons/ai';
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import { fetchCredentialData,fetchAllCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const Home = () => {
   const [credentials, setCredentials] = useState([]);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
+	const [json_credential, setJsonCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState(null);
+	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
+	const [selectedCredential, setSelectedCredential] = useState(null);
 
   const navigate = useNavigate();
   const sliderRef = useRef();
@@ -50,6 +52,15 @@ const Home = () => {
 	useEffect(() => {
 		const getData = async () => {
 			const temp_cred = await fetchCredentialData();
+			console.log(temp_cred);
+			setCredentials(temp_cred);
+		};
+		getData();
+	}, []);
+
+	useEffect(() => {
+		const getData = async () => {
+			const temp_cred = await fetchAllCredentialData();
 			console.log(temp_cred);
 			setCredentials(temp_cred);
 		};
@@ -121,6 +132,7 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
+												
 											</>
 										))}
 									</Slider>

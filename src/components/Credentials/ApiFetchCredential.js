@@ -40,3 +40,26 @@ export async function fetchCredentialData(id = null) {
     return null;
   }
 }
+
+export async function fetchAllCredentialData(id) {
+  try {
+    const response = await api.get('/storage/vc');
+
+    if (id) {
+
+      const targetImage = response.data.vc_list.find((img) => img.id.toString() === id);
+      const newImages = parseJwt(targetImage.credential)["vc"];
+      return newImages;
+
+		} else {
+      const newImages = response.data.vc_list.map((item) => ({
+				credentialData : parseJwt(item.credential)["vc"]
+      }));
+
+      return newImages;
+    }
+  } catch (error) {
+    console.error('Failed to fetch data', error);
+    return null;
+  }
+}
