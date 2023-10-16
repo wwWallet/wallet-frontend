@@ -6,7 +6,6 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 import { AiOutlineCloseCircle } from 'react-icons/ai';
-
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
@@ -58,14 +57,14 @@ const Home = () => {
 	}, []);
 
   const handleAddCredential = () => {
-    navigate('/issuers');
+    navigate('/add');
   };
 
   const handleImageClick = (credential) => {
 			navigate(`/credential/${credential.id}`);
   };
 
-
+	// end qr code part
   return (
     <Layout>
       <div className="sm:px-6 w-full">
@@ -81,6 +80,7 @@ const Home = () => {
               <span className="hidden sm:inline">&nbsp; Credentials</span>
             </div>
           </button>
+          
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">View all of your credentials, and use the 'Add new credentials' card to add more</p>
