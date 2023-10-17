@@ -8,29 +8,21 @@ import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import { fetchCredentialData,fetchAllCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const CredentialDetail = () => {
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
-	const [json_credential, setJsonCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
 
 	useEffect(() => {
 		const getData = async () => {
 			const newCredential = await fetchCredentialData(id);
+			console.log(newCredential.json);
 			setCredentials(newCredential);
 		};
 		getData();
-	}, [id]);
-
-	useEffect(() => {
-		const getAllData = async () => {
-			const AllnewCredential = await fetchAllCredentialData(id);
-			setJsonCredentials(JSON.stringify(AllnewCredential, null, 2));	
-		};
-		getAllData();
 	}, [id]);
 
 	return (
@@ -87,13 +79,13 @@ const CredentialDetail = () => {
 					</div>
 					<hr className="my-2 border-t border-gray-500 py-2" />	
 
-					{showJsonCredentials && json_credential ? (
+					{showJsonCredentials && credential ? (
 						<div>
 							<textarea
 								rows="10"
 								readOnly
 								className="w-full border rounded p-2 rounded-xl"
-								value={json_credential}
+								value={credential.json}
 							/>
 						</div>
 					) : (

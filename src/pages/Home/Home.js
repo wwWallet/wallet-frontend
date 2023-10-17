@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
+import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
+
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
@@ -9,13 +11,12 @@ import { AiOutlineCloseCircle } from 'react-icons/ai';
 import Layout from '../../components/Layout';
 import addImage from '../../assets/images/cred.png';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import { fetchCredentialData,fetchAllCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const Home = () => {
   const [credentials, setCredentials] = useState([]);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
-	const [json_credential, setJsonCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
@@ -58,14 +59,6 @@ const Home = () => {
 		getData();
 	}, []);
 
-	useEffect(() => {
-		const getData = async () => {
-			const temp_cred = await fetchAllCredentialData();
-			console.log(temp_cred);
-			setCredentials(temp_cred);
-		};
-		getData();
-	}, []);
 
   const handleAddCredential = () => {
     navigate('/add');
@@ -132,7 +125,33 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
-												
+												<div className="mb-2 flex items-center">
+													<button
+														onClick={() => setShowJsonCredentials(!showJsonCredentials)}
+														className="px-2 py-2 mb-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+													>
+														{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
+														{showJsonCredentials ? (
+															<AiOutlineUp className="ml-1" />
+														) : (
+															<AiOutlineDown className="ml-1" />
+														)}
+													</button>
+												</div>
+												<hr className="my-2 border-t border-gray-500 py-2" />	
+
+												{showJsonCredentials && credential ? (
+													<div>
+														<textarea
+															rows="10"
+															readOnly
+															className="w-full border rounded p-2 rounded-xl"
+															value={credential.json}
+														/>
+													</div>
+												) : (
+													<p></p>
+												)}
 											</>
 										))}
 									</Slider>
