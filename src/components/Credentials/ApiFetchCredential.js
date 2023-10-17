@@ -18,6 +18,8 @@ export async function fetchCredentialData(id = null) {
             data: parseJwt(item.credential)["vc"]['credentialSubject'],
             type: parseJwt(item.credential)['vc']["type"]["2"],
             expdate: parseJwt(item.credential)['vc']["expirationDate"],
+						json:JSON.stringify(parseJwt(item.credential)["vc"], null, 2)
+
           }))
         : [];
 
@@ -31,6 +33,7 @@ export async function fetchCredentialData(id = null) {
         data: parseJwt(item.credential)["vc"]['credentialSubject'],
         type: parseJwt(item.credential)['vc']["type"]["2"],
         expdate: parseJwt(item.credential)['vc']["expirationDate"],
+				json:JSON.stringify(parseJwt(item.credential)["vc"], null, 2)
       }));
 
       return newImages;

@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
+import { AiOutlineCloseCircle } from 'react-icons/ai';
+
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
-import { AiOutlineCloseCircle } from 'react-icons/ai';
-import Layout from '../../components/Layout';
+
 import addImage from '../../assets/images/cred.png';
+
+import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
+import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const Home = () => {
@@ -16,7 +21,7 @@ const Home = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
-  const [selectedCredential, setSelectedCredential] = useState(null);
+	const [selectedCredential, setSelectedCredential] = useState(null);
 
   const navigate = useNavigate();
   const sliderRef = useRef();
@@ -55,6 +60,7 @@ const Home = () => {
 		};
 		getData();
 	}, []);
+
 
   const handleAddCredential = () => {
     navigate('/add');
@@ -121,6 +127,8 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
+												<CredentialJson credential={credential} />
+
 											</>
 										))}
 									</Slider>
