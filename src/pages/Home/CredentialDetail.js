@@ -2,19 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
+import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 
 const CredentialDetail = () => {
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
-	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -61,42 +61,12 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-
 				<div className="flex flex-col lg:flex-row mt-10">
-				<div className="lg:w-1/2">
-					<div className="mb-2 flex items-center">
-						<button
-							onClick={() => setShowJsonCredentials(!showJsonCredentials)}
-							className="px-2 py-2 mb-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-						>
-							{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
-							{showJsonCredentials ? (
-								<AiOutlineUp className="ml-1" />
-							) : (
-								<AiOutlineDown className="ml-1" />
-							)}
-						</button>
+					<div className="lg:w-1/2">
+						<CredentialJson credential={credential} />		
 					</div>
-					<hr className="my-2 border-t border-gray-500 py-2" />	
-
-					{showJsonCredentials && credential ? (
-						<div>
-							<textarea
-								rows="10"
-								readOnly
-								className="w-full border rounded p-2 rounded-xl"
-								value={credential.json}
-							/>
-						</div>
-					) : (
-						<p></p>
-					)}
-				</div>
-
-
 				</div>
 			</div>
-
 
 			{/* Modal for Fullscreen credential */}
 			{isImageModalOpen && (
