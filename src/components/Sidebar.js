@@ -132,7 +132,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 			<div className="absolute bottom-0 bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
 				Powered by{' '}
-				<a href="https://www.wwwallet.org/" rel="noreferrer" target="_blank" className="underline">
+				<a href="https://github.com/wwWallet" rel="noreferrer" target="_blank" className="underline">
 					wwWallet
 				</a>
 			</div>
