@@ -29,6 +29,7 @@
     "tailwindcss": "^3.3.2",
     "ts-results": "^3.3.0",
     "typescript": "^5.1.6",
+    "ua-parser-js": "^1.0.36",
     "uuid": "^9.0.0",
     "web-vitals": "^2.1.4",
     "ws": "^8.14.1"
@@ -40,6 +41,7 @@
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
+    "@types/ua-parser-js": "^0.7.38",
     "@types/uuid": "^9.0.2"
   },
   "scripts": {
