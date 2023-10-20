@@ -4,6 +4,7 @@ import { UAParser } from 'ua-parser-js';
 import { useSessionStorage } from './useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 
+import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 
 const noWarnPlatforms = [
 	{ browser: /chrome/ui, not: { os: /ios/ui } },
@@ -40,19 +41,50 @@ export default function CheckBrowserSupport({
 
 	return (
 		<>
-			<h2 className="text-l font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">{ t('CheckBrowserSupport.heading') }</h2>
+			<h2 className="text-lg font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+				<FaExclamationTriangle className="text-2xl inline-block text-red-600 mr-2" /> 
+				{ t('CheckBrowserSupport.heading') }
+			</h2>
 
-			<p>{t('CheckBrowserSupport.intro')}</p>
+			<p className="text-sm">{t('CheckBrowserSupport.intro')}</p>
 
-			<p>{t('CheckBrowserSupport.supportedList.intro')}</p>
-			<ul className="ml-8 list-disc">
-				<li>{t('CheckBrowserSupport.supportedList.windows')}</li>
-				<li>{t('CheckBrowserSupport.supportedList.macos')}</li>
-				<li>{t('CheckBrowserSupport.supportedList.android')}</li>
-				<li>{t('CheckBrowserSupport.supportedList.linux')}</li>
+			<p className="text-sm">{t('CheckBrowserSupport.supportedList.intro')}</p>
+			<ul className="ml-4 list-none text-sm">
+				<li className="flex justify-start items-center" style={{ textAlign: 'left' }}>
+						<div className="w-1/12">
+								<FaCheckCircle className="text-md text-green-500" />
+						</div>
+						<div className="w-11/12 pl-1"> 
+								{t('CheckBrowserSupport.supportedList.windows')}
+						</div>
+				</li>
+				<li className="flex justify-start items-center">
+						<div className="w-1/12">
+								<FaCheckCircle className="text-md text-green-500" />
+						</div>
+						<div className="w-11/12 pl-1">
+								{t('CheckBrowserSupport.supportedList.macos')}
+						</div>
+				</li>
+				<li className="flex justify-start items-center">
+				<div className="w-1/12">
+								<FaCheckCircle className="text-md text-green-500" />
+						</div>
+						<div className="w-11/12 pl-1">
+								{t('CheckBrowserSupport.supportedList.android')}
+						</div>
+				</li>
+				<li className="flex justify-start items-center">
+				<div className="w-1/12">
+								<FaCheckCircle className="text-md text-green-500" />
+						</div>
+						<div className="w-11/12 pl-1">
+								{t('CheckBrowserSupport.supportedList.linux')}
+						</div>
+				</li>
 			</ul>
 
-			<p>
+			<p className="text-sm">
 				<Trans
 					i18nKey="CheckBrowserSupport.moreDetails"
 					components={{
@@ -64,10 +96,10 @@ export default function CheckBrowserSupport({
 				/>
 			</p>
 
-			<p>{t('CheckBrowserSupport.outro')}</p>
+			<p className="text-sm">{t('CheckBrowserSupport.outro')}</p>
 
 			<button
-				className={`w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${classes || ""}`}
+				className={`w-full text-white bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-300 dark:hover:bg-gray-400 dark:focus:ring-gray-400 ${classes || ""}`}
 				onClick={() => setBypass(true)}
 				type="button"
 			>
