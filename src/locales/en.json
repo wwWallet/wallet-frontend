@@ -1,4 +1,18 @@
 {
+	"CheckBrowserSupport": {
+		"continueAnyway": "Continue anyway",
+		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
+		"heading": "Unsupported platform",
+		"intro": "It seems like you are using a browser or operating system that does not support the features used in this application.",
+		"outro": "You can proceed and try anyway, but please note that some or all application features might not work.",
+		"supportedList": {
+			"android": "Chrome, Edge, Opera or Brave on Android",
+			"intro": "The application is known to work with the following:",
+			"linux": "Chrome or Brave on GNU/Linux",
+			"macos": "Chrome, Edge, Opera or Brave on MacOS",
+			"windows": "Chrome, Edge, Opera or Brave on Windows"
+		}
+	},
 	"addPasskey": "Add passkey",
 	"alreadyHaveAccountQuestion": "Already have an account? ",
 	"cancel": "Cancel",

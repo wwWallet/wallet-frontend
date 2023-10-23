@@ -10,6 +10,7 @@ import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import CheckBrowserSupport from '../../components/CheckBrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 
 const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
@@ -492,80 +493,82 @@ const Login = () => {
 						</a>
 					</p> 
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
-						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-							{isLogin ? t('login') : t('signUp')}
-						</h1>
-						{ (loginWithPassword) ? 
-							<>
-								<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-									{error && <div className="text-red-500">{error}</div>}
-									<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
-										<FormInputField
-											ariaLabel="Username"
-											name="username"
-											onChange={handleInputChange}
-											placeholder={t('enterUsername')}
-											type="text"
-											value={username}
-										/>
-									</FormInputRow>
-		
-									<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
-										<FormInputField
-											ariaLabel="Password"
-											name="password"
-											onChange={handleInputChange}
-											placeholder={t('enterPassword')}
-											type="password"
-											value={password}
-										/>
-										{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
-									</FormInputRow>
-		
-									{!isLogin && (
-										<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+						<CheckBrowserSupport>
+							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+								{isLogin ? t('login') : t('signUp')}
+							</h1>
+							{ (loginWithPassword) ?
+								<>
+									<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+										{error && <div className="text-red-500">{error}</div>}
+										<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
 											<FormInputField
-												ariaLabel="Confirm Password"
-												name="confirmPassword"
+												ariaLabel="Username"
+												name="username"
 												onChange={handleInputChange}
-												placeholder={t('enterconfirmPasswordLabel')}
-												type="password"
-												value={confirmPassword}
+												placeholder={t('enterUsername')}
+												type="text"
+												value={username}
 											/>
 										</FormInputRow>
-									)}
-		
-									<button
-										className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-										type="submit"
-										disabled={isSubmitting}
-									>
-										{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
-									</button>
-								</form>
-								<SeparatorLine>OR</SeparatorLine> 
-							</>
-							: 
-							<></>
-						}
+
+										<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
+											<FormInputField
+												ariaLabel="Password"
+												name="password"
+												onChange={handleInputChange}
+												placeholder={t('enterPassword')}
+												type="password"
+												value={password}
+											/>
+											{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
+										</FormInputRow>
+
+										{!isLogin && (
+											<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+												<FormInputField
+													ariaLabel="Confirm Password"
+													name="confirmPassword"
+													onChange={handleInputChange}
+													placeholder={t('enterconfirmPasswordLabel')}
+													type="password"
+													value={confirmPassword}
+												/>
+											</FormInputRow>
+										)}
+
+										<button
+											className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+											type="submit"
+											disabled={isSubmitting}
+										>
+											{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
+										</button>
+									</form>
+									<SeparatorLine>OR</SeparatorLine>
+								</>
+								:
+								<></>
+							}
 
 
-						<WebauthnSignupLogin
-							isLogin={isLogin}
-							isSubmitting={isSubmitting}
-							setIsSubmitting={setIsSubmitting}
-						/>
+							<WebauthnSignupLogin
+								isLogin={isLogin}
+								isSubmitting={isSubmitting}
+								setIsSubmitting={setIsSubmitting}
+							/>
 
-						<p className="text-sm font-light text-gray-500 dark:text-gray-400">
-							{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
-							<a
-								href="/"
-								className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-								onClick={toggleForm}
-							>
-								{isLogin ? t('signUp') : t('login')}
-							</a>
-						</p>
+							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
+								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
+								<a
+									href="/"
+									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+									onClick={toggleForm}
+								>
+									{isLogin ? t('signUp') : t('login')}
+								</a>
+							</p>
+						</CheckBrowserSupport>
 					</div>
 				</div>
 			</div>
