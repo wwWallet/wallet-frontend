@@ -482,20 +482,18 @@ const Login = () => {
 					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div> */}
-					<CheckBrowserSupport.Ctx>
-						<CheckBrowserSupport.IfSupported>
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
-								<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
-								Learn more about{' '}
-								<a
-									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-								>
-									PRF compatibility regarding browser support and supported operating systems.
-								</a>
-							</p>
-						</CheckBrowserSupport.IfSupported>
-					</CheckBrowserSupport.Ctx>
+					<CheckBrowserSupport.IfSupported>
+						<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
+							<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+							Learn more about{' '}
+							<a
+								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+								className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+							>
+								PRF compatibility regarding browser support and supported operating systems.
+							</a>
+						</p>
+					</CheckBrowserSupport.IfSupported>
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
 						<CheckBrowserSupport.WarningPortal>
 							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">

@@ -13,7 +13,11 @@ const noWarnPlatforms = [
 	{ browser: /brave/ui, not: { os: /ios/ui } },
 ];
 
-const BrowserSupportedContext = createContext<{ browserSupported: boolean, setBypass: React.Dispatch<React.SetStateAction<boolean>> }>({
+type ContextValue = {
+	browserSupported: boolean,
+	setBypass: React.Dispatch<React.SetStateAction<boolean>>,
+};
+const BrowserSupportedContext = createContext<ContextValue>({
 	browserSupported: true,
 	setBypass: () => {},
 });
@@ -45,19 +49,28 @@ export function Ctx({ children }: { children: ReactNode }) {
 	);
 }
 
-export function IfSupported({ children }: { children: ReactNode }) {
-	const ctx = useContext(BrowserSupportedContext);
-	if (ctx.browserSupported) {
-		return children;
-	}
+function ifContextMatches(test: (ctx: ContextValue) => boolean): React.FunctionComponent<{ children: ReactNode }> {
+	return ({ children }: { children: ReactNode }) => {
+		const ctx = useContext(BrowserSupportedContext);
+		if (test(ctx)) {
+			return children;
+		}
+	};
 }
 
-export function IfNotSupported({ children }: { children: ReactNode }) {
-	const ctx = useContext(BrowserSupportedContext);
-	if (!ctx.browserSupported) {
-		return children;
-	}
+function withContextProvider<P>(Component: React.FunctionComponent<P>): React.FunctionComponent<P> {
+	return (props: P) => (
+		<Ctx>
+			<Component {...props} />
+		</Ctx>
+	);
 }
+
+const InternalIfSupported: React.FunctionComponent<{ children: ReactNode }> = ifContextMatches((ctx) => ctx.browserSupported);
+const InternalIfNotSupported: React.FunctionComponent<{ children: ReactNode }> = ifContextMatches((ctx) => !ctx.browserSupported);
+
+export const IfSupported: React.FunctionComponent<{ children: ReactNode }> = withContextProvider(InternalIfSupported);
+export const IfNotSupported: React.FunctionComponent<{ children: ReactNode }> = withContextProvider(InternalIfNotSupported);
 
 export function WarningPortal({
 	children,
@@ -142,12 +155,12 @@ export function WarningPortal({
 
 	return (
 		<Ctx>
-			<IfSupported>
+			<InternalIfSupported>
 				{children}
-			</IfSupported>
-			<IfNotSupported>
+			</InternalIfSupported>
+			<InternalIfNotSupported>
 				<Content classes={classes} />
-			</IfNotSupported>
+			</InternalIfNotSupported>
 		</Ctx>
 	);
 }
