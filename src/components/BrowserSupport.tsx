@@ -13,7 +13,7 @@ const noWarnPlatforms = [
 	{ browser: /brave/ui, not: { os: /ios/ui } },
 ];
 
-export default function CheckBrowserSupport({
+export function BrowserSupportWarningPortal({
 	children,
 	classes,
 }: {
@@ -42,20 +42,20 @@ export default function CheckBrowserSupport({
 	return (
 		<>
 			<h2 className="text-lg font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
-				<FaExclamationTriangle className="text-2xl inline-block text-red-600 mr-2" /> 
-				{ t('CheckBrowserSupport.heading') }
+				<FaExclamationTriangle className="text-2xl inline-block text-red-600 mr-2" />
+				{ t('BrowserSupportWarningPortal.heading') }
 			</h2>
 
-			<p className="text-sm">{t('CheckBrowserSupport.intro')}</p>
+			<p className="text-sm">{t('BrowserSupportWarningPortal.intro')}</p>
 
-			<p className="text-sm">{t('CheckBrowserSupport.supportedList.intro')}</p>
+			<p className="text-sm">{t('BrowserSupportWarningPortal.supportedList.intro')}</p>
 			<ul className="ml-4 list-none text-sm">
 				<li className="flex justify-start items-center" style={{ textAlign: 'left' }}>
 						<div className="w-1/12">
 								<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1"> 
-								{t('CheckBrowserSupport.supportedList.windows')}
+						<div className="w-11/12 pl-1">
+								{t('BrowserSupportWarningPortal.supportedList.windows')}
 						</div>
 				</li>
 				<li className="flex justify-start items-center">
@@ -63,7 +63,7 @@ export default function CheckBrowserSupport({
 								<FaCheckCircle className="text-md text-green-500" />
 						</div>
 						<div className="w-11/12 pl-1">
-								{t('CheckBrowserSupport.supportedList.macos')}
+								{t('BrowserSupportWarningPortal.supportedList.macos')}
 						</div>
 				</li>
 				<li className="flex justify-start items-center">
@@ -71,7 +71,7 @@ export default function CheckBrowserSupport({
 								<FaCheckCircle className="text-md text-green-500" />
 						</div>
 						<div className="w-11/12 pl-1">
-								{t('CheckBrowserSupport.supportedList.android')}
+								{t('BrowserSupportWarningPortal.supportedList.android')}
 						</div>
 				</li>
 				<li className="flex justify-start items-center">
@@ -79,14 +79,14 @@ export default function CheckBrowserSupport({
 								<FaCheckCircle className="text-md text-green-500" />
 						</div>
 						<div className="w-11/12 pl-1">
-								{t('CheckBrowserSupport.supportedList.linux')}
+								{t('BrowserSupportWarningPortal.supportedList.linux')}
 						</div>
 				</li>
 			</ul>
 
 			<p className="text-sm">
 				<Trans
-					i18nKey="CheckBrowserSupport.moreDetails"
+					i18nKey="BrowserSupportWarningPortal.moreDetails"
 					components={{
 						docLink: <a
 							href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
@@ -96,14 +96,14 @@ export default function CheckBrowserSupport({
 				/>
 			</p>
 
-			<p className="text-sm">{t('CheckBrowserSupport.outro')}</p>
+			<p className="text-sm">{t('BrowserSupportWarningPortal.outro')}</p>
 
 			<button
 				className={`w-full text-white bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-300 dark:hover:bg-gray-400 dark:focus:ring-gray-400 ${classes || ""}`}
 				onClick={() => setBypass(true)}
 				type="button"
 			>
-				{t('CheckBrowserSupport.continueAnyway')}
+				{t('BrowserSupportWarningPortal.continueAnyway')}
 			</button>
 		</>
 	);

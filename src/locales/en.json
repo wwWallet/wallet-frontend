@@ -1,5 +1,5 @@
 {
-	"CheckBrowserSupport": {
+	"BrowserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
 		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
 		"heading": "Unsupported platform",

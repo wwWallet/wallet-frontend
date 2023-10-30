@@ -10,7 +10,7 @@ import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-import CheckBrowserSupport from '../../components/CheckBrowserSupport';
+import { BrowserSupportWarningPortal } from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 
 const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
@@ -493,7 +493,7 @@ const Login = () => {
 						</a>
 					</p> 
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
-						<CheckBrowserSupport>
+						<BrowserSupportWarningPortal>
 							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 								{isLogin ? t('login') : t('signUp')}
 							</h1>
@@ -568,7 +568,7 @@ const Login = () => {
 									{isLogin ? t('signUp') : t('login')}
 								</a>
 							</p>
-						</CheckBrowserSupport>
+						</BrowserSupportWarningPortal>
 					</div>
 				</div>
 			</div>
