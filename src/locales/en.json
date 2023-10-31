@@ -1,5 +1,5 @@
 {
-	"CheckBrowserSupport": {
+	"BrowserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
 		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
 		"heading": "Unsupported platform",
@@ -27,6 +27,8 @@
 	"enterconfirmPasswordLabel": "Enter your confirm password",
 	"fillInFieldsError": "Please fill in all required fields",
 	"incorrectCredentialsError": "Incorrect username or password",
+	"learnMorepart1": "Learn more about",
+	"learnMorepart2": "PRF compatibility regarding browser support and supported operating systems.",
 	"lockPasskeyManagement": "Lock passkey management",
 	"login": "Login",
 	"loginAsUser": "Log in as {{name}}",
