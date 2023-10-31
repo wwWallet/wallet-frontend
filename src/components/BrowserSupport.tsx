@@ -1,4 +1,4 @@
-import React, { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import React, { ReactNode, createContext, useContext } from 'react';
 import { UAParser } from 'ua-parser-js';
 
 import { useSessionStorage } from './useStorage';
