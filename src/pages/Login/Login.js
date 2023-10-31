@@ -491,12 +491,12 @@ const Login = () => {
 									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
 								</CheckBrowserSupport.If>
 
-								Learn more about{' '}
+								{t('learnMorepart1')}{' '}
 								<a
 									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
 								>
-									PRF compatibility regarding browser support and supported operating systems.
+									{t('learnMorepart2')}
 								</a>
 							</p>
 						</CheckBrowserSupport.If>
