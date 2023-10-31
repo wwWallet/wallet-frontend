@@ -4,7 +4,7 @@ import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaInfoCircle } from 'react-icons/fa';
 
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -484,7 +484,7 @@ const Login = () => {
 					</div> */}
 					<CheckBrowserSupport.IfSupported>
 						<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
-							<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+							<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 							Learn more about{' '}
 							<a
 								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
