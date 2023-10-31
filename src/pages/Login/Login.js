@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaExclamationTriangle, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
-import { FaInfoCircle } from 'react-icons/fa';
 
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -482,18 +481,26 @@ const Login = () => {
 					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div> */}
-					<CheckBrowserSupport.IfSupported>
-						<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
-							<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-							Learn more about{' '}
-							<a
-								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-								className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-							>
-								PRF compatibility regarding browser support and supported operating systems.
-							</a>
-						</p>
-					</CheckBrowserSupport.IfSupported>
+					<CheckBrowserSupport.Ctx>
+						<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
+							<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
+								<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
+									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+								</CheckBrowserSupport.If>
+								<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
+									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+								</CheckBrowserSupport.If>
+
+								Learn more about{' '}
+								<a
+									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+								>
+									PRF compatibility regarding browser support and supported operating systems.
+								</a>
+							</p>
+						</CheckBrowserSupport.If>
+					</CheckBrowserSupport.Ctx>
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
 						<CheckBrowserSupport.WarningPortal>
 							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">

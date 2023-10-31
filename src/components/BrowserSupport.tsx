@@ -15,11 +15,15 @@ const noWarnPlatforms = [
 
 type ContextValue = {
 	browserSupported: boolean,
+	bypassWarning: boolean,
 	setBypass: React.Dispatch<React.SetStateAction<boolean>>,
+	showWarningPortal: boolean,
 };
 const BrowserSupportedContext = createContext<ContextValue>({
 	browserSupported: true,
+	bypassWarning: true,
 	setBypass: () => {},
+	showWarningPortal: false,
 });
 
 export function Ctx({ children }: { children: ReactNode }) {
@@ -38,8 +42,10 @@ export function Ctx({ children }: { children: ReactNode }) {
 	);
 
 	const contextValue = {
-		browserSupported: isNoWarnPlatform || bypass,
+		browserSupported: isNoWarnPlatform,
+		bypassWarning: bypass,
 		setBypass,
+		showWarningPortal: !(isNoWarnPlatform || bypass),
 	};
 
 	return (
@@ -49,28 +55,12 @@ export function Ctx({ children }: { children: ReactNode }) {
 	);
 }
 
-function ifContextMatches(test: (ctx: ContextValue) => boolean): React.FunctionComponent<{ children: ReactNode }> {
-	return ({ children }: { children: ReactNode }) => {
-		const ctx = useContext(BrowserSupportedContext);
-		if (test(ctx)) {
-			return children;
-		}
-	};
+export function If({ children, test }: { children: ReactNode, test: (ctx: ContextValue) => boolean }) {
+	const ctx = useContext(BrowserSupportedContext);
+	if (test(ctx)) {
+		return children;
+	}
 }
-
-function withContextProvider<P>(Component: React.FunctionComponent<P>): React.FunctionComponent<P> {
-	return (props: P) => (
-		<Ctx>
-			<Component {...props} />
-		</Ctx>
-	);
-}
-
-const InternalIfSupported: React.FunctionComponent<{ children: ReactNode }> = ifContextMatches((ctx) => ctx.browserSupported);
-const InternalIfNotSupported: React.FunctionComponent<{ children: ReactNode }> = ifContextMatches((ctx) => !ctx.browserSupported);
-
-export const IfSupported: React.FunctionComponent<{ children: ReactNode }> = withContextProvider(InternalIfSupported);
-export const IfNotSupported: React.FunctionComponent<{ children: ReactNode }> = withContextProvider(InternalIfNotSupported);
 
 export function WarningPortal({
 	children,
@@ -155,12 +145,12 @@ export function WarningPortal({
 
 	return (
 		<Ctx>
-			<InternalIfSupported>
+			<If test={(ctx) => !ctx.showWarningPortal }>
 				{children}
-			</InternalIfSupported>
-			<InternalIfNotSupported>
+			</If>
+			<If test={(ctx) => ctx.showWarningPortal }>
 				<Content classes={classes} />
-			</InternalIfNotSupported>
+			</If>
 		</Ctx>
 	);
 }
