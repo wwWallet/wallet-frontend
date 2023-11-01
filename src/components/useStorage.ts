@@ -85,8 +85,13 @@ function makeUseStorage<T>(
 		useEffect(
 			() => {
 				const listener = (event: StorageEvent) => {
-					if (event.key === name && event.storageArea === storage) {
-						setValue(jsonParseTaggedBinary(event.newValue));
+					if (event.storageArea === storage) {
+						if (event.key === name) { // Storage.setItem(name, value)
+							setValue(jsonParseTaggedBinary(event.newValue));
+
+						} else if (event.key === null) { // Storage.clear()
+							setValue(initialValue);
+						}
 					}
 				};
 				window.addEventListener('storage', listener);
