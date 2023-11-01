@@ -97,6 +97,9 @@ const QRCodeScanner = ({ onClose }) => {
             delay={300}
             onError={handleError}
             onResult={handleScan}
+						constraints={{
+							facingMode: 'environment'
+						}}
             style={{ width: '100%' }}
           />
           

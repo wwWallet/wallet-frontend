@@ -28,8 +28,8 @@ function useCheckURL(urlToCheck: string): {
 					window.location.href = redirect_to; // Navigate to the redirect URL
 				} else {
 					console.log('need action');
-
-					setConformantCredentialsMap(conformantCredentialsMap.VID);
+					const firstValue = Object.values(conformantCredentialsMap)[0];
+					setConformantCredentialsMap(firstValue);
 					setShowPopup(true);
 				}
 
@@ -53,36 +53,7 @@ function useCheckURL(urlToCheck: string): {
 				}
 
 			} catch (e) {
-				if (e.response.status === 409) {
-					console.log("Signature request:", e.response.data);
-					const { nonce, audience } = e.response.data;
-					try {
-						const { id_token } = await keystore.createIdToken(nonce, audience);
-
-						const response = await api.post(
-							"/presentation/handle/authorization/request",
-							{ authorization_request: url, id_token },
-						);
-
-						console.log("handleAuthorizationRequest 2:", response.data.redirect_to);
-
-						if (response.statusText === "OK") {
-							console.log(response.data);
-							return finish(response.data);
-
-						} else {
-							return false;
-						}
-
-					} catch (e) {
-						console.log("Failed to create ID token:", e);
-						return false;
-					}
-
-				} else {
-					console.log("Failed handleAuthorizationRequest:", e);
-					return false;
-				}
+				return false;
 			}
 		};
 
