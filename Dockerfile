@@ -3,7 +3,7 @@ FROM node:16-bullseye-slim AS builder
 WORKDIR /home/node/app
 COPY . .
 
-RUN yarn install --frozen-lockfile && yarn cache clean -f && yarn build
+RUN yarn cache clean -f && yarn install && yarn build
 
 
 FROM nginx:alpine as deploy

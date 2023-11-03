@@ -16,8 +16,8 @@ import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
-const Issuers = React.lazy(() => import('./pages/Issuers/Issuers'));
-const Verifiers = React.lazy(() => import('./pages/Verifiers/Verifiers'));
+const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
+const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
 const History = React.lazy(() => import('./pages/History/History'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
@@ -61,12 +61,14 @@ function App() {
 	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
 
 	useEffect(() => {
-		
-		navigator.serviceWorker.addEventListener('message', handleMessage);
-		// Clean up the event listener when the component unmounts
-		return () => {
-			navigator.serviceWorker.removeEventListener('message', handleMessage);
-		};
+		if (navigator?.serviceWorker) {
+			navigator.serviceWorker.addEventListener('message', handleMessage);
+			// Clean up the event listener when the component unmounts
+			return () => {
+				navigator.serviceWorker.removeEventListener('message', handleMessage);
+			};
+		}
+
 	}, []);
 
 	// Handle messages received from the service worker
@@ -89,8 +91,8 @@ function App() {
 						<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
 						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-						<Route path="/issuers" element={<PrivateRoute><Issuers /></PrivateRoute>} />
-						<Route path="/verifiers" element={<PrivateRoute><Verifiers /></PrivateRoute>} />
+						<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
+						<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
 						<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
 
 						<Route path="/cb"

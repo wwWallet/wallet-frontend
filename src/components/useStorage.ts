@@ -1,14 +1,17 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useId, useState } from 'react';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
+type UseGlobalStateHook<T> = (name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T>;
 
-function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T> {
+function makeUseGlobalState<T>(): UseGlobalStateHook<T> {
 	const setValueHandles = {};
 	return (name: string, [value, setValue]: UseStateHandle<T>) => {
+		const handleId = useId();
+
 		const setAllValues = useCallback(
 			(setValueArg: SetStateAction<any>) => {
-				setValueHandles[name].forEach((setValueHandle: Dispatch<SetStateAction<T>>) => {
+				Object.values(setValueHandles[name]).forEach((setValueHandle: Dispatch<SetStateAction<T>>) => {
 					setValueHandle(setValueArg);
 				});
 			},
@@ -18,55 +21,77 @@ function makeUseGlobalState<T>(): (name: string, [value, setValue]: UseStateHand
 		useEffect(
 			() => {
 				if (!setValueHandles[name]) {
-					setValueHandles[name] = [];
+					setValueHandles[name] = {};
 				}
-				setValueHandles[name].push(setValue);
+				setValueHandles[name][handleId] = setValue;
 
 				return () => {
-					const i = setValueHandles[name].indexOf(setValue);
-					setValueHandles[name].splice(i, 1);
+					delete setValueHandles[name][handleId];
 				};
 			},
-			[name, setValue]
+			[handleId, name, setValue]
 		);
 
 		return [value, setAllValues];
 	};
 }
-const useGlobalState: <T>(name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T> = makeUseGlobalState();
 
-function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) => UseStateHandle<T> {
+function makeUseStorage<T>(
+	storage: Storage,
+	description: string,
+	useGlobalState: UseGlobalStateHook<T>,
+): (name: string, initialValue: T) => UseStateHandle<T> {
+	if (!storage) {
+		throw new Error(`${description} is not available.`);
+	}
+
 	return (name: string, initialValue: T) => {
-		const storedValueStr = storage.getItem(name);
-		let storedValue = initialValue;
-		try {
-			if (storedValueStr !== null) {
-				storedValue = jsonParseTaggedBinary(storedValueStr);
-			}
-		} catch (e) {
-			// Fall back to initialValue
-			storage.removeItem(name);
-		}
-		const [currentValue, setValue] = useState(storedValue);
-
-		useEffect(
+		const [currentValue, setValue] = useState(
 			() => {
+				const storedValueStr = storage.getItem(name);
 				try {
-					if (!(currentValue === initialValue && storage.getItem(name) === null)) {
-						storage.setItem(name, jsonStringifyTaggedBinary(currentValue));
+					if (storedValueStr !== null) {
+						return jsonParseTaggedBinary(storedValueStr);
 					}
 				} catch (e) {
-					console.error(`Failed to update session storage "${name}"`, e);
+					// Fall back to initialValue
+					storage.removeItem(name);
 				}
+				return initialValue;
+			}
+		);
+
+		// Browser storage is global state, so update all useState hooks with the
+		// same name whenever one of them changes. The storage event is not fired
+		// when storage.setItem is called in the same Document.
+		const [, setAllValues] = useGlobalState(name, [currentValue, setValue]);
+
+		const updateValue = useCallback(
+			(action: SetStateAction<T>): void => {
+				const newValue =
+					action instanceof Function
+					? action(currentValue)
+					: action;
+				try {
+					storage.setItem(name, jsonStringifyTaggedBinary(newValue));
+				} catch (e) {
+					console.error(`Failed to update storage "${name}"`, e);
+				}
+				setAllValues(newValue);
 			},
-			[currentValue, initialValue, name]
+			[currentValue, name, setAllValues],
 		);
 
 		useEffect(
 			() => {
 				const listener = (event: StorageEvent) => {
-					if (event.key === name && event.storageArea === storage) {
-						setValue(jsonParseTaggedBinary(event.newValue));
+					if (event.storageArea === storage) {
+						if (event.key === name) { // Storage.setItem(name, value)
+							setValue(jsonParseTaggedBinary(event.newValue));
+
+						} else if (event.key === null) { // Storage.clear()
+							setValue(initialValue);
+						}
 					}
 				};
 				window.addEventListener('storage', listener);
@@ -78,21 +103,15 @@ function makeUseStorage<T>(storage: Storage): (name: string, initialValue: T) =>
 			[name]
 		);
 
-		// Session storage is global state, so update all useState hooks whenever
-		// one of them changes.
-		return useGlobalState(name, [currentValue, setValue]);
+		return [currentValue, updateValue];
 	};
 }
 
-export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> = makeUseStorage(localStorage);
-export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> = (
-	sessionStorage
-		? makeUseStorage(sessionStorage)
+export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
+	makeUseStorage(window.localStorage, "Local storage", makeUseGlobalState());
 
-		// Emulate the global state behaviour of session state even when
-		// sessionStorage is not available.
-		: (name: string, initialValue: any) => useGlobalState(name, useState(initialValue))
-);
+export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
+	makeUseStorage(window.sessionStorage, "Session storage", makeUseGlobalState());
 
 export const useClearLocalStorage = () => useCallback(
 	() => {

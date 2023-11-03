@@ -4,10 +4,10 @@
   "private": true,
   "dependencies": {
     "@cef-ebsi/key-did-resolver": "^1.1.0",
-    "@gunet/ssi-sdk": "^1.0.1",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@wwwallet/ssi-sdk": "^1.0.2",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
     "firebase": "^10.1.0",
@@ -21,12 +21,15 @@
     "react-i18next": "^13.0.2",
     "react-icons": "^4.10.1",
     "react-modal": "^3.16.1",
+    "react-qr-reader": "^3.0.0-beta-1",
     "react-router-dom": "^6.14.1",
     "react-scripts": "5.0.1",
     "react-slick": "^0.29.0",
     "slick-carousel": "^1.8.1",
     "tailwindcss": "^3.3.2",
+    "ts-results": "^3.3.0",
     "typescript": "^5.1.6",
+    "ua-parser-js": "^1.0.36",
     "uuid": "^9.0.0",
     "web-vitals": "^2.1.4",
     "ws": "^8.14.1"
@@ -38,6 +41,7 @@
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
+    "@types/ua-parser-js": "^0.7.38",
     "@types/uuid": "^9.0.2"
   },
   "scripts": {

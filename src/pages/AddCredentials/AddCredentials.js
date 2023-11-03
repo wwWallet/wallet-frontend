@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaShare } from 'react-icons/fa';
-
+import {BsQrCodeScan} from 'react-icons/bs'
 import * as api from '../../api';
 import Layout from '../../components/Layout';
 import Spinner from '../../components/Spinner';
+import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -23,6 +24,19 @@ const Issuers = () => {
 	const [showPopup, setShowPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+
+	useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -95,10 +109,36 @@ const Issuers = () => {
 		setShowPopup(false);
 	};
 
+	// QR Code part
+	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
+
+	const openQRScanner = () => {
+		setQRScannerOpen(true);
+	};
+
+	const closeQRScanner = () => {
+		setQRScannerOpen(false);
+	};
+
 	return (
 		<Layout>
-			<div className="px-4 sm:px-6">
-				<h1 className="text-2xl mb-2 font-bold text-custom-blue">Issuers</h1>
+			<div className="sm:px-6 w-full">
+				<div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-custom-blue">Add Credentials</h1>
+					{ isSmallScreen && (
+						<button
+						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+						onClick={openQRScanner} // Open the QR code scanner modal
+					>
+						<div className="flex items-center">
+							<BsQrCodeScan size={20} className="text-white mr-2 sm:inline" />
+							<span className="sm:inline">Scan</span>
+
+						</div>
+					</button>
+					)}
+          
+        </div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">Search and choose an issuer for credential retrieval</p>
 
@@ -163,6 +203,15 @@ const Issuers = () => {
 					</div>
 				</div>
 			)}
+			{/* QR Code Scanner Modal */}
+			{isQRScannerOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+        	<QRCodeScanner
+          	onClose={closeQRScanner}
+					/>
+				</div>
+			)}
+
 		</Layout>
 	);
 };

@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
-import { GoPasskeyFill } from 'react-icons/go';
+import { FaEye, FaExclamationTriangle, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { useTranslation } from 'react-i18next'; // Import useTranslation hook
 
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
-import logo from '../../assets/images/ediplomasLogo.svg';
+import logo from '../../assets/images/logo.png';
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 
 const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
@@ -102,9 +103,14 @@ const WebauthnSignupLogin = ({
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
+	const [needPrfRetry, setNeedPrfRetry] = useState(false);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState(null);
+	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
+
+	const cachedUsers = keystore.getCachedUsers();
 
 	useEffect(
 		() => {
@@ -113,14 +119,30 @@ const WebauthnSignupLogin = ({
 		[isLogin],
 	);
 
+	const promptForPrfRetry = async () => {
+		setNeedPrfRetry(true);
+		return new Promise((resolve, reject) => {
+			setResolvePrfRetryPrompt(() => resolve);
+		}).finally(() => {
+			setNeedPrfRetry(false);
+			setPrfRetryAccepted(true);
+			setResolvePrfRetryPrompt(null);
+		});
+	};
+
 	const onLogin = useCallback(
-		async () => {
-			try {
-				await api.loginWebauthn(keystore);
+		async (cachedUser) => {
+			const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+			if (result.ok) {
 				navigate('/');
-			} catch (e) {
+
+			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e.errorId) {
+				switch (result.val) {
+					case 'loginKeystoreFailed':
+						setError(t('loginKeystoreFailed'));
+						break;
+
 					case 'passkeyInvalid':
 						setError(t('passkeyInvalid'));
 						break;
@@ -134,7 +156,7 @@ const WebauthnSignupLogin = ({
 						break;
 
 					default:
-						throw e;
+						throw result;
 				}
 			}
 		},
@@ -143,23 +165,13 @@ const WebauthnSignupLogin = ({
 
 	const onSignup = useCallback(
 		async (name) => {
-			try {
-				try {
-					try {
-						await api.signupWebauthn(name, keystore);
-					} catch (e) {
-						console.error("Signup failed", e);
-					}
-
-				} catch (e) {
-					console.error("Failed to initialize local keystore", e);
-				}
-
-
+			const result = await api.signupWebauthn(name, keystore, promptForPrfRetry);
+			if (result.ok) {
 				navigate('/');
-			} catch (e) {
+
+			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e.errorId) {
+				switch (result.val) {
 					case 'passkeySignupFailedServerError':
 						setError(t('passkeySignupFailedServerError'));
 						break;
@@ -172,8 +184,11 @@ const WebauthnSignupLogin = ({
 						setError(t('passkeySignupFinishFailedServerError'));
 						break;
 
+					case 'passkeySignupKeystoreFailed':
+						setError(t('passkeySignupKeystoreFailed'));
+
 					default:
-						throw e;
+						throw result;
 				}
 			}
 		},
@@ -198,9 +213,25 @@ const WebauthnSignupLogin = ({
 		setIsSubmitting(false);
 	};
 
+	const onLoginCachedUser = async (cachedUser) => {
+		setError();
+		setInProgress(true);
+		setIsSubmitting(true);
+		await onLogin(cachedUser);
+		setInProgress(false);
+		setIsSubmitting(false);
+	};
+
+	const onForgetCachedUser = (cachedUser) => {
+		keystore.forgetCachedUser(cachedUser);
+	};
+
 	const onCancel = () => {
 		console.log("onCancel");
 		setInProgress(false);
+		setNeedPrfRetry(false);
+		setPrfRetryAccepted(false);
+		setResolvePrfRetryPrompt(null);
 		setIsSubmitting(false);
 	};
 
@@ -208,16 +239,56 @@ const WebauthnSignupLogin = ({
 		<form onSubmit={onSubmit}>
 			{inProgress
 				? (
-					<>
-						<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
-						<button
-							type="button"
-							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
-							onClick={onCancel}
-						>
-							Cancel
-						</button>
-					</>
+					needPrfRetry
+						? (
+							<div className="text-center">
+								{
+									prfRetryAccepted
+										? (
+											<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+										)
+										: (
+											<>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
+												<p className="dark:text-white pb-3">
+													{isLogin
+														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
+														: 'To finish setting up your wallet, please authenticate with your passkey once more.'
+													}
+												</p>
+											</>
+										)
+								}
+
+								<button
+									type="button"
+									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+									onClick={() => resolvePrfRetryPrompt(false)}
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+									onClick={() => resolvePrfRetryPrompt(true)}
+									disabled={prfRetryAccepted}
+								>
+									Continue
+								</button>
+							</div>
+						)
+						: (
+							<>
+								<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+								<button
+									type="button"
+									className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+									onClick={onCancel}
+								>
+									Cancel
+								</button>
+							</>
+						)
 				)
 				: (
 					<>
@@ -235,13 +306,53 @@ const WebauthnSignupLogin = ({
 								</FormInputRow>
 							</>)}
 
+						{isLogin && (
+							<ul>
+								{cachedUsers.map((cachedUser) => (
+									<li
+										key={cachedUser.cacheKey}
+										className="w-full flex flex-row flex-nowrap mb-2"
+									>
+										<button
+											className="flex-grow text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center mr-2"
+											type="button"
+											disabled={isSubmitting}
+											onClick={() => onLoginCachedUser(cachedUser)}
+										>
+											<GoPasskeyFill className="inline text-xl mr-2" />
+											{isSubmitting ? t('submitting') : t('loginAsUser', { name: cachedUser.displayName })}
+										</button>
+
+										<button
+											className="text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+											type="button"
+											disabled={isSubmitting}
+											onClick={() => onForgetCachedUser(cachedUser)}
+											aria-label={t('forgetCachedUser', { name: cachedUser.displayName })}
+										>
+											<GoTrash className="inline text-xl" />
+										</button>
+									</li>
+								))}
+							</ul>
+						)}
+
+						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
+
 						<button
-							className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
 							disabled={isSubmitting}
 						>
 							<GoPasskeyFill className="inline text-xl mr-2" />
-							{isSubmitting ? t('submitting') : isLogin ? t('loginPasskey') : t('signupPasskey')}
+							{isSubmitting
+								? t('submitting')
+								: isLogin
+									? cachedUsers?.length > 0
+										? t('loginOtherPasskey')
+										: t('loginPasskey')
+									: t('signupPasskey')
+							}
 						</button>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
@@ -311,19 +422,21 @@ const Login = () => {
 
 		setIsSubmitting(true);
 
-		try {
-			if (isLogin) {
-				await api.login(username, password, keystore);
-
+		if (isLogin) {
+			const result = await api.login(username, password, keystore);
+			if (result.ok) {
+				navigate('/');
 			} else {
-				await api.signup(username, password, keystore);
-
+				setError(t('incorrectCredentialsError'));
 			}
-			navigate('/');
-		} catch (error) {
-			setError(
-				isLogin ? t('incorrectCredentialsError') : t('usernameExistsError')
-			);
+
+		} else {
+			const result = await api.signup(username, password, keystore);
+			if (result.ok) {
+				navigate('/');
+			} else {
+				setError(t('usernameExistsError'));
+			}
 		}
 
 		setIsSubmitting(false);
@@ -355,94 +468,116 @@ const Login = () => {
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-					<img className="w-20" src={logo} alt="logo" />
+					<img className="w-40" src={logo} alt="logo" />
 				</a>
 
-				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-				{t('welcomeMessagepart1')} <br /> {t('welcomeMessagepart2')}
+				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+				{t('welcomeMessagepart1')} <span className='text-custom-blue'>{t('welcomeMessagepart2')}</span> 
 				</h1>
 
-				<div className="relative w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+
+				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}
 					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div> */}
+					<CheckBrowserSupport.Ctx>
+						<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
+							<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
+								<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
+									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+								</CheckBrowserSupport.If>
+								<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
+									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+								</CheckBrowserSupport.If>
 
-					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-						<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-							{isLogin ? t('login') : t('signUp')}
-						</h1>
-						{ (loginWithPassword) ? 
-							<>
-								<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-									{error && <div className="text-red-500">{error}</div>}
-									<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
-										<FormInputField
-											ariaLabel="Username"
-											name="username"
-											onChange={handleInputChange}
-											placeholder={t('enterUsername')}
-											type="text"
-											value={username}
-										/>
-									</FormInputRow>
-		
-									<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
-										<FormInputField
-											ariaLabel="Password"
-											name="password"
-											onChange={handleInputChange}
-											placeholder={t('enterPassword')}
-											type="password"
-											value={password}
-										/>
-										{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
-									</FormInputRow>
-		
-									{!isLogin && (
-										<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+								{t('learnMorepart1')}{' '}
+								<a
+									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+								>
+									{t('learnMorepart2')}
+								</a>
+							</p>
+						</CheckBrowserSupport.If>
+					</CheckBrowserSupport.Ctx>
+					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
+						<CheckBrowserSupport.WarningPortal>
+							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+								{isLogin ? t('login') : t('signUp')}
+							</h1>
+							{ (loginWithPassword) ?
+								<>
+									<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+										{error && <div className="text-red-500">{error}</div>}
+										<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
 											<FormInputField
-												ariaLabel="Confirm Password"
-												name="confirmPassword"
+												ariaLabel="Username"
+												name="username"
 												onChange={handleInputChange}
-												placeholder={t('enterconfirmPasswordLabel')}
-												type="password"
-												value={confirmPassword}
+												placeholder={t('enterUsername')}
+												type="text"
+												value={username}
 											/>
 										</FormInputRow>
-									)}
-		
-									<button
-										className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-										type="submit"
-										disabled={isSubmitting}
-									>
-										{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
-									</button>
-								</form>
-								<SeparatorLine>OR</SeparatorLine> 
-							</>
-							: 
-							<></>
-						}
+
+										<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
+											<FormInputField
+												ariaLabel="Password"
+												name="password"
+												onChange={handleInputChange}
+												placeholder={t('enterPassword')}
+												type="password"
+												value={password}
+											/>
+											{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
+										</FormInputRow>
+
+										{!isLogin && (
+											<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+												<FormInputField
+													ariaLabel="Confirm Password"
+													name="confirmPassword"
+													onChange={handleInputChange}
+													placeholder={t('enterconfirmPasswordLabel')}
+													type="password"
+													value={confirmPassword}
+												/>
+											</FormInputRow>
+										)}
+
+										<button
+											className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+											type="submit"
+											disabled={isSubmitting}
+										>
+											{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
+										</button>
+									</form>
+									<SeparatorLine>OR</SeparatorLine>
+								</>
+								:
+								<></>
+							}
 
 
-						<WebauthnSignupLogin
-							isLogin={isLogin}
-							isSubmitting={isSubmitting}
-							setIsSubmitting={setIsSubmitting}
-						/>
+							<WebauthnSignupLogin
+								isLogin={isLogin}
+								isSubmitting={isSubmitting}
+								setIsSubmitting={setIsSubmitting}
+							/>
 
-						<p className="text-sm font-light text-gray-500 dark:text-gray-400">
-							{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
-							<a
-								href="/"
-								className="font-medium text-blue-600 hover:underline dark:text-blue-500"
-								onClick={toggleForm}
-							>
-								{isLogin ? t('signUp') : t('login')}
-							</a>
-						</p>
+							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
+								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
+								<a
+									href="/"
+									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+									onClick={toggleForm}
+								>
+									{isLogin ? t('signUp') : t('login')}
+								</a>
+							</p>
+						</CheckBrowserSupport.WarningPortal>
 					</div>
 				</div>
 			</div>
