@@ -5,6 +5,7 @@ dist
 .git
 .gitattributes
 .gitignore
+.npmrc
 .npmrc.template
 .vscode
 README.md
