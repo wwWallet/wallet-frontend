@@ -61,6 +61,7 @@ const FormInputField = ({
 				value={value}
 				onChange={onChange}
 				aria-label={ariaLabel}
+				required={name === "name"}
 			/>
 
 			{type === 'password' && (
