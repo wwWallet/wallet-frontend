@@ -45,6 +45,7 @@ const FormInputField = ({
 	name,
 	onChange,
 	placeholder,
+	required,
 	value,
 	type,
 }) => {
@@ -61,7 +62,7 @@ const FormInputField = ({
 				value={value}
 				onChange={onChange}
 				aria-label={ariaLabel}
-				required={name === "name"}
+				required={required}
 			/>
 
 			{type === 'password' && (
@@ -303,6 +304,7 @@ const WebauthnSignupLogin = ({
 										placeholder={t('enterPasskeyName')}
 										type="text"
 										value={name}
+										required
 									/>
 								</FormInputRow>
 							</>)}
