@@ -60,7 +60,6 @@ const QRScanner = ({ onClose }) => {
           if (code) {
             // Redirect to the URL found in the QR code
             const scannedUrl = code.data;
-            if (isValidUrl(scannedUrl)) {
               setLoading(true); // Show spinner
               setTimeout(() => {
                 // Get the base URL (current domain)
@@ -75,20 +74,13 @@ const QRScanner = ({ onClose }) => {
 
                 window.location.href = cvUrl; // Redirect after a delay
               }, 1000); // Adjust the delay as needed (in milliseconds)
-            } else {
-              onClose();
-            }
+    
           }
         };
       }
     }
   };
 
-  const isValidUrl = (url) => {
-    // For a simple check, you can use a regular expression
-    const urlPattern = /^(http|https):\/\/\S+$/;
-    return urlPattern.test(url);
-  };
 
   useEffect(() => {
     if (cameraReady) {
