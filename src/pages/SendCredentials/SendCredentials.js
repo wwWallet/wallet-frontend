@@ -73,9 +73,11 @@ const Verifiers = () => {
 	const handleVerifierClick = async (did) => {
 		const clickedVerifier = verifiers.find((verifier) => verifier.did === did);
 		if (clickedVerifier) {
-			setSelectedScope(null); // Reset the selected scope
-			setSelectedVerifier(clickedVerifier);
-			setShowPopup(true);
+			window.location.href = clickedVerifier.url; // temporarily, just redirect to the verifier
+
+			// setSelectedScope(null); // Reset the selected scope
+			// setSelectedVerifier(clickedVerifier);
+			// setShowPopup(true);
 		}
 	};
 
