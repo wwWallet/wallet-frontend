@@ -61,6 +61,7 @@
 	"specialCharacter": "At least one special character",
 	"strength": "Strength",
 	"submitting": "Submitting...",
+	"tryAgain": "Try again",
 	"unlockPasskeyManagement": "Unlock passkey management",
 	"usernameExistsError": "Failed to create user account, username already exists",
 	"usernameLabel": "Username",

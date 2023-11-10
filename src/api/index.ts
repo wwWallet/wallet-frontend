@@ -273,17 +273,21 @@ export async function loginWebauthn(
 	}
 };
 
-export async function signupWebauthn(name: string, keystore: LocalStorageKeystore, promptForPrfRetry: () => Promise<boolean>): Promise<
-	Result<void, 'passkeySignupFailedServerError' | 'passkeySignupFailedTryAgain' | 'passkeySignupFinishFailedServerError' | 'passkeySignupKeystoreFailed'>
+export async function signupWebauthn(
+	name: string,
+	keystore: LocalStorageKeystore,
+	promptForPrfRetry: () => Promise<boolean>,
+	retryFrom?: { beginData: any, credential: PublicKeyCredential },
+): Promise<
+	Result<void, 'passkeySignupFailedServerError' | 'passkeySignupFailedTryAgain' | 'passkeySignupFinishFailedServerError' | 'passkeySignupKeystoreFailed' | { errorId: 'prfRetryFailed', retryFrom: { beginData: any, credential: PublicKeyCredential } }>
 > {
 	try {
-		const beginResp = await post('/user/register-webauthn-begin', {});
-		console.log("begin", beginResp);
-		const beginData = beginResp.data;
+		const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', {})).data;
+		console.log("begin", beginData);
 
 		try {
 			const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-			const credential = await navigator.credentials.create({
+			const credential = retryFrom?.credential || await navigator.credentials.create({
 				...beginData.createOptions,
 				publicKey: {
 					...beginData.createOptions.publicKey,
@@ -343,7 +347,11 @@ export async function signupWebauthn(name: string, keystore: LocalStorageKeystor
 				}
 
 			} catch (e) {
-				return Err('passkeySignupKeystoreFailed');
+				if (e?.errorId === "prf_retry_failed") {
+					return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
+				} else {
+					return Err('passkeySignupKeystoreFailed');
+				}
 			}
 
 		} catch (e) {

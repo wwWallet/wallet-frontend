@@ -111,6 +111,7 @@ const WebauthnSignupLogin = ({
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
+	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
 
@@ -167,7 +168,14 @@ const WebauthnSignupLogin = ({
 
 	const onSignup = useCallback(
 		async (name) => {
-			const result = await api.signupWebauthn(name, keystore, promptForPrfRetry);
+			const result = await api.signupWebauthn(
+				name,
+				keystore,
+				retrySignupFrom
+					? () => Promise.resolve(true) // "Try again" already means user agreed to continue
+					: promptForPrfRetry,
+				retrySignupFrom,
+			);
 			if (result.ok) {
 				navigate('/');
 
@@ -191,11 +199,17 @@ const WebauthnSignupLogin = ({
 						break;
 
 					default:
-						throw result;
+						if (result.val?.errorId === 'prfRetryFailed') {
+							setRetrySignupFrom(result.val?.retryFrom);
+
+						} else {
+							setError(t('passkeySignupPrfRetryFailed'));
+							throw result;
+						}
 				}
 			}
 		},
-		[keystore, navigate, t],
+		[retrySignupFrom, keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {
@@ -236,11 +250,12 @@ const WebauthnSignupLogin = ({
 		setPrfRetryAccepted(false);
 		setResolvePrfRetryPrompt(null);
 		setIsSubmitting(false);
+		setRetrySignupFrom(null);
 	};
 
 	return (
 		<form onSubmit={onSubmit}>
-			{inProgress
+			{inProgress || retrySignupFrom
 				? (
 					needPrfRetry
 						? (
@@ -281,16 +296,39 @@ const WebauthnSignupLogin = ({
 							</div>
 						)
 						: (
-							<>
-								<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
-								<button
-									type="button"
-									className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
-									onClick={onCancel}
-								>
-									Cancel
-								</button>
-							</>
+							retrySignupFrom && !inProgress
+								? (
+									<div className="text-center">
+										<p className="dark:text-white pb-3">Something went wrong, please try again.</p>
+										<p className="dark:text-white pb-3">Please note that you need to use the same passkey you created in the previous step.</p>
+
+										<button
+											type="button"
+											className="border border-gray-300 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"
+											onClick={onCancel}
+										>
+											Cancel
+										</button>
+										<button
+											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+											type="submit"
+										>
+											{t('tryAgain')}
+										</button>
+									</div>
+								)
+								: (
+									<>
+										<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+										<button
+											type="button"
+											className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+											onClick={onCancel}
+										>
+											Cancel
+										</button>
+									</>
+								)
 						)
 				)
 				: (

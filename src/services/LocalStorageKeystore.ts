@@ -246,15 +246,23 @@ async function getPrfOutput(
 
 	} else if (canRetry) {
 		if (await promptForRetry()) {
-			const retryCred = await navigator.credentials.get({
-				publicKey: {
-					rpId,
-					challenge: crypto.getRandomValues(new Uint8Array(32)),
-					allowCredentials: prfInputs?.allowCredentials,
-					extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
-				},
-			}) as PublicKeyCredential;
-			return await getPrfOutput(retryCred, rpId, prfInputs, async () => false);
+			try {
+				const retryCred = await navigator.credentials.get({
+					publicKey: {
+						rpId,
+						challenge: crypto.getRandomValues(new Uint8Array(32)),
+						allowCredentials: prfInputs?.allowCredentials,
+						extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
+					},
+				}) as PublicKeyCredential;
+				return await getPrfOutput(retryCred, rpId, prfInputs, async () => false);
+			} catch (err) {
+				if (err instanceof DOMException && err.name === "NotAllowedError") {
+					throw { errorId: "prf_retry_failed", credential };
+				} else {
+					throw { errorId: "failed" };
+				}
+			}
 
 		} else {
 			throw { errorId: "canceled" };
