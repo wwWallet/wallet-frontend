@@ -273,14 +273,20 @@ export async function loginWebauthn(
 	}
 };
 
+type SignupWebauthnError = (
+	'passkeySignupFailedServerError'
+	| 'passkeySignupFailedTryAgain'
+	| 'passkeySignupFinishFailedServerError'
+	| 'passkeySignupKeystoreFailed'
+	| { errorId: 'prfRetryFailed', retryFrom: { beginData: any, credential: PublicKeyCredential } }
+);
+
 export async function signupWebauthn(
 	name: string,
 	keystore: LocalStorageKeystore,
 	promptForPrfRetry: () => Promise<boolean>,
 	retryFrom?: { beginData: any, credential: PublicKeyCredential },
-): Promise<
-	Result<void, 'passkeySignupFailedServerError' | 'passkeySignupFailedTryAgain' | 'passkeySignupFinishFailedServerError' | 'passkeySignupKeystoreFailed' | { errorId: 'prfRetryFailed', retryFrom: { beginData: any, credential: PublicKeyCredential } }>
-> {
+): Promise<Result<void, SignupWebauthnError>> {
 	try {
 		const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', {})).data;
 		console.log("begin", beginData);
