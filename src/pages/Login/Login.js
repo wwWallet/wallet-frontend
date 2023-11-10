@@ -188,6 +188,7 @@ const WebauthnSignupLogin = ({
 
 					case 'passkeySignupKeystoreFailed':
 						setError(t('passkeySignupKeystoreFailed'));
+						break;
 
 					default:
 						throw result;
