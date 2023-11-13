@@ -123,7 +123,8 @@ function useCheckURL(urlToCheck: string): {
 			).then(success => {
 				console.log(success);
 				const { redirect_to } = success.data;
-				window.location.href = redirect_to; // Navigate to the redirect URL
+				if (redirect_to)
+					window.location.href = redirect_to; // Navigate to the redirect URL
 			});
 		}
 	}, [keystore, selectedValue]);
