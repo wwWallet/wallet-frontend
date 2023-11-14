@@ -6,6 +6,7 @@ import { PiCameraRotateFill } from 'react-icons/pi'; // Import the camera icon
 import Spinner from './Spinner'; // Adjust the import path as needed
 
 const QRScanner = ({ onClose }) => {
+	
   const [devices, setDevices] = useState([]);
   const webcamRef = useRef(null);
   const [cameraReady, setCameraReady] = useState(false);
@@ -18,7 +19,6 @@ const QRScanner = ({ onClose }) => {
 
 
   useEffect(() => {
-		localStorage.setItem('camera_in_use', 'true');
     navigator.mediaDevices.enumerateDevices()
       .then(mediaDevices => {
         const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
@@ -72,7 +72,7 @@ const QRScanner = ({ onClose }) => {
                 const params = scannedUrl.split('?');
                 console.log('params', params[1]);
 
-                const cvUrl = `${baseUrl}/cb?${params[1]}`;
+                const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
                 window.location.href = cvUrl; // Redirect after a delay
               }, 1000); // Adjust the delay as needed (in milliseconds)
     
@@ -89,16 +89,6 @@ const QRScanner = ({ onClose }) => {
       return () => clearInterval(interval);
     }
   }, [cameraReady]);
-
-
-	useEffect(() => {
-    return () => {
-      console.log("cleaned up");
-			setTimeout(() => { localStorage.setItem('camera_in_use', 'false') }, 3000);
-
-    };
-  }, []);
-
 
   return (
     <div className="qr-code-scanner bg-white">

@@ -54,11 +54,12 @@ function useCheckURL(urlToCheck: string): {
 		}
 
 		async function handleAuthorizationRequest(url: string): Promise<boolean> {
-			console.log("handleAuthorizationRequest begin:", url);
+			const wwwallet_camera_was_used = new URL(url).searchParams.get('wwwallet_camera_was_used');
+
 			try {
 				const response = await api.post(
 					"/presentation/handle/authorization/request",
-					{ authorization_request: url, camera_was_used: (localStorage.getItem('camera_in_use') && localStorage.getItem('camera_in_use') === 'true') },
+					{ authorization_request: url, camera_was_used: (wwwallet_camera_was_used && wwwallet_camera_was_used === 'true') },
 				);
 
 
