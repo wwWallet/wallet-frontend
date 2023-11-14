@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
+import {BsQrCodeScan} from 'react-icons/bs'
 
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
@@ -15,6 +16,7 @@ import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
 const Home = () => {
   const [credentials, setCredentials] = useState([]);
@@ -39,7 +41,6 @@ const Home = () => {
 		style: { margin: '0 10px' },
 	};
 	
-
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 768);
@@ -61,7 +62,6 @@ const Home = () => {
 		getData();
 	}, []);
 
-
   const handleAddCredential = () => {
     navigate('/add');
   };
@@ -70,22 +70,45 @@ const Home = () => {
 			navigate(`/credential/${credential.id}`);
   };
 
-	// end qr code part
+	// QR Code part
+	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
+
+	const openQRScanner = () => {
+		setQRScannerOpen(true);
+	};
+
+	const closeQRScanner = () => {
+		setQRScannerOpen(false);
+	};
+
   return (
     <Layout>
       <div className="sm:px-6 w-full">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">Credentials</h1>
+
+					<div className='flex gap-x-1'>
+					{ isSmallScreen && (
+						<button
+						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+						onClick={openQRScanner} // Open the QR code scanner modal
+					>
+						<div className="flex items-center">
+							<BsQrCodeScan size={20} className="text-white" />
+						</div>
+					</button>
+					)}
           <button
             className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
             onClick={handleAddCredential}
           >
             <div className="flex items-center">
-              <BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-              <span className="sm:inline">Add</span>
+              <BsPlusCircle size={20} className="text-white" />
               <span className="hidden sm:inline">&nbsp; Credentials</span>
             </div>
           </button>
+					</div>
+
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
@@ -176,6 +199,15 @@ const Home = () => {
 					>
 							<AiOutlineCloseCircle size={40} />
 					</button>
+				</div>
+			)}
+
+			{/* QR Code Scanner Modal */}
+			{isQRScannerOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+        	<QRCodeScanner
+          	onClose={closeQRScanner}
+					/>
 				</div>
 			)}
     </Layout>
