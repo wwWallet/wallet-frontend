@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaEye, FaExclamationTriangle, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
-import { useTranslation } from 'react-i18next'; // Import useTranslation hook
+import { Trans, useTranslation } from 'react-i18next';
 
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -514,9 +514,13 @@ const Login = () => {
 				</a>
 
 				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
-				{t('welcomeMessagepart1')} <span className='text-custom-blue'>{t('welcomeMessagepart2')}</span> 
+					<Trans
+						i18nKey="welcomeMessage"
+						components={{
+							highlight: <span className="text-custom-blue" />
+						}}
+					/>
 				</h1>
-
 
 				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
 					{/* Dropdown to change language */}
@@ -533,13 +537,15 @@ const Login = () => {
 									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
 								</CheckBrowserSupport.If>
 
-								{t('learnMorepart1')}{' '}
-								<a
-									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-								>
-									{t('learnMorepart2')}
-								</a>
+								<Trans
+									i18nKey="learnMoreAboutPrfCompatibility"
+									components={{
+										docLink: <a
+											href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+											className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+										/>
+									}}
+								/>
 							</p>
 						</CheckBrowserSupport.If>
 					</CheckBrowserSupport.Ctx>
