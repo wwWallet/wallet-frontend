@@ -12,34 +12,29 @@ code {
 		monospace;
 }
 
-
 .slick-slide > div {
   margin: 0 5px !important;
 }
 
-/* Add margin between items and scrollbar */
+/* custom scrollbar */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #ccc #f0f0f0;
-  overflow-y: auto;
-  padding-right: 5px; /* Adjust the padding-right to your desired margin width */
+  padding-right: 5px; 
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 5px; /* Adjust the width as needed */
+  width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #ccc; /* Adjust the color as needed */
-  border-radius: 5px; /* Adjust the border-radius as needed */
+  background-color: #ccc;
+  border-radius: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #888; /* Adjust the hover color as needed */
+  background-color: #888;
 }
-
-
-
 
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
