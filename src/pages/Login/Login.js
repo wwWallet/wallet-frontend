@@ -349,7 +349,7 @@ const WebauthnSignupLogin = ({
 							</>)}
 
 						{isLogin && (
-							<ul>
+							<ul className="overflow-y-auto max-h-24 custom-scrollbar">
 								{cachedUsers.map((cachedUser) => (
 									<li
 										key={cachedUser.cacheKey}
