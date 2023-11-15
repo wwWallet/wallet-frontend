@@ -144,7 +144,7 @@ const Verifiers = () => {
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic text-gray-700">Search and choose a verifier for credential retrieval</p>
+        <p className="italic text-gray-700">Search and choose a verifier to share credentials with</p>
 
         <div className="my-4">
           <input
