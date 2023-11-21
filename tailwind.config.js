@@ -13,6 +13,7 @@ module.exports = {
 				'custom-blue': '#003476',
 				'custom-blue-hover': '#002b62',
 				'custom-light-blue': '#68caf1',
+				'custom-light-blue-hover': '#5DB5D8',
 				'light-red': '#ffcccc',
 			}
 		},

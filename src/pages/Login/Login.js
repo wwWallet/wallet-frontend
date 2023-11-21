@@ -382,7 +382,7 @@ const WebauthnSignupLogin = ({
 						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
 
 						<button
-							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-custom-light-blue-hover dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
 							disabled={isSubmitting}
 						>
@@ -517,19 +517,19 @@ const Login = () => {
 					<Trans
 						i18nKey="welcomeMessage"
 						components={{
-							highlight: <span className="text-custom-blue" />
+							highlight: <span className="text-custom-light-blue" />
 						}}
 					/>
 				</h1>
 
-				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
 					{/* Dropdown to change language */}
 					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div> */}
 					<CheckBrowserSupport.Ctx>
 						<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
+							<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 								<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 								</CheckBrowserSupport.If>
@@ -542,14 +542,14 @@ const Login = () => {
 									components={{
 										docLink: <a
 											href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-											className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+											className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
 										/>
 									}}
 								/>
 							</p>
 						</CheckBrowserSupport.If>
 					</CheckBrowserSupport.Ctx>
-					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
+					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700">
 						<CheckBrowserSupport.WarningPortal>
 							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 								{isLogin ? t('login') : t('signUp')}
@@ -615,11 +615,11 @@ const Login = () => {
 								setIsSubmitting={setIsSubmitting}
 							/>
 
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
+							<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
 								<a
 									href="/"
-									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+									className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
 									onClick={toggleForm}
 								>
 									{isLogin ? t('signUp') : t('login')}
