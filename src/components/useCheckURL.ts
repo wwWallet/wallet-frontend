@@ -19,70 +19,68 @@ function useCheckURL(urlToCheck: string): {
 
 	useEffect(() => {
 
-		async function handleAuthorizationRequest(url: string): Promise<boolean> {
-			console.log("handleAuthorizationRequest begin:", url);
-
-			function finish({ conformantCredentialsMap, verifierDomainName, redirect_to }) {
-				console.log(conformantCredentialsMap, verifierDomainName, redirect_to);
-				if (redirect_to) {
-					window.location.href = redirect_to; // Navigate to the redirect URL
-				} else {
-					console.log('need action');
-
-					setConformantCredentialsMap(conformantCredentialsMap.VID);
-					setShowPopup(true);
+		async function handlePreAuthorizeAskForPin(url: string): Promise<boolean> {
+			const u = new URL(url);
+			const preauth = u.searchParams.get('preauth');
+			if (preauth && preauth == 'true') {
+				try {
+					await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
 				}
-
+				catch(err) {
+					console.log(err);
+				}
 				return true;
 			}
+			return false;
+		}
+
+		async function handlePreAuthorizedCredentialOffer(url: string): Promise<boolean> {
+			try {
+				const result = await api.post('/issuance/generate/authorization/request/with/offer', { credential_offer_url: url });
+				const { redirect_to } = result.data;
+				console.log("preauth redirect to = ", redirect_to);
+				const u = new URL(redirect_to);
+				const preauth = u.searchParams.get('preauth');
+				console.log("U = ", u)
+				if (preauth && preauth == 'true') {
+					await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
+					return true;
+				}
+			}
+			catch(err) {
+				console.log(err);
+			}
+			return false;
+		}
+
+		async function handleAuthorizationRequest(url: string): Promise<boolean> {
+			const wwwallet_camera_was_used = new URL(url).searchParams.get('wwwallet_camera_was_used');
 
 			try {
 				const response = await api.post(
 					"/presentation/handle/authorization/request",
-					{ authorization_request: url },
+					{ authorization_request: url, camera_was_used: (wwwallet_camera_was_used && wwwallet_camera_was_used === 'true') },
 				);
 
-				console.log("handleAuthorizationRequest:", response.data.redirect_to);
 
-				if(response.statusText==="OK"){
-					console.log(response.data);
-					return finish(response.data);
-
+				console.log("Data = ", response.data)
+				const { redirect_to, conformantCredentialsMap, verifierDomainName } = response.data;
+				if (redirect_to) {
+					window.location.href = redirect_to; // Navigate to the redirect URL
 				} else {
-					return false;
+					console.log('need action');
+					const firstValue = Object.values(conformantCredentialsMap)[0];
+					console.log("first value = ", firstValue)
+
+					setConformantCredentialsMap(firstValue);
+					setShowPopup(true);
+					console.log("called setShowPopup")
+					return true;
 				}
+				return true;
 
 			} catch (e) {
-				if (e.response.status === 409) {
-					console.log("Signature request:", e.response.data);
-					const { nonce, audience } = e.response.data;
-					try {
-						const { id_token } = await keystore.createIdToken(nonce, audience);
-
-						const response = await api.post(
-							"/presentation/handle/authorization/request",
-							{ authorization_request: url, id_token },
-						);
-
-						console.log("handleAuthorizationRequest 2:", response.data.redirect_to);
-
-						if (response.statusText === "OK") {
-							console.log(response.data);
-							return finish(response.data);
-
-						} else {
-							return false;
-						}
-
-					} catch (e) {
-						console.log("Failed to create ID token:", e);
-						return false;
-					}
-
-				} else {
-					console.log("Failed handleAuthorizationRequest:", e);
-					return false;
-				}
+				return false;
 			}
 		};
 
@@ -96,30 +94,6 @@ function useCheckURL(urlToCheck: string): {
 				return true;
 
 			} catch (e) {
-				if (e.response.status === 404) {
-					return true;
-
-				} else if (e.response.status === 409) {
-					console.log("Signature request:", e.response.data);
-					const { audience, nonce } = e.response.data;
-
-					try {
-						const { proof_jwt } = await keystore.generateOpenid4vciProof(audience, nonce);
-
-						const response = await api.post(
-							"/issuance/handle/authorization/response",
-							{ authorization_response_url: url, proof_jwt },
-						);
-						console.log("handleAuthorizationResponse 2:", response);
-						return true;
-
-					} catch (e) {
-						console.log("Failed to create Openid4vci proof:", e);
-						return false;
-
-					}
-				}
-
 				console.log("Failed handleAuthorizationResponse:", e);
 				return false;
 			}
@@ -129,8 +103,10 @@ function useCheckURL(urlToCheck: string): {
 			(async () => {
 				const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
 				const isResponseHandled = await handleAuthorizationResponse(urlToCheck);
+				const isPreAuthorizedFlowHandled = await handlePreAuthorizeAskForPin(urlToCheck);
+				const isPreAuthorizedCredentialOffer = await handlePreAuthorizedCredentialOffer(urlToCheck);
 
-				if (isRequestHandled || isResponseHandled) {
+				if (isRequestHandled || isResponseHandled || isPreAuthorizedFlowHandled || isPreAuthorizedCredentialOffer) {
 					setIsValidURL(true);
 				} else {
 					setIsValidURL(false);
@@ -148,38 +124,8 @@ function useCheckURL(urlToCheck: string): {
 			).then(success => {
 				console.log(success);
 				const { redirect_to } = success.data;
-				window.location.href = redirect_to; // Navigate to the redirect URL
-
-			}).catch(async e => {
-				if (e.response.status === 409) {
-					console.log("Signature request:", e.response.data);
-
-					const { nonce, audience, verifiableCredentials } = e.response.data;
-					try {
-						const { vpjwt } = await keystore.signJwtPresentation(nonce, audience, verifiableCredentials);
-						api.post("/presentation/generate/authorization/response", {
-							verifiable_credentials_map: { title: "VC Selection", selectedValue },
-							vpjwt,
-						}).then(success => {
-							console.log(success);
-							const { redirect_to } = success.data;
-							window.location.href = redirect_to; // Navigate to the redirect URL
-
-						}).catch(e => {
-							console.error("Failed to generate authorization response")
-							console.error(e.response.data);
-						});
-
-					} catch (e) {
-						console.error("Failed to sign JWT presentation", e);
-						throw e;
-					}
-
-				} else {
-
-					console.error("Failed to generate authorization response")
-					console.error(e.response.data);
-				}
+				if (redirect_to)
+					window.location.href = redirect_to; // Navigate to the redirect URL
 			});
 		}
 	}, [keystore, selectedValue]);

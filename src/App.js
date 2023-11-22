@@ -9,9 +9,8 @@ import { I18nextProvider, initReactI18next } from 'react-i18next';
 import enTranslation from './locales/en.json'; // Import translation files for each language
 import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
-import Notification from './components/Notification'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
-
+import HandlerNotification from './components/HandlerNotification';
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
@@ -76,7 +75,6 @@ function App() {
 		if (event.data.type === 'navigate') {
 			// Remove any parameters from the URL
 			const homeURL = window.location.origin + window.location.pathname;
-			console.log('-->',homeURL);
 			// Redirect the current tab to the home URL
 			window.location.href = homeURL;
 		}
@@ -85,6 +83,7 @@ function App() {
 		<I18nextProvider i18n={i18n}>
 			<Router>
 				<Suspense fallback={<Spinner />}>
+				<HandlerNotification>
 					<Routes>
 						<Route path="/login" element={<Login />} />
 						<Route path="/account" element={<AccountSettings />} />
@@ -94,21 +93,13 @@ function App() {
 						<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
 						<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
 						<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
-
-						<Route path="/cb"
-							element={
-								isValidURL === null ? null : isValidURL ? (
-									<PrivateRoute><Home /></PrivateRoute>
-								) : (
-									<Home />
-								)
-							}
-						/>
+						<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
+						<Route path="*" element={<NotFound />} />
 					</Routes>
-					<Notification />
 					{showPopup &&
 						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
 					}
+					</HandlerNotification>
 				</Suspense>
 			</Router>
 		</I18nextProvider>

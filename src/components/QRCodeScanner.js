@@ -1,70 +1,99 @@
-import React, { useState, useEffect } from 'react';
-import { QrReader } from 'react-qr-reader';
+import React, { useState, useEffect, useRef } from 'react';
+import Webcam from 'react-webcam';
+import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
+import { PiCameraRotateFill } from 'react-icons/pi'; // Import the camera icon
 import Spinner from './Spinner'; // Adjust the import path as needed
 
-const QRCodeScanner = ({ onClose }) => {
-  const [error, setError] = useState(null);
+const QRScanner = ({ onClose }) => {
+	
+  const [devices, setDevices] = useState([]);
+  const webcamRef = useRef(null);
   const [cameraReady, setCameraReady] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleScan = (data) => {
-		if (data && data.text) {
-			const scannedUrl = data.text;
-      // Check if the scanned data is a valid URL
-      if (isValidUrl(scannedUrl)) {
-        setLoading(true); // Show spinner
-        setTimeout(() => {
-					// Get the base URL (current domain)
-					const baseUrl = window.location.origin;
-					console.log('baseUrl',baseUrl);
-
-					console.log(scannedUrl);
-					const params = scannedUrl.split('?'); 
-					console.log('params',params[1]);
-
-					const cvUrl = `${baseUrl}/cb?${params[1]}`;
-					
-          window.location.href = cvUrl; // Redirect after a delay
-        }, 1000); // Adjust the delay as needed (in milliseconds)
-      } else {
-        onClose();
-      }
-    }
-  };
-
-  const isValidUrl = (url) => {
-    // For a simple check, you can use a regular expression
-    const urlPattern = /^(http|https):\/\/\S+$/;
-    return urlPattern.test(url);
-  };
+  const [loading, setLoading] = useState(false); // Initially, do not show the spinner
+  const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 
   const handleClose = () => {
     onClose(); // Close the scanner modal
   };
 
-  const handleError = (err) => {
-    setError(err);
-  };
 
   useEffect(() => {
-    // Check camera availability
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then(() => {
+    navigator.mediaDevices.enumerateDevices()
+      .then(mediaDevices => {
+        const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
+        setDevices(videoDevices);
+        
+        // Find and prioritize the back camera if it exists
+        const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
+        if (backCameraIndex !== -1) {
+          setCurrentDeviceIndex(backCameraIndex);
+        }
+
         setCameraReady(true);
       })
-      .catch((err) => {
-        setError(err);
+      .catch(error => {
+        console.error("Error accessing camera:", error);
+        setCameraReady(false);
       });
   }, []);
 
+  const switchCamera = () => {
+    if (devices.length > 1) {
+      const newIndex = (currentDeviceIndex + 1) % devices.length;
+      setCurrentDeviceIndex(newIndex);
+    }
+  };
+
+  const capture = () => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (imageSrc) {
+        const image = new Image();
+        image.src = imageSrc;
+        image.onload = () => {
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = image.width;
+          canvas.height = image.height;
+          context.drawImage(image, 0, 0, image.width, image.height);
+          const imageData = context.getImageData(0, 0, image.width, image.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          if (code) {
+            // Redirect to the URL found in the QR code
+            const scannedUrl = code.data;
+              setLoading(true); // Show spinner
+              setTimeout(() => {
+                // Get the base URL (current domain)
+                const baseUrl = window.location.origin;
+                console.log('baseUrl', baseUrl);
+
+                console.log(scannedUrl);
+                const params = scannedUrl.split('?');
+                console.log('params', params[1]);
+
+                const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
+                window.location.href = cvUrl; // Redirect after a delay
+              }, 1000); // Adjust the delay as needed (in milliseconds)
+    
+          }
+        };
+      }
+    }
+  };
+
+
+  useEffect(() => {
+    if (cameraReady) {
+      const interval = setInterval(capture, 500); // Check every half second
+      return () => clearInterval(interval);
+    }
+  }, [cameraReady]);
 
   return (
     <div className="qr-code-scanner bg-white">
       <div className={`absolute inset-0 ${!cameraReady ? 'flex justify-center items-center' : ''}`}>
-        {!cameraReady && <Spinner />}
-        {loading && <Spinner />} {/* Display spinner while loading */}
+        {loading && <Spinner />} {/* Display spinner when loading and camera is ready */}
       </div>
       {cameraReady && (
         <div className="bg-white p-4 rounded-lg shadow-lg w-[99%] max-h-[100vh] z-10 relative">
@@ -87,23 +116,30 @@ const QRCodeScanner = ({ onClose }) => {
           <hr className="mb-2 border-t border-custom-blue/80" />
           <p className="italic pd-2 text-gray-700">Target the QR Code, and you will redirect to proceed with the process</p>
 
-          {error && (
-            <div className="error-message">
-              Error: {error}
-            </div>
-          )}
-
-          <QrReader
-            delay={300}
-            onError={handleError}
-            onResult={handleScan}
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            screenshotFormat="image/jpeg"
+            videoConstraints={{ deviceId: devices[currentDeviceIndex].deviceId }}
             style={{ width: '100%' }}
           />
-          
+
+          {/* <p>{result}</p> */}
+          <div className='flex justify-end'>
+          {devices.length > 1 && (
+            <button
+              type="button"
+              className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm px-4 py-2 mt-2"
+              onClick={switchCamera}
+            >
+              <PiCameraRotateFill size={20}/>
+            </button>
+          )}
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-export default QRCodeScanner;
+export default QRScanner;

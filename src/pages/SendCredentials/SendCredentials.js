@@ -73,9 +73,11 @@ const Verifiers = () => {
 	const handleVerifierClick = async (did) => {
 		const clickedVerifier = verifiers.find((verifier) => verifier.did === did);
 		if (clickedVerifier) {
-			setSelectedScope(null); // Reset the selected scope
-			setSelectedVerifier(clickedVerifier);
-			setShowPopup(true);
+			window.location.href = clickedVerifier.url; // temporarily, just redirect to the verifier
+
+			// setSelectedScope(null); // Reset the selected scope
+			// setSelectedVerifier(clickedVerifier);
+			// setShowPopup(true);
 		}
 	};
 
@@ -142,7 +144,7 @@ const Verifiers = () => {
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic text-gray-700">Search and choose a verifier for credential retrieval</p>
+        <p className="italic text-gray-700">Search and choose a verifier to share credentials with</p>
 
         <div className="my-4">
           <input
