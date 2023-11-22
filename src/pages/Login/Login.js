@@ -8,6 +8,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
+import white_logo from '../../assets/images/wallet_white.png';
+
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
@@ -23,7 +25,7 @@ const FormInputRow = ({
 	name,
 }) => (
 	<div className="mb-4 relative">
-		<label className="block text-gray-700 dark:text-gray-400 text-sm font-bold mb-2" htmlFor={name}>
+		<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
 			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500" />
 			{label}
 		</label>
@@ -267,7 +269,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue dark:text-custom-light-blue">Almost done!</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
@@ -280,14 +282,14 @@ const WebauthnSignupLogin = ({
 
 								<button
 									type="button"
-									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+									className="bg-white px-4 py-2  border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 									onClick={() => resolvePrfRetryPrompt(false)}
 								>
 									Cancel
 								</button>
 								<button
 									type="button"
-									className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+									className="text-white bg-blue-600 text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 									onClick={() => resolvePrfRetryPrompt(true)}
 									disabled={prfRetryAccepted}
 								>
@@ -310,7 +312,7 @@ const WebauthnSignupLogin = ({
 											Cancel
 										</button>
 										<button
-											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 											type="submit"
 										>
 											{t('tryAgain')}
@@ -510,14 +512,15 @@ const Login = () => {
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-					<img className="w-40" src={logo} alt="logo" />
+					<img className="w-40 dark:hidden" src={logo} alt="logo" />
+					<img className="w-40 dark:block"  src={white_logo} alt="logo" />
 				</a>
 
 				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
 					<Trans
 						i18nKey="welcomeMessage"
 						components={{
-							highlight: <span className="text-custom-light-blue" />
+							highlight: <span className="text-custom-blue dark:text-custom-light-blue" />
 						}}
 					/>
 				</h1>
