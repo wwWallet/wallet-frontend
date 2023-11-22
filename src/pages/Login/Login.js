@@ -533,30 +533,30 @@ const Login = () => {
 								<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 									<Trans
-									i18nKey="learnMoreAboutPrfCompatibilityAndScenarios"
-									components={{
-										docLinkPrf: <a
-											href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+										i18nKey="learnMoreAboutPrfCompatibilityAndScenarios"
+										components={{
+											docLinkPrf: <a
+												href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+											/>,
+											docLinkScenarios: <a
+											href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
 											className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-										/>,
-										docLinkScenarios: <a
-										href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-										className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+											/>
+										}}
 									/>
-									}}
-								/>
 								</CheckBrowserSupport.If>
 								<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
 									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
 									<Trans
-									i18nKey="learnMoreAboutPrfCompatibility"
-									components={{
-										docLinkPrf: <a
-											href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-											className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-										/>
-									}}
-								/>
+										i18nKey="learnMoreAboutPrfCompatibility"
+										components={{
+											docLinkPrf: <a
+												href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+											/>
+										}}
+									/>
 								</CheckBrowserSupport.If>
 							</p>
 						</CheckBrowserSupport.If>

@@ -29,7 +29,6 @@
 	"incorrectCredentialsError": "Incorrect username or password",
 	"learnMoreAboutPrfCompatibility": "Learn more about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
 	"learnMoreAboutPrfCompatibilityAndScenarios": "Learn more about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
-
 	"lockPasskeyManagement": "Lock passkey management",
 	"login": "Login",
 	"loginAsUser": "Log in as {{name}}",
