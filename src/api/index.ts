@@ -278,6 +278,7 @@ type SignupWebauthnError = (
 	| 'passkeySignupFailedTryAgain'
 	| 'passkeySignupFinishFailedServerError'
 	| 'passkeySignupKeystoreFailed'
+	| 'passkeySignupPrfNotSupported'
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
@@ -357,6 +358,8 @@ export async function signupWebauthn(
 			} catch (e) {
 				if (e?.errorId === "prf_retry_failed") {
 					return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
+				} else if (e?.errorId === "prf_not_supported") {
+					return Err('passkeySignupPrfNotSupported');
 				} else {
 					return Err('passkeySignupKeystoreFailed');
 				}

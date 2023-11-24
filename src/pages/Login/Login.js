@@ -198,6 +198,20 @@ const WebauthnSignupLogin = ({
 						setError(t('passkeySignupKeystoreFailed'));
 						break;
 
+					case 'passkeySignupPrfNotSupported':
+						setError(
+							<Trans
+								i18nKey ="passkeySignupPrfNotSupported"
+								components={{
+									docLink: <a
+										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+										className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+									/>
+								}}
+							/>
+						);
+						break;
+
 					default:
 						if (result.val?.errorId === 'prfRetryFailed') {
 							setRetrySignupFrom(result.val?.retryFrom);
