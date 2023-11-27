@@ -82,7 +82,7 @@ const requestForToken = async (messaging) => {
     }
     if (messaging) {
         try {
-            const currentToken = await getToken(messaging, { vapidKey: process.env.VAPIDKEY });
+            const currentToken = await getToken(messaging, { vapidKey: process.env.REACT_APP_FIREBASE_VAPIDKEY });
             if (currentToken) {
                 console.log('Current token for client: ', currentToken);
                 return currentToken;
@@ -92,6 +92,7 @@ const requestForToken = async (messaging) => {
             }
         } catch (err) {
             console.log('An error occurred while retrieving token. ', err);
+						window.location.href = '/';
             return null;
         }
     } else {
