@@ -47,6 +47,7 @@
 	"passkeySignupFailedTryAgain": "Passkey creation failed, please try again.",
 	"passkeySignupFinishFailedServerError": "Failed to finalize passkey creation, please try again later.",
 	"passkeySignupKeystoreFailed": "Failed to initialize wallet key store, please try again.",
+	"passkeySignupPrfNotSupported": "This browser or security key is not supported. Please make sure that your browser supports the WebAuthn PRF extension and your security key, if any, supports the \"hmac-secret\" extension. <docLink>Learn more here</docLink>.",
 	"passwordLabel": "Password",
 	"passwordLength": "Minimum length: 8 characters",
 	"passwordsNotMatchError": "Passwords do not match",
