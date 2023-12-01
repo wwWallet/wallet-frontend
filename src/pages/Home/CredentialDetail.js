@@ -36,7 +36,7 @@ const CredentialDetail = () => {
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
 					{credential && (
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{credential.type}</h1>
+						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{credential.type.replace(/([A-Z])/g, ' $1')}</h1>
 					)}
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
