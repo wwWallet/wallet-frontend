@@ -16,14 +16,12 @@ let messaging = null;
 let supported = false;
 
 const initializeFirebase = async () => {
-    firebase = (await isSupported()) ? initializeApp(firebaseConfig) : null;
-    if (firebase != null)
-        supported = true;
-    console.log("Supported", supported);
+    supported = await isSupported();
     if (supported) {
+        firebase = initializeApp(firebaseConfig);
         messaging = getMessaging();
     }
-    console.log("initialized firebase");
+    console.log("Supported", supported);
 
     // Check for notification permission and register token if granted
     if (supported) {
@@ -42,7 +40,7 @@ const initializeFirebase = async () => {
 };
 
 const registerToken = async () => {
-    const token = await requestForToken(messaging);
+    const token = await requestForToken();
     if (token) {
         // Store the token or perform any other necessary actions
         console.log('Token registered and stored:', token);
@@ -51,52 +49,23 @@ const registerToken = async () => {
     }
 };
 
-const initializeMessaging = async () => {
-    // Check for service worker
-    if ('serviceWorker' in navigator) {
-        try {
-            const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
-            if (registration) {
-                console.log('Service Worker registered', registration);
-                // Initialize Messaging
-                const messaging = getMessaging();
-                // Assign messaging to a variable that can be accessed outside this function if needed
-                return messaging;
-            } else {
-                console.log('Service Worker registration failed');
-                return null;
-            }
-        } catch (error) {
-            console.log('Service Worker registration failed with ', error);
-            return null;
-        }
-    } else {
-        console.log('Service Workers are not supported in this browser.');
-        return null;
-    }
-};
-
-const requestForToken = async (messaging) => {
+const requestForToken = async () => {
     if (!supported) {
         return undefined;
     }
     if (messaging) {
-			const messaging = getMessaging();
         try {
             const currentToken = await getToken(messaging, { vapidKey: process.env.REACT_APP_FIREBASE_VAPIDKEY });
             if (currentToken) {
-                console.log('Current token for client: ', currentToken);
+                console.log('Current token for client:', currentToken);
                 return currentToken;
             } else {
                 console.log('No registration token available. Request permission to generate one.');
-								reRegisterServiceWorkerAndGetToken();
-                return null;
+                await reRegisterServiceWorkerAndGetToken();
             }
         } catch (err) {
-            console.log('An error occurred while retrieving token. ', err);
-						reRegisterServiceWorkerAndGetToken();
-
-            return null;
+            console.error('An error occurred while retrieving token:', err);
+            await reRegisterServiceWorkerAndGetToken();
         }
     } else {
         console.log('Messaging is not initialized.');
@@ -104,14 +73,52 @@ const requestForToken = async (messaging) => {
     }
 };
 
-export const fetchToken = async () => {
-    const messaging = await initializeMessaging();
-    const token = await requestForToken(messaging);
-    if (token) {
-        return token;
+const reRegisterServiceWorkerAndGetToken = async () => {
+    if ('serviceWorker' in navigator) {
+        try {
+            // Re-register the service worker
+            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            if (registration) {
+                console.log('Service Worker re-registered', registration);
+                // Initialize Firebase Messaging
+                const messaging = getMessaging();
+                // Request a new FCM token
+                const token = await requestForToken();
+                if (token) {
+                    console.log('New FCM token obtained:', token);
+                } else {
+                    console.log('Failed to retrieve a new token.');
+                }
+            } else {
+                console.log('Service Worker re-registration failed');
+            }
+        } catch (error) {
+            console.error('Service Worker re-registration failed with', error);
+        }
     } else {
-        console.log('Failed to retrieve token.');
+        console.log('Service Workers are not supported in this browser.');
     }
+};
+
+export const fetchToken = async () => {
+    if (messaging) {
+        const token = await requestForToken();
+        if (token) {
+            return token;
+        } else {
+            console.log('Failed to retrieve token. Trying to re-register service worker.');
+            await reRegisterServiceWorkerAndGetToken(); // Re-register service worker and fetch token
+            const newToken = await requestForToken();
+            if (newToken) {
+                return newToken;
+            } else {
+                console.log('Failed to retrieve a new token after re-registration.');
+            }
+        }
+    } else {
+        console.log('Messaging is not initialized.');
+    }
+    return null; // Return null in case of failure
 };
 
 export const onMessageListener = () =>
@@ -123,36 +130,23 @@ export const onMessageListener = () =>
         }
     });
 
-		const reRegisterServiceWorkerAndGetToken = async () => {
-			if ('serviceWorker' in navigator) {
-				try {
-					// Re-register the service worker
-					const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-					if (registration) {
-						console.log('Service Worker re-registered', registration);
-		
-						// Initialize Firebase Messaging
-						const messaging = getMessaging();
-		
-						// Request a new FCM token
-						const token = await requestForToken(messaging);
-		
-						if (token) {
-							console.log('New FCM token obtained:', token);
-						} else {
-							console.log('Failed to retrieve a new token.');
-						}
-					} else {
-						console.log('Service Worker re-registration failed');
-					}
-				} catch (error) {
-					console.log('Service Worker re-registration failed with', error);
-				}
-			} else {
-				console.log('Service Workers are not supported in this browser.');
-			}
-		};
+const initializeMessaging = async () => {
+    // Check for service worker
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
+            if (registration) {
+                console.log('Service Worker registered', registration);
+                return getMessaging();
+            } else {
+                console.log('Service Worker registration failed');
+            }
+        } catch (error) {
+            console.error('Service Worker registration failed with', error);
+        }
+    } else {
+        console.log('Service Workers are not supported in this browser.');
+    }
+};
 
-// Call reRegisterServiceWorker when needed to re-register the SW
-		
 initializeFirebase();
