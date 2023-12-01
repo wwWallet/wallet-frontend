@@ -8,6 +8,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
+import white_logo from '../../assets/images/wallet_white.png';
+
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
@@ -23,7 +25,7 @@ const FormInputRow = ({
 	name,
 }) => (
 	<div className="mb-4 relative">
-		<label className="block text-gray-700 dark:text-gray-400 text-sm font-bold mb-2" htmlFor={name}>
+		<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
 			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500" />
 			{label}
 		</label>
@@ -281,7 +283,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue dark:text-custom-light-blue">Almost done!</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
@@ -294,14 +296,14 @@ const WebauthnSignupLogin = ({
 
 								<button
 									type="button"
-									className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 mr-2"
+									className="bg-white px-4 py-2  border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 									onClick={() => resolvePrfRetryPrompt(false)}
 								>
 									Cancel
 								</button>
 								<button
 									type="button"
-									className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+									className="text-white bg-blue-600 text-sm px-4 py-2 text-center rounded-lg dark:bg-blue-600 dark:hover:bg-blue-700"
 									onClick={() => resolvePrfRetryPrompt(true)}
 									disabled={prfRetryAccepted}
 								>
@@ -324,7 +326,7 @@ const WebauthnSignupLogin = ({
 											Cancel
 										</button>
 										<button
-											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 											type="submit"
 										>
 											{t('tryAgain')}
@@ -396,7 +398,7 @@ const WebauthnSignupLogin = ({
 						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
 
 						<button
-							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
 							disabled={isSubmitting}
 						>
@@ -524,26 +526,27 @@ const Login = () => {
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-					<img className="w-40" src={logo} alt="logo" />
+					<img className="w-40 dark:hidden" src={logo} alt="logo" />
+					<img className="w-40 dark:block"  src={white_logo} alt="logo" />
 				</a>
 
 				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
 					<Trans
 						i18nKey="welcomeMessage"
 						components={{
-							highlight: <span className="text-custom-blue" />
+							highlight: <span className="text-custom-blue dark:text-custom-light-blue" />
 						}}
 					/>
 				</h1>
 
-				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
 					{/* Dropdown to change language */}
 					{/* <div className="absolute top-2 right-2">
 						<LanguageSelector />
 					</div> */}
 					<CheckBrowserSupport.Ctx>
 						<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400 italic mb-2">
+							<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 								<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 									<Trans
@@ -575,7 +578,7 @@ const Login = () => {
 							</p>
 						</CheckBrowserSupport.If>
 					</CheckBrowserSupport.Ctx>
-					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:border">
+					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700">
 						<CheckBrowserSupport.WarningPortal>
 							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 								{isLogin ? t('login') : t('signUp')}
@@ -641,11 +644,11 @@ const Login = () => {
 								setIsSubmitting={setIsSubmitting}
 							/>
 
-							<p className="text-sm font-light text-gray-500 dark:text-gray-400">
+							<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
 								<a
 									href="/"
-									className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+									className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
 									onClick={toggleForm}
 								>
 									{isLogin ? t('signUp') : t('login')}
