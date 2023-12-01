@@ -1,12 +1,10 @@
-// CredentialInfo.js
-
 import React from 'react';
 import { BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
 import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
 import { MdTitle, MdGrade } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
-import {formatDate }from '../../functions/DateFormat';
+import { formatDate } from '../../functions/DateFormat';
 
 const getFieldIcon = (fieldName) => {
   switch (fieldName) {
@@ -17,7 +15,6 @@ const getFieldIcon = (fieldName) => {
     case 'dateOfBirth':
       return <AiFillCalendar size={25} className="inline mr-1 mb-1" />;
     case 'familyName':
-      return <BiSolidUserCircle size={25} className="inline mr-1 mb-1" />;
     case 'firstName':
       return <BiSolidUserCircle size={25} className="inline mr-1 mb-1" />;
     case 'diplomaTitle':
@@ -31,6 +28,20 @@ const getFieldIcon = (fieldName) => {
   }
 };
 
+const renderRow = (fieldName, fieldValue) => {
+  if (fieldValue) {
+    return (
+      <tr className="text-left ">
+        <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
+          {getFieldIcon(fieldName)}
+        </td>
+        <td className="py-2 px-2 rounded-r-xl">{fieldValue}</td>
+      </tr>
+    );
+  }
+  return null;
+};
+
 const CredentialInfo = ({ credential }) => {
   return (
     <div className=" pt-5 pr-2 w-full">
@@ -38,74 +49,14 @@ const CredentialInfo = ({ credential }) => {
         <tbody className="divide-y-4 divide-transparent">
           {credential && (
             <>
-              <tr className="text-left">
-                <td className="font-bold text-custom-blue py-2 px-2 align-left rounded-l-xl">
-                  {getFieldIcon('type')}
-                </td>
-                <td className="py-2 px-2 rounded-r-xl w-full">{credential.type}</td>
-              </tr>
-              <tr className="text-left ">
-                <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                  {getFieldIcon('expdate')}
-                </td>
-                <td className="py-2 px-2 rounded-r-xl">{formatDate(credential.expdate)}</td>
-              </tr>
-              {credential.type === 'VerifiableId' && (
-                <>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('dateOfBirth')}
-                    </td>
-										<td className="py-2 px-2 rounded-r-xl">{credential.data.dateOfBirth}</td>
-                  </tr>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('familyName')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.familyName}</td>
-                  </tr>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('firstName')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.firstName}</td>
-                  </tr>
-                </>
-              )}
-              {credential.type === 'Bachelor' && (
-                <>
-                  <tr className="text-left  w-full">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('diplomaTitle')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.diplomaTitle}</td>
-                  </tr>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('eqfLevel')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.eqfLevel}</td>
-                  </tr>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('familyName')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.familyName}</td>
-                  </tr>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('firstName')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.firstName}</td>
-                  </tr>
-                  <tr className="text-left ">
-                    <td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-                      {getFieldIcon('grade')}
-                    </td>
-                    <td className="py-2 px-2 rounded-r-xl">{credential.data.grade}</td>
-                  </tr>
-                </>
-              )}
+              {renderRow('type', credential.type)}
+              {renderRow('expdate', formatDate(credential.expdate))}
+              {renderRow('familyName', credential.data.familyName)}
+              {renderRow('firstName', credential.data.firstName)}
+              {renderRow('dateOfBirth', credential.data.dateOfBirth)}
+              {renderRow('diplomaTitle', credential.data.diplomaTitle)}
+              {renderRow('eqfLevel', credential.data.eqfLevel)}
+              {renderRow('grade', credential.data.grade)}
             </>
           )}
         </tbody>
