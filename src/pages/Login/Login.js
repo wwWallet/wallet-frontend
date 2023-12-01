@@ -8,7 +8,6 @@ import { Trans, useTranslation } from 'react-i18next';
 import * as api from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
-import white_logo from '../../assets/images/wallet_white.png';
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
@@ -527,7 +526,6 @@ const Login = () => {
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 					<img className="w-40 dark:hidden" src={logo} alt="logo" />
-					<img className="w-40 dark:block"  src={white_logo} alt="logo" />
 				</a>
 
 				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
