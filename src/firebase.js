@@ -23,55 +23,42 @@ const initializeFirebase = async () => {
     }
     console.log("Supported", supported);
 
-    // Check for notification permission and register token if granted
-    if (supported) {
-        const permission = Notification.permission;
-        if (permission === "granted") {
-            registerToken();
-        } else if (permission !== "denied") {
-            // User hasn't made a decision yet, listen for permission change
-            Notification.requestPermission().then((result) => {
-                if (result === "granted") {
-                    registerToken();
-                }
-            });
-        }
-    }
 };
 
-const registerToken = async () => {
-    const token = await requestForToken();
-    if (token) {
-        // Store the token or perform any other necessary actions
-        console.log('Token registered and stored:', token);
-    } else {
-        console.log('Failed to retrieve token.');
-    }
-};
 
 const requestForToken = async () => {
-    if (!supported) {
-        return undefined;
-    }
-    if (messaging) {
-        try {
-            const currentToken = await getToken(messaging, { vapidKey: process.env.REACT_APP_FIREBASE_VAPIDKEY });
-            if (currentToken) {
-                console.log('Current token for client:', currentToken);
-                return currentToken;
-            } else {
-                console.log('No registration token available. Request permission to generate one.');
-                await reRegisterServiceWorkerAndGetToken();
-            }
-        } catch (err) {
-            console.error('An error occurred while retrieving token:', err);
-            await reRegisterServiceWorkerAndGetToken();
-        }
-    } else {
-        console.log('Messaging is not initialized.');
-        return null;
-    }
+	if (!supported) {
+			return null;
+	}
+	if (messaging) {
+			try {
+					const currentToken = await getToken(messaging, { vapidKey: process.env.REACT_APP_FIREBASE_VAPIDKEY });
+					if (currentToken) {
+							console.log('Current token for client:', currentToken);
+							return currentToken;
+					} else {
+							console.log('No registration token available. Request permission to generate one.');
+							return null;
+					}
+			} catch (err) {
+					console.log('ERROR:',err.message,err.code);
+					if (err.code === 'messaging/permission-blocked') {
+							console.error('Notification permission was blocked or click close.');
+							return null; 
+					}else if (err.message === "Failed to execute 'subscribe' on 'PushManager': Subscription failed - no active Service Worker") {
+								console.error('Failed beacuse there is no token created yet, so we are going to re-register');
+					
+					} else {
+							console.error('An error occurred while retrieving token:',err);
+							return null;
+					}
+			}
+	} else {
+			console.log('Messaging is not initialized.');
+			return null;
+	}
 };
+
 
 const reRegisterServiceWorkerAndGetToken = async () => {
     if ('serviceWorker' in navigator) {
@@ -80,14 +67,13 @@ const reRegisterServiceWorkerAndGetToken = async () => {
             const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
             if (registration) {
                 console.log('Service Worker re-registered', registration);
-                // Initialize Firebase Messaging
-                const messaging = getMessaging();
-                // Request a new FCM token
                 const token = await requestForToken();
                 if (token) {
                     console.log('New FCM token obtained:', token);
+										return token;
                 } else {
                     console.log('Failed to retrieve a new token.');
+										return null;
                 }
             } else {
                 console.log('Service Worker re-registration failed');
@@ -101,25 +87,26 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 };
 
 export const fetchToken = async () => {
-    if (messaging) {
-        const token = await requestForToken();
-        if (token) {
-            return token;
-        } else {
-            console.log('Failed to retrieve token. Trying to re-register service worker.');
-            await reRegisterServiceWorkerAndGetToken(); // Re-register service worker and fetch token
-            const newToken = await requestForToken();
-            if (newToken) {
-                return newToken;
-            } else {
-                console.log('Failed to retrieve a new token after re-registration.');
-            }
-        }
-    } else {
-        console.log('Messaging is not initialized.');
-    }
-    return null; // Return null in case of failure
+	if (messaging) {
+			const token = await requestForToken();
+			if (token) {
+					return token;
+			} else {
+					console.log('Failed to retrieve token. Trying to re-register service worker.');
+					const newToken =await reRegisterServiceWorkerAndGetToken(); // Re-register service worker and fetch token
+					if (newToken) {
+							return newToken;
+					} else {
+							console.log('Failed to retrieve a new token after re-registration.');
+					}
+			}
+	} else {
+			console.log('Messaging is not initialized.');
+			
+	}
+	return null; // Return null in case of failure
 };
+
 
 export const onMessageListener = () =>
     new Promise((resolve) => {
@@ -128,7 +115,7 @@ export const onMessageListener = () =>
                 resolve(payload);
             });
         }
-    });
+});
 
 const initializeMessaging = async () => {
     // Check for service worker
@@ -149,4 +136,15 @@ const initializeMessaging = async () => {
     }
 };
 
-initializeFirebase();
+const initializeFirebaseAndMessaging = async () => {
+	await initializeFirebase();
+	const messaging = await initializeMessaging();
+	// Now you can use the messaging object if it's available
+	if (messaging) {
+			// Do something with the messaging object
+	} else {
+			console.log('Messaging is not initialized.');
+	}
+};
+
+initializeFirebaseAndMessaging();
