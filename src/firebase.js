@@ -89,7 +89,8 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 export const fetchToken = async () => {
 	if (messaging) {
 			const token = await requestForToken();
-			if (token) {
+			console.log('token:',token);
+			if (token || token ===null) {
 					return token;
 			} else {
 					console.log('Failed to retrieve token. Trying to re-register service worker.');
