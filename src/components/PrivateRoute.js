@@ -9,18 +9,17 @@ const PrivateRoute = ({ children }) => {
 
   useEffect(() => {
     if (isLoggedIn) {
-
-			const requestNotificationPermission = async () => {
+      const requestNotificationPermission = async () => {
         try {
-          const permissionResult = await Notification.requestPermission();
-          if (permissionResult === 'granted') {
-            
-						// If permission is granted
-							const token = await fetchToken();
-							console.log('GIVE PERMISSION with token',token);
-							//call api function to store the token
-
+          if (Notification.permission !== 'granted') {
+            const permissionResult = await Notification.requestPermission();
+            if (permissionResult === 'granted') {
+              // If permission is granted
+              const token = await fetchToken();
+              console.log('GIVE PERMISSION with token', token);
+              // Call an API function to store the token
             }
+          }
         } catch (error) {
           console.error('Error requesting notification permission:', error);
         }
@@ -28,7 +27,7 @@ const PrivateRoute = ({ children }) => {
 
       requestNotificationPermission();
     }
-  }, [isLoggedIn, location.pathname ]);
+  }, [isLoggedIn, location.pathname]);
 
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
