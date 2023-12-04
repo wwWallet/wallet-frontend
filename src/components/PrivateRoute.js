@@ -28,25 +28,33 @@ const PrivateRoute = ({ children }) => {
     if (isLoggedIn) {
       requestNotificationPermission();
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn,location]);
 
-  useEffect(() => {
-    const sendFcmTokenToBackend = async () => {
-      if (isPermissionGranted) {
-        try {
-          const fcmToken = await fetchToken();
-          console.log('FCM Token:', fcmToken);
-          await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-					console.log('send FCM Token:', fcmToken);
-
-        } catch (error) {
-          console.error('Error sending FCM token to the backend:', error);
-        }
-      }
-    };
-
-    sendFcmTokenToBackend();
-  }, [isPermissionGranted]);
+	useEffect(() => {
+		const sendFcmTokenToBackend = async () => {
+			if (isPermissionGranted) {
+				// Check if the token has already been sent in the current session
+				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
+	
+				if (!tokenSentInSession) {
+					try {
+						const fcmToken = await fetchToken();
+						console.log('FCM Token:', fcmToken);
+						await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
+	
+						// Set a flag in sessionStorage to indicate that the token has been sent
+						sessionStorage.setItem('tokenSentInSession', 'true');
+	
+						console.log('send FCM Token:', fcmToken);
+					} catch (error) {
+						console.error('Error sending FCM token to the backend:', error);
+					}
+				}
+			}
+		};
+	
+		sendFcmTokenToBackend();
+	}, [isPermissionGranted]);
 
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
