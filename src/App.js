@@ -70,30 +70,6 @@ function App() {
 
 	}, []);
 
-	// useEffect(() => {
-  //   // Function to request notification permission and handle the result
-  //   const requestNotificationPermission = async () => {
-  //     try {
-  //       const permissionResult = await Notification.requestPermission();
-  //       if (permissionResult === 'granted') {
-  //         // Permission granted, call your function here
-  //         handleNotificationPermissionGranted();
-  //       }
-  //     } catch (error) {
-  //       console.error('Error requesting notification permission:', error);
-  //     }
-  //   };
-
-  //   // Call the notification permission request function when the component mounts
-  //   requestNotificationPermission();
-  // }, []);
-
-  // const handleNotificationPermissionGranted = () => {
-  //   // Your function to handle the notification permission being granted
-  //   // You can implement your logic here
-  //   console.log('Notification permission granted. Calling your function...');
-  // };
-
 	// Handle messages received from the service worker
 	const handleMessage = (event) => {
 		if (event.data.type === 'navigate') {

@@ -1,24 +1,40 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-
 import * as api from '../api';
-
+import { fetchToken } from '../firebase';
 
 const PrivateRoute = ({ children }) => {
-	const isLoggedIn = api.isLoggedIn();
-	const location = useLocation();
+  const isLoggedIn = api.isLoggedIn();
+  const location = useLocation();
 
-	// const handleauthrespn{
+  useEffect(() => {
+    if (isLoggedIn) {
 
-	// 	//take url req to bck handleAuthorizationResponse
-	// 	//if 200 go to root /
-	// }
+			const requestNotificationPermission = async () => {
+        try {
+          const permissionResult = await Notification.requestPermission();
+          if (permissionResult === 'granted') {
+            
+						// If permission is granted
+							const token = await fetchToken();
+							console.log('GIVE PERMISSION with token',token);
+							//call api function to store the token
 
-	if (!isLoggedIn) {
-		return <Navigate to="/login" state={{ from: location }} replace />;
-	}
+            }
+        } catch (error) {
+          console.error('Error requesting notification permission:', error);
+        }
+      };
 
-	return children;
+      requestNotificationPermission();
+    }
+  }, [isLoggedIn, location.pathname ]);
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return children;
 };
 
 export default PrivateRoute;
