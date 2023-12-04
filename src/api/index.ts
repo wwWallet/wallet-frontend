@@ -220,12 +220,9 @@ export async function loginWebauthn(
 			const response = credential.response as AuthenticatorAssertionResponse;
 			console.log("asserted", credential);
 
-			const fcm_token = await fetchToken();
-
 			try {
 				const finishResp = await post('/user/login-webauthn-finish', {
 					challengeId: beginData.challengeId,
-					fcm_token,
 					credential: {
 						type: credential.type,
 						id: credential.id,

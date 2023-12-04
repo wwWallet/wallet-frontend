@@ -7,6 +7,8 @@ const PrivateRoute = ({ children }) => {
   const isLoggedIn = api.isLoggedIn();
   const location = useLocation();
 
+
+	
   useEffect(() => {
     if (isLoggedIn) {
       const requestNotificationPermission = async () => {
@@ -15,9 +17,10 @@ const PrivateRoute = ({ children }) => {
             const permissionResult = await Notification.requestPermission();
             if (permissionResult === 'granted') {
               // If permission is granted
-              const token = await fetchToken();
-              console.log('GIVE PERMISSION with token', token);
+              const fcm_token = await fetchToken();
+              // console.log('GIVE PERMISSION with token', fcm_token);
               // Call an API function to store the token
+							await api.post('/user/session/fcm_token/add', { fcm_token });
             }
           }
         } catch (error) {
