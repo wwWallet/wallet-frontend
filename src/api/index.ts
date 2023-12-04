@@ -2,7 +2,6 @@ import axios, { AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 import { Err, Ok, Result } from 'ts-results';
 
-import { fetchToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -122,7 +121,6 @@ export async function login(username: string, password: string, keystore: LocalS
 };
 
 export async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
-	const fcm_token = await fetchToken();
 
 	try {
 		const { publicData, privateData } = await keystore.initPassword(password);
@@ -131,7 +129,6 @@ export async function signup(username: string, password: string, keystore: Local
 			const response = await post('/user/register', {
 				username,
 				password,
-				fcm_token,
 				displayName: username,
 				keys: publicData,
 				privateData: jsonStringifyTaggedBinary(privateData),
@@ -327,11 +324,8 @@ export async function signupWebauthn(
 
 				try {
 
-					const fcm_token = await fetchToken();
-
 					const finishResp = await post('/user/register-webauthn-finish', {
 						challengeId: beginData.challengeId,
-						fcm_token,
 						displayName: name,
 						keys: publicData,
 						privateData: jsonStringifyTaggedBinary(privateData),
