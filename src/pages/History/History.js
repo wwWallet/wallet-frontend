@@ -5,7 +5,6 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import * as api from '../../api';
-import Layout from '../../components/Layout';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import {formatDate} from '../../functions/DateFormat';
@@ -69,7 +68,7 @@ const History = () => {
   }, []);
 
   return (
-    <Layout>
+    <>
       <div className="sm:px-6 w-full">
         <h1 className="text-2xl mb-2 font-bold text-custom-blue">History</h1>
         <hr className="mb-2 border-t border-custom-blue/80" />
@@ -142,7 +141,7 @@ const History = () => {
 					</div>
 				</div>	
       )}
-    </Layout>
+    </>
   );
 };
 

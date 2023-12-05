@@ -2,9 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import * as api from '../api';
 import { fetchToken } from '../firebase';
+import Layout from './Layout';
 
 const PrivateRoute = ({ children }) => {
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+	const [isPermissionValue, setispermissionValue] = useState('');
+
   const isLoggedIn = api.isLoggedIn();
   const location = useLocation();
 
@@ -16,7 +19,9 @@ const PrivateRoute = ({ children }) => {
           const permissionResult = await Notification.requestPermission();
           if (permissionResult === 'granted') {
             setIsPermissionGranted(true);
+
           }
+					setispermissionValue(permissionResult);
         } else {
           setIsPermissionGranted(true);
         }
@@ -60,7 +65,11 @@ const PrivateRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+	return (
+    <Layout isPermissionGranted={isPermissionGranted} isPermissionValue={isPermissionValue} setispermissionValue={setispermissionValue}>
+      {children}
+    </Layout>
+  );
 };
 
 export default PrivateRoute;

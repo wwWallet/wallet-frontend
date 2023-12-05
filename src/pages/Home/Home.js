@@ -12,7 +12,6 @@ import "slick-carousel/slick/slick-theme.css";
 
 import addImage from '../../assets/images/cred.png';
 
-import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
@@ -82,7 +81,7 @@ const Home = () => {
 	};
 
   return (
-    <Layout>
+    <>
       <div className="sm:px-6 w-full">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">Credentials</h1>
@@ -210,7 +209,7 @@ const Home = () => {
 					/>
 				</div>
 			)}
-    </Layout>
+    </>
   );
 };
 

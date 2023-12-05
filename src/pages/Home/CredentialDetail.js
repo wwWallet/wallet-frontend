@@ -6,7 +6,6 @@ import { Link, useParams } from 'react-router-dom';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
 
-import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
@@ -26,7 +25,7 @@ const CredentialDetail = () => {
 	}, [id]);
 
 	return (
-		<Layout>
+		<>
 			<div className=" sm:px-6">
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
@@ -82,7 +81,7 @@ const CredentialDetail = () => {
 					</button>
 				</div>
 			)}
-		</Layout>
+		</>
 	);
 };
 
