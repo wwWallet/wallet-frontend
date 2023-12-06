@@ -575,6 +575,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					await idb.destroy();
 					setPrivateDataCache(null);
 					setWebauthnRpId(null);
+					setUserHandleB64u(null);
 					clearSessionStorage();
 				},
 
