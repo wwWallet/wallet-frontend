@@ -5,7 +5,7 @@ import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
-import * as api from '../../api';
+import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 
@@ -103,6 +103,7 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 }) => {
+	const api = useApi();
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
@@ -164,7 +165,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[keystore, navigate, t],
+		[api, keystore, navigate, t],
 	);
 
 	const onSignup = useCallback(
@@ -224,7 +225,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[retrySignupFrom, keystore, navigate, t],
+		[api, retrySignupFrom, keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {
@@ -420,6 +421,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
+	const api = useApi();
 	const { t } = useTranslation();
 
 	const [formData, setFormData] = useState({
