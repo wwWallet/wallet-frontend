@@ -1,5 +1,4 @@
 import axios, { AxiosResponse } from 'axios';
-import Cookies from 'js-cookie';
 import { Err, Ok, Result } from 'ts-results';
 
 import { fetchToken } from '../firebase';
@@ -7,22 +6,16 @@ import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '.
 import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useMemo } from 'react';
+import { useClearSessionStorage, useSessionStorage } from '../components/useStorage';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 
-enum CookieName {
-	appToken = 'appToken',
-	displayName = 'displayName',
-	username = 'username',
-	webauthnCredentialCredentialId = 'webauthnCredentialCredentialId',
-};
-
 type SessionState = {
-	[CookieName.username]?: string,
-	[CookieName.displayName]?: string,
-	[CookieName.webauthnCredentialCredentialId]?: string,
+	username: string,
+	displayName: string,
+	webauthnCredentialCredentialId: string,
 }
 
 type SignupWebauthnError = (
@@ -44,6 +37,7 @@ export interface BackendApi {
 	isLoggedIn(): boolean,
 	getAppToken(): string | undefined,
 	clearSession(): void,
+	getAppToken(): string | null,
 
 	login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
 	signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
@@ -67,10 +61,14 @@ export interface BackendApi {
 }
 
 export function useApi(): BackendApi {
+	const clearSessionStorage = useClearSessionStorage();
+	const [appToken, setAppToken] = useSessionStorage<string | null>("appToken", null);
+	const [sessionState, setSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
+
 	return useMemo(
 		() => {
-			function getAppToken(): string | undefined {
-				return Cookies.get(CookieName.appToken);
+			function getAppToken(): string | null {
+				return appToken;
 			}
 
 			function transformResponse(data: any): any {
@@ -86,7 +84,7 @@ export function useApi(): BackendApi {
 					`${walletBackendUrl}${path}`,
 					{
 						headers: {
-							Authorization: `Bearer ${getAppToken()}`,
+							Authorization: `Bearer ${appToken}`,
 						},
 						transformResponse,
 					},
@@ -99,7 +97,7 @@ export function useApi(): BackendApi {
 					body,
 					{
 						headers: {
-							Authorization: `Bearer ${getAppToken()}`,
+							Authorization: `Bearer ${appToken}`,
 							'Content-Type': 'application/json',
 						},
 						transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
@@ -113,48 +111,37 @@ export function useApi(): BackendApi {
 					`${walletBackendUrl}${path}`,
 					{
 						headers: {
-							Authorization: `Bearer ${getAppToken()}`,
+							Authorization: `Bearer ${appToken}`,
 						},
 						transformResponse,
 					});
 			}
 
-			function getSession(): {
-				[CookieName.username]?: string,
-				[CookieName.displayName]?: string,
-				[CookieName.webauthnCredentialCredentialId]?: string,
-			} {
-				return [
-					CookieName.username,
-					CookieName.displayName,
-					CookieName.webauthnCredentialCredentialId,
-				].reduce(
-					(result, name) => ({ ...result, [name]: Cookies.get(name) }),
-					{},
-				);
+			function getSession(): SessionState {
+				return sessionState;
 			}
 
 			function isLoggedIn(): boolean {
-				return getSession().username !== undefined;
+				return getSession() !== null;
 			}
 
 			function clearSession(): void {
-				Object.values(CookieName).forEach((name) => {
-					Cookies.remove(name);
-				});
+				clearSessionStorage();
 			}
 
-			function setSessionCookies(response: AxiosResponse, credential: PublicKeyCredential | null): void {
-				Object.values(CookieName).forEach((name) => {
-					Cookies.set(name, response.data[name]);
+			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null): void {
+				setAppToken(response.data.appToken);
+				setSessionState({
+					displayName: response.data.displayName,
+					username: response.data.username,
+					webauthnCredentialCredentialId: credential?.id,
 				});
-				Cookies.set(CookieName.webauthnCredentialCredentialId, credential?.id);
 			}
 
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 				try {
 					const response = await post('/user/login', { username, password });
-					setSessionCookies(response, null);
+					setSession(response, null);
 
 					const userData = response.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
@@ -187,7 +174,7 @@ export function useApi(): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSessionCookies(response, null);
+						setSession(response, null);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -304,7 +291,7 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSessionCookies(finishResp, credential);
+								setSession(finishResp, credential);
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -389,7 +376,7 @@ export function useApi(): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSessionCookies(finishResp, credential);
+								setSession(finishResp, credential);
 								return Ok.EMPTY;
 
 							} catch (e) {
@@ -435,6 +422,12 @@ export function useApi(): BackendApi {
 				signupWebauthn,
 			}
 		},
-		[],
+		[
+			appToken,
+			clearSessionStorage,
+			sessionState,
+			setAppToken,
+			setSessionState,
+		],
 	);
 }
