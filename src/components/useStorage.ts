@@ -120,32 +120,27 @@ function makeUseStorage<T>(
 	};
 }
 
+function makeUseClearStorage(storage: Storage, description: string): () => () => void {
+	if (!storage) {
+		throw new Error(`${description} is not available.`);
+	}
+
+	return () => useCallback(
+		() => {
+			storage.clear();
+			window.dispatchEvent(new CustomEvent<ClearEvent>('useStorage.clear', {
+				detail: { storageArea: storage },
+			}));
+		},
+		[],
+	);
+}
+
 export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
 	makeUseStorage(window.localStorage, "Local storage");
 
 export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
 	makeUseStorage(window.sessionStorage, "Session storage");
 
-export const useClearLocalStorage = () => useCallback(
-	() => {
-		if (window.localStorage) {
-			window.localStorage.clear();
-			window.dispatchEvent(new CustomEvent<ClearEvent>('useStorage.clear', {
-				detail: { storageArea: window.localStorage },
-			}));
-		}
-	},
-	[],
-);
-
-export const useClearSessionStorage = () => useCallback(
-	() => {
-		if (window.sessionStorage) {
-			window.sessionStorage.clear();
-			window.dispatchEvent(new CustomEvent<ClearEvent>('useStorage.clear', {
-				detail: { storageArea: window.sessionStorage },
-			}));
-		}
-	},
-	[],
-);
+export const useClearLocalStorage: () => () => void = makeUseClearStorage(window.localStorage, "Local storage");
+export const useClearSessionStorage: () => () => void = makeUseClearStorage(window.sessionStorage, "Session storage");
