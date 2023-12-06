@@ -103,6 +103,21 @@ function makeUseStorage<T>(
 			[name]
 		);
 
+		useEffect(
+			() => {
+				const listener = (event: CustomEvent<{ storageArea: Storage }>) => {
+					if (event.detail.storageArea === storage) {
+						setValue(initialValue);
+					}
+				};
+				window.addEventListener('useStorage.clear', listener);
+				return () => {
+					window.removeEventListener('useStorage.clear', listener);
+				};
+			},
+			[],
+		);
+
 		return [currentValue, updateValue];
 	};
 }
@@ -117,6 +132,7 @@ export const useClearLocalStorage = () => useCallback(
 	() => {
 		if (window.localStorage) {
 			window.localStorage.clear();
+			window.dispatchEvent(new CustomEvent('useStorage.clear', { detail: { storageArea: window.localStorage } }));
 		}
 	},
 	[],
@@ -126,6 +142,7 @@ export const useClearSessionStorage = () => useCallback(
 	() => {
 		if (window.sessionStorage) {
 			window.sessionStorage.clear();
+			window.dispatchEvent(new CustomEvent('useStorage.clear', { detail: { storageArea: window.sessionStorage } }));
 		}
 	},
 	[],
