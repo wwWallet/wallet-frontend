@@ -367,7 +367,7 @@ const WebauthnSignupLogin = ({
 							<ul className="overflow-y-auto max-h-24 custom-scrollbar">
 								{cachedUsers.map((cachedUser) => (
 									<li
-										key={cachedUser.cacheKey}
+										key={cachedUser.userHandleB64u}
 										className="w-full flex flex-row flex-nowrap mb-2"
 									>
 										<button
