@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { SignatureAction } from "../types/shared.types";
-import Cookies from "js-cookie";
 import { useLocalStorageKeystore } from "../services/LocalStorageKeystore";
 import Spinner from '../components/Spinner';
 import { SigningRequestHandlerService } from '../services/SigningRequestHandlers';
+import { useApi } from "../api";
 
 const REACT_APP_WS_URL = process.env.REACT_APP_WS_URL;
 
 export default function handleServerMessagesGuard(Component) {
 	return (props) => {
-		const appToken = Cookies.get("appToken");
+		const api = useApi();
+		const appToken = api.getAppToken();
 
 		const [ handshakeEstablished, setHandshakeEstablished ] = useState(false);
 		const socket = new WebSocket(REACT_APP_WS_URL);

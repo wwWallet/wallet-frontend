@@ -42,6 +42,7 @@ export interface BackendApi {
 
 	getSession(): SessionState,
 	isLoggedIn(): boolean,
+	getAppToken(): string | undefined,
 	clearSession(): void,
 
 	login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
@@ -427,6 +428,7 @@ export function useApi(): BackendApi {
 				signup,
 				getAllVerifiers,
 				getAllPresentations,
+				getAppToken,
 				initiatePresentationExchange,
 
 				loginWebauthn,
