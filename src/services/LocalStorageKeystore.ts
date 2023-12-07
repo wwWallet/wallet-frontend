@@ -338,6 +338,15 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		}
 	}, []));
 
+	const close = useCallback(
+		async (): Promise<void> => {
+			await idb.destroy();
+			setPrivateDataCache(null);
+			clearSessionStorage();
+		},
+		[idb, setPrivateDataCache, clearSessionStorage],
+	);
+
 	useEffect(
 		() => {
 			if (privateDataCache && userHandleB64u) {
@@ -354,9 +363,11 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 						return cu;
 					}
 				}));
+			} else if (!privateDataCache) {
+				close();
 			}
 		},
-		[privateDataCache, userHandleB64u, setCachedUsers],
+		[close, privateDataCache, userHandleB64u, setCachedUsers],
 	);
 
 	return useMemo(
@@ -551,11 +562,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			return {
-				close: async (): Promise<void> => {
-					await idb.destroy();
-					setPrivateDataCache(null);
-					clearSessionStorage();
-				},
+				close,
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPassword");
@@ -721,8 +728,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		},
 		[
 			cachedUsers,
-			clearSessionStorage,
-			idb,
+			close,
 			privateDataCache,
 			privateDataJwe,
 			sessionKey,
