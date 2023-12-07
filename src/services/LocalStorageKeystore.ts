@@ -345,7 +345,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}));
 			}
 		},
-		[privateDataCache, userHandleB64u],
+		[privateDataCache, userHandleB64u, setCachedUsers],
 	);
 
 	return useMemo(
@@ -751,6 +751,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			setInnerSessionKey,
 			setPrivateDataCache,
 			setPrivateDataJwe,
+			setUserHandleB64u,
 			setWebauthnRpId,
 			webauthnRpId,
 		],
