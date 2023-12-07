@@ -53,6 +53,8 @@ const PrivateRoute = ({ children }) => {
 							// Set a flag in sessionStorage to indicate that the token has been sent
 							// sessionStorage.setItem('tokenSentInSession', 'true');
 							console.log('send FCM Token:', fcmToken);		
+						}else{
+							window.location.reload();
 						}
 						console.log('FCM Token:', fcmToken);
 					} catch (error) {
