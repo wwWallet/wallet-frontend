@@ -313,11 +313,19 @@ export interface LocalStorageKeystore {
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [userHandleB64u, setUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
-	const [webauthnRpId, setWebauthnRpId] = useLocalStorage<string | null>("webauthnRpId", null);
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+
+	const [userHandleB64u, setUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
+	const [webauthnRpId, setWebauthnRpId] = useSessionStorage<string | null>("webauthnRpId", null);
 	const [sessionKey, setSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
 	const [privateDataJwe, setPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
+
+	useEffect(() => {
+		// Moved from local storage to session storage
+		window?.localStorage?.removeItem("userHandle");
+		window?.localStorage?.removeItem("webauthnRpId");
+	}, []);
+
 	const clearSessionStorage = useClearSessionStorage();
 
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
@@ -546,8 +554,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				close: async (): Promise<void> => {
 					await idb.destroy();
 					setPrivateDataCache(null);
-					setWebauthnRpId(null);
-					setUserHandleB64u(null);
 					clearSessionStorage();
 				},
 
