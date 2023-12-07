@@ -3,11 +3,12 @@ import { Navigate, useLocation } from 'react-router-dom';
 import * as api from '../api';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
+import Spinner from './Spinner'; // Import your spinner component
 
 const PrivateRoute = ({ children }) => {
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 	const [isPermissionValue, setispermissionValue] = useState('');
-
+  const [loading, setLoading] = useState(false);
   const isLoggedIn = api.isLoggedIn();
   const location = useLocation();
 
@@ -20,7 +21,9 @@ const PrivateRoute = ({ children }) => {
           if (permissionResult === 'granted') {
             setIsPermissionGranted(true);
 
-          }
+          }else{
+						sessionStorage.setItem('tokenSentInSession', 'false');
+					}
 					setispermissionValue(permissionResult);
         } else {
           setIsPermissionGranted(true);
@@ -39,24 +42,27 @@ const PrivateRoute = ({ children }) => {
 		const sendFcmTokenToBackend = async () => {
 			if (isPermissionGranted) {
 				// Check if the token has already been sent in the current session
-				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
+				// const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
 	
-				if (!tokenSentInSession) {
+				// if (!tokenSentInSession) {
+					setLoading(true); // Start loading
 					try {
 						const fcmToken = await fetchToken();
+						if (fcmToken!== null){
+							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
+							// Set a flag in sessionStorage to indicate that the token has been sent
+							// sessionStorage.setItem('tokenSentInSession', 'true');
+							console.log('send FCM Token:', fcmToken);		
+						}
 						console.log('FCM Token:', fcmToken);
-						await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-	
-						// Set a flag in sessionStorage to indicate that the token has been sent
-						sessionStorage.setItem('tokenSentInSession', 'true');
-	
-						console.log('send FCM Token:', fcmToken);
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
+					} finally {
+						setLoading(false);
 					}
-				}
+				// }
 			}
-		};
+		}
 	
 		sendFcmTokenToBackend();
 	}, [isPermissionGranted]);
@@ -66,9 +72,14 @@ const PrivateRoute = ({ children }) => {
   }
 
 	return (
-    <Layout isPermissionGranted={isPermissionGranted} isPermissionValue={isPermissionValue} setispermissionValue={setispermissionValue}>
-      {children}
-    </Layout>
+    <>
+      {loading && <Spinner />}
+      {!loading && (
+        <Layout isPermissionGranted={isPermissionGranted} isPermissionValue={isPermissionValue} setispermissionValue={setispermissionValue}>
+          {children}
+        </Layout>
+      )}
+    </>
   );
 };
 
