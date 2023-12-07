@@ -314,6 +314,7 @@ export interface LocalStorageKeystore {
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [globalUserHandleB64u, setGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
 	const [userHandleB64u, setUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
 	const [webauthnRpId, setWebauthnRpId] = useSessionStorage<string | null>("webauthnRpId", null);
@@ -338,18 +339,28 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		}
 	}, []));
 
+	const closeTabLocal = useCallback(
+		() => {
+			clearSessionStorage();
+		},
+		[clearSessionStorage],
+	);
+
 	const close = useCallback(
 		async (): Promise<void> => {
 			await idb.destroy();
 			setPrivateDataCache(null);
-			clearSessionStorage();
+			setGlobalUserHandleB64u(null);
+			closeTabLocal();
 		},
-		[idb, setPrivateDataCache, clearSessionStorage],
+		[closeTabLocal, idb, setGlobalUserHandleB64u, setPrivateDataCache],
 	);
 
 	useEffect(
 		() => {
-			if (privateDataCache && userHandleB64u) {
+			if (privateDataCache && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
+				// When PRF keys are added, deleted or edited in any tab,
+				// propagate changes to cached users
 				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
 					if (cu.userHandleB64u === userHandleB64u) {
 						return {
@@ -363,11 +374,20 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 						return cu;
 					}
 				}));
+
 			} else if (!privateDataCache) {
-				close();
+				// When user logs out in any tab, log out in all tabs
+				closeTabLocal();
+
+			} else if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
+				console.log("useEffect userHandle");
+
+				// When user logs in in any tab, log out in all other tabs
+				// that are logged in to a different account
+				closeTabLocal();
 			}
 		},
-		[close, privateDataCache, userHandleB64u, setCachedUsers],
+		[close, closeTabLocal, privateDataCache, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
 	return useMemo(
@@ -434,6 +454,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					);
 
 					setUserHandleB64u(userHandleB64u);
+					setGlobalUserHandleB64u(userHandleB64u);
 					setCachedUsers((cachedUsers) => {
 						// Move most recently used user to front of list
 						const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
@@ -733,6 +754,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			privateDataJwe,
 			sessionKey,
 			setCachedUsers,
+			setGlobalUserHandleB64u,
 			setPrivateDataCache,
 			setPrivateDataJwe,
 			setSessionKey,
