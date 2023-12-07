@@ -514,7 +514,11 @@ const Home = () => {
 				console.error('Failed to fetch data', error);
 			}
 		},
-		[api, setUserData],
+		[
+			api,
+			keystore, // To react if credentials are modified in a different tab
+			setUserData,
+		],
 	);
 
 	useEffect(
