@@ -351,8 +351,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 	return useMemo(
 		() => {
-			console.log("New LocalStorageKeystore instance");
-
 			const createOuterSessionKey = async (): Promise<CryptoKey> => {
 				const outerSessionKey = await crypto.subtle.generateKey(
 					{ name: "AES-KW", length: 256 },
@@ -577,6 +575,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					await idb.destroy();
 					setPrivateDataCache(null);
 					setWebauthnRpId(null);
+					setUserHandleB64u(null);
 					clearSessionStorage();
 				},
 

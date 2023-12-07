@@ -237,7 +237,6 @@ export async function loginWebauthn(
 						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 				});
-				setSessionCookies(finishResp, credential);
 
 				try {
 					const userData = finishResp.data as UserData;
@@ -254,6 +253,7 @@ export async function loginWebauthn(
 							userHandle: new Uint8Array(response.userHandle),
 						},
 					);
+					setSessionCookies(finishResp, credential);
 					return Ok.EMPTY;
 				} catch (e) {
 					console.error("Failed to open keystore", e);
