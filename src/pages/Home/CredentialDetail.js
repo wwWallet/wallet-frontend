@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
+import { MdDelete } from "react-icons/md";
 
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
@@ -61,7 +62,13 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<div className="flex flex-col lg:flex-row mt-10">
+				<button
+					className="lg:m-0 m-2 mt-5 text-white cursor-pointer flex items-center bg-red-600 hover:bg-red-800 font-medium rounded-lg text-sm px-4 py-2 text-center"
+				>
+					<MdDelete size={20}/> Delete
+				</button>
+				<div className="flex flex-col lg:flex-row mt-4">
+					
 					<div className="lg:w-1/2">
 						<CredentialJson credential={credential} />		
 					</div>
