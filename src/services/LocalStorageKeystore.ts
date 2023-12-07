@@ -6,7 +6,7 @@ import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 import { util } from '@cef-ebsi/key-did-resolver';
 
 import { verifiablePresentationSchemaURL } from "../constants";
-import { useClearLocalStorage, useClearSessionStorage, useLocalStorage, useSessionStorage } from "../components/useStorage";
+import { useClearSessionStorage, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
@@ -318,7 +318,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
 	const [privateDataJwe, setPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
-	const clearLocalStorage = useClearLocalStorage();
 	const clearSessionStorage = useClearSessionStorage();
 
 	const idb = useIndexedDb("wallet-frontend", 1, useCallback((db, prevVersion, newVersion) => {
@@ -743,7 +742,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		},
 		[
 			cachedUsers,
-			clearLocalStorage,
 			clearSessionStorage,
 			idb,
 			innerSessionKey,
