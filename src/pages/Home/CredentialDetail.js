@@ -5,12 +5,12 @@ import { Link, useParams } from 'react-router-dom';
 
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
-import { MdDelete } from "react-icons/md";
 
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import CredentialDelete from '../../components/Credentials/CredentialDelete';
 
 const CredentialDetail = () => {
 	const { id } = useParams();
@@ -20,7 +20,6 @@ const CredentialDetail = () => {
 	useEffect(() => {
 		const getData = async () => {
 			const newCredential = await fetchCredentialData(id);
-			console.log(newCredential.json);
 			setCredentials(newCredential);
 		};
 		getData();
@@ -43,8 +42,7 @@ const CredentialDetail = () => {
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">View all the information about the chosen credential.</p>
 
-
-				<div className="flex flex-col lg:flex-row  mt-4">
+				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}
 					<div className='lg:w-1/2'>
 						{credential && credential.src ? (
@@ -62,13 +60,9 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<button
-					className="lg:m-0 m-2 mt-5 text-white cursor-pointer flex items-center bg-red-600 hover:bg-red-800 font-medium rounded-lg text-sm px-4 py-2 text-center"
-				>
-					<MdDelete size={20}/> Delete
-				</button>
+				<CredentialDelete credential={credential}/>
+
 				<div className="flex flex-col lg:flex-row mt-4">
-					
 					<div className="lg:w-1/2">
 						<CredentialJson credential={credential} />		
 					</div>
