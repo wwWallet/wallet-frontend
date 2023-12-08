@@ -1,5 +1,5 @@
 import { useEffect, useState, Dispatch, SetStateAction } from 'react';
-import * as api from '../api';
+import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
@@ -10,6 +10,7 @@ function useCheckURL(urlToCheck: string): {
 	setSelectedValue: Dispatch<SetStateAction<string | null>>,
 	conformantCredentialsMap: any,
 } {
+	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
 	const [isValidURL, setIsValidURL] = useState<boolean | null>(null);
 	const [showPopup, setShowPopup] = useState<boolean>(false);
@@ -113,7 +114,7 @@ function useCheckURL(urlToCheck: string): {
 				}
 			})();
 		}
-	}, [keystore, urlToCheck, isLoggedIn]);
+	}, [api, keystore, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
 		if (selectedValue) {
@@ -128,7 +129,7 @@ function useCheckURL(urlToCheck: string): {
 					window.location.href = redirect_to; // Navigate to the redirect URL
 			});
 		}
-	}, [keystore, selectedValue]);
+	}, [api, keystore, selectedValue]);
 
 	return { isValidURL, showPopup, setShowPopup, setSelectedValue, conformantCredentialsMap };
 }

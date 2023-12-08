@@ -4,7 +4,7 @@ import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import * as api from '../api';
+import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
@@ -28,6 +28,7 @@ const NavItem = ({
 
 const Sidebar = ({ isOpen, toggle }) => {
 
+  const api = useApi();
 	const { username, displayName } = api.getSession();
 	const location=useLocation();
 	const navigate = useNavigate();

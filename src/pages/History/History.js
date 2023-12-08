@@ -4,7 +4,7 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 
-import * as api from '../../api';
+import { useApi } from '../../api';
 import Layout from '../../components/Layout';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
@@ -12,6 +12,7 @@ import {formatDate} from '../../functions/DateFormat';
 
 
 const History = () => {
+  const api = useApi();
   const [history, setHistory] = useState([]);
   const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
@@ -36,7 +37,7 @@ const History = () => {
   const handleHistoryItemClick = async (ivci) => {
 
     // Fetch all credentials
-    const temp_cred = await fetchCredentialData();
+    const temp_cred = await fetchCredentialData(api);
 
     // Filter credentials to keep only those with matching IDs in ivci
     const matchingCreds = temp_cred.filter((cred) => ivci.includes(cred.credentialIdentifier));
@@ -66,7 +67,7 @@ const History = () => {
     };
 
     fetchedPresentations();
-  }, []);
+  }, [api]);
 
   return (
     <Layout>

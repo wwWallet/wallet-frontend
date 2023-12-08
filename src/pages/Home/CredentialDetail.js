@@ -6,6 +6,7 @@ import { Link, useParams } from 'react-router-dom';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
 
+import { useApi } from '../../api';
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
@@ -13,17 +14,20 @@ import { fetchCredentialData } from '../../components/Credentials/ApiFetchCreden
 import CredentialDelete from '../../components/Credentials/CredentialDelete';
 
 const CredentialDetail = () => {
+	const api = useApi();
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 
 	useEffect(() => {
 		const getData = async () => {
-			const newCredential = await fetchCredentialData(id);
+
+			const newCredential = await fetchCredentialData(api, id);
+			console.log(newCredential.json);
 			setCredentials(newCredential);
 		};
 		getData();
-	}, [id]);
+	}, [api, id]);
 
 	return (
 		<Layout>
