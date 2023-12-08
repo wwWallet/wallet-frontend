@@ -1,24 +1,26 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import * as api from '../api';
-
+import { useApi } from '../api';
 
 const PrivateRoute = ({ children }) => {
-	const isLoggedIn = api.isLoggedIn();
-	const location = useLocation();
+  const api = useApi();
+  const isLoggedIn = api.isLoggedIn();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-	// const handleauthrespn{
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const destination = location.pathname + location.search;
+      navigate('/login', { state: { from: destination } });
+    }
+  }, [isLoggedIn, location, navigate]);
 
-	// 	//take url req to bck handleAuthorizationResponse
-	// 	//if 200 go to root /
-	// }
+  if (!isLoggedIn) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
 
-	if (!isLoggedIn) {
-		return <Navigate to="/login" state={{ from: location }} replace />;
-	}
-
-	return children;
+  return children;
 };
 
 export default PrivateRoute;

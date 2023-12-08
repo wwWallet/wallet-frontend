@@ -15,7 +15,7 @@ function makeUseStorage<T>(
 	}
 
 	return (name: string, initialValue: T) => {
-		const [currentValue, setValue] = useState(
+		const getCurrentValue = useCallback(
 			() => {
 				const storedValueStr = storage.getItem(name);
 				try {
@@ -27,14 +27,17 @@ function makeUseStorage<T>(
 					storage.removeItem(name);
 				}
 				return initialValue;
-			}
+			},
+			[],
 		);
+
+		const [currentValue, setValue] = useState(getCurrentValue);
 
 		const updateValue = useCallback(
 			(action: SetStateAction<T>): void => {
 				const newValue =
 					action instanceof Function
-					? action(currentValue)
+					? action(getCurrentValue())
 					: action;
 				try {
 					storage.setItem(name, jsonStringifyTaggedBinary(newValue));
@@ -51,7 +54,7 @@ function makeUseStorage<T>(
 					})
 				);
 			},
-			[currentValue, name],
+			[],
 		);
 
 		useEffect(
@@ -77,7 +80,7 @@ function makeUseStorage<T>(
 					window.removeEventListener('storage', listener);
 				};
 			},
-			[name]
+			[]
 		);
 
 		useEffect(
