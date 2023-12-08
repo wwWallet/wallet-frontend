@@ -16,6 +16,7 @@ import { useApi } from '../../api';
 import Layout from '../../components/Layout';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
+import CredentialDelete from '../../components/Credentials/CredentialDelete';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
@@ -152,6 +153,7 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
+												<CredentialDelete credential={credential}/>
 												<CredentialJson credential={credential} />
 
 											</>
