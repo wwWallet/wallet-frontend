@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useApi } from '../api';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
@@ -12,6 +12,8 @@ const PrivateRoute = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const isLoggedIn = api.isLoggedIn();
   const location = useLocation();
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const requestNotificationPermission = async () => {
