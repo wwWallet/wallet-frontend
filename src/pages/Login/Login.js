@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaExclamationTriangle, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
@@ -111,6 +111,9 @@ const WebauthnSignupLogin = ({
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
+	const location = useLocation();
+	const from = location.state?.from || '/';
+
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -139,7 +142,7 @@ const WebauthnSignupLogin = ({
 		async (cachedUser) => {
 			const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 			if (result.ok) {
-				navigate('/');
+				navigate(from, { replace: true });
 
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
@@ -179,7 +182,7 @@ const WebauthnSignupLogin = ({
 				retrySignupFrom,
 			);
 			if (result.ok) {
-				navigate('/');
+				navigate(from, { replace: true });
 
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
