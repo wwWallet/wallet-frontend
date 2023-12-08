@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaShare } from 'react-icons/fa';
 import {BsQrCodeScan} from 'react-icons/bs'
-import * as api from '../../api';
+
+import { useApi } from '../../api';
 import Spinner from '../../components/Spinner';
 import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
@@ -17,6 +18,7 @@ function highlightBestSequence(issuer, search) {
 }
 
 const Issuers = () => {
+	const api = useApi();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
@@ -50,7 +52,7 @@ const Issuers = () => {
 		};
 
 		fetchIssuers();
-	}, []);
+	}, [api]);
 
 	const handleSearch = (event) => {
 		const query = event.target.value;

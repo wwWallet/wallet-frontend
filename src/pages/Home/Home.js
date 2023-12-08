@@ -12,12 +12,14 @@ import "slick-carousel/slick/slick-theme.css";
 
 import addImage from '../../assets/images/cred.png';
 
+import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
 const Home = () => {
+  const api = useApi();
   const [credentials, setCredentials] = useState([]);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -54,12 +56,12 @@ const Home = () => {
 
 	useEffect(() => {
 		const getData = async () => {
-			const temp_cred = await fetchCredentialData();
+			const temp_cred = await fetchCredentialData(api);
 			console.log(temp_cred);
 			setCredentials(temp_cred);
 		};
 		getData();
-	}, []);
+	}, [api]);
 
   const handleAddCredential = () => {
     navigate('/add');

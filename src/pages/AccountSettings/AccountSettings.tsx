@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
-import * as api from '../../api';
+import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import {formatDate} from '../../functions/DateFormat';
@@ -55,6 +55,7 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
+	const api = useApi();
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
@@ -94,7 +95,7 @@ const WebauthnRegistation = ({
 				setIsSubmitting(false);
 			}
 		},
-		[],
+		[api],
 	);
 
 	const onCancel = () => {
@@ -493,6 +494,7 @@ const WebauthnCredentialItem = ({
 
 
 const Home = () => {
+	const api = useApi();
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
@@ -511,7 +513,11 @@ const Home = () => {
 				console.error('Failed to fetch data', error);
 			}
 		},
-		[setUserData],
+		[
+			api,
+			keystore, // To react if credentials are modified in a different tab
+			setUserData,
+		],
 	);
 
 	useEffect(

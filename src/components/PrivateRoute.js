@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import * as api from '../api';
+import { useApi } from '../api';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 
 const PrivateRoute = ({ children }) => {
+  const api = useApi();
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 	const [isPermissionValue, setispermissionValue] = useState('');
   const [loading, setLoading] = useState(false);
@@ -67,6 +68,14 @@ const PrivateRoute = ({ children }) => {
 		sendFcmTokenToBackend();
 	}, [isPermissionGranted]);
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const destination = location.pathname + location.search;
+      navigate('/login', { state: { from: destination } });
+    }
+  }, [isLoggedIn, location, navigate]);
+
+
   if (!isLoggedIn) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -81,6 +90,9 @@ const PrivateRoute = ({ children }) => {
       )}
     </>
   );
+
+  return children;
+
 };
 
 export default PrivateRoute;
