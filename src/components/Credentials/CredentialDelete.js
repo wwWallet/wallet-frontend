@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 
 import { MdDelete } from "react-icons/md";
 import Spinner from '../../components/Spinner';
-import * as api from '../../api';
+import {useApi} from '../../api';
 
 const CredentialDelete = ({ credential }) => {
 	const [showPopup, setShowPopup] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const api = useApi();
 
 	console.log(credential);
 	const handleDeleteCredential = () => {
