@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 
 import { MdDelete } from "react-icons/md";
 import Spinner from '../../components/Spinner';
+import * as api from '../../api';
 
 const CredentialDelete = ({ credential }) => {
 	const [showPopup, setShowPopup] = useState(false);
@@ -18,9 +19,13 @@ const CredentialDelete = ({ credential }) => {
     setShowPopup(false);
   };
 
-	const handleSureDelete = () => {
+	const handleSureDelete = async () => {
 		setLoading(true);
-			//send it to backend in order to deleted
+		try {
+			await api.del(`/storage/vc/${credential.credentialIdentifier}`);
+		} catch (error) {
+			console.error('Failed to delete data', error);
+		}
 		setLoading(false);
 		setShowPopup(false);
 		window.location.href = '/';
