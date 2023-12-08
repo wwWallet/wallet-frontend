@@ -11,6 +11,7 @@ import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import CredentialDelete from '../../components/Credentials/CredentialDelete';
 
 const CredentialDetail = () => {
 	const api = useApi();
@@ -20,6 +21,7 @@ const CredentialDetail = () => {
 
 	useEffect(() => {
 		const getData = async () => {
+
 			const newCredential = await fetchCredentialData(api, id);
 			console.log(newCredential.json);
 			setCredentials(newCredential);
@@ -44,8 +46,7 @@ const CredentialDetail = () => {
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">View all the information about the chosen credential.</p>
 
-
-				<div className="flex flex-col lg:flex-row  mt-4">
+				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}
 					<div className='lg:w-1/2'>
 						{credential && credential.src ? (
@@ -63,7 +64,9 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<div className="flex flex-col lg:flex-row mt-10">
+				<CredentialDelete credential={credential}/>
+
+				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
 						<CredentialJson credential={credential} />		
 					</div>
