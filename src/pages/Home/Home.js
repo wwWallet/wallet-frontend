@@ -15,7 +15,8 @@ import addImage from '../../assets/images/cred.png';
 import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
-import CredentialDelete from '../../components/Credentials/CredentialDelete';
+import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
+import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
@@ -26,6 +27,8 @@ const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(1);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const sliderRef = useRef();
@@ -81,6 +84,18 @@ const Home = () => {
 
 	const closeQRScanner = () => {
 		setQRScannerOpen(false);
+	};
+
+	const handleSureDelete = async () => {
+		setLoading(true);
+		try {
+			await api.del(`/storage/vc/${selectedCredential.credentialIdentifier}`);
+		} catch (error) {
+			console.error('Failed to delete data', error);
+		}
+		setLoading(false);
+		setShowDeletePopup(false);
+		window.location.href = '/';
 	};
 
   return (
@@ -152,7 +167,7 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
-												<CredentialDelete credential={credential}/>
+            						<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedCredential(credential); }} />
 												<CredentialJson credential={credential} />
 
 											</>
@@ -213,6 +228,16 @@ const Home = () => {
 					/>
 				</div>
 			)}
+
+			{/* Delete Credential Modal */}
+			{showDeletePopup && selectedCredential && (
+        <CredentialDeletePopup
+          credential={selectedCredential}
+          onCancel={() => setShowDeletePopup(false)}
+          onConfirm={handleSureDelete}
+          loading={loading}
+        />
+      )}
     </>
   );
 };
