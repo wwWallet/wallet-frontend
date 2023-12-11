@@ -661,6 +661,7 @@ const Login = () => {
 					</div>
 				</div>
 			</div>
+			<div className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900 font-small w-full text-right'>{process.env.REACT_APP_VERSION}</div>
 		</section>
 	);
 };
