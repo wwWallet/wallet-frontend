@@ -6,7 +6,7 @@ import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 import { util } from '@cef-ebsi/key-did-resolver';
 
 import { verifiablePresentationSchemaURL } from "../constants";
-import { useClearSessionStorage, useLocalStorage, useSessionStorage } from "../components/useStorage";
+import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
@@ -313,21 +313,20 @@ export interface LocalStorageKeystore {
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [privateDataCache, setPrivateDataCache,] = useLocalStorage<EncryptedContainer | null>("privateData", null);
-	const [globalUserHandleB64u, setGlobalUserHandleB64u,] = useLocalStorage<string | null>("userHandle", null);
+	const [privateDataCache, setPrivateDataCache, clearPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
-	const [userHandleB64u, setUserHandleB64u,] = useSessionStorage<string | null>("userHandle", null);
-	const [webauthnRpId, setWebauthnRpId,] = useSessionStorage<string | null>("webauthnRpId", null);
-	const [sessionKey, setSessionKey,] = useSessionStorage<BufferSource | null>("sessionKey", null);
-	const [privateDataJwe, setPrivateDataJwe,] = useSessionStorage<string | null>("privateDataJwe", null);
+	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
+	const [webauthnRpId, setWebauthnRpId, clearWebauthnRpId] = useSessionStorage<string | null>("webauthnRpId", null);
+	const [sessionKey, setSessionKey, clearSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
+	const [privateDataJwe, setPrivateDataJwe, clearPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
+	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearWebauthnRpId, clearSessionKey, clearPrivateDataJwe);
 
 	useEffect(() => {
 		// Moved from local storage to session storage
 		window?.localStorage?.removeItem("userHandle");
 		window?.localStorage?.removeItem("webauthnRpId");
 	}, []);
-
-	const clearSessionStorage = useClearSessionStorage();
 
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
@@ -349,11 +348,11 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const close = useCallback(
 		async (): Promise<void> => {
 			await idb.destroy();
-			setPrivateDataCache(null);
-			setGlobalUserHandleB64u(null);
+			clearPrivateDataCache();
+			clearGlobalUserHandleB64u();
 			closeTabLocal();
 		},
-		[closeTabLocal, idb, setGlobalUserHandleB64u, setPrivateDataCache],
+		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateDataCache],
 	);
 
 	useEffect(

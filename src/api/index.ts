@@ -6,7 +6,7 @@ import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '.
 import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useMemo } from 'react';
-import { useClearSessionStorage, useSessionStorage } from '../components/useStorage';
+import { useClearStorages, useSessionStorage } from '../components/useStorage';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -61,9 +61,9 @@ export interface BackendApi {
 }
 
 export function useApi(): BackendApi {
-	const clearSessionStorage = useClearSessionStorage();
-	const [appToken, setAppToken,] = useSessionStorage<string | null>("appToken", null);
-	const [sessionState, setSessionState,] = useSessionStorage<SessionState | null>("sessionState", null);
+	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
+	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
+	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 
 	return useMemo(
 		() => {
