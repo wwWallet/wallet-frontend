@@ -122,42 +122,8 @@ function makeUseStorage<T>(
 			[],
 		);
 
-		useEffect(
-			() => {
-				// Listen to synthetic events sent by the useClearLocalStorage and
-				// useClearSessionStorage hooks. Storage.clear() does not send "storage"
-				// events in the same Document.
-				const listener = (event: CustomEvent<ClearEvent>) => {
-					if (event.detail.storageArea === storage) {
-						setValue(initialValue);
-					}
-				};
-				window.addEventListener('useStorage.clear', listener);
-				return () => {
-					window.removeEventListener('useStorage.clear', listener);
-				};
-			},
-			[],
-		);
-
 		return [currentValue, updateValue, clearValue];
 	};
-}
-
-function makeUseClearStorage(storage: Storage, description: string): () => ClearHandle {
-	if (!storage) {
-		throw new Error(`${description} is not available.`);
-	}
-
-	return () => useCallback(
-		() => {
-			storage.clear();
-			window.dispatchEvent(new CustomEvent<ClearEvent>('useStorage.clear', {
-				detail: { storageArea: storage },
-			}));
-		},
-		[],
-	);
 }
 
 export const useLocalStorage: <T>(name: string, initialValue: T) => UseStorageHandle<T> =
@@ -165,9 +131,6 @@ export const useLocalStorage: <T>(name: string, initialValue: T) => UseStorageHa
 
 export const useSessionStorage: <T>(name: string, initialValue: T) => UseStorageHandle<T> =
 	makeUseStorage(window.sessionStorage, "Session storage");
-
-export const useClearLocalStorage: () => ClearHandle = makeUseClearStorage(window.localStorage, "Local storage");
-export const useClearSessionStorage: () => ClearHandle = makeUseClearStorage(window.sessionStorage, "Session storage");
 
 export const useClearStorages: (...clearHandles: ClearHandle[]) => ClearHandle =
 	(...clearHandles: ClearHandle[]) => useCallback(
