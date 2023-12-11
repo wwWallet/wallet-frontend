@@ -276,6 +276,7 @@ async function getPrfOutput(
 
 export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
+	isOpen(): boolean,
 	close(): Promise<void>,
 
 	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
@@ -582,6 +583,9 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			return {
+				isOpen: () => {
+					return privateDataJwe !== null && sessionKey !== null;
+				},
 				close,
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
