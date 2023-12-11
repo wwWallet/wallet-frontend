@@ -312,14 +312,14 @@ export interface LocalStorageKeystore {
 }
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
-	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
-	const [globalUserHandleB64u, setGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
+	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
+	const [privateDataCache, setPrivateDataCache,] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [globalUserHandleB64u, setGlobalUserHandleB64u,] = useLocalStorage<string | null>("userHandle", null);
 
-	const [userHandleB64u, setUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
-	const [webauthnRpId, setWebauthnRpId] = useSessionStorage<string | null>("webauthnRpId", null);
-	const [sessionKey, setSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
-	const [privateDataJwe, setPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
+	const [userHandleB64u, setUserHandleB64u,] = useSessionStorage<string | null>("userHandle", null);
+	const [webauthnRpId, setWebauthnRpId,] = useSessionStorage<string | null>("webauthnRpId", null);
+	const [sessionKey, setSessionKey,] = useSessionStorage<BufferSource | null>("sessionKey", null);
+	const [privateDataJwe, setPrivateDataJwe,] = useSessionStorage<string | null>("privateDataJwe", null);
 
 	useEffect(() => {
 		// Moved from local storage to session storage

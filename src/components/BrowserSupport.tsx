@@ -27,7 +27,7 @@ const BrowserSupportedContext = createContext<ContextValue>({
 });
 
 export function Ctx({ children }: { children: ReactNode }) {
-	const [bypass, setBypass] = useSessionStorage('browser_warning_ack', false);
+	const [bypass, setBypass,] = useSessionStorage('browser_warning_ack', false);
 
 	const userAgent = new UAParser(window.navigator.userAgent).getResult();
 

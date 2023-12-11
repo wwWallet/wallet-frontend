@@ -62,8 +62,8 @@ export interface BackendApi {
 
 export function useApi(): BackendApi {
 	const clearSessionStorage = useClearSessionStorage();
-	const [appToken, setAppToken] = useSessionStorage<string | null>("appToken", null);
-	const [sessionState, setSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
+	const [appToken, setAppToken,] = useSessionStorage<string | null>("appToken", null);
+	const [sessionState, setSessionState,] = useSessionStorage<SessionState | null>("sessionState", null);
 
 	return useMemo(
 		() => {
