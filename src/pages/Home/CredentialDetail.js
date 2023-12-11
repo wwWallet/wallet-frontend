@@ -11,13 +11,16 @@ import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
-import CredentialDelete from '../../components/Credentials/CredentialDelete';
+import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
+import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 
 const CredentialDetail = () => {
 	const api = useApi();
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
+	const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -28,6 +31,18 @@ const CredentialDetail = () => {
 		};
 		getData();
 	}, [api, id]);
+
+	const handleSureDelete = async () => {
+		setLoading(true);
+		try {
+			await api.del(`/storage/vc/${credential.credentialIdentifier}`);
+		} catch (error) {
+			console.error('Failed to delete data', error);
+		}
+		setLoading(false);
+		setShowDeletePopup(false);
+		window.location.href = '/';
+	};
 
 	return (
 		<>
@@ -64,7 +79,7 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<CredentialDelete credential={credential}/>
+        <CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
 
 				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
@@ -87,6 +102,16 @@ const CredentialDetail = () => {
 					</button>
 				</div>
 			)}
+
+			{/* Delete Credential Modal */}
+			{showDeletePopup && credential && (
+        <CredentialDeletePopup
+          credential={credential}
+          onCancel={() => setShowDeletePopup(false)}
+          onConfirm={handleSureDelete}
+          loading={loading}
+        />
+      )}
 		</>
 	);
 };
