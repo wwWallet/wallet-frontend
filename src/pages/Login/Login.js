@@ -565,6 +565,12 @@ const Login = () => {
 											/>
 										}}
 									/>
+									<div className='mt-1'>
+									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+									<Trans
+										i18nKey="infoAboutTimeAndLocation"
+									/>
+									</div>
 								</CheckBrowserSupport.If>
 								<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
 									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
@@ -577,6 +583,12 @@ const Login = () => {
 											/>
 										}}
 									/>
+									<div className='mt-1'>
+										<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+										<Trans
+											i18nKey="infoAboutTimeAndLocation"
+										/>
+									</div>
 								</CheckBrowserSupport.If>
 							</p>
 						</CheckBrowserSupport.If>
