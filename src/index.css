@@ -39,3 +39,17 @@ code {
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+/* Nav item animation on Hover */
+.nav-item-animate-hover {
+  background: linear-gradient(90deg, transparent 50%, white 50%);
+  background-size: 200% 100%;
+  background-position: left;
+  transition: background 0.3s, color 0.3s;
+  color: white;
+}
+
+.nav-item-animate-hover:hover {
+  background-position: right;
+  color: #003476;
+}
