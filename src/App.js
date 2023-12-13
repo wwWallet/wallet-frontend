@@ -1,7 +1,6 @@
 // Import Libraries
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
 import Spinner from './components/Spinner'; // Make sure this Spinner component exists and renders the spinner you want
 // Import i18next and set up translations
 import i18n from 'i18next';
