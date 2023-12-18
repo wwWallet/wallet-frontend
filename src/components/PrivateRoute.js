@@ -20,16 +20,16 @@ const PrivateRoute = ({ children }) => {
       console.log(Notification.permission);
       try {
         if (Notification.permission !== 'granted') {
+					sessionStorage.setItem('tokenSentInSession', 'false');
           const permissionResult = await Notification.requestPermission();
           if (permissionResult === 'granted') {
             setIsPermissionGranted(true);
-
-          }else{
-						sessionStorage.setItem('tokenSentInSession', 'false');
-					}
+          }
 					setispermissionValue(permissionResult);
         } else {
           setIsPermissionGranted(true);
+					sessionStorage.setItem('tokenSentInSession', 'false');
+
         }
       } catch (error) {
         console.error('Error requesting notification permission:', error);
@@ -43,27 +43,31 @@ const PrivateRoute = ({ children }) => {
 
 	useEffect(() => {
 		const sendFcmTokenToBackend = async () => {
+
+			console.log('isPermissionGranted:',isPermissionGranted);
 			if (isPermissionGranted) {
+
 				// Check if the token has already been sent in the current session
-				// const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
-	
-				// if (!tokenSentInSession) {
-					setLoading(true); // Start loading
+				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
+				console.log('tokenSentInSession:',tokenSentInSession);
+
+				if (tokenSentInSession==='false') {
+					setLoading(true);
 					try {
 						const fcmToken = await fetchToken();
 
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
 							// Set a flag in sessionStorage to indicate that the token has been sent
-							// sessionStorage.setItem('tokenSentInSession', 'true');
+							sessionStorage.setItem('tokenSentInSession', 'true');
 							console.log('send FCM Token:', fcmToken);		
-
+							
 						console.log('FCM Token:', fcmToken);
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
 					} finally {
 						setLoading(false);
 					}
-				// }
+				}
 			}
 		}
 	

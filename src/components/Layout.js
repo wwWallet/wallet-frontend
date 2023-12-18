@@ -39,7 +39,11 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
     if ('Notification' in window) {
       const permission = await Notification.requestPermission();
       console.log('permission', permission);
-			setispermissionValue(permission);
+			if (permission === 'granted') {
+				window.location.reload();
+			}else {
+				setispermissionValue(permission);
+			}
     }
   };
 
