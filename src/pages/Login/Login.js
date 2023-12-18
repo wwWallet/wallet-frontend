@@ -435,6 +435,8 @@ const Login = () => {
 	const [error, setError] = useState('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isContentVisible, setIsContentVisible] = useState(false);
+
 	const navigate = useNavigate();
 	const keystore = useLocalStorageKeystore();
 
@@ -526,150 +528,152 @@ const Login = () => {
 
 	const passwordStrength = getPasswordStrength(password);
 
+	useEffect(() => {
+    setTimeout(() => {
+      setIsContentVisible(true);
+    }, 0);
+  }, []);
+
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
-			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
-				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-					<img className="w-40" src={logo} alt="logo" />
-				</a>
+			<div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
+				<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
+					<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+						<img className="w-40" src={logo} alt="logo" />
+					</a>
 
-				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
-					<Trans
-						i18nKey="welcomeMessage"
-						components={{
-							highlight: <span className="text-custom-blue dark:text-custom-light-blue" />
-						}}
-					/>
-				</h1>
+					<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+						<Trans
+							i18nKey="welcomeMessage"
+							components={{
+								highlight: <span className="text-custom-blue dark:text-custom-light-blue" />
+							}}
+						/>
+					</h1>
 
-				<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
-					{/* Dropdown to change language */}
-					{/* <div className="absolute top-2 right-2">
-						<LanguageSelector />
-					</div> */}
-					<CheckBrowserSupport.Ctx>
-						<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-							<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-								<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
-									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-									<Trans
-										i18nKey="learnMoreAboutPrfCompatibilityAndScenarios"
-										components={{
-											docLinkPrf: <a
-												href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-											/>,
-											docLinkScenarios: <a
-											href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-											className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-											/>
-										}}
-									/>
-									<div className='mt-1'>
-									<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-									<Trans
-										i18nKey="infoAboutTimeAndLocation"
-									/>
-									</div>
-								</CheckBrowserSupport.If>
-								<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
-									<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
-									<Trans
-										i18nKey="learnMoreAboutPrfCompatibility"
-										components={{
-											docLinkPrf: <a
-												href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
-											/>
-										}}
-									/>
-									<div className='mt-1'>
+					<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
+						{/* Dropdown to change language */}
+						{/* <div className="absolute top-2 right-2">
+							<LanguageSelector />
+						</div> */}
+						<CheckBrowserSupport.Ctx>
+							<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
+								<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+									<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 										<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 										<Trans
-											i18nKey="infoAboutTimeAndLocation"
+											i18nKey="learnMoreAboutPrfCompatibilityAndScenarios"
+											components={{
+												docLinkPrf: <a
+													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+												/>,
+												docLinkScenarios: <a
+												href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
+												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+												/>
+											}}
 										/>
+                   <div className='mt-1'>
+									  <FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+									  <Trans
+										  i18nKey="infoAboutTimeAndLocation"
+									  />
 									</div>
-								</CheckBrowserSupport.If>
-							</p>
-						</CheckBrowserSupport.If>
-					</CheckBrowserSupport.Ctx>
-					<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700">
-						<CheckBrowserSupport.WarningPortal>
-							<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-								{isLogin ? t('login') : t('signUp')}
-							</h1>
-							{ (loginWithPassword) ?
-								<>
-									<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-										{error && <div className="text-red-500">{error}</div>}
-										<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
-											<FormInputField
-												ariaLabel="Username"
-												name="username"
-												onChange={handleInputChange}
-												placeholder={t('enterUsername')}
-												type="text"
-												value={username}
-											/>
-										</FormInputRow>
-
-										<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
-											<FormInputField
-												ariaLabel="Password"
-												name="password"
-												onChange={handleInputChange}
-												placeholder={t('enterPassword')}
-												type="password"
-												value={password}
-											/>
-											{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
-										</FormInputRow>
-
-										{!isLogin && (
-											<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+									</CheckBrowserSupport.If>
+									<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
+										<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+										<Trans
+											i18nKey="learnMoreAboutPrfCompatibility"
+											components={{
+												docLinkPrf: <a
+													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+												/>
+											}}
+										/>
+									</CheckBrowserSupport.If>
+								</p>
+							</CheckBrowserSupport.If>
+						</CheckBrowserSupport.Ctx>
+						<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700">
+							<CheckBrowserSupport.WarningPortal>
+								<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+									{isLogin ? t('login') : t('signUp')}
+								</h1>
+								{ (loginWithPassword) ?
+									<>
+										<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+											{error && <div className="text-red-500">{error}</div>}
+											<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
 												<FormInputField
-													ariaLabel="Confirm Password"
-													name="confirmPassword"
+													ariaLabel="Username"
+													name="username"
 													onChange={handleInputChange}
-													placeholder={t('enterconfirmPasswordLabel')}
-													type="password"
-													value={confirmPassword}
+													placeholder={t('enterUsername')}
+													type="text"
+													value={username}
 												/>
 											</FormInputRow>
-										)}
 
-										<button
-											className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-											type="submit"
-											disabled={isSubmitting}
-										>
-											{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
-										</button>
-									</form>
-									<SeparatorLine>OR</SeparatorLine>
-								</>
-								:
-								<></>
-							}
+											<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
+												<FormInputField
+													ariaLabel="Password"
+													name="password"
+													onChange={handleInputChange}
+													placeholder={t('enterPassword')}
+													type="password"
+													value={password}
+												/>
+												{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
+											</FormInputRow>
+
+											{!isLogin && (
+												<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+													<FormInputField
+														ariaLabel="Confirm Password"
+														name="confirmPassword"
+														onChange={handleInputChange}
+														placeholder={t('enterconfirmPasswordLabel')}
+														type="password"
+														value={confirmPassword}
+													/>
+												</FormInputRow>
+											)}
+
+											<button
+												className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+												type="submit"
+												disabled={isSubmitting}
+											>
+												{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
+											</button>
+										</form>
+										<SeparatorLine>OR</SeparatorLine>
+									</>
+									:
+									<></>
+								}
 
 
-							<WebauthnSignupLogin
-								isLogin={isLogin}
-								isSubmitting={isSubmitting}
-								setIsSubmitting={setIsSubmitting}
-							/>
+								<WebauthnSignupLogin
+									isLogin={isLogin}
+									isSubmitting={isSubmitting}
+									setIsSubmitting={setIsSubmitting}
+								/>
 
-							<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-								{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
-								<a
-									href="/"
-									className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
-									onClick={toggleForm}
-								>
-									{isLogin ? t('signUp') : t('login')}
-								</a>
-							</p>
-						</CheckBrowserSupport.WarningPortal>
+								<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+									{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
+									<a
+										href="/"
+										className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
+										onClick={toggleForm}
+									>
+										{isLogin ? t('signUp') : t('login')}
+									</a>
+								</p>
+							</CheckBrowserSupport.WarningPortal>
+						</div>
 					</div>
 				</div>
 			</div>

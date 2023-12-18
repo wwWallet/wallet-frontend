@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useApi } from '../api';
+import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
@@ -10,10 +11,12 @@ const PrivateRoute = ({ children }) => {
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 	const [isPermissionValue, setispermissionValue] = useState('');
   const [loading, setLoading] = useState(false);
-  const isLoggedIn = api.isLoggedIn();
+  const api = useApi();
+  const keystore = useLocalStorageKeystore();
+  const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
+  
   const location = useLocation();
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const requestNotificationPermission = async () => {

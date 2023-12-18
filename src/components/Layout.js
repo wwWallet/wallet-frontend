@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the icons you want to use
@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissionValue }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isContentVisible, setIsContentVisible] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false);
   const [isMessageVisible, setIsMessageVisible] = useState(true);
@@ -47,6 +48,12 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
     }
   };
 
+  useEffect(() => {
+    setTimeout(() => {
+      setIsContentVisible(true);
+    }, 0);
+  }, []);
+  
   return (
     <div className="flex h-screen">
       <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
@@ -134,7 +141,9 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
               </button>
             </div>
           )}
-          {children}
+          <div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
+						{children}
+					</div>
         </div>
       </div>
     </div>
