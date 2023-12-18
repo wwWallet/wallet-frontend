@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { useApi } from '../api';
+import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 const PrivateRoute = ({ children }) => {
   const api = useApi();
-  const isLoggedIn = api.isLoggedIn();
+  const keystore = useLocalStorageKeystore();
+  const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
   const location = useLocation();
   const navigate = useNavigate();
 

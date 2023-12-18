@@ -1,7 +1,8 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
-type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
+type ClearHandle = () => void;
+type UseStorageHandle<T> = [T, Dispatch<SetStateAction<T>>, ClearHandle];
 type UseStorageEvent = { storageArea: Storage };
 type ClearEvent = UseStorageEvent;
 type SetValueEvent<T> = UseStorageEvent & { name: string, value: T };
@@ -9,7 +10,7 @@ type SetValueEvent<T> = UseStorageEvent & { name: string, value: T };
 function makeUseStorage<T>(
 	storage: Storage,
 	description: string,
-): (name: string, initialValue: T) => UseStateHandle<T> {
+): (name: string, initialValue: T) => UseStorageHandle<T> {
 	if (!storage) {
 		throw new Error(`${description} is not available.`);
 	}
@@ -50,6 +51,26 @@ function makeUseStorage<T>(
 							storageArea: storage,
 							name,
 							value: newValue,
+						},
+					})
+				);
+			},
+			[],
+		);
+
+		const clearValue = useCallback(
+			(): void => {
+				try {
+					storage.removeItem(name);
+				} catch (e) {
+					console.error(`Failed to remove storage "${name}"`, e);
+				}
+				window.dispatchEvent(
+					new CustomEvent<SetValueEvent<T>>('useStorage.set', {
+						detail: {
+							storageArea: storage,
+							name,
+							value: initialValue,
 						},
 					})
 				);
@@ -101,49 +122,20 @@ function makeUseStorage<T>(
 			[],
 		);
 
-		useEffect(
-			() => {
-				// Listen to synthetic events sent by the useClearLocalStorage and
-				// useClearSessionStorage hooks. Storage.clear() does not send "storage"
-				// events in the same Document.
-				const listener = (event: CustomEvent<ClearEvent>) => {
-					if (event.detail.storageArea === storage) {
-						setValue(initialValue);
-					}
-				};
-				window.addEventListener('useStorage.clear', listener);
-				return () => {
-					window.removeEventListener('useStorage.clear', listener);
-				};
-			},
-			[],
-		);
-
-		return [currentValue, updateValue];
+		return [currentValue, updateValue, clearValue];
 	};
 }
 
-function makeUseClearStorage(storage: Storage, description: string): () => () => void {
-	if (!storage) {
-		throw new Error(`${description} is not available.`);
-	}
-
-	return () => useCallback(
-		() => {
-			storage.clear();
-			window.dispatchEvent(new CustomEvent<ClearEvent>('useStorage.clear', {
-				detail: { storageArea: storage },
-			}));
-		},
-		[],
-	);
-}
-
-export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
+export const useLocalStorage: <T>(name: string, initialValue: T) => UseStorageHandle<T> =
 	makeUseStorage(window.localStorage, "Local storage");
 
-export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
+export const useSessionStorage: <T>(name: string, initialValue: T) => UseStorageHandle<T> =
 	makeUseStorage(window.sessionStorage, "Session storage");
 
-export const useClearLocalStorage: () => () => void = makeUseClearStorage(window.localStorage, "Local storage");
-export const useClearSessionStorage: () => () => void = makeUseClearStorage(window.sessionStorage, "Session storage");
+export const useClearStorages: (...clearHandles: ClearHandle[]) => ClearHandle =
+	(...clearHandles: ClearHandle[]) => useCallback(
+		() => {
+			clearHandles.forEach(clear => clear());
+		},
+		[...clearHandles],
+	);
