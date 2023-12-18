@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { GiHamburgerMenu } from 'react-icons/gi';
 import logo from '../assets/images/wallet_white.png';
@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Layout = ({ children }) => {
 	const location=useLocation();
 	const navigate = useNavigate();
+  const [isContentVisible, setIsContentVisible] = useState(false);
 
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -21,9 +22,16 @@ const Layout = ({ children }) => {
 		}
 	};
 
+	useEffect(() => {
+    // Simulate the content fade-in effect after a short delay
+    setTimeout(() => {
+      setIsContentVisible(true);
+    }, 0);
+  }, []);
+
 	return (
 		<div className="flex h-screen">
-			<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
+				<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
 			{/* Header */}
 			<header className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 sm:hidden'}`}>
@@ -43,8 +51,10 @@ const Layout = ({ children }) => {
 				</div>
 
 				{/* Content */}
-				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
-					{children}
+				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto" >
+					<div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
+						{children}
+					</div>
 				</div>
 			</div>
 		</div>

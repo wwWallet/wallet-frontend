@@ -10,21 +10,25 @@ import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
 const NavItem = ({
-	children,
-	handleNavigate,
-	location,
-	path,
+  children,
+  handleNavigate,
+  location,
+  path,
 }) => {
-	return (
-		<li
-			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-white hover:text-custom-blue ${location.pathname === path ? 'bg-white text-custom-blue' : ''
-				}`}
-		>
-			{children}
-		</li>
-	);
+  return (
+    <li
+      onClick={() => handleNavigate(path)}
+      className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${
+        location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'
+      }`}
+    >
+      {children}
+    </li>
+  );
 };
+
+
+
 
 const Sidebar = ({ isOpen, toggle }) => {
 
@@ -123,7 +127,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 					<li
 						onClick={handleLogout}
-						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl hover:bg-light-red hover:text-custom-blue `}
+						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
 					>
 						<AiOutlineLogout size={30} />
 						<span>Logout</span>
