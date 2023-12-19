@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FaShare } from 'react-icons/fa';
 import {BsQrCodeScan} from 'react-icons/bs'
+
 import { useApi } from '../../api';
-import Layout from '../../components/Layout';
+
 import Spinner from '../../components/Spinner';
 import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
@@ -125,7 +126,7 @@ const Verifiers = () => {
 	};
 
   return (
-    <Layout>
+    <>
       <div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">Send Credentials</h1>
@@ -239,7 +240,7 @@ const Verifiers = () => {
 					/>
 				</div>
       )}
-    </Layout>
+    </>
   );
 };
 

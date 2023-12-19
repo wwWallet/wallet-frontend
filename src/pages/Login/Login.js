@@ -574,6 +574,12 @@ const Login = () => {
 												/>
 											}}
 										/>
+                   <div className='mt-1'>
+									  <FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+									  <Trans
+										  i18nKey="infoAboutTimeAndLocation"
+									  />
+									</div>
 									</CheckBrowserSupport.If>
 									<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
 										<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
@@ -671,6 +677,7 @@ const Login = () => {
 					</div>
 				</div>
 			</div>
+			<div className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900 font-small w-full text-right'>{process.env.REACT_APP_VERSION}</div>
 		</section>
 	);
 };

@@ -1,7 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
-import { fetchToken } from '../firebase';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -117,6 +116,7 @@ export function useApi(): BackendApi {
 					});
 			}
 
+
 			function getSession(): SessionState {
 				return sessionState;
 			}
@@ -160,7 +160,6 @@ export function useApi(): BackendApi {
 			};
 
 			async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
-				const fcm_token = await fetchToken();
 
 				try {
 					const { publicData, privateData } = await keystore.initPassword(password);
@@ -169,7 +168,6 @@ export function useApi(): BackendApi {
 						const response = await post('/user/register', {
 							username,
 							password,
-							fcm_token,
 							displayName: username,
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
@@ -235,6 +233,7 @@ export function useApi(): BackendApi {
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 			> {
 				try {
+
 					const beginResp = await post('/user/login-webauthn-begin', {});
 					console.log("begin", beginResp);
 					const beginData = beginResp.data;
@@ -355,11 +354,9 @@ export function useApi(): BackendApi {
 
 							try {
 
-								const fcm_token = await fetchToken();
 
 								const finishResp = await post('/user/register-webauthn-finish', {
 									challengeId: beginData.challengeId,
-									fcm_token,
 									displayName: name,
 									keys: publicData,
 									privateData: jsonStringifyTaggedBinary(privateData),

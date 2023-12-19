@@ -49,8 +49,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 			window.location.reload();
 		} else {
 		navigate(path);
-		// toggle(); // Close the sidebar after navigation (optional)
-		}
+		if (window.innerWidth <= 639) {
+			toggle();
+	}		}
 	};
 
 	return (

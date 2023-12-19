@@ -5,7 +5,6 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
-import Layout from '../../components/Layout';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import {formatDate} from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -558,7 +557,7 @@ const Home = () => {
 		cred => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId);
 
 	return (
-		<Layout>
+		<>
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
@@ -618,7 +617,7 @@ const Home = () => {
 					</>
 				)}
 			</div>
-		</Layout>
+		</>
 	);
 };
 
