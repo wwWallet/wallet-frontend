@@ -562,11 +562,15 @@ const Login = () => {
 									<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 										<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 										<Trans
-											i18nKey="learnMoreAboutPrfCompatibilityAndScenarios"
+											i18nKey="learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
 											components={{
 												docLinkPrf: <a
 													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+												/>,
+												docLinkLaunchpad: <a
+												href="https://launchpad.wwwallet.org" target='blank_'
+												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
 												/>,
 												docLinkScenarios: <a
 												href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
