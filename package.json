@@ -32,8 +32,7 @@
     "typescript": "^5.1.6",
     "ua-parser-js": "^1.0.36",
     "uuid": "^9.0.0",
-    "web-vitals": "^2.1.4",
-    "ws": "^8.14.1"
+    "web-vitals": "^2.1.4"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
