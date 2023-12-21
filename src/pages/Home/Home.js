@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Trans, useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
@@ -32,6 +33,7 @@ const Home = () => {
 
   const navigate = useNavigate();
   const sliderRef = useRef();
+	const { t } = useTranslation();
 
 	const settings = {
 		dots: false,
@@ -102,7 +104,7 @@ const Home = () => {
     <>
       <div className="sm:px-6 w-full">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-custom-blue">Credentials</h1>
+          <h1 className="text-2xl font-bold text-custom-blue">{t('Common.navItemCredentials')}</h1>
 
 					<div className='flex gap-x-1'>
 					{ isSmallScreen && (
@@ -121,7 +123,7 @@ const Home = () => {
           >
             <div className="flex items-center">
               <BsPlusCircle size={20} className="text-white" />
-              <span className="hidden sm:inline">&nbsp; Credentials</span>
+              <span className="hidden sm:inline">&nbsp; {t('Common.navItemCredentials')}</span>
             </div>
           </button>
 					</div>
@@ -129,7 +131,7 @@ const Home = () => {
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic pd-2 text-gray-700">View all of your credentials, and use the 'Add new credentials' card to add more</p>
+        <p className="italic pd-2 text-gray-700">{t('PageCredentials.description')}</p>
         <div className='my-4'>
           {isSmallScreen ? (
           	<>
@@ -146,7 +148,7 @@ const Home = () => {
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">Add New Credential</span>
+										<span className="text-white font-semibold">{t('PageCredentials.addCardTitle')}</span>
 									</div>
 								</div>
 							) : (
@@ -198,7 +200,7 @@ const Home = () => {
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">Add New Credential</span>
+										<span className="text-white font-semibold">{t('PageCredentials.addCardTitle')}</span>
 									</div>
 								</div>
 							</div>

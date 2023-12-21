@@ -82,6 +82,9 @@
 	"Sidebar":{
 		"navItemLogout":"Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
-
+	},
+	"PageCredentials":{
+		"description":"View all of your credentials, and use the 'Add new credentials' card to add more",
+		"addCardTitle":"Add New Credential"
 	}
 }
