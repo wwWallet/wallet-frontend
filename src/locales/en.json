@@ -4,7 +4,9 @@
 		"navItemCredentials":"Credentials",
 		"navItemHistory":"History",
 		"navItemAddCredentials":"Add Credentials",
-		"navItemSendCredentials":"Send Credentials"
+		"navItemSendCredentials":"Send Credentials",
+		"delete":"Delete",
+		"cancel":"Cancel"
 	},
 	"BrowserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
@@ -85,6 +87,15 @@
 	},
 	"PageCredentials":{
 		"description":"View all of your credentials, and use the 'Add new credentials' card to add more",
-		"addCardTitle":"Add New Credential"
+		"addCardTitle":"Add New Credential",
+		"Details":{
+			"description":"View all the information about the chosen credential"
+		},
+		"deletePopup":{
+			"messagePart1":"Are you sure you want to delete the",
+			"messagePart2":"credential?",
+			"messagePart3":"If you delete it,",
+			"messagePart4":"all the presentations that include this VC will be removed from your history."
+		}
 	}
 }
