@@ -1,4 +1,11 @@
 {
+	"Common":{
+		"walletName":"wwWallet",
+		"navItemCredentials":"Credentials",
+		"navItemHistory":"History",
+		"navItemAddCredentials":"Add Credentials",
+		"navItemSendCredentials":"Send Credentials"
+	},
 	"BrowserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
 		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
@@ -71,5 +78,10 @@
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+	},
+	"Sidebar":{
+		"navItemLogout":"Logout",
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+
 	}
 }
