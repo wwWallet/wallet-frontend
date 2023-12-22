@@ -10,7 +10,7 @@ import elTranslation from './locales/el.json';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
-import Snowfall from 'react-snowfall';
+import Snowfalling from './components/ChistmasAnimation/Snowfalling'
 
 const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
@@ -81,7 +81,7 @@ function App() {
 	};
 	return (
 		<I18nextProvider i18n={i18n}>
-		  <Snowfall snowflakeCount={200} />
+		  <Snowfalling/>
 
 			<Router>
 				<Suspense fallback={<Spinner />}>
