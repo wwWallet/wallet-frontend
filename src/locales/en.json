@@ -97,5 +97,14 @@
 			"messagePart3":"If you delete it,",
 			"messagePart4":"all the presentations that include this VC will be removed from your history."
 		}
+	},
+	"PageHistory":{
+		"description":"View history of credential transmissions, detailing when and to which verifiers you sent",
+		"noFound":"No history presentations found",
+		"popupTitle":"Presented Credentials"
+	},
+	"PageAddCredentials":{
+	},
+	"PageSendCredentials":{
 	}
 }
