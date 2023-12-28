@@ -124,5 +124,10 @@
 			"messagePart1":"You have selected",
 			"messagePart2":". If you continue, you will be redirected in the current tab to the verifier's page."
 		}
+	},
+	"NotFound":{
+		"title":"Oops, page not found!",
+		"message":"Sorry, the page you're looking for cannot be accessed",
+		"homeButton":"Back to Home"
 	}
 }
