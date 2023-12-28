@@ -106,6 +106,14 @@
 		"popupTitle":"Presented Credentials"
 	},
 	"PageAddCredentials":{
+		"description":"Search and choose an issuer for credential retrieval",
+		"searchPlaceholder":"Search issuers...",
+		"noFound":"No matching issuers found.",
+		"Popup":{
+			"title":"Selected Issuer:",
+			"messagePart1":"You have selected",
+			"messagePart2":". If you continue, you will be redirected in the current tab to the issuer's page."
+		}
 	},
 	"PageSendCredentials":{
 		"description":"Search and choose a verifier to share credentials with",
