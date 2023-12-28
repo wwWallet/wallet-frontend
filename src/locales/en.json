@@ -6,7 +6,9 @@
 		"navItemAddCredentials":"Add Credentials",
 		"navItemSendCredentials":"Send Credentials",
 		"delete":"Delete",
-		"cancel":"Cancel"
+		"cancel":"Cancel",
+		"continue":"Continue"
+
 	},
 	"BrowserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
@@ -106,5 +108,13 @@
 	"PageAddCredentials":{
 	},
 	"PageSendCredentials":{
+		"description":"Search and choose a verifier to share credentials with",
+		"searchPlaceholder":"Search verifiers...",
+		"noFound":"No matching verifiers found.",
+		"Popup":{
+			"title":"Selected Verifier:",
+			"messagePart1":"You have selected",
+			"messagePart2":". If you continue, you will be redirected in the current tab to the verifier's page."
+		}
 	}
 }
