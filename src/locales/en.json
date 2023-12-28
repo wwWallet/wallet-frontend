@@ -129,5 +129,9 @@
 		"title":"Oops, page not found!",
 		"message":"Sorry, the page you're looking for cannot be accessed",
 		"homeButton":"Back to Home"
+	},
+	"QRCodeScanner":{
+		"title":"Scan the QR Code",
+		"description":"Target the QR Code, and you will redirect to proceed with the process"
 	}
 }
