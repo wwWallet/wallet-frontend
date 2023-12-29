@@ -133,5 +133,9 @@
 	"QRCodeScanner":{
 		"title":"Scan the QR Code",
 		"description":"Target the QR Code, and you will redirect to proceed with the process"
+	},
+	"SelectCredentialPopup":{
+		"title":"Select an Option:",
+		"description":"Please select one of the above credentials to proceed with the presentation"
 	}
 }
