@@ -1,5 +1,5 @@
 {
-	"Common":{
+	"common":{
 		"walletName":"wwWallet",
 		"navItemCredentials":"Credentials",
 		"navItemHistory":"History",
@@ -8,9 +8,8 @@
 		"delete":"Delete",
 		"cancel":"Cancel",
 		"continue":"Continue"
-
 	},
-	"BrowserSupportWarningPortal": {
+	"browserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
 		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
 		"heading": "Unsupported platform",
@@ -24,7 +23,7 @@
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
 	},
-	"LoginSignup":{
+	"loginSignup":{
 		"addPasskey": "Add passkey",
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"cancel": "Cancel",
@@ -83,14 +82,14 @@
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
 	},
-	"Sidebar":{
+	"sidebar":{
 		"navItemLogout":"Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
 	},
-	"PageCredentials":{
+	"pageCredentials":{
 		"description":"View all of your credentials, and use the 'Add new credentials' card to add more",
 		"addCardTitle":"Add New Credential",
-		"Details":{
+		"details":{
 			"description":"View all the information about the chosen credential"
 		},
 		"deletePopup":{
@@ -100,41 +99,41 @@
 			"messagePart4":"all the presentations that include this VC will be removed from your history."
 		}
 	},
-	"PageHistory":{
+	"pageHistory":{
 		"description":"View history of credential transmissions, detailing when and to which verifiers you sent",
 		"noFound":"No history presentations found",
 		"popupTitle":"Presented Credentials"
 	},
-	"PageAddCredentials":{
+	"pageAddCredentials":{
 		"description":"Search and choose an issuer for credential retrieval",
 		"searchPlaceholder":"Search issuers...",
 		"noFound":"No matching issuers found.",
-		"Popup":{
+		"popup":{
 			"title":"Selected Issuer:",
 			"messagePart1":"You have selected",
 			"messagePart2":". If you continue, you will be redirected in the current tab to the issuer's page."
 		}
 	},
-	"PageSendCredentials":{
+	"pageSendCredentials":{
 		"description":"Search and choose a verifier to share credentials with",
 		"searchPlaceholder":"Search verifiers...",
 		"noFound":"No matching verifiers found.",
-		"Popup":{
+		"popup":{
 			"title":"Selected Verifier:",
 			"messagePart1":"You have selected",
 			"messagePart2":". If you continue, you will be redirected in the current tab to the verifier's page."
 		}
 	},
-	"NotFound":{
+	"notFound":{
 		"title":"Oops, page not found!",
 		"message":"Sorry, the page you're looking for cannot be accessed",
 		"homeButton":"Back to Home"
 	},
-	"QRCodeScanner":{
+	"qrCodeScanner":{
 		"title":"Scan the QR Code",
 		"description":"Target the QR Code, and you will redirect to proceed with the process"
 	},
-	"SelectCredentialPopup":{
+	"selectCredentialPopup":{
 		"title":"Select an Option:",
 		"description":"Please select one of the above credentials to proceed with the presentation"
 	}

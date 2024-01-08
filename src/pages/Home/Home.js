@@ -104,7 +104,7 @@ const Home = () => {
     <>
       <div className="sm:px-6 w-full">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-custom-blue">{t('Common.navItemCredentials')}</h1>
+          <h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemCredentials')}</h1>
 
 					<div className='flex gap-x-1'>
 					{ isSmallScreen && (
@@ -123,7 +123,7 @@ const Home = () => {
           >
             <div className="flex items-center">
               <BsPlusCircle size={20} className="text-white" />
-              <span className="hidden sm:inline">&nbsp; {t('Common.navItemCredentials')}</span>
+              <span className="hidden sm:inline">&nbsp; {t('common.navItemCredentials')}</span>
             </div>
           </button>
 					</div>
@@ -131,7 +131,7 @@ const Home = () => {
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic pd-2 text-gray-700">{t('PageCredentials.description')}</p>
+        <p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
         <div className='my-4'>
           {isSmallScreen ? (
           	<>
@@ -148,7 +148,7 @@ const Home = () => {
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">{t('PageCredentials.addCardTitle')}</span>
+										<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
 									</div>
 								</div>
 							) : (
@@ -200,7 +200,7 @@ const Home = () => {
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">{t('PageCredentials.addCardTitle')}</span>
+										<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
 									</div>
 								</div>
 							</div>

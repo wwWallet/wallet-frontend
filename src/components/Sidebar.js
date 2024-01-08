@@ -71,7 +71,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 					className="text-white text-xl font-bold cursor-pointer"
 					onClick={() => handleNavigate('/')}
 					>
-					{t('Common.walletName')}
+					{t('common.walletName')}
 				</h1>
 				<button onClick={toggle}>
 					{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
@@ -91,7 +91,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						className="text-white text-xl font-bold cursor-pointer"
 						onClick={() => handleNavigate('/')}
 						>
-						{t('Common.walletName')}
+						{t('common.walletName')}
 					</h1>
 					<button className="sm:hidden" onClick={toggle}>
 						<AiOutlineClose size={30} />
@@ -111,19 +111,19 @@ const Sidebar = ({ isOpen, toggle }) => {
 				  {/* Nav Menu */}
 					<NavItem path="/" location={location} handleNavigate={handleNavigate}>
 						<FaWallet size={30} />
-						<span>{t("Common.navItemCredentials")}</span>
+						<span>{t("common.navItemCredentials")}</span>
 					</NavItem>
 					<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
 						<IoIosTime size={30} />
-						<span>{t("Common.navItemHistory")}</span>
+						<span>{t("common.navItemHistory")}</span>
 					</NavItem>
 					<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 						<IoIosAddCircle size={30} />
-						<span>{t("Common.navItemAddCredentials")}</span>
+						<span>{t("common.navItemAddCredentials")}</span>
 					</NavItem>
 					<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 						<IoIosSend size={30} />
-						<span>{t("Common.navItemSendCredentials")}</span>
+						<span>{t("common.navItemSendCredentials")}</span>
 					</NavItem>
 
 					<hr className="my-4 border-t border-white/20" />
@@ -133,14 +133,14 @@ const Sidebar = ({ isOpen, toggle }) => {
 						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
 					>
 						<AiOutlineLogout size={30} />
-						<span>{t("Sidebar.navItemLogout")}</span>
+						<span>{t("sidebar.navItemLogout")}</span>
 					</li>
 				</ul>
 				{/* Footer */}
 			</div>
 			<div className="absolute bottom-0 bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
 				<Trans
-					i18nKey ="Sidebar.poweredBy"
+					i18nKey ="sidebar.poweredBy"
 					components={{
 						docLinkWalletGithub: <a
 							href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"

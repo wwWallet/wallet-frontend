@@ -52,11 +52,11 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 			<div className="bg-white p-4 rounded-lg shadow-lg w-full max-h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
 				<h2 className="text-lg font-bold mb-2 text-custom-blue">
 					<FaShare size={20} className="inline mr-1 mb-1" /> 
-					{t('SelectCredentialPopup.title')}
+					{t('selectCredentialPopup.title')}
 				</h2>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic pd-2 text-gray-700">
-					{t('SelectCredentialPopup.description')}
+					{t('selectCredentialPopup.description')}
 				</p>
 				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
 					{images.map(image => (
@@ -74,7 +74,7 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 				<button
 					onClick={handleCancel}
 					className='text-sm px-4 py-2 my-2 bg-red-500 hover:bg-red-700 text-white font-medium rounded-lg'>
-					{t('Common.cancel')}
+					{t('common.cancel')}
 				</button>
 			</div>
 		</div>

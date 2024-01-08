@@ -52,7 +52,7 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-    					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('Common.navItemCredentials')}</h1>
+    					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
 				  	</Link>
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
@@ -61,7 +61,7 @@ const CredentialDetail = () => {
 					)}
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
-				<p className="italic text-gray-700">{t('PageCredentials.Details.description')}</p>
+				<p className="italic text-gray-700">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}

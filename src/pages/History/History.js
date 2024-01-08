@@ -76,15 +76,15 @@ const History = () => {
   return (
     <>
       <div className="sm:px-6 w-full">
-        <h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('Common.history')}</h1>
+        <h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemHistory')}</h1>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">
-					{t('PageHistory.description')}
+					{t('pageHistory.description')}
         </p>
 
 				{history.length === 0 ? (
           <p className="text-gray-700 mt-4">
-						{t('PageHistory.noFound')}
+						{t('pageHistory.noFound')}
 					</p>
         ) : (
 					<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
@@ -112,7 +112,7 @@ const History = () => {
 						{/* Popup content */}
 						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 							<h2 className="right text-lg font-bold p-2 mb-2 text-custom-blue">
-								{t('PageHistory.popupTitle')}
+								{t('pageHistory.popupTitle')}
 							</h2>
 							<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setImageModalOpen(false)}>
 								<svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">

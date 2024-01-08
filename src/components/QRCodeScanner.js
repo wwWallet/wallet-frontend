@@ -103,7 +103,7 @@ const QRScanner = ({ onClose }) => {
           <div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
             <h2 className="text-lg font-bold mb-2 text-custom-blue">
               <BsQrCodeScan size={20} className="inline mr-1 mb-1" />
-              {t('QRCodeScanner.title')}
+              {t('qrCodeScanner.title')}
             </h2>
 
             <button
@@ -118,7 +118,7 @@ const QRScanner = ({ onClose }) => {
           </div>
           <hr className="mb-2 border-t border-custom-blue/80" />
           <p className="italic pd-2 text-gray-700">
-						{t('QRCodeScanner.description')}
+						{t('qrCodeScanner.description')}
 					</p>
 
           <Webcam
