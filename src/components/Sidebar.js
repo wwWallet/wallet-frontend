@@ -59,7 +59,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			className={`${
 				isOpen
 					? 'w-full fixed h-full z-50 bg-custom-blue text-white p-4'
-					: ' hidden sm:block bg-custom-blue w-auto text-white h-full py-10 px-10'
+					: ' hidden sm:table bg-custom-blue w-auto text-white h-auto py-10 px-10'
 			}`}
 		>
 			{/* Mobile Header */}
@@ -77,71 +77,75 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Logo */}
-			<div className="flex flex-col">
-				<div className="hidden sm:flex justify-between items-center mb-4">
-					<img
-						src={logo}
-						alt="Logo"
-						className="w-20 h-22 mb-2 mr-2 cursor-pointer"
-						onClick={() => handleNavigate('/')}
-					/>
-					<h1
-						className="text-white text-xl font-bold cursor-pointer"
-						onClick={() => handleNavigate('/')}
+			<div style={{minHeight:'90vh',display:'flex',flexDirection:'column',justifyContent:'space-between'}} className="flex flex-col space-between">
+				<div>
+					<div className="hidden sm:flex justify-between items-center mb-4">
+						<img
+							src={logo}
+							alt="Logo"
+							className="w-20 h-22 mb-2 mr-2 cursor-pointer"
+							onClick={() => handleNavigate('/')}
+						/>
+						<h1
+							className="text-white text-xl font-bold cursor-pointer"
+							onClick={() => handleNavigate('/')}
+							>
+							wwWallet
+						</h1>
+						<button className="sm:hidden" onClick={toggle}>
+							<AiOutlineClose size={30} />
+						</button>
+					</div>
+					<hr className="my-4 border-t border-white/20" />
+
+					{/* User */}
+					<ul>
+						<NavItem path="/account" location={location} handleNavigate={handleNavigate}>
+							<FaUserCircle size={30} />
+							<span>{displayName || username}</span>
+						</NavItem>
+
+						<hr className="my-4 border-t border-white/20" />
+
+						{/* Nav Menu */}
+						<NavItem path="/" location={location} handleNavigate={handleNavigate}>
+							<FaWallet size={30} />
+							<span>Credentials</span>
+						</NavItem>
+						<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
+							<IoIosTime size={30} />
+							<span>History</span>
+						</NavItem>
+						<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
+							<IoIosAddCircle size={30} />
+							<span>Add Credentials</span>
+						</NavItem>
+						<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
+							<IoIosSend size={30} />
+							<span>Send Credentials</span>
+						</NavItem>
+
+						<hr className="my-4 border-t border-white/20" />
+
+						<li
+							onClick={handleLogout}
+							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
 						>
-						wwWallet
-					</h1>
-					<button className="sm:hidden" onClick={toggle}>
-						<AiOutlineClose size={30} />
-					</button>
+							<AiOutlineLogout size={30} />
+							<span>Logout</span>
+						</li>
+					</ul>
+					{/* Footer */}
+
 				</div>
-				<hr className="my-4 border-t border-white/20" />
-
-				{/* User */}
-				<ul>
-					<NavItem path="/account" location={location} handleNavigate={handleNavigate}>
-						<FaUserCircle size={30} />
-						<span>{displayName || username}</span>
-					</NavItem>
-
-					<hr className="my-4 border-t border-white/20" />
-
-				  {/* Nav Menu */}
-					<NavItem path="/" location={location} handleNavigate={handleNavigate}>
-						<FaWallet size={30} />
-						<span>Credentials</span>
-					</NavItem>
-					<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-						<IoIosTime size={30} />
-						<span>History</span>
-					</NavItem>
-					<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
-						<IoIosAddCircle size={30} />
-						<span>Add Credentials</span>
-					</NavItem>
-					<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
-						<IoIosSend size={30} />
-						<span>Send Credentials</span>
-					</NavItem>
-
-					<hr className="my-4 border-t border-white/20" />
-
-					<li
-						onClick={handleLogout}
-						className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
-					>
-						<AiOutlineLogout size={30} />
-						<span>Logout</span>
-					</li>
-				</ul>
-				{/* Footer */}
+				<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
+					Powered by{' '}
+					<a href="https://github.com/wwWallet" rel="noreferrer" target="_blank" className="underline">
+						wwWallet
+					</a>
+				</div>
 			</div>
-			<div className="absolute bottom-0 bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
-				Powered by{' '}
-				<a href="https://github.com/wwWallet" rel="noreferrer" target="_blank" className="underline">
-					wwWallet
-				</a>
-			</div>
+
 		</div>
 	);
 };
