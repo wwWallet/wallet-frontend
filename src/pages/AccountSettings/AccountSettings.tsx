@@ -176,7 +176,7 @@ const WebauthnRegistation = ({
 			>
 				<div className="flex items-center">
 					<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-					{t('addPasskey')}
+					{t('loginSignup.addPasskey')}
 				</div>
 			</button>
 
@@ -334,11 +334,11 @@ const WebauthnUnlock = ({
 				{unlocked
 					? <>
 						<BsUnlock size={20} className="text-white mr-2 sm:inline" />
-						{t('lockPasskeyManagement')}
+						{t('loginSignup.lockPasskeyManagement')}
 					</>
 					: <>
 						<BsLock size={20} className="text-white mr-2 sm:inline" />
-						{t('unlockPasskeyManagement')}
+						{t('loginSignup.unlockPasskeyManagement')}
 					</>
 				}
 			</div>
@@ -400,10 +400,10 @@ const WebauthnCredentialItem = ({
 								<input
 									className="shadow appearance-none border rounded-md w-80 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 									type="text"
-									placeholder={t('passkeyNicknameInput')}
+									placeholder={t('loginSignup.passkeyNicknameInput')}
 									value={nickname}
 									onChange={(event) => setNickname(event.target.value)}
-									aria-label={t('passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
+									aria-label={t('loginSignup.passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
 									onKeyUp={onKeyUp}
 									disabled={submitting}
 								/>
@@ -448,17 +448,17 @@ const WebauthnCredentialItem = ({
 								type="button"
 								disabled={submitting}
 								onClick={() => setEditing(false)}
-								aria-label={t('cancelPasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('loginSignup.cancelPasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								{t('cancel')}
+								{t('common.cancel')}
 							</button>
 							<button
 								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								type="submit"
 								disabled={submitting}
-								aria-label={t('savePasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('loginSignup.savePasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								{t('save')}
+								{t('loginSignup.save')}
 							</button>
 						</>
 					)
@@ -468,9 +468,9 @@ const WebauthnCredentialItem = ({
 								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								type="button"
 								onClick={() => setEditing(true)}
-								aria-label={t('renamePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('loginSignup.renamePasskeyAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								<FaEdit size={16} className="mr-2" /> {t('renamePasskey')}
+								<FaEdit size={16} className="mr-2" /> {t('loginSignup.renamePasskey')}
 							</button>
 						</>
 					)
@@ -481,7 +481,7 @@ const WebauthnCredentialItem = ({
 						className="text-white bg-red-700 text-sm hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-800 ml-2 px-4 py-2"
 						type="button"
 						onClick={onDelete}
-						aria-label={t('deletePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+						aria-label={t('loginSignup.deletePasskeyAriaLabel', { passkeyLabel: currentLabel })}
 					>
 						<FaTrash size={16} />
 					</button>
