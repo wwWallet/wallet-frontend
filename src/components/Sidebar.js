@@ -60,7 +60,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		<div
 			className={`${
 				isOpen
-					? 'w-full fixed h-full z-50 bg-custom-blue text-white p-4'
+					? 'w-full table fixed h-full z-50 bg-custom-blue text-white p-4'
 					: ' hidden sm:table bg-custom-blue w-auto text-white h-auto py-10 px-10'
 			}`}
 		>
@@ -79,8 +79,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Logo */}
-
-			<div style={{minHeight:'90vh',display:'flex',flexDirection:'column',justifyContent:'space-between'}} className="flex flex-col space-between">
+			<div style={{display:'flex',flexDirection:'column'}} className="flex flex-col space-between">
 				<div>
 					<div className="hidden sm:flex justify-between items-center mb-4">
 						<img
@@ -141,16 +140,16 @@ const Sidebar = ({ isOpen, toggle }) => {
 					{/* Footer */}
 
 				</div>
-				<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
-          <Trans
-            i18nKey ="sidebar.poweredBy"
-            components={{
-              docLinkWalletGithub: <a
-                href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"
-              />
-            }}
-          />
-				</div>
+			</div>
+			<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2 table-footer-group">
+				<Trans
+					i18nKey ="sidebar.poweredBy"
+					components={{
+						docLinkWalletGithub: <a
+							href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"
+						/>
+					}}
+				/>
 			</div>
 		</div>
 	);
