@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaShare } from 'react-icons/fa';
 import {BsQrCodeScan} from 'react-icons/bs'
+import { useTranslation } from 'react-i18next';
 
 import { useApi } from '../../api';
 
@@ -27,6 +28,8 @@ const Verifiers = () => {
   const [selectedVerifier, setSelectedVerifier] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+
+	const { t } = useTranslation();
 
 	useEffect(() => {
     const handleResize = () => {
@@ -111,7 +114,7 @@ const Verifiers = () => {
     <>
       <div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-custom-blue">Send Credentials</h1>
+          <h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemSendCredentials')}</h1>
           
 					{ isSmallScreen && (
 						<button
@@ -119,21 +122,19 @@ const Verifiers = () => {
 						onClick={openQRScanner} // Open the QR code scanner modal
 					>
 						<div className="flex items-center">
-							<BsQrCodeScan size={20} className="text-white mr-2 sm:inline" />
-							<span className="sm:inline">Scan</span>
-
+							<BsQrCodeScan size={20} className="text-white" />
 						</div>
 					</button>
 					)}
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic text-gray-700">Search and choose a verifier to share credentials with</p>
+        <p className="italic text-gray-700">{t('pageSendCredentials.description')}</p>
 
         <div className="my-4">
           <input
             type="text"
-            placeholder="Search verifiers..."
+            placeholder={t('pageSendCredentials.searchPlaceholder')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             value={searchQuery}
             onChange={handleSearch}
@@ -141,7 +142,7 @@ const Verifiers = () => {
         </div>
 
         {filteredVerifiers.length === 0 ? (
-          <p className="text-gray-700 mt-4">No matching verifiers found.</p>
+          <p className="text-gray-700 mt-4">{t('pageSendCredentials.noFound')}</p>
         ) : (
           <ul
             className="max-h-screen-80 overflow-y-auto space-y-2"
@@ -173,18 +174,18 @@ const Verifiers = () => {
 							<>
 								<h2 className="text-lg font-bold mb-2 text-custom-blue">
 									<FaShare size={20} className="inline mr-1 mb-1" /> 
-									Selected Verifier: {selectedVerifier?.name}
+									{t('pageSendCredentials.popup.title')} {selectedVerifier?.name}
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
 								<p className="mb-2 mt-4">
-									You have selected {selectedVerifier?.name}. If you continue, you will be redirected in the current tab to the verifier's page.
+								{t('pageSendCredentials.popup.messagePart1')} {selectedVerifier?.name}{t('pageSendCredentials.popup.messagePart2')}
 								</p>
 								<div className="flex justify-end space-x-2 pt-4">
 									<button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={handleCancel}>
-										Cancel
+									{t('common.cancel')}
 									</button>
 									<button className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={handleContinue}>
-										Continue
+									{t('common.continue')}
 									</button>
 								</div>
 							</>

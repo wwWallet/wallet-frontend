@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
@@ -21,6 +22,7 @@ const CredentialDetail = () => {
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [loading, setLoading] = useState(false);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const getData = async () => {
@@ -50,7 +52,7 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-    					<h1 className="text-2xl mb-2 font-bold text-gray-500">Credentials</h1>
+    					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
 				  	</Link>
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
@@ -59,7 +61,7 @@ const CredentialDetail = () => {
 					)}
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
-				<p className="italic text-gray-700">View all the information about the chosen credential.</p>
+				<p className="italic text-gray-700">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}
@@ -71,7 +73,7 @@ const CredentialDetail = () => {
 
 						</div>
 						) : (
-							<p>No credential available</p>
+							<></>
 						)}
 					</div>
 

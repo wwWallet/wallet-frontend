@@ -3,10 +3,9 @@ import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Spinner from './components/Spinner'; // Make sure this Spinner component exists and renders the spinner you want
 // Import i18next and set up translations
-import i18n from 'i18next';
-import { I18nextProvider, initReactI18next } from 'react-i18next';
-import enTranslation from './locales/en.json'; // Import translation files for each language
-import elTranslation from './locales/el.json';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
+
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
@@ -39,20 +38,6 @@ if ('serviceWorker' in navigator) {
 			});
 	});
 }
-
-i18n
-	.use(initReactI18next)
-	.init({
-		resources: {
-			en: { translation: enTranslation },
-			el: { translation: elTranslation }
-		},
-		fallbackLng: 'en',
-		debug: false,
-		interpolation: {
-			escapeValue: false
-		}
-	});
 
 function App() {
 

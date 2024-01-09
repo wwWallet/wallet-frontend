@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { Trans, useTranslation } from 'react-i18next';
 
 
 const NavItem = ({
@@ -37,6 +38,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const location=useLocation();
 	const navigate = useNavigate();
 	const keystore = useLocalStorageKeystore();
+	const { t } = useTranslation();
 
 	const handleLogout = async () => {
 		api.clearSession();
@@ -69,7 +71,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 					className="text-white text-xl font-bold cursor-pointer"
 					onClick={() => handleNavigate('/')}
 					>
-					wwWallet
+					{t('common.walletName')}
 				</h1>
 				<button onClick={toggle}>
 					{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
@@ -77,6 +79,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Logo */}
+
 			<div style={{minHeight:'90vh',display:'flex',flexDirection:'column',justifyContent:'space-between'}} className="flex flex-col space-between">
 				<div>
 					<div className="hidden sm:flex justify-between items-center mb-4">
@@ -90,7 +93,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							className="text-white text-xl font-bold cursor-pointer"
 							onClick={() => handleNavigate('/')}
 							>
-							wwWallet
+						  {t('common.walletName')}
 						</h1>
 						<button className="sm:hidden" onClick={toggle}>
 							<AiOutlineClose size={30} />
@@ -110,19 +113,19 @@ const Sidebar = ({ isOpen, toggle }) => {
 						{/* Nav Menu */}
 						<NavItem path="/" location={location} handleNavigate={handleNavigate}>
 							<FaWallet size={30} />
-							<span>Credentials</span>
+							<span>{t("common.navItemCredentials")}</span>
 						</NavItem>
 						<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
 							<IoIosTime size={30} />
-							<span>History</span>
+							<span>{t("common.navItemHistory")}</span>
 						</NavItem>
 						<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 							<IoIosAddCircle size={30} />
-							<span>Add Credentials</span>
+							<span>{t("common.navItemAddCredentials")}</span>
 						</NavItem>
 						<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 							<IoIosSend size={30} />
-							<span>Send Credentials</span>
+							<span>{t("common.navItemSendCredentials")}</span>
 						</NavItem>
 
 						<hr className="my-4 border-t border-white/20" />
@@ -132,20 +135,23 @@ const Sidebar = ({ isOpen, toggle }) => {
 							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
 						>
 							<AiOutlineLogout size={30} />
-							<span>Logout</span>
+							<span>{t("sidebar.navItemLogout")}</span>
 						</li>
 					</ul>
 					{/* Footer */}
 
 				</div>
 				<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2">
-					Powered by{' '}
-					<a href="https://github.com/wwWallet" rel="noreferrer" target="_blank" className="underline">
-						wwWallet
-					</a>
+          <Trans
+            i18nKey ="sidebar.poweredBy"
+            components={{
+              docLinkWalletGithub: <a
+                href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"
+              />
+            }}
+          />
 				</div>
 			</div>
-
 		</div>
 	);
 };
