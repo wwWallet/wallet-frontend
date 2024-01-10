@@ -55,7 +55,7 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
   }, []);
   
   return (
-    <div className="flex h-screen">
+    <div className="flex min-h-screen">
       <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
       {/* Header */}
