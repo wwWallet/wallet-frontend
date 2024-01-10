@@ -15,6 +15,8 @@ type SessionState = {
 	username: string,
 	displayName: string,
 	webauthnCredentialCredentialId: string,
+	authenticationType: 'signup' | 'login' | null,
+
 }
 
 type SignupWebauthnError = (
@@ -129,19 +131,20 @@ export function useApi(): BackendApi {
 				clearSessionStorage();
 			}
 
-			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null): void {
+			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login' | null): void {
 				setAppToken(response.data.appToken);
 				setSessionState({
 					displayName: response.data.displayName,
 					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
+					authenticationType,
 				});
 			}
 
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 				try {
 					const response = await post('/user/login', { username, password });
-					setSession(response, null);
+					setSession(response, null, null);
 
 					const userData = response.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
@@ -172,7 +175,7 @@ export function useApi(): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSession(response, null);
+						setSession(response, null, null);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -290,7 +293,7 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSession(finishResp, credential);
+								setSession(finishResp, credential,'login');
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -373,7 +376,8 @@ export function useApi(): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSession(finishResp, credential);
+								setSession(finishResp, credential, 'signup'); 
+
 								return Ok.EMPTY;
 
 							} catch (e) {
