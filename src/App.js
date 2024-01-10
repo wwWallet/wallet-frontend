@@ -57,7 +57,7 @@ i18n
 function App() {
 
 	const url = window.location.href;
-	const { isValidURL, showPopup, setShowPopup, setSelectedValue,conformantCredentialsMap } = useCheckURL(url);
+	const { isValidURL, showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap } = useCheckURL(url);
 
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
@@ -99,7 +99,7 @@ function App() {
 						<Route path="*" element={<NotFound />} />
 					</Routes>
 					{showPopup &&
-						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectedValue={setSelectedValue} conformantCredentialsMap={conformantCredentialsMap} />
+						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
 					}
 					</HandlerNotification>
 				</Suspense>
