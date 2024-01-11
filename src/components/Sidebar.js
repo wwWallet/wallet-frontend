@@ -9,7 +9,6 @@ import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
 
-
 const NavItem = ({
   children,
   handleNavigate,
@@ -43,6 +42,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const handleLogout = async () => {
 		api.clearSession();
 		await keystore.close();
+		sessionStorage.removeItem('welcomeModal');
+
 		navigate('/login');
 	};
 
@@ -57,6 +58,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	};
 
 	return (
+		<>
 		<div
 			className={`${
 				isOpen
@@ -102,30 +104,40 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 					{/* User */}
 					<ul>
-						<NavItem path="/account" location={location} handleNavigate={handleNavigate}>
-							<FaUserCircle size={30} />
-							<span>{displayName || username}</span>
-						</NavItem>
+						<div className="step-4">
+							<NavItem path="/account" location={location} handleNavigate={handleNavigate}>
+								<FaUserCircle size={30} />
+								<span>{displayName || username}</span>
+							</NavItem>
+						</div>
 
 						<hr className="my-4 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<NavItem path="/" location={location} handleNavigate={handleNavigate}>
-							<FaWallet size={30} />
-							<span>{t("common.navItemCredentials")}</span>
-						</NavItem>
-						<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-							<IoIosTime size={30} />
-							<span>{t("common.navItemHistory")}</span>
-						</NavItem>
-						<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
-							<IoIosAddCircle size={30} />
-							<span>{t("common.navItemAddCredentials")}</span>
-						</NavItem>
-						<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
-							<IoIosSend size={30} />
-							<span>{t("common.navItemSendCredentials")}</span>
-						</NavItem>
+						<div className="step-5">
+							<NavItem path="/" location={location} handleNavigate={handleNavigate}>
+								<FaWallet size={30} />
+								<span>{t("common.navItemCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className="step-6">
+							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
+								<IoIosTime size={30} />
+								<span>{t("common.navItemHistory")}</span>
+							</NavItem>
+						</div>
+						<div className="step-7">
+							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
+								<IoIosAddCircle size={30} />
+								<span>{t("common.navItemAddCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className="step-8">
+							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
+								<IoIosSend size={30} />
+								<span>{t("common.navItemSendCredentials")}</span>
+							</NavItem>
+						</div>
 
 						<hr className="my-4 border-t border-white/20" />
 
@@ -152,6 +164,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				/>
 			</div>
 		</div>
+		</>
 	);
 };
 

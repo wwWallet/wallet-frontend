@@ -78,7 +78,7 @@ const History = () => {
       <div className="sm:px-6 w-full">
         <h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemHistory')}</h1>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic pd-2 text-gray-700">
+        <p className="step-2 italic pd-2 text-gray-700">
 					{t('pageHistory.description')}
         </p>
 
