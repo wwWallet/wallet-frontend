@@ -127,6 +127,8 @@ function useCheckURL(urlToCheck: string): {
 				const { redirect_to } = success.data;
 				if (redirect_to)
 					window.location.href = redirect_to; // Navigate to the redirect URL
+			}).catch(err => {
+				alert("Presentation failed")
 			});
 		}
 	}, [api, keystore, selectionMap]);
