@@ -141,12 +141,11 @@ export function useApi(): BackendApi {
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 				try {
 					const response = await post('/user/login', { username, password });
-					setSession(response, null);
-
 					const userData = response.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
 						await keystore.unlockPassword(privateData, password, privateData.passwordKey);
+						setSession(response, null);
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to unlock local keystore", e);

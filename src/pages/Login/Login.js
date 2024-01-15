@@ -426,6 +426,9 @@ const WebauthnSignupLogin = ({
 const Login = () => {
 	const api = useApi();
 	const { t } = useTranslation();
+	const location = useLocation();
+
+	const from = location.state?.from || '/';
 
 	const [formData, setFormData] = useState({
 		username: '',
@@ -489,7 +492,7 @@ const Login = () => {
 		if (isLogin) {
 			const result = await api.login(username, password, keystore);
 			if (result.ok) {
-				navigate('/');
+				navigate(from, { replace: true });
 			} else {
 				setError(t('loginSignup.incorrectCredentialsError'));
 			}
@@ -497,7 +500,7 @@ const Login = () => {
 		} else {
 			const result = await api.signup(username, password, keystore);
 			if (result.ok) {
-				navigate('/');
+				navigate(from, { replace: true });
 			} else {
 				setError(t('loginSignup.usernameExistsError'));
 			}
