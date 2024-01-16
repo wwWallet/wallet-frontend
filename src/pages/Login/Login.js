@@ -148,19 +148,19 @@ const WebauthnSignupLogin = ({
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
 					case 'loginKeystoreFailed':
-						setError(t('loginKeystoreFailed'));
+						setError(t('loginSignup.loginKeystoreFailed'));
 						break;
 
 					case 'passkeyInvalid':
-						setError(t('passkeyInvalid'));
+						setError(t('loginSignup.passkeyInvalid'));
 						break;
 
 					case 'passkeyLoginFailedTryAgain':
-						setError(t('passkeyLoginFailedTryAgain'));
+						setError(t('loginSignup.passkeyLoginFailedTryAgain'));
 						break;
 
 					case 'passkeyLoginFailedServerError':
-						setError(t('passkeyLoginFailedServerError'));
+						setError(t('loginSignup.passkeyLoginFailedServerError'));
 						break;
 
 					default:
@@ -188,25 +188,25 @@ const WebauthnSignupLogin = ({
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
 					case 'passkeySignupFailedServerError':
-						setError(t('passkeySignupFailedServerError'));
+						setError(t('loginSignup.passkeySignupFailedServerError'));
 						break;
 
 					case 'passkeySignupFailedTryAgain':
-						setError(t('passkeySignupFailedTryAgain'));
+						setError(t('loginSignup.passkeySignupFailedTryAgain'));
 						break;
 
 					case 'passkeySignupFinishFailedServerError':
-						setError(t('passkeySignupFinishFailedServerError'));
+						setError(t('loginSignup.passkeySignupFinishFailedServerError'));
 						break;
 
 					case 'passkeySignupKeystoreFailed':
-						setError(t('passkeySignupKeystoreFailed'));
+						setError(t('loginSignup.passkeySignupKeystoreFailed'));
 						break;
 
 					case 'passkeySignupPrfNotSupported':
 						setError(
 							<Trans
-								i18nKey ="passkeySignupPrfNotSupported"
+								i18nKey ="loginSignup.passkeySignupPrfNotSupported"
 								components={{
 									docLink: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
@@ -222,7 +222,7 @@ const WebauthnSignupLogin = ({
 							setRetrySignupFrom(result.val?.retryFrom);
 
 						} else {
-							setError(t('passkeySignupPrfRetryFailed'));
+							setError(t('loginSignup.passkeySignupPrfRetryFailed'));
 							throw result;
 						}
 				}
@@ -332,7 +332,7 @@ const WebauthnSignupLogin = ({
 											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 											type="submit"
 										>
-											{t('tryAgain')}
+											{t('loginSignup.tryAgain')}
 										</button>
 									</div>
 								)
@@ -354,12 +354,12 @@ const WebauthnSignupLogin = ({
 					<>
 						{!isLogin && (
 							<>
-								<FormInputRow label={t('choosePasskeyUsername')} name="name" IconComponent={FaUser}>
+								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={FaUser}>
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
 										onChange={(event) => setName(event.target.value)}
-										placeholder={t('enterPasskeyName')}
+										placeholder={t('loginSignup.enterPasskeyName')}
 										type="text"
 										value={name}
 										required
@@ -381,7 +381,7 @@ const WebauthnSignupLogin = ({
 											onClick={() => onLoginCachedUser(cachedUser)}
 										>
 											<GoPasskeyFill className="inline text-xl mr-2" />
-											{isSubmitting ? t('submitting') : t('loginAsUser', { name: cachedUser.displayName })}
+											{isSubmitting ? t('loginSignup.submitting') : t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 										</button>
 
 										<button
@@ -389,7 +389,7 @@ const WebauthnSignupLogin = ({
 											type="button"
 											disabled={isSubmitting}
 											onClick={() => onForgetCachedUser(cachedUser)}
-											aria-label={t('forgetCachedUser', { name: cachedUser.displayName })}
+											aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 										>
 											<GoTrash className="inline text-xl" />
 										</button>
@@ -407,12 +407,12 @@ const WebauthnSignupLogin = ({
 						>
 							<GoPasskeyFill className="inline text-xl mr-2" />
 							{isSubmitting
-								? t('submitting')
+								? t('loginSignup.submitting')
 								: isLogin
 									? cachedUsers?.length > 0
-										? t('loginOtherPasskey')
-										: t('loginPasskey')
-									: t('signupPasskey')
+										? t('loginSignup.loginOtherPasskey')
+										: t('loginSignup.loginPasskey')
+									: t('loginSignup.signupPasskey')
 							}
 						</button>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
@@ -426,6 +426,9 @@ const WebauthnSignupLogin = ({
 const Login = () => {
 	const api = useApi();
 	const { t } = useTranslation();
+	const location = useLocation();
+
+	const from = location.state?.from || '/';
 
 	const [formData, setFormData] = useState({
 		username: '',
@@ -455,28 +458,28 @@ const Login = () => {
 		event.preventDefault();
 
 		if (username === '' || password === '') {
-			setError(t('fillInFieldsError'));
+			setError(t('loginSignup.fillInFieldsError'));
 			return;
 		}
 
 		if (!isLogin && password !== confirmPassword) {
-			setError(t('passwordsNotMatchError'));
+			setError(t('loginSignup.passwordsNotMatchError'));
 			return;
 		}
 
 		// Validate password criteria
 		if (!isLogin){
 			const validations = [
-				{ ok: password.length >= 8, text: t('passwordLength') },
-				{ ok: /[A-Z]/.test(password), text: t('capitalLetter') },
-				{ ok: /[0-9]/.test(password), text: t('number') },
-				{ ok: /[^A-Za-z0-9]/.test(password), text: t('specialCharacter') },
+				{ ok: password.length >= 8, text: t('loginSignup.passwordLength') },
+				{ ok: /[A-Z]/.test(password), text: t('loginSignup.capitalLetter') },
+				{ ok: /[0-9]/.test(password), text: t('loginSignup.number') },
+				{ ok: /[^A-Za-z0-9]/.test(password), text: t('loginSignup.specialCharacter') },
 			];
 
 			if (!validations.every(({ ok }) => ok)) {
 				setError(
 					<>
-						<p className="text-red-500 font-bold">{t('weakPasswordError')}</p>
+						<p className="text-red-500 font-bold">{t('loginSignup.weakPasswordError')}</p>
 						{validations.map(({ok, text}) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
 					</>
 				);
@@ -489,17 +492,17 @@ const Login = () => {
 		if (isLogin) {
 			const result = await api.login(username, password, keystore);
 			if (result.ok) {
-				navigate('/');
+				navigate(from, { replace: true });
 			} else {
-				setError(t('incorrectCredentialsError'));
+				setError(t('loginSignup.incorrectCredentialsError'));
 			}
 
 		} else {
 			const result = await api.signup(username, password, keystore);
 			if (result.ok) {
-				navigate('/');
+				navigate(from, { replace: true });
 			} else {
-				setError(t('usernameExistsError'));
+				setError(t('loginSignup.usernameExistsError'));
 			}
 		}
 
@@ -544,7 +547,7 @@ const Login = () => {
 
 					<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
 						<Trans
-							i18nKey="welcomeMessage"
+							i18nKey="loginSignup.welcomeMessage"
 							components={{
 								highlight: <span className="text-custom-blue dark:text-custom-light-blue" />
 							}}
@@ -562,7 +565,7 @@ const Login = () => {
 									<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 										<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 										<Trans
-											i18nKey="learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
+											i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
 											components={{
 												docLinkPrf: <a
 													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
@@ -581,14 +584,14 @@ const Login = () => {
                    <div className='mt-1'>
 									  <FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 									  <Trans
-										  i18nKey="infoAboutTimeAndLocation"
+										  i18nKey="loginSignup.infoAboutTimeAndLocation"
 									  />
 									</div>
 									</CheckBrowserSupport.If>
 									<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
 										<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
 										<Trans
-											i18nKey="learnMoreAboutPrfCompatibility"
+											i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
 											components={{
 												docLinkPrf: <a
 													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
@@ -603,42 +606,42 @@ const Login = () => {
 						<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700">
 							<CheckBrowserSupport.WarningPortal>
 								<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-									{isLogin ? t('login') : t('signUp')}
+									{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 								</h1>
 								{ (loginWithPassword) ?
 									<>
 										<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 											{error && <div className="text-red-500">{error}</div>}
-											<FormInputRow label={t('usernameLabel')} name="username" IconComponent={FaUser}>
+											<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
 												<FormInputField
 													ariaLabel="Username"
 													name="username"
 													onChange={handleInputChange}
-													placeholder={t('enterUsername')}
+													placeholder={t('loginSignup.enterUsername')}
 													type="text"
 													value={username}
 												/>
 											</FormInputRow>
 
-											<FormInputRow label={t('passwordLabel')} name="password" IconComponent={FaLock}>
+											<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
 												<FormInputField
 													ariaLabel="Password"
 													name="password"
 													onChange={handleInputChange}
-													placeholder={t('enterPassword')}
+													placeholder={t('loginSignup.enterPassword')}
 													type="password"
 													value={password}
 												/>
-												{!isLogin && password !== '' && <PasswordStrength label={t('strength')} value={passwordStrength} />}
+												{!isLogin && password !== '' && <PasswordStrength label={t('loginSignup.strength')} value={passwordStrength} />}
 											</FormInputRow>
 
 											{!isLogin && (
-												<FormInputRow label={t('confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+												<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
 													<FormInputField
 														ariaLabel="Confirm Password"
 														name="confirmPassword"
 														onChange={handleInputChange}
-														placeholder={t('enterconfirmPasswordLabel')}
+														placeholder={t('loginSignup.enterconfirmPasswordLabel')}
 														type="password"
 														value={confirmPassword}
 													/>
@@ -650,10 +653,10 @@ const Login = () => {
 												type="submit"
 												disabled={isSubmitting}
 											>
-												{isSubmitting ? t('submitting') : isLogin ? t('login') : t('signUp')}
+												{isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 											</button>
 										</form>
-										<SeparatorLine>OR</SeparatorLine>
+										<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
 									</>
 									:
 									<></>
@@ -667,13 +670,13 @@ const Login = () => {
 								/>
 
 								<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-									{isLogin ? t('newHereQuestion') : t('alreadyHaveAccountQuestion')}
+									{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 									<a
 										href="/"
 										className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
 										onClick={toggleForm}
 									>
-										{isLogin ? t('signUp') : t('login')}
+										{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
 									</a>
 								</p>
 							</CheckBrowserSupport.WarningPortal>
