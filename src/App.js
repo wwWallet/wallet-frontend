@@ -73,7 +73,7 @@ function App() {
 				<HandlerNotification>
 					<Routes>
 						<Route path="/login" element={<Login />} />
-						<Route path="/account" element={<PrivateRoute><Settings /></PrivateRoute>} />
+						<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 						<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
 						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
