@@ -11,7 +11,7 @@ import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling'
 
-const AccountSettings = React.lazy(() => import('./pages/AccountSettings/AccountSettings'));
+const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
@@ -73,7 +73,7 @@ function App() {
 				<HandlerNotification>
 					<Routes>
 						<Route path="/login" element={<Login />} />
-						<Route path="/account" element={<PrivateRoute><AccountSettings /></PrivateRoute>} />
+						<Route path="/account" element={<PrivateRoute><Settings /></PrivateRoute>} />
 						<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
 						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
