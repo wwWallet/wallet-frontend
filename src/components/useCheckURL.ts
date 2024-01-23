@@ -7,14 +7,14 @@ function useCheckURL(urlToCheck: string): {
 	isValidURL: boolean | null,
 	showPopup: boolean,
 	setShowPopup: Dispatch<SetStateAction<boolean>>,
-	setSelectedValue: Dispatch<SetStateAction<string | null>>,
+	setSelectionMap: Dispatch<SetStateAction<string | null>>,
 	conformantCredentialsMap: any,
 } {
 	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
 	const [isValidURL, setIsValidURL] = useState<boolean | null>(null);
 	const [showPopup, setShowPopup] = useState<boolean>(false);
-	const [selectedValue, setSelectedValue] = useState<string | null>(null);
+	const [selectionMap, setSelectionMap] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 	const keystore = useLocalStorageKeystore();
 
@@ -24,27 +24,31 @@ function useCheckURL(urlToCheck: string): {
 			const u = new URL(url);
 			const preauth = u.searchParams.get('preauth');
 			if (preauth && preauth == 'true') {
-				try {
-					await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
+				const ask_for_pin = u.searchParams.get('ask_for_pin');
+				if (preauth && preauth == 'true') {
+					if (ask_for_pin && ask_for_pin == 'true') {
+						const user_pin = prompt("Input the PIN received from the Credential Issuer", "");
+						if (user_pin != null) {
+							await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: user_pin });
+							return true;
+						}
+					}
+					else {
+						await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
+						return true;
+					}
 				}
-				catch(err) {
-					console.log(err);
-				}
-				return true;
 			}
 			return false;
 		}
 
-		async function handlePreAuthorizedCredentialOffer(url: string): Promise<boolean> {
+
+		async function handleAuthoriziationCodeCredentialOffer(url: string): Promise<boolean> {
 			try {
 				const result = await api.post('/issuance/generate/authorization/request/with/offer', { credential_offer_url: url });
 				const { redirect_to } = result.data;
-				console.log("preauth redirect to = ", redirect_to);
-				const u = new URL(redirect_to);
-				const preauth = u.searchParams.get('preauth');
-				console.log("U = ", u)
-				if (preauth && preauth == 'true') {
-					await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
+				if (redirect_to) {
+					window.location.href = redirect_to; // Navigate to the redirect URL
 					return true;
 				}
 			}
@@ -70,10 +74,7 @@ function useCheckURL(urlToCheck: string): {
 					window.location.href = redirect_to; // Navigate to the redirect URL
 				} else {
 					console.log('need action');
-					const firstValue = Object.values(conformantCredentialsMap)[0];
-					console.log("first value = ", firstValue)
-
-					setConformantCredentialsMap(firstValue);
+					setConformantCredentialsMap(conformantCredentialsMap);
 					setShowPopup(true);
 					console.log("called setShowPopup")
 					return true;
@@ -102,12 +103,11 @@ function useCheckURL(urlToCheck: string): {
 
 		if (urlToCheck && isLoggedIn && window.location.pathname==="/cb") {
 			(async () => {
+				const isAuthorizationCodeCredentialOffer = await handleAuthoriziationCodeCredentialOffer(urlToCheck);
 				const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
 				const isResponseHandled = await handleAuthorizationResponse(urlToCheck);
 				const isPreAuthorizedFlowHandled = await handlePreAuthorizeAskForPin(urlToCheck);
-				const isPreAuthorizedCredentialOffer = await handlePreAuthorizedCredentialOffer(urlToCheck);
-
-				if (isRequestHandled || isResponseHandled || isPreAuthorizedFlowHandled || isPreAuthorizedCredentialOffer) {
+				if (isAuthorizationCodeCredentialOffer || isRequestHandled || isResponseHandled || isPreAuthorizedFlowHandled) {
 					setIsValidURL(true);
 				} else {
 					setIsValidURL(false);
@@ -117,21 +117,23 @@ function useCheckURL(urlToCheck: string): {
 	}, [api, keystore, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
-		if (selectedValue) {
-			console.log(selectedValue);
+		if (selectionMap) {
+			console.log("Selected value = ", selectionMap);
 
 			api.post("/presentation/generate/authorization/response",
-				{ verifiable_credentials_map: { title: "VC Selection", selectedValue } },
+				{ verifiable_credentials_map: selectionMap },
 			).then(success => {
 				console.log(success);
 				const { redirect_to } = success.data;
 				if (redirect_to)
 					window.location.href = redirect_to; // Navigate to the redirect URL
+			}).catch(err => {
+				alert("Presentation failed")
 			});
 		}
-	}, [api, keystore, selectedValue]);
+	}, [api, keystore, selectionMap]);
 
-	return { isValidURL, showPopup, setShowPopup, setSelectedValue, conformantCredentialsMap };
+	return { isValidURL, showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap };
 }
 
 export default useCheckURL;
