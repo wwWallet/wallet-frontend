@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
@@ -12,21 +13,27 @@ import "slick-carousel/slick/slick-theme.css";
 
 import addImage from '../../assets/images/cred.png';
 
-import Layout from '../../components/Layout';
+import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
+import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
+import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
 
 const Home = () => {
+  const api = useApi();
   const [credentials, setCredentials] = useState([]);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const sliderRef = useRef();
+	const { t } = useTranslation();
 
 	const settings = {
 		dots: false,
@@ -55,12 +62,12 @@ const Home = () => {
 
 	useEffect(() => {
 		const getData = async () => {
-			const temp_cred = await fetchCredentialData();
+			const temp_cred = await fetchCredentialData(api);
 			console.log(temp_cred);
 			setCredentials(temp_cred);
 		};
 		getData();
-	}, []);
+	}, [api]);
 
   const handleAddCredential = () => {
     navigate('/add');
@@ -81,11 +88,23 @@ const Home = () => {
 		setQRScannerOpen(false);
 	};
 
+	const handleSureDelete = async () => {
+		setLoading(true);
+		try {
+			await api.del(`/storage/vc/${selectedCredential.credentialIdentifier}`);
+		} catch (error) {
+			console.error('Failed to delete data', error);
+		}
+		setLoading(false);
+		setShowDeletePopup(false);
+		window.location.href = '/';
+	};
+
   return (
-    <Layout>
+    <>
       <div className="sm:px-6 w-full">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-custom-blue">Credentials</h1>
+          <h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemCredentials')}</h1>
 
 					<div className='flex gap-x-1'>
 					{ isSmallScreen && (
@@ -104,7 +123,7 @@ const Home = () => {
           >
             <div className="flex items-center">
               <BsPlusCircle size={20} className="text-white" />
-              <span className="hidden sm:inline">&nbsp; Credentials</span>
+              <span className="hidden sm:inline">&nbsp; {t('common.navItemCredentials')}</span>
             </div>
           </button>
 					</div>
@@ -112,7 +131,7 @@ const Home = () => {
           
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
-        <p className="italic pd-2 text-gray-700">View all of your credentials, and use the 'Add new credentials' card to add more</p>
+        <p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
         <div className='my-4'>
           {isSmallScreen ? (
           	<>
@@ -129,7 +148,7 @@ const Home = () => {
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">Add New Credential</span>
+										<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
 									</div>
 								</div>
 							) : (
@@ -150,6 +169,7 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
+            						<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedCredential(credential); }} />
 												<CredentialJson credential={credential} />
 
 											</>
@@ -180,7 +200,7 @@ const Home = () => {
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">Add New Credential</span>
+										<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
 									</div>
 								</div>
 							</div>
@@ -210,7 +230,17 @@ const Home = () => {
 					/>
 				</div>
 			)}
-    </Layout>
+
+			{/* Delete Credential Modal */}
+			{showDeletePopup && selectedCredential && (
+        <CredentialDeletePopup
+          credential={selectedCredential}
+          onCancel={() => setShowDeletePopup(false)}
+          onConfirm={handleSureDelete}
+          loading={loading}
+        />
+      )}
+    </>
   );
 };
 

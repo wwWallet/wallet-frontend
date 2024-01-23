@@ -1,22 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
+import { useTranslation } from 'react-i18next';
+
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css"; 
 import "slick-carousel/slick/slick-theme.css";
 
-import * as api from '../../api';
-import Layout from '../../components/Layout';
+import { useApi } from '../../api';
+
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import {formatDate} from '../../functions/DateFormat';
 
 
 const History = () => {
+  const api = useApi();
   const [history, setHistory] = useState([]);
   const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 
 	const [currentSlide, setCurrentSlide] = useState(1);
+
+	const { t } = useTranslation();
 
   const sliderRef = useRef();
 
@@ -36,7 +41,7 @@ const History = () => {
   const handleHistoryItemClick = async (ivci) => {
 
     // Fetch all credentials
-    const temp_cred = await fetchCredentialData();
+    const temp_cred = await fetchCredentialData(api);
 
     // Filter credentials to keep only those with matching IDs in ivci
     const matchingCreds = temp_cred.filter((cred) => ivci.includes(cred.credentialIdentifier));
@@ -66,19 +71,21 @@ const History = () => {
     };
 
     fetchedPresentations();
-  }, []);
+  }, [api]);
 
   return (
-    <Layout>
+    <>
       <div className="sm:px-6 w-full">
-        <h1 className="text-2xl mb-2 font-bold text-custom-blue">History</h1>
+        <h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemHistory')}</h1>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">
-          View history of credential transmissions, detailing when and to which verifiers you sent
+					{t('pageHistory.description')}
         </p>
 
 				{history.length === 0 ? (
-          <p className="text-gray-700 mt-4">No history presentations found.</p>
+          <p className="text-gray-700 mt-4">
+						{t('pageHistory.noFound')}
+					</p>
         ) : (
 					<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
 
@@ -105,7 +112,7 @@ const History = () => {
 						{/* Popup content */}
 						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 							<h2 className="right text-lg font-bold p-2 mb-2 text-custom-blue">
-								Presented Credentials
+								{t('pageHistory.popupTitle')}
 							</h2>
 							<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setImageModalOpen(false)}>
 								<svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -142,7 +149,7 @@ const History = () => {
 					</div>
 				</div>	
       )}
-    </Layout>
+    </>
   );
 };
 

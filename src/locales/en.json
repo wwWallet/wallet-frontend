@@ -1,9 +1,19 @@
 {
-	"BrowserSupportWarningPortal": {
+	"common":{
+		"cancel": "Cancel",
+		"continue": "Continue",
+		"delete": "Delete",
+		"navItemAddCredentials": "Add Credentials",
+		"navItemCredentials": "Credentials",
+		"navItemHistory": "History",
+		"navItemSendCredentials": "Send Credentials",
+		"walletName": "wwWallet"
+	},
+	"browserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
-		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
 		"heading": "Unsupported platform",
 		"intro": "It seems like you are using a browser or operating system that does not support the features used in this application.",
+		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
 		"outro": "You can proceed and try anyway, but please note that some or all application features might not work.",
 		"supportedList": {
 			"android": "Chrome, Edge, Opera or Brave on Android",
@@ -13,59 +23,117 @@
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
 	},
-	"addPasskey": "Add passkey",
-	"alreadyHaveAccountQuestion": "Already have an account? ",
-	"cancel": "Cancel",
-	"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
-	"capitalLetter": "At least one capital letter",
-	"choosePasskeyUsername": "What should we call you?",
-	"confirmPasswordLabel": "Confirm Password",
-	"deletePasskeyAriaLabel": "Delete passkey {{passkeyLabel}}",
-	"enterPasskeyName": "Choose a name for yourself",
-	"enterPassword": "Enter your password",
-	"enterUsername": "Enter your username",
-	"enterconfirmPasswordLabel": "Enter your confirm password",
-	"fillInFieldsError": "Please fill in all required fields",
-	"incorrectCredentialsError": "Incorrect username or password",
-	"learnMoreAboutPrfCompatibility": "Learn more about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
-	"learnMoreAboutPrfCompatibilityAndScenarios": "Learn more about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
-	"lockPasskeyManagement": "Lock passkey management",
-	"login": "Login",
-	"loginAsUser": "Log in as {{name}}",
-	"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
-	"loginOtherPasskey": "Login with other passkey",
-	"loginPasskey": "Login with passkey",
-	"loginSubmit": "Login",
-	"newHereQuestion": "New here? ",
-	"number": "At least one number",
-	"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
-	"passkeyLoginFailedServerError": "Failed to initiate passkey login, please try again later.",
-	"passkeyLoginFailedTryAgain": "Passkey login failed, please try again.",
-	"passkeyNicknameInput": "New nickname",
-	"passkeyNicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
-	"passkeySignupFailedServerError": "Failed to initiate passkey creation, please try again later.",
-	"passkeySignupFailedTryAgain": "Passkey creation failed, please try again.",
-	"passkeySignupFinishFailedServerError": "Failed to finalize passkey creation, please try again later.",
-	"passkeySignupKeystoreFailed": "Failed to initialize wallet key store, please try again.",
-	"passkeySignupPrfNotSupported": "This browser or security key is not supported. Please make sure that your browser supports the WebAuthn PRF extension and your security key, if any, supports the \"hmac-secret\" extension. <docLink>Learn more here</docLink>.",
-	"passwordLabel": "Password",
-	"passwordLength": "Minimum length: 8 characters",
-	"passwordsNotMatchError": "Passwords do not match",
-	"renamePasskey": "Rename",
-	"renamePasskeyAriaLabel": "Rename passkey {{passkeyLabel}}",
-	"save": "Save",
-	"savePasskeyChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
-	"signUp": "Sign Up",
-	"signUpPasskey": "Sign up with passkey",
-	"signUpSubmit": "Sign Up",
-	"signupPasskey": "Sign up with passkey",
-	"specialCharacter": "At least one special character",
-	"strength": "Strength",
-	"submitting": "Submitting...",
-	"tryAgain": "Try again",
-	"unlockPasskeyManagement": "Unlock passkey management",
-	"usernameExistsError": "Failed to create user account, username already exists",
-	"usernameLabel": "Username",
-	"weakPasswordError": "Weak password",
-	"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+	"loginSignup":{
+		"addPasskey": "Add passkey",
+		"alreadyHaveAccountQuestion": "Already have an account? ",
+		"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
+		"capitalLetter": "At least one capital letter",
+		"choosePasskeyUsername": "What should we call you?",
+		"confirmPasswordLabel": "Confirm Password",
+		"deletePasskeyAriaLabel": "Delete passkey {{passkeyLabel}}",
+		"enterPasskeyName": "Choose a name for yourself",
+		"enterPassword": "Enter your password",
+		"enterUsername": "Enter your username",
+		"enterconfirmPasswordLabel": "Enter your confirm password",
+		"fillInFieldsError": "Please fill in all required fields",
+		"incorrectCredentialsError": "Incorrect username or password",
+		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
+		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
+		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover wwWallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
+		"lockPasskeyManagement": "Lock passkey management",
+		"login": "Login",
+		"loginAsUser": "Log in as {{name}}",
+		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
+		"loginOtherPasskey": "Login with other passkey",
+		"loginPasskey": "Login with passkey",
+		"loginSubmit": "Login",
+		"newHereQuestion": "New here? ",
+		"number": "At least one number",
+		"or":"OR",
+		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
+		"passkeyLoginFailedServerError": "Failed to initiate passkey login, please try again later.",
+		"passkeyLoginFailedTryAgain": "Passkey login failed, please try again.",
+		"passkeyNicknameInput": "New nickname",
+		"passkeyNicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+		"passkeySignupFailedServerError": "Failed to initiate passkey creation, please try again later.",
+		"passkeySignupFailedTryAgain": "Passkey creation failed, please try again.",
+		"passkeySignupFinishFailedServerError": "Failed to finalize passkey creation, please try again later.",
+		"passkeySignupKeystoreFailed": "Failed to initialize wallet key store, please try again.",
+		"passkeySignupPrfNotSupported": "This browser or security key is not supported. Please make sure that your browser supports the WebAuthn PRF extension and your security key, if any, supports the \"hmac-secret\" extension. <docLink>Learn more here</docLink>.",
+		"passwordLabel": "Password",
+		"passwordLength": "Minimum length: 8 characters",
+		"passwordsNotMatchError": "Passwords do not match",
+		"renamePasskey": "Rename",
+		"renamePasskeyAriaLabel": "Rename passkey {{passkeyLabel}}",
+		"save": "Save",
+		"savePasskeyChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+		"signUp": "Sign Up",
+		"signUpPasskey": "Sign up with passkey",
+		"signUpSubmit": "Sign Up",
+		"signupPasskey": "Sign up with passkey",
+		"specialCharacter": "At least one special character",
+		"strength": "Strength",
+		"submitting": "Submitting...",
+		"tryAgain": "Try again",
+		"unlockPasskeyManagement": "Unlock passkey management",
+		"usernameExistsError": "Failed to create user account, username already exists",
+		"usernameLabel": "Username",
+		"weakPasswordError": "Weak password",
+		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+	},
+	"notFound": {
+		"homeButton": "Back to Home",
+		"message": "Sorry, the page you're looking for cannot be accessed",
+		"title": "Oops, page not found!"
+	},
+	"pageAddCredentials": {
+		"description": "Search and choose an issuer for credential retrieval",
+		"noFound": "No matching issuers found.",
+		"popup": {
+			"messagePart1": "You have selected",
+			"messagePart2": ". If you continue, you will be redirected in the current tab to the issuer's page.",
+			"title": "Selected Issuer:"
+		},
+		"searchPlaceholder": "Search issuers..."
+	},
+	"pageCredentials": {
+		"addCardTitle": "Add New Credential",
+		"deletePopup": {
+			"messagePart1": "Are you sure you want to delete the",
+			"messagePart2": "credential?",
+			"messagePart3": "If you delete it,",
+			"messagePart4": "all the presentations that include this VC will be removed from your history."
+		},
+		"description": "View all of your credentials, and use the 'Add new credentials' card to add more",
+		"details": {
+			"description": "View all the information about the chosen credential"
+		}
+	},
+	"pageHistory": {
+		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
+		"noFound": "No history presentations found",
+		"popupTitle": "Presented Credentials"
+	},
+	"pageSendCredentials": {
+		"description": "Search and choose a verifier to share credentials with",
+		"noFound": "No matching verifiers found.",
+		"popup": {
+			"messagePart1": "You have selected",
+			"messagePart2": ". If you continue, you will be redirected in the current tab to the verifier's page.",
+			"title": "Selected Verifier:"
+		},
+		"searchPlaceholder": "Search verifiers..."
+	},
+	"qrCodeScanner": {
+			"description": "Target the QR Code, and you will redirect to proceed with the process",
+			"title": "Scan the QR Code"
+	},
+	"selectCredentialPopup": {
+		"description": "Please select one of the above credentials to proceed with the presentation",
+		"title": "Select an Option:"
+	},
+	"sidebar": {
+		"navItemLogout": "Logout",
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+	}
 }

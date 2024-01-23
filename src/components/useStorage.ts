@@ -1,52 +1,22 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useId, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'react';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
-type UseStateHandle<T> = [T, Dispatch<SetStateAction<T>>];
-type UseGlobalStateHook<T> = (name: string, [value, setValue]: UseStateHandle<T>) => UseStateHandle<T>;
-
-function makeUseGlobalState<T>(): UseGlobalStateHook<T> {
-	const setValueHandles = {};
-	return (name: string, [value, setValue]: UseStateHandle<T>) => {
-		const handleId = useId();
-
-		const setAllValues = useCallback(
-			(setValueArg: SetStateAction<any>) => {
-				Object.values(setValueHandles[name]).forEach((setValueHandle: Dispatch<SetStateAction<T>>) => {
-					setValueHandle(setValueArg);
-				});
-			},
-			[name],
-		);
-
-		useEffect(
-			() => {
-				if (!setValueHandles[name]) {
-					setValueHandles[name] = {};
-				}
-				setValueHandles[name][handleId] = setValue;
-
-				return () => {
-					delete setValueHandles[name][handleId];
-				};
-			},
-			[handleId, name, setValue]
-		);
-
-		return [value, setAllValues];
-	};
-}
+type ClearHandle = () => void;
+type UseStorageHandle<T> = [T, Dispatch<SetStateAction<T>>, ClearHandle];
+type UseStorageEvent = { storageArea: Storage };
+type ClearEvent = UseStorageEvent;
+type SetValueEvent<T> = UseStorageEvent & { name: string, value: T };
 
 function makeUseStorage<T>(
 	storage: Storage,
 	description: string,
-	useGlobalState: UseGlobalStateHook<T>,
-): (name: string, initialValue: T) => UseStateHandle<T> {
+): (name: string, initialValue: T) => UseStorageHandle<T> {
 	if (!storage) {
 		throw new Error(`${description} is not available.`);
 	}
 
 	return (name: string, initialValue: T) => {
-		const [currentValue, setValue] = useState(
+		const getCurrentValue = useCallback(
 			() => {
 				const storedValueStr = storage.getItem(name);
 				try {
@@ -58,32 +28,63 @@ function makeUseStorage<T>(
 					storage.removeItem(name);
 				}
 				return initialValue;
-			}
+			},
+			[],
 		);
 
-		// Browser storage is global state, so update all useState hooks with the
-		// same name whenever one of them changes. The storage event is not fired
-		// when storage.setItem is called in the same Document.
-		const [, setAllValues] = useGlobalState(name, [currentValue, setValue]);
+		const [currentValue, setValue] = useState(getCurrentValue);
 
 		const updateValue = useCallback(
 			(action: SetStateAction<T>): void => {
 				const newValue =
 					action instanceof Function
-					? action(currentValue)
+					? action(getCurrentValue())
 					: action;
 				try {
 					storage.setItem(name, jsonStringifyTaggedBinary(newValue));
 				} catch (e) {
 					console.error(`Failed to update storage "${name}"`, e);
 				}
-				setAllValues(newValue);
+				window.dispatchEvent(
+					new CustomEvent<SetValueEvent<T>>('useStorage.set', {
+						detail: {
+							storageArea: storage,
+							name,
+							value: newValue,
+						},
+					})
+				);
 			},
-			[currentValue, name, setAllValues],
+			[],
+		);
+
+		const clearValue = useCallback(
+			(): void => {
+				try {
+					storage.removeItem(name);
+				} catch (e) {
+					console.error(`Failed to remove storage "${name}"`, e);
+				}
+				window.dispatchEvent(
+					new CustomEvent<SetValueEvent<T>>('useStorage.set', {
+						detail: {
+							storageArea: storage,
+							name,
+							value: initialValue,
+						},
+					})
+				);
+			},
+			[],
 		);
 
 		useEffect(
 			() => {
+				// Listen to storage events sent by the browser. These events are
+				// triggered when the storage is changed in another tab, or when edited
+				// manually by the user. Storage.setItem() and .removeItem() calls in
+				// the same Document do not trigger these events, so we cannot use them
+				// to synchronize state between useStorage hook instances.
 				const listener = (event: StorageEvent) => {
 					if (event.storageArea === storage) {
 						if (event.key === name) { // Storage.setItem(name, value)
@@ -100,33 +101,41 @@ function makeUseStorage<T>(
 					window.removeEventListener('storage', listener);
 				};
 			},
-			[name]
+			[]
 		);
 
-		return [currentValue, updateValue];
+		useEffect(
+			() => {
+				// Listen to synthetic events sent when a useStorage hook updates its
+				// state. This causes all useStorage instances with the same name to
+				// update their state, including the instance that caused the change.
+				const listener = (event: CustomEvent<SetValueEvent<T>>) => {
+					if (event.detail.storageArea === storage && event.detail.name === name) {
+						setValue(event.detail.value);
+					}
+				};
+				window.addEventListener('useStorage.set', listener);
+				return () => {
+					window.removeEventListener('useStorage.set', listener);
+				};
+			},
+			[],
+		);
+
+		return [currentValue, updateValue, clearValue];
 	};
 }
 
-export const useLocalStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
-	makeUseStorage(window.localStorage, "Local storage", makeUseGlobalState());
+export const useLocalStorage: <T>(name: string, initialValue: T) => UseStorageHandle<T> =
+	makeUseStorage(window.localStorage, "Local storage");
 
-export const useSessionStorage: <T>(name: string, initialValue: T) => UseStateHandle<T> =
-	makeUseStorage(window.sessionStorage, "Session storage", makeUseGlobalState());
+export const useSessionStorage: <T>(name: string, initialValue: T) => UseStorageHandle<T> =
+	makeUseStorage(window.sessionStorage, "Session storage");
 
-export const useClearLocalStorage = () => useCallback(
-	() => {
-		if (window.localStorage) {
-			window.localStorage.clear();
-		}
-	},
-	[],
-);
-
-export const useClearSessionStorage = () => useCallback(
-	() => {
-		if (window.sessionStorage) {
-			window.sessionStorage.clear();
-		}
-	},
-	[],
-);
+export const useClearStorages: (...clearHandles: ClearHandle[]) => ClearHandle =
+	(...clearHandles: ClearHandle[]) => useCallback(
+		() => {
+			clearHandles.forEach(clear => clear());
+		},
+		[...clearHandles],
+	);

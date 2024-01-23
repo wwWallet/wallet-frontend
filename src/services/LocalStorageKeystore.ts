@@ -6,7 +6,7 @@ import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 import { util } from '@cef-ebsi/key-did-resolver';
 
 import { verifiablePresentationSchemaURL } from "../constants";
-import { useClearLocalStorage, useClearSessionStorage, useLocalStorage, useSessionStorage } from "../components/useStorage";
+import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
@@ -286,6 +286,7 @@ async function getPrfOutput(
 
 export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
+	isOpen(): boolean,
 	close(): Promise<void>,
 
 	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
@@ -322,25 +323,54 @@ export interface LocalStorageKeystore {
 }
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
-	const [cachedUsers, setCachedUsers] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [userHandleB64u, setUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
-	const [webauthnRpId, setWebauthnRpId] = useLocalStorage<string | null>("webauthnRpId", null);
-	const [privateDataCache, setPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
-	const [innerSessionKey, setInnerSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
-	const [privateDataJwe, setPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
-	const clearLocalStorage = useClearLocalStorage();
-	const clearSessionStorage = useClearSessionStorage();
+	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
+	const [privateDataCache, setPrivateDataCache, clearPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
-	const idb = useIndexedDb("wallet-frontend", 1, useCallback((db, prevVersion, newVersion) => {
+	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
+	const [webauthnRpId, setWebauthnRpId, clearWebauthnRpId] = useSessionStorage<string | null>("webauthnRpId", null);
+	const [sessionKey, setSessionKey, clearSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
+	const [privateDataJwe, setPrivateDataJwe, clearPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
+	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearWebauthnRpId, clearSessionKey, clearPrivateDataJwe);
+
+	useEffect(() => {
+		// Moved from local storage to session storage
+		window?.localStorage?.removeItem("userHandle");
+		window?.localStorage?.removeItem("webauthnRpId");
+	}, []);
+
+	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
 			const objectStore = db.createObjectStore("keys", { keyPath: "id" });
 			objectStore.createIndex("id", "id", { unique: true });
 		}
+		if (prevVersion < 2) {
+			db.deleteObjectStore("keys");
+		}
 	}, []));
+
+	const closeTabLocal = useCallback(
+		() => {
+			clearSessionStorage();
+		},
+		[clearSessionStorage],
+	);
+
+	const close = useCallback(
+		async (): Promise<void> => {
+			await idb.destroy();
+			clearPrivateDataCache();
+			clearGlobalUserHandleB64u();
+			closeTabLocal();
+		},
+		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateDataCache],
+	);
 
 	useEffect(
 		() => {
-			if (privateDataCache && userHandleB64u) {
+			if (privateDataCache && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
+				// When PRF keys are added, deleted or edited in any tab,
+				// propagate changes to cached users
 				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
 					if (cu.userHandleB64u === userHandleB64u) {
 						return {
@@ -354,63 +384,43 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 						return cu;
 					}
 				}));
+
+			} else if (!privateDataCache) {
+				// When user logs out in any tab, log out in all tabs
+				closeTabLocal();
+
+			} else if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
+				console.log("useEffect userHandle");
+
+				// When user logs in in any tab, log out in all other tabs
+				// that are logged in to a different account
+				closeTabLocal();
 			}
 		},
-		[privateDataCache, userHandleB64u],
+		[close, closeTabLocal, privateDataCache, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
 	return useMemo(
 		() => {
-			console.log("New LocalStorageKeystore instance");
-
-			const createOuterSessionKey = async (): Promise<CryptoKey> => {
-				const outerSessionKey = await crypto.subtle.generateKey(
-					{ name: "AES-KW", length: 256 },
-					false,
-					["wrapKey", "unwrapKey"],
-				);
-				await idb.write(["keys"], (tr) => tr.objectStore("keys").put({
-					id: "sessionKey",
-					value: outerSessionKey,
-				}));
-				return outerSessionKey;
-			}
-
-			const getOuterSessionKey = async (): Promise<CryptoKey> => {
-				try {
-					const result = await idb.read(
-						["keys"], (tr) => tr.objectStore("keys").get("sessionKey")
-					);
-					return result.value;
-				} catch (e) {
-					console.log("Failed to retreive session key", e);
-					throw new Error("Failed to retreive session key");
-				}
-			};
-
-			const createInnerSessionKey = async (outerSessionKey: CryptoKey): Promise<CryptoKey> => {
-				const innerSessionKey = await crypto.subtle.generateKey(
+			const createSessionKey = async (): Promise<CryptoKey> => {
+				const sessionKey = await crypto.subtle.generateKey(
 					{ name: "AES-GCM", length: 256 },
 					true,
 					["encrypt", "wrapKey"],
 				);
-				const wrappedInnerSessionKey = await crypto.subtle.wrapKey(
+				const exportedSessionKey = await crypto.subtle.exportKey(
 					"raw",
-					innerSessionKey,
-					outerSessionKey,
-					"AES-KW",
+					sessionKey,
 				);
-				setInnerSessionKey(wrappedInnerSessionKey);
-				return innerSessionKey;
+				setSessionKey(exportedSessionKey);
+				return sessionKey;
 			}
 
-			const getInnerSessionKey = async (outerSessionKey: CryptoKey): Promise<CryptoKey> => {
-				if (innerSessionKey) {
-					return await crypto.subtle.unwrapKey(
+			const getSessionKey = async (): Promise<CryptoKey> => {
+				if (sessionKey) {
+					return await crypto.subtle.importKey(
 						"raw",
-						innerSessionKey,
-						outerSessionKey,
-						"AES-KW",
+						sessionKey,
 						"AES-GCM",
 						false,
 						["decrypt", "unwrapKey"],
@@ -422,21 +432,20 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
 				if (privateDataJwe) {
-					const innerSessionKey = await getInnerSessionKey(await getOuterSessionKey());
+					const sessionKey = await getSessionKey();
 					const privateData = jsonParseTaggedBinary(
 						new TextDecoder().decode(
-							(await jose.compactDecrypt(privateDataJwe, innerSessionKey)).plaintext
+							(await jose.compactDecrypt(privateDataJwe, sessionKey)).plaintext
 						));
-					return [privateData, innerSessionKey];
+					return [privateData, sessionKey];
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
 			};
 
 			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer, user: CachedUser | UserData): Promise<void> => {
-				const outerSessionKey = await createOuterSessionKey();
-				const innerSessionKey = await createInnerSessionKey(outerSessionKey);
-				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, innerSessionKey);
+				const sessionKey = await createSessionKey();
+				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, sessionKey);
 				setPrivateDataCache(privateData);
 				setPrivateDataJwe(reencryptedPrivateData);
 
@@ -455,6 +464,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					);
 
 					setUserHandleB64u(userHandleB64u);
+					setGlobalUserHandleB64u(userHandleB64u);
 					setCachedUsers((cachedUsers) => {
 						// Move most recently used user to front of list
 						const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
@@ -638,12 +648,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			return {
-				close: async (): Promise<void> => {
-					await idb.destroy();
-					setPrivateDataCache(null);
-					setWebauthnRpId(null);
-					clearSessionStorage();
+				isOpen: () => {
+					return privateDataJwe !== null && sessionKey !== null;
 				},
+				close,
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPassword");
@@ -741,8 +749,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
-					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, innerSessionKey);
+					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
+					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
 					const jws = await new SignJWT({ nonce: nonce })
 						.setProtectedHeader({
 							alg,
@@ -760,8 +768,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => {
-					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, innerSessionKey);
+					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
+					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
 
 					const jws = await new SignVerifiablePresentationJWT()
 						.setProtectedHeader({
@@ -788,8 +796,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				generateOpenid4vciProof: async (audience: string, nonce: string): Promise<{ proof_jwt: string }> => {
-					const [{ alg, did, wrappedPrivateKey }, innerSessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, innerSessionKey);
+					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
+					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
 					const header = {
 						alg,
 						typ: "openid4vci-proof+jwt",
@@ -809,16 +817,16 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		},
 		[
 			cachedUsers,
-			clearLocalStorage,
-			clearSessionStorage,
-			idb,
-			innerSessionKey,
+			close,
 			privateDataCache,
 			privateDataJwe,
+			sessionKey,
 			setCachedUsers,
-			setInnerSessionKey,
+			setGlobalUserHandleB64u,
 			setPrivateDataCache,
 			setPrivateDataJwe,
+			setSessionKey,
+			setUserHandleB64u,
 			setWebauthnRpId,
 			webauthnRpId,
 		],

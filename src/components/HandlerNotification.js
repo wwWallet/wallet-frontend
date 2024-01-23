@@ -48,20 +48,20 @@ const HandlerNotification = ({ children }) => {
 
   useEffect(() => {
     let messageReceived = false;
-
-    const unregisterMessageListener = onMessageListener()
-      .then((payload) => {
-        setNotification({
-          title: payload?.notification?.title,
-          body: payload?.notification?.body,
-        });
-        setMessageReceived(true);
-        messageReceived = true;
-      })
-      .catch((err) => {
-        console.log('Failed to receive message:', err);
-        setMessageReceived(false); // Set isMessageReceived to false if there's an error
-      });
+		const unregisterMessageListener = onMessageListener()
+		.then((payload) => {
+			// Process the received message
+			setNotification({
+				title: payload?.notification?.title,
+				body: payload?.notification?.body,
+			});
+			setMessageReceived(true); // Message has been received
+		})
+		.catch((err) => {
+			console.log('Failed to receive message:', err);
+			setMessageReceived(false); // Set isMessageReceived to false if there's an error
+		});
+	
 
     return () => {
       if (!messageReceived) {
@@ -71,25 +71,23 @@ const HandlerNotification = ({ children }) => {
   }, []);
 
   // Render just children when waiting for message reception
-  if (isMessageReceived === null) {
-    return (
-      <div>
-        {children}
-      </div>
-    );
-  }
+	if (isMessageReceived === null || isMessageReceived === false) {
+		// Render children when waiting for a message
+		return (
+			<div>
+				{children}
+			</div>
+		);
+	} else {
+		// Render Toaster and children when a message is received
+		return (
+			<div>
+				<Toaster />
+				{children}
+			</div>
+		);
+	}
 
-  // Render Toaster and children when a message is received
-  return (
-    <div>
-      {isMessageReceived && (
-        <>
-          <Toaster />
-          {children}
-        </>
-      )}
-    </div>
-  );
 };
 
 export default HandlerNotification;

@@ -1,5 +1,9 @@
-body {
-	margin: 0;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Font family and rendered font appear smoother */
+* {
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
 		'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
 		sans-serif;
@@ -7,16 +11,12 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-code {
-	font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-		monospace;
-}
-
+/* Slider margin in mobile screen */
 .slick-slide > div {
   margin: 0 5px !important;
 }
 
-/* custom scrollbar */
+/* Custom scrollbar in login */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #ccc #f0f0f0;
@@ -36,6 +36,26 @@ code {
   background-color: #888;
 }
 
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+/* Nav item animation on Hover */
+.nav-item-animate-hover {
+  background: linear-gradient(90deg, transparent 50%, white 50%);
+  background-size: 200% 100%;
+  background-position: left;
+  transition: background 0.2s, color 0.2s;
+  color: white;
+}
+
+.nav-item-animate-hover:hover {
+  background-position: right;
+  color: #003476;
+}
+
+/* Fade in animation for content */
+.fade-in-content {
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.fade-in-content.visible {
+  opacity: 1;
+}

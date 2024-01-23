@@ -2,36 +2,57 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
 
-import Layout from '../../components/Layout';
+import { useApi } from '../../api';
+
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
+import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
+import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 
 const CredentialDetail = () => {
+	const api = useApi();
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
+	const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [loading, setLoading] = useState(false);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const getData = async () => {
-			const newCredential = await fetchCredentialData(id);
+
+			const newCredential = await fetchCredentialData(api, id);
 			console.log(newCredential.json);
 			setCredentials(newCredential);
 		};
 		getData();
-	}, [id]);
+	}, [api, id]);
+
+	const handleSureDelete = async () => {
+		setLoading(true);
+		try {
+			await api.del(`/storage/vc/${credential.credentialIdentifier}`);
+		} catch (error) {
+			console.error('Failed to delete data', error);
+		}
+		setLoading(false);
+		setShowDeletePopup(false);
+		window.location.href = '/';
+	};
 
 	return (
-		<Layout>
+		<>
 			<div className=" sm:px-6">
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-    					<h1 className="text-2xl mb-2 font-bold text-gray-500">Credentials</h1>
+    					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
 				  	</Link>
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
@@ -40,10 +61,9 @@ const CredentialDetail = () => {
 					)}
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
-				<p className="italic text-gray-700">View all the information about the chosen credential.</p>
+				<p className="italic text-gray-700">{t('pageCredentials.details.description')}</p>
 
-
-				<div className="flex flex-col lg:flex-row  mt-4">
+				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}
 					<div className='lg:w-1/2'>
 						{credential && credential.src ? (
@@ -53,7 +73,7 @@ const CredentialDetail = () => {
 
 						</div>
 						) : (
-							<p>No credential available</p>
+							<></>
 						)}
 					</div>
 
@@ -61,7 +81,9 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<div className="flex flex-col lg:flex-row mt-10">
+        <CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
+
+				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
 						<CredentialJson credential={credential} />		
 					</div>
@@ -82,7 +104,17 @@ const CredentialDetail = () => {
 					</button>
 				</div>
 			)}
-		</Layout>
+
+			{/* Delete Credential Modal */}
+			{showDeletePopup && credential && (
+        <CredentialDeletePopup
+          credential={credential}
+          onCancel={() => setShowDeletePopup(false)}
+          onConfirm={handleSureDelete}
+          loading={loading}
+        />
+      )}
+		</>
 	);
 };
 

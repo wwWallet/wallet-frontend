@@ -4,6 +4,7 @@ import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi'; // Import the camera icon
 import Spinner from './Spinner'; // Adjust the import path as needed
+import { useTranslation } from 'react-i18next';
 
 const QRScanner = ({ onClose }) => {
 	
@@ -12,6 +13,8 @@ const QRScanner = ({ onClose }) => {
   const [cameraReady, setCameraReady] = useState(false);
   const [loading, setLoading] = useState(false); // Initially, do not show the spinner
   const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
+
+	const { t } = useTranslation();
 
   const handleClose = () => {
     onClose(); // Close the scanner modal
@@ -100,7 +103,7 @@ const QRScanner = ({ onClose }) => {
           <div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
             <h2 className="text-lg font-bold mb-2 text-custom-blue">
               <BsQrCodeScan size={20} className="inline mr-1 mb-1" />
-              Scan the QR Code
+              {t('qrCodeScanner.title')}
             </h2>
 
             <button
@@ -114,7 +117,9 @@ const QRScanner = ({ onClose }) => {
             </button>
           </div>
           <hr className="mb-2 border-t border-custom-blue/80" />
-          <p className="italic pd-2 text-gray-700">Target the QR Code, and you will redirect to proceed with the process</p>
+          <p className="italic pd-2 text-gray-700">
+						{t('qrCodeScanner.description')}
+					</p>
 
           <Webcam
             audio={false}

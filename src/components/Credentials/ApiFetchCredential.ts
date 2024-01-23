@@ -1,9 +1,9 @@
 // apiUtils.js
 
-import * as api from '../../api';
+import { BackendApi } from '../../api';
 import parseJwt from '../../functions/ParseJwt';
 
-export async function fetchCredentialData(id = null) {
+export async function fetchCredentialData(api: BackendApi, id = null) {
   try {
     const response = await api.get('/storage/vc');
 
