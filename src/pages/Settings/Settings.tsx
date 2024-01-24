@@ -630,6 +630,20 @@ const Settings = () => {
 									))}
 							</ul>
 						</div>
+						<div className="mt-2 mb-2 py-2">
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.deleteAccount.title')}</h1>
+							<hr className="mb-2 border-t border-gray-300" />
+							<p className='mb-2'>
+								{t('pageSettings.deleteAccount.description')}
+							</p>
+							<button
+							type="button"
+							className="bg-white px-4 py-2 text-red-600 hover:text-white border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-red-600 mr-2"
+							// onClick={deleteaccount}
+						>
+							{t('pageSettings.deleteAccount.buttonText')}
+						</button>
+						</div>
 					</>
 				)}
 			</div>

@@ -128,6 +128,11 @@
 	},
 	"pageSettings": {
 		"description": "View account information and manage passkeys",
+		"deleteAccount": {
+			"buttonText": "Delete your account",
+			"description": "Once you delete your account, there is no going back. Please be certain.",
+			"title": "Delete account"
+		},
 		"loggedPasskey": {
 			"canEncrypt": "Can Encrypt",
 			"created": "Created",
