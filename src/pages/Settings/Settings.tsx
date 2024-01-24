@@ -6,7 +6,7 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
-import {formatDate} from '../../functions/DateFormat';
+import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 
 
@@ -175,13 +175,13 @@ const WebauthnRegistation = ({
 				disabled={registrationInProgress || !unlocked}
 			>
 				<div className="flex items-center">
-					{ (window.innerWidth < 768) ?(
+					{(window.innerWidth < 768) ? (
 						<BsPlusCircle size={20} className="text-white sm:inline" />
-					):(
+					) : (
 						<>
 							<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-							{t('loginSignup.addPasskey')}			
-					</>		
+							{t('loginSignup.addPasskey')}
+						</>
 					)}
 				</div>
 			</button>
@@ -231,7 +231,7 @@ const WebauthnRegistation = ({
 								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								disabled={isSubmitting}
 							>
-							{t('common.save')}
+								{t('common.save')}
 							</button>
 						)}
 					</div>
@@ -343,14 +343,14 @@ const WebauthnUnlock = ({
 						{t('loginSignup.lockPasskeyManagement')}
 					</>
 					: <>
-							{ (window.innerWidth < 768) ?(
-								<BsLock size={20} className="text-white sm:inline" />
-							):(
-								<>
-									<BsLock size={20} className="text-white mr-2 sm:inline" />
-									{t('loginSignup.unlockPasskeyManagement')}
-								</>
-							)}
+						{(window.innerWidth < 768) ? (
+							<BsLock size={20} className="text-white sm:inline" />
+						) : (
+							<>
+								<BsLock size={20} className="text-white mr-2 sm:inline" />
+								{t('loginSignup.unlockPasskeyManagement')}
+							</>
+						)}
 
 					</>
 				}
@@ -408,7 +408,7 @@ const WebauthnCredentialItem = ({
 						<>
 							<div className="flex items-center">
 								<p className="font-semibold">
-								{t('pageSettings.loggedPasskey.nickname')}:&nbsp;	
+									{t('pageSettings.loggedPasskey.nickname')}:&nbsp;
 								</p>
 								<input
 									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -427,29 +427,29 @@ const WebauthnCredentialItem = ({
 						<div className="flex items-center">
 							<p>
 								<span className="font-semibold">
-									{t('pageSettings.loggedPasskey.nickname')}:&nbsp;	
+									{t('pageSettings.loggedPasskey.nickname')}:&nbsp;
 								</span>
 								<span className="font-bold text-custom-blue">
 									{currentLabel}
-							</span>
+								</span>
 							</p>
 						</div>
 					)
 				}
-				<p> 
-					<span className="font-semibold">
-					{t('pageSettings.loggedPasskey.created')}:&nbsp;	
-					</span>
-					{formatDate(credential.createTime)}
-					</p>
 				<p>
 					<span className="font-semibold">
-					{t('pageSettings.loggedPasskey.lastUsed')}:&nbsp;	
+						{t('pageSettings.loggedPasskey.created')}:&nbsp;
+					</span>
+					{formatDate(credential.createTime)}
+				</p>
+				<p>
+					<span className="font-semibold">
+						{t('pageSettings.loggedPasskey.lastUsed')}:&nbsp;
 					</span>
 					{formatDate(credential.lastUseTime)}</p>
 				<p>
 					<span className="font-semibold">
-						{t('pageSettings.loggedPasskey.canEncrypt')}:&nbsp;	
+						{t('pageSettings.loggedPasskey.canEncrypt')}:&nbsp;
 					</span>
 					{credential.prfCapable ? "Yes" : "No"}</p>
 			</div>
