@@ -170,13 +170,19 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-				className={`px-2 py-2 mb-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
+				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
 				onClick={onBegin}
 				disabled={registrationInProgress || !unlocked}
 			>
 				<div className="flex items-center">
-					<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-					{t('loginSignup.addPasskey')}
+					{ (window.innerWidth < 768) ?(
+						<BsPlusCircle size={20} className="text-white sm:inline" />
+					):(
+						<>
+							<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
+							{t('loginSignup.addPasskey')}			
+					</>		
+					)}
 				</div>
 			</button>
 
@@ -337,8 +343,15 @@ const WebauthnUnlock = ({
 						{t('loginSignup.lockPasskeyManagement')}
 					</>
 					: <>
-						<BsLock size={20} className="text-white mr-2 sm:inline" />
-						{t('loginSignup.unlockPasskeyManagement')}
+							{ (window.innerWidth < 768) ?(
+								<BsLock size={20} className="text-white sm:inline" />
+							):(
+								<>
+									<BsLock size={20} className="text-white mr-2 sm:inline" />
+									{t('loginSignup.unlockPasskeyManagement')}
+								</>
+							)}
+
 					</>
 				}
 			</div>
@@ -386,7 +399,7 @@ const WebauthnCredentialItem = ({
 
 	return (
 		<form
-			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2"
+			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
 			onSubmit={onSubmit}
 		>
 			<div className="grow">
@@ -394,11 +407,11 @@ const WebauthnCredentialItem = ({
 					? (
 						<>
 							<div className="flex items-center">
-								<p className="font-bold">
-									Nickname:&nbsp;	
+								<p className="font-semibold">
+								{t('pageSettings.loggedPasskey.nickname')}:&nbsp;	
 								</p>
 								<input
-									className="shadow appearance-none border rounded-md w-80 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 									type="text"
 									placeholder={t('loginSignup.passkeyNicknameInput')}
 									value={nickname}
@@ -412,11 +425,13 @@ const WebauthnCredentialItem = ({
 					)
 					: (
 						<div className="flex items-center">
-							<p className="font-bold">
-							{t('pageSettings.loggedPasskey.nickname')}:&nbsp;	
-							</p>
-							<p className="font-bold text-custom-blue">
-								{currentLabel}
+							<p>
+								<span className="font-semibold">
+									{t('pageSettings.loggedPasskey.nickname')}:&nbsp;	
+								</span>
+								<span className="font-bold text-custom-blue">
+									{currentLabel}
+							</span>
 							</p>
 						</div>
 					)
@@ -580,7 +595,7 @@ const Settings = () => {
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
 								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.title')}</h1>
-								<div>
+								<div className='flex'>
 									<WebauthnUnlock
 										unlocked={unlocked}
 										onLock={() => {
@@ -599,7 +614,7 @@ const Settings = () => {
 									/>
 								</div>
 							</div>
-							<hr className="mb-2 border-t border-gray-500" />
+							<hr className="mb-2 border-t border-gray-300" />
 
 							<ul className="mt-4">
 								{userData.webauthnCredentials
