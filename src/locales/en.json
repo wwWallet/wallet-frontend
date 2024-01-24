@@ -8,6 +8,7 @@
 		"navItemHistory": "History",
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSettings":"Settings",
+		"save": "Save",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -125,6 +126,27 @@
 		},
 		"searchPlaceholder": "Search verifiers..."
 	},
+	"pageSettings": {
+    "description": "View account information and manage passkeys",
+    "loggedPasskey": {
+        "canEncrypt": "Can Encrypt",
+        "created": "Created",
+        "lastUsed": "Last Used",
+        "nickname": "Nickname",
+        "title": "Logged in Passkey",
+        "unnamedPasskey": "Unnamed passkey"
+    },
+    "manageOtherPasskey": {
+        "authOneMore": "To finish setting up, please authenticate with it once more.",
+        "giveNickname": "Give this credential a nickname:",
+        "manageSuccess": "Success!",
+        "messageDone": "Almost done!",
+        "messageInteract": "Please interact with your authenticator...",
+        "messageInteractNewPasskey": "Please authenticate with the new passkey...",
+        "passkeyCreated": "Your passkey has been created.",
+        "title": "Manage other Passkey"
+    }
+},
 	"qrCodeScanner": {
 			"description": "Target the QR Code, and you will redirect to proceed with the process",
 			"title": "Scan the QR Code"

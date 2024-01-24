@@ -188,8 +188,8 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Success!</h3>
-								<p className="mb-2">Give this credential a nickname:</p>
+								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.messageSuccess')}</h3>
+								<p className="mb-2">{t('pageSettings.manageOtherPasskey.giveNickname')}</p>
 								<input
 									type="text"
 									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -204,7 +204,7 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p>Please interact with your authenticator...</p>
+								<p>{t('pageSettings.manageOtherPasskey.messageiInteract')}</p>
 							</>
 						)
 					}
@@ -216,7 +216,7 @@ const WebauthnRegistation = ({
 							onClick={onCancel}
 							disabled={isSubmitting}
 						>
-							Cancel
+							{t('common.cancel')}
 						</button>
 
 						{pendingCredential && (
@@ -225,7 +225,7 @@ const WebauthnRegistation = ({
 								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								disabled={isSubmitting}
 							>
-								Save
+							{t('common.save')}
 							</button>
 						)}
 					</div>
@@ -237,16 +237,16 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
-				<p>Your passkey has been created.</p>
-				<p>To finish setting up, please authenticate with it once more.</p>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.messageDone')}</h3>
+				<p>{t('pageSettings.manageOtherPasskey.passkeyCreated')}</p>
+				<p>{t('pageSettings.manageOtherPasskey.authOneMore')}</p>
 
 				<button
 					type="button"
 					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 					onClick={() => resolvePrfRetryPrompt(false)}
 				>
-					Cancel
+					{t('common.cancel')}
 				</button>
 				<button
 					type="button"
@@ -254,7 +254,7 @@ const WebauthnRegistation = ({
 					onClick={() => resolvePrfRetryPrompt(true)}
 					disabled={prfRetryAccepted}
 				>
-					Continue
+					{t('common.continue')}
 				</button>
 			</Dialog>
 
@@ -262,14 +262,14 @@ const WebauthnRegistation = ({
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p>Please authenticate with the new passkey...</p>
+				<p>{t('pageSettings.manageOtherPasskey.messageiInteractNewPasskey')}</p>
 
 				<button
 					type="button"
 					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 					onClick={onCancel}
 				>
-					Cancel
+					{t('common.cancel')}
 				</button>
 			</Dialog>
 		</>
@@ -358,7 +358,7 @@ const WebauthnCredentialItem = ({
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
-	const currentLabel = credential.nickname || `Unnamed passkey ${credential.id.substring(0, 8)}`;
+	const currentLabel = credential.nickname || `${t('pageSettings.loggedPasskey.unnamedPasskey')} ${credential.id.substring(0, 8)}`;
 	const [submitting, setSubmitting] = useState(false);
 
 	const onKeyUp = useCallback(
@@ -413,7 +413,7 @@ const WebauthnCredentialItem = ({
 					: (
 						<div className="flex items-center">
 							<p className="font-bold">
-								Nickname:&nbsp;	
+							{t('pageSettings.loggedPasskey.nickname')}:&nbsp;	
 							</p>
 							<p className="font-bold text-custom-blue">
 								{currentLabel}
@@ -423,18 +423,18 @@ const WebauthnCredentialItem = ({
 				}
 				<p> 
 					<span className="font-semibold">
-						Created:&nbsp;	
+					{t('pageSettings.loggedPasskey.created')}:&nbsp;	
 					</span>
 					{formatDate(credential.createTime)}
 					</p>
 				<p>
 					<span className="font-semibold">
-						Last used:&nbsp;	
+					{t('pageSettings.loggedPasskey.lastUsed')}:&nbsp;	
 					</span>
 					{formatDate(credential.lastUseTime)}</p>
 				<p>
 					<span className="font-semibold">
-					Can encrypt:&nbsp;	
+						{t('pageSettings.loggedPasskey.canEncrypt')}:&nbsp;	
 					</span>
 					{credential.prfCapable ? "Yes" : "No"}</p>
 			</div>
@@ -493,7 +493,7 @@ const WebauthnCredentialItem = ({
 
 
 
-const Home = () => {
+const Settings = () => {
 	const api = useApi();
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -502,6 +502,7 @@ const Home = () => {
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
 	const showDelete = unlocked && userData?.webauthnCredentials?.length > 1;
 	const keystore = useLocalStorageKeystore();
+	const { t } = useTranslation();
 
 	const refreshData = useCallback(
 		async () => {
@@ -561,12 +562,12 @@ const Home = () => {
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings: {userData.displayName} </h1>
+						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemSettings')}</h1>
 						<hr className="mb-2 border-t border-custom-blue/80" />
-						<p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
+						<p className="italic pd-2 text-gray-700">{t('pageSettings.description')}</p>
 
 						<div className="mt-2 mb-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Logged in passkey</h1>
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.loggedPasskey.title')}</h1>
 							<hr className="mb-2 border-t border-gray-300" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
@@ -578,7 +579,7 @@ const Home = () => {
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Other Passkeys</h1>
+								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.title')}</h1>
 								<div>
 									<WebauthnUnlock
 										unlocked={unlocked}
@@ -621,4 +622,4 @@ const Home = () => {
 	);
 };
 
-export default Home;
+export default Settings;
