@@ -1,5 +1,5 @@
 {
-	"common":{
+	"common": {
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
@@ -7,7 +7,7 @@
 		"navItemCredentials": "Credentials",
 		"navItemHistory": "History",
 		"navItemSendCredentials": "Send Credentials",
-		"navItemSettings":"Settings",
+		"navItemSettings": "Settings",
 		"save": "Save",
 		"walletName": "wwWallet"
 	},
@@ -25,7 +25,7 @@
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
 	},
-	"loginSignup":{
+	"loginSignup": {
 		"addPasskey": "Add passkey",
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
@@ -51,7 +51,7 @@
 		"loginSubmit": "Login",
 		"newHereQuestion": "New here? ",
 		"number": "At least one number",
-		"or":"OR",
+		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
 		"passkeyLoginFailedServerError": "Failed to initiate passkey login, please try again later.",
 		"passkeyLoginFailedTryAgain": "Passkey login failed, please try again.",
@@ -127,16 +127,16 @@
 		"searchPlaceholder": "Search verifiers..."
 	},
 	"pageSettings": {
-    "description": "View account information and manage passkeys",
-    "loggedPasskey": {
-      "canEncrypt": "Can Encrypt",
-      "created": "Created",
+		"description": "View account information and manage passkeys",
+		"loggedPasskey": {
+			"canEncrypt": "Can Encrypt",
+			"created": "Created",
 			"lastUsed": "Last Used",
 			"nickname": "Nickname",
 			"title": "Logged in Passkey",
 			"unnamedPasskey": "Unnamed passkey"
-    },
-    "manageOtherPasskey": {
+		},
+		"manageOtherPasskey": {
 			"authOneMore": "To finish setting up, please authenticate with it once more.",
 			"giveNickname": "Give this credential a nickname:",
 			"manageSuccess": "Success!",
@@ -145,8 +145,8 @@
 			"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 			"passkeyCreated": "Your passkey has been created.",
 			"title": "Manage other Passkey"
-    }
-},
+		}
+	},
 	"qrCodeScanner": {
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
