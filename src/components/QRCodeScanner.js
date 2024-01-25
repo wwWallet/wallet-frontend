@@ -13,6 +13,8 @@ const QRScanner = ({ onClose }) => {
   const [cameraReady, setCameraReady] = useState(false);
   const [loading, setLoading] = useState(false); // Initially, do not show the spinner
   const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
+	const [qrDetected, setQrDetected] = useState(false);
+  const [boxSize, setBoxSize] = useState(null); // State for the size of the square box
 
 	const { t } = useTranslation();
 
@@ -63,6 +65,7 @@ const QRScanner = ({ onClose }) => {
           const imageData = context.getImageData(0, 0, image.width, image.height);
           const code = jsQR(imageData.data, imageData.width, imageData.height);
           if (code) {
+						setQrDetected(true); // Set QR detected to true
             // Redirect to the URL found in the QR code
             const scannedUrl = code.data;
               setLoading(true); // Show spinner
@@ -79,12 +82,25 @@ const QRScanner = ({ onClose }) => {
                 window.location.href = cvUrl; // Redirect after a delay
               }, 1000); // Adjust the delay as needed (in milliseconds)
     
-          }
+          }else{
+						setQrDetected(false); // Set QR detected to true
+
+					}
         };
       }
     }
   };
 
+  const calculateBoxSize = () => {
+    if (webcamRef.current && webcamRef.current.video.videoWidth) {
+      const webcamElement = webcamRef.current.video;
+      const width = webcamElement.offsetWidth;
+      const height = webcamElement.offsetHeight;
+      const size = Math.min(width, height) * 0.9; // 90% of the smaller dimension
+			console.log(size);
+      setBoxSize(size);
+    }
+  };
 
   useEffect(() => {
     if (cameraReady) {
@@ -92,6 +108,29 @@ const QRScanner = ({ onClose }) => {
       return () => clearInterval(interval);
     }
   }, [cameraReady]);
+	
+  useEffect(() => {
+    calculateBoxSize();
+		console.log('calculate box');
+    window.addEventListener('resize', calculateBoxSize);
+    return () => window.removeEventListener('resize', calculateBoxSize);
+  }, []);
+
+	const waitForVideoDimensions = () => {
+    const checkDimensions = () => {
+      if (webcamRef.current && webcamRef.current.video.videoWidth) {
+        calculateBoxSize();
+      } else {
+        setTimeout(checkDimensions, 100); // Check again after 100ms
+      }
+    };
+    checkDimensions();
+  };
+
+  // onUserMedia callback
+  const onUserMedia = () => {
+    waitForVideoDimensions();
+  };
 
   return (
     <div className="qr-code-scanner bg-white">
@@ -120,14 +159,28 @@ const QRScanner = ({ onClose }) => {
           <p className="italic pd-2 text-gray-700">
 						{t('qrCodeScanner.description')}
 					</p>
-
-          <Webcam
-            audio={false}
-            ref={webcamRef}
-            screenshotFormat="image/jpeg"
-            videoConstraints={{ deviceId: devices[currentDeviceIndex].deviceId }}
-            style={{ width: '100%' }}
-          />
+					<div className="webcam-container" style={{ position: 'relative' }}>
+						<Webcam
+							audio={false}
+							ref={webcamRef}
+							screenshotFormat="image/jpeg"
+							videoConstraints={{ deviceId: devices[currentDeviceIndex].deviceId }}
+							style={{ width: '100%' }}
+							onUserMedia={onUserMedia} // Set the callback here
+						/>
+						{boxSize && (
+							<div
+								style={{
+									position: 'absolute',
+									border: `4px solid ${qrDetected ? 'green' : 'red'}`,
+									top: '50%', left: '50%',
+									width: `${boxSize}px`, height: `${boxSize}px`, // Set width and height
+									transform: 'translate(-50%, -50%)', // Center the box
+									pointerEvents: 'none',
+								}}
+							/>
+						)}
+					</div>
 
           {/* <p>{result}</p> */}
           <div className='flex justify-end'>
