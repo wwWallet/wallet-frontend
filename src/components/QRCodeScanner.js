@@ -2,24 +2,23 @@ import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
 import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
-import { PiCameraRotateFill } from 'react-icons/pi'; // Import the camera icon
-import Spinner from './Spinner'; // Adjust the import path as needed
+import { PiCameraRotateFill } from 'react-icons/pi';
+import Spinner from './Spinner';
 import { useTranslation } from 'react-i18next';
+import { FaCheckCircle } from "react-icons/fa";
 
 const QRScanner = ({ onClose }) => {
 	
   const [devices, setDevices] = useState([]);
   const webcamRef = useRef(null);
   const [cameraReady, setCameraReady] = useState(false);
-  const [loading, setLoading] = useState(false); // Initially, do not show the spinner
+  const [loading, setLoading] = useState(false); 
   const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
-  const [boxSize, setBoxSize] = useState(null); // State for the size of the square box
-	const cornerSize = 20; // The size of each corner box
-	const cornerLength = 50; // The length of each corner box
-
-
+  const [boxSize, setBoxSize] = useState(null); 
+	const cornerLength = 50; 
 	const { t } = useTranslation();
+
 	const scanningLineStyle = {
 		position: 'absolute',
 		top: `${cornerLength}px`, // Start just below the top corner box
@@ -30,7 +29,8 @@ const QRScanner = ({ onClose }) => {
 		transform: 'translateX(-50%)', // Center the line horizontally
 		pointerEvents: 'none',
 		animation: 'scan-vertical 2s linear infinite', // Faster animation
-
+		opacity:'0.5',
+		display: qrDetected ? 'none' : 'block'
 	};
 
   const handleClose = () => {
@@ -80,12 +80,11 @@ const QRScanner = ({ onClose }) => {
           const imageData = context.getImageData(0, 0, image.width, image.height);
           const code = jsQR(imageData.data, imageData.width, imageData.height);
           if (code) {
-						setQrDetected(true); // Set QR detected to true
+						setQrDetected(true);
             // Redirect to the URL found in the QR code
             const scannedUrl = code.data;
-              setLoading(true); // Show spinner
+              setLoading(true); 
               setTimeout(() => {
-                // Get the base URL (current domain)
                 const baseUrl = window.location.origin;
                 console.log('baseUrl', baseUrl);
 
@@ -94,13 +93,10 @@ const QRScanner = ({ onClose }) => {
                 console.log('params', params[1]);
 
                 const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-                window.location.href = cvUrl; // Redirect after a delay
-              }, 1000); // Adjust the delay as needed (in milliseconds)
+                window.location.href = cvUrl;
+              }, 1500);
     
-          }else{
-						setQrDetected(false); // Set QR detected to true
-
-					}
+          }
         };
       }
     }
@@ -142,7 +138,6 @@ const QRScanner = ({ onClose }) => {
     checkDimensions();
   };
 
-  // onUserMedia callback
   const onUserMedia = () => {
     waitForVideoDimensions();
   };
@@ -183,60 +178,67 @@ const QRScanner = ({ onClose }) => {
 							style={{ width: '100%' }}
 							onUserMedia={onUserMedia} // Set the callback here
 						/>
-        {boxSize && (
-          <>
-            {/* Top Left Corner */}
-            <div style={{
-              position: 'absolute',
-              borderLeft: `4px solid ${qrDetected ? 'green' : 'white'}`,
-              borderTop: `4px solid ${qrDetected ? 'green' : 'white'}`,
-							borderRadius: `2px`,
-              top: '50%', left: '50%',
-              width: '20px', height: '20px',
-              transform: ` translate(-${boxSize/2}px, -${boxSize/2}px)`,
-              pointerEvents: 'none',
-            }} />
+						{boxSize && (
+							<>
+								{/* Top Left Corner */}
+								<div style={{
+									position: 'absolute',
+									borderLeft: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderTop: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderRadius: `2px`,
+									top: '50%', left: '50%',
+									width: '20px', height: '20px',
+									transform: ` translate(-${boxSize/2}px, -${boxSize/2}px)`,
+									pointerEvents: 'none',
+								}} />
 
-            {/* Top Right Corner */}
-            <div style={{
-              position: 'absolute',
-              borderRight: `4px solid ${qrDetected ? 'green' : 'white'}`,
-              borderTop: `4px solid ${qrDetected ? 'green' : 'white'}`,
-							borderRadius: `2px`,
-              top: '50%', left: '50%',
-              width: '20px', height: '20px',
-              transform: ` translate(${boxSize/2 - 20}px, -${boxSize/2}px)`,
-              pointerEvents: 'none',
-            }} />
+								{/* Top Right Corner */}
+								<div style={{
+									position: 'absolute',
+									borderRight: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderTop: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderRadius: `2px`,
+									top: '50%', left: '50%',
+									width: '20px', height: '20px',
+									transform: ` translate(${boxSize/2 - 20}px, -${boxSize/2}px)`,
+									pointerEvents: 'none',
+								}} />
 
-            {/* Bottom Left Corner */}
-            <div style={{
-              position: 'absolute',
-              borderLeft: `4px solid ${qrDetected ? 'green' : 'white'}`,
-              borderBottom: `4px solid ${qrDetected ? 'green' : 'white'}`,
-							borderRadius: `2px`,
-              top: '50%', left: '50%',
-              width: '20px', height: '20px',
-              transform: ` translate(-${boxSize/2}px, ${boxSize/2 - 20}px)`,
-              pointerEvents: 'none',
-            }} />
+								{/* Bottom Left Corner */}
+								<div style={{
+									position: 'absolute',
+									borderLeft: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderBottom: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderRadius: `2px`,
+									top: '50%', left: '50%',
+									width: '20px', height: '20px',
+									transform: ` translate(-${boxSize/2}px, ${boxSize/2 - 20}px)`,
+									pointerEvents: 'none',
+								}} />
 
-            {/* Bottom Right Corner */}
-            <div style={{
-              position: 'absolute',
-              borderRight: `4px solid ${qrDetected ? 'green' : 'white'}`,
-              borderBottom: `4px solid ${qrDetected ? 'green' : 'white'}`,
-							borderRadius: `2px`,
-              top: '50%', left: '50%',
-              width: '20px', height: '20px',
-              transform: ` translate(${boxSize/2 - 20}px, ${boxSize/2 - 20}px)`,
-              pointerEvents: 'none',
-            }} />
-						          <div style={scanningLineStyle} />
- 
-          </>
-        )}
-					</div>
+								{/* Bottom Right Corner */}
+								<div style={{
+									position: 'absolute',
+									borderRight: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderBottom: `4px solid ${qrDetected ? 'green' : 'white'}`,
+									borderRadius: `2px`,
+									top: '50%', left: '50%',
+									width: '20px', height: '20px',
+									transform: ` translate(${boxSize/2 - 20}px, ${boxSize/2 - 20}px)`,
+									pointerEvents: 'none',
+								}} />
+								<div style={scanningLineStyle} />
+		
+							</>
+						)}
+						{qrDetected && (
+							// Render success icon when scanSuccess is true
+							<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+								<FaCheckCircle size={100} color="green" />
+								{/* Add any success message or additional styling as needed */}
+							</div>
+						)}
+				</div>
 
           {/* <p>{result}</p> */}
           <div className='flex justify-end'>
