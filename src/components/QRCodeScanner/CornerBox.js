@@ -14,9 +14,9 @@ const CornerBox = ({ qrDetected, side, position, boxSize }) => {
 	});
 
 	const getTransform = (side, position) => {
-		const adjust = boxSize / 2 - 20;
-		const x = side === 'borderLeft' ? -adjust : adjust;
-		const y = position === 'borderTop' ? -adjust : adjust;
+		const adjust = boxSize / 2;
+		const x = side === 'borderLeft' ? -adjust : adjust -20;
+		const y = position === 'borderTop' ? -adjust : adjust -20;
 		return `${x}px, ${y}px`;
 	};
 
