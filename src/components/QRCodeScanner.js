@@ -15,8 +15,23 @@ const QRScanner = ({ onClose }) => {
   const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
   const [boxSize, setBoxSize] = useState(null); // State for the size of the square box
+	const cornerSize = 20; // The size of each corner box
+	const cornerLength = 50; // The length of each corner box
+
 
 	const { t } = useTranslation();
+	const scanningLineStyle = {
+		position: 'absolute',
+		top: `${cornerLength}px`, // Start just below the top corner box
+		left: '50%',
+		height: '2px', // Line thickness
+		width: `${boxSize}px`, // Line width to match the box width
+		backgroundColor: 'white', // Line color
+		transform: 'translateX(-50%)', // Center the line horizontally
+		pointerEvents: 'none',
+		animation: 'scan-vertical 2s linear infinite', // Faster animation
+
+	};
 
   const handleClose = () => {
     onClose(); // Close the scanner modal
@@ -168,18 +183,59 @@ const QRScanner = ({ onClose }) => {
 							style={{ width: '100%' }}
 							onUserMedia={onUserMedia} // Set the callback here
 						/>
-						{boxSize && (
-							<div
-								style={{
-									position: 'absolute',
-									border: `4px solid ${qrDetected ? 'green' : 'red'}`,
-									top: '50%', left: '50%',
-									width: `${boxSize}px`, height: `${boxSize}px`, // Set width and height
-									transform: 'translate(-50%, -50%)', // Center the box
-									pointerEvents: 'none',
-								}}
-							/>
-						)}
+        {boxSize && (
+          <>
+            {/* Top Left Corner */}
+            <div style={{
+              position: 'absolute',
+              borderLeft: `4px solid ${qrDetected ? 'green' : 'white'}`,
+              borderTop: `4px solid ${qrDetected ? 'green' : 'white'}`,
+							borderRadius: `2px`,
+              top: '50%', left: '50%',
+              width: '20px', height: '20px',
+              transform: ` translate(-${boxSize/2}px, -${boxSize/2}px)`,
+              pointerEvents: 'none',
+            }} />
+
+            {/* Top Right Corner */}
+            <div style={{
+              position: 'absolute',
+              borderRight: `4px solid ${qrDetected ? 'green' : 'white'}`,
+              borderTop: `4px solid ${qrDetected ? 'green' : 'white'}`,
+							borderRadius: `2px`,
+              top: '50%', left: '50%',
+              width: '20px', height: '20px',
+              transform: ` translate(${boxSize/2 - 20}px, -${boxSize/2}px)`,
+              pointerEvents: 'none',
+            }} />
+
+            {/* Bottom Left Corner */}
+            <div style={{
+              position: 'absolute',
+              borderLeft: `4px solid ${qrDetected ? 'green' : 'white'}`,
+              borderBottom: `4px solid ${qrDetected ? 'green' : 'white'}`,
+							borderRadius: `2px`,
+              top: '50%', left: '50%',
+              width: '20px', height: '20px',
+              transform: ` translate(-${boxSize/2}px, ${boxSize/2 - 20}px)`,
+              pointerEvents: 'none',
+            }} />
+
+            {/* Bottom Right Corner */}
+            <div style={{
+              position: 'absolute',
+              borderRight: `4px solid ${qrDetected ? 'green' : 'white'}`,
+              borderBottom: `4px solid ${qrDetected ? 'green' : 'white'}`,
+							borderRadius: `2px`,
+              top: '50%', left: '50%',
+              width: '20px', height: '20px',
+              transform: ` translate(${boxSize/2 - 20}px, ${boxSize/2 - 20}px)`,
+              pointerEvents: 'none',
+            }} />
+						          <div style={scanningLineStyle} />
+ 
+          </>
+        )}
 					</div>
 
           {/* <p>{result}</p> */}
