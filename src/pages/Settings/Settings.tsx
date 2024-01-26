@@ -210,7 +210,7 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p>{t('pageSettings.manageOtherPasskey.messageiInteract')}</p>
+								<p>{t('pageSettings.manageOtherPasskey.messageInteract')}</p>
 							</>
 						)
 					}
@@ -245,7 +245,7 @@ const WebauthnRegistation = ({
 			>
 				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.messageDone')}</h3>
 				<p>{t('pageSettings.manageOtherPasskey.passkeyCreated')}</p>
-				<p>{t('pageSettings.manageOtherPasskey.authOneMore')}</p>
+				<p>{t('pageSettings.manageOtherPasskey.authOnceMore')}</p>
 
 				<button
 					type="button"
@@ -268,7 +268,7 @@ const WebauthnRegistation = ({
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p>{t('pageSettings.manageOtherPasskey.messageiInteractNewPasskey')}</p>
+				<p>{t('pageSettings.manageOtherPasskey.messageInteractNewPasskey')}</p>
 
 				<button
 					type="button"

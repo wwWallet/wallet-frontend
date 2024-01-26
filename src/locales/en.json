@@ -137,14 +137,14 @@
 			"unnamedPasskey": "Unnamed passkey"
 		},
 		"manageOtherPasskey": {
-			"authOneMore": "To finish setting up, please authenticate with it once more.",
+			"authOnceMore": "To finish setting up, please authenticate with it once more.",
 			"giveNickname": "Give this credential a nickname:",
-			"manageSuccess": "Success!",
+			"messageSuccess": "Success!",
 			"messageDone": "Almost done!",
 			"messageInteract": "Please interact with your authenticator...",
 			"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 			"passkeyCreated": "Your passkey has been created.",
-			"title": "Manage other Passkey"
+			"title": "Manage other Passkeys"
 		}
 	},
 	"qrCodeScanner": {
