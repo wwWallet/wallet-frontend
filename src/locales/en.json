@@ -26,13 +26,10 @@
 		}
 	},
 	"loginSignup": {
-		"addPasskey": "Add passkey",
 		"alreadyHaveAccountQuestion": "Already have an account? ",
-		"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 		"capitalLetter": "At least one capital letter",
 		"choosePasskeyUsername": "What should we call you?",
 		"confirmPasswordLabel": "Confirm Password",
-		"deletePasskeyAriaLabel": "Delete passkey {{passkeyLabel}}",
 		"enterPasskeyName": "Choose a name for yourself",
 		"enterPassword": "Enter your password",
 		"enterUsername": "Enter your username",
@@ -42,7 +39,6 @@
 		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
 		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
 		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover wwWallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
-		"lockPasskeyManagement": "Lock passkey management",
 		"login": "Login",
 		"loginAsUser": "Log in as {{name}}",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
@@ -55,8 +51,6 @@
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
 		"passkeyLoginFailedServerError": "Failed to initiate passkey login, please try again later.",
 		"passkeyLoginFailedTryAgain": "Passkey login failed, please try again.",
-		"passkeyNicknameInput": "New nickname",
-		"passkeyNicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
 		"passkeySignupFailedServerError": "Failed to initiate passkey creation, please try again later.",
 		"passkeySignupFailedTryAgain": "Passkey creation failed, please try again.",
 		"passkeySignupFinishFailedServerError": "Failed to finalize passkey creation, please try again later.",
@@ -65,10 +59,6 @@
 		"passwordLabel": "Password",
 		"passwordLength": "Minimum length: 8 characters",
 		"passwordsNotMatchError": "Passwords do not match",
-		"renamePasskey": "Rename",
-		"renamePasskeyAriaLabel": "Rename passkey {{passkeyLabel}}",
-		"save": "Save",
-		"savePasskeyChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 		"signUp": "Sign Up",
 		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
@@ -77,7 +67,6 @@
 		"strength": "Strength",
 		"submitting": "Submitting...",
 		"tryAgain": "Try again",
-		"unlockPasskeyManagement": "Unlock passkey management",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
@@ -127,7 +116,11 @@
 		"searchPlaceholder": "Search verifiers..."
 	},
 	"pageSettings": {
+		"addPasskey": "Add passkey",
+		"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
+		"deletePasskeyAriaLabel": "Delete passkey {{passkeyLabel}}",
 		"description": "View account information and manage passkeys",
+		"lockPasskeyManagement": "Lock passkey management",
 		"loggedPasskey": {
 			"canEncrypt": "Can Encrypt",
 			"created": "Created",
@@ -145,7 +138,13 @@
 			"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 			"passkeyCreated": "Your passkey has been created.",
 			"title": "Manage other Passkeys"
-		}
+		},
+		"passkeyNicknameInput": "New nickname",
+		"passkeyNicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+		"renamePasskey": "Rename",
+		"renamePasskeyAriaLabel": "Rename passkey {{passkeyLabel}}",
+		"savePasskeyChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+		"unlockPasskeyManagement": "Unlock passkey management"
 	},
 	"qrCodeScanner": {
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
