@@ -117,33 +117,35 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey",
-		"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
-		"deletePasskeyAriaLabel": "Delete passkey {{passkeyLabel}}",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
-		"loggedPasskey": {
+		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
+			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
+			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
 			"nickname": "Nickname",
-			"title": "Logged in Passkey",
-			"unnamedPasskey": "Unnamed passkey"
+			"nicknameInput": "New nickname",
+			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+			"rename": "Rename",
+			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
+			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+			"unnamed": "Unnamed passkey"
 		},
-		"manageOtherPasskey": {
+		"registerPasskey": {
 			"authOnceMore": "To finish setting up, please authenticate with it once more.",
 			"giveNickname": "Give this credential a nickname:",
 			"messageSuccess": "Success!",
 			"messageDone": "Almost done!",
 			"messageInteract": "Please interact with your authenticator...",
 			"messageInteractNewPasskey": "Please authenticate with the new passkey...",
-			"passkeyCreated": "Your passkey has been created.",
-			"title": "Manage other Passkeys"
+			"passkeyCreated": "Your passkey has been created."
 		},
-		"passkeyNicknameInput": "New nickname",
-		"passkeyNicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
-		"renamePasskey": "Rename",
-		"renamePasskeyAriaLabel": "Rename passkey {{passkeyLabel}}",
-		"savePasskeyChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+		"title": {
+			"loggedInPasskey": "Logged in Passkey",
+			"manageOtherPasskeys": "Manage other Passkeys"
+		},
 		"unlockPasskeyManagement": "Unlock passkey management"
 	},
 	"qrCodeScanner": {

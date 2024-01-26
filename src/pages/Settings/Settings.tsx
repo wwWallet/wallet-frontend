@@ -194,8 +194,8 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.messageSuccess')}</h3>
-								<p className="mb-2">{t('pageSettings.manageOtherPasskey.giveNickname')}</p>
+								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
+								<p className="mb-2">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
 									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -210,7 +210,7 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p>{t('pageSettings.manageOtherPasskey.messageInteract')}</p>
+								<p>{t('pageSettings.registerPasskey.messageInteract')}</p>
 							</>
 						)
 					}
@@ -243,9 +243,9 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.messageDone')}</h3>
-				<p>{t('pageSettings.manageOtherPasskey.passkeyCreated')}</p>
-				<p>{t('pageSettings.manageOtherPasskey.authOnceMore')}</p>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageDone')}</h3>
+				<p>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
+				<p>{t('pageSettings.registerPasskey.authOnceMore')}</p>
 
 				<button
 					type="button"
@@ -268,7 +268,7 @@ const WebauthnRegistation = ({
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p>{t('pageSettings.manageOtherPasskey.messageInteractNewPasskey')}</p>
+				<p>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
 
 				<button
 					type="button"
@@ -371,7 +371,7 @@ const WebauthnCredentialItem = ({
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
-	const currentLabel = credential.nickname || `${t('pageSettings.loggedPasskey.unnamedPasskey')} ${credential.id.substring(0, 8)}`;
+	const currentLabel = credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
 	const [submitting, setSubmitting] = useState(false);
 
 	const onKeyUp = useCallback(
@@ -408,15 +408,15 @@ const WebauthnCredentialItem = ({
 						<>
 							<div className="flex items-center">
 								<p className="font-semibold">
-									{t('pageSettings.loggedPasskey.nickname')}:&nbsp;
+									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
 									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 									type="text"
-									placeholder={t('pageSettings.passkeyNicknameInput')}
+									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
 									onChange={(event) => setNickname(event.target.value)}
-									aria-label={t('pageSettings.passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
+									aria-label={t('pageSettings.passkeyItem.nicknameInputAriaLabel', { passkeyLabel: currentLabel })}
 									onKeyUp={onKeyUp}
 									disabled={submitting}
 								/>
@@ -427,7 +427,7 @@ const WebauthnCredentialItem = ({
 						<div className="flex items-center">
 							<p>
 								<span className="font-semibold">
-									{t('pageSettings.loggedPasskey.nickname')}:&nbsp;
+									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</span>
 								<span className="font-bold text-custom-blue">
 									{currentLabel}
@@ -438,18 +438,18 @@ const WebauthnCredentialItem = ({
 				}
 				<p>
 					<span className="font-semibold">
-						{t('pageSettings.loggedPasskey.created')}:&nbsp;
+						{t('pageSettings.passkeyItem.created')}:&nbsp;
 					</span>
 					{formatDate(credential.createTime)}
 				</p>
 				<p>
 					<span className="font-semibold">
-						{t('pageSettings.loggedPasskey.lastUsed')}:&nbsp;
+						{t('pageSettings.passkeyItem.lastUsed')}:&nbsp;
 					</span>
 					{formatDate(credential.lastUseTime)}</p>
 				<p>
 					<span className="font-semibold">
-						{t('pageSettings.loggedPasskey.canEncrypt')}:&nbsp;
+						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
 					{credential.prfCapable ? "Yes" : "No"}</p>
 			</div>
@@ -463,7 +463,7 @@ const WebauthnCredentialItem = ({
 								type="button"
 								disabled={submitting}
 								onClick={() => setEditing(false)}
-								aria-label={t('pageSettings.cancelPasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
 								{t('common.cancel')}
 							</button>
@@ -471,7 +471,7 @@ const WebauthnCredentialItem = ({
 								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								type="submit"
 								disabled={submitting}
-								aria-label={t('pageSettings.savePasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('pageSettings.passkeyItem.saveChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
 								{t('common.save')}
 							</button>
@@ -483,9 +483,9 @@ const WebauthnCredentialItem = ({
 								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 								type="button"
 								onClick={() => setEditing(true)}
-								aria-label={t('pageSettings.renamePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								<FaEdit size={16} className="mr-2" /> {t('pageSettings.renamePasskey')}
+								<FaEdit size={16} className="mr-2" /> {t('pageSettings.passkeyItem.rename')}
 							</button>
 						</>
 					)
@@ -496,7 +496,7 @@ const WebauthnCredentialItem = ({
 						className="text-white bg-red-700 text-sm hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-800 ml-2 px-4 py-2"
 						type="button"
 						onClick={onDelete}
-						aria-label={t('pageSettings.deletePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 					>
 						<FaTrash size={16} />
 					</button>
@@ -582,7 +582,7 @@ const Settings = () => {
 						<p className="italic pd-2 text-gray-700">{t('pageSettings.description')}</p>
 
 						<div className="mt-2 mb-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.loggedPasskey.title')}</h1>
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.loggedInPasskey')}</h1>
 							<hr className="mb-2 border-t border-gray-300" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
@@ -594,7 +594,7 @@ const Settings = () => {
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.manageOtherPasskey.title')}</h1>
+								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.manageOtherPasskeys')}</h1>
 								<div className='flex'>
 									<WebauthnUnlock
 										unlocked={unlocked}
