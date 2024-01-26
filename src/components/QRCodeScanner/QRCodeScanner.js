@@ -89,7 +89,12 @@ const QRScanner = ({ onClose }) => {
 			const width = webcamElement.offsetWidth;
 			const height = webcamElement.offsetHeight;
 			const size = Math.min(width, height) * 0.9;
-			console.log(size);
+			let scanningMargin = 20;
+			if ( height > width ) {
+				scanningMargin = (height-size)/2;
+			}			
+			document.documentElement.style.setProperty('--scanning-margin', scanningMargin+'px');
+
 			setBoxSize(size);
 		}
 	};

@@ -61,6 +61,6 @@
 }
 
 @keyframes scan-vertical {
-  0%, 100% { top: calc(0% + 20px); } /* Adjust the offset to match your corner size */
-  50% { top: calc(100% - 20px); }
+  0%, 100% { top: calc(0% + var(--scanning-margin)); }
+  50% { top: calc(100% - var(--scanning-margin)); }
 }
