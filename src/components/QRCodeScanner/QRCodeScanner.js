@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { FaCheckCircle } from "react-icons/fa";
 import CornerBox from './CornerBox';
 import ScanningLine from './ScanningLine';
+import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 
 const QRScanner = ({ onClose }) => {
 
@@ -18,7 +19,21 @@ const QRScanner = ({ onClose }) => {
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
 	const [boxSize, setBoxSize] = useState(null);
+	const [zoomLevel, setZoomLevel] = useState(1);
 	const { t } = useTranslation();
+
+	const handleZoomChange = (event) => {
+		const newZoomLevel = Number(event.target.value);
+		setZoomLevel(newZoomLevel);
+	};
+
+	const handleZoomIn = () => {
+		setZoomLevel(prevZoomLevel => Math.min(prevZoomLevel + 0.2, 3));
+	};
+
+	const handleZoomOut = () => {
+		setZoomLevel(prevZoomLevel => Math.max(prevZoomLevel - 0.2, 1));
+	};
 
 	const handleClose = () => {
 		onClose();
@@ -90,10 +105,10 @@ const QRScanner = ({ onClose }) => {
 			const height = webcamElement.offsetHeight;
 			const size = Math.min(width, height) * 0.9;
 			let scanningMargin = 20;
-			if ( height > width ) {
-				scanningMargin = (height-size)/2;
-			}			
-			document.documentElement.style.setProperty('--scanning-margin', scanningMargin+'px');
+			if (height > width) {
+				scanningMargin = (height - size) / 2;
+			}
+			document.documentElement.style.setProperty('--scanning-margin', scanningMargin + 'px');
 
 			setBoxSize(size);
 		}
@@ -155,13 +170,13 @@ const QRScanner = ({ onClose }) => {
 					<p className="italic pd-2 text-gray-700">
 						{t('qrCodeScanner.description')}
 					</p>
-					<div className="webcam-container" style={{ position: 'relative' }}>
+					<div className="webcam-container" style={{ position: 'relative', overflow: 'hidden' }}>
 						<Webcam
 							audio={false}
 							ref={webcamRef}
 							screenshotFormat="image/jpeg"
 							videoConstraints={{ deviceId: devices[currentDeviceIndex].deviceId }}
-							style={{ width: '100%' }}
+							style={{ width: '100%', transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
 							onUserMedia={onUserMedia}
 						/>
 						{boxSize && (
@@ -179,7 +194,20 @@ const QRScanner = ({ onClose }) => {
 							</div>
 						)}
 					</div>
-					<div className='flex justify-end'>
+					<div className='flex justify-between align-center'>
+						<div className="flex items-center my-4">
+							<RiZoomOutFill className="text-gray-400 mr-2 mt-2" onClick={handleZoomOut} size={30} />
+							<input
+								type="range"
+								min="1"
+								max="3"
+								step="0.1"
+								value={zoomLevel}
+								onChange={handleZoomChange}
+								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
+							/>
+							<RiZoomInFill className="text-gray-400 ml-2 mt-2" onClick={handleZoomIn} size={30} />
+						</div>
 						{devices.length > 1 && (
 							<button
 								type="button"
