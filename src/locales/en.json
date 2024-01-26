@@ -121,6 +121,8 @@
 		"lockPasskeyManagement": "Lock passkey management",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
+			"canEncryptNo": "No",
+			"canEncryptYes": "Yes",
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",

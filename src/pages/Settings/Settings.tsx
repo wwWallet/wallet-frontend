@@ -451,7 +451,7 @@ const WebauthnCredentialItem = ({
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
-					{credential.prfCapable ? "Yes" : "No"}</p>
+					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}</p>
 			</div>
 
 			<div className="items-start	 flex inline-flex">
