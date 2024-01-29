@@ -19,7 +19,7 @@ import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
-import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
+import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 
 const Home = () => {
   const api = useApi();

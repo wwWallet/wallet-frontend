@@ -59,3 +59,8 @@
 .fade-in-content.visible {
   opacity: 1;
 }
+
+@keyframes scan-vertical {
+  0%, 100% { top: calc(0% + var(--scanning-margin)); }
+  50% { top: calc(100% - var(--scanning-margin)); }
+}

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useApi } from '../../api';
 import Spinner from '../../components/Spinner';
-import QRCodeScanner from '../../components/QRCodeScanner'; // Replace with the actual import path
+import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
