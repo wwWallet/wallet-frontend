@@ -195,8 +195,8 @@ const QRScanner = ({ onClose }) => {
 						)}
 					</div>
 					<div className='flex justify-between align-center'>
-						<div className="flex items-center my-4">
-							<RiZoomOutFill className="text-gray-400 mr-2 mt-2" onClick={handleZoomOut} size={30} />
+						<div className="flex items-center my-4 pr-4 w-full">
+							<RiZoomOutFill className="text-gray-400 mr-2 mt-2" onClick={handleZoomOut} size={35} />
 							<input
 								type="range"
 								min="1"
@@ -206,15 +206,15 @@ const QRScanner = ({ onClose }) => {
 								onChange={handleZoomChange}
 								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
 							/>
-							<RiZoomInFill className="text-gray-400 ml-2 mt-2" onClick={handleZoomIn} size={30} />
+							<RiZoomInFill className="text-gray-400 ml-2 mt-2" onClick={handleZoomIn} size={35} />
 						</div>
 						{devices.length > 1 && (
 							<button
 								type="button"
-								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm px-4 py-2 mt-2"
+								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm pl-4 py-2 mt-2"
 								onClick={switchCamera}
 							>
-								<PiCameraRotateFill size={20} />
+								<PiCameraRotateFill size={25} />
 							</button>
 						)}
 					</div>
