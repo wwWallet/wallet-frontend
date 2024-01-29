@@ -1,5 +1,5 @@
 {
-	"common":{
+	"common": {
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
@@ -7,6 +7,8 @@
 		"navItemCredentials": "Credentials",
 		"navItemHistory": "History",
 		"navItemSendCredentials": "Send Credentials",
+		"navItemSettings": "Settings",
+		"save": "Save",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -23,14 +25,11 @@
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
 	},
-	"loginSignup":{
-		"addPasskey": "Add passkey",
+	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
-		"cancelPasskeyChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 		"capitalLetter": "At least one capital letter",
 		"choosePasskeyUsername": "What should we call you?",
 		"confirmPasswordLabel": "Confirm Password",
-		"deletePasskeyAriaLabel": "Delete passkey {{passkeyLabel}}",
 		"enterPasskeyName": "Choose a name for yourself",
 		"enterPassword": "Enter your password",
 		"enterUsername": "Enter your username",
@@ -40,7 +39,6 @@
 		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
 		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
 		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover wwWallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
-		"lockPasskeyManagement": "Lock passkey management",
 		"login": "Login",
 		"loginAsUser": "Log in as {{name}}",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
@@ -49,12 +47,10 @@
 		"loginSubmit": "Login",
 		"newHereQuestion": "New here? ",
 		"number": "At least one number",
-		"or":"OR",
+		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
 		"passkeyLoginFailedServerError": "Failed to initiate passkey login, please try again later.",
 		"passkeyLoginFailedTryAgain": "Passkey login failed, please try again.",
-		"passkeyNicknameInput": "New nickname",
-		"passkeyNicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
 		"passkeySignupFailedServerError": "Failed to initiate passkey creation, please try again later.",
 		"passkeySignupFailedTryAgain": "Passkey creation failed, please try again.",
 		"passkeySignupFinishFailedServerError": "Failed to finalize passkey creation, please try again later.",
@@ -63,10 +59,6 @@
 		"passwordLabel": "Password",
 		"passwordLength": "Minimum length: 8 characters",
 		"passwordsNotMatchError": "Passwords do not match",
-		"renamePasskey": "Rename",
-		"renamePasskeyAriaLabel": "Rename passkey {{passkeyLabel}}",
-		"save": "Save",
-		"savePasskeyChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 		"signUp": "Sign Up",
 		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
@@ -75,7 +67,6 @@
 		"strength": "Strength",
 		"submitting": "Submitting...",
 		"tryAgain": "Try again",
-		"unlockPasskeyManagement": "Unlock passkey management",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
@@ -124,9 +115,44 @@
 		},
 		"searchPlaceholder": "Search verifiers..."
 	},
+	"pageSettings": {
+		"addPasskey": "Add passkey",
+		"description": "View account information and manage passkeys",
+		"lockPasskeyManagement": "Lock passkey management",
+		"passkeyItem": {
+			"canEncrypt": "Can Encrypt",
+			"canEncryptNo": "No",
+			"canEncryptYes": "Yes",
+			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
+			"created": "Created",
+			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
+			"lastUsed": "Last Used",
+			"nickname": "Nickname",
+			"nicknameInput": "New nickname",
+			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+			"rename": "Rename",
+			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
+			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+			"unnamed": "Unnamed passkey"
+		},
+		"registerPasskey": {
+			"authOnceMore": "To finish setting up, please authenticate with it once more.",
+			"giveNickname": "Give this credential a nickname:",
+			"messageSuccess": "Success!",
+			"messageDone": "Almost done!",
+			"messageInteract": "Please interact with your authenticator...",
+			"messageInteractNewPasskey": "Please authenticate with the new passkey...",
+			"passkeyCreated": "Your passkey has been created."
+		},
+		"title": {
+			"loggedInPasskey": "Logged in Passkey",
+			"manageOtherPasskeys": "Manage other Passkeys"
+		},
+		"unlockPasskeyManagement": "Unlock passkey management"
+	},
 	"qrCodeScanner": {
-			"description": "Target the QR Code, and you will redirect to proceed with the process",
-			"title": "Scan the QR Code"
+		"description": "Target the QR Code, and you will redirect to proceed with the process",
+		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
 		"description": "Please select one of the above credentials to proceed with the presentation",

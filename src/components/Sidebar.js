@@ -1,7 +1,7 @@
 import React from 'react';
 import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
-import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
+import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useApi } from '../api';
@@ -102,10 +102,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 					{/* User */}
 					<ul>
-						<NavItem path="/account" location={location} handleNavigate={handleNavigate}>
+						<div className='flex items-center space-x-2 mb-4 p-2 rounded-r-xl'>
 							<FaUserCircle size={30} />
 							<span>{displayName || username}</span>
-						</NavItem>
+						</div>
 
 						<hr className="my-4 border-t border-white/20" />
 
@@ -125,6 +125,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 							<IoIosSend size={30} />
 							<span>{t("common.navItemSendCredentials")}</span>
+						</NavItem>
+						<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
+							<IoMdSettings size={30} />
+							<span>{t("common.navItemSettings")}</span>
 						</NavItem>
 
 						<hr className="my-4 border-t border-white/20" />
