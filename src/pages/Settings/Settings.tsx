@@ -490,7 +490,6 @@ const WebauthnCredentialItem = ({
 						</>
 					)
 				}
-
 				{onDelete && (
 					<button
 						className="text-white bg-red-700 text-sm hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-800 ml-2 px-4 py-2"
@@ -583,7 +582,7 @@ const Settings = () => {
 
 						<div className="mt-2 mb-2 py-2">
 							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.loggedInPasskey')}</h1>
-							<hr className="mb-2 border-t border-gray-300" />
+							<hr className="mb-2 border-t border-gray-700" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
@@ -594,7 +593,7 @@ const Settings = () => {
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.manageOtherPasskeys')}</h1>
+								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.manageAcount')}</h1>
 								<div className='flex'>
 									<WebauthnUnlock
 										unlocked={unlocked}
@@ -607,42 +606,56 @@ const Settings = () => {
 											setWrappedMainKey(wrappedMainKey);
 										}}
 									/>
-									<WebauthnRegistation
-										existingPrfKey={existingPrfKey}
-										wrappedMainKey={wrappedMainKey}
-										onSuccess={() => refreshData()}
-									/>
 								</div>
 							</div>
-							<hr className="mb-2 border-t border-gray-300" />
+							<hr className="mb-2 border-t border-gray-500" />
+							<div className='mb-2'>
+								<div className="pt-2">
+									<div className="flex justify-between items-center">
+										<h1 className="text-md font-bold text-gray-700">{t('pageSettings.title.manageOtherPasskeys')}</h1>
+										<div className='flex'>
+											<WebauthnRegistation
+												existingPrfKey={existingPrfKey}
+												wrappedMainKey={wrappedMainKey}
+												onSuccess={() => refreshData()}
+											/>
+										</div>
+									</div>
+									<hr className="mb-2 border-t border-gray-300" />
+									<ul className="mt-4">
+										{userData.webauthnCredentials
+											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+											.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+											.map(cred => (
+												<WebauthnCredentialItem
+													key={cred.id}
+													credential={cred}
+													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+													onRename={onRenameWebauthnCredential}
+												/>
+											))}
+									</ul>
+								</div>
 
-							<ul className="mt-4">
-								{userData.webauthnCredentials
-									.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
-									.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
-									.map(cred => (
-										<WebauthnCredentialItem
-											key={cred.id}
-											credential={cred}
-											onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
-											onRename={onRenameWebauthnCredential}
-										/>
-									))}
-							</ul>
-						</div>
-						<div className="mt-2 mb-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.deleteAccount.title')}</h1>
-							<hr className="mb-2 border-t border-gray-300" />
-							<p className='mb-2'>
-								{t('pageSettings.deleteAccount.description')}
-							</p>
-							<button
-							type="button"
-							className="bg-white px-4 py-2 text-red-600 hover:text-white border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-red-600 mr-2"
-							// onClick={deleteaccount}
-						>
-							{t('pageSettings.deleteAccount.buttonText')}
-						</button>
+								<div className="pt-2">
+									<h1 className="text-md font-bold text-gray-700">{t('pageSettings.deleteAccount.title')}</h1>
+									<hr className="mb-2 border-t border-gray-300" />
+									<p className='mb-2'>
+										{t('pageSettings.deleteAccount.description')}
+									</p>
+									<button
+										type="button"
+										className="bg-white px-4 py-2 text-red-600 hover:text-white border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-red-600 mr-2"
+										// onClick={deleteaccount}
+										disabled={!unlocked}
+
+									>
+
+										{t('pageSettings.deleteAccount.buttonText')}
+									</button>
+								</div>
+							</div>
+
 						</div>
 					</>
 				)}

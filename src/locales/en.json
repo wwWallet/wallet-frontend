@@ -117,7 +117,7 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey",
-    	"deleteAccount": {
+		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
 			"title": "Delete account"
@@ -151,9 +151,10 @@
 		},
 		"title": {
 			"loggedInPasskey": "Logged in Passkey",
+			"manageAcount": "Manage Acount",
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
-		"unlockPasskeyManagement": "Unlock passkey management"
+		"unlockPasskeyManagement": "Unlock management"
 	},
 	"qrCodeScanner": {
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
