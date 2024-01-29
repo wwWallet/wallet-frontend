@@ -6,18 +6,28 @@ import { useTranslation } from 'react-i18next';
 import { useApi } from '../api';
 
 
-function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredentialsMap }) {
+function Popup({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap }) {
 	const api = useApi();
 	const [images, setImages] = useState([]);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
+	const keys = Object.keys(conformantCredentialsMap);
+	const [currentIndex, setCurrentIndex] = useState(0);
+	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
+
 	useEffect(() => {
 		const getData = async () => {
+			if (currentIndex == Object.keys(conformantCredentialsMap).length) {
+				setSelectionMap(currentSelectionMap);
+				setShowPopup(false); // finished
+				return;
+			}
+
 			try {
 				const response = await api.get('/storage/vc');
 				const simplifiedCredentials = response.data.vc_list
-							.filter(vc => conformantCredentialsMap.includes(vc.credentialIdentifier))
+							.filter(vc => conformantCredentialsMap[keys[currentIndex]].includes(vc.credentialIdentifier))
 							.map(vc => ({
 								id: vc.credentialIdentifier,
 								imageURL: vc.logoURL,
@@ -30,11 +40,19 @@ function Popup({ showPopup, setShowPopup, setSelectedValue, conformantCredential
 		};
 
 		getData();
-	}, [api]);
+	}, [api, currentIndex]);
+
+	const goToNextSelection = () => {
+		setCurrentIndex((i) => i+1);
+	}
 
 	const handleClick = (id) => {
-		setSelectedValue(id);
-		setShowPopup(false);
+		const descriptorId = keys[currentIndex];
+		setCurrentSelectionMap((currentMap) => {
+			currentMap[descriptorId] = id;
+			return currentMap;
+		});
+		goToNextSelection();
 	};
 
 	const handleCancel = () => {
