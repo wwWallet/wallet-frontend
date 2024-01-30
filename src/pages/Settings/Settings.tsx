@@ -8,7 +8,7 @@ import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
-
+import ConfirmDeletePopup from '../../components/ConfirmDeletePopup/ConfirmDeletePopup';
 
 const Dialog = ({
 	children,
@@ -377,6 +377,17 @@ const WebauthnCredentialItem = ({
 	const { t } = useTranslation();
 	const currentLabel = credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
 	const [submitting, setSubmitting] = useState(false);
+	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+
+	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
+	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+
+	const handleDelete = () => {
+		if (onDelete) {
+			onDelete();
+			closeDeleteConfirmation();
+		}
+	};
 
 	const onKeyUp = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
@@ -401,7 +412,6 @@ const WebauthnCredentialItem = ({
 		}
 	};
 
-	console.log('unlocked', nickname, unlocked, onDelete)
 	return (
 		<form
 			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
@@ -500,12 +510,22 @@ const WebauthnCredentialItem = ({
 					<button
 						className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} text-sm font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-2 px-4 py-2`}
 						type="button"
-						onClick={onDelete}
+						onClick={openDeleteConfirmation}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 					>
 						<FaTrash size={16} />
 					</button>
 				)}
+				<ConfirmDeletePopup
+					isOpen={isDeleteConfirmationOpen}
+					onConfirm={handleDelete}
+					onCancel={closeDeleteConfirmation}
+					message={
+						<span>
+							Are you sure you want to delete <strong>{nickname}</strong> passkey?
+						</span>
+					}
+				/>
 			</div>
 		</form>
 	);
@@ -523,6 +543,21 @@ const Settings = () => {
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
+	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+
+	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
+	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+
+	//Here we implement the api which delete the account
+	const DeleteAccount = () => {
+		console.log('delete account');
+	}
+	const handleDelete = () => {
+		if (unlocked) {
+			DeleteAccount();
+			closeDeleteConfirmation();
+		}
+	};
 
 	const refreshData = useCallback(
 		async () => {
@@ -645,7 +680,7 @@ const Settings = () => {
 											))}
 										{userData.webauthnCredentials
 											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
-												<p>There is no other passkeys in this account.</p>
+												<p>{t('pageSettings.noOtherPasskeys')}</p>
 											)}
 									</ul>
 								</div>
@@ -659,7 +694,7 @@ const Settings = () => {
 									<button
 										type="button"
 										className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} px-4 py-2 border border-gray-300 rounded-md font-medium rounded-lg text-sm mr-2`}
-										// onClick={deleteaccount}
+										onClick={openDeleteConfirmation}
 										disabled={!unlocked}
 									>
 										{t('pageSettings.deleteAccount.buttonText')}
@@ -670,6 +705,16 @@ const Settings = () => {
 						</div>
 					</>
 				)}
+				<ConfirmDeletePopup
+					isOpen={isDeleteConfirmationOpen}
+					onConfirm={handleDelete}
+					onCancel={closeDeleteConfirmation}
+					message={
+						<span>
+							Are you sure you want to delete <strong> your Account </strong>?
+						</span>
+					}
+				/>
 			</div>
 		</>
 	);

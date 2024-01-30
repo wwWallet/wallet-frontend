@@ -120,10 +120,14 @@
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
+			"messageDeletePasskeyPart1": "Are you sure you want to delete",
+			"messageDeletePasskeyPart2": "passkey?",
+			"messageDeleteAccount": "Are you sure you want to delete <strong> your Account </strong>?",
 			"title": "Delete account"
 		},
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
+		"noOtherPasskeys": "There is no other passkeys in this account.",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
@@ -150,6 +154,7 @@
 			"passkeyCreated": "Your passkey has been created."
 		},
 		"title": {
+			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Acount",
 			"manageOtherPasskeys": "Manage other Passkeys"
