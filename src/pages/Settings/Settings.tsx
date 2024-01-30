@@ -170,7 +170,7 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
+				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover`}
 				onClick={onBegin}
 				disabled={registrationInProgress || !unlocked}
 			>
@@ -198,7 +198,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
 									aria-label="Nickname for new credential"
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -228,7 +228,7 @@ const WebauthnRegistation = ({
 						{pendingCredential && (
 							<button
 								type="submit"
-								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 								disabled={isSubmitting}
 							>
 								{t('common.save')}
@@ -256,7 +256,7 @@ const WebauthnRegistation = ({
 				</button>
 				<button
 					type="button"
-					className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 					onClick={() => resolvePrfRetryPrompt(true)}
 					disabled={prfRetryAccepted}
 				>
@@ -332,7 +332,7 @@ const WebauthnUnlock = ({
 
 	return (
 		<button
-			className="px-2 py-2 mr-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+			className="px-2 py-2 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
 			onClick={unlocked ? onLock : onBeginUnlock}
 			disabled={inProgress}
 		>
@@ -363,10 +363,14 @@ const WebauthnCredentialItem = ({
 	credential,
 	onDelete,
 	onRename,
+	unlocked
+
 }: {
 	credential: WebauthnCredential,
 	onDelete?: false | (() => void),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
+	unlocked: boolean
+
 }) => {
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
@@ -397,6 +401,7 @@ const WebauthnCredentialItem = ({
 		}
 	};
 
+	console.log('unlocked', nickname, unlocked, onDelete)
 	return (
 		<form
 			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
@@ -411,7 +416,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight"
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
@@ -468,7 +473,7 @@ const WebauthnCredentialItem = ({
 								{t('common.cancel')}
 							</button>
 							<button
-								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 								type="submit"
 								disabled={submitting}
 								aria-label={t('pageSettings.passkeyItem.saveChangesAriaLabel', { passkeyLabel: currentLabel })}
@@ -480,7 +485,7 @@ const WebauthnCredentialItem = ({
 					: (
 						<>
 							<button
-								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className={` ${!onDelete || unlocked ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"} flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center`}
 								type="button"
 								onClick={() => setEditing(true)}
 								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
@@ -490,9 +495,10 @@ const WebauthnCredentialItem = ({
 						</>
 					)
 				}
+
 				{onDelete && (
 					<button
-						className="text-white bg-red-700 text-sm hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-800 ml-2 px-4 py-2"
+						className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} text-sm font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 ml-2 px-4 py-2`}
 						type="button"
 						onClick={onDelete}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
@@ -514,7 +520,7 @@ const Settings = () => {
 	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
-	const showDelete = unlocked && userData?.webauthnCredentials?.length > 1;
+	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 
@@ -580,7 +586,7 @@ const Settings = () => {
 						<hr className="mb-2 border-t border-custom-blue/80" />
 						<p className="italic pd-2 text-gray-700">{t('pageSettings.description')}</p>
 
-						<div className="mt-2 mb-2 py-2">
+						<div className="my-2 py-2">
 							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.loggedInPasskey')}</h1>
 							<hr className="mb-2 border-t border-gray-700" />
 							{loggedInPasskey && (
@@ -588,6 +594,7 @@ const Settings = () => {
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
 									onRename={onRenameWebauthnCredential}
+									unlocked={unlocked}
 								/>
 							)}
 						</div>
@@ -610,9 +617,9 @@ const Settings = () => {
 							</div>
 							<hr className="mb-2 border-t border-gray-500" />
 							<div className='mb-2'>
-								<div className="pt-2">
+								<div className="pt-4">
 									<div className="flex justify-between items-center">
-										<h1 className="text-md font-bold text-gray-700">{t('pageSettings.title.manageOtherPasskeys')}</h1>
+										<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.title.manageOtherPasskeys')}</h1>
 										<div className='flex'>
 											<WebauthnRegistation
 												existingPrfKey={existingPrfKey}
@@ -623,6 +630,7 @@ const Settings = () => {
 									</div>
 									<hr className="mb-2 border-t border-gray-300" />
 									<ul className="mt-4">
+
 										{userData.webauthnCredentials
 											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
 											.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
@@ -632,25 +640,28 @@ const Settings = () => {
 													credential={cred}
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
+													unlocked={unlocked}
 												/>
 											))}
+										{userData.webauthnCredentials
+											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
+												<p>There is no other passkeys in this account.</p>
+											)}
 									</ul>
 								</div>
 
-								<div className="pt-2">
-									<h1 className="text-md font-bold text-gray-700">{t('pageSettings.deleteAccount.title')}</h1>
+								<div className="pt-4">
+									<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.deleteAccount.title')}</h1>
 									<hr className="mb-2 border-t border-gray-300" />
 									<p className='mb-2'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
 									<button
 										type="button"
-										className="bg-white px-4 py-2 text-red-600 hover:text-white border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-red-600 mr-2"
+										className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} px-4 py-2 border border-gray-300 rounded-md font-medium rounded-lg text-sm mr-2`}
 										// onClick={deleteaccount}
 										disabled={!unlocked}
-
 									>
-
 										{t('pageSettings.deleteAccount.buttonText')}
 									</button>
 								</div>
