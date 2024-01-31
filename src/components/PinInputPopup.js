@@ -1,31 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
-
 import { useApi } from '../api';
-
 
 function Popup({ showPinPopup, setShowPinPopup }) {
 	const api = useApi();
 	const navigate = useNavigate();
+	const [errMessage, setErrMessage] = useState('');
+	const [pin, setPin] = useState('');
 	const { t } = useTranslation();
 
 	const handleCancel = () => {
 		setShowPinPopup(false);
-		navigate('/'); // Navigate to home page or any other route
+		navigate('/');
 	}
 
-	const [pin, setPin] = useState('');
-
 	const handleSubmit = async () => {
-		console.log(pin);
-		if (pin) {
-			const responce= await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: pin });
-			console.log(responce);
+
+		try {
+			const res = await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: pin });
+			console.log(res);
+			setShowPinPopup(false);
 		}
-		// setShowPinPopup(false);
-	};
+		catch (err) {
+			setErrMessage(`${t('PinInputPopup.errMessage')}`);
+		};
+	}
 
 	if (!showPinPopup) {
 		return null;
@@ -43,13 +44,15 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 				<p className="italic pd-2 text-gray-700">
 					{t('PinInputPopup.description')}
 				</p>
+				{errMessage && (
+					<p className='text-sm text-red-600'>{errMessage}</p>
+				)}
 				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
 					<input
 						type="password"
 						placeholder={t('PinInputPopup.inputPlaceholder')}
 						value={pin}
-						required={true}
-						onChange={(e) => setPin(e.target.value)}
+						onChange={(e) => { setPin(e.target.value); setErrMessage("") }}
 						className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
 					/>
 				</div>
@@ -71,7 +74,6 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 			</div>
 		</div>
 	);
-
 }
 
 export default Popup;

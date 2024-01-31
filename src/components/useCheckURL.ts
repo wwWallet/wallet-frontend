@@ -31,8 +31,13 @@ function useCheckURL(urlToCheck: string): {
 				if (preauth && preauth == 'true') {
 					if (ask_for_pin && ask_for_pin == 'true') {
 
-						setShowPinPopup(true);
-						return true;
+						try {
+							await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
+							return true;
+						} catch (err) {
+							setShowPinPopup(true);
+							return true;
+						}
 
 					}
 					else {

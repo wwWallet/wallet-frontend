@@ -153,6 +153,7 @@
 	},
 	"PinInputPopup": {
 		"description": "Please enter the PIN which was displayed from the issuer",
+		"errMessage": "You have entered an incorrect pin",
 		"inputPlaceholder": "Pin",
 		"title": "Enter the Pin"
 	},
