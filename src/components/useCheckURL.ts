@@ -9,11 +9,14 @@ function useCheckURL(urlToCheck: string): {
 	setShowPopup: Dispatch<SetStateAction<boolean>>,
 	setSelectionMap: Dispatch<SetStateAction<string | null>>,
 	conformantCredentialsMap: any,
+	showPinPopup: boolean,
+	setShowPinPopup: Dispatch<SetStateAction<boolean>>,
 } {
 	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
 	const [isValidURL, setIsValidURL] = useState<boolean | null>(null);
 	const [showPopup, setShowPopup] = useState<boolean>(false);
+	const [showPinPopup, setShowPinPopup] = useState<boolean>(false);
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 	const keystore = useLocalStorageKeystore();
@@ -27,11 +30,10 @@ function useCheckURL(urlToCheck: string): {
 				const ask_for_pin = u.searchParams.get('ask_for_pin');
 				if (preauth && preauth == 'true') {
 					if (ask_for_pin && ask_for_pin == 'true') {
-						const user_pin = prompt("Input the PIN received from the Credential Issuer", "");
-						if (user_pin != null) {
-							await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: user_pin });
-							return true;
-						}
+
+						setShowPinPopup(true);
+						return true;
+
 					}
 					else {
 						await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
@@ -52,7 +54,7 @@ function useCheckURL(urlToCheck: string): {
 					return true;
 				}
 			}
-			catch(err) {
+			catch (err) {
 				console.log(err);
 			}
 			return false;
@@ -101,7 +103,7 @@ function useCheckURL(urlToCheck: string): {
 			}
 		}
 
-		if (urlToCheck && isLoggedIn && window.location.pathname==="/cb") {
+		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
 			(async () => {
 				const isAuthorizationCodeCredentialOffer = await handleAuthoriziationCodeCredentialOffer(urlToCheck);
 				const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
@@ -133,7 +135,7 @@ function useCheckURL(urlToCheck: string): {
 		}
 	}, [api, keystore, selectionMap]);
 
-	return { isValidURL, showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap };
+	return { isValidURL, showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, showPinPopup, setShowPinPopup };
 }
 
 export default useCheckURL;

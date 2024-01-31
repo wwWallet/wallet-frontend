@@ -21,6 +21,7 @@ const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const Popup = React.lazy(() => import('./components/Popup'));
+const PinInputPopup = React.lazy(() => import('./components/PinInputPopup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
@@ -42,7 +43,15 @@ if ('serviceWorker' in navigator) {
 function App() {
 
 	const url = window.location.href;
-	const { isValidURL, showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap } = useCheckURL(url);
+	const {
+		isValidURL,
+		showPopup,
+		setShowPopup,
+		setSelectionMap,
+		conformantCredentialsMap,
+		showPinPopup,
+		setShowPinPopup,
+	} = useCheckURL(url);
 
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
@@ -66,26 +75,29 @@ function App() {
 	};
 	return (
 		<I18nextProvider i18n={i18n}>
-		  <Snowfalling/>
+			<Snowfalling />
 
 			<Router>
 				<Suspense fallback={<Spinner />}>
-				<HandlerNotification>
-					<Routes>
-						<Route path="/login" element={<Login />} />
-						<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-						<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-						<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
-						<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-						<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
-						<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
-						<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
-						<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
-						<Route path="*" element={<NotFound />} />
-					</Routes>
-					{showPopup &&
-						<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
-					}
+					<HandlerNotification>
+						<Routes>
+							<Route path="/login" element={<Login />} />
+							<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
+							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
+							<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
+							<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
+							<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
+							<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route path="*" element={<NotFound />} />
+						</Routes>
+						{showPopup &&
+							<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
+						}
+						{showPinPopup &&
+							<PinInputPopup showPinPopup={showPinPopup} setShowPinPopup={setShowPinPopup} />
+						}
 					</HandlerNotification>
 				</Suspense>
 			</Router>
