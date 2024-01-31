@@ -378,14 +378,18 @@ const WebauthnCredentialItem = ({
 	const currentLabel = credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
 	const [submitting, setSubmitting] = useState(false);
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
 
-	const handleDelete = () => {
+	const handleDelete = async () => {
 		if (onDelete) {
-			onDelete();
+			setLoading(true);
+			await onDelete(); // Wait for the delete function to complete
 			closeDeleteConfirmation();
+			setLoading(false);
+
 		}
 	};
 
@@ -525,6 +529,7 @@ const WebauthnCredentialItem = ({
 							Are you sure you want to delete <strong>{nickname}</strong> passkey?
 						</span>
 					}
+					loading={loading}
 				/>
 			</div>
 		</form>
@@ -544,6 +549,7 @@ const Settings = () => {
 	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
@@ -552,10 +558,14 @@ const Settings = () => {
 	const DeleteAccount = () => {
 		console.log('delete account');
 	}
-	const handleDelete = () => {
+
+	const handleDelete = async () => {
 		if (unlocked) {
-			DeleteAccount();
+			setLoading(true);
+			await DeleteAccount(); // Wait for the delete function to complete
 			closeDeleteConfirmation();
+			setLoading(false);
+
 		}
 	};
 
@@ -714,6 +724,7 @@ const Settings = () => {
 							Are you sure you want to delete <strong> your Account </strong>?
 						</span>
 					}
+					loading={loading}
 				/>
 			</div>
 		</>
