@@ -37,8 +37,8 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center rounded"
-			style={{ minHeight: '20em', minWidth: '30em' }}
+			className="p-4 pt-8 text-center rounded md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700"
+			style={{ minHeight: '30%', minWidth: '30%' }}
 			onCancel={onCancel}
 		>
 			{children}
