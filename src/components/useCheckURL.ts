@@ -23,98 +23,47 @@ function useCheckURL(urlToCheck: string): {
 
 	useEffect(() => {
 
-		async function handlePreAuthorizeAskForPin(url: string): Promise<boolean> {
-			const u = new URL(url);
-			const preauth = u.searchParams.get('preauth');
-			if (preauth && preauth == 'true') {
-				const ask_for_pin = u.searchParams.get('ask_for_pin');
-				if (preauth && preauth == 'true') {
-					if (ask_for_pin && ask_for_pin == 'true') {
+		async function communicationHandler(url: string): Promise<boolean> {
+			try {
+				const wwwallet_camera_was_used = new URL(url).searchParams.get('wwwallet_camera_was_used');
 
-						try {
-							await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
-							return true;
-						} catch (err) {
-							setShowPinPopup(true);
-							return true;
-						}
-
+				const res = await api.post('/communication/handle', { url, camera_was_used: (wwwallet_camera_was_used != null && wwwallet_camera_was_used === 'true') });
+				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin } = res.data;
+				
+				if (preauth && preauth == true) {
+					if (ask_for_pin) {
+						setShowPinPopup(true);
+						return true;
 					}
 					else {
-						await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: "" });
+						await api.post('/communication/handle', { user_pin: "" });
 						return true;
 					}
 				}
-			}
-			return false;
-		}
 
-
-		async function handleAuthoriziationCodeCredentialOffer(url: string): Promise<boolean> {
-			try {
-				const result = await api.post('/issuance/generate/authorization/request/with/offer', { credential_offer_url: url });
-				const { redirect_to } = result.data;
 				if (redirect_to) {
-					window.location.href = redirect_to; // Navigate to the redirect URL
+					window.location.href = redirect_to;
 					return true;
-				}
-			}
-			catch (err) {
-				console.log(err);
-			}
-			return false;
-		}
-
-		async function handleAuthorizationRequest(url: string): Promise<boolean> {
-			const wwwallet_camera_was_used = new URL(url).searchParams.get('wwwallet_camera_was_used');
-
-			try {
-				const response = await api.post(
-					"/presentation/handle/authorization/request",
-					{ authorization_request: url, camera_was_used: (wwwallet_camera_was_used && wwwallet_camera_was_used === 'true') },
-				);
-
-
-				console.log("Data = ", response.data)
-				const { redirect_to, conformantCredentialsMap, verifierDomainName } = response.data;
-				if (redirect_to) {
-					window.location.href = redirect_to; // Navigate to the redirect URL
-				} else {
+				} else if (conformantCredentialsMap) {
 					console.log('need action');
 					setConformantCredentialsMap(conformantCredentialsMap);
 					setShowPopup(true);
 					console.log("called setShowPopup")
 					return true;
 				}
-				return true;
-
-			} catch (e) {
-				return false;
+				else {
+					return false;
+				}
 			}
-		};
-
-		async function handleAuthorizationResponse(url: string): Promise<boolean> {
-			try {
-				const response = await api.post(
-					"/issuance/handle/authorization/response",
-					{ authorization_response_url: url },
-				);
-				console.log("handleAuthorizationResponse:", response);
-				return true;
-
-			} catch (e) {
-				console.log("Failed handleAuthorizationResponse:", e);
+			catch (err) {
+				console.log("Failed to handle");
 				return false;
 			}
 		}
 
 		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
 			(async () => {
-				const isAuthorizationCodeCredentialOffer = await handleAuthoriziationCodeCredentialOffer(urlToCheck);
-				const isRequestHandled = await handleAuthorizationRequest(urlToCheck);
-				const isResponseHandled = await handleAuthorizationResponse(urlToCheck);
-				const isPreAuthorizedFlowHandled = await handlePreAuthorizeAskForPin(urlToCheck);
-				if (isAuthorizationCodeCredentialOffer || isRequestHandled || isResponseHandled || isPreAuthorizedFlowHandled) {
+				if (await communicationHandler(urlToCheck)) {
 					setIsValidURL(true);
 				} else {
 					setIsValidURL(false);
@@ -127,7 +76,7 @@ function useCheckURL(urlToCheck: string): {
 		if (selectionMap) {
 			console.log("Selected value = ", selectionMap);
 
-			api.post("/presentation/generate/authorization/response",
+			api.post("/communication/handle",
 				{ verifiable_credentials_map: selectionMap },
 			).then(success => {
 				console.log(success);

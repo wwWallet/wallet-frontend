@@ -96,7 +96,7 @@ const Issuers = () => {
 				legal_person_did: selectedIssuer.did,
 			};
 	
-			api.post('/issuance/generate/authorization/request', payload)
+			api.post('/communication/handle', payload)
 				.then((response) => {
 					const { redirect_to } = response.data;
 					console.log(redirect_to);

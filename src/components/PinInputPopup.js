@@ -19,7 +19,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	const handleSubmit = async () => {
 
 		try {
-			const res = await api.post('/issuance/request/credentials/with/pre_authorized', { user_pin: pin });
+			const res = await api.post('/communication/handle', { user_pin: pin });
 			console.log(res);
 			setShowPinPopup(false);
 		}
