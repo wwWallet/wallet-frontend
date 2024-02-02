@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
@@ -8,8 +8,15 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	const api = useApi();
 	const navigate = useNavigate();
 	const [errMessage, setErrMessage] = useState('');
-	const [pin, setPin] = useState('');
+	const [pin, setPin] = useState(['', '', '', '']);
 	const { t } = useTranslation();
+
+	const inputRefs = [
+		useRef(null),
+		useRef(null),
+		useRef(null),
+		useRef(null)
+	];
 
 	const handleCancel = () => {
 		setShowPinPopup(false);
@@ -17,20 +24,81 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	}
 
 	const handleSubmit = async () => {
-
 		try {
-			const res = await api.post('/communication/handle', { user_pin: pin });
+			const userPin = pin.join('');
+			const res = await api.post('/communication/handle', { user_pin: userPin });
 			console.log(res);
 			setShowPinPopup(false);
-		}
-		catch (err) {
+		} catch (err) {
 			setErrMessage(`${t('PinInputPopup.errMessage')}`);
-		};
-	}
+		}
+	};
+
+	const handleInputChange = (index, value) => {
+		if (/^\d*$/.test(value) && value.length <= 1) {
+			const newPin = [...pin];
+			newPin[index] = value;
+
+			setPin(newPin);
+
+			if (value === '' && index > 0) {
+				// Move focus to the previous input field and clear it if the value is cleared
+				inputRefs[index - 1].current.focus();
+				newPin[index - 1] = '';
+			} else if (value !== '' && index < 3) {
+				// Move focus to the next input and clean it 
+				const nextInput = inputRefs[index + 1].current;
+				newPin[index + 1] = '';
+				setPin(newPin);
+				nextInput.focus();
+				nextInput.select();
+			} else if (value !== '' && index === 3) {
+				// Clear next input fields if you are in the last input
+				for (let i = index + 1; i < newPin.length; i++) {
+					newPin[i] = '';
+				}
+				setPin(newPin);
+			}
+		}
+	};
+
+	const handleInputKeyDown = (index, event) => {
+		if (event.key === 'Backspace' && pin[index] === '' && index > 0) {
+			inputRefs[index - 1].current.focus();
+			const newPin = [...pin];
+			newPin[index - 1] = '';
+			setPin(newPin);
+		}
+	};
+
+	const handleInputClick = (index) => {
+		const newPin = [...pin];
+		newPin[index] = '';
+		setPin(newPin);
+
+	};
+
+	const handleInputPaste = (pastedValue) => {
+		if (/^\d{1,4}$/.test(pastedValue)) {
+			const newPin = Array.from(pastedValue, (char) => char);
+
+			const updatedPin = [...newPin];
+			while (updatedPin.length < pin.length) {
+				updatedPin.push('');
+			}
+			setPin(updatedPin);
+
+			inputRefs[inputRefs.length - 1].current.focus();
+		}
+	};
+
+	useEffect(() => {
+		inputRefs[0].current.focus();
+	}, []);
 
 	if (!showPinPopup) {
 		return null;
-	};
+	}
 
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
@@ -48,13 +116,19 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 					<p className='text-sm text-red-600'>{errMessage}</p>
 				)}
 				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
-					<input
-						type="password"
-						placeholder={t('PinInputPopup.inputPlaceholder')}
-						value={pin}
-						onChange={(e) => { setPin(e.target.value); setErrMessage("") }}
-						className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-					/>
+					{pin.map((digit, index) => (
+						<input
+							type="text"
+							key={index}
+							value={digit}
+							onChange={(e) => handleInputChange(index, e.target.value)}
+							onKeyDown={(e) => handleInputKeyDown(index, e)}
+							onClick={() => handleInputClick(index)}
+							onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))} // Add this line
+							className="w-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							ref={inputRefs[index]}
+						/>
+					))}
 				</div>
 
 				<div className="flex justify-end space-x-2 pt-4">
