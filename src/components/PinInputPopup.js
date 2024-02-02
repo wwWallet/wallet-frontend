@@ -4,7 +4,7 @@ import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
 import { useApi } from '../api';
 
-function Popup({ showPinPopup, setShowPinPopup }) {
+function PinInputPopup({ showPinPopup, setShowPinPopup }) {
 	const api = useApi();
 	const navigate = useNavigate();
 	const [errMessage, setErrMessage] = useState('');
@@ -26,8 +26,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	const handleSubmit = async () => {
 		try {
 			const userPin = pin.join('');
-			const res = await api.post('/communication/handle', { user_pin: userPin });
-			console.log(res);
+			await api.post('/communication/handle', { user_pin: userPin });
 			setShowPinPopup(false);
 		} catch (err) {
 			setErrMessage(`${t('PinInputPopup.errMessage')}`);
@@ -35,6 +34,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	};
 
 	const handleInputChange = (index, value) => {
+		setErrMessage('');
 		if (/^\d*$/.test(value) && value.length <= 1) {
 			const newPin = [...pin];
 			newPin[index] = value;
@@ -63,6 +63,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	};
 
 	const handleInputKeyDown = (index, event) => {
+		setErrMessage('');
 		if (event.key === 'Backspace' && pin[index] === '' && index > 0) {
 			inputRefs[index - 1].current.focus();
 			const newPin = [...pin];
@@ -72,6 +73,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	};
 
 	const handleInputClick = (index) => {
+		setErrMessage('');
 		const newPin = [...pin];
 		newPin[index] = '';
 		setPin(newPin);
@@ -79,6 +81,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	};
 
 	const handleInputPaste = (pastedValue) => {
+		setErrMessage('');
 		if (/^\d{1,4}$/.test(pastedValue)) {
 			const newPin = Array.from(pastedValue, (char) => char);
 
@@ -100,6 +103,12 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 		return null;
 	}
 
+	const handleInputKeyPress = (event) => {
+		if (event.key === 'Enter') {
+			handleSubmit();
+		}
+	};
+
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
@@ -112,6 +121,7 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 				<p className="italic pd-2 text-gray-700">
 					{t('PinInputPopup.description')}
 				</p>
+
 				{errMessage && (
 					<p className='text-sm text-red-600'>{errMessage}</p>
 				)}
@@ -124,8 +134,9 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 							onChange={(e) => handleInputChange(index, e.target.value)}
 							onKeyDown={(e) => handleInputKeyDown(index, e)}
 							onClick={() => handleInputClick(index)}
-							onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))} // Add this line
-							className="w-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
+							onKeyPress={(e) => handleInputKeyPress(e)}
+							className="w-10 px-3 mx-1 my-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
 							ref={inputRefs[index]}
 						/>
 					))}
@@ -150,4 +161,4 @@ function Popup({ showPinPopup, setShowPinPopup }) {
 	);
 }
 
-export default Popup;
+export default PinInputPopup;
