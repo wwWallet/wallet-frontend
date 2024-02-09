@@ -9,6 +9,7 @@ import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import ConfirmDeletePopup from '../../components/ConfirmDeletePopup/ConfirmDeletePopup';
+import { useNavigate } from 'react-router-dom';
 
 const Dialog = ({
 	children,
@@ -550,22 +551,33 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const navigate = useNavigate();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
-
-	//Here we implement the api which delete the account
-	const DeleteAccount = () => {
-		console.log('delete account');
+	
+	const deleteAccount = async () => {
+		try {
+			await api.del('/user/session');			
+			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName == userData.displayName)[0];
+			if (cachedUser) {
+				keystore.forgetCachedUser(cachedUser);
+			}
+			api.clearSession();
+			await keystore.close();
+			navigate('/login');
+		}
+		catch(err) {
+			console.log('Error = ', err)
+		}
 	}
 
 	const handleDelete = async () => {
 		if (unlocked) {
 			setLoading(true);
-			await DeleteAccount(); // Wait for the delete function to complete
+			await deleteAccount();
 			closeDeleteConfirmation();
 			setLoading(false);
-
 		}
 	};
 
