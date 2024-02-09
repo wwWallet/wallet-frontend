@@ -174,6 +174,7 @@ const WebauthnRegistation = ({
 				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue hover:bg-custom-blue-hover" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} font-medium rounded-lg text-sm px-4 py-2 text-center`}
 				onClick={onBegin}
 				disabled={registrationInProgress || !unlocked}
+				title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
 			>
 				<div className="flex items-center">
 					{(window.innerWidth < 768) ? (
@@ -503,6 +504,7 @@ const WebauthnCredentialItem = ({
 								className={` ${!onDelete || unlocked ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"} flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center`}
 								type="button"
 								onClick={() => setEditing(true)}
+								title={!unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
 								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							>
 								<FaEdit size={16} className="mr-2" /> {t('pageSettings.passkeyItem.rename')}
@@ -517,6 +519,8 @@ const WebauthnCredentialItem = ({
 						type="button"
 						onClick={openDeleteConfirmation}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
+						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : ""}
+
 					>
 						<FaTrash size={16} />
 					</button>
@@ -555,10 +559,10 @@ const Settings = () => {
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
-	
+
 	const deleteAccount = async () => {
 		try {
-			await api.del('/user/session');			
+			await api.del('/user/session');
 			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName == userData.displayName)[0];
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
@@ -567,7 +571,7 @@ const Settings = () => {
 			await keystore.close();
 			navigate('/login');
 		}
-		catch(err) {
+		catch (err) {
 			console.log('Error = ', err)
 		}
 	}
@@ -718,6 +722,8 @@ const Settings = () => {
 										className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} px-4 py-2 border border-gray-300 rounded-md font-medium rounded-lg text-sm mr-2`}
 										onClick={openDeleteConfirmation}
 										disabled={!unlocked}
+										title={!unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+
 									>
 										{t('pageSettings.deleteAccount.buttonText')}
 									</button>
