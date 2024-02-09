@@ -9,6 +9,7 @@
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSettings": "Settings",
 		"save": "Save",
+		"submit": "submit",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -160,6 +161,12 @@
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
 		"unlockPasskeyManagement": "Unlock management"
+	},
+	"PinInputPopup": {
+		"description": "Please enter the PIN which was displayed from the issuer",
+		"errMessage": "You have entered an incorrect pin",
+		"inputPlaceholder": "Pin",
+		"title": "Enter the Pin"
 	},
 	"qrCodeScanner": {
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
