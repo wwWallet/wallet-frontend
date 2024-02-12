@@ -161,7 +161,7 @@
 		"title": {
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
-			"manageAcount": "Manage Acount",
+			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
 		"unlockPasskeyManagement": "Unlock management"
