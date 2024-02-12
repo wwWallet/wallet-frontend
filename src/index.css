@@ -64,3 +64,9 @@
   0%, 100% { top: calc(0% + var(--scanning-margin)); }
   50% { top: calc(100% - var(--scanning-margin)); }
 }
+
+.text-overflow-ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}

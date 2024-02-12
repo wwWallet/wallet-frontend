@@ -103,8 +103,13 @@ const Sidebar = ({ isOpen, toggle }) => {
 					{/* User */}
 					<ul>
 						<div className='flex items-center space-x-2 mb-4 p-2 rounded-r-xl'>
-							<FaUserCircle size={30} />
-							<span>{displayName || username}</span>
+							<FaUserCircle size={30} title={displayName || username}/>
+							<span 
+								className="text-overflow-ellipsis overflow-hidden whitespace-nowrap md:max-w-[130px]"
+								title={displayName || username}							
+							>
+								{displayName || username}
+							</span>
 						</div>
 
 						<hr className="my-4 border-t border-white/20" />
