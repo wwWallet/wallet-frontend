@@ -389,9 +389,8 @@ const WebauthnCredentialItem = ({
 		if (onDelete) {
 			setLoading(true);
 			await onDelete(); // Wait for the delete function to complete
-			closeDeleteConfirmation();
 			setLoading(false);
-
+			closeDeleteConfirmation();
 		}
 	};
 
