@@ -119,6 +119,7 @@ const WebauthnSignupLogin = ({
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
+	const [nameByteLimitReached, setNameByteLimitReached] = useState(false);
 
 	useEffect(
 		() => {
@@ -272,6 +273,12 @@ const WebauthnSignupLogin = ({
 		setRetrySignupFrom(null);
 	};
 
+	const calculateByteSize = (string) => {
+		const encoder = new TextEncoder();
+		const encoded = encoder.encode(string);
+		return encoded.length;
+	};
+
 	return (
 		<form onSubmit={onSubmit}>
 			{inProgress || retrySignupFrom
@@ -358,12 +365,23 @@ const WebauthnSignupLogin = ({
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
-										onChange={(event) => setName(event.target.value)}
+										onChange={(event) => {
+											const newValue = event.target.value;
+											const byteSize = calculateByteSize(newValue);
+
+											if (byteSize <= 64) {
+													setName(newValue);
+													setNameByteLimitReached(false);
+											} else {
+													setNameByteLimitReached(true);
+											}
+									}}   								
 										placeholder={t('loginSignup.enterPasskeyName')}
 										type="text"
 										value={name}
 										required
 									/>
+									{nameByteLimitReached && <div className="text-gray-500 text-sm italic mt-1">{t('loginSignup.reachedLengthLimit')}</div>}
 								</FormInputRow>
 							</>)}
 
