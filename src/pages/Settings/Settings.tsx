@@ -619,7 +619,7 @@ const Settings = () => {
 		} else {
 			console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
 		}
-		refreshData();
+		await refreshData();
 	};
 
 	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
