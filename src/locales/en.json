@@ -130,7 +130,7 @@
 		"deletePasskeyButtonTitleLocked":"You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
-		"noOtherPasskeys": "There is no other passkeys in this account.",
+		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
