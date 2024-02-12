@@ -119,7 +119,6 @@ const WebauthnSignupLogin = ({
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
-	const [nameByteLimitReached, setNameByteLimitReached] = useState(false);
 
 	useEffect(
 		() => {
@@ -279,6 +278,9 @@ const WebauthnSignupLogin = ({
 		return encoded.length;
 	};
 
+	const nameByteLength = calculateByteSize(name);
+	const nameByteLimitReached = nameByteLength > 64;
+
 	return (
 		<form onSubmit={onSubmit}>
 			{inProgress || retrySignupFrom
@@ -365,23 +367,20 @@ const WebauthnSignupLogin = ({
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
-										onChange={(event) => {
-											const newValue = event.target.value;
-											const byteSize = calculateByteSize(newValue);
-
-											if (byteSize <= 64) {
-													setName(newValue);
-													setNameByteLimitReached(false);
-											} else {
-													setNameByteLimitReached(true);
-											}
-									}}   								
+										onChange={(event) => setName(event.target.value)}
 										placeholder={t('loginSignup.enterPasskeyName')}
 										type="text"
 										value={name}
 										required
 									/>
-									{nameByteLimitReached && <div className="text-gray-500 text-sm italic mt-1">{t('loginSignup.reachedLengthLimit')}</div>}
+									<div className="flex flex-row flex-nowrap">
+										<div className="text-sm italic mt-1 text-red-500 flex-grow">
+											{nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : ''}
+										</div>
+										<div className={`text-gray-500 text-sm italic mt-1 text-right ${nameByteLimitReached ? 'text-red-500' : ''}`}>
+											{nameByteLength} / 64
+										</div>
+									</div>
 								</FormInputRow>
 							</>)}
 
@@ -421,7 +420,7 @@ const WebauthnSignupLogin = ({
 						<button
 							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
 							type="submit"
-							disabled={isSubmitting}
+							disabled={isSubmitting || nameByteLimitReached}
 						>
 							<GoPasskeyFill className="inline text-xl mr-2" />
 							{isSubmitting
