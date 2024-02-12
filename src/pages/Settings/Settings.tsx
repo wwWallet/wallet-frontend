@@ -369,7 +369,7 @@ const WebauthnCredentialItem = ({
 
 }: {
 	credential: WebauthnCredential,
-	onDelete?: false | (() => void),
+	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
 	unlocked: boolean
 
