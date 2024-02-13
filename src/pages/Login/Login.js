@@ -279,7 +279,9 @@ const WebauthnSignupLogin = ({
 	};
 
 	const nameByteLength = calculateByteSize(name);
-	const nameByteLimitReached = nameByteLength > 64;
+	const nameByteLimit = 64;
+	const nameByteLimitReached = nameByteLength > nameByteLimit;
+	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
 
 	return (
 		<form onSubmit={onSubmit}>
@@ -380,7 +382,10 @@ const WebauthnSignupLogin = ({
 										>
 											{t('loginSignup.reachedLengthLimit')}
 										</div>
-										<div className="text-right">
+										<div
+											className={`text-right ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											aria-hidden={!nameByteLimitApproaching}
+										>
 											{nameByteLength} / 64
 										</div>
 									</div>
