@@ -375,7 +375,7 @@ const WebauthnSignupLogin = ({
 										value={name}
 										required
 									/>
-									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic mt-1 ${nameByteLimitReached ? 'text-red-500' : ''} transition-colors` }>
+									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-4 mt-1' : 'h-0 mt-0'} transition-all` }>
 										<div
 											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
