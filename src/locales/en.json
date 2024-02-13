@@ -65,6 +65,7 @@
 		"signUpSubmit": "Sign Up",
 		"signupPasskey": "Sign up with passkey",
 		"specialCharacter": "At least one special character",
+		"reachedLengthLimit": "Length limit exceeded",
 		"strength": "Strength",
 		"submitting": "Submitting...",
 		"tryAgain": "Try again",
