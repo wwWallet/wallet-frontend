@@ -119,7 +119,6 @@ const WebauthnSignupLogin = ({
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
-	const [nameByteLimitReached, setNameByteLimitReached] = useState(false);
 
 	useEffect(
 		() => {
@@ -279,6 +278,11 @@ const WebauthnSignupLogin = ({
 		return encoded.length;
 	};
 
+	const nameByteLength = calculateByteSize(name);
+	const nameByteLimit = 64;
+	const nameByteLimitReached = nameByteLength > nameByteLimit;
+	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
+
 	return (
 		<form onSubmit={onSubmit}>
 			{inProgress || retrySignupFrom
@@ -365,23 +369,26 @@ const WebauthnSignupLogin = ({
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
-										onChange={(event) => {
-											const newValue = event.target.value;
-											const byteSize = calculateByteSize(newValue);
-
-											if (byteSize <= 64) {
-													setName(newValue);
-													setNameByteLimitReached(false);
-											} else {
-													setNameByteLimitReached(true);
-											}
-									}}   								
+										onChange={(event) => setName(event.target.value)}
 										placeholder={t('loginSignup.enterPasskeyName')}
 										type="text"
 										value={name}
 										required
 									/>
-									{nameByteLimitReached && <div className="text-gray-500 text-sm italic mt-1">{t('loginSignup.reachedLengthLimit')}</div>}
+									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic mt-1 ${nameByteLimitReached ? 'text-red-500' : ''} transition-colors` }>
+										<div
+											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											aria-hidden={!nameByteLimitReached}
+										>
+											{t('loginSignup.reachedLengthLimit')}
+										</div>
+										<div
+											className={`text-right ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											aria-hidden={!nameByteLimitApproaching}
+										>
+											{nameByteLength} / 64
+										</div>
+									</div>
 								</FormInputRow>
 							</>)}
 
@@ -419,9 +426,9 @@ const WebauthnSignupLogin = ({
 						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
 
 						<button
-							className="w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+							className={`w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`} 
 							type="submit"
-							disabled={isSubmitting}
+							disabled={isSubmitting || nameByteLimitReached}
 						>
 							<GoPasskeyFill className="inline text-xl mr-2" />
 							{isSubmitting
