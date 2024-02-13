@@ -373,11 +373,14 @@ const WebauthnSignupLogin = ({
 										value={name}
 										required
 									/>
-									<div className="flex flex-row flex-nowrap">
-										<div className="text-sm italic mt-1 text-red-500 flex-grow">
-											{nameByteLimitReached ? t('loginSignup.reachedLengthLimit') : ''}
+									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic mt-1 ${nameByteLimitReached ? 'text-red-500' : ''} transition-colors` }>
+										<div
+											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											aria-hidden={!nameByteLimitReached}
+										>
+											{t('loginSignup.reachedLengthLimit')}
 										</div>
-										<div className={`text-gray-500 text-sm italic mt-1 text-right ${nameByteLimitReached ? 'text-red-500' : ''}`}>
+										<div className="text-right">
 											{nameByteLength} / 64
 										</div>
 									</div>
