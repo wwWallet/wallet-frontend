@@ -16,10 +16,10 @@ import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
-import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
+import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
+import DeletePopup from '../../components/Popups/DeletePopup';
 
 const Home = () => {
   const api = useApi();
@@ -229,12 +229,18 @@ const Home = () => {
 
 			{/* Delete Credential Modal */}
 			{showDeletePopup && selectedCredential && (
-        <CredentialDeletePopup
-          credential={selectedCredential}
-          onCancel={() => setShowDeletePopup(false)}
-          onConfirm={handleSureDelete}
-          loading={loading}
-        />
+				<DeletePopup
+					isOpen={showDeletePopup}
+					onConfirm={handleSureDelete}
+					onCancel={() => setShowDeletePopup(false)}
+					message={
+						<span>
+							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedCredential.type.replace(/([A-Z])/g, ' $1')}</strong> {t('pageCredentials.deletePopup.messagePart2')}
+							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>					
+					</span>
+					}
+					loading={loading}
+				/>
       )}
     </>
   );
