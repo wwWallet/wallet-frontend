@@ -119,8 +119,18 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey",
+		"deleteAccount": {
+			"buttonText": "Delete your account",
+			"deleteButtonTitleLocked":"You cannot delete your account while locked",
+			"description": "Once you delete your account, there is no going back. Please be certain.",
+			"messageDeleteAccount1": "Are you sure you want to delete ",
+			"messageDeleteAccount2": "your Account",
+			"title": "Delete account"
+		},
+		"deletePasskeyButtonTitleLocked":"You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
+		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
@@ -128,12 +138,16 @@
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
+			"deleteButtonTitleLocked":"You cannot delete passkey while locked",
 			"lastUsed": "Last Used",
+			"messageDeletePasskeyPart1": "Are you sure you want to delete",
+			"messageDeletePasskeyPart2": "passkey?",
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
+			"renameButtonTitleLocked":"You cannot edit passkey while locked",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
@@ -147,10 +161,12 @@
 			"passkeyCreated": "Your passkey has been created."
 		},
 		"title": {
+			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
+			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
-		"unlockPasskeyManagement": "Unlock passkey management"
+		"unlockPasskeyManagement": "Unlock management"
 	},
 	"PinInputPopup": {
 		"description": "Please enter the PIN which was displayed from the issuer",
