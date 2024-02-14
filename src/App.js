@@ -44,7 +44,6 @@ function App() {
 
 	const url = window.location.href;
 	const {
-		isValidURL,
 		showSelectCredentialsPopup,
 		setShowSelectCredentialsPopup,
 		setSelectionMap,

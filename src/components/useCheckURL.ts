@@ -4,7 +4,6 @@ import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
 function useCheckURL(urlToCheck: string): {
-	isValidURL: boolean | null,
 	showSelectCredentialsPopup: boolean,
 	setShowSelectCredentialsPopup: Dispatch<SetStateAction<boolean>>,
 	setSelectionMap: Dispatch<SetStateAction<string | null>>,
@@ -14,7 +13,6 @@ function useCheckURL(urlToCheck: string): {
 } {
 	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
-	const [isValidURL, setIsValidURL] = useState<boolean | null>(null);
 	const [showSelectCredentialsPopup, setShowSelectCredentialsPopup] = useState<boolean>(false);
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);
@@ -63,13 +61,10 @@ function useCheckURL(urlToCheck: string): {
 
 		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
 			(async () => {
-				if (await communicationHandler(urlToCheck)) {
-					setIsValidURL(true);
-				} else {
-					setIsValidURL(false);
-				}
+					await communicationHandler(urlToCheck);
 			})();
 		}
+		
 	}, [api, keystore, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
@@ -89,7 +84,7 @@ function useCheckURL(urlToCheck: string): {
 		}
 	}, [api, keystore, selectionMap]);
 
-	return { isValidURL, showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup };
+	return {showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup };
 }
 
 export default useCheckURL;
