@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { AiOutlineCloseCircle } from 'react-icons/ai';
 import { BiRightArrowAlt } from 'react-icons/bi';
 
 import { useApi } from '../../api';
@@ -14,12 +13,13 @@ import CredentialJson from '../../components/Credentials/CredentialJson';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
+import FullscreenPopup from '../../components/Popups/FullscreenImg';
 
 const CredentialDetail = () => {
 	const api = useApi();
 	const { id } = useParams();
 	const [credential, setCredentials] = useState(null);
-	const [isImageModalOpen, setImageModalOpen] = useState(false);
+	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [loading, setLoading] = useState(false);
 	const { t } = useTranslation();
@@ -68,7 +68,7 @@ const CredentialDetail = () => {
 					<div className='lg:w-1/2'>
 						{credential && credential.src ? (
 						// Open the modal when the credential is clicked
-						<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setImageModalOpen(true)}>
+						<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
 							<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
 
 						</div>
@@ -91,18 +91,14 @@ const CredentialDetail = () => {
 			</div>
 
 			{/* Modal for Fullscreen credential */}
-			{isImageModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-					<div className="relative">
+			{showFullscreenImgPopup && (
+				<FullscreenPopup
+					isOpen={showFullscreenImgPopup}
+					onClose={() => setShowFullscreenImgPopup(false)}
+					content={
 						<img src={credential.src} alt={credential.src} className="max-w-full max-h-full rounded-xl" />
-					</div>
-					<button
-							className="absolute top-20 md:top-4 sm:top-4 right-4 text-white text-2xl z-10"
-							onClick={() => setImageModalOpen(false)}
-					>
-							<AiOutlineCloseCircle size={40} />
-					</button>
-				</div>
+					}
+				/>
 			)}
 
 			{/* Delete Credential Modal */}

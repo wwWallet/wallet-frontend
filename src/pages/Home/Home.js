@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
-import { AiOutlineCloseCircle } from 'react-icons/ai';
 import {BsQrCodeScan} from 'react-icons/bs'
 
 import Slider from 'react-slick';
@@ -20,13 +19,14 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import CredentialDeletePopup from '../../components/Credentials/CredentialDeletePopup';
 import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
+import FullscreenPopup from '../../components/Popups/FullscreenImg';
 
 const Home = () => {
   const api = useApi();
   const [credentials, setCredentials] = useState([]);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
   const [currentSlide, setCurrentSlide] = useState(1);
-	const [isImageModalOpen, setImageModalOpen] = useState(false);
+	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -156,7 +156,7 @@ const Home = () => {
 									<Slider ref={sliderRef} {...settings}>
 										{credentials.map((credential) => (
 											<>
-												<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => {setImageModalOpen(true);setSelectedCredential(credential);}}>
+												<div className="relative rounded-xl xl:w-4/5 md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => {setShowFullscreenImgPopup(true);setSelectedCredential(credential);}}>
 													<img src={credential.src} alt={credential.alt} className="w-full h-full object-cover rounded-xl" />
 												</div>
 												<div className="flex items-center justify-end mt-2 mr-3">
@@ -208,18 +208,14 @@ const Home = () => {
         </div>
       </div>
 			{/* Modal for Fullscreen credential */}
-			{isImageModalOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-					<div className="relative">
+			{showFullscreenImgPopup && (
+				<FullscreenPopup
+					isOpen={showFullscreenImgPopup}
+					onClose={() => setShowFullscreenImgPopup(false)}
+					content={
 						<img src={selectedCredential.src} alt={selectedCredential.src} className="max-w-full max-h-full rounded-xl" />
-					</div>
-					<button
-							className="absolute top-20 md:top-4 sm:top-4 right-4 text-white text-2xl z-10"
-							onClick={() => setImageModalOpen(false)}
-					>
-							<AiOutlineCloseCircle size={40} />
-					</button>
-				</div>
+					}
+				/>
 			)}
 
 			{/* QR Code Scanner Modal */}
