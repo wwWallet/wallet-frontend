@@ -6,9 +6,10 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
-import {formatDate} from '../../functions/DateFormat';
+import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
-
+import ConfirmDeletePopup from '../../components/ConfirmDeletePopup/ConfirmDeletePopup';
+import { useNavigate } from 'react-router-dom';
 
 const Dialog = ({
 	children,
@@ -37,8 +38,8 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center rounded"
-			style={{ minHeight: '20em', minWidth: '30em' }}
+			className="p-4 pt-8 text-center rounded md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700"
+			style={{ minHeight: '30%', minWidth: '30%' }}
 			onCancel={onCancel}
 		>
 			{children}
@@ -170,13 +171,20 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<button
-				className={`px-2 py-2 mb-2 text-white ${unlocked ? "bg-custom-blue" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover`}
+				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue hover:bg-custom-blue-hover" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} font-medium rounded-lg text-sm px-4 py-2 text-center`}
 				onClick={onBegin}
 				disabled={registrationInProgress || !unlocked}
+				title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
 			>
 				<div className="flex items-center">
-					<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-					{t('loginSignup.addPasskey')}
+					{(window.innerWidth < 768) ? (
+						<BsPlusCircle size={20} className="text-white sm:inline" />
+					) : (
+						<>
+							<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
+							{t('pageSettings.addPasskey')}
+						</>
+					)}
 				</div>
 			</button>
 
@@ -188,11 +196,11 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Success!</h3>
-								<p className="mb-2">Give this credential a nickname:</p>
+								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
+								<p className="mb-2">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
 									aria-label="Nickname for new credential"
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -204,7 +212,7 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p>Please interact with your authenticator...</p>
+								<p>{t('pageSettings.registerPasskey.messageInteract')}</p>
 							</>
 						)
 					}
@@ -216,16 +224,16 @@ const WebauthnRegistation = ({
 							onClick={onCancel}
 							disabled={isSubmitting}
 						>
-							Cancel
+							{t('common.cancel')}
 						</button>
 
 						{pendingCredential && (
 							<button
 								type="submit"
-								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 								disabled={isSubmitting}
 							>
-								Save
+								{t('common.save')}
 							</button>
 						)}
 					</div>
@@ -237,24 +245,24 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">Almost done!</h3>
-				<p>Your passkey has been created.</p>
-				<p>To finish setting up, please authenticate with it once more.</p>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageDone')}</h3>
+				<p>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
+				<p>{t('pageSettings.registerPasskey.authOnceMore')}</p>
 
 				<button
 					type="button"
 					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 					onClick={() => resolvePrfRetryPrompt(false)}
 				>
-					Cancel
+					{t('common.cancel')}
 				</button>
 				<button
 					type="button"
-					className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 					onClick={() => resolvePrfRetryPrompt(true)}
 					disabled={prfRetryAccepted}
 				>
-					Continue
+					{t('common.continue')}
 				</button>
 			</Dialog>
 
@@ -262,14 +270,14 @@ const WebauthnRegistation = ({
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p>Please authenticate with the new passkey...</p>
+				<p>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
 
 				<button
 					type="button"
 					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 					onClick={onCancel}
 				>
-					Cancel
+					{t('common.cancel')}
 				</button>
 			</Dialog>
 		</>
@@ -326,7 +334,7 @@ const WebauthnUnlock = ({
 
 	return (
 		<button
-			className="px-2 py-2 mr-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+			className="px-2 py-2 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue dark:hover:bg-custom-blue-hover"
 			onClick={unlocked ? onLock : onBeginUnlock}
 			disabled={inProgress}
 		>
@@ -334,11 +342,18 @@ const WebauthnUnlock = ({
 				{unlocked
 					? <>
 						<BsUnlock size={20} className="text-white mr-2 sm:inline" />
-						{t('loginSignup.lockPasskeyManagement')}
+						{t('pageSettings.lockPasskeyManagement')}
 					</>
 					: <>
-						<BsLock size={20} className="text-white mr-2 sm:inline" />
-						{t('loginSignup.unlockPasskeyManagement')}
+						{(window.innerWidth < 768) ? (
+							<BsLock size={20} className="text-white sm:inline" />
+						) : (
+							<>
+								<BsLock size={20} className="text-white mr-2 sm:inline" />
+								{t('pageSettings.unlockPasskeyManagement')}
+							</>
+						)}
+
 					</>
 				}
 			</div>
@@ -350,16 +365,34 @@ const WebauthnCredentialItem = ({
 	credential,
 	onDelete,
 	onRename,
+	unlocked
+
 }: {
 	credential: WebauthnCredential,
-	onDelete?: false | (() => void),
+	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
+	unlocked: boolean
+
 }) => {
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
-	const currentLabel = credential.nickname || `Unnamed passkey ${credential.id.substring(0, 8)}`;
+	const currentLabel = credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
 	const [submitting, setSubmitting] = useState(false);
+	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
+
+	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
+	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+
+	const handleDelete = async () => {
+		if (onDelete) {
+			setLoading(true);
+			await onDelete(); // Wait for the delete function to complete
+			setLoading(false);
+			closeDeleteConfirmation();
+		}
+	};
 
 	const onKeyUp = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
@@ -386,7 +419,7 @@ const WebauthnCredentialItem = ({
 
 	return (
 		<form
-			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2"
+			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
 			onSubmit={onSubmit}
 		>
 			<div className="grow">
@@ -394,16 +427,16 @@ const WebauthnCredentialItem = ({
 					? (
 						<>
 							<div className="flex items-center">
-								<p className="font-bold">
-									Nickname:&nbsp;	
+								<p className="font-semibold">
+									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="shadow appearance-none border rounded-md w-80 p-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight"
 									type="text"
-									placeholder={t('loginSignup.passkeyNicknameInput')}
+									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
 									onChange={(event) => setNickname(event.target.value)}
-									aria-label={t('loginSignup.passkeyNicknameInputAriaLabel', { passkeyLabel: currentLabel })}
+									aria-label={t('pageSettings.passkeyItem.nicknameInputAriaLabel', { passkeyLabel: currentLabel })}
 									onKeyUp={onKeyUp}
 									disabled={submitting}
 								/>
@@ -412,31 +445,33 @@ const WebauthnCredentialItem = ({
 					)
 					: (
 						<div className="flex items-center">
-							<p className="font-bold">
-								Nickname:&nbsp;	
-							</p>
-							<p className="font-bold text-custom-blue">
-								{currentLabel}
+							<p>
+								<span className="font-semibold">
+									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
+								</span>
+								<span className="font-bold text-custom-blue">
+									{currentLabel}
+								</span>
 							</p>
 						</div>
 					)
 				}
-				<p> 
-					<span className="font-semibold">
-						Created:&nbsp;	
-					</span>
-					{formatDate(credential.createTime)}
-					</p>
 				<p>
 					<span className="font-semibold">
-						Last used:&nbsp;	
+						{t('pageSettings.passkeyItem.created')}:&nbsp;
+					</span>
+					{formatDate(credential.createTime)}
+				</p>
+				<p>
+					<span className="font-semibold">
+						{t('pageSettings.passkeyItem.lastUsed')}:&nbsp;
 					</span>
 					{formatDate(credential.lastUseTime)}</p>
 				<p>
 					<span className="font-semibold">
-					Can encrypt:&nbsp;	
+						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
-					{credential.prfCapable ? "Yes" : "No"}</p>
+					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}</p>
 			</div>
 
 			<div className="items-start	 flex inline-flex">
@@ -448,29 +483,30 @@ const WebauthnCredentialItem = ({
 								type="button"
 								disabled={submitting}
 								onClick={() => setEditing(false)}
-								aria-label={t('loginSignup.cancelPasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
 								{t('common.cancel')}
 							</button>
 							<button
-								className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 								type="submit"
 								disabled={submitting}
-								aria-label={t('loginSignup.savePasskeyChangesAriaLabel', { passkeyLabel: currentLabel })}
+								aria-label={t('pageSettings.passkeyItem.saveChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								{t('loginSignup.save')}
+								{t('common.save')}
 							</button>
 						</>
 					)
 					: (
 						<>
 							<button
-								className="flex flex-row flex-nowrap items-center text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+								className={` ${!onDelete || unlocked ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"} flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center`}
 								type="button"
 								onClick={() => setEditing(true)}
-								aria-label={t('loginSignup.renamePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+								title={!unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
+								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							>
-								<FaEdit size={16} className="mr-2" /> {t('loginSignup.renamePasskey')}
+								<FaEdit size={16} className="mr-2" /> {t('pageSettings.passkeyItem.rename')}
 							</button>
 						</>
 					)
@@ -478,14 +514,27 @@ const WebauthnCredentialItem = ({
 
 				{onDelete && (
 					<button
-						className="text-white bg-red-700 text-sm hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-700 dark:hover:bg-red-800 dark:focus:ring-red-800 ml-2 px-4 py-2"
+						className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} text-sm font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-2 px-4 py-2`}
 						type="button"
-						onClick={onDelete}
-						aria-label={t('loginSignup.deletePasskeyAriaLabel', { passkeyLabel: currentLabel })}
+						onClick={openDeleteConfirmation}
+						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
+						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : ""}
+
 					>
 						<FaTrash size={16} />
 					</button>
 				)}
+				<ConfirmDeletePopup
+					isOpen={isDeleteConfirmationOpen}
+					onConfirm={handleDelete}
+					onCancel={closeDeleteConfirmation}
+					message={
+						<span>
+							{t("pageSettings.passkeyItem.messageDeletePasskeyPart1")} <strong>{nickname}</strong> {t("pageSettings.passkeyItem.messageDeletePasskeyPart2")}
+						</span>
+					}
+					loading={loading}
+				/>
 			</div>
 		</form>
 	);
@@ -493,15 +542,47 @@ const WebauthnCredentialItem = ({
 
 
 
-const Home = () => {
+const Settings = () => {
 	const api = useApi();
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
 	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
-	const showDelete = unlocked && userData?.webauthnCredentials?.length > 1;
+	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const keystore = useLocalStorageKeystore();
+	const { t } = useTranslation();
+	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const navigate = useNavigate();
+
+	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
+	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+
+	const deleteAccount = async () => {
+		try {
+			await api.del('/user/session');
+			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName == userData.displayName)[0];
+			if (cachedUser) {
+				keystore.forgetCachedUser(cachedUser);
+			}
+			api.clearSession();
+			await keystore.close();
+			navigate('/login');
+		}
+		catch (err) {
+			console.log('Error = ', err)
+		}
+	}
+
+	const handleDelete = async () => {
+		if (unlocked) {
+			setLoading(true);
+			await deleteAccount();
+			closeDeleteConfirmation();
+			setLoading(false);
+		}
+	};
 
 	const refreshData = useCallback(
 		async () => {
@@ -537,7 +618,7 @@ const Home = () => {
 		} else {
 			console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
 		}
-		refreshData();
+		await refreshData();
 	};
 
 	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
@@ -561,25 +642,26 @@ const Home = () => {
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">Account settings: {userData.displayName} </h1>
+						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemSettings')}</h1>
 						<hr className="mb-2 border-t border-custom-blue/80" />
-						<p className="italic pd-2 text-gray-700">View acount informations and manage passkeys</p>
+						<p className="italic pd-2 text-gray-700">{t('pageSettings.description')}</p>
 
-						<div className="mt-2 mb-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Logged in passkey</h1>
-							<hr className="mb-2 border-t border-gray-300" />
+						<div className="my-2 py-2">
+							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.loggedInPasskey')}</h1>
+							<hr className="mb-2 border-t border-gray-700" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
 									onRename={onRenameWebauthnCredential}
+									unlocked={unlocked}
 								/>
 							)}
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">Other Passkeys</h1>
-								<div>
+								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.manageAcount')}</h1>
+								<div className='flex'>
 									<WebauthnUnlock
 										unlocked={unlocked}
 										onLock={() => {
@@ -591,34 +673,79 @@ const Home = () => {
 											setWrappedMainKey(wrappedMainKey);
 										}}
 									/>
-									<WebauthnRegistation
-										existingPrfKey={existingPrfKey}
-										wrappedMainKey={wrappedMainKey}
-										onSuccess={() => refreshData()}
-									/>
 								</div>
 							</div>
 							<hr className="mb-2 border-t border-gray-500" />
+							<div className='mb-2'>
+								<div className="pt-4">
+									<div className="flex justify-between items-center">
+										<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.title.manageOtherPasskeys')}</h1>
+										<div className='flex'>
+											<WebauthnRegistation
+												existingPrfKey={existingPrfKey}
+												wrappedMainKey={wrappedMainKey}
+												onSuccess={() => refreshData()}
+											/>
+										</div>
+									</div>
+									<hr className="mb-2 border-t border-gray-300" />
+									<ul className="mt-4">
 
-							<ul className="mt-4">
-								{userData.webauthnCredentials
-									.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
-									.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
-									.map(cred => (
-										<WebauthnCredentialItem
-											key={cred.id}
-											credential={cred}
-											onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
-											onRename={onRenameWebauthnCredential}
-										/>
-									))}
-							</ul>
+										{userData.webauthnCredentials
+											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+											.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+											.map(cred => (
+												<WebauthnCredentialItem
+													key={cred.id}
+													credential={cred}
+													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+													onRename={onRenameWebauthnCredential}
+													unlocked={unlocked}
+												/>
+											))}
+										{userData.webauthnCredentials
+											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
+												<p>{t('pageSettings.noOtherPasskeys')}</p>
+											)}
+									</ul>
+								</div>
+
+								<div className="pt-4">
+									<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.deleteAccount.title')}</h1>
+									<hr className="mb-2 border-t border-gray-300" />
+									<p className='mb-2'>
+										{t('pageSettings.deleteAccount.description')}
+									</p>
+									<button
+										type="button"
+										className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} px-4 py-2 border border-gray-300 rounded-md font-medium rounded-lg text-sm mr-2`}
+										onClick={openDeleteConfirmation}
+										disabled={!unlocked}
+										title={!unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+
+									>
+										{t('pageSettings.deleteAccount.buttonText')}
+									</button>
+								</div>
+							</div>
+
 						</div>
 					</>
 				)}
+				<ConfirmDeletePopup
+					isOpen={isDeleteConfirmationOpen}
+					onConfirm={handleDelete}
+					onCancel={closeDeleteConfirmation}
+					message={
+						<span>
+							{t('pageSettings.deleteAccount.messageDeleteAccount1')} <strong> {t('pageSettings.deleteAccount.messageDeleteAccount2')} </strong>? 
+						</span>
+					}
+					loading={loading}
+				/>
 			</div>
 		</>
 	);
 };
 
-export default Home;
+export default Settings;
