@@ -121,13 +121,13 @@
 		"addPasskey": "Add passkey",
 		"deleteAccount": {
 			"buttonText": "Delete your account",
-			"deleteButtonTitleLocked":"You cannot delete your account while locked",
+			"deleteButtonTitleLocked": "You cannot delete your account while locked",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
 			"messageDeleteAccount1": "Are you sure you want to delete ",
 			"messageDeleteAccount2": "your Account",
 			"title": "Delete account"
 		},
-		"deletePasskeyButtonTitleLocked":"You cannot add passkey while locked",
+		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
@@ -138,7 +138,7 @@
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
-			"deleteButtonTitleLocked":"You cannot delete passkey while locked",
+			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
 			"lastUsed": "Last Used",
 			"messageDeletePasskeyPart1": "Are you sure you want to delete",
 			"messageDeletePasskeyPart2": "passkey?",
@@ -147,7 +147,7 @@
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
-			"renameButtonTitleLocked":"You cannot edit passkey while locked",
+			"renameButtonTitleLocked": "You cannot edit passkey while locked",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
@@ -185,5 +185,25 @@
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+	},
+	"tourGuide": {
+		"tourStep1": "Here, you can view all your stored credentials. Use the 'Add New Credentials' card to navigate to the 'Add Credentials' page for further actions.",
+		"tourStep2": "This button also leads you to the 'Add Credentials' page.",
+		"tourStep3": "Click this plus button to scan a QR code for sending or receiving credentials.",
+		"tourStep4": "The 'Credentials' page is your current Home page, where you can manage your credentials.",
+		"tourStep5": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
+		"tourStep6": "The 'Add Credentials' page allows you to select an issuer for retrieving credentials, similar to using the 'Add' and card buttons.",
+		"tourStep7": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
+		"tourStep8": "In the 'Settings' page, manage your passkeys and account settings.",
+		"tourComplete": "Thank you for completing the tour! We hope it was helpful.",
+		"closeTourButton": "Close Tour"
+	},
+	"welcomeModal": {
+		"title": "Welcome to wwWallet!",
+		"descriptionPart1": "Discover the",
+		"descriptionPart2": ", your ultimate tool for managing digital credentials. Effortlessly view, get, present, and keep track of all your credentials!",
+		"question": "Are you ready to explore the features of wwWallet through a guided tour?",
+		"dismissButton": "Dismiss",
+		"startTourButton": "Start Tour"
 	}
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Tour from 'reactour';
+import { useTranslation } from 'react-i18next';
 
 import WelcomeModal from './WecomeModal';
 import { useApi } from '../../api';
@@ -10,50 +11,51 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	const [steps, setSteps] = useState([]);
 	const api = useApi();
 	const { authenticationType, showWelcome } = api.getSession();
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const commonSteps = [
 			{
 				selector: '.step-1',
-				content: 'Here you will view all of your stored credentials and use the Add new credentials card you will navigate to "Add credentials" page for more.',
+				content: t("tourGuide.tourStep1"),
 				disableInteraction: true,
 			},
 			{
 				selector: '.step-2',
-				content: 'With this button you can also navigate to "Add Credentials" page.',
+				content: t("tourGuide.tourStep2"),
 			},
 			...(window.innerWidth < 700 ? [{
 				selector: '.step-3',
-				content: 'By click on this plus button you scan a qr code to get or send credentials.',
+				content: t("tourGuide.tourStep3"),
 			}] : []),
 			{
 				selector: '.step-4',
-				content: 'In "Credentials" page is the current Home page.',
+				content: t("tourGuide.tourStep4"),
 			},
 			{
 				selector: '.step-5',
-				content: 'In "History" page you can view credential transmissions, detailing when and to which verifiers you sent it.',
+				content: t("tourGuide.tourStep5"),
 			},
 			{
 				selector: '.step-6',
-				content: 'In "Add Credentials" page you can choose an issuer for credential retrieval, the same with the Add and card buttons.',
+				content: t("tourGuide.tourStep6"),
 			},
 			{
 				selector: '.step-7',
-				content: 'In "Send Credentials" page you can choose a verifier to share credentials.',
+				content: t("tourGuide.tourStep7"),
 			},
 			{
 				selector: '.step-8',
-				content: 'In "Settings" page you can manage your passkeys and your account.',
+				content: t("tourGuide.tourStep8"),
 			},
 			{
 				content: () => (
 					<>
-						<p className='mt-2'>Thank you for completing the tour!</p>
+						<p className='mt-2'>{t("tourGuide.tourComplete")}</p>
 						<div className='flex justify-center mt-2'>
 							<button className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 								onClick={() => setIsTourOpen(false)}>
-								Close Tour
+								{t("tourGuide.closeTourButton")}
 							</button>
 						</div>
 					</>
