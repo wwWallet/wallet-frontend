@@ -15,6 +15,7 @@ type SessionState = {
 	username: string,
 	displayName: string,
 	webauthnCredentialCredentialId: string,
+	authenticationType: 'signup' | 'login',
 }
 
 type SignupWebauthnError = (
@@ -129,12 +130,13 @@ export function useApi(): BackendApi {
 				clearSessionStorage();
 			}
 
-			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null): void {
+			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login'): void {
 				setAppToken(response.data.appToken);
 				setSessionState({
 					displayName: response.data.displayName,
 					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
+					authenticationType,
 				});
 			}
 
@@ -145,7 +147,7 @@ export function useApi(): BackendApi {
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
 						await keystore.unlockPassword(privateData, password, privateData.passwordKey);
-						setSession(response, null);
+						setSession(response, null, 'login');
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to unlock local keystore", e);
@@ -171,7 +173,7 @@ export function useApi(): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSession(response, null);
+						setSession(response, null, 'signup');
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -289,7 +291,7 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSession(finishResp, credential);
+								setSession(finishResp, credential, 'login');
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -372,7 +374,7 @@ export function useApi(): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSession(finishResp, credential);
+								setSession(finishResp, credential, 'signup');
 								return Ok.EMPTY;
 
 							} catch (e) {
