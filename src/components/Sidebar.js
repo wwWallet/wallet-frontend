@@ -11,21 +11,20 @@ import { Trans, useTranslation } from 'react-i18next';
 
 
 const NavItem = ({
-  children,
-  handleNavigate,
-  location,
-  path,
+	children,
+	handleNavigate,
+	location,
+	path,
 }) => {
-  return (
-    <li
-      onClick={() => handleNavigate(path)}
-      className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${
-        location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'
-      }`}
-    >
-      {children}
-    </li>
-  );
+	return (
+		<li
+			onClick={() => handleNavigate(path)}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'
+				}`}
+		>
+			{children}
+		</li>
+	);
 };
 
 
@@ -33,9 +32,9 @@ const NavItem = ({
 
 const Sidebar = ({ isOpen, toggle }) => {
 
-  const api = useApi();
+	const api = useApi();
 	const { username, displayName } = api.getSession();
-	const location=useLocation();
+	const location = useLocation();
 	const navigate = useNavigate();
 	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
@@ -50,19 +49,19 @@ const Sidebar = ({ isOpen, toggle }) => {
 		if (location.pathname === path) {
 			window.location.reload();
 		} else {
-		navigate(path);
-		if (window.innerWidth <= 639) {
-			toggle();
-	}		}
+			navigate(path);
+			if (window.innerWidth <= 639) {
+				toggle();
+			}
+		}
 	};
 
 	return (
 		<div
-			className={`${
-				isOpen
-					? 'w-full table fixed h-full z-50 bg-custom-blue text-white p-4'
-					: ' hidden sm:table bg-custom-blue w-auto text-white h-auto py-10 px-10'
-			}`}
+			className={`${isOpen
+				? 'w-full table fixed h-full z-50 bg-custom-blue text-white p-4'
+				: ' hidden sm:table bg-custom-blue w-auto text-white h-auto py-10 px-10'
+				}`}
 		>
 			{/* Mobile Header */}
 			<div className="sm:hidden flex items-center justify-between mb-4">
@@ -70,7 +69,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<h1
 					className="text-white text-xl font-bold cursor-pointer"
 					onClick={() => handleNavigate('/')}
-					>
+				>
 					{t('common.walletName')}
 				</h1>
 				<button onClick={toggle}>
@@ -79,7 +78,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Logo */}
-			<div style={{display:'flex',flexDirection:'column'}} className="flex flex-col space-between">
+			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div>
 					<div className="hidden sm:flex justify-between items-center mb-4">
 						<img
@@ -91,8 +90,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<h1
 							className="text-white text-xl font-bold cursor-pointer"
 							onClick={() => handleNavigate('/')}
-							>
-						  {t('common.walletName')}
+						>
+							{t('common.walletName')}
 						</h1>
 						<button className="sm:hidden" onClick={toggle}>
 							<AiOutlineClose size={30} />
@@ -103,10 +102,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 					{/* User */}
 					<ul>
 						<div className='flex items-center space-x-2 mb-4 p-2 rounded-r-xl'>
-							<FaUserCircle size={30} title={displayName || username}/>
-							<span 
+							<FaUserCircle size={30} title={displayName || username} />
+							<span
 								className="text-overflow-ellipsis overflow-hidden whitespace-nowrap md:max-w-[130px]"
-								title={displayName || username}							
+								title={displayName || username}
 							>
 								{displayName || username}
 							</span>
@@ -115,27 +114,36 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-4 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<NavItem path="/" location={location} handleNavigate={handleNavigate}>
-							<FaWallet size={30} />
-							<span>{t("common.navItemCredentials")}</span>
-						</NavItem>
-						<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-							<IoIosTime size={30} />
-							<span>{t("common.navItemHistory")}</span>
-						</NavItem>
-						<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
-							<IoIosAddCircle size={30} />
-							<span>{t("common.navItemAddCredentials")}</span>
-						</NavItem>
-						<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
-							<IoIosSend size={30} />
-							<span>{t("common.navItemSendCredentials")}</span>
-						</NavItem>
-						<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
-							<IoMdSettings size={30} />
-							<span>{t("common.navItemSettings")}</span>
-						</NavItem>
-
+						<div className="step-4">
+							<NavItem path="/" location={location} handleNavigate={handleNavigate}>
+								<FaWallet size={30} />
+								<span>{t("common.navItemCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className="step-5">
+							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
+								<IoIosTime size={30} />
+								<span>{t("common.navItemHistory")}</span>
+							</NavItem>
+						</div>
+						<div className="step-6">
+							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
+								<IoIosAddCircle size={30} />
+								<span>{t("common.navItemAddCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className="step-7">
+							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
+								<IoIosSend size={30} />
+								<span>{t("common.navItemSendCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className="step-8">
+							<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
+								<IoMdSettings size={30} />
+								<span>{t("common.navItemSettings")}</span>
+							</NavItem>
+						</div>
 						<hr className="my-4 border-t border-white/20" />
 
 						<li
@@ -152,7 +160,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 			<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2 table-footer-group">
 				<Trans
-					i18nKey ="sidebar.poweredBy"
+					i18nKey="sidebar.poweredBy"
 					components={{
 						docLinkWalletGithub: <a
 							href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"

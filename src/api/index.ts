@@ -16,6 +16,7 @@ type SessionState = {
 	displayName: string,
 	webauthnCredentialCredentialId: string,
 	authenticationType: 'signup' | 'login',
+	showWelcome: boolean,
 }
 
 type SignupWebauthnError = (
@@ -117,6 +118,14 @@ export function useApi(): BackendApi {
 					});
 			}
 
+			function updateShowWelcome(showWelcome: boolean): void {
+				if (sessionState) {
+						setSessionState((prevState) => ({
+								...prevState,
+								showWelcome: showWelcome,
+						}));
+				}
+			}
 
 			function getSession(): SessionState {
 				return sessionState;
@@ -130,13 +139,14 @@ export function useApi(): BackendApi {
 				clearSessionStorage();
 			}
 
-			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login'): void {
+			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): void {
 				setAppToken(response.data.appToken);
 				setSessionState({
 					displayName: response.data.displayName,
 					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
 					authenticationType,
+					showWelcome,
 				});
 			}
 
@@ -147,7 +157,7 @@ export function useApi(): BackendApi {
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
 						await keystore.unlockPassword(privateData, password, privateData.passwordKey);
-						setSession(response, null, 'login');
+						setSession(response, null, 'login', false);
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to unlock local keystore", e);
@@ -173,7 +183,7 @@ export function useApi(): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSession(response, null, 'signup');
+						setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -291,7 +301,7 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSession(finishResp, credential, 'login');
+								setSession(finishResp, credential, 'login', false);
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -374,7 +384,7 @@ export function useApi(): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSession(finishResp, credential, 'signup');
+								setSession(finishResp, credential, 'signup', true);
 								return Ok.EMPTY;
 
 							} catch (e) {
@@ -404,6 +414,8 @@ export function useApi(): BackendApi {
 				del,
 				get,
 				post,
+
+				updateShowWelcome,
 
 				getSession,
 				isLoggedIn,
