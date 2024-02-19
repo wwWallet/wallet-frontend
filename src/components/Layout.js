@@ -4,6 +4,7 @@ import { GiHamburgerMenu } from 'react-icons/gi';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the icons you want to use
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
+import WelcomeTourGuide from './WelcomeTourGuide/WelcomeTourGuide';
 
 const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissionValue }) => {
   const location = useLocation();
@@ -146,6 +147,7 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
 					</div>
         </div>
       </div>
+			<WelcomeTourGuide toggleMenu={toggleSidebar} isOpen={isOpen} />
     </div>
   );
 };

@@ -109,8 +109,8 @@ const Home = () => {
 					<div className='flex gap-x-1'>
 					{ isSmallScreen && (
 						<button
-						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-						onClick={openQRScanner} // Open the QR code scanner modal
+							className="step-3 px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+							onClick={openQRScanner}
 					>
 						<div className="flex items-center">
 							<BsQrCodeScan size={20} className="text-white" />
@@ -118,7 +118,7 @@ const Home = () => {
 					</button>
 					)}
           <button
-            className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+            className="step-2 px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
             onClick={handleAddCredential}
           >
             <div className="flex items-center">
@@ -132,7 +132,7 @@ const Home = () => {
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
-        <div className='my-4'>
+        <div className='step-1 my-4'>
           {isSmallScreen ? (
           	<>
 
