@@ -51,14 +51,14 @@
 }
 
 /* Fade in animation for content */
-.fade-in-content {
+.content-fade-in-enter , .content-fade-in1-enter {
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+}
+.content-fade-in-enter-active, .content-fade-in1-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
 }
 
-.fade-in-content.visible {
-  opacity: 1;
-}
 
 @keyframes scan-vertical {
   0%, 100% { top: calc(0% + var(--scanning-margin)); }
