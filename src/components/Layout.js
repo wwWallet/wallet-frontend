@@ -4,6 +4,7 @@ import { GiHamburgerMenu } from 'react-icons/gi';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the icons you want to use
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { CSSTransition } from 'react-transition-group';
 
 const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissionValue }) => {
   const location = useLocation();
@@ -49,10 +50,13 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
   };
 
   useEffect(() => {
-    setTimeout(() => {
+    setIsContentVisible(false);
+    const timer = setTimeout(() => {
       setIsContentVisible(true);
     }, 0);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+	
   
   return (
     <div className="flex min-h-screen">
@@ -141,9 +145,15 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
               </button>
             </div>
           )}
-          <div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
-						{children}
-					</div>
+          <CSSTransition
+            in={isContentVisible}
+            timeout={500}
+            classNames="page"
+            appear
+						key={location.pathname}  // Key prop added here
+          >
+              {children}
+						</CSSTransition>
         </div>
       </div>
     </div>
