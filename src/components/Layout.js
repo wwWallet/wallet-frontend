@@ -49,15 +49,14 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
     }
   };
 
-  useEffect(() => {
-    setIsContentVisible(false);
-    const timer = setTimeout(() => {
-      setIsContentVisible(true);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [location.pathname]);
+	useEffect(() => {
+		setIsContentVisible(false);
+		const timer = setTimeout(() => {
+			setIsContentVisible(true);
+		}, 0);
+		return () => clearTimeout(timer);
+	}, [location.pathname]); // Only runs when location.pathname changes
 	
-  
   return (
     <div className="flex min-h-screen">
       <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
