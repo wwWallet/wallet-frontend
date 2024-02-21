@@ -7,7 +7,7 @@ import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import {BsQrCodeScan} from 'react-icons/bs'
 
 import Slider from 'react-slick';
-import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import addImage from '../../assets/images/cred.png';
@@ -47,7 +47,7 @@ const Home = () => {
 		centerPadding: '10px', // Set the padding between adjacent images to 2 pixels
 		style: { margin: '0 10px' },
 	};
-	
+
   useEffect(() => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 768);
@@ -128,13 +128,13 @@ const Home = () => {
           </button>
 					</div>
 
-          
+
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
         <div className='my-4'>
           {isSmallScreen ? (
-          	<>
+		<>
 
 							{credentials.length === 0 ? (
 								<div
@@ -169,7 +169,7 @@ const Home = () => {
 													</button>
 												</div>
 												<CredentialInfo credential={credential} />
-            						<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedCredential(credential); }} />
+							<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedCredential(credential); }} />
 												<CredentialJson credential={credential} />
 
 											</>
@@ -177,8 +177,8 @@ const Home = () => {
 									</Slider>
 								</>
 							)}
-				 		</>
-          	) : (
+						</>
+		) : (
 							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
 								{credentials.map((credential) => (
 									<div
@@ -204,7 +204,7 @@ const Home = () => {
 									</div>
 								</div>
 							</div>
-          	)}
+		)}
         </div>
       </div>
 			{/* Modal for Fullscreen credential */}
@@ -221,8 +221,8 @@ const Home = () => {
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-        	<QRCodeScanner
-          	onClose={closeQRScanner}
+		<QRCodeScanner
+		onClose={closeQRScanner}
 					/>
 				</div>
 			)}
@@ -236,7 +236,7 @@ const Home = () => {
 					message={
 						<span>
 							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedCredential.type.replace(/([A-Z])/g, ' $1')}</strong> {t('pageCredentials.deletePopup.messagePart2')}
-							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>					
+							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
 					</span>
 					}
 					loading={loading}

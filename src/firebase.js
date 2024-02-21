@@ -44,10 +44,10 @@ const requestForToken = async () => {
 					console.log('ERROR:',err.message,err.code);
 					if (err.code === 'messaging/permission-blocked') {
 							console.error('Notification permission was blocked or click close.');
-							return null; 
+							return null;
 					}else if (err.message === "Failed to execute 'subscribe' on 'PushManager': Subscription failed - no active Service Worker") {
 								console.error('Failed beacuse there is no token created yet, so we are going to re-register');
-					
+
 					} else {
 							console.error('An error occurred while retrieving token:',err);
 							return null;
@@ -103,7 +103,7 @@ export const fetchToken = async () => {
 			}
 	} else {
 			console.log('Messaging is not initialized.');
-			
+
 	}
 	return null; // Return null in case of failure
 };

@@ -13,7 +13,7 @@ const PrivateRoute = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const keystore = useLocalStorageKeystore();
   const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
-  
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -59,8 +59,8 @@ const PrivateRoute = ({ children }) => {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
 							// Set a flag in sessionStorage to indicate that the token has been sent
 							sessionStorage.setItem('tokenSentInSession', 'true');
-							console.log('send FCM Token:', fcmToken);		
-							
+							console.log('send FCM Token:', fcmToken);
+
 						console.log('FCM Token:', fcmToken);
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
@@ -70,7 +70,7 @@ const PrivateRoute = ({ children }) => {
 				}
 			}
 		}
-	
+
 		sendFcmTokenToBackend();
 	}, [isPermissionGranted]);
 

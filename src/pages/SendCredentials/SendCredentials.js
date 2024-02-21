@@ -86,13 +86,13 @@ const Verifiers = () => {
 
 	const handleContinue = () => {
 		setLoading(true);
-		
+
 		console.log('Continue with:', selectedVerifier);
 
 		if (selectedVerifier) {
 			window.location.href = selectedVerifier.url;
 		}
-	
+
 		setLoading(false);
 		setShowRedirectPopup(false);
 	};
@@ -113,7 +113,7 @@ const Verifiers = () => {
       <div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemSendCredentials')}</h1>
-          
+
 					{ isSmallScreen && (
 						<button
 						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
@@ -124,7 +124,7 @@ const Verifiers = () => {
 						</div>
 					</button>
 					)}
-          
+
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic text-gray-700">{t('pageSendCredentials.description')}</p>

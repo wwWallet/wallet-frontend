@@ -10,7 +10,7 @@ i18n
     resources: {
       en: { translation: enTranslation },
     },
-    lng: 'en', 
+    lng: 'en',
     interpolation: {
       escapeValue: false,
     },

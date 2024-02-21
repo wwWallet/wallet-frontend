@@ -61,7 +61,7 @@ const HandlerNotification = ({ children }) => {
 			console.log('Failed to receive message:', err);
 			setMessageReceived(false); // Set isMessageReceived to false if there's an error
 		});
-	
+
 
     return () => {
       if (!messageReceived) {

@@ -104,9 +104,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 					<ul>
 						<div className='flex items-center space-x-2 mb-4 p-2 rounded-r-xl'>
 							<FaUserCircle size={30} title={displayName || username}/>
-							<span 
+							<span
 								className="text-overflow-ellipsis overflow-hidden whitespace-nowrap md:max-w-[130px]"
-								title={displayName || username}							
+								title={displayName || username}
 							>
 								{displayName || username}
 							</span>

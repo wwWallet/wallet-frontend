@@ -23,7 +23,7 @@ const CredentialJson = ({ credential }) => {
 			</button>
 			</div>
 
-			<hr className="my-2 border-t border-gray-500 py-2" />	
+			<hr className="my-2 border-t border-gray-500 py-2" />
 
 			{showJsonCredentials && credential ? (
 				<div>

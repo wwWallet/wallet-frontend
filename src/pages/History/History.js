@@ -3,7 +3,7 @@ import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import { useTranslation } from 'react-i18next';
 
 import Slider from 'react-slick';
-import "slick-carousel/slick/slick.css"; 
+import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import { useApi } from '../../api';
@@ -106,9 +106,9 @@ const History = () => {
 
       {isImageModalOpen && (
 				<div className="fixed inset-0 flex items-center justify-center z-50" >
-  				<div className="absolute inset-0 bg-black opacity-50" onClick={() => setImageModalOpen(false)}></div>
+				<div className="absolute inset-0 bg-black opacity-50" onClick={() => setImageModalOpen(false)}></div>
 					<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] lg:w-[33.33%] sm:w-[33.33%] max-h-[100vh] z-10 relative mx-6 mx-4">
-						
+
 						{/* Popup content */}
 						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 							<h2 className="right text-lg font-bold p-2 mb-2 text-custom-blue">
@@ -147,7 +147,7 @@ const History = () => {
 							</Slider>
 						</div>
 					</div>
-				</div>	
+				</div>
       )}
     </>
   );
