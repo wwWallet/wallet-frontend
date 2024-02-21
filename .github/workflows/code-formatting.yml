@@ -1,0 +1,26 @@
+# This name is shown in status badges
+name: code-formatting
+
+on:
+  push:
+    branches-ignore:
+      - 'tmp**'
+  pull_request:
+    branches-ignore:
+      - 'tmp**'
+
+jobs:
+  editorconfig:
+    name: Check EditorConfig compliance
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3
+
+    - name: Set up editorconfig-checker
+      uses: editorconfig-checker/action-editorconfig-checker@v2
+
+    - name: Check code formatting
+      run: editorconfig-checker
