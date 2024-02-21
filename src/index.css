@@ -56,7 +56,7 @@
 }
 .content-fade-in-enter-active {
   opacity: 1;
-  transition: opacity 500ms ease-in;
+  transition: opacity 400ms ease-in;
 }
 
 .content-fade-in-exit {
@@ -64,7 +64,7 @@
 }
 .content-fade-in-exit-active {
   opacity: 0;
-  transition: opacity 500ms ease-in;
+  transition: opacity 400ms ease-in;
 }
 
 @keyframes scan-vertical {
