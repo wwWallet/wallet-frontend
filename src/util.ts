@@ -44,7 +44,7 @@ function replacerUint8ArrayToTaggedBase64Url(key: string, value: any): any {
 }
 
 export function jsonStringifyTaggedBinary(value: any): string {
-  return JSON.stringify(value, replacerUint8ArrayToTaggedBase64Url);
+	return JSON.stringify(value, replacerUint8ArrayToTaggedBase64Url);
 }
 
 function reviverTaggedBinaryToUint8Array(key: string, value: any): any {
@@ -56,7 +56,7 @@ function reviverTaggedBinaryToUint8Array(key: string, value: any): any {
 }
 
 export function jsonParseTaggedBinary(json: string): any {
-  return JSON.parse(json, reviverTaggedBinaryToUint8Array);
+	return JSON.parse(json, reviverTaggedBinaryToUint8Array);
 }
 
 export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {

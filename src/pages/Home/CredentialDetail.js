@@ -21,7 +21,7 @@ const CredentialDetail = () => {
 	const [credential, setCredentials] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
-  const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(false);
 	const { t } = useTranslation();
 
 	useEffect(() => {
@@ -52,8 +52,8 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
-					</Link>
+							<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
+						</Link>
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
 					{credential && (
@@ -71,7 +71,7 @@ const CredentialDetail = () => {
 						<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
 							<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
 
-						</div>
+							</div>
 						) : (
 							<></>
 						)}
@@ -81,7 +81,7 @@ const CredentialDetail = () => {
 					{credential && <CredentialInfo credential={credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-        <CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
+				<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
 
 				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
@@ -116,7 +116,7 @@ const CredentialDetail = () => {
 				}
 				loading={loading}
 			/>
-      )}
+			)}
 		</>
 	);
 };

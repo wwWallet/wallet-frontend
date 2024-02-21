@@ -6,7 +6,7 @@ import { CSSTransition } from 'react-transition-group';
 
 const NotFound = () => {
 	const navigate = useNavigate();
-  const [isContentVisible, setIsContentVisible] = useState(false);
+	const [isContentVisible, setIsContentVisible] = useState(false);
 
 	const { t } = useTranslation();
 
@@ -15,10 +15,10 @@ const NotFound = () => {
 	};
 
 	useEffect(() => {
-    setTimeout(() => {
-      setIsContentVisible(true);
-    }, 0);
-  }, []);
+		setTimeout(() => {
+			setIsContentVisible(true);
+		}, 0);
+	}, []);
 
 	return(
 	<section className="bg-gray-100 dark:bg-gray-900">
