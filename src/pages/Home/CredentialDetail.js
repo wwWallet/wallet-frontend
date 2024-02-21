@@ -52,8 +52,8 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-    					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
-				  	</Link>
+					<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
+					</Link>
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
 					{credential && (
@@ -85,7 +85,7 @@ const CredentialDetail = () => {
 
 				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
-						<CredentialJson credential={credential} />		
+						<CredentialJson credential={credential} />
 					</div>
 				</div>
 			</div>

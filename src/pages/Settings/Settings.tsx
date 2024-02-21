@@ -738,7 +738,7 @@ const Settings = () => {
 					onCancel={closeDeleteConfirmation}
 					message={
 						<span>
-							{t('pageSettings.deleteAccount.messageDeleteAccount1')} <strong> {t('pageSettings.deleteAccount.messageDeleteAccount2')} </strong>? 
+							{t('pageSettings.deleteAccount.messageDeleteAccount1')} <strong> {t('pageSettings.deleteAccount.messageDeleteAccount2')} </strong>?
 						</span>
 					}
 					loading={loading}

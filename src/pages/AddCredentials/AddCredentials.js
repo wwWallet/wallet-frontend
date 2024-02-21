@@ -88,19 +88,19 @@ const Issuers = () => {
 
 	const handleContinue = () => {
 		setLoading(true);
-	
+
 		console.log('Continue with:', selectedIssuer);
-	
+
 		if (selectedIssuer && selectedIssuer.did) {
 			const payload = {
 				legal_person_did: selectedIssuer.did,
 			};
-	
+
 			api.post('/communication/handle', payload)
 				.then((response) => {
 					const { redirect_to } = response.data;
 					console.log(redirect_to);
-	
+
 					// Redirect to the URL received from the backend
 					window.location.href = redirect_to;
 				})
@@ -109,7 +109,7 @@ const Issuers = () => {
 					console.error('Error sending request to backend:', error);
 				});
 		}
-	
+
 		setLoading(false);
 		setShowPopup(false);
 	};
@@ -140,7 +140,7 @@ const Issuers = () => {
 						</div>
 					</button>
 					)}
-          
+
         </div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">{t('pageAddCredentials.description')}</p>
@@ -186,7 +186,7 @@ const Issuers = () => {
 						) : (
 							<>
 								<h2 className="text-lg font-bold mb-2 text-custom-blue">
-									<FaShare size={20} className="inline mr-1 mb-1" /> 
+									<FaShare size={20} className="inline mr-1 mb-1" />
 									{t('pageAddCredentials.popup.title')} {selectedIssuer?.friendlyName}
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />
@@ -209,8 +209,8 @@ const Issuers = () => {
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-        	<QRCodeScanner
-          	onClose={closeQRScanner}
+		<QRCodeScanner
+		onClose={closeQRScanner}
 					/>
 				</div>
 			)}

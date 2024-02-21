@@ -53,7 +53,7 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
       setIsContentVisible(true);
     }, 0);
   }, []);
-  
+
   return (
     <div className="flex min-h-screen">
       <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
@@ -108,13 +108,13 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
 											<span className="font-semibold">
 												allow permission for notifications
 											</span>{' '}
-											from your browser. 
+											from your browser.
 											<a className="ml-2" onClick={requestNotificationPermission}>
 												<button
 												className="px-2 py-1 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
 												onClick={requestNotificationPermission}
 											>
-												Allow 
+												Allow
 												</button>
 											</a>
 										</p>

@@ -20,7 +20,7 @@
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #ccc #f0f0f0;
-  padding-right: 5px; 
+  padding-right: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

@@ -88,13 +88,13 @@ const Verifiers = () => {
 
 	const handleContinue = () => {
 		setLoading(true);
-		
+
 		console.log('Continue with:', selectedVerifier);
 
 		if (selectedVerifier) {
 			window.location.href = selectedVerifier.url;
 		}
-	
+
 		setLoading(false);
 		setShowPopup(false);
 	};
@@ -115,7 +115,7 @@ const Verifiers = () => {
       <div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemSendCredentials')}</h1>
-          
+
 					{ isSmallScreen && (
 						<button
 						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
@@ -126,7 +126,7 @@ const Verifiers = () => {
 						</div>
 					</button>
 					)}
-          
+
         </div>
         <hr className="mb-2 border-t border-custom-blue/80" />
         <p className="italic text-gray-700">{t('pageSendCredentials.description')}</p>
@@ -168,12 +168,12 @@ const Verifiers = () => {
 					<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 						{loading ? (
 							<div className="flex items-center justify-center h-24">
- 								<Spinner />
- 							</div>
+								<Spinner />
+							</div>
 						) : (
 							<>
 								<h2 className="text-lg font-bold mb-2 text-custom-blue">
-									<FaShare size={20} className="inline mr-1 mb-1" /> 
+									<FaShare size={20} className="inline mr-1 mb-1" />
 									{t('pageSendCredentials.popup.title')} {selectedVerifier?.name}
 								</h2>
 								<hr className="mb-2 border-t border-custom-blue/80" />

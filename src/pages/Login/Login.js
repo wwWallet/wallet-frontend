@@ -426,7 +426,7 @@ const WebauthnSignupLogin = ({
 						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
 
 						<button
-							className={`w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`} 
+							className={`w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
 							type="submit"
 							disabled={isSubmitting || nameByteLimitReached}
 						>

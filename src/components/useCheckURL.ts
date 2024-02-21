@@ -29,7 +29,7 @@ function useCheckURL(urlToCheck: string): {
 
 				const res = await api.post('/communication/handle', { url, camera_was_used: (wwwallet_camera_was_used != null && wwwallet_camera_was_used === 'true') });
 				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin } = res.data;
-				
+
 				if (preauth && preauth == true) {
 					if (ask_for_pin) {
 						setShowPinPopup(true);

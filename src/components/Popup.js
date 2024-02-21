@@ -69,7 +69,7 @@ function Popup({ showPopup, setShowPopup, setSelectionMap, conformantCredentials
 			<div className="absolute inset-0 bg-black opacity-50"></div>
 			<div className="bg-white p-4 rounded-lg shadow-lg w-full max-h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
 				<h2 className="text-lg font-bold mb-2 text-custom-blue">
-					<FaShare size={20} className="inline mr-1 mb-1" /> 
+					<FaShare size={20} className="inline mr-1 mb-1" />
 					{t('selectCredentialPopup.title')}
 				</h2>
 				<hr className="mb-2 border-t border-custom-blue/80" />
