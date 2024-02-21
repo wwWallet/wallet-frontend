@@ -51,25 +51,18 @@
 }
 
 /* Fade in animation for content */
-.content-fade-in-enter , .content-fade-in1-enter {
+.content-fade-in-enter  {
   opacity: 0;
 }
-.content-fade-in-enter-active, .content-fade-in1-enter-active {
+.content-fade-in-enter-active {
   opacity: 1;
   transition: opacity 500ms ease-in;
 }
 
-.page-enter {
-  opacity: 0;
-}
-.page-enter-active {
-  opacity: 1;
-  transition: opacity 500ms ease-in;
-}
-.page-exit {
+.content-fade-in-exit {
   opacity: 1;
 }
-.page-exit-active {
+.content-fade-in-exit-active {
   opacity: 0;
   transition: opacity 500ms ease-in;
 }

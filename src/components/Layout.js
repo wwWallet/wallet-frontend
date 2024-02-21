@@ -147,7 +147,7 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissi
           <CSSTransition
             in={isContentVisible}
             timeout={500}
-            classNames="page"
+            classNames="content-fade-in"
             appear
 						key={location.pathname}  // Key prop added here
           >
