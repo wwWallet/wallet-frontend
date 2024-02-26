@@ -11,12 +11,13 @@ import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling'
 
-const Settings = React.lazy(() => import('./pages/Settings/Settings'));
+import Home from './pages/Home/Home';
+import History from './pages/History/History';
+import Settings from './pages/Settings/Settings';
+import AddCredentials from './pages/AddCredentials/AddCredentials';
+import SendCredentials from './pages/SendCredentials/SendCredentials';
+
 const Login = React.lazy(() => import('./pages/Login/Login'));
-const Home = React.lazy(() => import('./pages/Home/Home'));
-const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
-const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
-const History = React.lazy(() => import('./pages/History/History'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));

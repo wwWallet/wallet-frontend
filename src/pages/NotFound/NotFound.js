@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import logo from '../../assets/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { CSSTransition } from 'react-transition-group';
 
 const NotFound = () => {
 	const navigate = useNavigate();
@@ -21,7 +22,7 @@ const NotFound = () => {
 
 	return(
 	<section className="bg-gray-100 dark:bg-gray-900">
-		<div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
+		<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-screen pb-20">
 				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 					<img className="w-20" src={logo} alt="logo" />
@@ -47,7 +48,7 @@ const NotFound = () => {
 					</div>
 				</div>
 			</div>
-		</div>
+		</CSSTransition>
 </section>
 	);
 };

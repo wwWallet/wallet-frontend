@@ -4,6 +4,7 @@ import { FaEye, FaExclamationTriangle, FaEyeSlash, FaInfoCircle, FaLock, FaUser 
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
+import { CSSTransition } from 'react-transition-group';
 
 import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -556,15 +557,14 @@ const Login = () => {
 
 	const passwordStrength = getPasswordStrength(password);
 
-	useEffect(() => {
-    setTimeout(() => {
-      setIsContentVisible(true);
-    }, 0);
+  useEffect(() => {
+    setIsContentVisible(true);
   }, []);
 
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
-			<div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
+
+			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in">
 				<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen pb-20">
 					<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 						<img className="w-40" src={logo} alt="logo" />
@@ -708,7 +708,7 @@ const Login = () => {
 						</div>
 					</div>
 				</div>
-			</div>
+			</CSSTransition>
 			<div className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900 font-small w-full text-right'>{process.env.REACT_APP_VERSION}</div>
 		</section>
 	);
