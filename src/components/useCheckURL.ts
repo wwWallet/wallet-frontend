@@ -4,19 +4,17 @@ import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
 function useCheckURL(urlToCheck: string): {
-	isValidURL: boolean | null,
-	showPopup: boolean,
-	setShowPopup: Dispatch<SetStateAction<boolean>>,
+	showSelectCredentialsPopup: boolean,
+	setShowSelectCredentialsPopup: Dispatch<SetStateAction<boolean>>,
 	setSelectionMap: Dispatch<SetStateAction<string | null>>,
 	conformantCredentialsMap: any,
-	showPinPopup: boolean,
-	setShowPinPopup: Dispatch<SetStateAction<boolean>>,
+	showPinInputPopup: boolean,
+	setShowPinInputPopup: Dispatch<SetStateAction<boolean>>,
 } {
 	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
-	const [isValidURL, setIsValidURL] = useState<boolean | null>(null);
-	const [showPopup, setShowPopup] = useState<boolean>(false);
-	const [showPinPopup, setShowPinPopup] = useState<boolean>(false);
+	const [showSelectCredentialsPopup, setShowSelectCredentialsPopup] = useState<boolean>(false);
+	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 	const keystore = useLocalStorageKeystore();
@@ -32,7 +30,7 @@ function useCheckURL(urlToCheck: string): {
 				
 				if (preauth && preauth == true) {
 					if (ask_for_pin) {
-						setShowPinPopup(true);
+						setShowPinInputPopup(true);
 						return true;
 					}
 					else {
@@ -47,8 +45,8 @@ function useCheckURL(urlToCheck: string): {
 				} else if (conformantCredentialsMap) {
 					console.log('need action');
 					setConformantCredentialsMap(conformantCredentialsMap);
-					setShowPopup(true);
-					console.log("called setShowPopup")
+					setShowSelectCredentialsPopup(true);
+					console.log("called setShowSelectCredentialsPopup")
 					return true;
 				}
 				else {
@@ -63,13 +61,10 @@ function useCheckURL(urlToCheck: string): {
 
 		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
 			(async () => {
-				if (await communicationHandler(urlToCheck)) {
-					setIsValidURL(true);
-				} else {
-					setIsValidURL(false);
-				}
+					await communicationHandler(urlToCheck);
 			})();
 		}
+		
 	}, [api, keystore, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
@@ -89,7 +84,7 @@ function useCheckURL(urlToCheck: string): {
 		}
 	}, [api, keystore, selectionMap]);
 
-	return { isValidURL, showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, showPinPopup, setShowPinPopup };
+	return {showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup };
 }
 
 export default useCheckURL;

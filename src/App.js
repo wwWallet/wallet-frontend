@@ -20,8 +20,8 @@ const History = React.lazy(() => import('./pages/History/History'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
-const Popup = React.lazy(() => import('./components/Popup'));
-const PinInputPopup = React.lazy(() => import('./components/PinInputPopup'));
+const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
+const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
@@ -44,13 +44,12 @@ function App() {
 
 	const url = window.location.href;
 	const {
-		isValidURL,
-		showPopup,
-		setShowPopup,
+		showSelectCredentialsPopup,
+		setShowSelectCredentialsPopup,
 		setSelectionMap,
 		conformantCredentialsMap,
-		showPinPopup,
-		setShowPinPopup,
+		showPinInputPopup,
+		setShowPinInputPopup,
 	} = useCheckURL(url);
 
 	useEffect(() => {
@@ -92,11 +91,11 @@ function App() {
 							<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
 							<Route path="*" element={<NotFound />} />
 						</Routes>
-						{showPopup &&
-							<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
+						{showSelectCredentialsPopup &&
+							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
 						}
-						{showPinPopup &&
-							<PinInputPopup showPinPopup={showPinPopup} setShowPinPopup={setShowPinPopup} />
+						{showPinInputPopup &&
+							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
 						}
 					</HandlerNotification>
 				</Suspense>

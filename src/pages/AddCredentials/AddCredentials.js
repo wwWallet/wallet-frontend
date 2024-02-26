@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { FaShare } from 'react-icons/fa';
 import {BsQrCodeScan} from 'react-icons/bs'
-
 import { useTranslation } from 'react-i18next';
 
+import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
+import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { useApi } from '../../api';
-import Spinner from '../../components/Spinner';
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -24,7 +22,7 @@ const Issuers = () => {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
-	const [showPopup, setShowPopup] = useState(false);
+	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
@@ -77,12 +75,12 @@ const Issuers = () => {
 		const clickedIssuer = issuers.find((issuer) => issuer.did === did);
 		if (clickedIssuer) {
 			setSelectedIssuer(clickedIssuer);
-			setShowPopup(true);
+			setShowRedirectPopup(true);
 		}
 	};
 
   const handleCancel = () => {
-    setShowPopup(false);
+    setShowRedirectPopup(false);
     setSelectedIssuer(null);
   };
 
@@ -111,7 +109,7 @@ const Issuers = () => {
 		}
 	
 		setLoading(false);
-		setShowPopup(false);
+		setShowRedirectPopup(false);
 	};
 
 	// QR Code part
@@ -175,37 +173,16 @@ const Issuers = () => {
 				)}
 			</div>
 
-			{showPopup && (
-				<div className="fixed inset-0 flex items-center justify-center z-50">
-					<div className="absolute inset-0 bg-black opacity-50"></div>
-					<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
-						{loading ? (
-							<div className="flex items-center justify-center h-24">
-								<Spinner />
-							</div>
-						) : (
-							<>
-								<h2 className="text-lg font-bold mb-2 text-custom-blue">
-									<FaShare size={20} className="inline mr-1 mb-1" /> 
-									{t('pageAddCredentials.popup.title')} {selectedIssuer?.friendlyName}
-								</h2>
-								<hr className="mb-2 border-t border-custom-blue/80" />
-								<p className="mb-2 mt-4">
-								{t('pageAddCredentials.popup.messagePart1')} {selectedIssuer?.friendlyName}{t('pageAddCredentials.popup.messagePart2')}
-								</p>
-								<div className="flex justify-end space-x-2 pt-4">
-									<button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={handleCancel}>
-									{t('common.cancel')}
-									</button>
-									<button className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" onClick={handleContinue}>
-									{t('common.continue')}
-									</button>
-								</div>
-							</>
-						)}
-					</div>
-				</div>
+			{showRedirectPopup && (
+				<RedirectPopup
+					loading={loading}
+					handleClose={handleCancel}
+					handleContinue={handleContinue}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.friendlyName}`}
+					popupMessage={`${t('pageAddCredentials.popup.messagePart1')} ${selectedIssuer?.friendlyName}${t('pageAddCredentials.popup.messagePart2')}`}
+				/>
 			)}
+			
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
