@@ -611,12 +611,15 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				const publicKeyJWK: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
 
 				let did = null;
-				if (DID_KEY_VERSION === "W3C") {
+				if (DID_KEY_VERSION === "p256-pub") {
 					const { didKeyString } = await createW3CDID(publicKey);
 					did = didKeyString;
 				}
-				else {
+				else if (DID_KEY_VERSION === "jwk_jcs-pub") {
 					did = util.createDid(publicKeyJWK as JWK);
+				}
+				else {
+					throw new Error("Application was not configured with a correct DID_KEY_VERSION");
 				}
 				const wrappedPrivateKey: WrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
 
