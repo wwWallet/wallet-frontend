@@ -61,10 +61,10 @@ function useCheckURL(urlToCheck: string): {
 
 		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
 			(async () => {
-					await communicationHandler(urlToCheck);
+				await communicationHandler(urlToCheck);
 			})();
 		}
-		
+
 	}, [api, keystore, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
@@ -84,7 +84,7 @@ function useCheckURL(urlToCheck: string): {
 		}
 	}, [api, keystore, selectionMap]);
 
-	return {showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup };
+	return { showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup };
 }
 
 export default useCheckURL;
