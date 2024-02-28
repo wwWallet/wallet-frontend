@@ -10,6 +10,16 @@ import { useClearStorages, useLocalStorage, useSessionStorage } from "../compone
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
+import { base58btc } from 'multiformats/bases/base58';
+import { varint } from 'multiformats';
+import * as KeyDidResolver from 'key-did-resolver'
+import {Resolver} from 'did-resolver'
+
+
+const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION;
+
+const keyDidResolver = KeyDidResolver.getResolver();
+const didResolver = new Resolver(keyDidResolver);
 
 type UserData = {
 	displayName: string;
@@ -533,18 +543,90 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				return result;
 			};
 
+			const compressPublicKey = async (uncompressedRawPublicKey: Uint8Array) => {
+				// Check if the uncompressed public key has the correct length
+				if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {
+					throw new Error('Invalid uncompressed public key format');
+				}
+
+				// Get the x-coordinate
+				const x = uncompressedRawPublicKey.subarray(1, 33) as any;
+				const y = uncompressedRawPublicKey.subarray(33, 65) as any;
+				// Determine the parity (odd or even) from the last byte
+				const parity = y % 2 === 0 ? 0x02 : 0x03;
+
+				// Create the compressed public key by concatenating the x-coordinate and the parity byte
+				const compressedPublicKey = new Uint8Array([parity, ...x]);
+
+				return compressedPublicKey;
+			}
+
+			const getPublicKeyFromDID = async (did: string) => {
+				let decodedPublicKey = {}
+				const multibaseValue = did.split(':')[2];
+				const decodedMultibaseValue = base58btc.decode(multibaseValue);
+				let multicodecValue = varint.decode(decodedMultibaseValue.slice(0, 2)); // header
+				const rawPublicKeyBytes = decodedMultibaseValue.slice(2,);
+				console.log("Raw public key bytes = ", rawPublicKeyBytes);
+				console.log("Raw public key bytes len = ", rawPublicKeyBytes.length);
+			}
+
+			const createW3CDID = async (publicKey: CryptoKey) => {
+				const rawPublicKey = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
+				const compressedPublicKeyBytes = await compressPublicKey(rawPublicKey)
+				console.log("Raw pub key bytes = ", compressedPublicKeyBytes)
+				// Concatenate keyType and publicKey Uint8Arrays
+				const multicodecPublicKey = new Uint8Array(2 + compressedPublicKeyBytes.length);
+				console.log("Compresses pub key length = ", compressedPublicKeyBytes.length)
+				varint.encodeTo(0x1200, multicodecPublicKey, 0);
+			
+				multicodecPublicKey.set(compressedPublicKeyBytes, 2);
+			
+				// Base58-btc encode the multicodec public key
+				const base58EncodedPublicKey = base58btc.encode(multicodecPublicKey);
+		
+				// Construct the did:key string
+				const didKeyString = `did:key:${base58EncodedPublicKey}`;
+
+				const doc = await didResolver.resolve(didKeyString);
+				if (doc.didDocument == null) {
+					throw new Error("Failed to resolve the generated DID");
+				}
+				console.log("Getting back")
+				await getPublicKeyFromDID(didKeyString);
+				return { didKeyString };
+			}
+
 			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
-				const alg = "ES256";
-				const { publicKey, privateKey } = await jose.generateKeyPair(alg, { extractable: true });
+				const jwtAlg = "ES256";
+				const signatureAlgorithmFamily = "ECDSA";
+				const namedCurve = "P-256";
 
-				const wrappedPrivateKey: WrappedPrivateKey = await wrapPrivateKey(privateKey as CryptoKey, mainKey);
+				const { publicKey, privateKey } = await crypto.subtle.generateKey(
+					{ name: signatureAlgorithmFamily, namedCurve: namedCurve },
+					true,
+					[ 'sign', 'verify' ]
+				);
 
-				const publicKeyJWK = await jose.exportJWK(publicKey);
-				const did = util.createDid(publicKeyJWK);
+				const publicKeyJWK: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
+
+				let did = null;
+				if (DID_KEY_VERSION === "p256-pub") {
+					const { didKeyString } = await createW3CDID(publicKey);
+					did = didKeyString;
+				}
+				else if (DID_KEY_VERSION === "jwk_jcs-pub") {
+					did = util.createDid(publicKeyJWK as JWK);
+				}
+				else {
+					throw new Error("Application was not configured with a correct DID_KEY_VERSION");
+				}
+				const wrappedPrivateKey: WrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
+
 				const publicData = {
 					publicKey: publicKeyJWK,
 					did: did,
-					alg: alg,
+					alg: jwtAlg,
 					verificationMethod: did + "#" + did.split(':')[2]
 				};
 				const privateData: PrivateData = {

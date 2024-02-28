@@ -79,7 +79,8 @@ function useCheckURL(urlToCheck: string): {
 				if (redirect_to)
 					window.location.href = redirect_to; // Navigate to the redirect URL
 			}).catch(err => {
-				alert("Presentation failed")
+				console.error("Error");
+				console.error(err);
 			});
 		}
 	}, [api, keystore, selectionMap]);
