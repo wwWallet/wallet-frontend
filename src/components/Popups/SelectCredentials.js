@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
-import { useApi } from '../api';
+import { useApi } from '../../api';
 
 
-function Popup({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap }) {
+function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap }) {
 	const api = useApi();
 	const [images, setImages] = useState([]);
 	const navigate = useNavigate();
@@ -99,4 +99,4 @@ function Popup({ showPopup, setShowPopup, setSelectionMap, conformantCredentials
 	);
 }
 
-export default Popup;
+export default SelectCredentials;

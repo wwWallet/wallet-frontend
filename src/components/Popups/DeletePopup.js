@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
-import Spinner from '../../components/Spinner';
+import Spinner from '../Spinner';
 
-const ConfirmDeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
+const DeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
 	const { t } = useTranslation();
 
 	if (!isOpen) return null;
@@ -44,4 +44,4 @@ const ConfirmDeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) =
 	);
 };
 
-export default ConfirmDeletePopup;
+export default DeletePopup;

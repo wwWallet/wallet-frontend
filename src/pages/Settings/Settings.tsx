@@ -8,7 +8,7 @@ import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
-import ConfirmDeletePopup from '../../components/ConfirmDeletePopup/ConfirmDeletePopup';
+import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
 
 const Dialog = ({
@@ -524,7 +524,7 @@ const WebauthnCredentialItem = ({
 						<FaTrash size={16} />
 					</button>
 				)}
-				<ConfirmDeletePopup
+				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
 					onCancel={closeDeleteConfirmation}
@@ -732,7 +732,7 @@ const Settings = () => {
 						</div>
 					</>
 				)}
-				<ConfirmDeletePopup
+				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
 					onCancel={closeDeleteConfirmation}
