@@ -1,9 +1,6 @@
 function isMethodAllowed(method) {
-	if (process.env.NODE_ENV === 'production') {
-		return false;
-	}
 
-	const allowedMethodsEnv = process.env.REACT_APP_DEV_CONSOLE_TYPES?.split(',') || [];
+	const allowedMethodsEnv = process.env.REACT_APP_CONSOLE_TYPES?.split(',') || [];
 	const methodCategories = {
 		log: 'info',
 		info: 'info',
