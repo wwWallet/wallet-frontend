@@ -10,7 +10,7 @@ const PrivateRoute = ({ children }) => {
   const api = useApi();
   const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 	const [isPermissionValue, setispermissionValue] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const keystore = useLocalStorageKeystore();
   const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
   
@@ -30,8 +30,6 @@ const PrivateRoute = ({ children }) => {
 					setispermissionValue(permissionResult);
         } else {
           setIsPermissionGranted(true);
-					sessionStorage.setItem('tokenSentInSession', 'false');
-
         }
       } catch (error) {
         console.error('Error requesting notification permission:', error);
@@ -98,8 +96,6 @@ const PrivateRoute = ({ children }) => {
       )}
     </>
   );
-
-  return children;
 
 };
 
