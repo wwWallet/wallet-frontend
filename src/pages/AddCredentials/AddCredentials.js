@@ -25,21 +25,21 @@ const Issuers = () => {
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
-  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
+	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 
 	const { t } = useTranslation();
 
 	useEffect(() => {
-    const handleResize = () => {
-      setIsSmallScreen(window.innerWidth < 768);
-    };
+		const handleResize = () => {
+			setIsSmallScreen(window.innerWidth < 768);
+		};
 
-    window.addEventListener('resize', handleResize);
+		window.addEventListener('resize', handleResize);
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
+		return () => {
+			window.removeEventListener('resize', handleResize);
+		};
+	}, []);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -79,26 +79,26 @@ const Issuers = () => {
 		}
 	};
 
-  const handleCancel = () => {
-    setShowRedirectPopup(false);
-    setSelectedIssuer(null);
-  };
+	const handleCancel = () => {
+		setShowRedirectPopup(false);
+		setSelectedIssuer(null);
+	};
 
 	const handleContinue = () => {
 		setLoading(true);
-	
+
 		console.log('Continue with:', selectedIssuer);
-	
+
 		if (selectedIssuer && selectedIssuer.did) {
 			const payload = {
 				legal_person_did: selectedIssuer.did,
 			};
-	
+
 			api.post('/communication/handle', payload)
 				.then((response) => {
 					const { redirect_to } = response.data;
 					console.log(redirect_to);
-	
+
 					// Redirect to the URL received from the backend
 					window.location.href = redirect_to;
 				})
@@ -107,7 +107,7 @@ const Issuers = () => {
 					console.error('Error sending request to backend:', error);
 				});
 		}
-	
+
 		setLoading(false);
 		setShowRedirectPopup(false);
 	};
@@ -127,19 +127,19 @@ const Issuers = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemAddCredentials')}</h1>
-					{ isSmallScreen && (
+					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemAddCredentials')}</h1>
+					{isSmallScreen && (
 						<button
-						className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-						onClick={openQRScanner} // Open the QR code scanner modal
-					>
-						<div className="flex items-center">
-							<BsQrCodeScan size={20} className="text-white" />
-						</div>
-					</button>
+							className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
+							onClick={openQRScanner} // Open the QR code scanner modal
+						>
+							<div className="flex items-center">
+								<BsQrCodeScan size={20} className="text-white" />
+							</div>
+						</button>
 					)}
-          
-        </div>
+
+				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">{t('pageAddCredentials.description')}</p>
 
@@ -167,7 +167,7 @@ const Issuers = () => {
 								onClick={() => handleIssuerClick(issuer.did)}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
-								</li>
+							</li>
 						))}
 					</ul>
 				)}
@@ -182,12 +182,12 @@ const Issuers = () => {
 					popupMessage={`${t('pageAddCredentials.popup.messagePart1')} ${selectedIssuer?.friendlyName}${t('pageAddCredentials.popup.messagePart2')}`}
 				/>
 			)}
-			
+
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-        	<QRCodeScanner
-          	onClose={closeQRScanner}
+					<QRCodeScanner
+						onClose={closeQRScanner}
 					/>
 				</div>
 			)}

@@ -47,7 +47,7 @@ function PinInput({ showPopup, setShowPopup }) {
 				inputRefs[index - 1].current.focus();
 				newPin[index - 1] = '';
 			} else if (value !== '' && index < 3) {
-				// Move focus to the next input and clean it 
+				// Move focus to the next input and clean it
 				const nextInput = inputRefs[index + 1].current;
 				newPin[index + 1] = '';
 				setPin(newPin);

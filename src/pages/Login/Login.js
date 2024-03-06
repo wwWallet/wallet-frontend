@@ -88,10 +88,10 @@ const PasswordStrength = ({ label, value }) => (
 		<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
 			<div
 				className={`h-full rounded-full ${value < 50
-						? 'bg-red-500'
-						: value >= 50 && value < 100
-							? 'bg-yellow-500'
-							: 'bg-green-500'
+					? 'bg-red-500'
+					: value >= 50 && value < 100
+						? 'bg-yellow-500'
+						: 'bg-green-500'
 					}`}
 				style={{ width: `${value}%` }}
 			></div>
@@ -207,7 +207,7 @@ const WebauthnSignupLogin = ({
 					case 'passkeySignupPrfNotSupported':
 						setError(
 							<Trans
-								i18nKey ="loginSignup.passkeySignupPrfNotSupported"
+								i18nKey="loginSignup.passkeySignupPrfNotSupported"
 								components={{
 									docLink: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
@@ -311,7 +311,7 @@ const WebauthnSignupLogin = ({
 
 								<button
 									type="button"
-									className="bg-white px-4 py-2  border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
+									className="bg-white px-4 py-2	 border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
 									onClick={() => resolvePrfRetryPrompt(false)}
 								>
 									Cancel
@@ -376,7 +376,7 @@ const WebauthnSignupLogin = ({
 										value={name}
 										required
 									/>
-									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-4 mt-1' : 'h-0 mt-0'} transition-all` }>
+									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-4 mt-1' : 'h-0 mt-0'} transition-all`}>
 										<div
 											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
@@ -424,10 +424,10 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
-						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4"/>}
+						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4" />}
 
 						<button
-							className={`w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`} 
+							className={`w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
 							type="submit"
 							disabled={isSubmitting || nameByteLimitReached}
 						>
@@ -494,7 +494,7 @@ const Login = () => {
 		}
 
 		// Validate password criteria
-		if (!isLogin){
+		if (!isLogin) {
 			const validations = [
 				{ ok: password.length >= 8, text: t('loginSignup.passwordLength') },
 				{ ok: /[A-Z]/.test(password), text: t('loginSignup.capitalLetter') },
@@ -506,7 +506,7 @@ const Login = () => {
 				setError(
 					<>
 						<p className="text-red-500 font-bold">{t('loginSignup.weakPasswordError')}</p>
-						{validations.map(({ok, text}) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
+						{validations.map(({ ok, text }) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
 					</>
 				);
 				return;
@@ -557,9 +557,9 @@ const Login = () => {
 
 	const passwordStrength = getPasswordStrength(password);
 
-  useEffect(() => {
-    setIsContentVisible(true);
-  }, []);
+	useEffect(() => {
+		setIsContentVisible(true);
+	}, []);
 
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
@@ -597,21 +597,21 @@ const Login = () => {
 													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
 												/>,
 												docLinkLaunchpad: <a
-												href="https://launchpad.wwwallet.org" target='blank_'
-												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+													href="https://launchpad.wwwallet.org" target='blank_'
+													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
 												/>,
 												docLinkScenarios: <a
-												href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-												className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+													href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
+													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
 												/>
 											}}
 										/>
-                   <div className='mt-1'>
-									  <FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-									  <Trans
-										  i18nKey="loginSignup.infoAboutTimeAndLocation"
-									  />
-									</div>
+										<div className='mt-1'>
+											<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+											<Trans
+												i18nKey="loginSignup.infoAboutTimeAndLocation"
+											/>
+										</div>
 									</CheckBrowserSupport.If>
 									<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
 										<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
@@ -633,7 +633,7 @@ const Login = () => {
 								<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 									{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 								</h1>
-								{ (loginWithPassword) ?
+								{(loginWithPassword) ?
 									<>
 										<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 											{error && <div className="text-red-500">{error}</div>}
