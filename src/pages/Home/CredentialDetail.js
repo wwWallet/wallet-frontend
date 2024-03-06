@@ -67,9 +67,9 @@ const CredentialDetail = () => {
 					{/* Block 1: credential */}
 					<div className='lg:w-1/2'>
 						{credential && credential.src ? (
-						// Open the modal when the credential is clicked
-						<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
-							<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+							// Open the modal when the credential is clicked
+							<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
+								<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
 
 							</div>
 						) : (
@@ -105,17 +105,17 @@ const CredentialDetail = () => {
 			{showDeletePopup && credential && (
 
 				<DeletePopup
-				isOpen={showDeletePopup}
-				onConfirm={handleSureDelete}
-				onCancel={() => setShowDeletePopup(false)}
-				message={
-					<span>
-						{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {credential.type.replace(/([A-Z])/g, ' $1')}</strong> {t('pageCredentials.deletePopup.messagePart2')}
-						<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
-					</span>
-				}
-				loading={loading}
-			/>
+					isOpen={showDeletePopup}
+					onConfirm={handleSureDelete}
+					onCancel={() => setShowDeletePopup(false)}
+					message={
+						<span>
+							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {credential.type.replace(/([A-Z])/g, ' $1')}</strong> {t('pageCredentials.deletePopup.messagePart2')}
+							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
+						</span>
+					}
+					loading={loading}
+				/>
 			)}
 		</>
 	);

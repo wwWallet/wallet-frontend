@@ -237,7 +237,7 @@ const Home = () => {
 						<span>
 							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedCredential.type.replace(/([A-Z])/g, ' $1')}</strong> {t('pageCredentials.deletePopup.messagePart2')}
 							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
-					</span>
+						</span>
 					}
 					loading={loading}
 				/>
