@@ -41,6 +41,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const handleLogout = async () => {
 		api.clearSession();
 		await keystore.close();
+		sessionStorage.removeItem('tokenSentInSession');
 		navigate('/login');
 	};
 

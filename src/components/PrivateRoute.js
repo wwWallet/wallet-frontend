@@ -51,7 +51,7 @@ const PrivateRoute = ({ children }) => {
 				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
 				console.log('tokenSentInSession:', tokenSentInSession);
 
-				if (tokenSentInSession === 'false') {
+				if (tokenSentInSession !== 'true') {
 					setLoading(true);
 					try {
 						const fcmToken = await fetchToken();
