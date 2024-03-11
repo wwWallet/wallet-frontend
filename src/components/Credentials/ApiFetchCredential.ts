@@ -25,14 +25,14 @@ const hasherAndAlgorithm: HasherAndAlgorithm = {
 
 const parseCredentialDependingOnFormat = async (credential: string, format: string): Promise<any> => {
 	switch (format) {
-	case CredentialFormat.JWT_VC_JSON:
-		return parseJwt(credential);
-	case CredentialFormat.VC_SD_JWT:
-		return SdJwt.fromCompact<Record<string, unknown>, any>(credential)
-			.withHasher(hasherAndAlgorithm)
-			.getPrettyClaims();
-	default:
-		throw new Error("Format is not recognised");
+		case CredentialFormat.JWT_VC_JSON:
+			return parseJwt(credential);
+		case CredentialFormat.VC_SD_JWT:
+			return SdJwt.fromCompact<Record<string, unknown>, any>(credential)
+				.withHasher(hasherAndAlgorithm)
+				.getPrettyClaims();
+		default:
+			throw new Error("Format is not recognised");
 	}
 }
 
@@ -40,37 +40,37 @@ export async function fetchCredentialData(api: BackendApi, id = null) {
 	try {
 		const response = await api.get('/storage/vc');
 
-    if (id) {
-      const targetImage = response.data.vc_list.find((img) => img.id.toString() === id);
-      const newImages = targetImage
-        ? await Promise.all([targetImage].map(async (item) => {
+		if (id) {
+			const targetImage = response.data.vc_list.find((img) => img.id.toString() === id);
+			const newImages = targetImage
+				? await Promise.all([targetImage].map(async (item) => {
 					const credentialPayload = await parseCredentialDependingOnFormat(item.credential, item.format);
 					return ({
-            id: item.id,
-						credentialIdentifier:item.credentialIdentifier,
-            src: item.logoURL,
-            alt: item.issuerFriendlyName,
-            data: credentialPayload["vc"]['credentialSubject'],
-            type: credentialPayload['vc']["type"]["2"],
-            expdate: credentialPayload['vc']["expirationDate"],
+						id: item.id,
+						credentialIdentifier: item.credentialIdentifier,
+						src: item.logoURL,
+						alt: item.issuerFriendlyName,
+						data: credentialPayload["vc"]['credentialSubject'],
+						type: credentialPayload['vc']["type"]["2"],
+						expdate: credentialPayload['vc']["expirationDate"],
 						json: JSON.stringify(credentialPayload["vc"], null, 2)
-          });
+					});
 				}))
-        : [];
+				: [];
 
-      return newImages[0];
-    } else {
-      const newImages = await Promise.all(response.data.vc_list.map(async (item) => {
+			return newImages[0];
+		} else {
+			const newImages = await Promise.all(response.data.vc_list.map(async (item) => {
 				const credentialPayload = await parseCredentialDependingOnFormat(item.credential, item.format);
 				return ({
 					id: item.id,
-					credentialIdentifier:item.credentialIdentifier,
+					credentialIdentifier: item.credentialIdentifier,
 					src: item.logoURL,
 					alt: item.issuerFriendlyName,
 					data: credentialPayload["vc"]['credentialSubject'],
 					type: credentialPayload['vc']["type"]["2"],
 					expdate: credentialPayload['vc']["expirationDate"],
-					json:JSON.stringify(credentialPayload["vc"], null, 2)
+					json: JSON.stringify(credentialPayload["vc"], null, 2)
 				})
 			}));
 
