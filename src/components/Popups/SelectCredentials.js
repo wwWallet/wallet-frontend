@@ -16,9 +16,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
+	const [showRequestedFields, setShowRequestedFields] = useState(false);
+	const [renderContent, setRenderContent] = useState(showRequestedFields);
+	const [applyTransition, setApplyTransition] = useState(false);
 
 
-	console.log("Conf = ", conformantCredentialsMap)
 	useEffect(() => {
 		const getData = async () => {
 			if (currentIndex == Object.keys(conformantCredentialsMap).length) {
@@ -30,12 +32,12 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			try {
 				const response = await api.get('/storage/vc');
 				const simplifiedCredentials = response.data.vc_list
-							.filter(vc => conformantCredentialsMap[keys[currentIndex]].credentials.includes(vc.credentialIdentifier))
-							.map(vc => ({
-								id: vc.credentialIdentifier,
-								imageURL: vc.logoURL,
-							}));
-				console.log("FIelds = ",conformantCredentialsMap[keys[currentIndex]].requestedFields )
+					.filter(vc => conformantCredentialsMap[keys[currentIndex]].credentials.includes(vc.credentialIdentifier))
+					.map(vc => ({
+						id: vc.credentialIdentifier,
+						imageURL: vc.logoURL,
+					}));
+				console.log("FIelds = ", conformantCredentialsMap[keys[currentIndex]].requestedFields)
 				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setImages(simplifiedCredentials);
 			} catch (error) {
@@ -46,8 +48,19 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		getData();
 	}, [api, currentIndex]);
 
+	useEffect(() => {
+		if (showRequestedFields) {
+			setRenderContent(true);
+		} else if (applyTransition) {
+			setTimeout(() => setRenderContent(false), 500);
+		} else {
+			setRenderContent(false);
+		}
+	}, [showRequestedFields, applyTransition]);
+
+
 	const goToNextSelection = () => {
-		setCurrentIndex((i) => i+1);
+		setCurrentIndex((i) => i + 1);
 	}
 
 	const handleClick = (id) => {
@@ -56,8 +69,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			currentMap[descriptorId] = id;
 			return currentMap;
 		});
+		setApplyTransition(false);
+		setShowRequestedFields(false);
 		goToNextSelection();
 	};
+
 
 	const handleCancel = () => {
 		setShowPopup(false);
@@ -71,7 +87,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
-			<div className="bg-white p-4 rounded-lg shadow-lg w-full max-h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
+			<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:max-w-[33.33%] sm:max-w-[66.67%] max-h-[90vh] z-10 relative m-4 overflow-y-auto">
 				<h2 className="text-lg font-bold mb-2 text-custom-blue">
 					<FaShare size={20} className="inline mr-1 mb-1" />
 					{t('selectCredentialPopup.title')}
@@ -80,15 +96,42 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				<p className="italic pd-2 text-gray-700">
 					{t('selectCredentialPopup.description')}
 				</p>
-				<div className='mt-2'>The following fields were requested from the verifier <b>{verifierDomainName}</b>:</div>
-				<ul>
-					{requestedFields && requestedFields.map((field, index) => (
-						<li key={index}>
-							- {field}
-						</li>
-					))}
-				</ul>
-				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
+				{requestedFields && (
+
+
+					<div className="lg:p-0 p-2 mt-4 w-full">
+						<div className="mb-2 flex items-center">
+							<button
+								onClick={() => { setApplyTransition(true); setShowRequestedFields(!showRequestedFields) }}
+								className="px-2 py-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
+							>
+								{showRequestedFields ? 'Hide Credentials Details' : 'Show Requested Fields'}
+							</button>
+						</div>
+
+						<hr className="my-2 border-t border-gray-300 py-2" />
+
+						<div
+							className={`overflow-hidden transition-height ${showRequestedFields ? 'max-h-96' : 'max-h-0'}`}
+							style={{ transition: 'max-height 0.5s ease-in-out' }}
+
+						>
+							{renderContent && (
+								<>
+									<p className='mb-2 text-sm italic text-gray-700'>The following fields were requested from the verifier{verifierDomainName}</p>
+									<textarea
+										readOnly
+										value={requestedFields.join('\n')}
+										className="w-full border rounded p-2 rounded-xl"
+										rows={Math.min(3, Math.max(1, requestedFields.length))}
+									></textarea>
+								</>
+							)}
+						</div>
+					</div>
+				)}
+
+				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh]'>
 					{images.map(image => (
 						<div className="m-5">
 							<img
@@ -96,7 +139,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								src={image.imageURL}
 								alt={image.id}
 								onClick={() => handleClick(image.id)}
-								className="w-60 rounded-xl cursor-pointer"
+								className="w-48 rounded-xl cursor-pointer"
 							/>
 						</div>
 					))}
