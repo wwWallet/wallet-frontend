@@ -1,0 +1,3 @@
+[submodule "lib/jose"]
+	path = lib/jose
+	url = https://github.com/panva/jose.git
