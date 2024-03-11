@@ -10,6 +10,7 @@ function useCheckURL(urlToCheck: string): {
 	conformantCredentialsMap: any,
 	showPinInputPopup: boolean,
 	setShowPinInputPopup: Dispatch<SetStateAction<boolean>>,
+	verifierDomainName: string
 } {
 	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
@@ -17,6 +18,8 @@ function useCheckURL(urlToCheck: string): {
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
+	const [verifierDomainName, setVerifierDomainName] = useState("");
+
 	const keystore = useLocalStorageKeystore();
 
 	useEffect(() => {
@@ -44,6 +47,7 @@ function useCheckURL(urlToCheck: string): {
 					return true;
 				} else if (conformantCredentialsMap) {
 					console.log('need action');
+					setVerifierDomainName(verifierDomainName);
 					setConformantCredentialsMap(conformantCredentialsMap);
 					setShowSelectCredentialsPopup(true);
 					console.log("called setShowSelectCredentialsPopup")
@@ -85,7 +89,7 @@ function useCheckURL(urlToCheck: string): {
 		}
 	}, [api, keystore, selectionMap]);
 
-	return {showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup };
+	return {showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup, verifierDomainName };
 }
 
 export default useCheckURL;

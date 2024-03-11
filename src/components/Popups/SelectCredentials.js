@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useApi } from '../../api';
 
 
-function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap }) {
+function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
 	const [images, setImages] = useState([]);
 	const navigate = useNavigate();
@@ -15,7 +15,10 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const keys = Object.keys(conformantCredentialsMap);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
+	const [requestedFields, setRequestedFields] = useState([]);
 
+
+	console.log("Conf = ", conformantCredentialsMap)
 	useEffect(() => {
 		const getData = async () => {
 			if (currentIndex == Object.keys(conformantCredentialsMap).length) {
@@ -27,12 +30,13 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			try {
 				const response = await api.get('/storage/vc');
 				const simplifiedCredentials = response.data.vc_list
-							.filter(vc => conformantCredentialsMap[keys[currentIndex]].includes(vc.credentialIdentifier))
+							.filter(vc => conformantCredentialsMap[keys[currentIndex]].credentials.includes(vc.credentialIdentifier))
 							.map(vc => ({
 								id: vc.credentialIdentifier,
 								imageURL: vc.logoURL,
 							}));
-
+				console.log("FIelds = ",conformantCredentialsMap[keys[currentIndex]].requestedFields )
+				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setImages(simplifiedCredentials);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -76,6 +80,14 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				<p className="italic pd-2 text-gray-700">
 					{t('selectCredentialPopup.description')}
 				</p>
+				<div className='mt-2'>The following fields were requested from the verifier <b>{verifierDomainName}</b>:</div>
+				<ul>
+					{requestedFields && requestedFields.map((field, index) => (
+						<li key={index}>
+							- {field}
+						</li>
+					))}
+				</ul>
 				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
 					{images.map(image => (
 						<div className="m-5">

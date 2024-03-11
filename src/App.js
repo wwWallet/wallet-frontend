@@ -51,6 +51,7 @@ function App() {
 		conformantCredentialsMap,
 		showPinInputPopup,
 		setShowPinInputPopup,
+		verifierDomainName
 	} = useCheckURL(url);
 
 	useEffect(() => {
@@ -93,7 +94,7 @@ function App() {
 							<Route path="*" element={<NotFound />} />
 						</Routes>
 						{showSelectCredentialsPopup &&
-							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
+							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
 						}
 						{showPinInputPopup &&
 							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
