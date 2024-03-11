@@ -37,8 +37,8 @@ const parseCredentialDependingOnFormat = async (credential: string, format: stri
 }
 
 export async function fetchCredentialData(api: BackendApi, id = null) {
-  try {
-    const response = await api.get('/storage/vc');
+	try {
+		const response = await api.get('/storage/vc');
 
     if (id) {
       const targetImage = response.data.vc_list.find((img) => img.id.toString() === id);
@@ -74,10 +74,10 @@ export async function fetchCredentialData(api: BackendApi, id = null) {
 				})
 			}));
 
-      return newImages;
-    }
-  } catch (error) {
-    console.error('Failed to fetch data', error);
-    return null;
-  }
+			return newImages;
+		}
+	} catch (error) {
+		console.error('Failed to fetch data', error);
+		return null;
+	}
 }

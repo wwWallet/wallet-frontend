@@ -5,7 +5,7 @@ WORKDIR /dependencies
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY package.json yarn.lock .
 RUN --mount=type=secret,id=npmrc,required=true,target=./.npmrc,uid=1000 \
-  yarn install && yarn cache clean -f
+	yarn install && yarn cache clean -f
 
 
 FROM node:16-bullseye-slim as development

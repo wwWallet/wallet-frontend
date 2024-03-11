@@ -1,10 +1,11 @@
+// PinInput.js
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
-import { useApi } from '../api';
+import { useApi } from '../../api';
 
-function PinInputPopup({ showPinPopup, setShowPinPopup }) {
+function PinInput({ showPopup, setShowPopup }) {
 	const api = useApi();
 	const navigate = useNavigate();
 	const [errMessage, setErrMessage] = useState('');
@@ -19,7 +20,7 @@ function PinInputPopup({ showPinPopup, setShowPinPopup }) {
 	];
 
 	const handleCancel = () => {
-		setShowPinPopup(false);
+		setShowPopup(false);
 		navigate('/');
 	}
 
@@ -27,7 +28,7 @@ function PinInputPopup({ showPinPopup, setShowPinPopup }) {
 		try {
 			const userPin = pin.join('');
 			await api.post('/communication/handle', { user_pin: userPin });
-			setShowPinPopup(false);
+			setShowPopup(false);
 		} catch (err) {
 			setErrMessage(`${t('PinInputPopup.errMessage')}`);
 		}
@@ -46,7 +47,7 @@ function PinInputPopup({ showPinPopup, setShowPinPopup }) {
 				inputRefs[index - 1].current.focus();
 				newPin[index - 1] = '';
 			} else if (value !== '' && index < 3) {
-				// Move focus to the next input and clean it 
+				// Move focus to the next input and clean it
 				const nextInput = inputRefs[index + 1].current;
 				newPin[index + 1] = '';
 				setPin(newPin);
@@ -99,7 +100,7 @@ function PinInputPopup({ showPinPopup, setShowPinPopup }) {
 		inputRefs[0].current.focus();
 	}, []);
 
-	if (!showPinPopup) {
+	if (!showPopup) {
 		return null;
 	}
 
@@ -161,4 +162,4 @@ function PinInputPopup({ showPinPopup, setShowPinPopup }) {
 	);
 }
 
-export default PinInputPopup;
+export default PinInput;

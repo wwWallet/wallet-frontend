@@ -579,12 +579,12 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				const multicodecPublicKey = new Uint8Array(2 + compressedPublicKeyBytes.length);
 				console.log("Compresses pub key length = ", compressedPublicKeyBytes.length)
 				varint.encodeTo(0x1200, multicodecPublicKey, 0);
-			
+
 				multicodecPublicKey.set(compressedPublicKeyBytes, 2);
-			
+
 				// Base58-btc encode the multicodec public key
 				const base58EncodedPublicKey = base58btc.encode(multicodecPublicKey);
-		
+
 				// Construct the did:key string
 				const didKeyString = `did:key:${base58EncodedPublicKey}`;
 

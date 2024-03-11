@@ -7,62 +7,60 @@ import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 
 const PrivateRoute = ({ children }) => {
-  const api = useApi();
-  const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+	const api = useApi();
+	const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 	const [isPermissionValue, setispermissionValue] = useState('');
-  const [loading, setLoading] = useState(false);
-  const keystore = useLocalStorageKeystore();
-  const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
-  
-  const location = useLocation();
-  const navigate = useNavigate();
+	const [loading, setLoading] = useState(false);
+	const keystore = useLocalStorageKeystore();
+	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
 
-  useEffect(() => {
-    const requestNotificationPermission = async () => {
-      console.log(Notification.permission);
-      try {
-        if (Notification.permission !== 'granted') {
+	const location = useLocation();
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		const requestNotificationPermission = async () => {
+			console.log(Notification.permission);
+			try {
+				if (Notification.permission !== 'granted') {
 					sessionStorage.setItem('tokenSentInSession', 'false');
-          const permissionResult = await Notification.requestPermission();
-          if (permissionResult === 'granted') {
-            setIsPermissionGranted(true);
-          }
+					const permissionResult = await Notification.requestPermission();
+					if (permissionResult === 'granted') {
+						setIsPermissionGranted(true);
+					}
 					setispermissionValue(permissionResult);
-        } else {
-          setIsPermissionGranted(true);
-					sessionStorage.setItem('tokenSentInSession', 'false');
+				} else {
+					setIsPermissionGranted(true);
+				}
+			} catch (error) {
+				console.error('Error requesting notification permission:', error);
+			}
+		};
 
-        }
-      } catch (error) {
-        console.error('Error requesting notification permission:', error);
-      }
-    };
-
-    if (isLoggedIn) {
-      requestNotificationPermission();
-    }
-  }, [isLoggedIn,location]);
+		if (isLoggedIn) {
+			requestNotificationPermission();
+		}
+	}, [isLoggedIn, location]);
 
 	useEffect(() => {
 		const sendFcmTokenToBackend = async () => {
 
-			console.log('isPermissionGranted:',isPermissionGranted);
+			console.log('isPermissionGranted:', isPermissionGranted);
 			if (isPermissionGranted) {
 
 				// Check if the token has already been sent in the current session
 				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
-				console.log('tokenSentInSession:',tokenSentInSession);
+				console.log('tokenSentInSession:', tokenSentInSession);
 
-				if (tokenSentInSession==='false') {
+				if (tokenSentInSession !== 'true') {
 					setLoading(true);
 					try {
 						const fcmToken = await fetchToken();
 
-							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-							// Set a flag in sessionStorage to indicate that the token has been sent
-							sessionStorage.setItem('tokenSentInSession', 'true');
-							console.log('send FCM Token:', fcmToken);		
-							
+						await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
+						// Set a flag in sessionStorage to indicate that the token has been sent
+						sessionStorage.setItem('tokenSentInSession', 'true');
+						console.log('send FCM Token:', fcmToken);
+
 						console.log('FCM Token:', fcmToken);
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
@@ -72,34 +70,32 @@ const PrivateRoute = ({ children }) => {
 				}
 			}
 		}
-	
+
 		sendFcmTokenToBackend();
 	}, [isPermissionGranted]);
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      const destination = location.pathname + location.search;
-      navigate('/login', { state: { from: destination } });
-    }
-  }, [isLoggedIn, location, navigate]);
+	useEffect(() => {
+		if (!isLoggedIn) {
+			const destination = location.pathname + location.search;
+			navigate('/login', { state: { from: destination } });
+		}
+	}, [isLoggedIn, location, navigate]);
 
 
-  if (!isLoggedIn) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+	if (!isLoggedIn) {
+		return <Navigate to="/login" state={{ from: location }} replace />;
+	}
 
 	return (
-    <>
-      {loading && <Spinner />}
-      {!loading && (
-        <Layout isPermissionGranted={isPermissionGranted} isPermissionValue={isPermissionValue} setispermissionValue={setispermissionValue}>
-          {children}
-        </Layout>
-      )}
-    </>
-  );
-
-  return children;
+		<>
+			{loading && <Spinner />}
+			{!loading && (
+				<Layout isPermissionGranted={isPermissionGranted} isPermissionValue={isPermissionValue} setispermissionValue={setispermissionValue}>
+					{children}
+				</Layout>
+			)}
+		</>
+	);
 
 };
 
