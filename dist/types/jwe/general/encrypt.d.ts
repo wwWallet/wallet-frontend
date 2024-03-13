@@ -16,6 +16,21 @@ export interface Recipient {
 /**
  * The GeneralEncrypt class is used to build and encrypt General JWE objects.
  *
+ * @example Usage
+ *
+ * ```js
+ * const jwe = await new jose.GeneralEncrypt(
+ *   new TextEncoder().encode('It’s a dangerous business, Frodo, going out your door.'),
+ * )
+ *   .setProtectedHeader({ enc: 'A256GCM' })
+ *   .addRecipient(ecPublicKey)
+ *   .setUnprotectedHeader({ alg: 'ECDH-ES+A256KW' })
+ *   .addRecipient(rsaPublicKey)
+ *   .setUnprotectedHeader({ alg: 'RSA-OAEP-384' })
+ *   .encrypt()
+ *
+ * console.log(jwe)
+ * ```
  */
 export declare class GeneralEncrypt {
     private _plaintext;

@@ -4,6 +4,18 @@ export declare const unprotected: unique symbol;
 /**
  * The FlattenedEncrypt class is used to build and encrypt Flattened JWE objects.
  *
+ * @example Usage
+ *
+ * ```js
+ * const jwe = await new jose.FlattenedEncrypt(
+ *   new TextEncoder().encode('It’s a dangerous business, Frodo, going out your door.'),
+ * )
+ *   .setProtectedHeader({ alg: 'RSA-OAEP-256', enc: 'A256GCM' })
+ *   .setAdditionalAuthenticatedData(encoder.encode('The Fellowship of the Ring'))
+ *   .encrypt(publicKey)
+ *
+ * console.log(jwe)
+ * ```
  */
 export declare class FlattenedEncrypt {
     private _plaintext;

@@ -5,6 +5,13 @@ import type { JWTPayload } from '../types';
  * and JWS signature verification use `jose.jwtVerify()`. For an encrypted JWT Claims Set validation
  * and JWE decryption use `jose.jwtDecrypt()`.
  *
+ * @example Usage
+ *
+ * ```js
+ * const claims = jose.decodeJwt(token)
+ * console.log(claims)
+ * ```
+ *
  * @param jwt JWT token in compact JWS serialization.
  */
 export declare function decodeJwt(jwt: string): JWTPayload;

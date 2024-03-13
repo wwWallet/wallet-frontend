@@ -30,6 +30,14 @@ export interface GenerateKeyPairOptions {
  * Note: Under Web Crypto API runtime the `privateKey` is generated with `extractable` set to
  * `false` by default.
  *
+ * @example Usage
+ *
+ * ```js
+ * const { publicKey, privateKey } = await jose.generateKeyPair('PS256')
+ * console.log(publicKey)
+ * console.log(privateKey)
+ * ```
+ *
  * @param alg JWA Algorithm Identifier to be used with the generated key pair.
  * @param options Additional options passed down to the key pair generation.
  */
