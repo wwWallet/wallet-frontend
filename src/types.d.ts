@@ -1,3 +1,5 @@
+import { SignFunction } from "./runtime/interfaces"
+
 /**
  * KeyLike are runtime-specific classes representing asymmetric keys or symmetric secrets. These are
  * instances of {@link https://developer.mozilla.org/en-US/docs/Web/API/CryptoKey CryptoKey} and
@@ -486,7 +488,9 @@ export interface VerifyOptions extends CritOption {
 }
 
 /** JWS Signing options. */
-export interface SignOptions extends CritOption {}
+export interface SignOptions extends CritOption {
+	signFunction?: SignFunction,
+}
 
 /** Recognized JWT Claims Set members, any other members may also be present. */
 export interface JWTPayload {

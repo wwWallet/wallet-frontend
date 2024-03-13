@@ -113,7 +113,9 @@ export class FlattenedSign {
       throw new JWSInvalid('JWS "alg" (Algorithm) Header Parameter missing or invalid')
     }
 
-    checkKeyType(alg, key, 'sign')
+    if (!options?.signFunction) {
+      checkKeyType(alg, key, 'sign')
+    }
 
     let payload = this._payload
     if (b64) {
@@ -129,7 +131,7 @@ export class FlattenedSign {
 
     const data = concat(protectedHeader, encoder.encode('.'), payload)
 
-    const signature = await sign(alg, key, data)
+    const signature = await (options?.signFunction || sign)(alg, key, data)
 
     const jws: FlattenedJWS = {
       signature: base64url(signature),
