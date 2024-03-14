@@ -42,6 +42,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 		api.clearSession();
 		await keystore.close();
 		sessionStorage.removeItem('tokenSentInSession');
+		sessionStorage.removeItem('isMessageNoGrantedVisible');
+		sessionStorage.removeItem('isMessageGrantedVisible');
 		navigate('/login');
 	};
 

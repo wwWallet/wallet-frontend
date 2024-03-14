@@ -90,7 +90,7 @@ export const fetchToken = async () => {
 	if (messaging) {
 		const token = await requestForToken();
 		console.log('token:', token);
-		if (token || token === null) {
+		if (token) {
 			return token;
 		} else {
 			console.log('Failed to retrieve token. Trying to re-register service worker.');
@@ -103,7 +103,6 @@ export const fetchToken = async () => {
 		}
 	} else {
 		console.log('Messaging is not initialized.');
-
 	}
 	return null; // Return null in case of failure
 };
