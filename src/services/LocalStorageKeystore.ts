@@ -319,7 +319,7 @@ export interface LocalStorageKeystore {
 
 	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProof(audience: string, nonce: string): Promise<{ proof_jwt: string }>,
+	generateOpenid4vciProof(nonce: string, audience: string): Promise<{ proof_jwt: string }>,
 }
 
 export function useLocalStorageKeystore(): LocalStorageKeystore {
@@ -812,7 +812,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					return { vpjwt: jws };
 				},
 
-				generateOpenid4vciProof: async (audience: string, nonce: string): Promise<{ proof_jwt: string }> => {
+				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => {
 					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
 					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
 					const header = {
