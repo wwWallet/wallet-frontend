@@ -119,6 +119,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 | MacOS            | Android 				      | Hybrid     		| ✔                  |
 | MacOS            | iOS 				          | Hybrid     		| ❌                  |
 | Android          | Android 					    | Internal      | ✔                  |
+| Android          | FIDO Security Key 	  | USB           | ✔                  |
 | iOS              | iOS 					        | Internal      | ❌                  |
 | iOS              | FIDO Security Key 	  | NFC           | ❌                  |
 
