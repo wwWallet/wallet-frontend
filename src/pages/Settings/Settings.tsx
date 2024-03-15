@@ -122,8 +122,7 @@ const WebauthnRegistation = ({
 				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 					pendingCredential,
 					beginData.createOptions.publicKey.rp.id,
-					existingPrfKey,
-					wrappedMainKey,
+					[existingPrfKey, wrappedMainKey],
 					async () => {
 						setNeedPrfRetry(true);
 						return new Promise<boolean>((resolve, reject) => {
@@ -308,8 +307,8 @@ const WebauthnUnlock = ({
 		async () => {
 			setInProgress(true);
 			try {
-				const [prfKey, keyInfo] = await keystore.getPrfKeyFromSession(async () => true);
-				onUnlock(prfKey, keyInfo.mainKey);
+				const [prfKey, wrappedMainKey] = await keystore.getPrfKeyFromSession(async () => true);
+				onUnlock(prfKey, wrappedMainKey);
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e.errorId) {

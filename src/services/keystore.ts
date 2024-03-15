@@ -17,27 +17,104 @@ const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
 
 
+type EncryptedContainerContent = { jwe: string }
 export type EncryptedContainerKeys = {
-	passwordKey?: PasswordKeyInfo;
-	prfKeys: WebauthnPrfEncryptionKeyInfo[];
+	mainKey?: EphemeralEncapsulationInfo,
+	passwordKey?: PasswordKeyInfo,
+	prfKeys: WebauthnPrfEncryptionKeyInfo[],
 }
-export type EncryptedContainer = EncryptedContainerKeys & {
-	jwe: string;
+export type MixedEncryptedContainer = EncryptedContainerKeys & EncryptedContainerContent;
+
+export type AsymmetricEncryptedContainerKeys = {
+	mainKey: EphemeralEncapsulationInfo,
+	passwordKey?: AsymmetricPasswordKeyInfo,
+	prfKeys: WebauthnPrfEncryptionKeyInfoV2[],
 }
+export type AsymmetricEncryptedContainer = AsymmetricEncryptedContainerKeys & EncryptedContainerContent;
+
+export type EncryptedContainer = MixedEncryptedContainer | AsymmetricEncryptedContainer;
+
+type EphemeralEncapsulationInfo = {
+	publicKey: EncapsulationPublicKeyInfo,
+	unwrapKey: {
+		format: "raw",
+		unwrapAlgo: "AES-KW",
+		unwrappedKeyAlgo: KeyAlgorithm,
+	},
+}
+
+type StaticEncapsulationInfo = {
+	keypair: EncapsulationKeypairInfo,
+	unwrapKey: {
+		wrappedKey: Uint8Array,
+		unwrappingKey: EncapsulationUnwrappingKeyInfo,
+	},
+}
+
 
 // Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
 const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
 const pbkdfIterations: number = 600000;
 
-export type WrappedKeyInfo = {
+type SymmetricWrappedKeyInfo = {
 	wrappedKey: Uint8Array,
 	unwrapAlgo: "AES-KW",
 	unwrappedKeyAlgo: KeyAlgorithm,
+};
+
+export type WrappedKeyInfo = SymmetricWrappedKeyInfo | StaticEncapsulationInfo;
+
+export function isAsymmetricWrappedKeyInfo(keyInfo: WrappedKeyInfo): keyInfo is StaticEncapsulationInfo {
+	return "keypair" in keyInfo && "unwrapKey" in keyInfo;
 }
 
-type PasswordKeyInfo = {
-	mainKey: WrappedKeyInfo,
+type EncapsulationPublicKeyInfo = {
+	importKey: {
+		format: "raw",
+		keyData: Uint8Array,
+		algorithm: EcKeyImportParams,
+	},
+}
+
+type EncapsulationPrivateKeyInfo = {
+	unwrapKey: {
+		format: KeyFormat,
+		wrappedKey: Uint8Array,
+		unwrapAlgo: AesGcmParams,
+		unwrappedKeyAlgo: EcKeyImportParams,
+	},
+}
+
+type EncapsulationKeypairInfo = {
+	publicKey: EncapsulationPublicKeyInfo,
+	privateKey: EncapsulationPrivateKeyInfo,
+}
+
+type EncapsulationUnwrappingKeyInfo = {
+	deriveKey: {
+		algorithm: {
+			name: "ECDH",
+		},
+		derivedKeyAlgorithm: { name: "AES-KW", length: 256 },
+	},
+};
+
+type DerivePasswordKeyInfo = {
 	pbkdf2Params: Pbkdf2Params;
+	algorithm?: { name: "AES-GCM", length: 256 },
+}
+
+export type AsymmetricPasswordKeyInfo = DerivePasswordKeyInfo & StaticEncapsulationInfo;
+type SymmetricPasswordKeyInfo = DerivePasswordKeyInfo & {
+	mainKey: SymmetricWrappedKeyInfo,
+}
+type PasswordKeyInfo = (SymmetricPasswordKeyInfo | AsymmetricPasswordKeyInfo);
+export function isAsymmetricPasswordKeyInfo(passwordKeyInfo: PasswordKeyInfo): passwordKeyInfo is AsymmetricPasswordKeyInfo {
+	return (
+		"mainKey" in passwordKeyInfo
+			? false
+			: isAsymmetricWrappedKeyInfo(passwordKeyInfo)
+	);
 }
 
 export type WebauthnPrfSaltInfo = {
@@ -45,10 +122,29 @@ export type WebauthnPrfSaltInfo = {
 	prfSalt: Uint8Array,
 }
 
-export type WebauthnPrfEncryptionKeyInfo = WebauthnPrfSaltInfo & {
-	mainKey: WrappedKeyInfo,
+export type WebauthnPrfEncryptionKeyInfo = (
+	WebauthnPrfEncryptionKeyInfoV1
+	| WebauthnPrfEncryptionKeyInfoV2
+);
+type WebauthnPrfEncryptionKeyDeriveKeyParams = {
 	hkdfSalt: Uint8Array,
 	hkdfInfo: Uint8Array,
+	algorithm?: AesKeyGenParams,
+}
+type WebauthnPrfEncryptionKeyInfoV1 = WebauthnPrfSaltInfo & WebauthnPrfEncryptionKeyDeriveKeyParams & {
+	mainKey: SymmetricWrappedKeyInfo,
+}
+export type WebauthnPrfEncryptionKeyInfoV2 = (
+	WebauthnPrfSaltInfo
+		& WebauthnPrfEncryptionKeyDeriveKeyParams
+		& StaticEncapsulationInfo
+);
+export function isPrfKeyV2(prfKeyInfo: WebauthnPrfEncryptionKeyInfo): prfKeyInfo is WebauthnPrfEncryptionKeyInfoV2 {
+	return (
+		"mainKey" in prfKeyInfo
+			? false
+			: isAsymmetricWrappedKeyInfo(prfKeyInfo)
+	);
 }
 
 type PrfExtensionInput = { eval: { first: BufferSource } } | { evalByCredential: PrfEvalByCredential };
@@ -81,13 +177,26 @@ export function serializePrivateData(privateData: EncryptedContainer): Uint8Arra
 	return new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
 }
 
-async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
-	const mainKey = await crypto.subtle.generateKey(
+async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ keyInfo: EphemeralEncapsulationInfo, mainKey: CryptoKey, privateKey: CryptoKey }> {
+	const mainKey = currentMainKey || await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
 		true,
-		["encrypt"],
+		["decrypt", "encrypt", "unwrapKey", "wrapKey"],
 	);
-	return await wrapKey(wrappingKey, mainKey);
+
+	const [mainPublicKeyInfo, mainPrivateKey] = await generateEncapsulationKeypair();
+	return {
+		keyInfo: {
+			publicKey: mainPublicKeyInfo,
+			unwrapKey: {
+				format: "raw",
+				unwrapAlgo: "AES-KW",
+				unwrappedKeyAlgo: mainKey.algorithm,
+			},
+		},
+		mainKey,
+		privateKey: mainPrivateKey,
+	};
 }
 
 async function createSessionKey(): Promise<[CryptoKey, ArrayBuffer]> {
@@ -122,37 +231,156 @@ export async function openPrivateData(exportedSessionKey: BufferSource, privateD
 	return [privateData, sessionKey];
 }
 
-async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<WrappedKeyInfo> {
-	const wrapAlgo = "AES-KW";
-	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(
-		"raw",
-		keyToWrap,
-		wrappingKey,
-		wrapAlgo,
-	));
-
-	return {
-		unwrappedKeyAlgo: keyToWrap.algorithm,
-		unwrapAlgo: wrapAlgo,
-		wrappedKey,
-	};
+async function generateEncapsulationKeypair(): Promise<[EncapsulationPublicKeyInfo, CryptoKey]> {
+	const algorithm = { name: "ECDH", namedCurve: "P-256" };
+	const { publicKey, privateKey } = await crypto.subtle.generateKey(algorithm, true, ["deriveKey"]);
+	const publicFormat = "raw";
+	return [
+		{
+			importKey: {
+				format: publicFormat,
+				keyData: new Uint8Array(await crypto.subtle.exportKey(publicFormat, publicKey)),
+				algorithm: algorithm,
+			},
+		},
+		privateKey,
+	];
 }
 
-async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo, extractable: boolean = false): Promise<CryptoKey> {
+async function generateWrappedEncapsulationKeypair(baseWrappingKey: CryptoKey): Promise<[EncapsulationKeypairInfo, CryptoKey]> {
+	const [publicKey, privateKey] = await generateEncapsulationKeypair();
+	const privateFormat = "jwk";
+	const wrapAlgo = { name: "AES-GCM", iv: crypto.getRandomValues(new Uint8Array(96 / 8)) };
+	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(privateFormat, privateKey, baseWrappingKey, wrapAlgo));
+
+	return [
+		{
+			publicKey,
+			privateKey: {
+				unwrapKey: {
+					format: privateFormat,
+					wrappedKey,
+					unwrapAlgo: wrapAlgo,
+					unwrappedKeyAlgo: publicKey.importKey.algorithm,
+				},
+			},
+		},
+		privateKey,
+	];
+}
+
+async function unwrapEncapsulationPrivateKey(
+	baseWrappingKey: CryptoKey,
+	encapsulationPrivateKey: EncapsulationPrivateKeyInfo,
+): Promise<CryptoKey> {
 	return await crypto.subtle.unwrapKey(
-		"raw",
-		keyInfo.wrappedKey,
-		wrappingKey,
-		keyInfo.unwrapAlgo,
-		keyInfo.unwrappedKeyAlgo,
-		extractable,
-		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
+		encapsulationPrivateKey.unwrapKey.format,
+		encapsulationPrivateKey.unwrapKey.wrappedKey,
+		baseWrappingKey,
+		encapsulationPrivateKey.unwrapKey.unwrapAlgo,
+		encapsulationPrivateKey.unwrapKey.unwrappedKeyAlgo,
+		false,
+		["deriveKey"],
 	);
 }
 
-async function rewrapKey(wrappedKey: WrappedKeyInfo, unwrappingKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
-	const unwrappedKey = await unwrapKey(unwrappingKey, wrappedKey, true);
-	return await wrapKey(wrappingKey, unwrappedKey);
+async function encapsulateKey(
+	privateKey: CryptoKey,
+	publicKey: EncapsulationPublicKeyInfo,
+	recipient: EncapsulationKeypairInfo,
+	keyToWrap: CryptoKey,
+): Promise<StaticEncapsulationInfo> {
+	const wrappingKeyAlgorithm: { name: "AES-KW", length: 256 } = { name: "AES-KW", length: 256 };
+	const wrappingKey = await crypto.subtle.deriveKey(
+		{
+			name: privateKey.algorithm.name,
+			public: await crypto.subtle.importKey(
+				publicKey.importKey.format,
+				publicKey.importKey.keyData,
+				publicKey.importKey.algorithm,
+				true,
+				[], // Empty in Chrome; "deriveKey" in Firefox(?)
+			),
+		},
+		privateKey,
+		wrappingKeyAlgorithm,
+		false,
+		["wrapKey"],
+	);
+
+	const unwrappingKey: EncapsulationUnwrappingKeyInfo = {
+		deriveKey: {
+			algorithm: {
+				name: "ECDH",
+			},
+			derivedKeyAlgorithm: wrappingKeyAlgorithm,
+		},
+	};
+
+	const format = "raw";
+	const wrapAlgo = "AES-KW";
+	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(format, keyToWrap, wrappingKey, wrapAlgo));
+	return {
+		keypair: recipient,
+		unwrapKey: {
+			wrappedKey,
+			unwrappingKey,
+		},
+	}
+}
+
+async function decapsulateKey(
+	baseWrappingKey: CryptoKey,
+	ephemeralInfo: EphemeralEncapsulationInfo,
+	staticInfo: StaticEncapsulationInfo,
+	extractable: boolean,
+	keyUsages: KeyUsage[],
+): Promise<CryptoKey> {
+	return await crypto.subtle.unwrapKey(
+		ephemeralInfo.unwrapKey.format,
+		staticInfo.unwrapKey.wrappedKey,
+		await crypto.subtle.deriveKey(
+			{
+				name: staticInfo.unwrapKey.unwrappingKey.deriveKey.algorithm.name,
+				public: await crypto.subtle.importKey(
+					ephemeralInfo.publicKey.importKey.format,
+					ephemeralInfo.publicKey.importKey.keyData,
+					ephemeralInfo.publicKey.importKey.algorithm,
+					true,
+					[], // Empty in Chrome; "deriveKey" in Firefox(?)
+				),
+			},
+			await unwrapEncapsulationPrivateKey(baseWrappingKey, staticInfo.keypair.privateKey),
+			staticInfo.unwrapKey.unwrappingKey.deriveKey.derivedKeyAlgorithm,
+			false,
+			["unwrapKey"],
+		),
+		ephemeralInfo.unwrapKey.unwrapAlgo,
+		ephemeralInfo.unwrapKey.unwrappedKeyAlgo,
+		extractable,
+		keyUsages,
+	);
+}
+
+export async function unwrapKey(
+	wrappingKey: CryptoKey,
+	ephemeralInfo: EphemeralEncapsulationInfo | null,
+	keyInfo: WrappedKeyInfo,
+	extractable: boolean = false,
+): Promise<CryptoKey> {
+	if (isAsymmetricWrappedKeyInfo(keyInfo)) {
+		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]);
+	} else {
+		return await crypto.subtle.unwrapKey(
+			"raw",
+			keyInfo.wrappedKey,
+			wrappingKey,
+			keyInfo.unwrapAlgo,
+			keyInfo.unwrappedKeyAlgo,
+			extractable,
+			["encrypt", "decrypt", "wrapKey", "unwrapKey"],
+		);
+	}
 }
 
 async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
@@ -202,7 +430,7 @@ async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, 
 	return await encryptPrivateData(privateData, toKey);
 }
 
-async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> {
+async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInfo): Promise<CryptoKey> {
 	const keyMaterial = await crypto.subtle.importKey(
 		"raw",
 		new TextEncoder().encode(password),
@@ -212,15 +440,18 @@ async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): 
 	);
 
 	return await crypto.subtle.deriveKey(
-		pbkdf2Params,
+		keyInfo.pbkdf2Params,
 		keyMaterial,
-		{ name: "AES-KW", length: 256 },
+		keyInfo.algorithm || { name: "AES-KW", length: 256 },
 		true,
 		["wrapKey", "unwrapKey"],
 	);
 };
 
-async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkdfInfo: BufferSource): Promise<CryptoKey> {
+async function derivePrfKey(
+	prfOutput: BufferSource,
+	deriveKeyParams: WebauthnPrfEncryptionKeyDeriveKeyParams,
+): Promise<CryptoKey> {
 	const hkdfKey = await crypto.subtle.importKey(
 		"raw",
 		prfOutput,
@@ -228,11 +459,12 @@ async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkd
 		false,
 		["deriveKey"],
 	);
+	const { hkdfSalt, hkdfInfo, algorithm } = deriveKeyParams;
 
 	return await crypto.subtle.deriveKey(
 		{ name: "HKDF", hash: "SHA-256", salt: hkdfSalt, info: hkdfInfo },
 		hkdfKey,
-		{ name: "AES-KW", length: 256 },
+		algorithm || { name: "AES-KW", length: 256 },
 		true,
 		["wrapKey", "unwrapKey"],
 	);
@@ -318,9 +550,10 @@ async function createPrfKey(
 	credential: PublicKeyCredential,
 	prfSalt: Uint8Array,
 	rpId: string,
-	[wrappedMainKey, unwrappingKey]: [WrappedKeyInfo, CryptoKey] | [null, null],
+	mainKeyInfo: EphemeralEncapsulationInfo,
+	mainKey: CryptoKey,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> {
+): Promise<WebauthnPrfEncryptionKeyInfoV2> {
 	const [prfOutput,] = await getPrfOutput(
 		credential,
 		rpId,
@@ -329,18 +562,17 @@ async function createPrfKey(
 	);
 	const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
 	const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
-	const prfKey = await derivePrfKey(prfOutput, hkdfSalt, hkdfInfo);
-	const mainKey = wrappedMainKey
-		? await rewrapKey(wrappedMainKey, unwrappingKey, prfKey)
-		: await createMainKey(prfKey);
-	const keyInfo: WebauthnPrfEncryptionKeyInfo = {
-		mainKey,
+	const algorithm = { name: "AES-GCM", length: 256 };
+	const deriveKeyParams = { hkdfSalt, hkdfInfo, algorithm };
+	const prfKey = await derivePrfKey(prfOutput, deriveKeyParams);
+	const [prfKeypair, prfPrivateKey] = await generateWrappedEncapsulationKeypair(prfKey);
+	const keyInfo: WebauthnPrfEncryptionKeyInfoV2 = {
 		credentialId: new Uint8Array(credential.rawId),
 		prfSalt,
-		hkdfSalt,
-		hkdfInfo,
+		...deriveKeyParams,
+		...await encapsulateKey(prfPrivateKey, mainKeyInfo.publicKey, prfKeypair, mainKey),
 	};
-	return [prfKey, keyInfo];
+	return keyInfo;
 }
 
 export async function getPrfKey(
@@ -359,19 +591,28 @@ export async function getPrfKey(
 	if (keyInfo === undefined) {
 		throw new Error("PRF key not found");
 	}
-	return [await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo), keyInfo];
+	return [await derivePrfKey(prfOutput, keyInfo), keyInfo];
 }
 
 export async function addPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
 	rpId: string,
-	existingPrfKey: CryptoKey,
-	wrappedMainKey: WrappedKeyInfo,
+	[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
 	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-	const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, [wrappedMainKey, existingPrfKey], promptForPrfRetry);
+	const mainKey = await unwrapKey(existingUnwrapKey, privateData.mainKey, wrappedMainKey, true);
+	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
+
+	const keyInfo = await createPrfKey(
+		credential,
+		prfSalt,
+		rpId,
+		mainKeyInfo,
+		mainKey,
+		promptForPrfRetry,
+	);
 	return {
 		...privateData,
 		prfKeys: [
@@ -405,13 +646,37 @@ export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer
 	};
 }
 
-export async function unlockPassword(privateData: EncryptedContainer, password: string): Promise<UnlockSuccess> {
+export async function getPasswordKey(privateData: EncryptedContainer, password: string): Promise<[CryptoKey, PasswordKeyInfo]> {
 	const keyInfo = privateData.passwordKey;
 	if (keyInfo === undefined) {
 		throw new Error("Password key not found");
 	}
-	const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
-	return await unlock(await unwrapKey(passwordKey, keyInfo.mainKey), privateData);
+	const passwordKey = await derivePasswordKey(password, keyInfo);
+
+	// Throw an error if the password is incorrect
+	await unwrapKey(
+		passwordKey,
+		privateData.mainKey,
+		isAsymmetricPasswordKeyInfo(keyInfo) ? keyInfo : keyInfo.mainKey,
+	);
+
+	return [passwordKey, keyInfo];
+};
+
+export async function unlockPassword(
+	privateData: EncryptedContainer,
+	password: string,
+): Promise<UnlockSuccess> {
+	const keyInfo = privateData.passwordKey;
+	if (keyInfo === undefined) {
+		throw new Error("Password key not found");
+	}
+	const passwordKey = await derivePasswordKey(password, keyInfo);
+	const mainKey = isAsymmetricPasswordKeyInfo(keyInfo)
+		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
+		: await unwrapKey(passwordKey, null, keyInfo.mainKey);
+
+	return await unlock(mainKey, privateData);
 };
 
 export async function unlockPrf(
@@ -421,17 +686,18 @@ export async function unlockPrf(
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<UnlockSuccess> {
 	const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
-	return await unlock(await unwrapKey(prfKey, keyInfo.mainKey), privateData);
+	const mainKey = isPrfKeyV2(keyInfo)
+		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
+		: await unwrapKey(prfKey, null, keyInfo.mainKey);
+
+	return await unlock(mainKey, privateData);
 }
 
 export async function init(
-	wrappedMainKey: WrappedKeyInfo,
-	wrappingKey: CryptoKey,
-	keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] },
+	mainKey: CryptoKey,
+	keyInfo: AsymmetricEncryptedContainerKeys,
 	didKeyVersion: DidKeyVersion,
-): Promise<{ mainKey: CryptoKey, publicData: PublicData, privateData: EncryptedContainer }> {
-	const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
-
+): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> {
 	const { publicData, privateDataJwe } = await createWallet(mainKey, didKeyVersion);
 	const privateData: EncryptedContainer = {
 		...keyInfo,
@@ -439,27 +705,38 @@ export async function init(
 	};
 
 	return {
-		mainKey,
 		publicData,
 		privateData,
 	};
 }
 
-export async function initPassword(password: string): Promise<[WrappedKeyInfo, CryptoKey, EncryptedContainerKeys]> {
+export async function initPassword(password: string): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
 	const pbkdf2Params: Pbkdf2Params = {
 		name: "PBKDF2",
 		hash: pbkdfHash,
 		iterations: pbkdfIterations,
 		salt: crypto.getRandomValues(new Uint8Array(32)),
 	};
-	const passwordKey = await derivePasswordKey(password, pbkdf2Params);
-	const wrappedMainKey = await createMainKey(passwordKey);
-	const passwordKeyInfo = {
-		mainKey: wrappedMainKey,
+	const deriveKeyInfo: DerivePasswordKeyInfo = {
 		pbkdf2Params,
+		algorithm: { name: "AES-GCM", length: 256 },
+	};
+	const passwordKey = await derivePasswordKey(password, deriveKeyInfo);
+	const [passwordKeypair, passwordPrivateKey] = await generateWrappedEncapsulationKeypair(passwordKey);
+	const mainKeyInfo = await createAsymmetricMainKey();
+	const passwordKeyInfo = {
+		...deriveKeyInfo,
+		...await encapsulateKey(passwordPrivateKey, mainKeyInfo.keyInfo.publicKey, passwordKeypair, mainKeyInfo.mainKey)
 	};
 
-	return [wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys: [] }];
+	return {
+		mainKey: mainKeyInfo.mainKey,
+		keyInfo: {
+			mainKey: mainKeyInfo.keyInfo,
+			passwordKey: passwordKeyInfo,
+			prfKeys: [],
+		},
+	};
 }
 
 export async function initPrf(
@@ -467,9 +744,23 @@ export async function initPrf(
 	prfSalt: Uint8Array,
 	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-): Promise<[WrappedKeyInfo, CryptoKey, EncryptedContainerKeys]> {
-	const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, [null, null], promptForPrfRetry);
-	return [keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }];
+): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
+	const mainKeyInfo = await createAsymmetricMainKey();
+	const keyInfo = await createPrfKey(
+		credential,
+		prfSalt,
+		rpId,
+		mainKeyInfo.keyInfo,
+		mainKeyInfo.mainKey,
+		promptForPrfRetry,
+	);
+	return {
+		mainKey: mainKeyInfo.mainKey,
+		keyInfo: {
+			mainKey: mainKeyInfo.keyInfo,
+			prfKeys: [keyInfo],
+		},
+	};
 }
 
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
