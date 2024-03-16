@@ -41,9 +41,6 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const handleLogout = async () => {
 		api.clearSession();
 		await keystore.close();
-		sessionStorage.removeItem('tokenSentInSession');
-		sessionStorage.removeItem('isMessageNoGrantedVisible');
-		sessionStorage.removeItem('isMessageGrantedVisible');
 		navigate('/login');
 	};
 

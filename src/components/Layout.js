@@ -5,15 +5,17 @@ import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the i
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CSSTransition } from 'react-transition-group';
+import { useSessionStorage } from '../components/useStorage';
 
-const Layout = ({ children, isPermissionGranted }) => {
+const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible] = useState(true);
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible] = useState(true);
 	const toggleSidebar = () => setIsOpen(!isOpen);
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible] = useSessionStorage('isMessageNoGrantedVisible', true);
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible] = useSessionStorage('isMessageGrantedVisible', true);
+	
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
@@ -25,28 +27,11 @@ const Layout = ({ children, isPermissionGranted }) => {
 
 	const handleCloseMessageNoGranted = () => {
 		setIsMessageNoGrantedVisible(false);
-		// Store the isMessageVisible state in session storage
-		sessionStorage.setItem('isMessageNoGrantedVisible', 'false');
 	};
 
 	const handleCloseMessageGranted = () => {
 		setIsMessageGrantedVisible(false);
-		// Store the isMessageVisible state in session storage
-		sessionStorage.setItem('isMessageGrantedVisible', 'false');
 	};
-
-	useEffect(() => {
-		// Retrieve the isMessageVisible state from session storage
-		const storedIsMessageNoGrantedVisible = sessionStorage.getItem('isMessageNoGrantedVisible');
-		if (storedIsMessageNoGrantedVisible === 'false') {
-			setIsMessageNoGrantedVisible(false);
-		}
-
-		const storedIsMessageGrantedVisible = sessionStorage.getItem('isMessageGrantedVisible');
-		if (storedIsMessageGrantedVisible === 'false') {
-			setIsMessageGrantedVisible(false);
-		}
-	}, []);
 
 	useEffect(() => {
 		setIsContentVisible(false);
@@ -95,7 +80,7 @@ const Layout = ({ children, isPermissionGranted }) => {
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
 					{/* Conditional Notification Message */}
-					{(!isPermissionGranted && isMessageNoGrantedVisible) || (isPermissionGranted && sessionStorage.getItem('tokenSentInSession') !== 'true' && isMessageGrantedVisible) ? (
+					{(!isPermissionGranted && isMessageNoGrantedVisible) || (isPermissionGranted && tokenSentInSession !== 'true' && isMessageGrantedVisible) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
 							<div className="mr-4 text-orange-500">
 								<FaExclamationTriangle size={24} />
@@ -115,7 +100,7 @@ const Layout = ({ children, isPermissionGranted }) => {
 									</button>
 								</>
 							)}
-							{isPermissionGranted && sessionStorage.getItem('tokenSentInSession') !== 'true' && (
+							{isPermissionGranted && tokenSentInSession !== 'true' && (
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>

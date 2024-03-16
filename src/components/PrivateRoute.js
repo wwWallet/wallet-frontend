@@ -5,6 +5,7 @@ import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
+import { useSessionStorage } from '../components/useStorage';
 
 const PrivateRoute = ({ children }) => {
 	const api = useApi();
@@ -12,6 +13,7 @@ const PrivateRoute = ({ children }) => {
 	const [loading, setLoading] = useState(false);
 	const keystore = useLocalStorageKeystore();
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
+	const [tokenSentInSession, setTokenSentInSession,] = useSessionStorage('tokenSentInSession', null);
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -22,7 +24,8 @@ const PrivateRoute = ({ children }) => {
 
 			try {
 				if (Notification.permission !== 'granted') {
-					sessionStorage.setItem('tokenSentInSession', 'false');
+					// sessionStorage.setItem('tokenSentInSession', 'false');
+					setTokenSentInSession('false')
 					const permissionResult = await Notification.requestPermission();
 					if (permissionResult === 'granted') {
 						setIsPermissionGranted(true);
@@ -44,7 +47,7 @@ const PrivateRoute = ({ children }) => {
 		const sendFcmTokenToBackend = async () => {
 			console.log('isPermissionGranted:', isPermissionGranted);
 			if (isPermissionGranted) {
-				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
+				// const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
 				console.log('tokenSentInSession:', tokenSentInSession);
 
 				if (tokenSentInSession !== 'true') {
@@ -53,7 +56,8 @@ const PrivateRoute = ({ children }) => {
 						const fcmToken = await fetchToken();
 						if (fcmToken !== null) {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-							sessionStorage.setItem('tokenSentInSession', 'true');
+							// sessionStorage.setItem('tokenSentInSession', 'true');
+							setTokenSentInSession('true')
 							console.log('FCM Token success:', fcmToken);
 						} else {
 							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
@@ -87,7 +91,7 @@ const PrivateRoute = ({ children }) => {
 		<>
 			{loading && <Spinner />}
 			{!loading && (
-				<Layout isPermissionGranted={isPermissionGranted}>
+				<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
 					{children}
 				</Layout>
 			)}
