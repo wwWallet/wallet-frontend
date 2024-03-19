@@ -46,10 +46,9 @@ const PrivateRoute = ({ children }) => {
 		const sendFcmTokenToBackend = async () => {
 			console.log('isPermissionGranted:', isPermissionGranted);
 			if (isPermissionGranted) {
-				// const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
 				console.log('tokenSentInSession:', tokenSentInSession);
 
-				if (tokenSentInSession !== 'true') {
+				if (!tokenSentInSession) {
 					setLoading(true);
 					try {
 						const fcmToken = await fetchToken();
