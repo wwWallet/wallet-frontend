@@ -27,12 +27,8 @@
 		}
 	},
 	"layout": {
-		"messageAllowPermissionPart1": "To receive real-time updates of ",
-		"messageAllowPermissionPart2": "Credentials, allow notifications permission",
-		"messageResetPermissionPart1": "Something ",
-		"messageResetPermissionPart2": "not working properly with the notifications",
-		"messageResetPermissionPart3": ", please ",
-		"messageResetPermissionPart4": "reload this page"
+		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
+		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
