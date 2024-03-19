@@ -20,6 +20,7 @@ const QRScanner = ({ onClose }) => {
 	const [qrDetected, setQrDetected] = useState(false);
 	const [boxSize, setBoxSize] = useState(null);
 	const [zoomLevel, setZoomLevel] = useState(1);
+	const [hasCameraPermission, setHasCameraPermission] = useState(false);
 	const { t } = useTranslation();
 
 	const handleZoomChange = (event) => {
@@ -40,24 +41,39 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	useEffect(() => {
-		navigator.mediaDevices.enumerateDevices()
-			.then(mediaDevices => {
-				const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
-				setDevices(videoDevices);
-
-				// Find and prioritize the back camera if it exists
-				const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
-				if (backCameraIndex !== -1) {
-					setCurrentDeviceIndex(backCameraIndex);
-				}
-
-				setCameraReady(true);
+		navigator.mediaDevices.getUserMedia({ video: true })
+			.then(stream => {
+				setHasCameraPermission(true);
+				stream.getTracks().forEach(track => track.stop()); // Stop using the camera
 			})
 			.catch(error => {
-				console.error("Error accessing camera:", error);
-				setCameraReady(false);
+				console.error("Camera access denied:", error);
 			});
 	}, []);
+
+
+	useEffect(() => {
+		if (hasCameraPermission) {
+			// Now enumerate devices after permission has been granted
+			navigator.mediaDevices.enumerateDevices()
+				.then(mediaDevices => {
+					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
+					setDevices(videoDevices);
+	
+					const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
+					if (backCameraIndex !== -1) {
+						setCurrentDeviceIndex(backCameraIndex);
+					} else {
+						setCurrentDeviceIndex(0); // Default to the first camera if no back camera is found
+					}
+	
+					setCameraReady(true);
+				})
+				.catch(error => {
+					console.error("Error enumerating devices:", error);
+				});
+		}
+	}, [hasCameraPermission]);
 
 	const switchCamera = () => {
 		if (devices.length > 1) {
