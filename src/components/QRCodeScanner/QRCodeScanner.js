@@ -13,6 +13,7 @@ import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 const QRScanner = ({ onClose }) => {
 
 	const [devices, setDevices] = useState([]);
+	const [bestCameraResolutions, setBestCameraResolutions] = useState({ front: null, back: null });
 	const webcamRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -54,19 +55,55 @@ const QRScanner = ({ onClose }) => {
 
 	useEffect(() => {
 		if (hasCameraPermission) {
-			// Now enumerate devices after permission has been granted
 			navigator.mediaDevices.enumerateDevices()
-				.then(mediaDevices => {
+				.then(async mediaDevices => {
 					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
-					setDevices(videoDevices);
-	
-					const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
+
+					let bestFrontCamera = null;
+					let bestBackCamera = null;
+
+					for (const device of videoDevices) {
+						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
+						const track = stream.getVideoTracks()[0];
+						const capabilities = track.getCapabilities();
+						const isBackCamera = device.label.toLowerCase().includes('back');
+						const resolution = {
+							width: capabilities.width?.max || 0,
+							height: capabilities.height?.max || 0
+						};
+
+						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
+							bestBackCamera = { device, resolution };
+						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
+							bestFrontCamera = { device, resolution };
+						}
+
+						track.stop();
+					}
+
+					const filteredDevices = [];
+					if (bestFrontCamera) {
+						filteredDevices.push(bestFrontCamera.device);
+					}
+					if (bestBackCamera) {
+						filteredDevices.push(bestBackCamera.device);
+					}
+
+					setBestCameraResolutions({
+						front: bestFrontCamera ? bestFrontCamera.resolution : null,
+						back: bestBackCamera ? bestBackCamera.resolution : null,
+					});
+
+					setDevices(filteredDevices);
+
+					const backCameraIndex = filteredDevices.findIndex(device =>
+						device.label.toLowerCase().includes('back'));
+
 					if (backCameraIndex !== -1) {
 						setCurrentDeviceIndex(backCameraIndex);
 					} else {
-						setCurrentDeviceIndex(0); // Default to the first camera if no back camera is found
+						setCurrentDeviceIndex(0);
 					}
-	
 					setCameraReady(true);
 				})
 				.catch(error => {
@@ -159,6 +196,25 @@ const QRScanner = ({ onClose }) => {
 		waitForVideoDimensions();
 	};
 
+
+	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
+	const maxResolution = bestCameraResolutions[currentCameraType];
+
+	let idealWidth, idealHeight;
+	if (maxResolution) {
+		console.log(maxResolution);
+		if ((maxResolution.width / maxResolution.height) > 5 / 4) {
+			idealHeight = maxResolution.height;
+			idealWidth = idealHeight * (5 / 4);
+		} else {
+			idealWidth = maxResolution.width;
+			idealHeight = idealWidth * (4 / 5);
+		}
+	} else {
+		idealWidth = 1920;
+		idealHeight = 1536;
+	}
+
 	return (
 		<div className="qr-code-scanner bg-white">
 			<div className={`absolute inset-0 ${!cameraReady ? 'flex justify-center items-center' : ''}`}>
@@ -191,7 +247,11 @@ const QRScanner = ({ onClose }) => {
 							audio={false}
 							ref={webcamRef}
 							screenshotFormat="image/jpeg"
-							videoConstraints={{ deviceId: devices[currentDeviceIndex].deviceId }}
+							videoConstraints={{
+								deviceId: devices[currentDeviceIndex]?.deviceId,
+								height: { ideal: idealHeight },
+								width: { ideal: idealWidth }
+							}}
 							style={{ width: '100%', transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
 							onUserMedia={onUserMedia}
 						/>
