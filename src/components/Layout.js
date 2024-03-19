@@ -105,7 +105,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 									</button>
 								</>
 							)}
-							{isPermissionGranted && tokenSentInSession !== 'true' && (
+							{isPermissionGranted && !tokenSentInSession && (
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>
