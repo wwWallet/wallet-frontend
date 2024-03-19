@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { GiHamburgerMenu } from 'react-icons/gi';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the icons you want to use
+import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
+import { useTranslation } from 'react-i18next';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
@@ -15,6 +16,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const toggleSidebar = () => setIsOpen(!isOpen);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible] = useSessionStorage('isMessageNoGrantedVisible', null);
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible] = useSessionStorage('isMessageGrantedVisible', null);
+	const { t } = useTranslation();
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
@@ -88,7 +90,11 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>
-											To receive real-time updates of <strong>Credentials, reset or allow notifications permission</strong>.
+											{t('layout.messageAllowPermissionPart1')}
+											<strong>{
+												t('layout.messageAllowPermissionPart2')}
+											</strong>
+											.
 										</p>
 									</div>
 									<button
@@ -103,7 +109,15 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>
-											Something <strong>not working properly with the notifications</strong>, please <strong>reload the page.</strong>.
+											{t('layout.messageResetPermissionPart1')}
+											<strong>
+												{t('layout.messageResetPermissionPart2')}
+											</strong>
+											{t('layout.messageResetPermissionPart3')}
+											<strong>
+												{t('layout.messageResetPermissionPart4')}
+											</strong>
+											.
 										</p>
 									</div>
 									<button
