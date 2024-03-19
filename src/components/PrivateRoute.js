@@ -24,8 +24,7 @@ const PrivateRoute = ({ children }) => {
 
 			try {
 				if (Notification.permission !== 'granted') {
-					// sessionStorage.setItem('tokenSentInSession', 'false');
-					setTokenSentInSession('false')
+					setTokenSentInSession(false)
 					const permissionResult = await Notification.requestPermission();
 					if (permissionResult === 'granted') {
 						setIsPermissionGranted(true);
