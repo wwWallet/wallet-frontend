@@ -13,9 +13,8 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible] = useSessionStorage('isMessageNoGrantedVisible', true);
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible] = useSessionStorage('isMessageGrantedVisible', true);
-	
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible] = useSessionStorage('isMessageNoGrantedVisible', null);
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible] = useSessionStorage('isMessageGrantedVisible', null);
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
@@ -26,11 +25,11 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	};
 
 	const handleCloseMessageNoGranted = () => {
-		setIsMessageNoGrantedVisible(false);
+		setIsMessageNoGrantedVisible(true);
 	};
 
 	const handleCloseMessageGranted = () => {
-		setIsMessageGrantedVisible(false);
+		setIsMessageGrantedVisible(true);
 	};
 
 	useEffect(() => {
@@ -80,7 +79,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
 					{/* Conditional Notification Message */}
-					{(!isPermissionGranted && isMessageNoGrantedVisible) || (isPermissionGranted && tokenSentInSession !== 'true' && isMessageGrantedVisible) ? (
+					{(!isPermissionGranted && !isMessageNoGrantedVisible) || (isPermissionGranted && tokenSentInSession !== 'true' && !isMessageGrantedVisible) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
 							<div className="mr-4 text-orange-500">
 								<FaExclamationTriangle size={24} />
