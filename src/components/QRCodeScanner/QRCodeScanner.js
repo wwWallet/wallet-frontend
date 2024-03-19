@@ -287,7 +287,7 @@ const QRScanner = ({ onClose }) => {
 						{devices.length > 1 && (
 							<button
 								type="button"
-								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm pl-4 py-2 mt-2"
+								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm ml-4 p-2 my-2"
 								onClick={switchCamera}
 							>
 								<PiCameraRotateFill size={25} />
