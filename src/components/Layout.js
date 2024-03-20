@@ -16,8 +16,8 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
 	const api = useApi();
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible, ] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible, ] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
 	const { t } = useTranslation();
 
 	const handleNavigate = (path) => {
