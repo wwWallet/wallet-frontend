@@ -162,7 +162,7 @@ const QRScanner = ({ onClose }) => {
 				scanningMargin = (height - size) / 2;
 			}
 			document.documentElement.style.setProperty('--scanning-margin', scanningMargin + 'px');
-
+			document.documentElement.style.setProperty('--scanning', size + 'px');
 			setBoxSize(size);
 		}
 	};
@@ -202,17 +202,17 @@ const QRScanner = ({ onClose }) => {
 
 	let idealWidth, idealHeight;
 	if (maxResolution) {
-		console.log(maxResolution);
-		if ((maxResolution.width / maxResolution.height) > 5 / 4) {
-			idealHeight = maxResolution.height;
-			idealWidth = idealHeight * (5 / 4);
-		} else {
+		if ((maxResolution.width < maxResolution.height)) {
+			idealHeight = maxResolution.width;
 			idealWidth = maxResolution.width;
-			idealHeight = idealWidth * (4 / 5);
+
+		} else {
+			idealHeight = maxResolution.height;
+			idealWidth = maxResolution.height;
 		}
 	} else {
-		idealWidth = 1920;
-		idealHeight = 1536;
+		idealWidth = 1080;
+		idealHeight = 1080;
 	}
 
 	return (
@@ -252,7 +252,7 @@ const QRScanner = ({ onClose }) => {
 								height: { ideal: idealHeight },
 								width: { ideal: idealWidth }
 							}}
-							style={{ width: '100%', transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
+							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%', }}
 							onUserMedia={onUserMedia}
 						/>
 						{boxSize && (

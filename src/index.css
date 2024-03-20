@@ -66,8 +66,15 @@
 }
 
 @keyframes scan-vertical {
-	0%, 100% { top: calc(0% + var(--scanning-margin)); }
-	50% { top: calc(100% - var(--scanning-margin)); }
+
+  0%,
+  100% {
+    transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-range)));
+  }
+
+  50% {
+    transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-range)));
+  }
 }
 
 .text-overflow-ellipsis {
