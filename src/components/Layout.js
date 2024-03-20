@@ -8,7 +8,6 @@ import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
-import { Trans, useTranslation } from 'react-i18next';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
