@@ -13,7 +13,7 @@ const PrivateRoute = ({ children }) => {
 	const [loading, setLoading] = useState(false);
 	const keystore = useLocalStorageKeystore();
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
-	const [tokenSentInSession, setTokenSentInSession,] = useSessionStorage('tokenSentInSession', null);
+	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 
 	const location = useLocation();
 	const navigate = useNavigate();

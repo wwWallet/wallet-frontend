@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
+import { useApi } from '../api';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
@@ -14,8 +15,9 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible] = useSessionStorage('isMessageNoGrantedVisible', null);
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible] = useSessionStorage('isMessageGrantedVisible', null);
+	const api = useApi();
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
 	const { t } = useTranslation();
 
 	const handleNavigate = (path) => {
