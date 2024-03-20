@@ -503,6 +503,7 @@ const WebauthnCredentialItem = ({
 								className={` ${!onDelete || unlocked ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"} flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center`}
 								type="button"
 								onClick={() => setEditing(true)}
+								disabled={!unlocked}
 								title={!unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
 								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							>
@@ -517,6 +518,7 @@ const WebauthnCredentialItem = ({
 						className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} text-sm font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-2 px-4 py-2`}
 						type="button"
 						onClick={openDeleteConfirmation}
+						disabled={!unlocked}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : ""}
 
