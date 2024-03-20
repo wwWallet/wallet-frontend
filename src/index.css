@@ -10,7 +10,7 @@
 }
 
 /* Slider margin in mobile screen */
-.slick-slide > div {
+.slick-slide>div {
 	margin: 0 5px !important;
 }
 
@@ -49,9 +49,10 @@
 }
 
 /* Fade in animation for content */
-.content-fade-in-enter	{
+.content-fade-in-enter {
 	opacity: 0;
 }
+
 .content-fade-in-enter-active {
 	opacity: 1;
 	transition: opacity 400ms ease-in;
@@ -60,6 +61,7 @@
 .content-fade-in-exit {
 	opacity: 1;
 }
+
 .content-fade-in-exit-active {
 	opacity: 0;
 	transition: opacity 400ms ease-in;
@@ -67,14 +69,14 @@
 
 @keyframes scan-vertical {
 
-  0%,
-  100% {
-    transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-range)));
-  }
+	0%,
+	100% {
+		transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-margin)));
+	}
 
-  50% {
-    transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-range)));
-  }
+	50% {
+		transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-margin)));
+	}
 }
 
 .text-overflow-ellipsis {
