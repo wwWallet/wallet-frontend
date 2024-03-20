@@ -6,7 +6,7 @@ import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
-import { Trans, useTranslation } from 'react-i18next';
+import { Trans } from 'react-i18next';
 import { useApi } from '../api';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
@@ -18,7 +18,6 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const api = useApi();
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
-	const { t } = useTranslation();
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
