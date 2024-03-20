@@ -6,8 +6,9 @@ import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
+import { Trans, useTranslation } from 'react-i18next';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
@@ -92,11 +93,10 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>
-											{t('layout.messageAllowPermissionPart1')}
-											<strong>{
-												t('layout.messageAllowPermissionPart2')}
-											</strong>
-											.
+											<Trans
+												i18nKey="layout.messageAllowPermission"
+												components={{ strong: <strong /> }}
+											/>
 										</p>
 									</div>
 									<button
@@ -111,15 +111,13 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>
-											{t('layout.messageResetPermissionPart1')}
-											<strong>
-												{t('layout.messageResetPermissionPart2')}
-											</strong>
-											{t('layout.messageResetPermissionPart3')}
-											<strong>
-												{t('layout.messageResetPermissionPart4')}
-											</strong>
-											.
+											<Trans
+												i18nKey="layout.messageResetPermission"
+												components={{
+													strong: <strong />,
+													reloadButton: <button className='text-custom-blue underline' onClick={() => window.location.reload()} />,
+												}}
+											/>
 										</p>
 									</div>
 									<button

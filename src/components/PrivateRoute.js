@@ -54,8 +54,7 @@ const PrivateRoute = ({ children }) => {
 						const fcmToken = await fetchToken();
 						if (fcmToken !== null) {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-							// sessionStorage.setItem('tokenSentInSession', 'true');
-							setTokenSentInSession('true')
+							setTokenSentInSession(true)
 							console.log('FCM Token success:', fcmToken);
 						} else {
 							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
