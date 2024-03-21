@@ -179,6 +179,7 @@
 		"title": "Enter the Pin"
 	},
 	"qrCodeScanner": {
+		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},

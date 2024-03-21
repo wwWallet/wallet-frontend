@@ -185,11 +185,9 @@ const Issuers = () => {
 
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
 					<QRCodeScanner
 						onClose={closeQRScanner}
 					/>
-				</div>
 			)}
 
 		</>
