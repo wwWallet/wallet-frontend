@@ -21,7 +21,7 @@ const QRScanner = ({ onClose }) => {
 	const [qrDetected, setQrDetected] = useState(false);
 	const [boxSize, setBoxSize] = useState(null);
 	const [zoomLevel, setZoomLevel] = useState(1);
-	const [hasCameraPermission, setHasCameraPermission] = useState(false);
+	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
 
 	const handleZoomChange = (event) => {
@@ -45,10 +45,11 @@ const QRScanner = ({ onClose }) => {
 		navigator.mediaDevices.getUserMedia({ video: true })
 			.then(stream => {
 				setHasCameraPermission(true);
-				stream.getTracks().forEach(track => track.stop()); // Stop using the camera
+				stream.getTracks().forEach(track => track.stop());
 			})
 			.catch(error => {
 				console.error("Camera access denied:", error);
+				setHasCameraPermission(false);
 			});
 	}, []);
 
@@ -137,13 +138,15 @@ const QRScanner = ({ onClose }) => {
 						setQrDetected(true);
 						// Redirect to the URL found in the QR code
 						const scannedUrl = code.data;
-						setLoading(true);
+						setTimeout(() => {
+							setLoading(true);
+						}, 1000);
 						setTimeout(() => {
 							const baseUrl = window.location.origin;
 							const params = scannedUrl.split('?');
 							const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
 							window.location.href = cvUrl;
-						}, 1500);
+						}, 1000);
 
 					}
 				};
@@ -216,12 +219,38 @@ const QRScanner = ({ onClose }) => {
 	}
 
 	return (
-		<div className="qr-code-scanner bg-white">
-			<div className={`absolute inset-0 ${!cameraReady ? 'flex justify-center items-center' : ''}`}>
-				{loading && <Spinner />}
-			</div>
-			{cameraReady && (
-				<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] max-h-[100vh] z-10 relative">
+		<div className="fixed inset-0 flex items-center justify-center z-50">
+			<div className="absolute inset-0 bg-black opacity-50"></div>
+
+			{hasCameraPermission === false ? (
+				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
+							{t('qrCodeScanner.title')}
+						</h2>
+
+						<button
+							type="button"
+							className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+							onClick={handleClose}
+						>
+							<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+								<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+							</svg>
+						</button>
+					</div>
+					<hr className="mb-2 border-t border-custom-blue/80" />
+					<p className='text-red-600'>
+						{t('qrCodeScanner.cameraPermissionAllow')}
+						</p>
+				</div>
+			) : (!cameraReady || loading) ? (
+				<div className="flex items-center justify-center h-24">
+					<Spinner />
+				</div>
+			) : (
+				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-custom-blue">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
