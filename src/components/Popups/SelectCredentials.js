@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-
+import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { useApi } from '../../api';
 
 
@@ -131,16 +131,19 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					</div>
 				)}
 
-				<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh]'>
+				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh]'>
 					{images.map(image => (
-						<div className="m-5">
-							<img
-								key={image.id}
-								src={image.imageURL}
-								alt={image.id}
-								onClick={() => handleClick(image.id)}
-								className="w-48 rounded-xl cursor-pointer"
-							/>
+						<div className="m-3 flex justify-center">
+							<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
+								<img
+									key={image.id}
+									src={image.imageURL}
+									alt={image.id}
+									onClick={() => handleClick(image.id)}
+									className="w-full object-cover rounded-xl"
+								/>
+								<StatusRibbon expDate={image.expdate} />
+							</div>
 						</div>
 					))}
 				</div>

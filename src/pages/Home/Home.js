@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
-import {BsQrCodeScan} from 'react-icons/bs'
+import { BsQrCodeScan } from 'react-icons/bs'
 
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
@@ -20,6 +20,7 @@ import { fetchCredentialData } from '../../components/Credentials/ApiFetchCreden
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
+import StatusRibbon from '../../components/Credentials/StatusRibbon';
 
 const Home = () => {
 	const api = useApi();
@@ -156,8 +157,9 @@ const Home = () => {
 									<Slider ref={sliderRef} {...settings}>
 										{credentials.map((credential) => (
 											<>
-												<div className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => {setShowFullscreenImgPopup(true);setSelectedCredential(credential);}}>
+												<div className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => { setShowFullscreenImgPopup(true); setSelectedCredential(credential); }}>
 													<img src={credential.src} alt={credential.alt} className="w-full h-full object-cover rounded-xl" />
+													<StatusRibbon expDate={credential.expdate} />
 												</div>
 												<div className="flex items-center justify-end mt-2 mr-3">
 													<span className="mr-4">{currentSlide} of {credentials.length}</span>
@@ -187,6 +189,7 @@ const Home = () => {
 									onClick={() => handleImageClick(credential)}
 								>
 									<img src={credential.src} alt={credential.alt} className="w-full h-full object-cover rounded-xl" />
+									<StatusRibbon expDate={credential.expdate} />
 								</div>
 							))}
 							<div

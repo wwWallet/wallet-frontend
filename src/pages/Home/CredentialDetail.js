@@ -14,6 +14,7 @@ import { fetchCredentialData } from '../../components/Credentials/ApiFetchCreden
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
+import StatusRibbon from '../../components/Credentials/StatusRibbon';
 
 const CredentialDetail = () => {
 	const api = useApi();
@@ -70,7 +71,7 @@ const CredentialDetail = () => {
 							// Open the modal when the credential is clicked
 							<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
 								<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
-
+								<StatusRibbon expDate={credential.expdate} />
 							</div>
 						) : (
 							<></>
