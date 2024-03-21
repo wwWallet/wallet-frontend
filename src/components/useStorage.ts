@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useState } from 'reac
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 
 type ClearHandle = () => void;
-type UseStorageHandle<T> = [T, Dispatch<SetStateAction<T>>, ClearHandle];
+export type UseStorageHandle<T> = [T, Dispatch<SetStateAction<T>>, ClearHandle];
 type UseStorageEvent = { storageArea: Storage };
 type ClearEvent = UseStorageEvent;
 type SetValueEvent<T> = UseStorageEvent & { name: string, value: T };

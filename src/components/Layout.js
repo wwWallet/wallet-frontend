@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { GiHamburgerMenu } from 'react-icons/gi';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the icons you want to use
+import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CSSTransition } from 'react-transition-group';
+import { useSessionStorage } from '../components/useStorage';
+import { Trans } from 'react-i18next';
+import { useApi } from '../api';
 
-const Layout = ({ children, isPermissionGranted, isPermissionValue, setispermissionValue }) => {
+const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
-	const [isMessageVisible, setIsMessageVisible] = useState(true);
 	const toggleSidebar = () => setIsOpen(!isOpen);
+	const api = useApi();
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
@@ -22,30 +27,12 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue, setispermiss
 		}
 	};
 
-	const handleCloseMessage = () => {
-		setIsMessageVisible(false);
-		// Store the isMessageVisible state in session storage
-		sessionStorage.setItem('isMessageVisible', 'false');
+	const handleCloseMessageNoGranted = () => {
+		setIsMessageNoGrantedVisible(true);
 	};
 
-	useEffect(() => {
-		// Retrieve the isMessageVisible state from session storage
-		const storedIsMessageVisible = sessionStorage.getItem('isMessageVisible');
-		if (storedIsMessageVisible === 'false') {
-			setIsMessageVisible(false);
-		}
-	}, []);
-
-	const requestNotificationPermission = async () => {
-		if ('Notification' in window) {
-			const permission = await Notification.requestPermission();
-			console.log('permission', permission);
-			if (permission === 'granted') {
-				window.location.reload();
-			} else {
-				setispermissionValue(permission);
-			}
-		}
+	const handleCloseMessageGranted = () => {
+		setIsMessageGrantedVisible(true);
 	};
 
 	useEffect(() => {
@@ -95,52 +82,54 @@ const Layout = ({ children, isPermissionGranted, isPermissionValue, setispermiss
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
 					{/* Conditional Notification Message */}
-					{isPermissionGranted !== true && isMessageVisible && isPermissionValue && isPermissionValue !== 'granted' && (
+					{(!isPermissionGranted && !isMessageNoGrantedVisible) || (isPermissionGranted && !tokenSentInSession && !isMessageGrantedVisible) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
 							<div className="mr-4 text-orange-500">
 								<FaExclamationTriangle size={24} />
 							</div>
-							<div className="flex-grow">
-								{isPermissionValue === 'default' && (
-									<>
+							{!isPermissionGranted && (
+								<>
+									<div className="flex-grow">
 										<p className='text-sm'>
-											To receive real-time updates of{' '}
-											<span className="font-semibold">Credentials</span>, please{' '}
-											<span className="font-semibold">
-												allow permission for notifications
-											</span>{' '}
-											from your browser.
-											<a className="ml-2" onClick={requestNotificationPermission}>
-												<button
-													className="px-2 py-1 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
-													onClick={requestNotificationPermission}
-												>
-													Allow
-												</button>
-											</a>
+											<Trans
+												i18nKey="layout.messageAllowPermission"
+												components={{ strong: <strong /> }}
+											/>
 										</p>
-									</>
-								)}
-								{isPermissionValue === 'denied' && (
-									<>
+									</div>
+									<button
+										className="ml-2 text-gray-800"
+										onClick={handleCloseMessageNoGranted}
+									>
+										<FaTimes size={24} />
+									</button>
+								</>
+							)}
+							{isPermissionGranted && !tokenSentInSession && (
+								<>
+									<div className="flex-grow">
 										<p className='text-sm'>
-											To receive real-time updates of{' '}
-											<span className="font-semibold">Credentials</span>, please{' '}
-											<span className="font-semibold">
-												manual reset or allow permission for notifications
-											</span>{' '}
-											from your browser.
+											<Trans
+												i18nKey="layout.messageResetPermission"
+												components={{
+													strong: <strong />,
+													reloadButton: <button className='text-custom-blue underline' onClick={() => window.location.reload()} />,
+												}}
+											/>
 										</p>
-									</>
-								)}
-							</div>
-							<button
-								className="ml-2 text-gray-800"
-								onClick={handleCloseMessage}
-							>
-								<FaTimes size={24} />
-							</button>
+									</div>
+									<button
+										className="ml-2 text-gray-800"
+										onClick={handleCloseMessageGranted}
+									>
+										<FaTimes size={24} />
+									</button>
+								</>
+							)}
+
 						</div>
+					) : (
+						<></>
 					)}
 					<CSSTransition
 						in={isContentVisible}

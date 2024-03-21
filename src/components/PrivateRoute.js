@@ -5,14 +5,15 @@ import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
+import { useSessionStorage } from '../components/useStorage';
 
 const PrivateRoute = ({ children }) => {
 	const api = useApi();
 	const [isPermissionGranted, setIsPermissionGranted] = useState(false);
-	const [isPermissionValue, setispermissionValue] = useState('');
 	const [loading, setLoading] = useState(false);
 	const keystore = useLocalStorageKeystore();
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
+	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -20,14 +21,14 @@ const PrivateRoute = ({ children }) => {
 	useEffect(() => {
 		const requestNotificationPermission = async () => {
 			console.log(Notification.permission);
+
 			try {
 				if (Notification.permission !== 'granted') {
-					sessionStorage.setItem('tokenSentInSession', 'false');
+					setTokenSentInSession(false)
 					const permissionResult = await Notification.requestPermission();
 					if (permissionResult === 'granted') {
 						setIsPermissionGranted(true);
 					}
-					setispermissionValue(permissionResult);
 				} else {
 					setIsPermissionGranted(true);
 				}
@@ -43,25 +44,21 @@ const PrivateRoute = ({ children }) => {
 
 	useEffect(() => {
 		const sendFcmTokenToBackend = async () => {
-
 			console.log('isPermissionGranted:', isPermissionGranted);
 			if (isPermissionGranted) {
-
-				// Check if the token has already been sent in the current session
-				const tokenSentInSession = sessionStorage.getItem('tokenSentInSession');
 				console.log('tokenSentInSession:', tokenSentInSession);
 
-				if (tokenSentInSession !== 'true') {
+				if (!tokenSentInSession) {
 					setLoading(true);
 					try {
 						const fcmToken = await fetchToken();
-
-						await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-						// Set a flag in sessionStorage to indicate that the token has been sent
-						sessionStorage.setItem('tokenSentInSession', 'true');
-						console.log('send FCM Token:', fcmToken);
-
-						console.log('FCM Token:', fcmToken);
+						if (fcmToken !== null) {
+							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
+							setTokenSentInSession(true)
+							console.log('FCM Token success:', fcmToken);
+						} else {
+							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
+						}
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
 					} finally {
@@ -73,6 +70,7 @@ const PrivateRoute = ({ children }) => {
 
 		sendFcmTokenToBackend();
 	}, [isPermissionGranted]);
+
 
 	useEffect(() => {
 		if (!isLoggedIn) {
@@ -90,7 +88,7 @@ const PrivateRoute = ({ children }) => {
 		<>
 			{loading && <Spinner />}
 			{!loading && (
-				<Layout isPermissionGranted={isPermissionGranted} isPermissionValue={isPermissionValue} setispermissionValue={setispermissionValue}>
+				<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
 					{children}
 				</Layout>
 			)}
