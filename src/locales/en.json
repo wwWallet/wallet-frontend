@@ -10,7 +10,7 @@
 		"navItemSettings": "Settings",
 		"save": "Save",
 		"submit": "submit",
-		"walletName": "wwWallet"
+		"walletName": "DC4EU Wallet"
 	},
 	"browserSupportWarningPortal": {
 		"continueAnyway": "Continue anyway",
@@ -43,7 +43,7 @@
 		"incorrectCredentialsError": "Incorrect username or password",
 		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
 		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
-		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover wwWallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
+		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover DC4EU Wallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
 		"login": "Login",
 		"loginAsUser": "Log in as {{name}}",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
@@ -76,7 +76,7 @@
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
-		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+		"welcomeMessage": "Welcome to <highlight>DC4EU Wallet</highlight>"
 	},
 	"notFound": {
 		"homeButton": "Back to Home",
