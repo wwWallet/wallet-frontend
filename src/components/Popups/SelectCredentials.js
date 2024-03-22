@@ -33,7 +33,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			try {
 				const response = await api.get('/storage/vc');
 				const simplifiedCredentials = response.data.vc_list
-					.filter(vcEntity => 
+					.filter(vcEntity =>
 						conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 					);
 
