@@ -4,6 +4,7 @@ import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { useApi } from '../../api';
+import { parseCredentialDependingOnFormat } from '../../components/Credentials/ApiFetchCredential';
 
 
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
@@ -20,7 +21,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [renderContent, setRenderContent] = useState(showRequestedFields);
 	const [applyTransition, setApplyTransition] = useState(false);
 
-
 	useEffect(() => {
 		const getData = async () => {
 			if (currentIndex == Object.keys(conformantCredentialsMap).length) {
@@ -31,13 +31,18 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 			try {
 				const response = await api.get('/storage/vc');
-				const simplifiedCredentials = response.data.vc_list
+				const simplifiedCredentialsPromises = response.data.vc_list
 					.filter(vc => conformantCredentialsMap[keys[currentIndex]].credentials.includes(vc.credentialIdentifier))
-					.map(vc => ({
-						id: vc.credentialIdentifier,
-						imageURL: vc.logoURL,
-					}));
-				console.log("FIelds = ", conformantCredentialsMap[keys[currentIndex]].requestedFields)
+					.map(async vc => {
+						const credentialPayload = await parseCredentialDependingOnFormat(vc.credential, vc.format);
+						return ({
+							id: vc.credentialIdentifier,
+							imageURL: vc.logoURL,
+							expdate: credentialPayload['vc']["expirationDate"],
+						})
+					});
+				const simplifiedCredentials = await Promise.all(simplifiedCredentialsPromises);
+				console.log("Fields = ", conformantCredentialsMap[keys[currentIndex]].requestedFields)
 				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setImages(simplifiedCredentials);
 			} catch (error) {

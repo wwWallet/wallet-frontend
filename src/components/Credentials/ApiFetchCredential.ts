@@ -23,7 +23,7 @@ const hasherAndAlgorithm: HasherAndAlgorithm = {
 	algorithm: HasherAlgorithm.Sha256
 }
 
-const parseCredentialDependingOnFormat = async (credential: string, format: string): Promise<any> => {
+export const parseCredentialDependingOnFormat = async (credential: string, format: string): Promise<any> => {
 	switch (format) {
 		case CredentialFormat.JWT_VC_JSON:
 			return parseJwt(credential);
