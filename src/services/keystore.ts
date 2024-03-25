@@ -448,6 +448,40 @@ async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInf
 	);
 };
 
+export async function upgradePasswordKey(
+	privateData: MixedEncryptedContainer,
+	password: string,
+	currentKeyInfo: SymmetricPasswordKeyInfo,
+	currentPasswordKey: CryptoKey,
+): Promise<EncryptedContainer> {
+	const newDeriveKeyInfo: DerivePasswordKeyInfo = {
+		pbkdf2Params: currentKeyInfo.pbkdf2Params,
+		algorithm: { name: "AES-GCM", length: 256 },
+	};
+	const newPasswordKey = await derivePasswordKey(password, newDeriveKeyInfo);
+	const mainKey = await unwrapKey(
+		currentPasswordKey,
+		privateData.mainKey || null,
+		currentKeyInfo.mainKey,
+		true,
+	);
+	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
+	const [passwordKeypair, passwordPrivateKey] = await generateWrappedEncapsulationKeypair(newPasswordKey);
+	return {
+		...privateData,
+		mainKey: mainKeyInfo,
+		passwordKey: {
+			...newDeriveKeyInfo,
+			...await encapsulateKey(
+				passwordPrivateKey,
+				mainKeyInfo.publicKey,
+				passwordKeypair,
+				mainKey,
+			),
+		},
+	};
+}
+
 async function derivePrfKey(
 	prfOutput: BufferSource,
 	deriveKeyParams: WebauthnPrfEncryptionKeyDeriveKeyParams,
@@ -580,7 +614,7 @@ export async function getPrfKey(
 	credential: PublicKeyCredential | null,
 	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> {
+): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo, PublicKeyCredential]> {
 	const [prfOutput, prfCredential] = await getPrfOutput(
 		credential,
 		rpId,
@@ -591,8 +625,53 @@ export async function getPrfKey(
 	if (keyInfo === undefined) {
 		throw new Error("PRF key not found");
 	}
-	return [await derivePrfKey(prfOutput, keyInfo), keyInfo];
+	return [await derivePrfKey(prfOutput, keyInfo), keyInfo, prfCredential];
 }
+
+export async function upgradePrfKey(
+	privateData: EncryptedContainer,
+	credential: PublicKeyCredential | null,
+	prfKeyInfo: WebauthnPrfEncryptionKeyInfoV1,
+	rpId: string,
+	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+): Promise<EncryptedContainer> {
+	const [prfKey,, prfCredential] = await getPrfKey(
+		{
+			...privateData,
+			prfKeys: privateData.prfKeys.filter((keyInfo) => (
+				toBase64Url(keyInfo.credentialId) === toBase64Url(prfKeyInfo.credentialId)
+			)),
+		},
+		credential,
+		rpId,
+		promptForPrfRetry,
+	);
+
+	const mainKey = await unwrapKey(prfKey, null, prfKeyInfo.mainKey, true);
+	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
+
+	const newPrivateData = {
+		...privateData,
+		mainKey: mainKeyInfo,
+		prfKeys: await Promise.all(privateData.prfKeys.map(async prfKeyItem => {
+			if (toBase64Url(prfKeyItem.credentialId) === prfCredential.id) {
+				const newPrfKeyInfo = await createPrfKey(
+					prfCredential,
+					prfKeyInfo.prfSalt,
+					rpId,
+					mainKeyInfo,
+					mainKey,
+					async () => false,
+				);
+				return newPrfKeyInfo;
+			} else {
+				return prfKeyItem;
+			}
+		})),
+	};
+
+	return newPrivateData;
+};
 
 export async function addPrf(
 	privateData: EncryptedContainer,
@@ -666,7 +745,7 @@ export async function getPasswordKey(privateData: EncryptedContainer, password: 
 export async function unlockPassword(
 	privateData: EncryptedContainer,
 	password: string,
-): Promise<UnlockSuccess> {
+): Promise<[UnlockSuccess, EncryptedContainer | null]> {
 	const keyInfo = privateData.passwordKey;
 	if (keyInfo === undefined) {
 		throw new Error("Password key not found");
@@ -676,7 +755,13 @@ export async function unlockPassword(
 		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(passwordKey, null, keyInfo.mainKey);
 
-	return await unlock(mainKey, privateData);
+	const newPrivateData = (
+		isAsymmetricPasswordKeyInfo(keyInfo)
+			? null
+			: await upgradePasswordKey(privateData, password, keyInfo, passwordKey)
+	);
+
+	return [await unlock(mainKey, privateData), newPrivateData];
 };
 
 export async function unlockPrf(
@@ -684,13 +769,19 @@ export async function unlockPrf(
 	credential: PublicKeyCredential,
 	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-): Promise<UnlockSuccess> {
-	const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
+): Promise<[UnlockSuccess, EncryptedContainer | null]> {
+	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
 	const mainKey = isPrfKeyV2(keyInfo)
 		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(prfKey, null, keyInfo.mainKey);
 
-	return await unlock(mainKey, privateData);
+	const newPrivateData = (
+		isPrfKeyV2(keyInfo)
+			? null
+			: await upgradePrfKey(privateData, prfCredential, keyInfo, rpId, promptForPrfRetry)
+	);
+
+	return [await unlock(mainKey, privateData), newPrivateData];
 }
 
 export async function init(

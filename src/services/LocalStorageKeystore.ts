@@ -47,14 +47,17 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
 	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
-	unlockPassword(privateData: EncryptedContainer, password: string): Promise<void>,
+	unlockPassword(
+		privateData: EncryptedContainer,
+		password: string,
+	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	unlockPrf(
 		privateData: EncryptedContainer,
 		credential: PublicKeyCredential,
 		rpId: string,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: CachedUser | UserData,
-	): Promise<void>,
+	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	getPrfKeyFromSession(promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[CryptoKey, WrappedKeyInfo]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
@@ -244,8 +247,22 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					];
 				},
 
-				unlockPassword: async (privateData: EncryptedContainer, password: string): Promise<void> => {
-					return await finishUnlock(await keystore.unlockPassword(privateData, password), null);
+				unlockPassword: async (
+					privateData: EncryptedContainer,
+					password: string,
+				): Promise<[EncryptedContainer, CommitCallback] | null> => {
+					const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
+					await finishUnlock(unlockResult, null);
+					return (
+						newPrivateData
+							?
+							[newPrivateData,
+								async () => {
+									setPrivateDataCache(newPrivateData);
+								},
+							]
+							: null
+					);
 				},
 
 				unlockPrf: async (
@@ -254,10 +271,20 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					rpId: string,
 					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 					user: CachedUser | UserData | null,
-				): Promise<void> => {
-					const result = await finishUnlock(await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry), user);
+				): Promise<[EncryptedContainer, CommitCallback] | null> => {
+					const [unlockPrfResult, newPrivateData] = await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry);
+					await finishUnlock(unlockPrfResult, user);
 					setWebauthnRpId(rpId);
-					return result;
+					return (
+						newPrivateData
+							?
+							[newPrivateData,
+								async () => {
+									setPrivateDataCache(newPrivateData);
+								},
+							]
+							: null
+					);
 				},
 
 				getPrfKeyFromSession: async (

@@ -2,6 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import type { EncryptedContainer } from '../services/keystore';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -170,7 +171,21 @@ export function useApi(): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						await keystore.unlockPassword(privateData, password);
+						const updatePrivateData = await keystore.unlockPassword(privateData, password);
+						if (updatePrivateData) {
+							const [newPrivateData, keystoreCommit] = updatePrivateData;
+							const updateResp = await post(
+								'/user/session/update-private-data',
+								serializePrivateData(newPrivateData),
+								{ appToken: response.data.appToken },
+							);
+							if (updateResp.status === 204) {
+								await keystoreCommit();
+							} else {
+								console.error("Failed to upgrade password key", updateResp.status, updateResp);
+								return Err('loginKeystoreFailed');
+							}
+						}
 						setSession(response, null, 'login', false);
 						return Ok.EMPTY;
 					} catch (e) {
@@ -303,7 +318,7 @@ export function useApi(): BackendApi {
 							try {
 								const userData = finishResp.data as UserData;
 								const privateData = await parsePrivateData(userData.privateData);
-								await keystore.unlockPrf(
+								const updatePrivateData = await keystore.unlockPrf(
 									privateData,
 									credential,
 									beginData.getOptions.publicKey.rpId,
@@ -315,6 +330,20 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
+								if (updatePrivateData) {
+									const [newPrivateData, keystoreCommit] = updatePrivateData;
+									const updateResp = await post(
+										'/user/session/update-private-data',
+										serializePrivateData(newPrivateData),
+										{ appToken: finishResp.data.appToken },
+									);
+									if (updateResp.status === 204) {
+										await keystoreCommit();
+									} else {
+										console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
+										return Err('loginKeystoreFailed');
+									}
+								}
 								setSession(finishResp, credential, 'login', false);
 								return Ok.EMPTY;
 							} catch (e) {
