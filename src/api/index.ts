@@ -93,25 +93,25 @@ export function useApi(): BackendApi {
 				}
 			}
 
-			async function get(path: string): Promise<AxiosResponse> {
+			async function get(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
 				return await axios.get(
 					`${walletBackendUrl}${path}`,
 					{
 						headers: {
-							Authorization: `Bearer ${appToken}`,
+							Authorization: `Bearer ${options?.appToken || appToken}`,
 						},
 						transformResponse,
 					},
 				);
 			}
 
-			async function post(path: string, body: object): Promise<AxiosResponse> {
+			async function post(path: string, body: object, options?: { appToken?: string }): Promise<AxiosResponse> {
 				return await axios.post(
 					`${walletBackendUrl}${path}`,
 					body,
 					{
 						headers: {
-							Authorization: `Bearer ${appToken}`,
+							Authorization: `Bearer ${options?.appToken || appToken}`,
 							'Content-Type': 'application/json',
 						},
 						transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
@@ -120,12 +120,12 @@ export function useApi(): BackendApi {
 				);
 			}
 
-			async function del(path: string): Promise<AxiosResponse> {
+			async function del(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
 				return await axios.delete(
 					`${walletBackendUrl}${path}`,
 					{
 						headers: {
-							Authorization: `Bearer ${appToken}`,
+							Authorization: `Bearer ${options?.appToken || appToken}`,
 						},
 						transformResponse,
 					});
