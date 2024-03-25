@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { makeAssertionPrfExtensionInputs } from '../services/keystore';
+import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
@@ -168,7 +168,7 @@ export function useApi(): BackendApi {
 				try {
 					const response = await post('/user/login', { username, password });
 					const userData = response.data as UserData;
-					const privateData = jsonParseTaggedBinary(userData.privateData);
+					const privateData = await parsePrivateData(userData.privateData);
 					try {
 						await keystore.unlockPassword(privateData, password);
 						setSession(response, null, 'login', false);
@@ -195,7 +195,7 @@ export function useApi(): BackendApi {
 							password,
 							displayName: username,
 							keys: publicData,
-							privateData: jsonStringifyTaggedBinary(privateData),
+							privateData: serializePrivateData(privateData),
 						});
 						setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
@@ -302,7 +302,7 @@ export function useApi(): BackendApi {
 
 							try {
 								const userData = finishResp.data as UserData;
-								const privateData = jsonParseTaggedBinary(userData.privateData);
+								const privateData = await parsePrivateData(userData.privateData);
 								await keystore.unlockPrf(
 									privateData,
 									credential,
@@ -384,7 +384,7 @@ export function useApi(): BackendApi {
 									challengeId: beginData.challengeId,
 									displayName: name,
 									keys: publicData,
-									privateData: jsonStringifyTaggedBinary(privateData),
+									privateData: serializePrivateData(privateData),
 									credential: {
 										type: credential.type,
 										id: credential.id,

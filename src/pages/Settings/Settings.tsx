@@ -5,9 +5,10 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
-import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
+import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import type { WrappedKeyInfo } from '../../services/keystore';
+import { serializePrivateData } from '../../services/keystore';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
@@ -151,7 +152,7 @@ const WebauthnRegistation = ({
 						authenticatorAttachment: pendingCredential.authenticatorAttachment,
 						clientExtensionResults: pendingCredential.getClientExtensionResults(),
 					},
-					privateData: jsonStringifyTaggedBinary(newPrivateData),
+					privateData: serializePrivateData(newPrivateData),
 				});
 				onSuccess();
 				setNickname("");
@@ -608,7 +609,7 @@ const Settings = () => {
 	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
 		const [newPrivateData, keystoreCommit] = keystore.deletePrf(credential.credentialId);
 		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
-			privateData: jsonStringifyTaggedBinary(newPrivateData),
+			privateData: serializePrivateData(newPrivateData),
 		});
 		if (deleteResp.status === 204) {
 			await keystoreCommit();

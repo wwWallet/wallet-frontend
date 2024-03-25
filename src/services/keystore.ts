@@ -73,6 +73,14 @@ type WrappedPrivateKey = {
 }
 
 
+export async function parsePrivateData(privateData: BufferSource): Promise<EncryptedContainer> {
+	return jsonParseTaggedBinary(new TextDecoder().decode(privateData));
+}
+
+export function serializePrivateData(privateData: EncryptedContainer): Uint8Array {
+	return new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
+}
+
 async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
 	const mainKey = await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
