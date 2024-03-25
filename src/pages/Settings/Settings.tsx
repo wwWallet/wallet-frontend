@@ -5,10 +5,10 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
-import { compareBy, toBase64Url } from '../../util';
+import { compareBy, fromBase64Url, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
-import type { WrappedKeyInfo } from '../../services/keystore';
-import { serializePrivateData } from '../../services/keystore';
+import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
+import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
@@ -361,12 +361,13 @@ const WebauthnUnlock = ({
 
 const WebauthnCredentialItem = ({
 	credential,
+	prfKeyInfo,
 	onDelete,
 	onRename,
 	unlocked
-
 }: {
 	credential: WebauthnCredential,
+	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
 	unlocked: boolean
@@ -470,7 +471,11 @@ const WebauthnCredentialItem = ({
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
-					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}</p>
+					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
+					{(prfKeyInfo && !isPrfKeyV2(prfKeyInfo))
+						&& <span className="font-semibold text-orange-500 ml-2">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
+					}
+				</p>
 			</div>
 
 			<div className="items-start	 flex inline-flex">
@@ -650,6 +655,7 @@ const Settings = () => {
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
 									credential={loggedInPasskey}
+									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
 									onRename={onRenameWebauthnCredential}
 									unlocked={unlocked}
 								/>
@@ -695,6 +701,7 @@ const Settings = () => {
 												<WebauthnCredentialItem
 													key={cred.id}
 													credential={cred}
+													prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
 													unlocked={unlocked}

@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainerKeys, DidKeyVersion, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainerKeys, DidKeyVersion, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
 
 const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION as DidKeyVersion;
@@ -58,6 +58,7 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: CachedUser | UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
+	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
 	getPrfKeyFromSession(promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[CryptoKey, WrappedKeyInfo]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
@@ -285,6 +286,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							]
 							: null
 					);
+				},
+
+				getPrfKeyInfo: (id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined => {
+					return privateDataCache?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
 				},
 
 				getPrfKeyFromSession: async (

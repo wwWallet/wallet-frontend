@@ -183,6 +183,7 @@
 			"lastUsed": "Last Used",
 			"messageDeletePasskeyPart1": "Are you sure you want to delete",
 			"messageDeletePasskeyPart2": "passkey?",
+			"needsPrfUpgrade": "Needs upgrade",
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
