@@ -1,11 +1,20 @@
 // CredentialJson.js
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
+import { parseCredential } from '../../functions/parseCredential';
 
 const CredentialJson = ({ credential }) => {
 	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
+
+	const [parsedCredential, setParsedCredential] = useState(null);
+
+	useEffect(() => {
+		parseCredential(credential).then((c) => {
+			setParsedCredential(c);
+		});
+	}, []);
 
 	return (
 		<div className=" lg:p-0 p-2 w-full">
@@ -25,13 +34,13 @@ const CredentialJson = ({ credential }) => {
 
 			<hr className="my-2 border-t border-gray-500 py-2" />
 
-			{showJsonCredentials && credential ? (
+			{showJsonCredentials && parsedCredential ? (
 				<div>
 					<textarea
 						rows="10"
 						readOnly
 						className="w-full border rounded p-2 rounded-xl"
-						value={credential.json}
+						value={JSON.stringify(parsedCredential, null, 2)}
 					/>
 				</div>
 			) : (

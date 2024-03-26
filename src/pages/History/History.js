@@ -8,9 +8,11 @@ import "slick-carousel/slick/slick-theme.css";
 
 import { useApi } from '../../api';
 
-import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import { formatDate } from '../../functions/DateFormat';
+import StatusRibbon from '../../components/Credentials/StatusRibbon';
+import { base64url } from 'jose';
+import { CredentialImage } from '../../components/Credentials/CredentialImage';
 
 
 const History = () => {
@@ -38,16 +40,16 @@ const History = () => {
 		style: { margin: '0 10px' },
 	};
 
-	const handleHistoryItemClick = async (ivci) => {
+	const handleHistoryItemClick = async (item) => {
+		// Export all credentials from the presentation
+		const vpTokenPayload = JSON.parse(new TextDecoder().decode(
+			base64url.decode(item.presentation.split('.')[1])
+		));
 
-		// Fetch all credentials
-		const temp_cred = await fetchCredentialData(api);
-
-		// Filter credentials to keep only those with matching IDs in ivci
-		const matchingCreds = temp_cred.filter((cred) => ivci.includes(cred.credentialIdentifier));
+		const verifiableCredentials = vpTokenPayload.vp.verifiableCredential; // in raw format
 
 		// Set matching credentials and show the popup
-		setMatchingCredentials(matchingCreds);
+		setMatchingCredentials(verifiableCredentials);
 		setImageModalOpen(true);
 	};
 
@@ -59,7 +61,8 @@ const History = () => {
 				// Extract and map the vp_list from fetchedPresentations.
 				const vpListFromApi = fetchedPresentations.vp_list.map((item) => ({
 					id: item.id,
-					ivci: item.includedVerifiableCredentialIdentifiers,
+					presentation: item.presentation,
+					// ivci: item.includedVerifiableCredentialIdentifiers,
 					audience: item.audience,
 					issuanceDate: item.issuanceDate,
 				}));
@@ -94,7 +97,7 @@ const History = () => {
 								key={item.id}
 								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
 								style={{ wordBreak: 'break-all' }}
-								onClick={() => handleHistoryItemClick(item.ivci)}
+								onClick={() => handleHistoryItemClick(item)}
 							>
 								<div className="font-bold">{item.audience}</div>
 								<div>{formatDate(new Date(item.issuanceDate * 1000).toISOString())}</div>
@@ -126,9 +129,10 @@ const History = () => {
 						<div className=" p-2">
 							<Slider ref={sliderRef} {...settings}>
 								{matchingCredentials.map((credential) => (
-									<React.Fragment key={credential.id}>
+									<React.Fragment key={Math.random()}>
 										<div className="relative rounded-xl xl:w-full md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full">
-											<img src={credential.src} alt={credential.alt} className="w-full object-cover rounded-xl" />
+											<CredentialImage credential={credential} className={"w-full object-cover rounded-xl"} />
+											<StatusRibbon credential={credential} />
 										</div>
 										<div className="flex items-center justify-end mt-2 mr-3">
 											<span className="mr-4">{currentSlide} of {matchingCredentials.length}</span>
