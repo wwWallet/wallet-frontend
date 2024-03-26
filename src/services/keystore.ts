@@ -275,7 +275,7 @@ async function getPrfOutput(
 	credential: PublicKeyCredential | null,
 	rpId: string,
 	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
-	promptForRetry: () => Promise<boolean>,
+	promptForRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
 	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput } | null;
 	const canRetry = !clientExtensionOutputs?.prf || clientExtensionOutputs?.prf?.enabled;
@@ -284,7 +284,8 @@ async function getPrfOutput(
 		return [clientExtensionOutputs?.prf?.results?.first, credential];
 
 	} else if (canRetry) {
-		if (await promptForRetry()) {
+		const retryOrAbortSignal = await promptForRetry();
+		if (retryOrAbortSignal) {
 			try {
 				const retryCred = await navigator.credentials.get({
 					publicKey: {
@@ -293,6 +294,7 @@ async function getPrfOutput(
 						allowCredentials: prfInputs?.allowCredentials,
 						extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
 					},
+					signal: retryOrAbortSignal === true ? undefined : retryOrAbortSignal,
 				}) as PublicKeyCredential;
 				return await getPrfOutput(retryCred, rpId, prfInputs, async () => false);
 			} catch (err) {
@@ -317,7 +319,7 @@ async function createPrfKey(
 	prfSalt: Uint8Array,
 	rpId: string,
 	[wrappedMainKey, unwrappingKey]: [WrappedKeyInfo, CryptoKey] | [null, null],
-	promptForPrfRetry: () => Promise<boolean>,
+	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> {
 	const [prfOutput,] = await getPrfOutput(
 		credential,
@@ -345,7 +347,7 @@ export async function getPrfKey(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential | null,
 	rpId: string,
-	promptForPrfRetry: () => Promise<boolean>,
+	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> {
 	const [prfOutput, prfCredential] = await getPrfOutput(
 		credential,
@@ -366,7 +368,7 @@ export async function addPrf(
 	rpId: string,
 	existingPrfKey: CryptoKey,
 	wrappedMainKey: WrappedKeyInfo,
-	promptForPrfRetry: () => Promise<boolean>,
+	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
 	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
 	const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, [wrappedMainKey, existingPrfKey], promptForPrfRetry);
@@ -416,7 +418,7 @@ export async function unlockPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
 	rpId: string,
-	promptForPrfRetry: () => Promise<boolean>,
+	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<UnlockSuccess> {
 	const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
 	return await unlock(await unwrapKey(prfKey, keyInfo.mainKey), privateData);
@@ -464,7 +466,7 @@ export async function initPrf(
 	credential: PublicKeyCredential,
 	prfSalt: Uint8Array,
 	rpId: string,
-	promptForPrfRetry: () => Promise<boolean>,
+	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[WrappedKeyInfo, CryptoKey, EncryptedContainerKeys]> {
 	const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, [null, null], promptForPrfRetry);
 	return [keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }];

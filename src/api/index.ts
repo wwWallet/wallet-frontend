@@ -56,7 +56,7 @@ export interface BackendApi {
 
 	loginWebauthn(
 		keystore: LocalStorageKeystore,
-		promptForPrfRetry: () => Promise<boolean>,
+		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined,
 	): Promise<
 		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
@@ -64,7 +64,7 @@ export interface BackendApi {
 	signupWebauthn(
 		name: string,
 		keystore: LocalStorageKeystore,
-		promptForPrfRetry: () => Promise<boolean>,
+		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>>,
 
@@ -252,7 +252,7 @@ export function useApi(): BackendApi {
 
 			async function loginWebauthn(
 				keystore: LocalStorageKeystore,
-				promptForPrfRetry: () => Promise<boolean>,
+				promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				cachedUser: CachedUser | undefined,
 			): Promise<
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
@@ -338,7 +338,7 @@ export function useApi(): BackendApi {
 			async function signupWebauthn(
 				name: string,
 				keystore: LocalStorageKeystore,
-				promptForPrfRetry: () => Promise<boolean>,
+				promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				retryFrom?: SignupWebauthnRetryParams,
 			): Promise<Result<void, SignupWebauthnError>> {
 				try {
