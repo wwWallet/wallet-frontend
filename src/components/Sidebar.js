@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		>
 			{/* Mobile Header */}
 			<div className="sm:hidden flex items-center justify-between mb-4">
-				<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
+				<img src={logo} alt="Logo" className="w-12 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
 				<h1
 					className="text-white text-xl font-bold cursor-pointer"
 					onClick={() => handleNavigate('/')}
@@ -83,7 +83,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<img
 							src={logo}
 							alt="Logo"
-							className="w-20 h-22 mb-2 mr-2 cursor-pointer"
+							className="w-16 h-22 mr-2 cursor-pointer"
 							onClick={() => handleNavigate('/')}
 						/>
 						<h1
