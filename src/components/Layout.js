@@ -55,7 +55,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 					<img
 						src={logo}
 						alt="Logo"
-						className="w-24 h-auto mr-2 cursor-pointer"
+						className="w-12 h-auto mr-2 cursor-pointer"
 						onClick={() => handleNavigate('/')}
 					/>
 				</div>
