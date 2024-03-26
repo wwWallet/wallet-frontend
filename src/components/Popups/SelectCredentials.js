@@ -105,11 +105,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								onClick={() => { setApplyTransition(true); setShowRequestedFields(!showRequestedFields) }}
 								className="px-2 py-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
 							>
-								{showRequestedFields ? 'Hide Credentials Details' : 'Show Requested Fields'}
+								{showRequestedFields ? `${t('selectCredentialPopup.requestedFieldsHide')}` : `${t('selectCredentialPopup.requestedFieldsShow')}`}
 							</button>
 						</div>
 
-						<hr className="my-2 border-t border-gray-300 py-2" />
+						<hr className="border-t border-gray-300 py-1" />
 
 						<div
 							className={`overflow-hidden transition-height ${showRequestedFields ? 'max-h-96' : 'max-h-0'}`}
@@ -118,7 +118,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 						>
 							{renderContent && (
 								<>
-									<p className='mb-2 text-sm italic text-gray-700'>The following fields were requested from the verifier{verifierDomainName}</p>
+									<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')} {verifierDomainName}</p>
 									<textarea
 										readOnly
 										value={requestedFields.join('\n')}
