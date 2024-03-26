@@ -60,6 +60,7 @@ export interface LocalStorageKeystore {
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
 	getPrfKeyFromSession(promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[CryptoKey, WrappedKeyInfo]>,
+	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
 
@@ -298,6 +299,27 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					if (privateDataCache && webauthnRpId) {
 						const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateDataCache, null, webauthnRpId, promptForPrfRetry);
 						return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
+
+					} else {
+						throw new Error("Session not initialized");
+					}
+				},
+
+				upgradePrfKey: async (
+					prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+				): Promise<[EncryptedContainer, CommitCallback]> => {
+					if (keystore.isPrfKeyV2(prfKeyInfo)) {
+						throw new Error("Key is already upgraded");
+
+					} else if (privateDataCache && webauthnRpId) {
+						const newPrivateData = await keystore.upgradePrfKey(privateDataCache, null, prfKeyInfo, webauthnRpId, promptForPrfRetry);
+						return [
+							newPrivateData,
+							async () => {
+								setPrivateDataCache(newPrivateData);
+							},
+						];
 
 					} else {
 						throw new Error("Session not initialized");

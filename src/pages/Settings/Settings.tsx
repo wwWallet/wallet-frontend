@@ -1,6 +1,6 @@
 import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { Trans, useTranslation } from 'react-i18next';
+import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import { useApi } from '../../api';
@@ -13,6 +13,32 @@ import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
+
+
+function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
+	const { t } = useTranslation();
+	if (credential) {
+		return credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
+	} else {
+		return "";
+	}
+}
+
+type UpgradePrfState = (
+	null
+	| {
+		state: "authenticate",
+		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+		webauthnCredential: WebauthnCredential,
+		abortController: AbortController,
+	}
+	| {
+		state: "err",
+		err: any,
+		prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+		webauthnCredential: WebauthnCredential,
+	}
+);
 
 const Dialog = ({
 	children,
@@ -364,19 +390,20 @@ const WebauthnCredentialItem = ({
 	prfKeyInfo,
 	onDelete,
 	onRename,
+	onUpgradePrfKey,
 	unlocked
 }: {
 	credential: WebauthnCredential,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
-	unlocked: boolean
-
+	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
+	unlocked: boolean,
 }) => {
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
-	const currentLabel = credential.nickname || `${t('pageSettings.passkeyItem.unnamed')} ${credential.id.substring(0, 8)}`;
+	const currentLabel = useWebauthnCredentialNickname(credential);
 	const [submitting, setSubmitting] = useState(false);
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -415,6 +442,8 @@ const WebauthnCredentialItem = ({
 			setSubmitting(false);
 		}
 	};
+
+	const needsPrfUpgrade = prfKeyInfo && !isPrfKeyV2(prfKeyInfo);
 
 	return (
 		<form
@@ -472,13 +501,25 @@ const WebauthnCredentialItem = ({
 						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
 					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
-					{(prfKeyInfo && !isPrfKeyV2(prfKeyInfo))
+					{needsPrfUpgrade
 						&& <span className="font-semibold text-orange-500 ml-2">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
 			</div>
 
 			<div className="items-start	 flex inline-flex">
+				{needsPrfUpgrade
+					&&
+					<button
+						className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 inline-flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center mr-2"
+						type="button"
+						onClick={() => onUpgradePrfKey(prfKeyInfo)}
+						aria-label={t('pageSettings.passkeyItem.prfUpgradeAriaLabel', { passkeyLabel: currentLabel })}
+					>
+						<FaSyncAlt size={16} className="mr-2" /> {t('pageSettings.passkeyItem.prfUpgrade')}
+					</button>
+				}
+
 				{editing
 					? (
 
@@ -560,6 +601,8 @@ const Settings = () => {
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
+	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 
 	const deleteAccount = async () => {
 		try {
@@ -636,6 +679,43 @@ const Settings = () => {
 		}
 	};
 
+	const onUpgradePrfKey = async (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => {
+		try {
+			const [newPrivateData, keystoreCommit] = await keystore.upgradePrfKey(
+				prfKeyInfo,
+				async () => {
+					const abortController = new AbortController();
+					setUpgradePrfState(
+						{
+							state: "authenticate",
+							prfKeyInfo,
+							webauthnCredential: userData.webauthnCredentials.find(cred => toBase64Url(cred.credentialId) === toBase64Url(prfKeyInfo.credentialId)),
+							abortController,
+						}
+					);
+					return abortController.signal;
+				},
+			);
+			setUpgradePrfState(null);
+			const updateResp = await api.post('/user/session/update-private-data', serializePrivateData(newPrivateData));
+			if (updateResp.status === 204) {
+				await keystoreCommit();
+			} else {
+				console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
+			}
+		} catch (e) {
+			console.error("Failed to upgrade PRF key", e);
+			setUpgradePrfState(state => ({ state: "err", err: e, prfKeyInfo, webauthnCredential: state?.webauthnCredential }));
+		}
+	};
+
+	const onCancelUpgradePrfKey = () => {
+		if (upgradePrfState?.state === "authenticate") {
+			upgradePrfState.abortController.abort();
+		}
+		setUpgradePrfState(null);
+	};
+
 	const loggedInPasskey = userData?.webauthnCredentials.find(
 		cred => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId);
 
@@ -657,6 +737,7 @@ const Settings = () => {
 									credential={loggedInPasskey}
 									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
 									onRename={onRenameWebauthnCredential}
+									onUpgradePrfKey={onUpgradePrfKey}
 									unlocked={unlocked}
 								/>
 							)}
@@ -704,6 +785,7 @@ const Settings = () => {
 													prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
+													onUpgradePrfKey={onUpgradePrfKey}
 													unlocked={unlocked}
 												/>
 											))}
@@ -744,6 +826,49 @@ const Settings = () => {
 					}
 					loading={loading}
 				/>
+
+				<Dialog
+					open={upgradePrfState !== null}
+					onCancel={onCancelUpgradePrfKey}
+				>
+					{upgradePrfState?.state === "authenticate"
+						? <>
+							<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.upgradePrfKey.title')}</h1>
+							<p className='mb-2'>
+								{t('pageSettings.upgradePrfKey.description', { passkeyLabel: upgradePrfPasskeyLabel })}
+							</p>
+							<button
+								type="button"
+								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
+								onClick={onCancelUpgradePrfKey}
+							>
+								{t('common.cancel')}
+							</button>
+						</>
+						: <>
+							<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.upgradePrfKey.title')}</h1>
+							<Trans
+								i18nKey="pageSettings.upgradePrfKey.error"
+								values={{ passkeyLabel: upgradePrfPasskeyLabel }}
+								components={{ p: <p className='mb-2' /> }}
+							/>
+							<button
+								type="button"
+								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
+								onClick={onCancelUpgradePrfKey}
+							>
+								{t('common.cancel')}
+							</button>
+							<button
+								type="button"
+								className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg text-sm px-4 py-2 text-center mr-2"
+								onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
+							>
+								{t('common.tryAgain')}
+							</button>
+						</>
+					}
+				</Dialog>
 			</div>
 		</>
 	);

@@ -187,6 +187,8 @@
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+			"prfUpgrade": "Upgrade",
+			"prfUpgradeAriaLabel": "Upgrade passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
 			"renameButtonTitleLocked": "You cannot edit passkey while locked",
@@ -209,7 +211,12 @@
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
 		"unlockPasskeyManagement": "Unlock management",
-		"unlockPasskeyManagementTitle": "Click to Unlock management"
+		"unlockPasskeyManagementTitle": "Click to Unlock management",
+		"upgradePrfKey": {
+			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
+			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
+			"title": "Upgrading passkey encryption key"
+		}
 	},
 	"PinInputPopup": {
 		"description": "Please enter the PIN which was displayed from the issuer",
