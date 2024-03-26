@@ -16,19 +16,19 @@ import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
-import { fetchCredentialData } from '../../components/Credentials/ApiFetchCredential';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
+import { CredentialImage } from '../../components/Credentials/CredentialImage';
 
 const Home = () => {
 	const api = useApi();
-	const [credentials, setCredentials] = useState([]);
+	const [vcEntityList, setVcEntityList] = useState([]);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
-	const [selectedCredential, setSelectedCredential] = useState(null);
+	const [selectedVcEntity, setSelectedVcEntity] = useState(null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 
@@ -63,9 +63,9 @@ const Home = () => {
 
 	useEffect(() => {
 		const getData = async () => {
-			const temp_cred = await fetchCredentialData(api);
-			console.log(temp_cred);
-			setCredentials(temp_cred);
+			const response = await api.get('/storage/vc');
+			const vcEntityList = response.data.vc_list;
+			setVcEntityList(vcEntityList);
 		};
 		getData();
 	}, [api]);
@@ -74,8 +74,8 @@ const Home = () => {
 		navigate('/add');
 	};
 
-	const handleImageClick = (credential) => {
-		navigate(`/credential/${credential.id}`);
+	const handleImageClick = (vcEntity) => {
+		navigate(`/credential/${vcEntity.credentialIdentifier}`);
 	};
 
 	// QR Code part
@@ -92,7 +92,7 @@ const Home = () => {
 	const handleSureDelete = async () => {
 		setLoading(true);
 		try {
-			await api.del(`/storage/vc/${selectedCredential.credentialIdentifier}`);
+			await api.del(`/storage/vc/${selectedVcEntity.credentialIdentifier}`);
 		} catch (error) {
 			console.error('Failed to delete data', error);
 		}
@@ -137,7 +137,7 @@ const Home = () => {
 					{isSmallScreen ? (
 						<>
 
-							{credentials.length === 0 ? (
+							{vcEntityList.length === 0 ? (
 								<div
 									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 									onClick={handleAddCredential}
@@ -155,14 +155,14 @@ const Home = () => {
 							) : (
 								<>
 									<Slider ref={sliderRef} {...settings}>
-										{credentials.map((credential) => (
+										{vcEntityList && vcEntityList.map((vcEntity) => (
 											<>
-												<div className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => { setShowFullscreenImgPopup(true); setSelectedCredential(credential); }}>
-													<img src={credential.src} alt={credential.alt} className="w-full h-full object-cover rounded-xl" />
-													<StatusRibbon expDate={credential.expdate} />
+												<div className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}>
+													<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
+													<StatusRibbon credential={vcEntity.credential} />
 												</div>
 												<div className="flex items-center justify-end mt-2 mr-3">
-													<span className="mr-4">{currentSlide} of {credentials.length}</span>
+													<span className="mr-4">{currentSlide} of {vcEntityList.length}</span>
 													<button className="" onClick={() => sliderRef.current.slickPrev()}>
 														<BiLeftArrow size={22} />
 													</button>
@@ -170,9 +170,9 @@ const Home = () => {
 														<BiRightArrow size={22} />
 													</button>
 												</div>
-												<CredentialInfo credential={credential} />
-												<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedCredential(credential); }} />
-												<CredentialJson credential={credential} />
+												<CredentialInfo credential={vcEntity.credential} />
+												<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedVcEntity(vcEntity); }} />
+												<CredentialJson credential={vcEntity.credential} />
 
 											</>
 										))}
@@ -182,14 +182,14 @@ const Home = () => {
 						</>
 					) : (
 						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
-							{credentials.map((credential) => (
+							{vcEntityList.map((vcEntity) => (
 								<div
-									key={credential.id}
+									key={vcEntity.id}
 									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-									onClick={() => handleImageClick(credential)}
+									onClick={() => handleImageClick(vcEntity)}
 								>
-									<img src={credential.src} alt={credential.alt} className="w-full h-full object-cover rounded-xl" />
-									<StatusRibbon expDate={credential.expdate} />
+									<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
+									<StatusRibbon credential={vcEntity.credential} />
 								</div>
 							))}
 							<div
@@ -216,7 +216,7 @@ const Home = () => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<img src={selectedCredential.src} alt={selectedCredential.src} className="max-w-full max-h-full rounded-xl" />
+						<CredentialImage credential={selectedVcEntity.credential} className={"max-w-full max-h-full rounded-xl"} />
 					}
 				/>
 			)}
@@ -231,14 +231,14 @@ const Home = () => {
 			)}
 
 			{/* Delete Credential Modal */}
-			{showDeletePopup && selectedCredential && (
+			{showDeletePopup && selectedVcEntity && (
 				<DeletePopup
 					isOpen={showDeletePopup}
 					onConfirm={handleSureDelete}
 					onCancel={() => setShowDeletePopup(false)}
 					message={
 						<span>
-							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedCredential.type.replace(/([A-Z])/g, ' $1')}</strong> {t('pageCredentials.deletePopup.messagePart2')}
+							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedVcEntity.credentialIdentifier}</strong> {t('pageCredentials.deletePopup.messagePart2')}
 							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
 						</span>
 					}

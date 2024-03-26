@@ -1,9 +1,12 @@
 // StatusRibbon.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { parseCredential } from '../../functions/parseCredential';
 
-const StatusRibbon = ({ expDate }) => {
+const StatusRibbon = ({ credential }) => {
 	const { t } = useTranslation();
+
+	const [parsedCredential, setParsedCredential] = useState(null);
 
 	const CheckExpired = (expDate) => {
 		const today = new Date();
@@ -11,10 +14,21 @@ const StatusRibbon = ({ expDate }) => {
 		return expirationDate < today;
 	};
 
+	useEffect(() => {
+		parseCredential(credential).then((c) => {
+			setParsedCredential(c);
+		})
+	}, []);
+
+
 	return (
-		CheckExpired(expDate) && <div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${CheckExpired(expDate) ? 'bg-red-500' : 'bg-green-500'}`}>
-			{ t('statusRibbon.expired') }
-		</div>
+		<>
+			{parsedCredential && CheckExpired(parsedCredential.expirationDate) &&
+				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${CheckExpired(parsedCredential.expirationDate) ? 'bg-red-500' : 'bg-green-500'}`}>
+					{ t('statusRibbon.expired') }
+				</div>
+			}
+		</>
 	);
 };
 

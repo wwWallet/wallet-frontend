@@ -4,7 +4,7 @@ import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { useApi } from '../../api';
-import { parseCredentialDependingOnFormat } from '../../components/Credentials/ApiFetchCredential';
+import { CredentialImage } from '../Credentials/CredentialImage';
 
 
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
@@ -31,18 +31,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 			try {
 				const response = await api.get('/storage/vc');
-				const simplifiedCredentialsPromises = response.data.vc_list
-					.filter(vc => conformantCredentialsMap[keys[currentIndex]].credentials.includes(vc.credentialIdentifier))
-					.map(async vc => {
-						const credentialPayload = await parseCredentialDependingOnFormat(vc.credential, vc.format);
-						return ({
-							id: vc.credentialIdentifier,
-							imageURL: vc.logoURL,
-							expdate: credentialPayload['vc']["expirationDate"],
-						})
-					});
-				const simplifiedCredentials = await Promise.all(simplifiedCredentialsPromises);
-				console.log("Fields = ", conformantCredentialsMap[keys[currentIndex]].requestedFields)
+				const simplifiedCredentials = response.data.vc_list
+					.filter(vcEntity =>
+						conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
+					);
+
 				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setImages(simplifiedCredentials);
 			} catch (error) {
@@ -68,10 +61,10 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		setCurrentIndex((i) => i + 1);
 	}
 
-	const handleClick = (id) => {
+	const handleClick = (credentialIdentifier) => {
 		const descriptorId = keys[currentIndex];
 		setCurrentSelectionMap((currentMap) => {
-			currentMap[descriptorId] = id;
+			currentMap[descriptorId] = credentialIdentifier;
 			return currentMap;
 		});
 		setApplyTransition(false);
@@ -140,14 +133,8 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					{images.map(image => (
 						<div className="m-3 flex justify-center">
 							<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
-								<img
-									key={image.id}
-									src={image.imageURL}
-									alt={image.id}
-									onClick={() => handleClick(image.id)}
-									className="w-full object-cover rounded-xl"
-								/>
-								<StatusRibbon expDate={image.expdate} />
+								<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
+								<StatusRibbon credential={image.credential} />
 							</div>
 						</div>
 					))}
