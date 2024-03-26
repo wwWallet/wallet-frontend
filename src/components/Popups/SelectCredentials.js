@@ -21,7 +21,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [renderContent, setRenderContent] = useState(showRequestedFields);
 	const [applyTransition, setApplyTransition] = useState(false);
 
-
 	useEffect(() => {
 		const getData = async () => {
 			if (currentIndex == Object.keys(conformantCredentialsMap).length) {
