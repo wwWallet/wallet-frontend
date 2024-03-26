@@ -213,7 +213,7 @@ const Home = () => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage credential={selectedVcEntity.credential} className={"max-w-full max-h-full rounded-xl"} />
+						<CredentialImage credential={selectedVcEntity.credential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
 					}
 				/>
 			)}

@@ -3,7 +3,7 @@ import { parseCredential } from "../../functions/parseCredential";
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
 
 
-export const CredentialImage = ({ credential, className, onClick }) => {
+export const CredentialImage = ({ credential, className, onClick, showRibbon = true }) => {
 	const [parsedCredential, setParsedCredential] = useState(null);
 
 	useEffect(() => {
@@ -14,10 +14,12 @@ export const CredentialImage = ({ credential, className, onClick }) => {
 
 	return (
 		<>
-			{parsedCredential &&(
+			{parsedCredential && (
 				<>
-				<img src={parsedCredential.credentialBranding.image.url} alt={"Credential"} className={className} onClick={onClick} />
-				<StatusRibbon credential={credential}/>
+					<img src={parsedCredential.credentialBranding.image.url} alt={"Credential"} className={className} onClick={onClick} />
+					{showRibbon &&
+						<StatusRibbon credential={credential} />
+					}
 				</>
 			)}
 		</>
