@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
+import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import { BiRightArrowAlt } from 'react-icons/bi';
 
 import { useApi } from '../../api';
@@ -24,6 +24,10 @@ const CredentialDetail = () => {
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const { t } = useTranslation();
+	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
+
+
+
 
 	useEffect(() => {
 		const getData = async () => {
@@ -38,6 +42,14 @@ const CredentialDetail = () => {
 
 		getData();
 	}, [api, id]);
+
+	useEffect(() => {
+		if (vcEntity && vcEntity.credential) {
+			extractCredentialFriendlyName(vcEntity.credential).then((name) => {
+				setCredentialFriendlyName(name);
+			});
+		}
+	}, [vcEntity]);
 
 	const handleSureDelete = async () => {
 		setLoading(true);
@@ -62,7 +74,7 @@ const CredentialDetail = () => {
 						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
 					</div>
 					{vcEntity && (
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{vcEntity.credentialIdentifier}</h1>
+						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{credentialFiendlyName}</h1>
 					)}
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
@@ -115,7 +127,7 @@ const CredentialDetail = () => {
 					onCancel={() => setShowDeletePopup(false)}
 					message={
 						<span>
-							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {vcEntity.credentialIdentifier}</strong> {t('pageCredentials.deletePopup.messagePart2')}
+							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {credentialFiendlyName}</strong> {t('pageCredentials.deletePopup.messagePart2')}
 							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
 						</span>
 					}
