@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
 
@@ -37,6 +36,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					);
 
 				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
+				console.log('->',simplifiedCredentials);
 				setImages(simplifiedCredentials);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -83,7 +83,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	};
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center z-50">
+		<div className="fixed inset-0 flex items-center justify-center z-40">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
 			<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:max-w-[33.33%] sm:max-w-[66.67%] max-h-[90vh] z-10 relative m-4 overflow-y-auto">
 				<h2 className="text-lg font-bold mb-2 text-custom-blue">
@@ -134,7 +134,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 						<div className="m-3 flex justify-center">
 							<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
 								<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
-								<StatusRibbon credential={image.credential} />
 							</div>
 						</div>
 					))}
