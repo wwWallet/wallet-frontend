@@ -15,6 +15,7 @@
 		"previous": "Previous",
 		"save": "Save",
 		"submit": "Submit",
+		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -83,7 +84,6 @@
 		"reachedLengthLimit": "Length limit exceeded",
 		"strength": "Strength",
 		"submitting": "Submitting...",
-		"tryAgain": "Try again",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
