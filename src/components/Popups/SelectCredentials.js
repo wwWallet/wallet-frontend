@@ -80,7 +80,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
-			<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:max-w-[33.33%] sm:max-w-[66.67%] max-h-[90vh] z-10 relative m-4 overflow-y-auto">
+			<div className="bg-white p-4 rounded-lg shadow-md w-full lg:max-w-[33.33%] sm:max-w-[66.67%] max-h-[90vh] z-10 relative m-4 overflow-y-auto">
 				<h2 className="text-lg font-bold mb-2 text-custom-blue">
 					<FaShare size={20} className="inline mr-1 mb-1" />
 					{t('selectCredentialPopup.title')}
@@ -90,7 +90,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					{t('selectCredentialPopup.description')}
 				</p>
 				{requestedFields && (
-					<div className="lg:p-0 p-2 my-4 w-full">
+					<div className="my-3 w-full">
 						<div className="mb-2 flex items-center">
 							<button
 								onClick={toggleRequestedFields}
@@ -102,9 +102,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 						<hr className="border-t border-gray-300" />
 
-						<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-xl shadow-xl ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 m-0 p-0'}`}>
+						<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-xl shadow-md bg-gray-50 ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 m-0 p-0'}`}>
 							<>
-								<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')} {verifierDomainName}</p>
+								{verifierDomainName && (
+									<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')} {verifierDomainName}</p>
+								)}
 								<textarea
 									readOnly
 									value={requestedFields.join('\n')}
@@ -117,11 +119,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					</div>
 				)}
 
-				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar'>
+				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar bg-gray-50 shadow-md rounded-xl'>
 					{images.map(image => (
 						<>
 							<div key={image.credentialIdentifier} className="m-3 flex flex-col items-center">
-								<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
+								<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer">
 									<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
 								</div>
 								<div className='w-2/3 mt-2'>
@@ -131,7 +133,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 										{credentialDisplay[image.credentialIdentifier] ? 'Hide Details' : 'Show Details'}
 									</button>
 									<div
-										className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-lg rounded-lg ${credentialDisplay[image.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+										className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg ${credentialDisplay[image.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
 									>
 										<CredentialInfo credential={image.credential} mainClassName={"text-xs w-full"} />
 									</div>
