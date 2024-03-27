@@ -17,8 +17,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showRequestedFields, setShowRequestedFields] = useState(false);
-	const [renderContent, setRenderContent] = useState(showRequestedFields);
-	const [applyTransition, setApplyTransition] = useState(false);
 	const [credentialDisplay, setCredentialDisplay] = useState({});
 
 	useEffect(() => {
@@ -46,17 +44,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		getData();
 	}, [api, currentIndex]);
 
-	useEffect(() => {
-		if (showRequestedFields) {
-			setRenderContent(true);
-		} else if (applyTransition) {
-			setTimeout(() => setRenderContent(false), 500);
-		} else {
-			setRenderContent(false);
-		}
-	}, [showRequestedFields, applyTransition]);
-
-
 	const goToNextSelection = () => {
 		setCurrentIndex((i) => i + 1);
 	}
@@ -67,11 +54,8 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			currentMap[descriptorId] = credentialIdentifier;
 			return currentMap;
 		});
-		setApplyTransition(false);
-		setShowRequestedFields(false);
 		goToNextSelection();
 	};
-
 
 	const handleCancel = () => {
 		setShowPopup(false);
@@ -80,6 +64,10 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 	if (!showPopup) {
 		return null;
+	};
+
+	const toggleRequestedFields = () => {
+		setShowRequestedFields(!showRequestedFields);
 	};
 
 	const toggleCredentialDisplay = (identifier) => {
@@ -102,36 +90,29 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					{t('selectCredentialPopup.description')}
 				</p>
 				{requestedFields && (
-
-
-					<div className="lg:p-0 p-2 mt-4 w-full">
+					<div className="lg:p-0 p-2 my-4 w-full">
 						<div className="mb-2 flex items-center">
 							<button
-								onClick={() => { setApplyTransition(true); setShowRequestedFields(!showRequestedFields) }}
-								className="px-2 py-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
+								onClick={toggleRequestedFields}
+								className="px-2 py-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-xs px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
 							>
 								{showRequestedFields ? `${t('selectCredentialPopup.requestedFieldsHide')}` : `${t('selectCredentialPopup.requestedFieldsShow')}`}
 							</button>
 						</div>
 
-						<hr className="border-t border-gray-300 py-1" />
+						<hr className="border-t border-gray-300" />
 
-						<div
-							className={`overflow-hidden transition-height ${showRequestedFields ? 'max-h-96' : 'max-h-0'}`}
-							style={{ transition: 'max-height 0.5s ease-in-out' }}
-
-						>
-							{renderContent && (
-								<>
-									<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')} {verifierDomainName}</p>
-									<textarea
-										readOnly
-										value={requestedFields.join('\n')}
-										className="w-full border rounded p-2 rounded-xl"
-										rows={Math.min(3, Math.max(1, requestedFields.length))}
-									></textarea>
-								</>
-							)}
+						<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-xl shadow-xl ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 m-0 p-0'}`}>
+							<>
+								<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')} {verifierDomainName}</p>
+								<textarea
+									readOnly
+									value={requestedFields.join('\n')}
+									className="p-2 border rounded-lg text-sm"
+									style={{ width: '-webkit-fill-available' }}
+									rows={Math.min(3, Math.max(1, requestedFields.length))}
+								></textarea>
+							</>
 						</div>
 					</div>
 				)}
@@ -150,7 +131,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 										{credentialDisplay[image.credentialIdentifier] ? 'Hide Details' : 'Show Details'}
 									</button>
 									<div
-										className={`transition-all ease-in-out duration-500 overflow-hidden shadow-lg rounded-lg ${credentialDisplay[image.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+										className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-lg rounded-lg ${credentialDisplay[image.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
 									>
 										<CredentialInfo credential={image.credential} mainClassName={"text-xs w-full"} />
 									</div>
