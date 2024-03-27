@@ -38,7 +38,7 @@ export function SigningRequestHandlerService(): SigningRequestHandlers {
 		},
 
 		handleGenerateOpenid4vciProofSigningRequest: async (socket, keystore, { message_id, audience, nonce }) => {
-			const { proof_jwt } = await keystore.generateOpenid4vciProof(audience, nonce)
+			const { proof_jwt } = await keystore.generateOpenid4vciProof(nonce, audience)
 			console.log("proof jwt = ", proof_jwt);
 			const outgoingMessage: ClientSocketMessage = {
 				message_id: message_id,
