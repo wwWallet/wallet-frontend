@@ -16,12 +16,12 @@
 
 /* Custom scrollbar in login */
 .custom-scrollbar {
-	scrollbar-width: thin;
-	scrollbar-color: #ccc #f0f0f0;
 	padding-right: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
+	background-color: rgb(240, 240, 240);
+	color: #888;
 	width: 5px;
 }
 
