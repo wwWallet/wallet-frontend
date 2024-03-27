@@ -45,7 +45,7 @@ const renderRow = (fieldName, fieldValue) => {
 	return null;
 };
 
-const CredentialInfo = ({ credential }) => {
+const CredentialInfo = ({ credential, mainClassName="pt-5 pr-2 w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
 
@@ -56,7 +56,7 @@ const CredentialInfo = ({ credential }) => {
 	}, []);
 
 	return (
-		<div className=" pt-5 pr-2 w-full">
+		<div className={mainClassName}>
 			<table className="lg:w-4/5">
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
