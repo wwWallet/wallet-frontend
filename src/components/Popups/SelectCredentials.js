@@ -8,7 +8,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
-	const [images, setImages] = useState([]);
+	const [vcEntities, setVcEntities] = useState([]);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
@@ -29,13 +29,13 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 			try {
 				const response = await api.get('/storage/vc');
-				const simplifiedCredentials = response.data.vc_list
+				const vcEntities = response.data.vc_list
 					.filter(vcEntity =>
 						conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 					);
 
 				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
-				setImages(simplifiedCredentials);
+				setVcEntities(vcEntities);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
 			}
@@ -120,22 +120,22 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				)}
 
 				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar bg-gray-50 shadow-md rounded-xl'>
-					{images.map(image => (
+					{vcEntities.map(vcEntity => (
 						<>
-							<div key={image.credentialIdentifier} className="m-3 flex flex-col items-center">
+							<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
 								<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer">
-									<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
+									<CredentialImage key={vcEntity.credentialIdentifier} credential={vcEntity.credential} onClick={() => handleClick(vcEntity.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
 								</div>
 								<div className='w-2/3 mt-2'>
 									<button
-										onClick={() => toggleCredentialDisplay(image.credentialIdentifier)}
+										onClick={() => toggleCredentialDisplay(vcEntity.credentialIdentifier)}
 										className="text-xs py-2 w-full bg-custom-blue hover:bg-custom-blue-hover text-white font-medium rounded-lg">
-										{credentialDisplay[image.credentialIdentifier] ? 'Hide Details' : 'Show Details'}
+										{credentialDisplay[vcEntity.credentialIdentifier] ? 'Hide Details' : 'Show Details'}
 									</button>
 									<div
-										className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg ${credentialDisplay[image.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+										className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg ${credentialDisplay[vcEntity.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
 									>
-										<CredentialInfo credential={image.credential} mainClassName={"text-xs w-full"} />
+										<CredentialInfo credential={vcEntity.credential} mainClassName={"text-xs w-full"} />
 									</div>
 								</div>
 							</div>
