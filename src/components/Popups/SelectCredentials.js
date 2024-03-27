@@ -117,7 +117,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					</div>
 				)}
 
-				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh]'>
+				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar'>
 					{images.map(image => (
 						<>
 							<div key={image.credentialIdentifier} className="m-3 flex flex-col items-center">
