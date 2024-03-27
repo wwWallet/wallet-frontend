@@ -4,7 +4,7 @@ import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
-
+import CredentialInfo from '../Credentials/CredentialInfo';
 
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
@@ -19,6 +19,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [showRequestedFields, setShowRequestedFields] = useState(false);
 	const [renderContent, setRenderContent] = useState(showRequestedFields);
 	const [applyTransition, setApplyTransition] = useState(false);
+	const [credentialDisplay, setCredentialDisplay] = useState({});
 
 	useEffect(() => {
 		const getData = async () => {
@@ -81,6 +82,13 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		return null;
 	};
 
+	const toggleCredentialDisplay = (identifier) => {
+		setCredentialDisplay(prev => ({
+			...prev,
+			[identifier]: !prev[identifier]
+		}));
+	};
+
 	return (
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
@@ -130,11 +138,25 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 				<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh]'>
 					{images.map(image => (
-						<div className="m-3 flex justify-center">
-							<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
-								<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
+						<>
+							<div key={image.credentialIdentifier} className="m-3 flex flex-col items-center">
+								<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
+									<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
+								</div>
+								<div className='w-2/3 mt-2'>
+									<button
+										onClick={() => toggleCredentialDisplay(image.credentialIdentifier)}
+										className="text-xs py-2 w-full bg-custom-blue hover:bg-custom-blue-hover text-white font-medium rounded-lg">
+										{credentialDisplay[image.credentialIdentifier] ? 'Hide Details' : 'Show Details'}
+									</button>
+									<div
+										className={`transition-all ease-in-out duration-500 overflow-hidden shadow-lg rounded-lg ${credentialDisplay[image.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+									>
+										<CredentialInfo credential={image.credential} mainClassName={"text-xs w-full"} />
+									</div>
+								</div>
 							</div>
-						</div>
+						</>
 					))}
 				</div>
 				<button
