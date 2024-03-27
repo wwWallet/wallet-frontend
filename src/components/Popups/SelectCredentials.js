@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
 
@@ -134,7 +133,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 						<div className="m-3 flex justify-center">
 							<div className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer">
 								<CredentialImage key={image.credentialIdentifier} credential={image.credential} onClick={() => handleClick(image.credentialIdentifier)} className={"w-full object-cover rounded-xl"} />
-								<StatusRibbon credential={image.credential} />
 							</div>
 						</div>
 					))}

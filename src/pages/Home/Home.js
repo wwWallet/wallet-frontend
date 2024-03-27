@@ -19,7 +19,6 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
-import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 
 const Home = () => {
@@ -159,7 +158,6 @@ const Home = () => {
 											<>
 												<div className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}>
 													<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
-													<StatusRibbon credential={vcEntity.credential} />
 												</div>
 												<div className="flex items-center justify-end mt-2 mr-3">
 													<span className="mr-4">{currentSlide} of {vcEntityList.length}</span>
@@ -189,7 +187,6 @@ const Home = () => {
 									onClick={() => handleImageClick(vcEntity)}
 								>
 									<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
-									<StatusRibbon credential={vcEntity.credential} />
 								</div>
 							))}
 							<div
@@ -216,7 +213,7 @@ const Home = () => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage credential={selectedVcEntity.credential} className={"max-w-full max-h-full rounded-xl"} />
+						<CredentialImage credential={selectedVcEntity.credential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
 					}
 				/>
 			)}

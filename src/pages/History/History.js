@@ -10,7 +10,6 @@ import { useApi } from '../../api';
 
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import { formatDate } from '../../functions/DateFormat';
-import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 
@@ -132,7 +131,6 @@ const History = () => {
 									<React.Fragment key={Math.random()}>
 										<div className="relative rounded-xl xl:w-full md:w-full  sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full">
 											<CredentialImage credential={credential} className={"w-full object-cover rounded-xl"} />
-											<StatusRibbon credential={credential} />
 										</div>
 										<div className="flex items-center justify-end mt-2 mr-3">
 											<span className="mr-4">{currentSlide} of {matchingCredentials.length}</span>

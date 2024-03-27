@@ -13,7 +13,6 @@ import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
-import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 
 const CredentialDetail = () => {
@@ -87,7 +86,6 @@ const CredentialDetail = () => {
 							// Open the modal when the credential is clicked
 							<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
 								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover rounded-xl"} />
-								<StatusRibbon credential={vcEntity.credential} />
 							</div>
 						) : (
 							<></>
@@ -113,7 +111,7 @@ const CredentialDetail = () => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage credential={vcEntity.credential} className={"max-w-full max-h-full rounded-xl"} />
+						<CredentialImage credential={vcEntity.credential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
 					}
 				/>
 			)}
