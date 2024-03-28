@@ -145,7 +145,7 @@ async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<Wr
 	};
 }
 
-export async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo, extractable: boolean = false): Promise<CryptoKey> {
+async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo, extractable: boolean = false): Promise<CryptoKey> {
 	return await crypto.subtle.unwrapKey(
 		"raw",
 		keyInfo.wrappedKey,
@@ -420,6 +420,26 @@ export async function unlockPrf(
 	return await unwrapKey(prfKey, keyInfo.mainKey);
 }
 
+export async function init(
+	wrappedMainKey: WrappedKeyInfo,
+	wrappingKey: CryptoKey,
+	keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] },
+): Promise<{ mainKey: CryptoKey, publicData: PublicData, privateData: EncryptedContainer }> {
+	const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
+
+	const { publicData, privateDataJwe } = await createWallet(mainKey);
+	const privateData: EncryptedContainer = {
+		...keyInfo,
+		jwe: privateDataJwe,
+	};
+
+	return {
+		mainKey,
+		publicData,
+		privateData,
+	};
+}
+
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
 	// Check if the uncompressed public key has the correct length
 	if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {
@@ -462,7 +482,7 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 	return { didKeyString };
 }
 
-export async function createWallet(mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> {
+async function createWallet(mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> {
 	const jwtAlg = "ES256";
 	const signatureAlgorithmFamily = "ECDSA";
 	const namedCurve = "P-256";

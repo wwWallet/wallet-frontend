@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, unwrapKey } from "./keystore";
+import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -190,13 +190,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 				console.log("init");
 
-				const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
-
-				const { publicData, privateDataJwe } = await createWallet(mainKey);
-				const privateData: EncryptedContainer = {
-					...keyInfo,
-					jwe: privateDataJwe,
-				};
+				const { mainKey, publicData, privateData } = await keystore.init(wrappedMainKey, wrappingKey, keyInfo);
 				await unlock(mainKey, privateData, user);
 
 				return {
