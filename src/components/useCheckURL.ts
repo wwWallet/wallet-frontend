@@ -1,6 +1,7 @@
 import { useEffect, useState, Dispatch, SetStateAction } from 'react';
 import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { useTranslation } from 'react-i18next';
 
 export enum HandleOutboundRequestError {
 	INSUFFICIENT_CREDENTIALS = "INSUFFICIENT_CREDENTIALS",
@@ -30,6 +31,7 @@ function useCheckURL(urlToCheck: string): {
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const keystore = useLocalStorageKeystore();
+	const { t } = useTranslation();
 
 	useEffect(() => {
 
@@ -41,7 +43,7 @@ function useCheckURL(urlToCheck: string): {
 				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin, error } = res.data;
 				if (error && error == HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
 					console.error(`${HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS}`);
-					setTextMessagePopup({ title: "Insufficient Credentials", description: "One or more of the credentials you want to present do not exist for selection." });
+					setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
 					setTypeMessagePopup('error');
 					setMessagePopup(true);
 					return false;
