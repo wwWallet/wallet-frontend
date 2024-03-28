@@ -389,10 +389,10 @@ export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer
 	};
 }
 
-export async function unlockPassword(privateData: EncryptedContainer, password: string): Promise<CryptoKey> {
+export async function unlockPassword(privateData: EncryptedContainer, password: string): Promise<UnlockSuccess> {
 	const keyInfo = privateData.passwordKey;
 	const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
-	return await unwrapKey(passwordKey, keyInfo.mainKey);
+	return await unlock(await unwrapKey(passwordKey, keyInfo.mainKey), privateData);
 };
 
 export async function unlockPrf(
@@ -400,9 +400,9 @@ export async function unlockPrf(
 	credential: PublicKeyCredential,
 	rpId: string,
 	promptForPrfRetry: () => Promise<boolean>,
-): Promise<CryptoKey> {
+): Promise<UnlockSuccess> {
 	const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
-	return await unwrapKey(prfKey, keyInfo.mainKey);
+	return await unlock(await unwrapKey(prfKey, keyInfo.mainKey), privateData);
 }
 
 export async function init(

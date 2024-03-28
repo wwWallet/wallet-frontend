@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo, getPrfKey } from "./keystore";
+import { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo, getPrfKey } from "./keystore";
 
 
 type UserData = {
@@ -151,8 +151,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}
 			};
 
-			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer, user: CachedUser | UserData): Promise<void> => {
-				const { exportedSessionKey, privateDataCache, privateDataJwe } = await keystore.unlock(mainKey, privateData);
+			const finishUnlock = async (
+				{ exportedSessionKey, privateDataCache, privateDataJwe }: UnlockSuccess,
+				user: CachedUser | UserData,
+			): Promise<void> => {
 				setSessionKey(exportedSessionKey);
 				setPrivateDataCache(privateDataCache);
 				setPrivateDataJwe(privateDataJwe);
@@ -182,8 +184,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			const unlockPassword = async (privateData: EncryptedContainer, password: string): Promise<void> => {
-				const mainKey = await keystore.unlockPassword(privateData, password);
-				return await unlock(mainKey, privateData, null);
+				return await finishUnlock(await keystore.unlockPassword(privateData, password), null);
 			};
 
 			const unlockPrf = async (
@@ -193,8 +194,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				promptForPrfRetry: () => Promise<boolean>,
 				user: CachedUser | UserData | null,
 			): Promise<void> => {
-				const mainKey = await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry);
-				const result = await unlock(mainKey, privateData, user);
+				const result = await finishUnlock(await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry), user);
 				setWebauthnRpId(rpId);
 				return result;
 			};
@@ -208,7 +208,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				console.log("init");
 
 				const { mainKey, publicData, privateData } = await keystore.init(wrappedMainKey, wrappingKey, keyInfo);
-				await unlock(mainKey, privateData, user);
+				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
 
 				return {
 					publicData,
