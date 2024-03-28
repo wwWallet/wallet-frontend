@@ -107,7 +107,7 @@ export async function createSessionKey(): Promise<[CryptoKey, ArrayBuffer]> {
 	return [sessionKey, exportedSessionKey];
 }
 
-export async function importSessionKey(exportedSessionKey: BufferSource): Promise<CryptoKey> {
+async function importSessionKey(exportedSessionKey: BufferSource): Promise<CryptoKey> {
 	return await crypto.subtle.importKey(
 		"raw",
 		exportedSessionKey,
@@ -115,6 +115,15 @@ export async function importSessionKey(exportedSessionKey: BufferSource): Promis
 		false,
 		["decrypt", "unwrapKey"],
 	);
+}
+
+export async function openPrivateData(exportedSessionKey: BufferSource, privateDataJwe: string): Promise<[PrivateData, CryptoKey]> {
+	const sessionKey = await importSessionKey(exportedSessionKey);
+	const privateData = jsonParseTaggedBinary(
+		new TextDecoder().decode(
+			(await jose.compactDecrypt(privateDataJwe, sessionKey)).plaintext
+		));
+	return [privateData, sessionKey];
 }
 
 async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<WrappedKeyInfo> {

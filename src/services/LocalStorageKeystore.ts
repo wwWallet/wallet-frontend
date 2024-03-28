@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo } from "react";
-import * as jose from "jose";
 import { SignJWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
 import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
 import { verifiablePresentationSchemaURL } from "../constants";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
-import { jsonParseTaggedBinary, toBase64Url } from "../util";
+import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, importSessionKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
+import * as keystore from "./keystore";
+import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -132,12 +132,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		() => {
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
 				if (privateDataJwe) {
-					const sessk = await importSessionKey(sessionKey);
-					const privateData = jsonParseTaggedBinary(
-						new TextDecoder().decode(
-							(await jose.compactDecrypt(privateDataJwe, sessk)).plaintext
-						));
-					return [privateData, sessk];
+					return await keystore.openPrivateData(sessionKey, privateDataJwe);
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
