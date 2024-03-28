@@ -17,23 +17,6 @@ const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
 
 
-export type UserData = {
-	displayName: string;
-	userHandle: Uint8Array;
-}
-
-export type CachedUser = {
-	displayName: string;
-
-	// Authenticator may return `userHandle: null` when authenticating with
-	// non-empty `allowCredentials` (which we do when evaluating PRF), but the
-	// backend requires the user handle during login (which we do simultaneously
-	// with PRF evaluation for cached credentials)
-	userHandleB64u: string;
-
-	prfKeys: WebauthnPrfSaltInfo[];
-}
-
 export type EncryptedContainerKeys = {
 	passwordKey?: PasswordKeyInfo;
 	prfKeys: WebauthnPrfEncryptionKeyInfo[];
@@ -57,7 +40,7 @@ type PasswordKeyInfo = {
 	pbkdf2Params: Pbkdf2Params;
 }
 
-type WebauthnPrfSaltInfo = {
+export type WebauthnPrfSaltInfo = {
 	credentialId: Uint8Array,
 	prfSalt: Uint8Array,
 }

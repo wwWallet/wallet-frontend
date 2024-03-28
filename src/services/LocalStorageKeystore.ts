@@ -5,8 +5,25 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { CachedUser, EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, getPrfKey } from "./keystore";
+import { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo, getPrfKey } from "./keystore";
 
+
+type UserData = {
+	displayName: string;
+	userHandle: Uint8Array;
+}
+
+export type CachedUser = {
+	displayName: string;
+
+	// Authenticator may return `userHandle: null` when authenticating with
+	// non-empty `allowCredentials` (which we do when evaluating PRF), but the
+	// backend requires the user handle during login (which we do simultaneously
+	// with PRF evaluation for cached credentials)
+	userHandleB64u: string;
+
+	prfKeys: WebauthnPrfSaltInfo[];
+}
 
 export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
