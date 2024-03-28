@@ -107,6 +107,16 @@ export async function createSessionKey(): Promise<[CryptoKey, ArrayBuffer]> {
 	return [sessionKey, exportedSessionKey];
 }
 
+export async function importSessionKey(exportedSessionKey: BufferSource): Promise<CryptoKey> {
+	return await crypto.subtle.importKey(
+		"raw",
+		exportedSessionKey,
+		"AES-GCM",
+		false,
+		["decrypt", "unwrapKey"],
+	);
+}
+
 async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<WrappedKeyInfo> {
 	const wrapAlgo = "AES-KW";
 	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(

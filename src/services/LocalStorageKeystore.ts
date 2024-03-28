@@ -9,7 +9,7 @@ import { useClearStorages, useLocalStorage, useSessionStorage } from "../compone
 import { jsonParseTaggedBinary, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
+import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, importSessionKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -130,28 +130,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 	return useMemo(
 		() => {
-			const getSessionKey = async (): Promise<CryptoKey> => {
-				if (sessionKey) {
-					return await crypto.subtle.importKey(
-						"raw",
-						sessionKey,
-						"AES-GCM",
-						false,
-						["decrypt", "unwrapKey"],
-					);
-				} else {
-					throw new Error("Session key not initialized");
-				}
-			};
-
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
 				if (privateDataJwe) {
-					const sessionKey = await getSessionKey();
+					const sessk = await importSessionKey(sessionKey);
 					const privateData = jsonParseTaggedBinary(
 						new TextDecoder().decode(
-							(await jose.compactDecrypt(privateDataJwe, sessionKey)).plaintext
+							(await jose.compactDecrypt(privateDataJwe, sessk)).plaintext
 						));
-					return [privateData, sessionKey];
+					return [privateData, sessk];
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
