@@ -1,11 +1,14 @@
 import * as jose from "jose";
-import { JWK } from "jose";
+import { JWK, SignJWT } from "jose";
 import { base58btc } from 'multiformats/bases/base58';
 import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
+import { v4 as uuidv4 } from "uuid";
 import { util } from '@cef-ebsi/key-did-resolver';
+import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
+import { verifiablePresentationSchemaURL } from "../constants";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 
 
@@ -159,7 +162,7 @@ async function rewrapKey(wrappedKey: WrappedKeyInfo, unwrappingKey: CryptoKey, w
 	return await wrapKey(wrappingKey, unwrappedKey);
 }
 
-export async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
+async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
 	return await crypto.subtle.unwrapKey(
 		"jwk",
 		wrappedPrivateKey.privateKey,
@@ -443,3 +446,69 @@ export async function createWallet(mainKey: CryptoKey): Promise<{ publicData: Pu
 		privateDataJwe,
 	};
 };
+
+export async function createIdToken([privateData, sessionKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ id_token: string; }> {
+	const { alg, did, wrappedPrivateKey } = privateData;
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
+	const jws = await new SignJWT({ nonce: nonce })
+		.setProtectedHeader({
+			alg,
+			typ: "JWT",
+			kid: did + "#" + did.split(":")[2],
+		})
+		.setSubject(did)
+		.setIssuer(did)
+		.setExpirationTime('1m')
+		.setAudience(audience)
+		.setIssuedAt()
+		.sign(privateKey);
+
+	return { id_token: jws };
+}
+
+export async function signJwtPresentation([privateData, sessionKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
+	const { alg, did, wrappedPrivateKey } = privateData;
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
+
+	const jws = await new SignVerifiablePresentationJWT()
+		.setProtectedHeader({
+			alg,
+			typ: "JWT",
+			kid: did + "#" + did.split(":")[2],
+		})
+		.setVerifiableCredential(verifiableCredentials)
+		.setContext(["https://www.w3.org/2018/credentials/v1"])
+		.setType(["VerifiablePresentation"])
+		.setAudience(audience)
+		.setCredentialSchema(
+			verifiablePresentationSchemaURL,
+			"FullJsonSchemaValidator2021")
+		.setIssuer(did)
+		.setSubject(did)
+		.setHolder(did)
+		.setJti(`urn:id:${uuidv4()}`)
+		.setNonce(nonce)
+		.setIssuedAt()
+		.setExpirationTime('1m')
+		.sign(privateKey);
+	return { vpjwt: jws };
+}
+
+export async function generateOpenid4vciProof([privateData, sessionKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ proof_jwt: string }> {
+	const { alg, did, wrappedPrivateKey } = privateData;
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
+	const header = {
+		alg,
+		typ: "openid4vci-proof+jwt",
+		kid: did + "#" + did.split(":")[2]
+	};
+
+	const jws = await new SignJWT({ nonce: nonce })
+		.setProtectedHeader(header)
+		.setIssuedAt()
+		.setIssuer(did)
+		.setAudience(audience)
+		.setExpirationTime('1m')
+		.sign(privateKey);
+	return { proof_jwt: jws };
+}

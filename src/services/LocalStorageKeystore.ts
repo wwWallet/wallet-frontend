@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useMemo } from "react";
-import { SignJWT } from "jose";
-import { v4 as uuidv4 } from "uuid";
-import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
-import { verifiablePresentationSchemaURL } from "../constants";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
+import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -313,71 +309,17 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 				},
 
-				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
-					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
-					const jws = await new SignJWT({ nonce: nonce })
-						.setProtectedHeader({
-							alg,
-							typ: "JWT",
-							kid: did + "#" + did.split(":")[2],
-						})
-						.setSubject(did)
-						.setIssuer(did)
-						.setExpirationTime('1m')
-						.setAudience(audience)
-						.setIssuedAt()
-						.sign(privateKey);
+				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => (
+					await keystore.createIdToken(await openPrivateData(), nonce, audience)
+				),
 
-					return { id_token: jws };
-				},
+				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
+					await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
+				),
 
-				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => {
-					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
-
-					const jws = await new SignVerifiablePresentationJWT()
-						.setProtectedHeader({
-							alg,
-							typ: "JWT",
-							kid: did + "#" + did.split(":")[2],
-						})
-						.setVerifiableCredential(verifiableCredentials)
-						.setContext(["https://www.w3.org/2018/credentials/v1"])
-						.setType(["VerifiablePresentation"])
-						.setAudience(audience)
-						.setCredentialSchema(
-							verifiablePresentationSchemaURL,
-							"FullJsonSchemaValidator2021")
-						.setIssuer(did)
-						.setSubject(did)
-						.setHolder(did)
-						.setJti(`urn:id:${uuidv4()}`)
-						.setNonce(nonce)
-						.setIssuedAt()
-						.setExpirationTime('1m')
-						.sign(privateKey);
-					return { vpjwt: jws };
-				},
-
-				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => {
-					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
-					const header = {
-						alg,
-						typ: "openid4vci-proof+jwt",
-						kid: did + "#" + did.split(":")[2]
-					};
-
-					const jws = await new SignJWT({ nonce: nonce })
-						.setProtectedHeader(header)
-						.setIssuedAt()
-						.setIssuer(did)
-						.setAudience(audience)
-						.setExpirationTime('1m')
-						.sign(privateKey);
-					return { proof_jwt: jws };
-				},
+				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => (
+					await keystore.generateOpenid4vciProof(await openPrivateData(), nonce, audience)
+				),
 			};
 		},
 		[
