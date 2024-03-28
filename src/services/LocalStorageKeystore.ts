@@ -202,9 +202,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			return {
-				isOpen: () => {
-					return privateDataJwe !== null && sessionKey !== null;
-				},
+				isOpen: (): boolean => privateDataJwe !== null && sessionKey !== null,
 				close,
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
