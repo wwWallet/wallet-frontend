@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { makePrfExtensionInputs } from '../services/keystore';
+import { makeAssertionPrfExtensionInputs } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
@@ -252,7 +252,7 @@ export function useApi(): BackendApi {
 					const beginData = beginResp.data;
 
 					try {
-						const prfInputs = cachedUser && makePrfExtensionInputs(cachedUser.prfKeys);
+						const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
 						const getOptions = prfInputs
 							? {
 								...beginData.getOptions,

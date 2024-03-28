@@ -230,7 +230,17 @@ async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkd
 	);
 }
 
-export function makePrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]): {
+function makeRegistrationPrfExtensionInputs(credential: PublicKeyCredential, prfSalt: BufferSource): {
+	allowCredentials: PublicKeyCredentialDescriptor[],
+	prfInput: PrfExtensionInput,
+} {
+	return {
+		allowCredentials: [{ type: "public-key", id: credential.rawId }],
+		prfInput: { eval: { first: prfSalt } },
+	};
+}
+
+export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]): {
 	allowCredentials: PublicKeyCredentialDescriptor[],
 	prfInput: PrfExtensionInput,
 } {
@@ -305,10 +315,7 @@ async function createPrfKey(
 	const [prfOutput,] = await getPrfOutput(
 		credential,
 		rpId,
-		{
-			allowCredentials: [{ type: "public-key", id: credential.rawId }],
-			prfInput: { eval: { first: prfSalt } },
-		},
+		makeRegistrationPrfExtensionInputs(credential, prfSalt),
 		promptForPrfRetry,
 	);
 	const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
@@ -336,7 +343,7 @@ export async function getPrfKey(
 	const [prfOutput, prfCredential] = await getPrfOutput(
 		credential,
 		rpId,
-		makePrfExtensionInputs(privateData.prfKeys),
+		makeAssertionPrfExtensionInputs(privateData.prfKeys),
 		promptForPrfRetry,
 	);
 	const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
