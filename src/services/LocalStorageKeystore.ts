@@ -255,15 +255,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					wrappedMainKey: WrappedKeyInfo,
 					promptForPrfRetry: () => Promise<boolean>,
 				): Promise<[EncryptedContainer, CommitCallback]> => {
-					const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-					const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, wrappedMainKey, existingPrfKey, promptForPrfRetry);
-					const newPrivateData = {
-						...privateDataCache,
-						prfKeys: [
-							...privateDataCache.prfKeys,
-							keyInfo,
-						],
-					};
+					const newPrivateData = await keystore.addPrf(privateDataCache, credential, rpId, existingPrfKey, wrappedMainKey, promptForPrfRetry);
 					return [
 						newPrivateData,
 						async () => {

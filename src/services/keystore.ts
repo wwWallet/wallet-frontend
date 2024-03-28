@@ -361,6 +361,25 @@ export async function getPrfKey(
 	return [await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo), keyInfo];
 }
 
+export async function addPrf(
+	privateData: EncryptedContainer,
+	credential: PublicKeyCredential,
+	rpId: string,
+	existingPrfKey: CryptoKey,
+	wrappedMainKey: WrappedKeyInfo,
+	promptForPrfRetry: () => Promise<boolean>,
+): Promise<EncryptedContainer> {
+	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
+	const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, wrappedMainKey, existingPrfKey, promptForPrfRetry);
+	return {
+		...privateData,
+		prfKeys: [
+			...privateData.prfKeys,
+			keyInfo,
+		],
+	};
+}
+
 export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Array): EncryptedContainer {
 	return {
 		...privateData,
