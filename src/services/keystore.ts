@@ -404,6 +404,12 @@ export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer
 	};
 }
 
+export async function unlockPassword(privateData: EncryptedContainer, password: string): Promise<CryptoKey> {
+	const keyInfo = privateData.passwordKey;
+	const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
+	return await unwrapKey(passwordKey, keyInfo.mainKey);
+};
+
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
 	// Check if the uncompressed public key has the correct length
 	if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {

@@ -165,8 +165,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			const unlockPassword = async (privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void> => {
-				const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
-				const mainKey = await unwrapKey(passwordKey, keyInfo.mainKey);
+				const mainKey = await keystore.unlockPassword(privateData, password);
 				return await unlock(mainKey, privateData, null);
 			};
 
