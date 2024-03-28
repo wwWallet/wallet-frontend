@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
 import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
-import { MdTitle, MdGrade } from 'react-icons/md';
+import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
 import { formatDate } from '../../functions/DateFormat';
+import { parseCredential } from '../../functions/parseCredential';
 
 const getFieldIcon = (fieldName) => {
 	switch (fieldName) {
@@ -14,6 +15,8 @@ const getFieldIcon = (fieldName) => {
 			return <RiPassExpiredFill size={25} className="inline mr-1 mb-1" />;
 		case 'dateOfBirth':
 			return <AiFillCalendar size={25} className="inline mr-1 mb-1" />;
+		case 'personalIdentifier':
+			return <MdOutlineNumbers size={25} className="inline mr-1 mb-1" />
 		case 'familyName':
 		case 'firstName':
 			return <BiSolidUserCircle size={25} className="inline mr-1 mb-1" />;
@@ -42,21 +45,30 @@ const renderRow = (fieldName, fieldValue) => {
 	return null;
 };
 
-const CredentialInfo = ({ credential }) => {
+const CredentialInfo = ({ credential, mainClassName="pt-5 pr-2 w-full" }) => {
+
+	const [parsedCredential, setParsedCredential] = useState(null);
+
+	useEffect(() => {
+		parseCredential(credential).then((c) => {
+			setParsedCredential(c);
+		});
+	}, []);
+
 	return (
-		<div className=" pt-5 pr-2 w-full">
+		<div className={mainClassName}>
 			<table className="lg:w-4/5">
 				<tbody className="divide-y-4 divide-transparent">
-					{credential && (
+					{parsedCredential && (
 						<>
-							{renderRow('type', credential.type)}
-							{renderRow('expdate', formatDate(credential.expdate))}
-							{renderRow('familyName', credential.data.familyName)}
-							{renderRow('firstName', credential.data.firstName)}
-							{renderRow('dateOfBirth', credential.data.dateOfBirth)}
-							{renderRow('diplomaTitle', credential.data.diplomaTitle)}
-							{renderRow('eqfLevel', credential.data.eqfLevel)}
-							{renderRow('grade', credential.data.grade)}
+							{renderRow('expdate', formatDate(parsedCredential.expirationDate))}
+							{renderRow('familyName', parsedCredential.credentialSubject.familyName)}
+							{renderRow('firstName', parsedCredential.credentialSubject.firstName)}
+							{renderRow('personalIdentifier', parsedCredential.credentialSubject.personalIdentifier)}
+							{renderRow('dateOfBirth', parsedCredential.credentialSubject.dateOfBirth)}
+							{renderRow('diplomaTitle', parsedCredential.credentialSubject.diplomaTitle)}
+							{renderRow('eqfLevel', parsedCredential.credentialSubject.eqfLevel)}
+							{renderRow('grade', parsedCredential.credentialSubject.grade)}
 						</>
 					)}
 				</tbody>

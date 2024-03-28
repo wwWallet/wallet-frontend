@@ -70,7 +70,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - REACT_APP_FIREBASE_MESSAGING_SENDER_ID: Your Firebase Messaging Sender ID.
 	 - REACT_APP_FIREBASE_APP_ID: Your Firebase App ID.
 	 - REACT_APP_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
-	 - REACT_APP_CONSOLE_TYPES: Enable console logs (info, warn, error) separated by commas or leave empty for none.
+	 - REACT_APP_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
 
 4. Install dependencies:
 	```bash
