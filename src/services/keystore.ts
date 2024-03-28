@@ -313,7 +313,7 @@ async function getPrfOutput(
 	}
 }
 
-export async function createPrfKey(
+async function createPrfKey(
 	credential: PublicKeyCredential | null,
 	prfSalt: Uint8Array,
 	rpId: string,
@@ -457,6 +457,16 @@ export async function initPassword(password: string): Promise<[WrappedKeyInfo, C
 	};
 
 	return [wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys: [] }];
+}
+
+export async function initPrf(
+	credential: PublicKeyCredential,
+	prfSalt: Uint8Array,
+	rpId: string,
+	promptForPrfRetry: () => Promise<boolean>,
+): Promise<[WrappedKeyInfo, CryptoKey, EncryptedContainerKeys]> {
+	const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, null, null, promptForPrfRetry);
+	return [keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }];
 }
 
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {

@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { CachedUser, EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createPrfKey, getPrfKey } from "./keystore";
+import { CachedUser, EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, getPrfKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -219,8 +219,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					user: UserData,
 				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPrf");
-					const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, null, null, promptForPrfRetry);
-					const result = await init(keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }, user);
+					const [wrappedMainKey, wrappingKey, keys] = await keystore.initPrf(credential, prfSalt, rpId, promptForPrfRetry);
+					const result = await init(wrappedMainKey, wrappingKey, keys, user);
 					setWebauthnRpId(rpId);
 					return result;
 				},
