@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey } from "./keystore";
+import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, unwrapKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -135,11 +135,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer, user: CachedUser | UserData): Promise<void> => {
-				const [sessionKey, exportedSessionKey] = await createSessionKey();
+				const { exportedSessionKey, privateDataCache, privateDataJwe } = await keystore.unlock(mainKey, privateData);
 				setSessionKey(exportedSessionKey);
-				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, sessionKey);
-				setPrivateDataCache(privateData);
-				setPrivateDataJwe(reencryptedPrivateData);
+				setPrivateDataCache(privateDataCache);
+				setPrivateDataJwe(privateDataJwe);
 
 				if (user) {
 					const userHandleB64u = ("prfKeys" in user

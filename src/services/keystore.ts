@@ -97,7 +97,7 @@ export async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyI
 	return await wrapKey(wrappingKey, mainKey);
 }
 
-export async function createSessionKey(): Promise<[CryptoKey, ArrayBuffer]> {
+async function createSessionKey(): Promise<[CryptoKey, ArrayBuffer]> {
 	const sessionKey = await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
 		true,
@@ -202,7 +202,7 @@ async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoK
 		));
 };
 
-export async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, toKey: CryptoKey): Promise<string> {
+async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, toKey: CryptoKey): Promise<string> {
 	const privateData = await decryptPrivateData(privateDataJwe, fromKey);
 	const privateKey = await unwrapPrivateKey(privateData.wrappedPrivateKey, fromKey, true);
 	privateData.wrappedPrivateKey = await wrapPrivateKey(privateKey, toKey);
@@ -386,6 +386,21 @@ export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Ar
 		prfKeys: privateData.prfKeys.filter((keyInfo) => (
 			toBase64Url(keyInfo.credentialId) !== toBase64Url(credentialId)
 		)),
+	};
+}
+
+export type UnlockSuccess = {
+	exportedSessionKey: ArrayBuffer,
+	privateDataCache: EncryptedContainer,
+	privateDataJwe: string,
+}
+export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer): Promise<UnlockSuccess> {
+	const [sessionKey, exportedSessionKey] = await createSessionKey();
+	const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, sessionKey);
+	return {
+		exportedSessionKey,
+		privateDataCache: privateData,
+		privateDataJwe: reencryptedPrivateData,
 	};
 }
 
