@@ -219,7 +219,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					const passwordKeyInfo = {
 						mainKey: wrappedMainKey,
 						pbkdf2Params,
-						prfKeys: [],
 					};
 
 					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys:[] }, null);
