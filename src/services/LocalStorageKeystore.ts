@@ -9,7 +9,7 @@ import { useClearStorages, useLocalStorage, useSessionStorage } from "../compone
 import { jsonParseTaggedBinary, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
+import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, createSessionKey, createWallet, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations, reencryptPrivateData, unwrapKey, unwrapPrivateKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -130,20 +130,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 	return useMemo(
 		() => {
-			const createSessionKey = async (): Promise<CryptoKey> => {
-				const sessionKey = await crypto.subtle.generateKey(
-					{ name: "AES-GCM", length: 256 },
-					true,
-					["encrypt", "wrapKey"],
-				);
-				const exportedSessionKey = await crypto.subtle.exportKey(
-					"raw",
-					sessionKey,
-				);
-				setSessionKey(exportedSessionKey);
-				return sessionKey;
-			}
-
 			const getSessionKey = async (): Promise<CryptoKey> => {
 				if (sessionKey) {
 					return await crypto.subtle.importKey(
@@ -172,7 +158,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer, user: CachedUser | UserData): Promise<void> => {
-				const sessionKey = await createSessionKey();
+				const [sessionKey, exportedSessionKey] = await createSessionKey();
+				setSessionKey(exportedSessionKey);
 				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, sessionKey);
 				setPrivateDataCache(privateData);
 				setPrivateDataJwe(reencryptedPrivateData);
