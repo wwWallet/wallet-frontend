@@ -2,7 +2,8 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
+import { CachedUser, makePrfExtensionInputs } from '../services/keystore';
+import { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
