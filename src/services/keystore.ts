@@ -259,8 +259,6 @@ async function getPrfOutput(
 	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
 	promptForRetry: () => Promise<boolean>,
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
-	console.log("getPrfOutput", credential, rpId, prfInputs);
-
 	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput };
 	const canRetry = !clientExtensionOutputs?.prf || clientExtensionOutputs?.prf?.enabled;
 
@@ -335,7 +333,6 @@ export async function getPrfKey(
 	rpId: string,
 	promptForPrfRetry: () => Promise<boolean>,
 ): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> {
-	console.log("getPrfKey", privateData, credential, rpId);
 	const [prfOutput, prfCredential] = await getPrfOutput(
 		credential,
 		rpId,
@@ -473,10 +470,8 @@ async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<
 async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: string }> {
 	const rawPublicKey = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
 	const compressedPublicKeyBytes = await compressPublicKey(rawPublicKey)
-	console.log("Raw pub key bytes = ", compressedPublicKeyBytes)
 	// Concatenate keyType and publicKey Uint8Arrays
 	const multicodecPublicKey = new Uint8Array(2 + compressedPublicKeyBytes.length);
-	console.log("Compresses pub key length = ", compressedPublicKeyBytes.length)
 	varint.encodeTo(0x1200, multicodecPublicKey, 0);
 
 	multicodecPublicKey.set(compressedPublicKeyBytes, 2);
