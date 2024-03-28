@@ -158,7 +158,7 @@ export function useApi(): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
-						await keystore.unlockPassword(privateData, password, privateData.passwordKey);
+						await keystore.unlockPassword(privateData, password);
 						setSession(response, null);
 						return Ok.EMPTY;
 					} catch (e) {

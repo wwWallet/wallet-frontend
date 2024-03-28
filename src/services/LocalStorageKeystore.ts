@@ -29,7 +29,7 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
 	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
-	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
+	unlockPassword(privateData: EncryptedContainer, password: string): Promise<void>,
 	unlockPrf(
 		privateData: EncryptedContainer,
 		credential: PublicKeyCredential,
@@ -164,7 +164,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}
 			};
 
-			const unlockPassword = async (privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void> => {
+			const unlockPassword = async (privateData: EncryptedContainer, password: string): Promise<void> => {
 				const mainKey = await keystore.unlockPassword(privateData, password);
 				return await unlock(mainKey, privateData, null);
 			};
