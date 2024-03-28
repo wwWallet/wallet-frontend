@@ -153,7 +153,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 			const finishUnlock = async (
 				{ exportedSessionKey, privateDataCache, privateDataJwe }: UnlockSuccess,
-				user: CachedUser | UserData,
+				user: CachedUser | UserData | null,
 			): Promise<void> => {
 				setSessionKey(exportedSessionKey);
 				setPrivateDataCache(privateDataCache);
