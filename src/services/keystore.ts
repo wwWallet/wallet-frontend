@@ -410,6 +410,16 @@ export async function unlockPassword(privateData: EncryptedContainer, password: 
 	return await unwrapKey(passwordKey, keyInfo.mainKey);
 };
 
+export async function unlockPrf(
+	privateData: EncryptedContainer,
+	credential: PublicKeyCredential,
+	rpId: string,
+	promptForPrfRetry: () => Promise<boolean>,
+): Promise<CryptoKey> {
+	const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
+	return await unwrapKey(prfKey, keyInfo.mainKey);
+}
+
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
 	// Check if the uncompressed public key has the correct length
 	if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {

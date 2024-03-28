@@ -176,8 +176,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				promptForPrfRetry: () => Promise<boolean>,
 				user: CachedUser | UserData | null,
 			): Promise<void> => {
-				const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
-				const mainKey = await unwrapKey(prfKey, keyInfo.mainKey);
+				const mainKey = await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry);
 				const result = await unlock(mainKey, privateData, user);
 				setWebauthnRpId(rpId);
 				return result;
