@@ -41,7 +41,7 @@ function useCheckURL(urlToCheck: string): {
 				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin, error } = res.data;
 				if (error && error == HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
 					console.error(`${HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS}`);
-					setTextMessagePopup({ title: "Insufficient Credentials", description: "One more credentials you want present not have them!" });
+					setTextMessagePopup({ title: "Insufficient Credentials", description: "One or more of the credentials you want to present do not exist for selection." });
 					setTypeMessagePopup('error');
 					setMessagePopup(true);
 					return false;
