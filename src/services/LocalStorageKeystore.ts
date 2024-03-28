@@ -63,6 +63,7 @@ export interface LocalStorageKeystore {
 	generateOpenid4vciProof(nonce: string, audience: string): Promise<{ proof_jwt: string }>,
 }
 
+/** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [privateDataCache, setPrivateDataCache, clearPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
