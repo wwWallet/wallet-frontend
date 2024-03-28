@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { CachedUser, EncryptedContainer, PasswordKeyInfo, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createMainKey, createPrfKey, derivePasswordKey, getPrfKey, pbkdfHash, pbkdfIterations } from "./keystore";
+import { CachedUser, EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UserData, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo, createPrfKey, getPrfKey } from "./keystore";
 
 
 export type CommitCallback = () => Promise<void>;
@@ -185,7 +185,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			const init = async (
 				wrappedMainKey: WrappedKeyInfo,
 				wrappingKey: CryptoKey,
-				keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] },
+				keyInfo: EncryptedContainerKeys,
 				user: UserData,
 			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 				console.log("init");
@@ -207,21 +207,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					console.log("initPassword");
-
-					const pbkdf2Params: Pbkdf2Params = {
-						name: "PBKDF2",
-						hash: pbkdfHash,
-						iterations: pbkdfIterations,
-						salt: crypto.getRandomValues(new Uint8Array(32)),
-					};
-					const passwordKey = await derivePasswordKey(password, pbkdf2Params);
-					const wrappedMainKey = await createMainKey(passwordKey);
-					const passwordKeyInfo = {
-						mainKey: wrappedMainKey,
-						pbkdf2Params,
-					};
-
-					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys:[] }, null);
+					const [wrappedMainKey, wrappingKey, keys] = await keystore.initPassword(password);
+					return await init(wrappedMainKey, wrappingKey, keys, null);
 				},
 
 				initPrf: async (

@@ -34,15 +34,17 @@ export type CachedUser = {
 	prfKeys: WebauthnPrfSaltInfo[];
 }
 
-export type EncryptedContainer = {
-	jwe: string;
+export type EncryptedContainerKeys = {
 	passwordKey?: PasswordKeyInfo;
 	prfKeys: WebauthnPrfEncryptionKeyInfo[];
 }
+export type EncryptedContainer = EncryptedContainerKeys & {
+	jwe: string;
+}
 
 // Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
-export const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
-export const pbkdfIterations: number = 600000;
+const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
+const pbkdfIterations: number = 600000;
 
 export type WrappedKeyInfo = {
 	wrappedKey: Uint8Array,
@@ -50,7 +52,7 @@ export type WrappedKeyInfo = {
 	unwrappedKeyAlgo: KeyAlgorithm,
 }
 
-export type PasswordKeyInfo = {
+type PasswordKeyInfo = {
 	mainKey: WrappedKeyInfo,
 	pbkdf2Params: Pbkdf2Params;
 }
@@ -88,7 +90,7 @@ type WrappedPrivateKey = {
 }
 
 
-export async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
+async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
 	const mainKey = await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
 		true,
@@ -209,7 +211,7 @@ async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, 
 	return await encryptPrivateData(privateData, toKey);
 }
 
-export async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> {
+async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> {
 	const keyMaterial = await crypto.subtle.importKey(
 		"raw",
 		new TextEncoder().encode(password),
@@ -438,6 +440,23 @@ export async function init(
 		publicData,
 		privateData,
 	};
+}
+
+export async function initPassword(password: string): Promise<[WrappedKeyInfo, CryptoKey, EncryptedContainerKeys]> {
+	const pbkdf2Params: Pbkdf2Params = {
+		name: "PBKDF2",
+		hash: pbkdfHash,
+		iterations: pbkdfIterations,
+		salt: crypto.getRandomValues(new Uint8Array(32)),
+	};
+	const passwordKey = await derivePasswordKey(password, pbkdf2Params);
+	const wrappedMainKey = await createMainKey(passwordKey);
+	const passwordKeyInfo = {
+		mainKey: wrappedMainKey,
+		pbkdf2Params,
+	};
+
+	return [wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys: [] }];
 }
 
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
