@@ -132,8 +132,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				closeTabLocal();
 
 			} else if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
-				console.log("useEffect userHandle");
-
 				// When user logs in in any tab, log out in all other tabs
 				// that are logged in to a different account
 				closeTabLocal();
@@ -190,8 +188,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				keyInfo: EncryptedContainerKeys,
 				user: UserData,
 			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-				console.log("init");
-
 				const { mainKey, publicData, privateData } = await keystore.init(wrappedMainKey, wrappingKey, keyInfo);
 				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
 
@@ -206,7 +202,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				close,
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-					console.log("initPassword");
 					const [wrappedMainKey, wrappingKey, keys] = await keystore.initPassword(password);
 					return await init(wrappedMainKey, wrappingKey, keys, null);
 				},
@@ -218,7 +213,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					promptForPrfRetry: () => Promise<boolean>,
 					user: UserData,
 				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-					console.log("initPrf");
 					const [wrappedMainKey, wrappingKey, keys] = await keystore.initPrf(credential, prfSalt, rpId, promptForPrfRetry);
 					const result = await init(wrappedMainKey, wrappingKey, keys, user);
 					setWebauthnRpId(rpId);
