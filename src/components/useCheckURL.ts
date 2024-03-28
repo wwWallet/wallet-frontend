@@ -2,6 +2,9 @@ import { useEffect, useState, Dispatch, SetStateAction } from 'react';
 import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
+export enum HandleOutboundRequestError {
+	INSUFFICIENT_CREDENTIALS = "INSUFFICIENT_CREDENTIALS",
+}
 
 function useCheckURL(urlToCheck: string): {
 	showSelectCredentialsPopup: boolean,
@@ -29,8 +32,12 @@ function useCheckURL(urlToCheck: string): {
 				const wwwallet_camera_was_used = new URL(url).searchParams.get('wwwallet_camera_was_used');
 
 				const res = await api.post('/communication/handle', { url, camera_was_used: (wwwallet_camera_was_used != null && wwwallet_camera_was_used === 'true') });
-				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin } = res.data;
-
+				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin, error } = res.data;
+				if (error && error == HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
+					console.error(`${HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS}`);
+					alert(HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS);
+					return false;
+				}
 				if (preauth && preauth == true) {
 					if (ask_for_pin) {
 						setShowPinInputPopup(true);
