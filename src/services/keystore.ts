@@ -295,7 +295,7 @@ async function getPrfOutput(
 }
 
 async function createPrfKey(
-	credential: PublicKeyCredential | null,
+	credential: PublicKeyCredential,
 	prfSalt: Uint8Array,
 	rpId: string,
 	wrappedMainKey: WrappedKeyInfo | null,
