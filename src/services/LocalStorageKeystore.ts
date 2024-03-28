@@ -561,16 +561,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				return compressedPublicKey;
 			}
 
-			const getPublicKeyFromDID = async (did: string) => {
-				let decodedPublicKey = {}
-				const multibaseValue = did.split(':')[2];
-				const decodedMultibaseValue = base58btc.decode(multibaseValue);
-				let multicodecValue = varint.decode(decodedMultibaseValue.slice(0, 2)); // header
-				const rawPublicKeyBytes = decodedMultibaseValue.slice(2,);
-				console.log("Raw public key bytes = ", rawPublicKeyBytes);
-				console.log("Raw public key bytes len = ", rawPublicKeyBytes.length);
-			}
-
 			const createW3CDID = async (publicKey: CryptoKey) => {
 				const rawPublicKey = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
 				const compressedPublicKeyBytes = await compressPublicKey(rawPublicKey)
@@ -592,8 +582,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				if (doc.didDocument == null) {
 					throw new Error("Failed to resolve the generated DID");
 				}
-				console.log("Getting back")
-				await getPublicKeyFromDID(didKeyString);
 				return { didKeyString };
 			}
 
