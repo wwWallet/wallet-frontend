@@ -273,12 +273,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				deletePrf: (credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
-					const newPrivateData = {
-						...privateDataCache,
-						prfKeys: privateDataCache.prfKeys.filter((keyInfo) => (
-							toBase64Url(keyInfo.credentialId) !== toBase64Url(credentialId)
-						)),
-					};
+					const newPrivateData = keystore.deletePrf(privateDataCache, credentialId);
 					return [
 						newPrivateData,
 						async () => {

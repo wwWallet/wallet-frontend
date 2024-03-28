@@ -361,6 +361,15 @@ export async function getPrfKey(
 	return [await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo), keyInfo];
 }
 
+export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Array): EncryptedContainer {
+	return {
+		...privateData,
+		prfKeys: privateData.prfKeys.filter((keyInfo) => (
+			toBase64Url(keyInfo.credentialId) !== toBase64Url(credentialId)
+		)),
+	};
+}
+
 async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
 	// Check if the uncompressed public key has the correct length
 	if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {
