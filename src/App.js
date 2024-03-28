@@ -23,6 +23,7 @@ const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
+const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
@@ -51,7 +52,11 @@ function App() {
 		conformantCredentialsMap,
 		showPinInputPopup,
 		setShowPinInputPopup,
-		verifierDomainName
+		verifierDomainName,
+		showMessagePopup,
+		setMessagePopup,
+		textMessagePopup,
+		typeMessagePopup,
 	} = useCheckURL(url);
 
 	useEffect(() => {
@@ -98,6 +103,9 @@ function App() {
 						}
 						{showPinInputPopup &&
 							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+						}
+						{showMessagePopup &&
+							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 						}
 					</HandlerNotification>
 				</Suspense>

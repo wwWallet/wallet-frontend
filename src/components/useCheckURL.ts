@@ -13,7 +13,11 @@ function useCheckURL(urlToCheck: string): {
 	conformantCredentialsMap: any,
 	showPinInputPopup: boolean,
 	setShowPinInputPopup: Dispatch<SetStateAction<boolean>>,
-	verifierDomainName: string
+	verifierDomainName: string,
+	showMessagePopup: boolean;
+	setMessagePopup: Dispatch<SetStateAction<boolean>>;
+	textMessagePopup: { title: string, description: string };
+	typeMessagePopup: string;
 } {
 	const api = useApi();
 	const isLoggedIn: boolean = api.isLoggedIn();
@@ -22,7 +26,9 @@ function useCheckURL(urlToCheck: string): {
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 	const [verifierDomainName, setVerifierDomainName] = useState("");
-
+	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
+	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
+	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const keystore = useLocalStorageKeystore();
 
 	useEffect(() => {
@@ -35,7 +41,9 @@ function useCheckURL(urlToCheck: string): {
 				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin, error } = res.data;
 				if (error && error == HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
 					console.error(`${HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS}`);
-					alert(HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS);
+					setTextMessagePopup({ title: "Insufficient Credentials", description: "One more credentials you want present not have them!" });
+					setTypeMessagePopup('error');
+					setMessagePopup(true);
 					return false;
 				}
 				if (preauth && preauth == true) {
@@ -72,7 +80,7 @@ function useCheckURL(urlToCheck: string): {
 
 		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
 			(async () => {
-					await communicationHandler(urlToCheck);
+				await communicationHandler(urlToCheck);
 			})();
 		}
 
@@ -96,7 +104,7 @@ function useCheckURL(urlToCheck: string): {
 		}
 	}, [api, keystore, selectionMap]);
 
-	return {showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup, verifierDomainName };
+	return { showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup, verifierDomainName, showMessagePopup, setMessagePopup, textMessagePopup, typeMessagePopup };
 }
 
 export default useCheckURL;
