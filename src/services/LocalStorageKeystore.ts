@@ -183,22 +183,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}
 			};
 
-			const unlockPassword = async (privateData: EncryptedContainer, password: string): Promise<void> => {
-				return await finishUnlock(await keystore.unlockPassword(privateData, password), null);
-			};
-
-			const unlockPrf = async (
-				privateData: EncryptedContainer,
-				credential: PublicKeyCredential,
-				rpId: string,
-				promptForPrfRetry: () => Promise<boolean>,
-				user: CachedUser | UserData | null,
-			): Promise<void> => {
-				const result = await finishUnlock(await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry), user);
-				setWebauthnRpId(rpId);
-				return result;
-			};
-
 			const init = async (
 				wrappedMainKey: WrappedKeyInfo,
 				wrappingKey: CryptoKey,
@@ -268,8 +252,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					];
 				},
 
-				unlockPassword,
-				unlockPrf,
+				unlockPassword: async (privateData: EncryptedContainer, password: string): Promise<void> => {
+					return await finishUnlock(await keystore.unlockPassword(privateData, password), null);
+				},
+
+				unlockPrf: async (
+					privateData: EncryptedContainer,
+					credential: PublicKeyCredential,
+					rpId: string,
+					promptForPrfRetry: () => Promise<boolean>,
+					user: CachedUser | UserData | null,
+				): Promise<void> => {
+					const result = await finishUnlock(await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry), user);
+					setWebauthnRpId(rpId);
+					return result;
+				},
 
 				getPrfKeyFromSession: async (
 					promptForPrfRetry: () => Promise<boolean>,
