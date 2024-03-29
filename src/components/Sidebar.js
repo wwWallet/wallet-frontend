@@ -9,7 +9,6 @@ import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
 
-
 const NavItem = ({
 	children,
 	handleNavigate,
@@ -25,9 +24,6 @@ const NavItem = ({
 		</li>
 	);
 };
-
-
-
 
 const Sidebar = ({ isOpen, toggle }) => {
 
@@ -58,26 +54,25 @@ const Sidebar = ({ isOpen, toggle }) => {
 	return (
 		<div
 			className={`${isOpen
-					? 'w-full table fixed h-full z-50 bg-custom-blue text-white p-4'
-					: ' hidden sm:table bg-custom-blue w-auto text-white h-auto py-10 px-10'
+				? 'w-full flex flex-col justify-between fixed h-screen z-50 bg-custom-blue text-white p-4 pb-16 overflow-y-auto'
+				: 'hidden sm:flex sm:flex-col justify-between	 sticky top-0 bg-custom-blue w-auto text-white h-screen py-10 px-10 overflow-y-auto'
+
 				}`}
 		>
-			{/* Mobile Header */}
-			<div className="sm:hidden flex items-center justify-between mb-4">
-				<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
-				<h1
-					className="text-white text-xl font-bold cursor-pointer"
-					onClick={() => handleNavigate('/')}
-				>
-					{t('common.walletName')}
-				</h1>
-				<button onClick={toggle}>
-					{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
-				</button>
-			</div>
-
-			{/* Logo */}
+			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
+				<div className="sm:hidden flex items-center justify-between mb-4">
+					<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
+					<h1
+						className="text-white text-xl font-bold cursor-pointer"
+						onClick={() => handleNavigate('/')}
+					>
+						{t('common.walletName')}
+					</h1>
+					<button onClick={toggle}>
+						{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
+					</button>
+				</div>
 				<div>
 					<div className="hidden sm:flex justify-between items-center mb-4">
 						<img
@@ -144,10 +139,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<span>{t("sidebar.navItemLogout")}</span>
 						</li>
 					</ul>
-					{/* Footer */}
-
 				</div>
 			</div>
+
+			{/* Powered By */}
 			<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2 table-footer-group">
 				<Trans
 					i18nKey="sidebar.poweredBy"

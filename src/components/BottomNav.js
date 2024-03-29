@@ -23,7 +23,7 @@ const BottomNav = () => {
 	};
 
 	return (
-		<div className={`fixed bottom-0 left-0 right-0 bg-white flex justify-around p-3 z-50 max480:flex hidden shadow-2xl`}>
+		<div className={`fixed bottom-0 left-0 right-0 bg-white flex justify-around p-4 z-50 max480:flex hidden shadow-2xl`}>
 			{navItems.map(item => (
 				<div
 					key={item.path}

@@ -51,7 +51,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			{/* Header */}
 			<header
-				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 sm:hidden'}`}
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 shadow-md sm:hidden'}`}
 			>
 				<div className="flex items-center">
 					<img
