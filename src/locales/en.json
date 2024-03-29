@@ -78,6 +78,13 @@
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
 	},
+	"messagePopup": {
+		"close": "Close",
+		"insufficientCredentials": {
+			"title": "Insufficient Credentials",
+			"description": "One or more of the credentials you want to present do not exist for selection."
+		}
+	},
 	"notFound": {
 		"homeButton": "Back to Home",
 		"message": "Sorry, the page you're looking for cannot be accessed",
