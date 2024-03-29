@@ -8,6 +8,7 @@ import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
+import BottomNav from './BottomNav';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
@@ -143,6 +144,9 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 					</CSSTransition>
 				</div>
 			</div>
+
+			{/* Bottom Nav menu */}
+			<BottomNav />
 		</div>
 	);
 };
