@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { GiHamburgerMenu } from 'react-icons/gi';
+import { AiOutlineMenu } from "react-icons/ai";
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -68,19 +68,11 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 					{t('common.walletName')}
 				</h1>
 				<button className="text-white" onClick={toggleSidebar}>
-					<GiHamburgerMenu size={24} />
+					<AiOutlineMenu size={24} />
 				</button>
 			</header>
 
 			<div className="w-3/5 flex flex-col flex-grow">
-				{/* Sidebar */}
-				<div
-					className={`sticky top-0 h-screen overflow-y-auto bg-custom-blue text-white p-6 sm:w-64 ${isOpen ? 'block' : 'hidden'
-						}`}
-				>
-					<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
-				</div>
-
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
 					{/* Conditional Notification Message */}
