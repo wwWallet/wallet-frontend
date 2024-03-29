@@ -138,7 +138,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 			</div>
 
 			{/* Bottom Nav menu */}
-			<BottomNav />
+			<BottomNav isOpen={isOpen} toggle={toggleSidebar} />
 		</div>
 	);
 };

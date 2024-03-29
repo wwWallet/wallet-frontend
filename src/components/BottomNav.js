@@ -4,7 +4,7 @@ import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const BottomNav = () => {
+const BottomNav = ({ isOpen, toggle }) => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -19,6 +19,9 @@ const BottomNav = () => {
 	const handleNavigate = (path) => {
 		if (location.pathname !== path) {
 			navigate(path);
+			if (isOpen) {
+				toggle();
+			}
 		}
 	};
 
