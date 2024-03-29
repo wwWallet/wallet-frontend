@@ -10,10 +10,10 @@ const BottomNav = () => {
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <FaWallet size={24} />, path: '/', label: `${t("common.navItemCredentials")}` },
-		{ icon: <IoIosTime size={24} />, path: '/history', label: `${t("common.navItemHistory")}` },
-		{ icon: <IoIosAddCircle size={24} />, path: '/add', label: `${t("common.navItemAddCredentials")}` },
-		{ icon: <IoIosSend size={24} />, path: '/send', label: `${t("common.navItemSendCredentials")}` },
+		{ icon: <FaWallet size={26} />, path: '/', label: `${t("common.navItemCredentials")}` },
+		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}` },
+		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentials")}` },
+		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentials")}` },
 	];
 
 	const handleNavigate = (path) => {
@@ -23,15 +23,15 @@ const BottomNav = () => {
 	};
 
 	return (
-		<div className={`fixed bottom-0 left-0 right-0 bg-white text-gray-400 flex justify-around py-4 px-2 z-50 max480:flex hidden`}>
+		<div className={`fixed bottom-0 left-0 right-0 bg-white flex justify-around p-3 z-50 max480:flex hidden shadow-2xl`}>
 			{navItems.map(item => (
 				<div
 					key={item.path}
-					className={`flex flex-col items-center' ${location.pathname === item.path ? 'text-custom-blue' : 'text-gray-400 hover:text-custom-blue'}`}
+					className={`cursor-pointer flex flex-col items-center ${location.pathname === item.path ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
+					title={item.label}
 				>
 					{item.icon}
-					{/* <span className="text-xs">{item.label}</span> */}
 				</div>
 			))}
 		</div>
