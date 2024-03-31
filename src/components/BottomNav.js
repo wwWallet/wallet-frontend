@@ -12,8 +12,8 @@ const BottomNav = ({ isOpen, toggle }) => {
 	const navItems = [
 		{ icon: <FaWallet size={26} />, path: '/', label: `${t("common.navItemCredentials")}` },
 		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}` },
-		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentials")}` },
-		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentials")}` },
+		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}` },
+		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}` },
 	];
 
 	const handleNavigate = (path) => {
@@ -30,11 +30,12 @@ const BottomNav = ({ isOpen, toggle }) => {
 			{navItems.map(item => (
 				<div
 					key={item.path}
-					className={`cursor-pointer flex flex-col items-center ${location.pathname === item.path ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center w-1/4 ${location.pathname === item.path ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
 					title={item.label}
 				>
 					{item.icon}
+					<span className="text-xs">{item.label}</span>
 				</div>
 			))}
 		</div>
