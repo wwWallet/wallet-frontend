@@ -7,6 +7,11 @@ export enum HandleOutboundRequestError {
 	INSUFFICIENT_CREDENTIALS = "INSUFFICIENT_CREDENTIALS",
 }
 
+export enum SendResponseError {
+	SEND_RESPONSE_ERROR = "SEND_RESPONSE_ERROR",
+}
+
+
 function useCheckURL(urlToCheck: string): {
 	showSelectCredentialsPopup: boolean,
 	setShowSelectCredentialsPopup: Dispatch<SetStateAction<boolean>>,
@@ -48,6 +53,7 @@ function useCheckURL(urlToCheck: string): {
 					setMessagePopup(true);
 					return false;
 				}
+
 				if (preauth && preauth == true) {
 					if (ask_for_pin) {
 						setShowPinInputPopup(true);
@@ -96,9 +102,23 @@ function useCheckURL(urlToCheck: string): {
 				{ verifiable_credentials_map: selectionMap },
 			).then(success => {
 				console.log(success);
-				const { redirect_to } = success.data;
-				if (redirect_to)
+				const { redirect_to, error } = success.data;
+
+				if (error && error == SendResponseError.SEND_RESPONSE_ERROR) {
+					setTextMessagePopup({ title: `${t('messagePopup.sendResponseError.title')}`, description: `${t('messagePopup.sendResponseError.description')}` });
+					setTypeMessagePopup('error');
+					setMessagePopup(true);
+					return;
+				}
+				if (redirect_to) {
 					window.location.href = redirect_to; // Navigate to the redirect URL
+				}
+				else {
+					setTextMessagePopup({ title: `${t('messagePopup.sendResponseSuccess.title')}`, description: `${t('messagePopup.sendResponseSuccess.description')}` });
+					setTypeMessagePopup('success');
+					setMessagePopup(true);
+					return;
+				}
 			}).catch(err => {
 				console.error("Error");
 				console.error(err);
