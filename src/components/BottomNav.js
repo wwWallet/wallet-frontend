@@ -1,5 +1,5 @@
-// Import your icons and other dependencies
-import { FaWallet } from "react-icons/fa";
+import React from 'react';
+import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -17,11 +17,12 @@ const BottomNav = ({ isOpen, toggle }) => {
 	];
 
 	const handleNavigate = (path) => {
+		if (isOpen) {
+			toggle();
+		}
+
 		if (location.pathname !== path) {
 			navigate(path);
-			if (isOpen) {
-				toggle();
-			}
 		}
 	};
 
@@ -30,7 +31,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 			{navItems.map(item => (
 				<div
 					key={item.path}
-					className={`cursor-pointer flex flex-col items-center w-1/4 ${location.pathname === item.path ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
 					title={item.label}
 				>
@@ -38,6 +39,15 @@ const BottomNav = ({ isOpen, toggle }) => {
 					<span className="text-xs">{item.label}</span>
 				</div>
 			))}
+			<div
+				key={t("common.navItemProfile")}
+				className={`cursor-pointer flex flex-col items-center w-[20%] ${(isOpen) ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
+				onClick={toggle}
+				title={t("common.navItemProfile")}
+			>
+				<FaUserCircle size={26} />
+				<span className="text-xs">{t("common.navItemProfile")}</span>
+			</div>
 		</div>
 	);
 };

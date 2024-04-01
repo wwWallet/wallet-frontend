@@ -67,7 +67,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				>
 					{t('common.walletName')}
 				</h1>
-				<button className="text-white" onClick={toggleSidebar}>
+				<button className="text-white max480:hidden" onClick={toggleSidebar}>
 					<AiOutlineMenu size={24} />
 				</button>
 			</header>
