@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	return (
 		<div
 			className={`${isOpen
-				? 'w-full flex flex-col justify-between fixed h-screen z-50 bg-custom-blue text-white p-4 pb-16 overflow-y-auto'
+				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-custom-blue text-white p-4 pb-16 overflow-y-auto'
 				: 'hidden sm:flex sm:flex-col justify-between	 sticky top-0 bg-custom-blue w-auto text-white h-screen py-10 px-10 overflow-y-auto'
 
 				}`}
