@@ -31,7 +31,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 			{navItems.map(item => (
 				<div
 					key={item.path}
-					className={`cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-custom-blue' : 'text-gray-400'} transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
 					title={item.label}
 				>
@@ -41,7 +41,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 			))}
 			<div
 				key={t("common.navItemProfile")}
-				className={`cursor-pointer flex flex-col items-center w-[20%] ${(isOpen) ? 'text-custom-blue' : 'text-gray-400'} hover:text-custom-blue transition-colors duration-200`}
+				className={`cursor-pointer flex flex-col items-center w-[20%] ${(isOpen) ? 'text-custom-blue' : 'text-gray-400'} transition-colors duration-200`}
 				onClick={toggle}
 				title={t("common.navItemProfile")}
 			>

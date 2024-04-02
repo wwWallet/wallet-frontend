@@ -18,7 +18,7 @@ const NavItem = ({
 	return (
 		<li
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'}`}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'min481:bg-white min481:text-custom-blue' : 'nav-item-animate-hover'}`}
 		>
 			{children}
 		</li>
