@@ -1,2 +1,2 @@
 import { webcrypto } from 'node:crypto';
-globalThis.crypto = webcrypto as any;
+Object.defineProperty(globalThis, 'crypto', { value: webcrypto, writable: false });
