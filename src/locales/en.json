@@ -4,9 +4,12 @@
 		"continue": "Continue",
 		"delete": "Delete",
 		"navItemAddCredentials": "Add Credentials",
+		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
 		"navItemHistory": "History",
+		"navItemProfile": "Profile",
 		"navItemSendCredentials": "Send Credentials",
+		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
 		"save": "Save",
 		"submit": "submit",
@@ -77,6 +80,21 @@
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>DC4EU Wallet</highlight>"
+	},
+	"messagePopup": {
+		"close": "Close",
+		"insufficientCredentials": {
+			"title": "Insufficient Credentials",
+			"description": "One or more of the credentials you want to present do not exist for selection."
+		},
+		"sendResponseError": {
+			"title": "Send Response Error",
+			"description": "An error occured during the presentation of the credentials."
+		},
+		"sendResponseSuccess": {
+			"title": "Presentation was successful",
+			"description": "Credentials were successfully sent."
+		}
 	},
 	"notFound": {
 		"homeButton": "Back to Home",

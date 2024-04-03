@@ -106,28 +106,16 @@ const Home = () => {
 				<div className="flex justify-between items-center">
 					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemCredentials')}</h1>
 
-					<div className='flex gap-x-1'>
-						{isSmallScreen && (
-							<button
-								className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-								onClick={openQRScanner} // Open the QR code scanner modal
-							>
-								<div className="flex items-center">
-									<BsQrCodeScan size={20} className="text-white" />
-								</div>
-							</button>
-						)}
+					{isSmallScreen && (
 						<button
 							className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-							onClick={handleAddCredential}
+							onClick={openQRScanner} // Open the QR code scanner modal
 						>
 							<div className="flex items-center">
-								<BsPlusCircle size={20} className="text-white" />
-								<span className="hidden sm:inline">&nbsp; {t('common.navItemCredentials')}</span>
+								<BsQrCodeScan size={20} className="text-white" />
 							</div>
 						</button>
-					</div>
-
+					)}
 
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
@@ -220,9 +208,9 @@ const Home = () => {
 
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
-					<QRCodeScanner
-						onClose={closeQRScanner}
-					/>
+				<QRCodeScanner
+					onClose={closeQRScanner}
+				/>
 			)}
 
 			{/* Delete Credential Modal */}

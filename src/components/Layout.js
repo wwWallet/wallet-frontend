@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { GiHamburgerMenu } from 'react-icons/gi';
+import { AiOutlineMenu } from "react-icons/ai";
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -8,6 +8,7 @@ import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
+import BottomNav from './BottomNav';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const location = useLocation();
@@ -50,7 +51,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			{/* Header */}
 			<header
-				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 sm:hidden'}`}
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
 				<div className="flex items-center">
 					<img
@@ -66,20 +67,12 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				>
 					{t('common.walletName')}
 				</h1>
-				<button className="text-white" onClick={toggleSidebar}>
-					<GiHamburgerMenu size={24} />
+				<button className="text-white max480:hidden" onClick={toggleSidebar}>
+					<AiOutlineMenu size={24} />
 				</button>
 			</header>
 
 			<div className="w-3/5 flex flex-col flex-grow">
-				{/* Sidebar */}
-				<div
-					className={`sticky top-0 h-screen overflow-y-auto bg-custom-blue text-white p-6 sm:w-64 ${isOpen ? 'block' : 'hidden'
-						}`}
-				>
-					<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
-				</div>
-
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
 					{/* Conditional Notification Message */}
@@ -143,6 +136,9 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 					</CSSTransition>
 				</div>
 			</div>
+
+			{/* Bottom Nav menu */}
+			<BottomNav isOpen={isOpen} toggle={toggleSidebar} />
 		</div>
 	);
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {BsQrCodeScan} from 'react-icons/bs'
+import { BsQrCodeScan } from 'react-icons/bs'
 import { useTranslation } from 'react-i18next';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
@@ -172,9 +172,9 @@ const Verifiers = () => {
 
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
-					<QRCodeScanner
-						onClose={closeQRScanner}
-					/>
+				<QRCodeScanner
+					onClose={closeQRScanner}
+				/>
 			)}
 		</>
 	);
