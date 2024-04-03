@@ -4,9 +4,12 @@
 		"continue": "Continue",
 		"delete": "Delete",
 		"navItemAddCredentials": "Add Credentials",
+		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
 		"navItemHistory": "History",
+		"navItemProfile": "Profile",
 		"navItemSendCredentials": "Send Credentials",
+		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
 		"save": "Save",
 		"submit": "submit",
@@ -25,6 +28,10 @@
 			"macos": "Chrome, Edge, Opera or Brave on MacOS",
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
+	},
+	"layout": {
+		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
+		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
@@ -73,6 +80,21 @@
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+	},
+	"messagePopup": {
+		"close": "Close",
+		"insufficientCredentials": {
+			"title": "Insufficient Credentials",
+			"description": "One or more of the credentials you want to present do not exist for selection."
+		},
+		"sendResponseError": {
+			"title": "Send Response Error",
+			"description": "An error occured during the presentation of the credentials."
+		},
+		"sendResponseSuccess": {
+			"title": "Presentation was successful",
+			"description": "Credentials were successfully sent."
+		}
 	},
 	"notFound": {
 		"homeButton": "Back to Home",
@@ -175,16 +197,23 @@
 		"title": "Enter the Pin"
 	},
 	"qrCodeScanner": {
+		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
-		"description": "Please select one of the above credentials to proceed with the presentation",
+		"description": "Please select one of the credentials below to proceed with the presentation",
+		"requestedFieldsHide": "Hide Requested Fields",
+		"requestedFieldsinfo": "The following fields were requested from the verifier",
+		"requestedFieldsShow": "Show Requested Fields",
 		"title": "Select an Option:"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+	},
+	"statusRibbon": {
+		"expired": "Expired"
 	},
 	"tourGuide": {
 		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",

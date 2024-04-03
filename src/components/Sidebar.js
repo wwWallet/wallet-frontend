@@ -9,7 +9,6 @@ import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
 
-
 const NavItem = ({
 	children,
 	handleNavigate,
@@ -19,16 +18,12 @@ const NavItem = ({
 	return (
 		<li
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'
-				}`}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'}`}
 		>
 			{children}
 		</li>
 	);
 };
-
-
-
 
 const Sidebar = ({ isOpen, toggle }) => {
 
@@ -59,26 +54,25 @@ const Sidebar = ({ isOpen, toggle }) => {
 	return (
 		<div
 			className={`${isOpen
-				? 'w-full table fixed h-full z-50 bg-custom-blue text-white p-4'
-				: ' hidden sm:table bg-custom-blue w-auto text-white h-auto py-10 px-10'
+				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-custom-blue text-white p-4 max480:pb-20 overflow-y-auto'
+				: 'hidden sm:flex sm:flex-col justify-between	 sticky top-0 bg-custom-blue w-auto text-white h-screen py-10 px-10 overflow-y-auto'
+
 				}`}
 		>
-			{/* Mobile Header */}
-			<div className="sm:hidden flex items-center justify-between mb-4">
-				<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
-				<h1
-					className="text-white text-xl font-bold cursor-pointer"
-					onClick={() => handleNavigate('/')}
-				>
-					{t('common.walletName')}
-				</h1>
-				<button onClick={toggle}>
-					{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
-				</button>
-			</div>
-
-			{/* Logo */}
+			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
+				<div className="sm:hidden flex items-center justify-between mb-4">
+					<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
+					<h1
+						className="text-white text-xl font-bold cursor-pointer"
+						onClick={() => handleNavigate('/')}
+					>
+						{t('common.walletName')}
+					</h1>
+					<button onClick={toggle}>
+						{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
+					</button>
+				</div>
 				<div>
 					<div className="hidden sm:flex justify-between items-center mb-4">
 						<img
@@ -114,36 +108,35 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-4 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<div className="step-4">
+						<div className='max480:hidden'>
 							<NavItem path="/" location={location} handleNavigate={handleNavigate}>
 								<FaWallet size={30} />
 								<span>{t("common.navItemCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className="step-5">
+						<div className='max480:hidden'>
 							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
 								<IoIosTime size={30} />
 								<span>{t("common.navItemHistory")}</span>
 							</NavItem>
 						</div>
-						<div className="step-6">
+						<div className='max480:hidden'>
 							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 								<IoIosAddCircle size={30} />
 								<span>{t("common.navItemAddCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className="step-7">
+						<div className='max480:hidden'>
 							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 								<IoIosSend size={30} />
 								<span>{t("common.navItemSendCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className="step-8">
-							<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
-								<IoMdSettings size={30} />
-								<span>{t("common.navItemSettings")}</span>
-							</NavItem>
-						</div>
+						<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
+							<IoMdSettings size={30} />
+							<span>{t("common.navItemSettings")}</span>
+						</NavItem>
+
 						<hr className="my-4 border-t border-white/20" />
 
 						<li
@@ -154,11 +147,11 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<span>{t("sidebar.navItemLogout")}</span>
 						</li>
 					</ul>
-					{/* Footer */}
-
 				</div>
 			</div>
-			<div className="bg-custom-blue text-white text-sm space-x-2 mb-4 p-2 table-footer-group">
+
+			{/* Powered By */}
+			<div className="bg-custom-blue text-white text-sm space-x-2 p-2">
 				<Trans
 					i18nKey="sidebar.poweredBy"
 					components={{

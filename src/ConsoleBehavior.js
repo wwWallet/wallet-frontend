@@ -1,32 +1,16 @@
-function isMethodAllowed(method) {
-	if (process.env.NODE_ENV === 'production') {
-		return false;
-	}
-
-	const allowedMethodsEnv = process.env.REACT_APP_DEV_CONSOLE_TYPES?.split(',') || [];
-	const methodCategories = {
-		log: 'info',
-		info: 'info',
-		warn: 'warn',
-		error: 'error',
-		assert: 'error'
-	};
-
-	return allowedMethodsEnv.includes(methodCategories[method]);
-}
+//ConsoleBehavior.js
 
 function ConsoleBehavior() {
-	const originalConsole = { ...console };
+	// If displayConsole is undefined, proceed as true
+	const displayConsole = process.env.REACT_APP_DISPLAY_CONSOLE;
 
-	Object.keys(console).forEach(method => {
-		if (typeof console[method] === 'function') {
-			console[method] = (...args) => {
-				if (isMethodAllowed(method)) {
-					originalConsole[method](...args);
-				}
-			};
-		}
-	});
+	if (displayConsole === 'false') {
+		Object.keys(console).forEach(method => {
+			if (typeof console[method] === 'function') {
+				console[method] = () => { };
+			}
+		});
+	}
 }
 
 export default ConsoleBehavior;

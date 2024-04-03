@@ -5,7 +5,7 @@ export enum SignatureAction {
 }
 
 export type WalletKeystoreRequest = (
-	{ action: SignatureAction.generateOpenid4vciProof, audience: string, nonce: string }
+	{ action: SignatureAction.generateOpenid4vciProof, nonce: string, audience: string }
 	| { action: SignatureAction.createIdToken, nonce: string, audience: string }
 	| { action: SignatureAction.signJwtPresentation, nonce: string, audience: string, verifiableCredentials: any[] }
 );

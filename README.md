@@ -39,7 +39,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
      ```bash
      git clone https://github.com/your-username/wallet-frontend.git
      ```
-  
+
  - **Option 2: Using SSH**
      ```bash
      git clone git@github.com:your-username/wallet-frontend.git
@@ -63,14 +63,14 @@ The project uses environment variables to manage different configurations. A `.e
 	 - REACT_APP_WS_URL: The URL of the websocket service.
 	 - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
 	 - REACT_APP_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
-	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase. 
+	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase.
 	 - REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
 	 - REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
 	 - REACT_APP_FIREBASE_STORAGE_BUCKET: Your Firebase storage bucket.
 	 - REACT_APP_FIREBASE_MESSAGING_SENDER_ID: Your Firebase Messaging Sender ID.
-	 - REACT_APP_FIREBASE_APP_ID: Your Firebase App ID. 
+	 - REACT_APP_FIREBASE_APP_ID: Your Firebase App ID.
 	 - REACT_APP_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
-	 - REACT_APP_DEV_CONSOLE_TYPES: Enable console logs (info, warn, error) separated by commas or leave empty for none.
+	 - REACT_APP_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
 
 4. Install dependencies:
 	```bash
@@ -101,7 +101,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 | Windows          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
 | MacOS            | ✔ 				      | ✔    | ❌      | ✔      | ❌     | ✔       |
 | Android          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
-| iOS              | ❌          	 | ❌    | ❌      | ❌     | ❌     | ❌      | 
+| iOS              | ❌          	 | ❌    | ❌      | ❌     | ❌     | ❌      |
 
 ### PRF Compatibility Scenarios
 
@@ -123,7 +123,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 | iOS              | FIDO Security Key 	  | NFC           | ❌                  |
 
 
-***Note:** In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature. 
+***Note:** In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
 For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.*
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
@@ -162,7 +162,7 @@ We welcome contributions from the community to help improve the wwWallet Fronten
 
 1.	**Create a New Branch:**
 	Create a new branch for your feature or bug fix
-	```bash 
+	```bash
 	git checkout -b my-feature
 	```
 	Replace my-feature with a descriptive name.
@@ -172,14 +172,14 @@ We welcome contributions from the community to help improve the wwWallet Fronten
 
 3.	**Commit Changes:**
 	Commit your changes with a descriptive commit message:
-	```bash 
+	```bash
 	git commit -m "Add new feature"
 	```
 4.	**Push Changes:**
 	Push your changes to your new branrch:
-	```bash 
+	```bash
 	git push --set-upstream origin my-feature
-	```	
+	```
 5.	**Create a Pull Request:**
 	Open a pull request on the original repository. Provide a detailed description of your changes and their purpose.
 

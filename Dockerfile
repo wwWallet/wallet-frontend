@@ -4,7 +4,7 @@ WORKDIR /home/node/app
 COPY . .
 
 RUN --mount=type=secret,id=npmrc,required=true,target=./.npmrc,uid=1000 \
-    yarn cache clean -f && yarn install && yarn build
+	yarn cache clean -f && yarn install && yarn build
 
 
 FROM nginx:alpine as deploy

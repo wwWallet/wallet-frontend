@@ -13,6 +13,7 @@ import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 const QRScanner = ({ onClose }) => {
 
 	const [devices, setDevices] = useState([]);
+	const [bestCameraResolutions, setBestCameraResolutions] = useState({ front: null, back: null });
 	const webcamRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ const QRScanner = ({ onClose }) => {
 	const [qrDetected, setQrDetected] = useState(false);
 	const [boxSize, setBoxSize] = useState(null);
 	const [zoomLevel, setZoomLevel] = useState(1);
+	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
 
 	const handleZoomChange = (event) => {
@@ -40,24 +42,76 @@ const QRScanner = ({ onClose }) => {
 	};
 
 	useEffect(() => {
-		navigator.mediaDevices.enumerateDevices()
-			.then(mediaDevices => {
-				const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
-				setDevices(videoDevices);
-
-				// Find and prioritize the back camera if it exists
-				const backCameraIndex = videoDevices.findIndex(device => device.label.toLowerCase().includes('back'));
-				if (backCameraIndex !== -1) {
-					setCurrentDeviceIndex(backCameraIndex);
-				}
-
-				setCameraReady(true);
+		navigator.mediaDevices.getUserMedia({ video: true })
+			.then(stream => {
+				setHasCameraPermission(true);
+				stream.getTracks().forEach(track => track.stop());
 			})
 			.catch(error => {
-				console.error("Error accessing camera:", error);
-				setCameraReady(false);
+				console.error("Camera access denied:", error);
+				setHasCameraPermission(false);
 			});
 	}, []);
+
+
+	useEffect(() => {
+		if (hasCameraPermission) {
+			navigator.mediaDevices.enumerateDevices()
+				.then(async mediaDevices => {
+					const videoDevices = mediaDevices.filter(({ kind }) => kind === "videoinput");
+
+					let bestFrontCamera = null;
+					let bestBackCamera = null;
+
+					for (const device of videoDevices) {
+						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
+						const track = stream.getVideoTracks()[0];
+						const capabilities = track.getCapabilities();
+						const isBackCamera = device.label.toLowerCase().includes('back');
+						const resolution = {
+							width: capabilities.width?.max || 0,
+							height: capabilities.height?.max || 0
+						};
+
+						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
+							bestBackCamera = { device, resolution };
+						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
+							bestFrontCamera = { device, resolution };
+						}
+
+						track.stop();
+					}
+
+					const filteredDevices = [];
+					if (bestFrontCamera) {
+						filteredDevices.push(bestFrontCamera.device);
+					}
+					if (bestBackCamera) {
+						filteredDevices.push(bestBackCamera.device);
+					}
+
+					setBestCameraResolutions({
+						front: bestFrontCamera ? bestFrontCamera.resolution : null,
+						back: bestBackCamera ? bestBackCamera.resolution : null,
+					});
+
+					setDevices(filteredDevices);
+
+					const backCameraIndex = filteredDevices.findIndex(device =>
+						device.label.toLowerCase().includes('back'));
+
+					if (backCameraIndex !== -1) {
+						setCurrentDeviceIndex(backCameraIndex);
+					} else {
+						setCurrentDeviceIndex(0);
+					}
+					setCameraReady(true);
+				})
+				.catch(error => {
+					console.error("Error enumerating devices:", error);
+				});
+		}
+	}, [hasCameraPermission]);
 
 	const switchCamera = () => {
 		if (devices.length > 1) {
@@ -84,13 +138,15 @@ const QRScanner = ({ onClose }) => {
 						setQrDetected(true);
 						// Redirect to the URL found in the QR code
 						const scannedUrl = code.data;
-						setLoading(true);
+						setTimeout(() => {
+							setLoading(true);
+						}, 1000);
 						setTimeout(() => {
 							const baseUrl = window.location.origin;
 							const params = scannedUrl.split('?');
 							const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
 							window.location.href = cvUrl;
-						}, 1500);
+						}, 1000);
 
 					}
 				};
@@ -109,7 +165,7 @@ const QRScanner = ({ onClose }) => {
 				scanningMargin = (height - size) / 2;
 			}
 			document.documentElement.style.setProperty('--scanning-margin', scanningMargin + 'px');
-
+			document.documentElement.style.setProperty('--scanning', size + 'px');
 			setBoxSize(size);
 		}
 	};
@@ -143,13 +199,58 @@ const QRScanner = ({ onClose }) => {
 		waitForVideoDimensions();
 	};
 
+
+	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
+	const maxResolution = bestCameraResolutions[currentCameraType];
+
+	let idealWidth, idealHeight;
+	if (maxResolution) {
+		if ((maxResolution.width < maxResolution.height)) {
+			idealHeight = maxResolution.width;
+			idealWidth = maxResolution.width;
+
+		} else {
+			idealHeight = maxResolution.height;
+			idealWidth = maxResolution.height;
+		}
+	} else {
+		idealWidth = 1080;
+		idealHeight = 1080;
+	}
+
 	return (
-		<div className="qr-code-scanner bg-white">
-			<div className={`absolute inset-0 ${!cameraReady ? 'flex justify-center items-center' : ''}`}>
-				{loading && <Spinner />}
-			</div>
-			{cameraReady && (
-				<div className="bg-white p-4 rounded-lg shadow-lg w-[99%] max-h-[100vh] z-10 relative">
+		<div className="fixed inset-0 flex items-center justify-center z-50">
+			<div className="absolute inset-0 bg-black opacity-50"></div>
+
+			{hasCameraPermission === false ? (
+				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
+							{t('qrCodeScanner.title')}
+						</h2>
+
+						<button
+							type="button"
+							className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+							onClick={handleClose}
+						>
+							<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+								<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+							</svg>
+						</button>
+					</div>
+					<hr className="mb-2 border-t border-custom-blue/80" />
+					<p className='text-red-600'>
+						{t('qrCodeScanner.cameraPermissionAllow')}
+						</p>
+				</div>
+			) : (!cameraReady || loading) ? (
+				<div className="flex items-center justify-center h-24">
+					<Spinner />
+				</div>
+			) : (
+				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-custom-blue">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
@@ -175,8 +276,12 @@ const QRScanner = ({ onClose }) => {
 							audio={false}
 							ref={webcamRef}
 							screenshotFormat="image/jpeg"
-							videoConstraints={{ deviceId: devices[currentDeviceIndex].deviceId }}
-							style={{ width: '100%', transform: `scale(${zoomLevel})`, transformOrigin: 'center' }}
+							videoConstraints={{
+								deviceId: devices[currentDeviceIndex]?.deviceId,
+								height: { ideal: idealHeight },
+								width: { ideal: idealWidth }
+							}}
+							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%', }}
 							onUserMedia={onUserMedia}
 						/>
 						{boxSize && (
@@ -211,7 +316,7 @@ const QRScanner = ({ onClose }) => {
 						{devices.length > 1 && (
 							<button
 								type="button"
-								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm pl-4 py-2 mt-2"
+								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm ml-4 p-2 my-2"
 								onClick={switchCamera}
 							>
 								<PiCameraRotateFill size={25} />
