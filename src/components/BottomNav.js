@@ -10,10 +10,10 @@ const BottomNav = ({ isOpen, toggle }) => {
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <FaWallet size={26} />, path: '/', label: `${t("common.navItemCredentials")}` },
-		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}` },
-		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}` },
-		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}` },
+		{ icon: <FaWallet size={26} />, path: '/', label: `${t("common.navItemCredentials")}`, stepClass: 'step-3-mobile' },
+		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}`, stepClass: 'step-4-mobile' },
+		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-5-mobile' },
+		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-6-mobile' },
 	];
 
 	const handleNavigate = (path) => {
@@ -31,7 +31,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 			{navItems.map(item => (
 				<div
 					key={item.path}
-					className={`cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-custom-blue' : 'text-gray-400'} transition-colors duration-200`}
+					className={`${item.stepClass} cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-custom-blue' : 'text-gray-400'} transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
 					title={item.label}
 				>

@@ -14,39 +14,43 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	const { t } = useTranslation();
 
 	useEffect(() => {
+
+		const getStepSelectorMobile = (stepName) => {
+			if (window.innerWidth <= 480) {
+				return stepName + '-mobile';
+			} else {
+				return stepName;
+			}
+		};
 		const commonSteps = [
 			{
 				selector: '.step-1',
 				content: t("tourGuide.tourStep1"),
 				disableInteraction: true,
 			},
-			{
+			...(window.innerWidth < 768 ? [{
 				selector: '.step-2',
 				content: t("tourGuide.tourStep2"),
-			},
-			...(window.innerWidth < 700 ? [{
-				selector: '.step-3',
-				content: t("tourGuide.tourStep3"),
 			}] : []),
 			{
-				selector: '.step-4',
+				selector: getStepSelectorMobile('.step-3'),
+				content: t("tourGuide.tourStep3"),
+			},
+			{
+				selector: getStepSelectorMobile('.step-4'),
 				content: t("tourGuide.tourStep4"),
 			},
 			{
-				selector: '.step-5',
+				selector: getStepSelectorMobile('.step-5'),
 				content: t("tourGuide.tourStep5"),
 			},
 			{
-				selector: '.step-6',
+				selector: getStepSelectorMobile('.step-6'),
 				content: t("tourGuide.tourStep6"),
 			},
 			{
 				selector: '.step-7',
 				content: t("tourGuide.tourStep7"),
-			},
-			{
-				selector: '.step-8',
-				content: t("tourGuide.tourStep8"),
 			},
 			{
 				content: () => (
@@ -69,10 +73,16 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 			return {
 				...step,
 				action: () => {
-					if (window.innerWidth < 700) {
-						if (index >= 3 && index <= 7 && !isOpen) {
+					if (window.innerWidth < 700 && window.innerWidth > 480) {
+						if (index >= 2 && index <= 6 && !isOpen) {
 							toggleMenu();
-						} else if ((index < 3 || index > 7) && isOpen) {
+						} else if ((index < 2 || index > 6) && isOpen) {
+							toggleMenu();
+						}
+					} else if (window.innerWidth <= 480) {
+						if (index === 6 && !isOpen) {
+							toggleMenu();
+						} else if ((index !== 6) && isOpen) {
 							toggleMenu();
 						}
 					}
@@ -98,7 +108,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 
 		if (authenticationType === 'signup' && showWelcome) {
 			return (
-				<div >
+				<div>
 					<WelcomeModal isOpen={isModalOpen} onStartTour={startTour} onClose={closeModalAndDisable} />
 				</div>
 			);
