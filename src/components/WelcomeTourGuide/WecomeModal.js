@@ -36,11 +36,11 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 					</div>
 					<div className="bg-white bg-white px-4 py-2 sm:px-6">
 						<p className="pt-2 text-md text-center text-gray-900">
-						{t("welcomeModal.descriptionPart1")} <strong>{t("common.walletName")}</strong> {t("welcomeModal.descriptionPart2")}
+							{t("welcomeModal.descriptionPart1")} <strong>{t("common.walletName")}</strong> {t("welcomeModal.descriptionPart2")}
 						</p>
 					</div>
 					<p className="text-center text-gray-900 mb-4">
-					{t("welcomeModal.question")}
+						{t("welcomeModal.question")}
 					</p>
 					<div className="flex justify-end space-x-2 pt-4">
 						<button className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={onClose}>
