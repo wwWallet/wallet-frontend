@@ -18,7 +18,7 @@ const NavItem = ({
 	return (
 		<li
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'min481:bg-white min481:text-custom-blue' : 'nav-item-animate-hover'}`}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'}`}
 		>
 			{children}
 		</li>
@@ -108,22 +108,30 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-4 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<NavItem path="/" location={location} handleNavigate={handleNavigate}>
-							<FaWallet size={30} />
-							<span>{t("common.navItemCredentials")}</span>
-						</NavItem>
-						<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-							<IoIosTime size={30} />
-							<span>{t("common.navItemHistory")}</span>
-						</NavItem>
-						<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
-							<IoIosAddCircle size={30} />
-							<span>{t("common.navItemAddCredentials")}</span>
-						</NavItem>
-						<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
-							<IoIosSend size={30} />
-							<span>{t("common.navItemSendCredentials")}</span>
-						</NavItem>
+						<div className='max480:hidden'>
+							<NavItem path="/" location={location} handleNavigate={handleNavigate}>
+								<FaWallet size={30} />
+								<span>{t("common.navItemCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className='max480:hidden'>
+							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
+								<IoIosTime size={30} />
+								<span>{t("common.navItemHistory")}</span>
+							</NavItem>
+						</div>
+						<div className='max480:hidden'>
+							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
+								<IoIosAddCircle size={30} />
+								<span>{t("common.navItemAddCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className='max480:hidden'>
+							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
+								<IoIosSend size={30} />
+								<span>{t("common.navItemSendCredentials")}</span>
+							</NavItem>
+						</div>
 						<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
 							<IoMdSettings size={30} />
 							<span>{t("common.navItemSettings")}</span>
