@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
-import { BsQrCodeScan } from 'react-icons/bs'
 
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
@@ -20,6 +19,7 @@ import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
+import QRButton from '../../components/Buttons/QRButton';
 
 const Home = () => {
 	const api = useApi();
@@ -105,18 +105,7 @@ const Home = () => {
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
 					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemCredentials')}</h1>
-
-					{isSmallScreen && (
-						<button
-							className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-							onClick={openQRScanner} // Open the QR code scanner modal
-						>
-							<div className="flex items-center">
-								<BsQrCodeScan size={20} className="text-white" />
-							</div>
-						</button>
-					)}
-
+					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
