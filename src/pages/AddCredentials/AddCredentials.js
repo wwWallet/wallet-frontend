@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {BsQrCodeScan} from 'react-icons/bs'
 import { useTranslation } from 'react-i18next';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
+import QRButton from '../../components/Buttons/QRButton';
 import { useApi } from '../../api';
 
 function highlightBestSequence(issuer, search) {
@@ -128,17 +128,7 @@ const Issuers = () => {
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
 					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemAddCredentials')}</h1>
-					{isSmallScreen && (
-						<button
-							className="px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-							onClick={openQRScanner} // Open the QR code scanner modal
-						>
-							<div className="flex items-center">
-								<BsQrCodeScan size={20} className="text-white" />
-							</div>
-						</button>
-					)}
-
+					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
 				</div>
 				<hr className="mb-2 border-t border-custom-blue/80" />
 				<p className="italic text-gray-700">{t('pageAddCredentials.description')}</p>
@@ -185,9 +175,9 @@ const Issuers = () => {
 
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
-					<QRCodeScanner
-						onClose={closeQRScanner}
-					/>
+				<QRCodeScanner
+					onClose={closeQRScanner}
+				/>
 			)}
 
 		</>
