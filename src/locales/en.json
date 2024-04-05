@@ -4,9 +4,12 @@
 		"continue": "Continue",
 		"delete": "Delete",
 		"navItemAddCredentials": "Add Credentials",
+		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
 		"navItemHistory": "History",
+		"navItemProfile": "Profile",
 		"navItemSendCredentials": "Send Credentials",
+		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
 		"save": "Save",
 		"submit": "submit",
@@ -25,6 +28,10 @@
 			"macos": "Chrome, Edge, Opera or Brave on MacOS",
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
+	},
+	"layout": {
+		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
+		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
@@ -65,6 +72,7 @@
 		"signUpSubmit": "Sign Up",
 		"signupPasskey": "Sign up with passkey",
 		"specialCharacter": "At least one special character",
+		"reachedLengthLimit": "Length limit exceeded",
 		"strength": "Strength",
 		"submitting": "Submitting...",
 		"tryAgain": "Try again",
@@ -72,6 +80,21 @@
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+	},
+	"messagePopup": {
+		"close": "Close",
+		"insufficientCredentials": {
+			"title": "Insufficient Credentials",
+			"description": "One or more of the credentials you want to present do not exist for selection."
+		},
+		"sendResponseError": {
+			"title": "Send Response Error",
+			"description": "An error occured during the presentation of the credentials."
+		},
+		"sendResponseSuccess": {
+			"title": "Presentation was successful",
+			"description": "Credentials were successfully sent."
+		}
 	},
 	"notFound": {
 		"homeButton": "Back to Home",
@@ -118,8 +141,18 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey",
+		"deleteAccount": {
+			"buttonText": "Delete your account",
+			"deleteButtonTitleLocked": "You cannot delete your account while locked",
+			"description": "Once you delete your account, there is no going back. Please be certain.",
+			"messageDeleteAccount1": "Are you sure you want to delete ",
+			"messageDeleteAccount2": "your Account",
+			"title": "Delete account"
+		},
+		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
+		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
@@ -127,12 +160,16 @@
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
+			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
 			"lastUsed": "Last Used",
+			"messageDeletePasskeyPart1": "Are you sure you want to delete",
+			"messageDeletePasskeyPart2": "passkey?",
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
+			"renameButtonTitleLocked": "You cannot edit passkey while locked",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
@@ -146,10 +183,12 @@
 			"passkeyCreated": "Your passkey has been created."
 		},
 		"title": {
+			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
+			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
-		"unlockPasskeyManagement": "Unlock passkey management"
+		"unlockPasskeyManagement": "Unlock management"
 	},
 	"PinInputPopup": {
 		"description": "Please enter the PIN which was displayed from the issuer",
@@ -158,15 +197,22 @@
 		"title": "Enter the Pin"
 	},
 	"qrCodeScanner": {
+		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
-		"description": "Please select one of the above credentials to proceed with the presentation",
+		"description": "Please select one of the credentials below to proceed with the presentation",
+		"requestedFieldsHide": "Hide Requested Fields",
+		"requestedFieldsinfo": "The following fields were requested from the verifier",
+		"requestedFieldsShow": "Show Requested Fields",
 		"title": "Select an Option:"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+	},
+	"statusRibbon": {
+		"expired": "Expired"
 	}
 }

@@ -1,153 +1,146 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { GiHamburgerMenu } from 'react-icons/gi';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa'; // Import the icons you want to use
+import { AiOutlineMenu } from "react-icons/ai";
+import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { CSSTransition } from 'react-transition-group';
+import { useSessionStorage } from '../components/useStorage';
+import { Trans, useTranslation } from 'react-i18next';
+import { useApi } from '../api';
+import BottomNav from './BottomNav';
 
-const Layout = ({ children, isPermissionGranted, isPermissionValue,setispermissionValue }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isContentVisible, setIsContentVisible] = useState(false);
+const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
+	const location = useLocation();
+	const navigate = useNavigate();
+	const [isContentVisible, setIsContentVisible] = useState(false);
+	const [isOpen, setIsOpen] = useState(false);
+	const toggleSidebar = () => setIsOpen(!isOpen);
+	const api = useApi();
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
+	const { t } = useTranslation();
 
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMessageVisible, setIsMessageVisible] = useState(true);
-  const toggleSidebar = () => setIsOpen(!isOpen);
+	const handleNavigate = (path) => {
+		if (location.pathname === path) {
+			window.location.reload();
+		} else {
+			navigate(path);
+		}
+	};
 
-  const handleNavigate = (path) => {
-    if (location.pathname === path) {
-      window.location.reload();
-    } else {
-      navigate(path);
-    }
-  };
+	const handleCloseMessageNoGranted = () => {
+		setIsMessageNoGrantedVisible(true);
+	};
 
-  const handleCloseMessage = () => {
-    setIsMessageVisible(false);
-    // Store the isMessageVisible state in session storage
-    sessionStorage.setItem('isMessageVisible', 'false');
-  };
+	const handleCloseMessageGranted = () => {
+		setIsMessageGrantedVisible(true);
+	};
 
-  useEffect(() => {
-    // Retrieve the isMessageVisible state from session storage
-    const storedIsMessageVisible = sessionStorage.getItem('isMessageVisible');
-    if (storedIsMessageVisible === 'false') {
-      setIsMessageVisible(false);
-    }
-  }, []);
+	useEffect(() => {
+		setIsContentVisible(false);
+		const timer = setTimeout(() => {
+			setIsContentVisible(true);
+		}, 0);
+		return () => clearTimeout(timer);
+	}, [location.pathname]); // Only runs when location.pathname changes
 
-  const requestNotificationPermission = async () => {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      console.log('permission', permission);
-			if (permission === 'granted') {
-				window.location.reload();
-			}else {
-				setispermissionValue(permission);
-			}
-    }
-  };
+	return (
+		<div className="flex min-h-screen">
+			<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
-  useEffect(() => {
-    setTimeout(() => {
-      setIsContentVisible(true);
-    }, 0);
-  }, []);
-  
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
+			{/* Header */}
+			<header
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
+			>
+				<div className="flex items-center">
+					<img
+						src={logo}
+						alt="Logo"
+						className="w-10 h-auto mr-2 cursor-pointer"
+						onClick={() => handleNavigate('/')}
+					/>
+				</div>
+				<h1
+					className="text-white text-xl font-bold cursor-pointer"
+					onClick={() => handleNavigate('/')}
+				>
+					{t('common.walletName')}
+				</h1>
+				<button className="text-white max480:hidden" onClick={toggleSidebar}>
+					<AiOutlineMenu size={24} />
+				</button>
+			</header>
 
-      {/* Header */}
-      <header
-        className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 sm:hidden'}`}
-      >
-        <div className="flex items-center">
-          <img
-            src={logo}
-            alt="Logo"
-            className="w-10 h-auto mr-2 cursor-pointer"
-            onClick={() => handleNavigate('/')}
-          />
-        </div>
-        <h1
-          className="text-white text-xl font-bold cursor-pointer"
-          onClick={() => handleNavigate('/')}
-        >
-          wwWallet
-        </h1>
-        <button className="text-white" onClick={toggleSidebar}>
-          <GiHamburgerMenu size={24} />
-        </button>
-      </header>
-
-      <div className="w-3/5 flex flex-col flex-grow">
-        {/* Sidebar */}
-        <div
-          className={`sticky top-0 h-screen overflow-y-auto bg-custom-blue text-white p-6 sm:w-64 ${
-            isOpen ? 'block' : 'hidden'
-          }`}
-        >
-          <Sidebar isOpen={isOpen} toggle={toggleSidebar} />
-        </div>
-
-        {/* Content */}
-        <div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
-          {/* Conditional Notification Message */}
-          {isPermissionGranted !== true && isMessageVisible && isPermissionValue && isPermissionValue!=='granted' && (
-            <div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
-              <div className="mr-4 text-orange-500">
-                <FaExclamationTriangle size={24} />
-              </div>
-							<div className="flex-grow">
-								{isPermissionValue === 'default' && (
-									<>
-										<p className='text-sm'>
-											To receive real-time updates of{' '}
-											<span className="font-semibold">Credentials</span>, please{' '}
-											<span className="font-semibold">
-												allow permission for notifications
-											</span>{' '}
-											from your browser. 
-											<a className="ml-2" onClick={requestNotificationPermission}>
-												<button
-												className="px-2 py-1 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
-												onClick={requestNotificationPermission}
-											>
-												Allow 
-												</button>
-											</a>
-										</p>
-									</>
-								)}
-								{isPermissionValue === 'denied' && (
-									<>
-										<p className='text-sm'>
-											To receive real-time updates of{' '}
-											<span className="font-semibold">Credentials</span>, please{' '}
-											<span className="font-semibold">
-												manual reset or allow permission for notifications
-											</span>{' '}
-											from your browser.
-										</p>
-									</>
-								)}
+			<div className="w-3/5 flex flex-col flex-grow">
+				{/* Content */}
+				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
+					{/* Conditional Notification Message */}
+					{(!isPermissionGranted && !isMessageNoGrantedVisible) || (isPermissionGranted && !tokenSentInSession && !isMessageGrantedVisible) ? (
+						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
+							<div className="mr-4 text-orange-500">
+								<FaExclamationTriangle size={24} />
 							</div>
-              <button
-                className="ml-2 text-gray-800"
-                onClick={handleCloseMessage}
-              >
-                <FaTimes size={24} />
-              </button>
-            </div>
-          )}
-          <div className={`fade-in-content ${isContentVisible ? 'visible' : ''}`}>
+							{!isPermissionGranted && (
+								<>
+									<div className="flex-grow">
+										<p className='text-sm'>
+											<Trans
+												i18nKey="layout.messageAllowPermission"
+												components={{ strong: <strong /> }}
+											/>
+										</p>
+									</div>
+									<button
+										className="ml-2 text-gray-800"
+										onClick={handleCloseMessageNoGranted}
+									>
+										<FaTimes size={24} />
+									</button>
+								</>
+							)}
+							{isPermissionGranted && !tokenSentInSession && (
+								<>
+									<div className="flex-grow">
+										<p className='text-sm'>
+											<Trans
+												i18nKey="layout.messageResetPermission"
+												components={{
+													strong: <strong />,
+													reloadButton: <button className='text-custom-blue underline' onClick={() => window.location.reload()} />,
+												}}
+											/>
+										</p>
+									</div>
+									<button
+										className="ml-2 text-gray-800"
+										onClick={handleCloseMessageGranted}
+									>
+										<FaTimes size={24} />
+									</button>
+								</>
+							)}
+
+						</div>
+					) : (
+						<></>
+					)}
+					<CSSTransition
+						in={isContentVisible}
+						timeout={400}
+						classNames="content-fade-in"
+						appear
+						key={location.pathname}
+					>
 						{children}
-					</div>
-        </div>
-      </div>
-    </div>
-  );
+					</CSSTransition>
+				</div>
+			</div>
+
+			{/* Bottom Nav menu */}
+			<BottomNav isOpen={isOpen} toggle={toggleSidebar} />
+		</div>
+	);
 };
 
 export default Layout;

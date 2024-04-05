@@ -11,17 +11,19 @@ import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling'
 
-const Settings = React.lazy(() => import('./pages/Settings/Settings'));
+import Home from './pages/Home/Home';
+import History from './pages/History/History';
+import Settings from './pages/Settings/Settings';
+import AddCredentials from './pages/AddCredentials/AddCredentials';
+import SendCredentials from './pages/SendCredentials/SendCredentials';
+
 const Login = React.lazy(() => import('./pages/Login/Login'));
-const Home = React.lazy(() => import('./pages/Home/Home'));
-const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
-const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
-const History = React.lazy(() => import('./pages/History/History'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
-const Popup = React.lazy(() => import('./components/Popup'));
-const PinInputPopup = React.lazy(() => import('./components/PinInputPopup'));
+const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
+const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
+const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
@@ -44,13 +46,17 @@ function App() {
 
 	const url = window.location.href;
 	const {
-		isValidURL,
-		showPopup,
-		setShowPopup,
+		showSelectCredentialsPopup,
+		setShowSelectCredentialsPopup,
 		setSelectionMap,
 		conformantCredentialsMap,
-		showPinPopup,
-		setShowPinPopup,
+		showPinInputPopup,
+		setShowPinInputPopup,
+		verifierDomainName,
+		showMessagePopup,
+		setMessagePopup,
+		textMessagePopup,
+		typeMessagePopup,
 	} = useCheckURL(url);
 
 	useEffect(() => {
@@ -92,11 +98,14 @@ function App() {
 							<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
 							<Route path="*" element={<NotFound />} />
 						</Routes>
-						{showPopup &&
-							<Popup showPopup={showPopup} setShowPopup={setShowPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} />
+						{showSelectCredentialsPopup &&
+							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
 						}
-						{showPinPopup &&
-							<PinInputPopup showPinPopup={showPinPopup} setShowPinPopup={setShowPinPopup} />
+						{showPinInputPopup &&
+							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+						}
+						{showMessagePopup &&
+							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 						}
 					</HandlerNotification>
 				</Suspense>

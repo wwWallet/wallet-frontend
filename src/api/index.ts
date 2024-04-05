@@ -4,8 +4,8 @@ import { Err, Ok, Result } from 'ts-results';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
-import { useMemo } from 'react';
-import { useClearStorages, useSessionStorage } from '../components/useStorage';
+import { useEffect, useMemo } from 'react';
+import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -26,6 +26,13 @@ type SignupWebauthnError = (
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
+
+
+export type ClearSessionEvent = {};
+export const CLEAR_SESSION_EVENT = 'clearSession';
+export type ApiEventType = typeof CLEAR_SESSION_EVENT;
+const events: EventTarget = new EventTarget();
+
 
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>,
@@ -57,6 +64,11 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean>,
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>>,
+
+	addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void,
+	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
+	/** Register a storage hook handle to be cleared when `useApi().clearSession()` is invoked. */
+	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 }
 
 export function useApi(): BackendApi {
@@ -127,6 +139,7 @@ export function useApi(): BackendApi {
 
 			function clearSession(): void {
 				clearSessionStorage();
+				events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 			}
 
 			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null): void {
@@ -398,6 +411,29 @@ export function useApi(): BackendApi {
 				}
 			}
 
+			function addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void {
+				events.addEventListener(type, listener, options);
+			}
+
+			function removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void {
+				events.removeEventListener(type, listener, options);
+			}
+
+			function useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T> {
+				const [, , clearHandle] = storageHandle;
+				useEffect(
+					() => {
+						const listener = () => { clearHandle(); };
+						addEventListener(CLEAR_SESSION_EVENT, listener);
+						return () => {
+							removeEventListener(CLEAR_SESSION_EVENT, listener);
+						};
+					},
+					[clearHandle]
+				);
+				return storageHandle;
+			}
+
 			return {
 				del,
 				get,
@@ -416,6 +452,10 @@ export function useApi(): BackendApi {
 
 				loginWebauthn,
 				signupWebauthn,
+
+				addEventListener,
+				removeEventListener,
+				useClearOnClearSession,
 			}
 		},
 		[
