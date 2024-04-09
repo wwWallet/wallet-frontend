@@ -74,7 +74,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			<div className="w-3/5 flex flex-col flex-grow">
 				{/* Content */}
-				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
+				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
 					{/* Conditional Notification Message */}
 					{(!isPermissionGranted && !isMessageNoGrantedVisible) || (isPermissionGranted && !tokenSentInSession && !isMessageGrantedVisible) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
