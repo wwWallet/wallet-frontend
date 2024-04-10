@@ -74,6 +74,8 @@ const CredentialInfo = ({ credential, mainClassName = "pt-5 pr-2 w-full" }) => {
 							{renderRow('diplomaTitle', 'Title', parsedCredential.credentialSubject.diplomaTitle)}
 							{renderRow('eqfLevel', 'EQF', parsedCredential.credentialSubject.eqfLevel)}
 							{renderRow('grade', 'Grade', parsedCredential.credentialSubject.grade)}
+							{renderRow('id', 'SSN', parsedCredential.credentialSubject.socialSecurityIdentification?.ssn)}
+							{renderRow('id', 'Document ID', parsedCredential.credentialSubject.documentId)}
 						</>
 					)}
 				</tbody>

@@ -1,6 +1,6 @@
 {
-	"short_name": "wwWallet",
-	"name": "wwWallet",
+	"short_name": "DC4EU Wallet",
+	"name": "DC4EU Wallet",
 	"icons": [
 		{
 			"src": "wallet_16.png",
@@ -32,7 +32,7 @@
 	"display": "standalone",
 	"orientation": "any",
 	"theme_color": "#003476",
-	"description": "wwWallet enables secure storage and management of verifiable credentials.",
+	"description": "DC4EU Wallet enables secure storage and management of verifiable credentials.",
 	"background_color": "#ffffff",
 	"scope": "/",
 	"dir": "ltr",

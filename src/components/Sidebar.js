@@ -78,7 +78,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<img
 							src={logo}
 							alt="Logo"
-							className="w-20 h-22 mb-2 mr-2 cursor-pointer"
+							className="w-16 h-22 mr-2 cursor-pointer"
 							onClick={() => handleNavigate('/')}
 						/>
 						<h1
