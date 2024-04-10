@@ -15,7 +15,7 @@ const getFieldIcon = (fieldName) => {
 			return <RiPassExpiredFill size={25} className="inline mr-1 mb-1" />;
 		case 'dateOfBirth':
 			return <AiFillCalendar size={25} className="inline mr-1 mb-1" />;
-		case 'personalIdentifier':
+		case 'id':
 			return <MdOutlineNumbers size={25} className="inline mr-1 mb-1" />
 		case 'familyName':
 		case 'firstName':
@@ -31,21 +31,25 @@ const getFieldIcon = (fieldName) => {
 	}
 };
 
-const renderRow = (fieldName, fieldValue) => {
+const renderRow = (fieldName, label, fieldValue) => {
 	if (fieldValue) {
 		return (
-			<tr className="text-left ">
+			<tr className="text-left text-xs sm:text-sm md:text-base">
 				<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
-					{getFieldIcon(fieldName)}
+					<div className="flex md:flex-row flex-col items-left">
+						{getFieldIcon(fieldName)}
+						<span className="md:ml-1">{label}:</span>
+					</div>
 				</td>
 				<td className="py-2 px-2 rounded-r-xl">{fieldValue}</td>
 			</tr>
 		);
+	} else {
+		return null;
 	}
-	return null;
 };
 
-const CredentialInfo = ({ credential, mainClassName="pt-5 pr-2 w-full" }) => {
+const CredentialInfo = ({ credential, mainClassName = "pt-5 pr-2 w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
 
@@ -61,14 +65,15 @@ const CredentialInfo = ({ credential, mainClassName="pt-5 pr-2 w-full" }) => {
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
 						<>
-							{renderRow('expdate', formatDate(parsedCredential.expirationDate))}
-							{renderRow('familyName', parsedCredential.credentialSubject.familyName)}
-							{renderRow('firstName', parsedCredential.credentialSubject.firstName)}
-							{renderRow('personalIdentifier', parsedCredential.credentialSubject.personalIdentifier)}
-							{renderRow('dateOfBirth', parsedCredential.credentialSubject.dateOfBirth)}
-							{renderRow('diplomaTitle', parsedCredential.credentialSubject.diplomaTitle)}
-							{renderRow('eqfLevel', parsedCredential.credentialSubject.eqfLevel)}
-							{renderRow('grade', parsedCredential.credentialSubject.grade)}
+							{renderRow('expdate', 'Expiration', formatDate(parsedCredential.expirationDate))}
+							{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.familyName)}
+							{renderRow('firstName', 'First Name', parsedCredential.credentialSubject.firstName)}
+							{renderRow('id', 'Personal ID', parsedCredential.credentialSubject.personalIdentifier)}
+							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.dateOfBirth)}
+							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.birthdate)}
+							{renderRow('diplomaTitle', 'Title', parsedCredential.credentialSubject.diplomaTitle)}
+							{renderRow('eqfLevel', 'EQF', parsedCredential.credentialSubject.eqfLevel)}
+							{renderRow('grade', 'Grade', parsedCredential.credentialSubject.grade)}
 						</>
 					)}
 				</tbody>
