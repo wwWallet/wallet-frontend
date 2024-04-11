@@ -174,20 +174,19 @@ const WebauthnRegistation = ({
 			<GetButton
 				content={
 					<div className="flex items-center">
-						{(window.innerWidth < 768) ? (
-							<BsPlusCircle size={20} className="text-white sm:inline" />
-						) : (
-							<>
-								<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-								{t('pageSettings.addPasskey')}
-							</>
-						)}
+						<BsPlusCircle size={20} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.addPasskey')}
+						</span>
 					</div>
 				}
 				onClick={onBegin}
 				variant="primary"
 				disabled={registrationInProgress || !unlocked}
-				title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
+				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
+
+				ariaLabel={unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				title={unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 			/>
 
 			<Dialog
@@ -335,19 +334,16 @@ const WebauthnUnlock = ({
 				<div className="flex items-center">
 					{unlocked
 						? <>
-							<BsUnlock size={20} className="text-white mr-2 sm:inline" />
-							{t('pageSettings.lockPasskeyManagement')}
+							<BsUnlock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.lockPasskeyManagement')}
+							</span>
 						</>
 						: <>
-							{(window.innerWidth < 768) ? (
-								<BsLock size={20} className="text-white sm:inline" />
-							) : (
-								<>
-									<BsLock size={20} className="text-white mr-2 sm:inline" />
-									{t('pageSettings.unlockPasskeyManagement')}
-								</>
-							)}
-
+							<BsLock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.unlockPasskeyManagement')}
+							</span>
 						</>
 					}
 				</div>
@@ -355,6 +351,8 @@ const WebauthnUnlock = ({
 			onClick={unlocked ? onLock : onBeginUnlock}
 			variant="primary"
 			disabled={inProgress}
+			ariaLabel={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement')) : ""}
+			title={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle')) : ""}
 		/>
 	);
 };
@@ -516,7 +514,7 @@ const WebauthnCredentialItem = ({
 						variant="delete"
 						disabled={!unlocked}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : ""}
+						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
 					/>
 				)}
