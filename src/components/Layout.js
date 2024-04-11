@@ -59,11 +59,13 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 						alt="Logo"
 						className="w-10 h-auto mr-2 cursor-pointer"
 						onClick={() => handleNavigate('/')}
+						tabIndex={0}
 					/>
 				</div>
 				<h1
 					className="text-white text-xl font-bold cursor-pointer"
 					onClick={() => handleNavigate('/')}
+					tabIndex={0}
 				>
 					{t('common.walletName')}
 				</h1>

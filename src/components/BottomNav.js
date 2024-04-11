@@ -34,6 +34,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 					className={`cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-custom-blue' : 'text-gray-400'} transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
 					title={item.label}
+					tabIndex={0}
 				>
 					{item.icon}
 					<span className="text-xs">{item.label}</span>
@@ -44,6 +45,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				className={`cursor-pointer flex flex-col items-center w-[20%] ${(isOpen) ? 'text-custom-blue' : 'text-gray-400'} transition-colors duration-200`}
 				onClick={toggle}
 				title={t("common.navItemProfile")}
+				tabIndex={0}
 			>
 				<FaUserCircle size={26} />
 				<span className="text-xs">{t("common.navItemProfile")}</span>

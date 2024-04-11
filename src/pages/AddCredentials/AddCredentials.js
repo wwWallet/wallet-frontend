@@ -155,6 +155,7 @@ const Issuers = () => {
 								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.did)}
+								tabIndex={0}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
 							</li>

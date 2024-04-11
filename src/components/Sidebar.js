@@ -19,6 +19,7 @@ const NavItem = ({
 		<li
 			onClick={() => handleNavigate(path)}
 			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'}`}
+			tabIndex={0}
 		>
 			{children}
 		</li>
@@ -62,10 +63,11 @@ const Sidebar = ({ isOpen, toggle }) => {
 			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div className="sm:hidden flex items-center justify-between mb-4">
-					<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} />
+					<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} tabIndex={0} />
 					<h1
 						className="text-white text-xl font-bold cursor-pointer"
 						onClick={() => handleNavigate('/')}
+						tabIndex={0}
 					>
 						{t('common.walletName')}
 					</h1>
@@ -80,10 +82,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 							alt="Logo"
 							className="w-20 h-22 mb-2 mr-2 cursor-pointer"
 							onClick={() => handleNavigate('/')}
+							tabIndex={0}
 						/>
 						<h1
 							className="text-white text-xl font-bold cursor-pointer"
 							onClick={() => handleNavigate('/')}
+							tabIndex={0}
 						>
 							{t('common.walletName')}
 						</h1>
@@ -141,6 +145,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<li
 							onClick={handleLogout}
+							tabIndex={0}
 							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
 						>
 							<AiOutlineLogout size={30} />
