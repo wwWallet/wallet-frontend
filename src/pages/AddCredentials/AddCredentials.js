@@ -137,7 +137,7 @@ const Issuers = () => {
 					<input
 						type="text"
 						placeholder={t('pageAddCredentials.searchPlaceholder')}
-						className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
 						value={searchQuery}
 						onChange={handleSearch}
 					/>

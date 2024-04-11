@@ -59,7 +59,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="shadow appearance-none border rounded-lg w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+				className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 w-full py-1.5 pl-10 pr-3"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}

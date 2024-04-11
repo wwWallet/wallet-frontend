@@ -201,7 +201,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
+									className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3"
 									aria-label="Nickname for new credential"
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -269,12 +269,13 @@ const WebauthnRegistation = ({
 				onCancel={onCancel}
 			>
 				<p>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
-
-				<GetButton
-					content={t('common.cancel')}
-					onClick={onCancel}
-					variant="cancel"
-				/>
+				<div className='flex justify-center'>
+					<GetButton
+						content={t('common.cancel')}
+						onClick={onCancel}
+						variant="cancel"
+					/>
+				</div>
 			</Dialog>
 		</>
 	);
@@ -427,7 +428,8 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight"
+									className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 w-36"
+
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
