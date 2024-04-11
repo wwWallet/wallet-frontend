@@ -74,7 +74,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				</button>
 			</header>
 
-			<div className="w-3/5 flex flex-col flex-grow">
+			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 overflow-y-auto">
 					{/* Conditional Notification Message */}
