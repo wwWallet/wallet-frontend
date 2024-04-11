@@ -5,6 +5,7 @@ import { useSessionStorage } from './useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import GetButton from './Buttons/GetButton';
 
 const noWarnPlatforms = [
 	{ browser: /chrome/ui, not: { os: /ios/ui } },
@@ -22,7 +23,7 @@ type ContextValue = {
 const BrowserSupportedContext = createContext<ContextValue>({
 	browserSupported: true,
 	bypassWarning: true,
-	setBypass: () => {},
+	setBypass: () => { },
 	showWarningPortal: false,
 });
 
@@ -132,23 +133,22 @@ export function WarningPortal({
 
 				<p className="text-sm">{t('browserSupportWarningPortal.outro')}</p>
 
-				<button
-					className={`w-full text-white bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-300 dark:hover:bg-gray-400 dark:focus:ring-gray-400 ${classes || ""}`}
+				<GetButton
+					content={t('browserSupportWarningPortal.continueAnyway')}
 					onClick={() => setBypass(true)}
-					type="button"
-				>
-					{t('browserSupportWarningPortal.continueAnyway')}
-				</button>
+					variant="custom"
+					additionalClassName='text-white bg-gray-300 hover:bg-gray-400 w-full'
+				/>
 			</>
 		);
 	}
 
 	return (
 		<Ctx>
-			<If test={(ctx) => !ctx.showWarningPortal }>
+			<If test={(ctx) => !ctx.showWarningPortal}>
 				{children}
 			</If>
-			<If test={(ctx) => ctx.showWarningPortal }>
+			<If test={(ctx) => ctx.showWarningPortal}>
 				<Content classes={classes} />
 			</If>
 		</Ctx>

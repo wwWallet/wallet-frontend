@@ -10,6 +10,7 @@ import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
+import GetButton from '../../components/Buttons/GetButton';
 
 const Dialog = ({
 	children,
@@ -170,23 +171,24 @@ const WebauthnRegistation = ({
 
 	return (
 		<>
-			<button
-				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue hover:bg-custom-blue-hover" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} font-medium rounded-lg text-sm px-4 py-2 text-center`}
+			<GetButton
+				content={
+					<div className="flex items-center">
+						{(window.innerWidth < 768) ? (
+							<BsPlusCircle size={20} className="text-white sm:inline" />
+						) : (
+							<>
+								<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
+								{t('pageSettings.addPasskey')}
+							</>
+						)}
+					</div>
+				}
 				onClick={onBegin}
+				variant="primary"
 				disabled={registrationInProgress || !unlocked}
 				title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
-			>
-				<div className="flex items-center">
-					{(window.innerWidth < 768) ? (
-						<BsPlusCircle size={20} className="text-white sm:inline" />
-					) : (
-						<>
-							<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
-							{t('pageSettings.addPasskey')}
-						</>
-					)}
-				</div>
-			</button>
+			/>
 
 			<Dialog
 				open={stateChooseNickname}
@@ -217,24 +219,21 @@ const WebauthnRegistation = ({
 						)
 					}
 
-					<div className="pt-2">
-						<button
-							type="button"
-							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-gray-100 mr-2"
+					<div className="pt-2 flex justify-center gap-2">
+						<GetButton
+							content={t('common.cancel')}
 							onClick={onCancel}
+							variant="cancel"
 							disabled={isSubmitting}
-						>
-							{t('common.cancel')}
-						</button>
+						/>
 
 						{pendingCredential && (
-							<button
+							<GetButton
 								type="submit"
-								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
+								content={t('common.save')}
+								variant="secondary"
 								disabled={isSubmitting}
-							>
-								{t('common.save')}
-							</button>
+							/>
 						)}
 					</div>
 
@@ -249,21 +248,21 @@ const WebauthnRegistation = ({
 				<p>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
 				<p>{t('pageSettings.registerPasskey.authOnceMore')}</p>
 
-				<button
-					type="button"
-					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-					onClick={() => resolvePrfRetryPrompt(false)}
-				>
-					{t('common.cancel')}
-				</button>
-				<button
-					type="button"
-					className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
-					onClick={() => resolvePrfRetryPrompt(true)}
-					disabled={prfRetryAccepted}
-				>
-					{t('common.continue')}
-				</button>
+				<div className='flex justify-center gap-2'>
+					<GetButton
+						content={t('common.cancel')}
+						onClick={() => resolvePrfRetryPrompt(false)}
+						variant="cancel"
+					/>
+
+					<GetButton
+						content={t('common.continue')}
+						onClick={() => resolvePrfRetryPrompt(true)}
+						variant="secondary"
+						disabled={prfRetryAccepted}
+					/>
+				</div>
+
 			</Dialog>
 
 			<Dialog
@@ -272,13 +271,11 @@ const WebauthnRegistation = ({
 			>
 				<p>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
 
-				<button
-					type="button"
-					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
+				<GetButton
+					content={t('common.cancel')}
 					onClick={onCancel}
-				>
-					{t('common.cancel')}
-				</button>
+					variant="cancel"
+				/>
 			</Dialog>
 		</>
 	);
@@ -333,31 +330,32 @@ const WebauthnUnlock = ({
 	);
 
 	return (
-		<button
-			className="px-2 py-2 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue dark:hover:bg-custom-blue-hover"
-			onClick={unlocked ? onLock : onBeginUnlock}
-			disabled={inProgress}
-		>
-			<div className="flex items-center">
-				{unlocked
-					? <>
-						<BsUnlock size={20} className="text-white mr-2 sm:inline" />
-						{t('pageSettings.lockPasskeyManagement')}
-					</>
-					: <>
-						{(window.innerWidth < 768) ? (
-							<BsLock size={20} className="text-white sm:inline" />
-						) : (
-							<>
-								<BsLock size={20} className="text-white mr-2 sm:inline" />
-								{t('pageSettings.unlockPasskeyManagement')}
-							</>
-						)}
+		<GetButton
+			content={
+				<div className="flex items-center">
+					{unlocked
+						? <>
+							<BsUnlock size={20} className="text-white mr-2 sm:inline" />
+							{t('pageSettings.lockPasskeyManagement')}
+						</>
+						: <>
+							{(window.innerWidth < 768) ? (
+								<BsLock size={20} className="text-white sm:inline" />
+							) : (
+								<>
+									<BsLock size={20} className="text-white mr-2 sm:inline" />
+									{t('pageSettings.unlockPasskeyManagement')}
+								</>
+							)}
 
-					</>
-				}
-			</div>
-		</button>
+						</>
+					}
+				</div>
+			}
+			onClick={unlocked ? onLock : onBeginUnlock}
+			variant="primary"
+			disabled={inProgress}
+		/>
 	);
 };
 
@@ -477,54 +475,50 @@ const WebauthnCredentialItem = ({
 			<div className="items-start	 flex inline-flex">
 				{editing
 					? (
-						<>
-							<button
-								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-								type="button"
-								disabled={submitting}
+
+						<div className='flex gap-2'>
+							<GetButton
+								content={t('common.cancel')}
 								onClick={() => setEditing(false)}
-								aria-label={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
-							>
-								{t('common.cancel')}
-							</button>
-							<button
-								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
-								type="submit"
+								variant="cancel"
 								disabled={submitting}
-								aria-label={t('pageSettings.passkeyItem.saveChangesAriaLabel', { passkeyLabel: currentLabel })}
-							>
-								{t('common.save')}
-							</button>
-						</>
+								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
+							/>
+							<GetButton
+								type="submit"
+								content={t('common.save')}
+								disabled={submitting}
+								variant="secondary"
+							/>
+						</div>
 					)
 					: (
-						<>
-							<button
-								className={` ${!onDelete || unlocked ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"} flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center`}
-								type="button"
-								onClick={() => setEditing(true)}
-								disabled={!unlocked}
-								title={!unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
-								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-							>
-								<FaEdit size={16} className="mr-2" /> {t('pageSettings.passkeyItem.rename')}
-							</button>
-						</>
+						<GetButton
+							content={
+								<>
+									<FaEdit size={16} className="mr-2" />
+									{t('pageSettings.passkeyItem.rename')}
+								</>
+							}
+							onClick={() => setEditing(true)}
+							variant="secondary"
+							disabled={onDelete && !unlocked}
+							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
+							title={onDelete && !unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
+						/>
 					)
 				}
 
 				{onDelete && (
-					<button
-						className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} text-sm font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-2 px-4 py-2`}
-						type="button"
+					<GetButton
+						content={<FaTrash size={16} />}
 						onClick={openDeleteConfirmation}
+						variant="delete"
 						disabled={!unlocked}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : ""}
-
-					>
-						<FaTrash size={16} />
-					</button>
+						additionalClassName='ml-2 py-2.5'
+					/>
 				)}
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
@@ -718,16 +712,13 @@ const Settings = () => {
 									<p className='mb-2'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
-									<button
-										type="button"
-										className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} px-4 py-2 border border-gray-300 rounded-md font-medium rounded-lg text-sm mr-2`}
+									<GetButton
+										content={t('pageSettings.deleteAccount.buttonText')}
 										onClick={openDeleteConfirmation}
+										variant="delete"
 										disabled={!unlocked}
 										title={!unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
-
-									>
-										{t('pageSettings.deleteAccount.buttonText')}
-									</button>
+									/>
 								</div>
 							</div>
 

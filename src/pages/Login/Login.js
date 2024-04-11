@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaExclamationTriangle, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { CSSTransition } from 'react-transition-group';
 import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
+import GetButton from '../../components/Buttons/GetButton';
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
@@ -53,11 +54,12 @@ const FormInputField = ({
 }) => {
 	const [show, setShow] = useState(false);
 	const onToggleShow = () => { setShow(!show); };
+	const { t } = useTranslation();
 
 	return (
 		<div className="relative">
 			<input
-				className="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+				className="shadow appearance-none border rounded-lg w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -72,7 +74,9 @@ const FormInputField = ({
 					<button
 						type="button"
 						onClick={onToggleShow}
-						className="text-gray-500 focus:outline-none"
+						className="text-gray-500 hover:text-gray-600"
+						aria-label={show ? (t('loginSignup.passwordHideAriaLabel')) : (t('loginSignup.passwordShowAriaLabel'))}
+						title={show ? (t('loginSignup.passwordHideTitle')) : (t('loginSignup.passwordShowTitle'))}
 					>
 						{show ? <FaEyeSlash /> : <FaEye />}
 					</button>
@@ -308,22 +312,19 @@ const WebauthnSignupLogin = ({
 											</>
 										)
 								}
-
-								<button
-									type="button"
-									className="bg-white px-4 py-2	 border-gray-300 rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-									onClick={() => resolvePrfRetryPrompt(false)}
-								>
-									Cancel
-								</button>
-								<button
-									type="button"
-									className="text-white bg-blue-600 text-sm px-4 py-2 text-center rounded-lg dark:bg-blue-600 dark:hover:bg-blue-700"
-									onClick={() => resolvePrfRetryPrompt(true)}
-									disabled={prfRetryAccepted}
-								>
-									Continue
-								</button>
+								<div className='flex justify-center gap-4'>
+									<GetButton
+										content={t('common.cancel')}
+										onClick={() => resolvePrfRetryPrompt(false)}
+										variant="cancel"
+									/>
+									<GetButton
+										content={t('common.continue')}
+										onClick={() => resolvePrfRetryPrompt(true)}
+										variant="secondary"
+										disabled={prfRetryAccepted}
+									/>
+								</div>
 							</div>
 						)
 						: (
@@ -333,31 +334,30 @@ const WebauthnSignupLogin = ({
 										<p className="dark:text-white pb-3">Something went wrong, please try again.</p>
 										<p className="dark:text-white pb-3">Please note that you need to use the same passkey you created in the previous step.</p>
 
-										<button
-											type="button"
-											className="border border-gray-300 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"
-											onClick={onCancel}
-										>
-											Cancel
-										</button>
-										<button
-											className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-											type="submit"
-										>
-											{t('loginSignup.tryAgain')}
-										</button>
+										<div className='flex justify-center gap-4'>
+
+											<GetButton
+												content={t('common.cancel')}
+												onClick={onCancel}
+												variant="cancel"
+											/>
+											<GetButton
+												type="submit"
+												content={t('loginSignup.tryAgain')}
+												variant="secondary"
+											/>
+										</div>
 									</div>
 								)
 								: (
 									<>
 										<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
-										<button
-											type="button"
-											className="w-full text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
+										<GetButton
+											content={t('common.cancel')}
 											onClick={onCancel}
-										>
-											Cancel
-										</button>
+											variant="cancel"
+											additionalClassName='w-full'
+										/>
 									</>
 								)
 						)
@@ -394,31 +394,38 @@ const WebauthnSignupLogin = ({
 							</>)}
 
 						{isLogin && (
-							<ul className="overflow-y-auto max-h-24 custom-scrollbar">
+							<ul className="overflow-y-auto max-h-24 p-2 custom-scrollbar">
 								{cachedUsers.map((cachedUser) => (
 									<li
 										key={cachedUser.userHandleB64u}
 										className="w-full flex flex-row flex-nowrap mb-2"
 									>
-										<button
-											className="flex-grow text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center mr-2"
-											type="button"
-											disabled={isSubmitting}
-											onClick={() => onLoginCachedUser(cachedUser)}
-										>
-											<GoPasskeyFill className="inline text-xl mr-2" />
-											{isSubmitting ? t('loginSignup.submitting') : t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-										</button>
-
-										<button
-											className="text-gray-700 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center"
-											type="button"
-											disabled={isSubmitting}
-											onClick={() => onForgetCachedUser(cachedUser)}
-											aria-label={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
-										>
-											<GoTrash className="inline text-xl" />
-										</button>
+										<div className='flex-grow mr-2'>
+											<GetButton
+												content={
+													<>
+														<GoPasskeyFill className="inline text-xl mr-2" />
+														{isSubmitting ? t('loginSignup.submitting') : t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+													</>
+												}
+												onClick={() => onLoginCachedUser(cachedUser)}
+												variant="tertiary"
+												disabled={isSubmitting}
+												additionalClassName='w-full'
+											/>
+										</div>
+										<div>
+											<GetButton
+												content={
+													<GoTrash className="inline text-xl" />
+												}
+												onClick={() => onForgetCachedUser(cachedUser)}
+												variant="tertiary"
+												disabled={isSubmitting}
+												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
+												title={t('loginSignup.forgetCachedUserTitle')}
+											/>
+										</div>
 									</li>
 								))}
 							</ul>
@@ -426,21 +433,25 @@ const WebauthnSignupLogin = ({
 
 						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4" />}
 
-						<button
-							className={`w-full text-white bg-custom-blue hover:bg-custom-blue-hover dark:text-gray-900 dark:hover:bg-gray-300 dark:bg-custom-light-blue focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex flex-row flex-nowrap items-center justify-center ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
+						<GetButton
 							type="submit"
-							disabled={isSubmitting || nameByteLimitReached}
-						>
-							<GoPasskeyFill className="inline text-xl mr-2" />
-							{isSubmitting
-								? t('loginSignup.submitting')
-								: isLogin
-									? cachedUsers?.length > 0
-										? t('loginSignup.loginOtherPasskey')
-										: t('loginSignup.loginPasskey')
-									: t('loginSignup.signupPasskey')
+							content={
+								<>
+									<GoPasskeyFill className="inline text-xl mr-2" />
+									{isSubmitting
+										? t('loginSignup.submitting')
+										: isLogin
+											? cachedUsers?.length > 0
+												? t('loginSignup.loginOtherPasskey')
+												: t('loginSignup.loginPasskey')
+											: t('loginSignup.signupPasskey')
+									}
+								</>
 							}
-						</button>
+							variant="primary"
+							disabled={isSubmitting || nameByteLimitReached}
+							additionalClassName={`w-full ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
+						/>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
 				)
@@ -672,14 +683,13 @@ const Login = () => {
 													/>
 												</FormInputRow>
 											)}
-
-											<button
-												className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+											<GetButton
 												type="submit"
+												content={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+												variant="secondary"
 												disabled={isSubmitting}
-											>
-												{isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-											</button>
+												additionalClassName='w-full'
+											/>
 										</form>
 										<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
 									</>

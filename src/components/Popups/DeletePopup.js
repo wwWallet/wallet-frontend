@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
 import Spinner from '../Spinner';
+import GetButton from '../Buttons/GetButton';
 
 const DeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
 	const { t } = useTranslation();
@@ -24,18 +25,16 @@ const DeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
 						<hr className="mb-2 border-t border-red-600/80" />
 						<p className="mb-2 mt-4">{message}</p>
 						<div className="flex justify-end space-x-2 pt-4">
-							<button
-								className="px-4 py-2 text-gray-900 bg-gray-300 hover:bg-gray-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+							<GetButton
+								content={t('common.cancel')}
 								onClick={onCancel}
-							>
-								{t('common.cancel')}
-							</button>
-							<button
-								className="px-4 py-2 text-white bg-red-600 hover:bg-red-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+								variant="cancel"
+							/>
+							<GetButton
+								content={t('common.delete')}
 								onClick={onConfirm}
-							>
-								{t('common.delete')}
-							</button>
+								variant="delete"
+							/>
 						</div>
 					</>
 				)}

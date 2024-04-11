@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
+import GetButton from '../Buttons/GetButton';
 
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
@@ -142,11 +143,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 						</>
 					))}
 				</div>
-				<button
+				<GetButton
+					content={t('common.cancel')}
 					onClick={handleCancel}
-					className='text-sm px-4 py-2 my-2 bg-red-500 hover:bg-red-700 text-white font-medium rounded-lg'>
-					{t('common.cancel')}
-				</button>
+					variant="cancel"
+				/>
 			</div>
 		</div>
 	);
