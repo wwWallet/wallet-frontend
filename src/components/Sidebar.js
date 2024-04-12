@@ -16,13 +16,12 @@ const NavItem = ({
 	path,
 }) => {
 	return (
-		<li
+		<button
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'}`}
-			tabIndex={0}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl w-full ${location.pathname === path ? 'bg-white text-custom-blue' : 'nav-item-animate-hover'}`}
 		>
 			{children}
-		</li>
+		</button>
 	);
 };
 
@@ -63,34 +62,32 @@ const Sidebar = ({ isOpen, toggle }) => {
 			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div className="sm:hidden flex items-center justify-between mb-4">
-					<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" onClick={() => handleNavigate('/')} tabIndex={0} />
-					<h1
+					<button onClick={() => handleNavigate('/')}>
+						<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" />
+					</button>
+					<a href={('/')}
 						className="text-white text-xl font-bold cursor-pointer"
-						onClick={() => handleNavigate('/')}
-						tabIndex={0}
 					>
 						{t('common.walletName')}
-					</h1>
+					</a>
 					<button onClick={toggle}>
 						{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
 					</button>
 				</div>
 				<div>
 					<div className="hidden sm:flex justify-between items-center mb-4">
-						<img
-							src={logo}
-							alt="Logo"
-							className="w-20 h-22 mb-2 mr-2 cursor-pointer"
-							onClick={() => handleNavigate('/')}
-							tabIndex={0}
-						/>
-						<h1
+						<button className='mb-2 mr-2' onClick={() => handleNavigate('/')}>
+							<img
+								src={logo}
+								alt="Logo"
+								className="w-20 h-22 cursor-pointer"
+							/>
+						</button>
+						<a href={('/')}
 							className="text-white text-xl font-bold cursor-pointer"
-							onClick={() => handleNavigate('/')}
-							tabIndex={0}
 						>
 							{t('common.walletName')}
-						</h1>
+						</a>
 						<button className="sm:hidden" onClick={toggle}>
 							<AiOutlineClose size={30} />
 						</button>
@@ -143,14 +140,14 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<hr className="my-4 border-t border-white/20" />
 
-						<li
+
+						<button
 							onClick={handleLogout}
-							tabIndex={0}
-							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover`}
+							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover w-full`}
 						>
 							<AiOutlineLogout size={30} />
 							<span>{t("sidebar.navItemLogout")}</span>
-						</li>
+						</button>
 					</ul>
 				</div>
 			</div>

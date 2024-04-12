@@ -150,15 +150,14 @@ const Issuers = () => {
 						style={{ maxHeight: '80vh' }}
 					>
 						{filteredIssuers.map((issuer) => (
-							<li
+							<button
 								key={issuer.id}
-								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
+								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words w-full text-left"
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.did)}
-								tabIndex={0}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
-							</li>
+							</button>
 						))}
 					</ul>
 				)}

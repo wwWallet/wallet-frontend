@@ -54,21 +54,19 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
 				<div className="flex items-center">
-					<img
-						src={logo}
-						alt="Logo"
-						className="w-10 h-auto mr-2 cursor-pointer"
-						onClick={() => handleNavigate('/')}
-						tabIndex={0}
-					/>
+					<button className='mr-2' onClick={() => handleNavigate('/')}>
+						<img
+							src={logo}
+							alt="Logo"
+							className="w-10 h-auto cursor-pointer"
+						/>
+					</button>
 				</div>
-				<h1
+				<a href={('/')}
 					className="text-white text-xl font-bold cursor-pointer"
-					onClick={() => handleNavigate('/')}
-					tabIndex={0}
 				>
 					{t('common.walletName')}
-				</h1>
+				</a>
 				<button className="text-white max480:hidden" onClick={toggleSidebar}>
 					<AiOutlineMenu size={24} />
 				</button>

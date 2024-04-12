@@ -136,15 +136,14 @@ const Verifiers = () => {
 						style={{ maxHeight: '80vh' }}
 					>
 						{filteredVerifiers.map((verifier) => (
-							<li
+							<button
 								key={verifier.id}
-								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words"
+								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words w-full text-left"
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleVerifierClick(verifier.did)}
-								tabIndex={0}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
-							</li>
+							</button>
 						))}
 					</ul>
 				)}
