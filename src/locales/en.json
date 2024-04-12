@@ -202,7 +202,7 @@
 		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
-		"description": "Please select one of the credentials below to proceed with the presentation",
+		"description": "The Friendly Verifier requests the following credentials. Please select below to proceed with the presentation.",
 		"requestedFieldsHide": "Hide Requested Fields",
 		"requestedFieldsinfo": "The following fields were requested from the verifier",
 		"requestedFieldsShow": "Show Requested Fields",
