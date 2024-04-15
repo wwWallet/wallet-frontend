@@ -77,16 +77,12 @@
 	transition: opacity 400ms ease-in;
 }
 
-@keyframes scan-vertical {
+.scan-region-highlight-svg {
+	stroke: white !important;
+}
 
-	0%,
-	100% {
-		transform: translateY(calc(-50% + var(--scanning)/2 - var(--scanning-margin)));
-	}
-
-	50% {
-		transform: translateY(calc(-50% - var(--scanning)/2 + var(--scanning-margin)));
-	}
+.code-outline-highlight {
+	stroke: green !important;
 }
 
 .text-overflow-ellipsis {
