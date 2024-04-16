@@ -12,8 +12,10 @@ module.exports = {
 			colors: {
 				'primary': '#003476',
 				'primary-hover': '#002b62',
-				'secondary': '#4169E1',
-				'secondary-hover': '#0F52BA',
+				'primary-light': '#4169E1',
+				'primary-light-hover': '#0F52BA',
+				'extra-light': '#68caf1',
+				'extra-light-hover': '#5DB5D8',
 			},
 			screens: {
 				'max480': { 'max': '480px' },

@@ -27,7 +27,7 @@ const FormInputRow = ({
 }) => (
 	<div className="mb-4 relative">
 		<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
-			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500" />
+			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500 dark:text-white" />
 			{label}
 		</label>
 		{children}
@@ -59,7 +59,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 w-full py-1.5 pl-10 pr-3"
+				className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white w-full py-1.5 pl-10 pr-3"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -78,7 +78,7 @@ const FormInputField = ({
 						aria-label={show ? (t('loginSignup.passwordHideAriaLabel')) : (t('loginSignup.passwordShowAriaLabel'))}
 						title={show ? (t('loginSignup.passwordHideTitle')) : (t('loginSignup.passwordShowTitle'))}
 					>
-						{show ? <FaEyeSlash /> : <FaEye />}
+						{show ? <FaEyeSlash className='dark:text-white'/> : <FaEye className='dark:text-white'/>}
 					</button>
 				</div>
 			)}
@@ -302,7 +302,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-secondary">Almost done!</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">Almost done!</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
@@ -321,7 +321,7 @@ const WebauthnSignupLogin = ({
 									<GetButton
 										content={t('common.continue')}
 										onClick={() => resolvePrfRetryPrompt(true)}
-										variant="secondary"
+										variant="primary-light"
 										disabled={prfRetryAccepted}
 									/>
 								</div>
@@ -344,7 +344,7 @@ const WebauthnSignupLogin = ({
 											<GetButton
 												type="submit"
 												content={t('loginSignup.tryAgain')}
-												variant="secondary"
+												variant="primary-light"
 											/>
 										</div>
 									</div>
@@ -585,7 +585,7 @@ const Login = () => {
 						<Trans
 							i18nKey="loginSignup.welcomeMessage"
 							components={{
-								highlight: <span className="text-primary dark:text-secondary" />
+								highlight: <span className="text-primary dark:text-primary-light" />
 							}}
 						/>
 					</h1>
@@ -605,15 +605,15 @@ const Login = () => {
 											components={{
 												docLinkPrf: <a
 													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-													className="font-medium text-primary hover:underline dark:text-blue-500"
+													className="font-medium text-primary dark:text-primary-light hover:underline"
 												/>,
 												docLinkLaunchpad: <a
 													href="https://launchpad.wwwallet.org" target='blank_'
-													className="font-medium text-primary hover:underline dark:text-blue-500"
+													className="font-medium text-primary dark:text-primary-light hover:underline"
 												/>,
 												docLinkScenarios: <a
 													href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-													className="font-medium text-primary hover:underline dark:text-blue-500"
+													className="font-medium text-primary dark:text-primary-light hover:underline"
 												/>
 											}}
 										/>
@@ -686,7 +686,7 @@ const Login = () => {
 											<GetButton
 												type="submit"
 												content={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-												variant="secondary"
+												variant="primary-light"
 												disabled={isSubmitting}
 												additionalClassName='w-full'
 											/>
@@ -708,7 +708,7 @@ const Login = () => {
 									{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 									<a
 										href="/"
-										className="font-medium text-primary hover:underline dark:text-secondary"
+										className="font-medium text-primary hover:underline dark:text-primary-light"
 										onClick={toggleForm}
 									>
 										{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}

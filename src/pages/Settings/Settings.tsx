@@ -230,7 +230,7 @@ const WebauthnRegistation = ({
 							<GetButton
 								type="submit"
 								content={t('common.save')}
-								variant="secondary"
+								variant="primary-light"
 								disabled={isSubmitting}
 							/>
 						)}
@@ -257,7 +257,7 @@ const WebauthnRegistation = ({
 					<GetButton
 						content={t('common.continue')}
 						onClick={() => resolvePrfRetryPrompt(true)}
-						variant="secondary"
+						variant="primary-light"
 						disabled={prfRetryAccepted}
 					/>
 				</div>
@@ -488,7 +488,7 @@ const WebauthnCredentialItem = ({
 								type="submit"
 								content={t('common.save')}
 								disabled={submitting}
-								variant="secondary"
+								variant="primary-light"
 							/>
 						</div>
 					)
@@ -501,7 +501,7 @@ const WebauthnCredentialItem = ({
 								</>
 							}
 							onClick={() => setEditing(true)}
-							variant="secondary"
+							variant="primary-light"
 							disabled={onDelete && !unlocked}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							title={onDelete && !unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
