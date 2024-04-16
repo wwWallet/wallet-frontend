@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
@@ -86,10 +86,18 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					<FaShare size={20} className="inline mr-1 mb-1" />
 					{t('selectCredentialPopup.title')}
 				</h2>
+
 				<hr className="mb-2 border-t border-primary/80" />
-				<p className="italic pd-2 text-gray-700">
-					{t('selectCredentialPopup.description')}
-				</p>
+				{verifierDomainName && (
+
+					<p className="italic pd-2 text-gray-700">
+						<Trans
+							i18nKey="selectCredentialPopup.description"
+							values={{ verifierDomainName }}
+							components={{ strong: <strong /> }}
+						/>
+					</p>
+				)}
 				{requestedFields && (
 					<div className="my-3 w-full">
 						<div className="mb-2 flex items-center">
@@ -105,9 +113,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 						<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-xl shadow-md bg-gray-50 ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 m-0 p-0'}`}>
 							<>
-								{verifierDomainName && (
-									<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')} {verifierDomainName}</p>
-								)}
 								<textarea
 									readOnly
 									value={requestedFields.join('\n')}
