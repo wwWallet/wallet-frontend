@@ -111,7 +111,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 						<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-xl shadow-md bg-gray-50 ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 m-0 p-0'}`}>
 							<>
-								<p className='mb-2 text-sm italic text-gray-700'>{t('selectCredentialPopup.requestedFieldsinfo')}</p>
 								<textarea
 									readOnly
 									value={requestedFields.join('\n')}

@@ -202,9 +202,8 @@
 		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
-		"description": "The <strong> {{verifierDomainName}} </strong> requests the following credentials. Please select below to proceed with the presentation.",
+		"description": "The <strong> {{verifierDomainName}} </strong> requests the following credentials. Select the one you want to present.",
 		"requestedFieldsHide": "Hide Requested Fields",
-		"requestedFieldsinfo": "The following fields were requested:",
 		"requestedFieldsShow": "Show Requested Fields",
 		"title": "Select an Option:"
 	},
