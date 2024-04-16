@@ -78,8 +78,8 @@ const History = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemHistory')}</h1>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<h1 className="text-2xl mb-2 font-bold text-primary">{t('common.navItemHistory')}</h1>
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="italic pd-2 text-gray-700">
 					{t('pageHistory.description')}
 				</p>
@@ -113,7 +113,7 @@ const History = () => {
 
 						{/* Popup content */}
 						<div class="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-							<h2 className="right text-lg font-bold p-2 mb-2 text-custom-blue">
+							<h2 className="right text-lg font-bold p-2 mb-2 text-primary">
 								{t('pageHistory.popupTitle')}
 							</h2>
 							<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setImageModalOpen(false)}>
@@ -122,7 +122,7 @@ const History = () => {
 								</svg>
 							</button>
 						</div>
-						<hr className="mb-2 border-t border-custom-blue/80" />
+						<hr className="mb-2 border-t border-primary/80" />
 
 						{/* Display presented credentials */}
 						<div className=" p-2">

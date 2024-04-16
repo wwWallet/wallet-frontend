@@ -12,7 +12,7 @@ function highlightBestSequence(issuer, search) {
 	}
 
 	const searchRegex = new RegExp(search, 'gi');
-	const highlighted = issuer.replace(searchRegex, '<span class="font-bold text-custom-blue">$&</span>');
+	const highlighted = issuer.replace(searchRegex, '<span class="font-bold text-primary">$&</span>');
 
 	return highlighted;
 }
@@ -127,10 +127,10 @@ const Issuers = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
-					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemAddCredentials')}</h1>
+					<h1 className="text-2xl font-bold text-primary">{t('common.navItemAddCredentials')}</h1>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
 				</div>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="italic text-gray-700">{t('pageAddCredentials.description')}</p>
 
 				<div className="my-4">

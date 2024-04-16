@@ -215,7 +215,7 @@ const WebauthnSignupLogin = ({
 								components={{
 									docLink: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-										className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+										className="font-medium text-primary hover:underline dark:text-blue-500"
 									/>
 								}}
 							/>
@@ -302,7 +302,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue dark:text-custom-light-blue">Almost done!</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-secondary">Almost done!</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
@@ -585,7 +585,7 @@ const Login = () => {
 						<Trans
 							i18nKey="loginSignup.welcomeMessage"
 							components={{
-								highlight: <span className="text-custom-blue dark:text-custom-light-blue" />
+								highlight: <span className="text-primary dark:text-secondary" />
 							}}
 						/>
 					</h1>
@@ -605,15 +605,15 @@ const Login = () => {
 											components={{
 												docLinkPrf: <a
 													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+													className="font-medium text-primary hover:underline dark:text-blue-500"
 												/>,
 												docLinkLaunchpad: <a
 													href="https://launchpad.wwwallet.org" target='blank_'
-													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+													className="font-medium text-primary hover:underline dark:text-blue-500"
 												/>,
 												docLinkScenarios: <a
 													href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+													className="font-medium text-primary hover:underline dark:text-blue-500"
 												/>
 											}}
 										/>
@@ -631,7 +631,7 @@ const Login = () => {
 											components={{
 												docLinkPrf: <a
 													href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-													className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+													className="font-medium text-primary hover:underline dark:text-blue-500"
 												/>
 											}}
 										/>
@@ -708,7 +708,7 @@ const Login = () => {
 									{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 									<a
 										href="/"
-										className="font-medium text-custom-blue hover:underline dark:text-custom-light-blue"
+										className="font-medium text-primary hover:underline dark:text-secondary"
 										onClick={toggleForm}
 									>
 										{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}

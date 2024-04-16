@@ -225,7 +225,7 @@ const QRScanner = ({ onClose }) => {
 			{hasCameraPermission === false ? (
 				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
@@ -240,7 +240,7 @@ const QRScanner = ({ onClose }) => {
 							</svg>
 						</button>
 					</div>
-					<hr className="mb-2 border-t border-custom-blue/80" />
+					<hr className="mb-2 border-t border-primary/80" />
 					<p className='text-red-600'>
 						{t('qrCodeScanner.cameraPermissionAllow')}
 						</p>
@@ -252,7 +252,7 @@ const QRScanner = ({ onClose }) => {
 			) : (
 				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
@@ -267,7 +267,7 @@ const QRScanner = ({ onClose }) => {
 							</svg>
 						</button>
 					</div>
-					<hr className="mb-2 border-t border-custom-blue/80" />
+					<hr className="mb-2 border-t border-primary/80" />
 					<p className="italic pd-2 text-gray-700">
 						{t('qrCodeScanner.description')}
 					</p>

@@ -125,7 +125,7 @@ export function WarningPortal({
 						components={{
 							docLink: <a
 								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-								className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+								className="font-medium text-primary hover:underline dark:text-blue-500"
 							/>
 						}}
 					/>

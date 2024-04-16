@@ -29,7 +29,7 @@ const MessagePopup = ({ type, message, onClose }) => {
 						</svg>
 					</button>
 				</div>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="mb-2 mt-4">
 					{description}
 				</p>

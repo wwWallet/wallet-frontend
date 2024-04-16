@@ -51,7 +51,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			{/* Header */}
 			<header
-				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
 				<div className="flex items-center">
 					<button className='mr-2' onClick={() => handleNavigate('/')}>
@@ -107,7 +107,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 												i18nKey="layout.messageResetPermission"
 												components={{
 													strong: <strong />,
-													reloadButton: <button className='text-custom-blue underline' onClick={() => window.location.reload()} />,
+													reloadButton: <button className='text-primary underline' onClick={() => window.location.reload()} />,
 												}}
 											/>
 										</p>

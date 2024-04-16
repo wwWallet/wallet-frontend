@@ -197,7 +197,7 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
+								<h3 className="text-2xl mt-4 mb-2 font-bold text-primary">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
 								<p className="mb-2">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
@@ -243,7 +243,7 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageDone')}</h3>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary">{t('pageSettings.registerPasskey.messageDone')}</h3>
 				<p>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
 				<p>{t('pageSettings.registerPasskey.authOnceMore')}</p>
 
@@ -447,7 +447,7 @@ const WebauthnCredentialItem = ({
 								<span className="font-semibold">
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</span>
-								<span className="font-bold text-custom-blue">
+								<span className="font-bold text-primary">
 									{currentLabel}
 								</span>
 							</p>
@@ -638,12 +638,12 @@ const Settings = () => {
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemSettings')}</h1>
-						<hr className="mb-2 border-t border-custom-blue/80" />
+						<h1 className="text-2xl mb-2 font-bold text-primary">{t('common.navItemSettings')}</h1>
+						<hr className="mb-2 border-t border-primary/80" />
 						<p className="italic pd-2 text-gray-700">{t('pageSettings.description')}</p>
 
 						<div className="my-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.loggedInPasskey')}</h1>
+							<h1 className="text-lg mt-2 mb-2 font-bold text-primary">{t('pageSettings.title.loggedInPasskey')}</h1>
 							<hr className="mb-2 border-t border-gray-700" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
@@ -656,7 +656,7 @@ const Settings = () => {
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.manageAcount')}</h1>
+								<h1 className="text-lg mt-2 mb-2 font-bold text-primary">{t('pageSettings.title.manageAcount')}</h1>
 								<div className='flex'>
 									<WebauthnUnlock
 										unlocked={unlocked}

@@ -35,7 +35,7 @@ const renderRow = (fieldName, fieldValue) => {
 	if (fieldValue) {
 		return (
 			<tr className="text-left ">
-				<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
+				<td className="font-bold text-primary py-2 px-2 rounded-l-xl">
 					{getFieldIcon(fieldName)}
 				</td>
 				<td className="py-2 px-2 rounded-r-xl">{fieldValue}</td>

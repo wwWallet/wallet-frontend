@@ -82,11 +82,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
 			<div className="bg-white p-4 rounded-lg shadow-md w-full lg:max-w-[33.33%] sm:max-w-[66.67%] max-h-[90vh] z-10 relative m-4 overflow-y-auto">
-				<h2 className="text-lg font-bold mb-2 text-custom-blue">
+				<h2 className="text-lg font-bold mb-2 text-primary">
 					<FaShare size={20} className="inline mr-1 mb-1" />
 					{t('selectCredentialPopup.title')}
 				</h2>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="italic pd-2 text-gray-700">
 					{t('selectCredentialPopup.description')}
 				</p>
@@ -95,7 +95,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 						<div className="mb-2 flex items-center">
 							<button
 								onClick={toggleRequestedFields}
-								className="px-2 py-2 text-white cursor-pointer flex items-center bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-xs px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover"
+								className="px-2 py-2 text-white cursor-pointer flex items-center bg-primary hover:bg-primary-hover font-medium rounded-lg text-xs px-4 py-2 text-center dark:bg-primary-hover dark:hover:bg-primary-hover"
 							>
 								{showRequestedFields ? `${t('selectCredentialPopup.requestedFieldsHide')}` : `${t('selectCredentialPopup.requestedFieldsShow')}`}
 							</button>
@@ -130,7 +130,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								<div className='w-2/3 mt-2'>
 									<button
 										onClick={() => toggleCredentialDisplay(vcEntity.credentialIdentifier)}
-										className="text-xs py-2 w-full bg-custom-blue hover:bg-custom-blue-hover text-white font-medium rounded-lg">
+										className="text-xs py-2 w-full bg-primary hover:bg-primary-hover text-white font-medium rounded-lg">
 										{credentialDisplay[vcEntity.credentialIdentifier] ? 'Hide Details' : 'Show Details'}
 									</button>
 									<div

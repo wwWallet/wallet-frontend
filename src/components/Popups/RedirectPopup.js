@@ -17,11 +17,11 @@ const RedirectPopup = ({ loading, handleClose, handleContinue, popupTitle, popup
 					</div>
 				) : (
 					<>
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary">
 							<FaShare size={20} className="inline mr-1 mb-1" />
 							{popupTitle}
 						</h2>
-						<hr className="mb-2 border-t border-custom-blue/80" />
+						<hr className="mb-2 border-t border-primary/80" />
 						<p className="mb-2 mt-4">
 							{popupMessage}
 						</p>

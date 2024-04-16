@@ -115,11 +115,11 @@ function PinInput({ showPopup, setShowPopup }) {
 		<div className="fixed inset-0 flex items-center justify-center z-50">
 			<div className="absolute inset-0 bg-black opacity-50"></div>
 			<div className="bg-white p-4 rounded-lg shadow-lg w-full max-h-[80vh] lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 ">
-				<h2 className="text-lg font-bold mb-2 text-custom-blue">
+				<h2 className="text-lg font-bold mb-2 text-primary">
 					<FaLock size={20} className="inline mr-1 mb-1" />
 					{t('PinInputPopup.title')}
 				</h2>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="italic pd-2 text-gray-700">
 					{t('PinInputPopup.description')}
 				</p>

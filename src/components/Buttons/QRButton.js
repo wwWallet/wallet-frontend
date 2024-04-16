@@ -3,7 +3,7 @@ import { BsQrCodeScan } from 'react-icons/bs';
 
 const QRButton = ({ openQRScanner, isSmallScreen }) => {
 	const isMobile = window.innerWidth <= 480;
-	const buttonClass = "px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover shadow-md";
+	const buttonClass = "px-2 py-2 mb-2 text-white bg-primary hover:bg-primary-hover focus:ring-4 focus:outline-none focus:ring-primary font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-primary-hover dark:hover:bg-primary-hover dark:focus:ring-primary-hover shadow-md";
 
 	if (isMobile) {
 		return (

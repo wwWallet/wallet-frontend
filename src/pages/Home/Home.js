@@ -104,10 +104,10 @@ const Home = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
-					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemCredentials')}</h1>
+					<h1 className="text-2xl font-bold text-primary">{t('common.navItemCredentials')}</h1>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
 				</div>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
 				<div className='my-4'>
 					{isSmallScreen ? (

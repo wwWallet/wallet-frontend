@@ -70,13 +70,13 @@ const CredentialDetail = () => {
 						<Link to="/">
 							<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
 						</Link>
-						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
+						<BiRightArrowAlt className="text-2xl mb-2 text-primary" />
 					</div>
 					{vcEntity && (
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{credentialFiendlyName}</h1>
+						<h1 className="text-2xl mb-2 font-bold text-primary">{credentialFiendlyName}</h1>
 					)}
 				</div>
-				<hr className="mb-2 border-t border-custom-blue/80" />
+				<hr className="mb-2 border-t border-primary/80" />
 				<p className="italic text-gray-700">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
