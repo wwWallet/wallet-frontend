@@ -145,7 +145,7 @@ const Issuers = () => {
 				{filteredIssuers.length === 0 ? (
 					<p className="text-gray-700 mt-4">{t('pageAddCredentials.noFound')}</p>
 				) : (
-					<ul
+					<div
 						className="max-h-screen-80 overflow-y-auto space-y-2"
 						style={{ maxHeight: '80vh' }}
 					>
@@ -159,7 +159,7 @@ const Issuers = () => {
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
 							</button>
 						))}
-					</ul>
+					</div>
 				)}
 			</div>
 

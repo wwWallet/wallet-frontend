@@ -131,7 +131,7 @@ const Verifiers = () => {
 				{filteredVerifiers.length === 0 ? (
 					<p className="text-gray-700 mt-4">{t('pageSendCredentials.noFound')}</p>
 				) : (
-					<ul
+					<div
 						className="max-h-screen-80 overflow-y-auto space-y-2"
 						style={{ maxHeight: '80vh' }}
 					>
@@ -145,7 +145,7 @@ const Verifiers = () => {
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
 							</button>
 						))}
-					</ul>
+					</div>
 				)}
 			</div>
 
