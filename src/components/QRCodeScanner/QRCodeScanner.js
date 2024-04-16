@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
-import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
 import Spinner from '../Spinner';
 import { useTranslation } from 'react-i18next';
 import { FaCheckCircle } from "react-icons/fa";
-import CornerBox from './CornerBox';
-import ScanningLine from './ScanningLine';
 import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
+import QrScanner from 'qr-scanner';
 
 const QRScanner = ({ onClose }) => {
 
@@ -19,7 +17,6 @@ const QRScanner = ({ onClose }) => {
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
-	const [boxSize, setBoxSize] = useState(null);
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
@@ -113,109 +110,74 @@ const QRScanner = ({ onClose }) => {
 		}
 	}, [hasCameraPermission]);
 
+	const stopMediaTracks = (stream) => {
+		stream.getTracks().forEach(track => {
+			track.stop();
+		});
+	};
+
 	const switchCamera = () => {
 		if (devices.length > 1) {
 			const newIndex = (currentDeviceIndex + 1) % devices.length;
+			if (webcamRef.current && webcamRef.current.stream) {
+				stopMediaTracks(webcamRef.current.stream);
+			}
 			setCurrentDeviceIndex(newIndex);
 		}
 	};
 
-	const capture = () => {
-		if (webcamRef.current) {
-			const imageSrc = webcamRef.current.getScreenshot();
-			if (imageSrc) {
-				const image = new Image();
-				image.src = imageSrc;
-				image.onload = () => {
-					const canvas = document.createElement('canvas');
-					const context = canvas.getContext('2d');
-					canvas.width = image.width;
-					canvas.height = image.height;
-					context.drawImage(image, 0, 0, image.width, image.height);
-					const imageData = context.getImageData(0, 0, image.width, image.height);
-					const code = jsQR(imageData.data, imageData.width, imageData.height);
-					if (code) {
-						setQrDetected(true);
-						// Redirect to the URL found in the QR code
-						const scannedUrl = code.data;
-						setTimeout(() => {
-							setLoading(true);
-						}, 1000);
-						setTimeout(() => {
-							const baseUrl = window.location.origin;
-							const params = scannedUrl.split('?');
-							const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-							window.location.href = cvUrl;
-						}, 1000);
-
-					}
-				};
-			}
-		}
-	};
-
-	const calculateBoxSize = () => {
-		if (webcamRef.current && webcamRef.current.video.videoWidth) {
-			const webcamElement = webcamRef.current.video;
-			const width = webcamElement.offsetWidth;
-			const height = webcamElement.offsetHeight;
-			const size = Math.min(width, height) * 0.9;
-			let scanningMargin = 20;
-			if (height > width) {
-				scanningMargin = (height - size) / 2;
-			}
-			document.documentElement.style.setProperty('--scanning-margin', scanningMargin + 'px');
-			document.documentElement.style.setProperty('--scanning', size + 'px');
-			setBoxSize(size);
-		}
-	};
-
-	useEffect(() => {
-		if (cameraReady) {
-			const interval = setInterval(capture, 500);
-			return () => clearInterval(interval);
-		}
-	}, [cameraReady]);
-
-	useEffect(() => {
-		calculateBoxSize();
-		console.log('calculate box');
-		window.addEventListener('resize', calculateBoxSize);
-		return () => window.removeEventListener('resize', calculateBoxSize);
-	}, []);
-
-	const waitForVideoDimensions = () => {
-		const checkDimensions = () => {
-			if (webcamRef.current && webcamRef.current.video.videoWidth) {
-				calculateBoxSize();
-			} else {
-				setTimeout(checkDimensions, 100);
-			}
-		};
-		checkDimensions();
-	};
 
 	const onUserMedia = () => {
-		waitForVideoDimensions();
-	};
 
+		if (webcamRef.current && webcamRef.current.video) {
+
+			const videoElement = webcamRef.current.video;
+			const qrScanner = new QrScanner(videoElement, (result) => {
+				console.log('decoded qr code:', result);
+				setQrDetected(true);
+				// Redirect to the URL found in the QR code
+				const scannedUrl = result.data;
+				setTimeout(() => {
+					setLoading(true);
+				}, 3000);
+				setTimeout(() => {
+					const baseUrl = window.location.origin;
+					const params = scannedUrl.split('?');
+					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
+					window.location.href = cvUrl;
+				}, 1000);
+			}, { highlightScanRegion: true, highlightCodeOutline: true });
+
+			qrScanner.start().catch(err => {
+				console.error('Error starting QR Scanner: ', err);
+				// Optionally update UI or state to reflect the error
+			});
+
+			return () => {
+				qrScanner.stop();
+				qrScanner.destroy();
+			};
+		}
+	};
 
 	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
 	const maxResolution = bestCameraResolutions[currentCameraType];
 
 	let idealWidth, idealHeight;
 	if (maxResolution) {
-		if ((maxResolution.width < maxResolution.height)) {
-			idealHeight = maxResolution.width;
-			idealWidth = maxResolution.width;
+		console.log(maxResolution);
 
+		// Determine the smaller dimension to be the basis for square dimensions
+		let smallerDimension = Math.min(maxResolution.width, maxResolution.height);
+
+		// Cap the dimension at 1920 if it exceeds this value
+		if (smallerDimension > 1920) {
+			idealWidth = 1920;
+			idealHeight = 1920;
 		} else {
-			idealHeight = maxResolution.height;
-			idealWidth = maxResolution.height;
+			idealWidth = smallerDimension;
+			idealHeight = smallerDimension;
 		}
-	} else {
-		idealWidth = 1080;
-		idealHeight = 1080;
 	}
 
 	return (
@@ -243,7 +205,7 @@ const QRScanner = ({ onClose }) => {
 					<hr className="mb-2 border-t border-primary/80" />
 					<p className='text-red-600'>
 						{t('qrCodeScanner.cameraPermissionAllow')}
-						</p>
+					</p>
 				</div>
 			) : (!cameraReady || loading) ? (
 				<div className="flex items-center justify-center h-24">
@@ -273,6 +235,7 @@ const QRScanner = ({ onClose }) => {
 					</p>
 					<div className="webcam-container" style={{ position: 'relative', overflow: 'hidden' }}>
 						<Webcam
+							key={devices[currentDeviceIndex]?.deviceId}
 							audio={false}
 							ref={webcamRef}
 							screenshotFormat="image/jpeg"
@@ -281,18 +244,9 @@ const QRScanner = ({ onClose }) => {
 								height: { ideal: idealHeight },
 								width: { ideal: idealWidth }
 							}}
-							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%', }}
+							style={{ transform: `scale(${zoomLevel})` }}
 							onUserMedia={onUserMedia}
 						/>
-						{boxSize && (
-							<>
-								<CornerBox qrDetected={qrDetected} side="borderLeft" position="borderTop" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderRight" position="borderTop" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderLeft" position="borderBottom" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderRight" position="borderBottom" boxSize={boxSize} />
-								<ScanningLine qrDetected={qrDetected} boxSize={boxSize} />
-							</>
-						)}
 						{qrDetected && (
 							<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
 								<FaCheckCircle size={100} color="green" />
