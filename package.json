@@ -78,5 +78,5 @@
   "main": "index.js",
   "repository": "https://github.com/gunet/wallet-frontend",
   "author": "gregory1996 <grigoriskatrakazas@gmail.com>",
-  "license": "MIT"
+  "license": "BSD-2-Clause"
 }
