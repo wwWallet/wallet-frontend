@@ -5,7 +5,7 @@ import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import { v4 as uuidv4 } from "uuid";
-import { util } from '@cef-ebsi/key-did-resolver';
+import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
 import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
 import { verifiablePresentationSchemaURL } from "../constants";
@@ -269,10 +269,10 @@ async function getPrfOutput(
 	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
 	promptForRetry: () => Promise<boolean>,
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
-	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput };
+	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput } | null;
 	const canRetry = !clientExtensionOutputs?.prf || clientExtensionOutputs?.prf?.enabled;
 
-	if (clientExtensionOutputs?.prf?.results?.first) {
+	if (credential && clientExtensionOutputs?.prf?.results?.first) {
 		return [clientExtensionOutputs?.prf?.results?.first, credential];
 
 	} else if (canRetry) {
@@ -308,8 +308,7 @@ async function createPrfKey(
 	credential: PublicKeyCredential,
 	prfSalt: Uint8Array,
 	rpId: string,
-	wrappedMainKey: WrappedKeyInfo | null,
-	unwrappingKey: CryptoKey | null,
+	[wrappedMainKey, unwrappingKey]: [WrappedKeyInfo, CryptoKey] | [null, null],
 	promptForPrfRetry: () => Promise<boolean>,
 ): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> {
 	const [prfOutput,] = await getPrfOutput(
@@ -347,6 +346,9 @@ export async function getPrfKey(
 		promptForPrfRetry,
 	);
 	const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
+	if (keyInfo === undefined) {
+		throw new Error("PRF key not found");
+	}
 	return [await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo), keyInfo];
 }
 
@@ -359,7 +361,7 @@ export async function addPrf(
 	promptForPrfRetry: () => Promise<boolean>,
 ): Promise<EncryptedContainer> {
 	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-	const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, wrappedMainKey, existingPrfKey, promptForPrfRetry);
+	const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, [wrappedMainKey, existingPrfKey], promptForPrfRetry);
 	return {
 		...privateData,
 		prfKeys: [
@@ -395,6 +397,9 @@ export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer
 
 export async function unlockPassword(privateData: EncryptedContainer, password: string): Promise<UnlockSuccess> {
 	const keyInfo = privateData.passwordKey;
+	if (keyInfo === undefined) {
+		throw new Error("Password key not found");
+	}
 	const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
 	return await unlock(await unwrapKey(passwordKey, keyInfo.mainKey), privateData);
 };
@@ -452,7 +457,7 @@ export async function initPrf(
 	rpId: string,
 	promptForPrfRetry: () => Promise<boolean>,
 ): Promise<[WrappedKeyInfo, CryptoKey, EncryptedContainerKeys]> {
-	const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, null, null, promptForPrfRetry);
+	const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, [null, null], promptForPrfRetry);
 	return [keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }];
 }
 

@@ -5,7 +5,7 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo, getPrfKey } from "./keystore";
+import type { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
 
 type UserData = {
@@ -265,7 +265,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					promptForPrfRetry: () => Promise<boolean>,
 				): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> => {
 					if (privateDataCache && webauthnRpId) {
-						return await getPrfKey(privateDataCache, null, webauthnRpId, promptForPrfRetry);
+						return await keystore.getPrfKey(privateDataCache, null, webauthnRpId, promptForPrfRetry);
 
 					} else {
 						throw new Error("Session not initialized");

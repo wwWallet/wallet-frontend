@@ -7,7 +7,7 @@ import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, jsonStringifyTaggedBinary, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
-import { WrappedKeyInfo } from '../../services/keystore';
+import type { WrappedKeyInfo } from '../../services/keystore';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
