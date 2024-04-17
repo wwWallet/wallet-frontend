@@ -128,7 +128,15 @@
 		"description": "View all of your credentials, and use the 'Add new credentials' card to add more",
 		"details": {
 			"description": "View all the information about the chosen credential"
-		}
+		},
+		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
+		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
+		"slideNext": "next",
+		"slidePrevious": "previous",
+		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
+		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
+		"slideButtonAriaLabelDisable": "No {{direction}} credential",
+		"slideButtonTitleDisable": "No {{direction}} credential available"
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
