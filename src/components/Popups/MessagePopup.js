@@ -1,5 +1,6 @@
 // MessagePopup.js
 import React from 'react';
+import Modal from 'react-modal';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import GetButton from '../Buttons/GetButton';
@@ -13,10 +14,12 @@ const MessagePopup = ({ type, message, onClose }) => {
 	const titleColor = type === 'error' ? 'text-red-500' : 'text-green-600';
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center z-50">
-			<div className="absolute inset-0 bg-black opacity-50" onClick={() => onClose()}></div>
-
-			<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+		<Modal
+			isOpen={true}
+			onRequestClose={onClose}
+			className="bg-white p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
+			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+		>
 				<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 
 					<h2 className={`text-lg font-bold mb-2 flex items-center ${titleColor}`}>
@@ -40,8 +43,7 @@ const MessagePopup = ({ type, message, onClose }) => {
 						variant="cancel"
 					/>
 				</div>
-			</div>
-		</div>
+		</Modal>
 	);
 };
 

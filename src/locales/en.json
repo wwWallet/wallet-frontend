@@ -220,7 +220,10 @@
 		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
+		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"description": "The <strong> {{verifierDomainName}} </strong> requests the following credentials. Select the one you want to present.",
+		"detailsHide": "Hide Details",
+		"detailsShow": "Show Details",
 		"requestedFieldsHide": "Hide Requested Fields",
 		"requestedFieldsShow": "Show Requested Fields",
 		"title": "Select an Option:"
