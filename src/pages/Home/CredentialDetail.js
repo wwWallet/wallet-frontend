@@ -68,7 +68,7 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-							<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
+							<h1 className="text-2xl mb-2 font-bold text-gray-500 hover:text-primary hover:underline">{t('common.navItemCredentials')}</h1>
 						</Link>
 						<BiRightArrowAlt className="text-2xl mb-2 text-primary" />
 					</div>
@@ -84,9 +84,13 @@ const CredentialDetail = () => {
 					<div className='lg:w-1/2'>
 						{vcEntity ? (
 							// Open the modal when the credential is clicked
-							<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
+							<button className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+								onClick={() => setShowFullscreenImgPopup(true)}
+								aria-label={`${credentialFiendlyName}`}
+								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+							>
 								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover rounded-xl"} />
-							</div>
+							</button>
 						) : (
 							<></>
 						)}
@@ -100,7 +104,7 @@ const CredentialDetail = () => {
 
 				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
-						{vcEntity && <CredentialJson credential={vcEntity.credential} /> }
+						{vcEntity && <CredentialJson credential={vcEntity.credential} />}
 					</div>
 				</div>
 			</div>
