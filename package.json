@@ -77,6 +77,5 @@
   },
   "main": "index.js",
   "repository": "https://github.com/wwwallet/wallet-frontend",
-  "author": "",
   "license": "BSD-2-Clause"
 }
