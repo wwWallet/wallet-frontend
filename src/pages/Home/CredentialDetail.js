@@ -25,9 +25,6 @@ const CredentialDetail = () => {
 	const { t } = useTranslation();
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 
-
-
-
 	useEffect(() => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
@@ -84,7 +81,7 @@ const CredentialDetail = () => {
 					<div className='lg:w-1/2'>
 						{vcEntity ? (
 							// Open the modal when the credential is clicked
-							<button className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+							<button className="relative rounded-xl xl:w-4/5 mt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
 								onClick={() => setShowFullscreenImgPopup(true)}
 								aria-label={`${credentialFiendlyName}`}
 								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
