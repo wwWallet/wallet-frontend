@@ -14,7 +14,7 @@ module.exports = {
 				'primary-hover': '#002b62',
 				'primary-light': '#4169E1',
 				'primary-light-hover': '#0F52BA',
-				'extra-light': '#68caf1',
+				'extra-light': '#42B6E9',
 				'extra-light-hover': '#5DB5D8',
 			},
 			screens: {

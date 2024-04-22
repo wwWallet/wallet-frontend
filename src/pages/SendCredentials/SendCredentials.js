@@ -12,7 +12,7 @@ function highlightBestSequence(verifier, search) {
 	}
 
 	const searchRegex = new RegExp(search, 'gi');
-	const highlighted = verifier.replace(searchRegex, '<span class="font-bold text-primary">$&</span>');
+	const highlighted = verifier.replace(searchRegex, '<span class="font-bold text-primary dark:text-primary-light">$&</span>');
 
 	return highlighted;
 }
@@ -112,17 +112,17 @@ const Verifiers = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
-					<h1 className="text-2xl font-bold text-primary">{t('common.navItemSendCredentials')}</h1>
+					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemSendCredentials')}</h1>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
 				</div>
-				<hr className="mb-2 border-t border-primary/80" />
-				<p className="italic text-gray-700">{t('pageSendCredentials.description')}</p>
+				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<p className="italic text-gray-700 dark:text-gray-300">{t('pageSendCredentials.description')}</p>
 
 				<div className="my-4">
 					<input
 						type="text"
 						placeholder={t('pageSendCredentials.searchPlaceholder')}
-						className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 w-full px-3 py-2"
+						className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 w-full px-3 py-2"
 						value={searchQuery}
 						onChange={handleSearch}
 					/>
@@ -138,7 +138,7 @@ const Verifiers = () => {
 						{filteredVerifiers.map((verifier) => (
 							<button
 								key={verifier.id}
-								className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-100 break-words w-full text-left"
+								className="bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left"
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleVerifierClick(verifier.did)}
 							>

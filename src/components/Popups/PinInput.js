@@ -118,15 +118,15 @@ function PinInput({ showPopup, setShowPopup }) {
 		<Modal
 			isOpen={true}
 			onRequestClose={handleCancel}
-			className="bg-white p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
+			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 		>
-			<h2 className="text-lg font-bold mb-2 text-primary">
+			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 				<FaLock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
-			<hr className="mb-2 border-t border-primary/80" />
-			<p className="italic pd-2 text-gray-700">
+			<hr className="mb-2 border-t border-primary/80 border-white/80" />
+			<p className="italic pd-2 text-gray-700 dark:text-white">
 				{t('PinInputPopup.description')}
 			</p>
 
@@ -144,7 +144,7 @@ function PinInput({ showPopup, setShowPopup }) {
 						onClick={() => handleInputClick(index)}
 						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
 						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
 						ref={inputRefs[index]}
 					/>
 				))}

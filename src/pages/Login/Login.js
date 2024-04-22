@@ -59,7 +59,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white w-full py-1.5 pl-10 pr-3"
+				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white w-full py-1.5 pl-10 pr-3"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -321,7 +321,7 @@ const WebauthnSignupLogin = ({
 									<GetButton
 										content={t('common.continue')}
 										onClick={() => resolvePrfRetryPrompt(true)}
-										variant="primary-light"
+										variant="secondary"
 										disabled={prfRetryAccepted}
 									/>
 								</div>
@@ -344,7 +344,7 @@ const WebauthnSignupLogin = ({
 											<GetButton
 												type="submit"
 												content={t('loginSignup.tryAgain')}
-												variant="primary-light"
+												variant="secondary"
 											/>
 										</div>
 									</div>
@@ -384,7 +384,7 @@ const WebauthnSignupLogin = ({
 											{t('loginSignup.reachedLengthLimit')}
 										</div>
 										<div
-											className={`text-right ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											className={`text-right dark:text-gray-300 ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitApproaching}
 										>
 											{nameByteLength} / 64
@@ -639,7 +639,7 @@ const Login = () => {
 								</p>
 							</CheckBrowserSupport.If>
 						</CheckBrowserSupport.Ctx>
-						<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700">
+						<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
 							<CheckBrowserSupport.WarningPortal>
 								<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 									{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
@@ -686,7 +686,7 @@ const Login = () => {
 											<GetButton
 												type="submit"
 												content={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-												variant="primary-light"
+												variant="primary"
 												disabled={isSubmitting}
 												additionalClassName='w-full'
 											/>

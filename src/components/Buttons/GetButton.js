@@ -7,8 +7,8 @@ const GetButton = ({ type = 'button', content, onClick, variant = 'custom', addi
 		switch (variant) {
 			case 'primary':
 				return `${commonClasses} text-white ${!disabled ? "bg-primary hover:bg-primary-hover dark:text-white dark:hover:bg-primary-light-hover dark:bg-primary-light" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
-			case 'primary-light':
-				return `${commonClasses} text-white ${!disabled ? "bg-primary-light hover:bg-primary-light-hover" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
+			case 'secondary':
+				return `${commonClasses} text-white ${!disabled ? "bg-primary-light hover:bg-primary-light-hover dark:bg-extra-light dark:hover:bg-primary-light" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
 			case 'tertiary':
 				return `${commonClasses} text-gray-700 bg-gray-100 hover:bg-gray-200`;
 			case 'cancel':

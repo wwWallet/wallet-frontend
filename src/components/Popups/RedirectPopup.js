@@ -25,15 +25,15 @@ const RedirectPopup = ({ loading, handleClose, handleContinue, popupTitle, popup
 		<Modal
 			isOpen={true}
 			onRequestClose={handleClose}
-			className="bg-white p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
+			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 		>
-			<h2 className="text-lg font-bold mb-2 text-primary">
+			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 				<FaShare size={20} className="inline mr-1 mb-1" />
 				{popupTitle}
 			</h2>
-			<hr className="mb-2 border-t border-primary/80" />
-			<p className="mb-2 mt-4">
+			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+			<p className="mb-2 mt-4 text-gray-700 dark:text-white">
 				{popupMessage}
 			</p>
 			<div className="flex justify-end space-x-2 pt-4">

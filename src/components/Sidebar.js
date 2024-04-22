@@ -54,8 +54,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 	return (
 		<div
 			className={`${isOpen
-				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-primary text-white p-4 max480:pb-20 overflow-y-auto'
-				: 'hidden sm:flex sm:flex-col justify-between	 sticky top-0 bg-primary w-auto text-white h-screen py-10 px-10 overflow-y-auto'
+				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-primary dark:bg-primary-hover text-white p-4 max480:pb-20 overflow-y-auto'
+				: 'hidden sm:flex sm:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover w-auto text-white h-screen py-10 px-10 overflow-y-auto'
 
 				}`}
 		>
@@ -153,7 +153,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Powered By */}
-			<div className="bg-primary text-white text-sm space-x-2 p-2">
+			<div className="text-white text-sm space-x-2 p-2">
 				<Trans
 					i18nKey="sidebar.poweredBy"
 					components={{

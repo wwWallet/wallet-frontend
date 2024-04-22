@@ -51,7 +51,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			{/* Header */}
 			<header
-				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
 				<div className="flex items-center">
 					<button className='mr-2' onClick={() => handleNavigate('/')}>
@@ -74,7 +74,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
-				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
+				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
 					{/* Conditional Notification Message */}
 					{(!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && !tokenSentInSession && isMessageGrantedVisible === false) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">

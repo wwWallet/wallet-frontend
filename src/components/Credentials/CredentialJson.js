@@ -36,14 +36,14 @@ const CredentialJson = ({ credential }) => {
 				/>
 			</div>
 
-			<hr className="my-2 border-t border-gray-500 py-2" />
+			<hr className="my-2 border-t border-primary dark:border-primary-light py-2" />
 
 			{showJsonCredentials && parsedCredential ? (
 				<div>
 					<textarea
 						rows="10"
 						readOnly
-						className="w-full border rounded p-2 rounded-xl"
+						className="w-full dark:bg-gray-900 dark:text-white border rounded p-2 rounded-xl"
 						value={JSON.stringify(parsedCredential, null, 2)}
 					/>
 				</div>

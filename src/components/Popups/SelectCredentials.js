@@ -90,18 +90,18 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		<Modal
 			isOpen={true}
 			onRequestClose={handleCancel}
-			className="bg-white p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
+			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 		>
-			<h2 className="text-lg font-bold mb-2 text-primary">
+			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 				<FaShare size={20} className="inline mr-1 mb-1" />
 				{t('selectCredentialPopup.title')}
 			</h2>
 
-			<hr className="mb-2 border-t border-primary/80" />
+			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 			{verifierDomainName && (
 
-				<p className="italic pd-2 text-gray-700">
+				<p className="italic pd-2 text-gray-700 dark:text-gray-300">
 					<Trans
 						i18nKey="selectCredentialPopup.description"
 						values={{ verifierDomainName }}
@@ -120,14 +120,14 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 						/>
 					</div>
 
-					<hr className="border-t border-gray-300" />
+					<hr className="border-t border-primary/80 dark:border-primary-light/80" />
 
-					<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-xl shadow-md bg-gray-50 ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 m-0 p-0'}`}>
+					<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-md shadow-md bg-gray-50 dark:bg-gray-800 ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
 						<>
 							<textarea
 								readOnly
 								value={requestedFields.join('\n')}
-								className={`p-2 border rounded-lg text-sm ${showRequestedFields ? 'visible' : 'hidden'}`}
+								className={`p-2 border rounded-lg text-sm dark:bg-gray-700 dark:text-white ${showRequestedFields ? 'visible' : 'hidden'}`}
 								style={{ width: '-webkit-fill-available' }}
 								rows={Math.min(3, Math.max(1, requestedFields.length))}
 
@@ -137,7 +137,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				</div>
 			)}
 
-			<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar bg-gray-50 shadow-md rounded-xl mb-2'>
+			<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar bg-gray-50 dark:bg-gray-800 shadow-md rounded-xl mb-2'>
 				{vcEntities.map(vcEntity => (
 					<>
 						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
@@ -159,7 +159,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 									additionalClassName='text-xs w-full'
 								/>
 								<div
-									className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg ${credentialDisplay[vcEntity.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
+									className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg dark:bg-gray-700 ${credentialDisplay[vcEntity.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
 								>
 									<CredentialInfo credential={vcEntity.credential} mainClassName={"text-xs w-full"} />
 								</div>

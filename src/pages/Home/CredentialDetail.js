@@ -65,16 +65,16 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-							<h1 className="text-2xl mb-2 font-bold text-gray-500 hover:text-primary hover:underline">{t('common.navItemCredentials')}</h1>
+							<h1 className="text-2xl mb-2 font-bold text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline">{t('common.navItemCredentials')}</h1>
 						</Link>
-						<BiRightArrowAlt className="text-2xl mb-2 text-primary" />
+						<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
 					</div>
 					{vcEntity && (
-						<h1 className="text-2xl mb-2 font-bold text-primary">{credentialFiendlyName}</h1>
+						<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{credentialFiendlyName}</h1>
 					)}
 				</div>
-				<hr className="mb-2 border-t border-primary/80" />
-				<p className="italic text-gray-700">{t('pageCredentials.details.description')}</p>
+				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}

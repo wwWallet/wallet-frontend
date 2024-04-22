@@ -81,15 +81,15 @@ export function WarningPortal({
 					{t('browserSupportWarningPortal.heading')}
 				</h2>
 
-				<p className="text-sm">{t('browserSupportWarningPortal.intro')}</p>
+				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.intro')}</p>
 
-				<p className="text-sm">{t('browserSupportWarningPortal.supportedList.intro')}</p>
+				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.supportedList.intro')}</p>
 				<ul className="ml-4 list-none text-sm">
 					<li className="flex justify-start items-center" style={{ textAlign: 'left' }}>
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.windows')}
 						</div>
 					</li>
@@ -97,7 +97,7 @@ export function WarningPortal({
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.macos')}
 						</div>
 					</li>
@@ -105,7 +105,7 @@ export function WarningPortal({
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.android')}
 						</div>
 					</li>
@@ -113,13 +113,13 @@ export function WarningPortal({
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.linux')}
 						</div>
 					</li>
 				</ul>
 
-				<p className="text-sm">
+				<p className="text-sm dark:text-gray-300">
 					<Trans
 						i18nKey="browserSupportWarningPortal.moreDetails"
 						components={{
@@ -131,7 +131,7 @@ export function WarningPortal({
 					/>
 				</p>
 
-				<p className="text-sm">{t('browserSupportWarningPortal.outro')}</p>
+				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.outro')}</p>
 
 				<GetButton
 					content={t('browserSupportWarningPortal.continueAnyway')}

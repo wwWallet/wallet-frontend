@@ -43,7 +43,7 @@ const NotFound = () => {
 							<GetButton
 								content={t('notFound.homeButton')}
 								onClick={handleBackToHome}
-								variant="primary-light"
+								variant="secondary"
 								additionalClassName='w-full'
 							/>
 						</div>
