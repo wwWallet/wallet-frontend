@@ -64,6 +64,7 @@ const Home = () => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
 			const vcEntityList = response.data.vc_list;
+			vcEntityList.sort((vcA, vcB) => vcB.issuanceDate - vcA.issuanceDate);
 			setVcEntityList(vcEntityList);
 		};
 		getData();
