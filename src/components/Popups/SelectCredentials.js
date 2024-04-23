@@ -9,6 +9,35 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import GetButton from '../Buttons/GetButton';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 
+const StepBar = ({ totalSteps, currentStep }) => {
+	return (
+		<div className="flex items-center justify-center w-full my-4">
+			{Array.from({ length: totalSteps }, (_, index) => {
+				const isActive = index + 1 <= currentStep;
+				return (
+					<React.Fragment key={index}>
+						<div
+							className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${isActive ? 'bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light' : 'bg-gray-700 border-2 border-gray-300'
+								}`}
+						>
+							{index + 1}
+						</div>
+						{index < totalSteps - 1 && (
+							<div className="flex-auto mx-2 h-[2px] bg-gray-300">
+								<div
+									className={` h-[2px] ${isActive ? 'bg-primary dark:bg-primary-light' : 'bg-gray-300'} transition-all duration-300`}
+									style={{ width: isActive ? '100%' : '0%' }}
+								></div>
+							</div>
+						)}
+					</React.Fragment>
+				);
+			})}
+		</div>
+	);
+};
+
+
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
 	const [vcEntities, setVcEntities] = useState([]);
@@ -97,6 +126,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				<FaShare size={20} className="inline mr-1 mb-1" />
 				{t('selectCredentialPopup.title')}
 			</h2>
+			<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} />
 
 			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 			{verifierDomainName && (
