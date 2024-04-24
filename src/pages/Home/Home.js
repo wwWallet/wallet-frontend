@@ -70,6 +70,7 @@ const Home = () => {
 				const name = await extractCredentialFriendlyName(vcEntity.credential);
 				return { ...vcEntity, friendlyName: name };
 			}));
+			vcEntityList.sort((vcA, vcB) => vcB.issuanceDate - vcA.issuanceDate);
 			setVcEntityList(vcEntityList);
 		};
 		getData();

@@ -61,13 +61,15 @@ const History = () => {
 				const fetchedPresentations = await api.getAllPresentations();
 				console.log(fetchedPresentations.vp_list);
 				// Extract and map the vp_list from fetchedPresentations.
-				const vpListFromApi = fetchedPresentations.vp_list.map((item) => ({
-					id: item.id,
-					presentation: item.presentation,
-					// ivci: item.includedVerifiableCredentialIdentifiers,
-					audience: item.audience,
-					issuanceDate: item.issuanceDate,
-				}));
+				const vpListFromApi = fetchedPresentations.vp_list
+					.sort((vpA, vpB) => vpB.issuanceDate - vpA.issuanceDate)
+					.map((item) => ({
+						id: item.id,
+						presentation: item.presentation,
+						// ivci: item.includedVerifiableCredentialIdentifiers,
+						audience: item.audience,
+						issuanceDate: item.issuanceDate,
+					}));
 
 				setHistory(vpListFromApi);
 			} catch (error) {
