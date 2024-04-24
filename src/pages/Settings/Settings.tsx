@@ -77,11 +77,11 @@ const Dialog = ({
 };
 
 const WebauthnRegistation = ({
-	existingPrfKey,
+	unwrappingKey,
 	onSuccess,
 	wrappedMainKey,
 }: {
-	existingPrfKey?: CryptoKey,
+	unwrappingKey?: CryptoKey,
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
@@ -96,7 +96,7 @@ const WebauthnRegistation = ({
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
-	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
+	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
@@ -143,12 +143,12 @@ const WebauthnRegistation = ({
 		console.log("onFinish", event);
 		setNicknameChosen(true);
 
-		if (beginData && pendingCredential && existingPrfKey && wrappedMainKey) {
+		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
 			try {
 				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 					pendingCredential,
 					beginData.createOptions.publicKey.rp.id,
-					[existingPrfKey, wrappedMainKey],
+					[unwrappingKey, wrappedMainKey],
 					async () => {
 						setNeedPrfRetry(true);
 						return new Promise<boolean>((resolve, reject) => {
@@ -190,7 +190,7 @@ const WebauthnRegistation = ({
 				onCancel();
 			}
 		} else {
-			console.error("Invalid state:", beginData, pendingCredential, existingPrfKey, wrappedMainKey);
+			console.error("Invalid state:", beginData, pendingCredential, unwrappingKey, wrappedMainKey);
 		}
 	};
 
@@ -308,13 +308,13 @@ const WebauthnRegistation = ({
 	);
 };
 
-const WebauthnUnlock = ({
+const UnlockMainKey = ({
 	onLock,
 	onUnlock,
 	unlocked,
 }: {
 	onLock: () => void,
-	onUnlock: (prfKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
+	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
 	const [inProgress, setInProgress] = useState(false);
@@ -589,9 +589,9 @@ const Settings = () => {
 	const api = useApi();
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
-	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
+	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
-	const unlocked = Boolean(existingPrfKey && wrappedMainKey);
+	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
@@ -746,14 +746,14 @@ const Settings = () => {
 							<div className="flex justify-between items-center">
 								<h1 className="text-lg mt-2 mb-2 font-bold text-primary dark:text-primary-light">{t('pageSettings.title.manageAcount')}</h1>
 								<div className='flex'>
-									<WebauthnUnlock
+									<UnlockMainKey
 										unlocked={unlocked}
 										onLock={() => {
-											setExistingPrfKey(null);
+											setUnwrappingKey(null);
 											setWrappedMainKey(null);
 										}}
-										onUnlock={(prfKey, wrappedMainKey) => {
-											setExistingPrfKey(prfKey);
+										onUnlock={(unwrappingKey, wrappedMainKey) => {
+											setUnwrappingKey(unwrappingKey);
 											setWrappedMainKey(wrappedMainKey);
 										}}
 									/>
@@ -766,7 +766,7 @@ const Settings = () => {
 										<h1 className="font-semibold text-gray-700 dark:text-gray-400 my-2">{t('pageSettings.title.manageOtherPasskeys')}</h1>
 										<div className='flex'>
 											<WebauthnRegistation
-												existingPrfKey={existingPrfKey}
+												unwrappingKey={unwrappingKey}
 												wrappedMainKey={wrappedMainKey}
 												onSuccess={() => refreshData()}
 											/>
