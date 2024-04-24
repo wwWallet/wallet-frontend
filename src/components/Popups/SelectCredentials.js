@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { FaShare } from 'react-icons/fa';
+import { MdOutlineCheckBox, MdOutlineCheckBoxOutlineBlank } from "react-icons/md";
 import { useTranslation, Trans } from 'react-i18next';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
@@ -13,19 +14,20 @@ const StepBar = ({ totalSteps, currentStep }) => {
 	return (
 		<div className="flex items-center justify-center w-full my-4">
 			{Array.from({ length: totalSteps }, (_, index) => {
-				const isActive = index + 1 <= currentStep;
+				const isActive = index + 1 < currentStep;
+				const isCurrent = index + 1 === currentStep;
 				return (
 					<React.Fragment key={index}>
 						<div
-							className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${isActive ? 'bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light' : 'bg-gray-700 border-2 border-gray-300'
+							className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'text-white bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light' : isCurrent ? 'text-primary dark:text-white dark:bg-gray-700 border-2 border-primary dark:border-primary-light' : 'text-gray-400 border-2 border-gray-400 dark:border-gray-400'
 								}`}
 						>
 							{index + 1}
 						</div>
 						{index < totalSteps - 1 && (
-							<div className="flex-auto mx-2 h-[2px] bg-gray-300">
+							<div className="flex-auto mx-2 h-[2px] bg-gray-400">
 								<div
-									className={` h-[2px] ${isActive ? 'bg-primary dark:bg-primary-light' : 'bg-gray-300'} transition-all duration-300`}
+									className={` h-[2px] ${isActive ? 'bg-primary dark:bg-primary-light' : ''} transition-all duration-300`}
 									style={{ width: isActive ? '100%' : '0%' }}
 								></div>
 							</div>
@@ -50,6 +52,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showRequestedFields, setShowRequestedFields] = useState(false);
 	const [credentialDisplay, setCredentialDisplay] = useState({});
+	const [selectedCredential, setSelectedCredential] = useState(null);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -82,17 +85,34 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		getData();
 	}, [api, currentIndex]);
 
+	useEffect(() => {
+		const currentKey = keys[currentIndex];
+		const selectedId = currentSelectionMap[currentKey];
+		setSelectedCredential(selectedId);
+	}, [currentIndex, currentSelectionMap, keys]);
+
+
 	const goToNextSelection = () => {
 		setCurrentIndex((i) => i + 1);
 	}
 
+	const goToPreviousSelection = () => {
+		if (currentIndex > 0) {
+			setCurrentIndex(currentIndex - 1);
+		}
+	};
+
 	const handleClick = (credentialIdentifier) => {
 		const descriptorId = keys[currentIndex];
-		setCurrentSelectionMap((currentMap) => {
-			currentMap[descriptorId] = credentialIdentifier;
-			return currentMap;
-		});
-		goToNextSelection();
+		if (selectedCredential === credentialIdentifier) {
+			// Toggle off if the same credential is clicked again
+			setSelectedCredential(null);
+			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: undefined }));
+		} else {
+			// Update the selected credential
+			setSelectedCredential(credentialIdentifier);
+			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: credentialIdentifier }));
+		}
 	};
 
 	const handleCancel = () => {
@@ -131,7 +151,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 			{verifierDomainName && (
 
-				<p className="italic pd-2 text-gray-700 dark:text-gray-300">
+				<p className="italic pd-2 text-gray-700 text-sm dark:text-gray-300">
 					<Trans
 						i18nKey="selectCredentialPopup.description"
 						values={{ verifierDomainName }}
@@ -172,7 +192,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					<>
 						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
 							<button
-								className="relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer"
+								className={`relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-100' : 'opacity-50'}`}
 								onClick={() => handleClick(vcEntity.credentialIdentifier)}
 								aria-label={`${vcEntity.friendlyName}`}
 								title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
@@ -180,6 +200,13 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								<CredentialImage key={vcEntity.credentialIdentifier} credential={vcEntity.credential}
 									className={"w-full object-cover rounded-xl"}
 								/>
+								<div className="absolute bottom-2 right-2" style={{ zIndex: "2000" }}>
+									{selectedCredential === vcEntity.credentialIdentifier ? (
+										<MdOutlineCheckBox size={20} className="text-white" />
+									) : (
+										<MdOutlineCheckBoxOutlineBlank size={20} className="text-white" />
+									)}
+								</div>
 							</button>
 							<div className='w-2/3 mt-2'>
 								<GetButton
@@ -198,12 +225,35 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					</>
 				))}
 			</div>
-			<GetButton
-				content={t('common.cancel')}
-				onClick={handleCancel}
-				variant="cancel"
-			/>
-		</Modal>
+			<div className="flex justify-between mt-4">
+				<GetButton
+					content={t('common.cancel')}
+					onClick={handleCancel}
+					variant="cancel"
+					className="mr-2"
+				/>
+
+				<div className="flex gap-2">
+					{currentIndex > 0 && (
+						<GetButton
+							content={t('common.previous')}
+							onClick={goToPreviousSelection}
+							variant="secondary"
+						/>
+					)}
+
+					<GetButton
+						content={currentIndex < keys.length - 1 ? t('common.next') : t('common.navItemSendCredentialsSimple')}
+						onClick={goToNextSelection}
+						variant="primary"
+						disabled={!selectedCredential}
+						title={!selectedCredential ? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
+
+					/>
+				</div>
+			</div>
+
+		</Modal >
 	);
 }
 
