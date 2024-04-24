@@ -16,8 +16,8 @@ RUN npm run vitest
 
 FROM builder-base AS builder
 
-# This is just to make the builder stage depend on the test stage, the copied file is not used.
-COPY --from=test /home/node/app/package.json /tmp/TESTS_OK
+# This is just to make the builder stage depend on the test stage.
+COPY --from=test /home/node/app/package.json /dev/null
 
 COPY . .
 RUN yarn build
