@@ -53,10 +53,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keys = Object.keys(conformantCredentialsMap);
+	console.log(conformantCredentialsMap)
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
-	const [showRequestedFields, setShowRequestedFields] = useState(false);
+	const [showAllFields, setShowAllFields] = useState(false);
 	const [credentialDisplay, setCredentialDisplay] = useState({});
 	const [selectedCredential, setSelectedCredential] = useState(null);
 
@@ -127,11 +128,14 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 
 	const goToNextSelection = () => {
+		setShowAllFields(false);
 		setCurrentIndex((i) => i + 1);
+
 	}
 
 	const goToPreviousSelection = () => {
 		if (currentIndex > 0) {
+			setShowAllFields(false);
 			setCurrentIndex(currentIndex - 1);
 		}
 	};
@@ -156,16 +160,18 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		return null;
 	};
 
-	const toggleRequestedFields = () => {
-		setShowRequestedFields(!showRequestedFields);
-	};
-
 	const toggleCredentialDisplay = (identifier) => {
 		setCredentialDisplay(prev => ({
 			...prev,
 			[identifier]: !prev[identifier]
 		}));
 	};
+
+	const handleToggleFields = () => {
+		setShowAllFields(!showAllFields);
+	};
+
+	const requestedFieldsText = showAllFields ? requestedFields.join(', ') : requestedFields.slice(0, 2).join(', ');
 
 	return (
 		<Modal
@@ -182,42 +188,30 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={vcTitles} />
 			)}
 			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
-			{verifierDomainName && (
 
-				<p className="italic pd-2 text-gray-700 text-sm dark:text-gray-300">
-					<Trans
-						i18nKey="selectCredentialPopup.description"
-						values={{ verifierDomainName }}
-						components={{ strong: <strong /> }}
-					/>
-				</p>
-			)}
-			{requestedFields && (
-				<div className="my-3 w-full">
-					<div className="mb-2 flex items-center">
-						<GetButton
-							content={showRequestedFields ? `${t('selectCredentialPopup.requestedFieldsHide')}` : `${t('selectCredentialPopup.requestedFieldsShow')}`}
-							onClick={toggleRequestedFields}
-							variant="primary"
-							additionalClassName='text-xs'
-						/>
-					</div>
+			{requestedFields && requestedFields.length > 0 && verifierDomainName && (
+				<>
+					<p className="pd-2 text-gray-700 text-sm dark:text-white">
+						<span>
+							<Trans
+								i18nKey="selectCredentialPopup.descriptionFields"
+								values={{ verifierDomainName }}
+								components={{ strong: <strong /> }}
+							/>
+						</span>
+						{requestedFieldsText}{showAllFields ? requestedFieldsText : '...'}
+						&nbsp;
+						{requestedFields.length > 2 && (
+							<button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
+								{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')} `}
+							</button>
 
-					<hr className="border-t border-primary/80 dark:border-primary-light/80" />
-
-					<div className={`transition-all ease-in-out duration-1000 p-2 overflow-hidden rounded-md shadow-md bg-gray-50 dark:bg-gray-800 ${showRequestedFields ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-						<>
-							<textarea
-								readOnly
-								value={requestedFields.join('\n')}
-								className={`p-2 border rounded-lg text-sm dark:bg-gray-700 dark:text-white ${showRequestedFields ? 'visible' : 'hidden'}`}
-								style={{ width: '-webkit-fill-available' }}
-								rows={Math.min(3, Math.max(1, requestedFields.length))}
-
-							></textarea>
-						</>
-					</div>
-				</div>
+						)}.
+					</p>
+					<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+						{t('selectCredentialPopup.descriptionSelect')}
+					</p>
+				</>
 			)}
 
 			<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar bg-gray-50 dark:bg-gray-800 shadow-md rounded-xl mb-2'>
