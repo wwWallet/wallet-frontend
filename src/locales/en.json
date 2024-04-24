@@ -223,14 +223,15 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"descriptionFields": "The <strong> {{verifierDomainName}} </strong> requests the fields:",
+		"descriptionFieldsSingle": "The <strong> {{verifierDomainName}} </strong> requests the field:",
+		"descriptionFieldsMultiple": "The <strong> {{verifierDomainName}} </strong> requests the fields:",
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"detailsHide": "Hide Details",
 		"detailsShow": "Show Details",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
-		"title": "Select Credential"
+		"title": "Select : "
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
