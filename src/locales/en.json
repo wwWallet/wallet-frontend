@@ -229,7 +229,7 @@
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"requestedFieldsHide": "Hide Requested Fields",
 		"requestedFieldsShow": "Show Requested Fields",
-		"title": "Select an Option:"
+		"title": "Select Credential"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",

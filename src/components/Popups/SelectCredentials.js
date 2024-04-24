@@ -10,7 +10,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import GetButton from '../Buttons/GetButton';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 
-const StepBar = ({ totalSteps, currentStep }) => {
+const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	return (
 		<div className="flex items-center justify-center w-full my-4">
 			{Array.from({ length: totalSteps }, (_, index) => {
@@ -18,16 +18,23 @@ const StepBar = ({ totalSteps, currentStep }) => {
 				const isCurrent = index + 1 === currentStep;
 				return (
 					<React.Fragment key={index}>
-						<div
-							className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'text-white bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light' : isCurrent ? 'text-primary dark:text-white dark:bg-gray-700 border-2 border-primary dark:border-primary-light' : 'text-gray-400 border-2 border-gray-400 dark:border-gray-400'
-								}`}
-						>
-							{index + 1}
+						<div className="flex flex-col items-center">
+							<div
+								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'text-white bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light' : isCurrent ? 'text-primary dark:text-white dark:bg-gray-700 border-2 border-primary dark:border-primary-light' : 'text-gray-400 border-2 border-gray-400 dark:border-gray-400'
+									}`}
+							>
+								{index + 1}
+							</div>
+							<p
+								className={`flex items-center justify-center text-xs font-bold mt-1 ${isActive ? 'text-primary dark:text-primary-light' : isCurrent ? 'text-primary dark:text-white' : 'text-gray-400'} max-w-[60px] md:max-w-[120px] text-center overflow-wrap break-word`}
+							>
+								{stepTitles[index]}
+							</p>
 						</div>
 						{index < totalSteps - 1 && (
-							<div className="flex-auto mx-2 h-[2px] bg-gray-400">
+							<div className="flex-auto h-[2px] bg-gray-400">
 								<div
-									className={` h-[2px] ${isActive ? 'bg-primary dark:bg-primary-light' : ''} transition-all duration-300`}
+									className={`h-[2px] ${isActive ? 'bg-primary dark:bg-primary-light' : ''} transition-all duration-300`}
 									style={{ width: isActive ? '100%' : '0%' }}
 								></div>
 							</div>
@@ -39,13 +46,12 @@ const StepBar = ({ totalSteps, currentStep }) => {
 	);
 };
 
-
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
 	const [vcEntities, setVcEntities] = useState([]);
+	const [vcTitles, setVcTitles] = useState([]);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-
 	const keys = Object.keys(conformantCredentialsMap);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
@@ -53,6 +59,34 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [showRequestedFields, setShowRequestedFields] = useState(false);
 	const [credentialDisplay, setCredentialDisplay] = useState({});
 	const [selectedCredential, setSelectedCredential] = useState(null);
+
+	useEffect(() => {
+		const loadAllVcTitles = async () => {
+			try {
+				const response = await api.get('/storage/vc');
+				const allVcEntities = await Promise.all(
+					response.data.vc_list.map(async vcEntity => {
+						const name = await extractCredentialFriendlyName(vcEntity.credential);
+						return { ...vcEntity, friendlyName: name };
+					})
+				);
+
+				const titlesPerStep = keys.map(key => {
+					const filteredVcEntities = allVcEntities.filter(vcEntity =>
+						conformantCredentialsMap[key].credentials.includes(vcEntity.credentialIdentifier)
+					);
+					const uniqueNames = new Set(filteredVcEntities.map(vc => vc.friendlyName));
+					return Array.from(uniqueNames);
+				});
+				setVcTitles(titlesPerStep);
+
+			} catch (error) {
+				console.error('Failed to fetch data', error);
+			}
+		};
+
+		loadAllVcTitles();
+	}, [api, conformantCredentialsMap, keys]);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -105,11 +139,9 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const handleClick = (credentialIdentifier) => {
 		const descriptorId = keys[currentIndex];
 		if (selectedCredential === credentialIdentifier) {
-			// Toggle off if the same credential is clicked again
 			setSelectedCredential(null);
 			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: undefined }));
 		} else {
-			// Update the selected credential
 			setSelectedCredential(credentialIdentifier);
 			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: credentialIdentifier }));
 		}
@@ -146,8 +178,9 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				<FaShare size={20} className="inline mr-1 mb-1" />
 				{t('selectCredentialPopup.title')}
 			</h2>
-			<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} />
-
+			{keys.length > 1 && (
+				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={vcTitles} />
+			)}
 			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 			{verifierDomainName && (
 
