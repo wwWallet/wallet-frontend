@@ -11,6 +11,11 @@ import GetButton from '../Buttons/GetButton';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
+
+	const formatTitle = (title) => {
+		return title.replace(/([A-Z])/g, ' $1').trim();
+	};
+
 	return (
 		<div className="flex items-center justify-center w-full my-4">
 			{Array.from({ length: totalSteps }, (_, index) => {
@@ -26,9 +31,10 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 								{index + 1}
 							</div>
 							<p
-								className={`flex items-center justify-center text-xs font-bold mt-1 ${isActive ? 'text-primary dark:text-primary-light' : isCurrent ? 'text-primary dark:text-white' : 'text-gray-400'} max-w-[60px] md:max-w-[120px] text-center overflow-wrap break-word`}
+								className={`text-xs font-bold mt-1 ${isActive ? 'text-primary dark:text-primary-light' : isCurrent ? 'text-primary dark:text-white' : 'text-gray-400'} max-w-[60px] md:max-w-[80px] text-center overflow-hidden whitespace-nowrap overflow-ellipsis`}
+								title={formatTitle(stepTitles[index])}
 							>
-								{stepTitles[index]}
+								{formatTitle(stepTitles[index])}
 							</p>
 						</div>
 						{index < totalSteps - 1 && (
@@ -49,45 +55,16 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const api = useApi();
 	const [vcEntities, setVcEntities] = useState([]);
-	const [vcTitles, setVcTitles] = useState([]);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keys = Object.keys(conformantCredentialsMap);
-	console.log(conformantCredentialsMap)
+	const stepTitles = Object.keys(conformantCredentialsMap).map(key => key);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showAllFields, setShowAllFields] = useState(false);
 	const [credentialDisplay, setCredentialDisplay] = useState({});
 	const [selectedCredential, setSelectedCredential] = useState(null);
-
-	useEffect(() => {
-		const loadAllVcTitles = async () => {
-			try {
-				const response = await api.get('/storage/vc');
-				const allVcEntities = await Promise.all(
-					response.data.vc_list.map(async vcEntity => {
-						const name = await extractCredentialFriendlyName(vcEntity.credential);
-						return { ...vcEntity, friendlyName: name };
-					})
-				);
-
-				const titlesPerStep = keys.map(key => {
-					const filteredVcEntities = allVcEntities.filter(vcEntity =>
-						conformantCredentialsMap[key].credentials.includes(vcEntity.credentialIdentifier)
-					);
-					const uniqueNames = new Set(filteredVcEntities.map(vc => vc.friendlyName));
-					return Array.from(uniqueNames);
-				});
-				setVcTitles(titlesPerStep);
-
-			} catch (error) {
-				console.error('Failed to fetch data', error);
-			}
-		};
-
-		loadAllVcTitles();
-	}, [api, conformantCredentialsMap, keys]);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -185,7 +162,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				{t('selectCredentialPopup.title')}
 			</h2>
 			{keys.length > 1 && (
-				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={vcTitles} />
+				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
 			)}
 			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
