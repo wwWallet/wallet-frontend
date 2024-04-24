@@ -5,7 +5,7 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
 import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
-import { compareBy, fromBase64Url, toBase64Url } from '../../util';
+import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
@@ -318,9 +318,13 @@ const UnlockMainKey = ({
 	unlocked: boolean,
 }) => {
 	const [inProgress, setInProgress] = useState(false);
+	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
+	const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
 	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
+	const isPromptingForPassword = Boolean(resolvePasswordPromise);
 
 	useEffect(
 		() => {
@@ -333,8 +337,16 @@ const UnlockMainKey = ({
 		async () => {
 			setInProgress(true);
 			try {
-				const [prfKey, wrappedMainKey] = await keystore.getPrfKeyFromSession(async () => true);
-				onUnlock(prfKey, wrappedMainKey);
+				const [unwrappingKey, wrappedMainKey] = await keystore.getPasswordOrPrfKeyFromSession(
+					() => new Promise<string>(resolve => {
+						setResolvePasswordPromise(() => resolve);
+					}).finally(() => {
+						setResolvePasswordPromise(null);
+						setPassword("");
+					}),
+					async () => true,
+				);
+				onUnlock(unwrappingKey, wrappedMainKey);
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e.errorId) {
@@ -346,42 +358,110 @@ const UnlockMainKey = ({
 						setError(t('passkeyLoginFailedTryAgain'));
 						break;
 
+					case 'passwordUnlockFailed':
+						setError(t('passwordUnlockFailed'));
+						onBeginUnlock();
+						break;
+
 					default:
 						throw e;
 				}
 			} finally {
 				setInProgress(false);
+				setIsSubmittingPassword(false);
 			}
 		},
 		[keystore, onUnlock, t],
 	);
 
+	const onSubmitPassword = (event) => {
+		event.preventDefault();
+		if (resolvePasswordPromise) {
+			setIsSubmittingPassword(true);
+			resolvePasswordPromise(password);
+		}
+	};
+
+	const onCancelPassword = () => {
+		if (resolvePasswordPromise) {
+			setIsSubmittingPassword(false);
+			resolvePasswordPromise(null);
+		}
+		onLock();
+	};
+
 	return (
-		<GetButton
-			content={
-				<div className="flex items-center">
-					{unlocked
-						? <>
-							<BsUnlock size={20} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.lockPasskeyManagement')}
-							</span>
-						</>
-						: <>
-							<BsLock size={20} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.unlockPasskeyManagement')}
-							</span>
-						</>
+		<>
+			<GetButton
+				content={
+					<div className="flex items-center">
+						{unlocked
+							? <>
+								<BsUnlock size={20} />
+								<span className='hidden md:block ml-2'>
+									{t('pageSettings.lockPasskeyManagement')}
+								</span>
+							</>
+							: <>
+								<BsLock size={20} />
+								<span className='hidden md:block ml-2'>
+									{t('pageSettings.unlockPasskeyManagement')}
+								</span>
+							</>
+						}
+					</div>
+				}
+				onClick={unlocked ? onLock : onBeginUnlock}
+				variant="primary"
+				disabled={inProgress}
+				ariaLabel={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement')) : ""}
+				title={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle')) : ""}
+			/>
+			<Dialog
+				open={isPromptingForPassword}
+				onCancel={onCancelPassword}
+			>
+				<form method="dialog" onSubmit={onSubmitPassword}>
+					<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.unlockPassword.title')}</h3>
+					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
+					<input
+						type="password"
+						className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
+						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
+						autoFocus={true}
+						disabled={isSubmittingPassword}
+						onChange={(event) => setPassword(event.target.value)}
+						placeholder={t('pageSettings.unlockPassword.passwordInputPlaceholder')}
+						value={password}
+					/>
+
+					<div className="pt-2">
+						<button
+							type="button"
+							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-gray-100 mr-2"
+							onClick={onCancelPassword}
+							disabled={isSubmittingPassword}
+						>
+							{t('common.cancel')}
+						</button>
+
+						<button
+							type="submit"
+							className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
+							disabled={isSubmittingPassword}
+						>
+							{t('common.submit')}
+						</button>
+					</div>
+
+					{error &&
+						<p className="text-red-500 mt-2">
+							{error}
+						</p>
 					}
-				</div>
-			}
-			onClick={unlocked ? onLock : onBeginUnlock}
-			variant="primary"
-			disabled={inProgress}
-			ariaLabel={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement')) : ""}
-			title={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle')) : ""}
-		/>
+				</form>
+			</Dialog>
+		</>
 	);
 };
 

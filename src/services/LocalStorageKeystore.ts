@@ -59,7 +59,10 @@ export interface LocalStorageKeystore {
 		user: CachedUser | UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
-	getPrfKeyFromSession(promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[CryptoKey, WrappedKeyInfo]>,
+	getPasswordOrPrfKeyFromSession(
+		promptForPassword: () => Promise<string | null>,
+		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+	): Promise<[CryptoKey, WrappedKeyInfo]>,
 	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
@@ -293,12 +296,26 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					return privateDataCache?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
 				},
 
-				getPrfKeyFromSession: async (
+				getPasswordOrPrfKeyFromSession: async (
+					promptForPassword: () => Promise<string | null>,
 					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				): Promise<[CryptoKey, WrappedKeyInfo]> => {
-					if (privateDataCache && webauthnRpId) {
+					if (privateDataCache && webauthnRpId && privateDataCache?.prfKeys?.length > 0) {
 						const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateDataCache, null, webauthnRpId, promptForPrfRetry);
 						return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
+
+					} else if (privateDataCache && privateDataCache?.passwordKey) {
+						const password = await promptForPassword();
+						if (password === null) {
+							throw new Error("Password prompt aborted");
+						} else {
+							try {
+								const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateDataCache, password);
+								return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
+							} catch {
+								return Promise.reject({ errorId: "passwordUnlockFailed" });
+							}
+						}
 
 					} else {
 						throw new Error("Session not initialized");
