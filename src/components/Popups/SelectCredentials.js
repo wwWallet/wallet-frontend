@@ -159,7 +159,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		>
 			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 				<FaShare size={20} className="inline mr-1 mb-1" />
-				{t('selectCredentialPopup.title')}
+				{t('selectCredentialPopup.title') + ': ' + stepTitles[currentIndex]}
 			</h2>
 			{keys.length > 1 && (
 				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
