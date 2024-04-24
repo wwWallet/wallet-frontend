@@ -176,7 +176,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								components={{ strong: <strong /> }}
 							/>
 						</span>
-						{requestedFieldsText}{showAllFields ? requestedFieldsText : '...'}
+						{showAllFields ? requestedFieldsText : `${requestedFieldsText}...`}
 						&nbsp;
 						{requestedFields.length > 2 && (
 							<button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
