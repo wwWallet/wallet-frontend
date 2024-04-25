@@ -11,8 +11,10 @@
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
+		"next": "Next",
+		"previous": "Previous",
 		"save": "Save",
-		"submit": "submit",
+		"submit": "Submit",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -221,12 +223,15 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"description": "The <strong> {{verifierDomainName}} </strong> requests the following credentials. Select the one you want to present.",
+		"descriptionFieldsSingle": "The <strong> {{verifierDomainName}} </strong> requests the field:",
+		"descriptionFieldsMultiple": "The <strong> {{verifierDomainName}} </strong> requests the fields:",
+		"descriptionSelect": "Select the one Credential you want to present.",
 		"detailsHide": "Hide Details",
 		"detailsShow": "Show Details",
-		"requestedFieldsHide": "Hide Requested Fields",
-		"requestedFieldsShow": "Show Requested Fields",
-		"title": "Select an Option:"
+		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
+		"requestedFieldsLess": "Show less",
+		"requestedFieldsMore": "Show more",
+		"title": "Select : "
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
