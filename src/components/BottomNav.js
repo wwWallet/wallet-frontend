@@ -10,7 +10,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <FaWallet size={26} />, path: '/', label: `${t("common.navItemCredentials")}` },
+		{ icon: <FaWallet size={26} />, path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}` },
 		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}` },
 		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}` },
 		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}` },
@@ -26,12 +26,16 @@ const BottomNav = ({ isOpen, toggle }) => {
 		}
 	};
 
+	const isActive = (item) => {
+		return location.pathname === item.path || location.pathname === item.alias;
+	};
+
 	return (
 		<div className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex justify-around p-4 z-40 max480:flex hidden shadow-2xl rounded-t-lg`}>
 			{navItems.map(item => (
 				<button
 					key={item.path}
-					className={`cursor-pointer flex flex-col items-center w-[20%] ${(location.pathname === item.path && !isOpen) ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center w-[20%] ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
 					onClick={() => handleNavigate(item.path)}
 					title={item.label}
 				>
@@ -41,7 +45,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 			))}
 			<button
 				key={t("common.navItemProfile")}
-				className={`cursor-pointer flex flex-col items-center w-[20%] ${(isOpen) ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+				className={`cursor-pointer flex flex-col items-center w-[20%] ${isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
 				onClick={toggle}
 				title={t("common.navItemProfile")}
 			>

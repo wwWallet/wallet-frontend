@@ -14,11 +14,13 @@ const NavItem = ({
 	handleNavigate,
 	location,
 	path,
+	alias,
 }) => {
+	const isActive = location.pathname === path || location.pathname === alias;
 	return (
 		<button
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl w-full ${location.pathname === path ? 'bg-white text-primary' : 'nav-item-animate-hover'}`}
+			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl w-full ${isActive ? 'bg-white text-primary' : 'nav-item-animate-hover'}`}
 		>
 			{children}
 		</button>
@@ -110,7 +112,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						{/* Nav Menu */}
 						<div className='max480:hidden'>
-							<NavItem path="/" location={location} handleNavigate={handleNavigate}>
+							<NavItem path="/" alias="/cb" location={location} handleNavigate={handleNavigate}>
 								<FaWallet size={30} />
 								<span>{t("common.navItemCredentials")}</span>
 							</NavItem>
