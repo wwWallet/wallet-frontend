@@ -720,7 +720,7 @@ const Login = () => {
 						</div>
 					</div>
 					<div>
-						<p className='text-gray-700 dark:text-gray-400 font-medium text-center min-mt-10'>
+						<p className='text-gray-700 dark:text-gray-400 text-center min-mt-10'>
 							<Trans
 								i18nKey="sidebar.poweredBy"
 								components={{
