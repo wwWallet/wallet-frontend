@@ -11,7 +11,11 @@ import GetButton from '../Buttons/GetButton';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 
 const formatTitle = (title) => {
-  return title.replace(/([a-z])([A-Z])/g, '$1 $2');
+	if (title) {
+		return title.replace(/([a-z])([A-Z])/g, '$1 $2');
+	} else {
+		return;
+	}
 };
 
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
@@ -165,10 +169,12 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 		>
-			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-				<FaShare size={20} className="inline mr-1 mb-1" />
-				{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
-			</h2>
+			{stepTitles && (
+				<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+					<FaShare size={20} className="inline mr-1 mb-1" />
+					{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
+				</h2>
+			)}
 			{keys.length > 1 && (
 				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
 			)}
