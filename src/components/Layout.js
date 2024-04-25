@@ -51,30 +51,30 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			{/* Header */}
 			<header
-				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-custom-blue text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
 				<div className="flex items-center">
-					<img
-						src={logo}
-						alt="Logo"
-						className="w-12 h-auto mr-2 cursor-pointer"
-						onClick={() => handleNavigate('/')}
-					/>
+					<button className='mr-2' onClick={() => handleNavigate('/')}>
+						<img
+							src={logo}
+							alt="Logo"
+							className="w-12 h-auto cursor-pointer"
+						/>
+					</button>
 				</div>
-				<h1
+				<a href={('/')}
 					className="text-white text-xl font-bold cursor-pointer"
-					onClick={() => handleNavigate('/')}
 				>
 					{t('common.walletName')}
-				</h1>
+				</a>
 				<button className="text-white max480:hidden" onClick={toggleSidebar}>
 					<AiOutlineMenu size={24} />
 				</button>
 			</header>
 
-			<div className="w-3/5 flex flex-col flex-grow">
+			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
-				<div className="flex-grow bg-gray-100 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
+				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
 					{/* Conditional Notification Message */}
 					{(!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && !tokenSentInSession && isMessageGrantedVisible === false) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
@@ -107,7 +107,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 												i18nKey="layout.messageResetPermission"
 												components={{
 													strong: <strong />,
-													reloadButton: <button className='text-custom-blue underline' onClick={() => window.location.reload()} />,
+													reloadButton: <button className='text-primary underline' onClick={() => window.location.reload()} />,
 												}}
 											/>
 										</p>

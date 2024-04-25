@@ -10,22 +10,22 @@ import { parseCredential } from '../../functions/parseCredential';
 const getFieldIcon = (fieldName) => {
 	switch (fieldName) {
 		case 'type':
-			return <BiSolidCategoryAlt size={25} className="inline mr-1 mb-1" />;
+			return <BiSolidCategoryAlt size={25} className="inline mr-1" />;
 		case 'expdate':
-			return <RiPassExpiredFill size={25} className="inline mr-1 mb-1" />;
+			return <RiPassExpiredFill size={25} className="inline mr-1" />;
 		case 'dateOfBirth':
-			return <AiFillCalendar size={25} className="inline mr-1 mb-1" />;
+			return <AiFillCalendar size={25} className="inline mr-1" />;
 		case 'id':
-			return <MdOutlineNumbers size={25} className="inline mr-1 mb-1" />
+			return <MdOutlineNumbers size={25} className="inline mr-1" />
 		case 'familyName':
 		case 'firstName':
-			return <BiSolidUserCircle size={25} className="inline mr-1 mb-1" />;
+			return <BiSolidUserCircle size={25} className="inline mr-1" />;
 		case 'diplomaTitle':
-			return <MdTitle size={25} className="inline mr-1 mb-1" />;
+			return <MdTitle size={25} className="inline mr-1" />;
 		case 'eqfLevel':
-			return <GiLevelEndFlag size={25} className="inline mr-1 mb-1" />;
+			return <GiLevelEndFlag size={25} className="inline mr-1" />;
 		case 'grade':
-			return <MdGrade size={25} className="inline mr-1 mb-1" />;
+			return <MdGrade size={25} className="inline mr-1" />;
 		default:
 			return null;
 	}
@@ -34,14 +34,14 @@ const getFieldIcon = (fieldName) => {
 const renderRow = (fieldName, label, fieldValue) => {
 	if (fieldValue) {
 		return (
-			<tr className="text-left text-xs sm:text-sm md:text-base">
-				<td className="font-bold text-custom-blue py-2 px-2 rounded-l-xl">
+			<tr className="text-left">
+				<td className="font-bold text-primary dark:text-primary-light py-2 px-2 rounded-l-xl">
 					<div className="flex md:flex-row flex-col items-left">
 						{getFieldIcon(fieldName)}
-						<span className="md:ml-1">{label}:</span>
+						<span className="md:ml-1 flex items-center">{label}:</span>
 					</div>
 				</td>
-				<td className="py-2 px-2 rounded-r-xl">{fieldValue}</td>
+				<td className="text-gray-700 dark:text-white py-2 px-2 rounded-r-xl">{fieldValue}</td>
 			</tr>
 		);
 	} else {
@@ -49,7 +49,7 @@ const renderRow = (fieldName, label, fieldValue) => {
 	}
 };
 
-const CredentialInfo = ({ credential, mainClassName = "pt-5 pr-2 w-full" }) => {
+const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:text-base pt-5 pr-2 w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Modal from 'react-modal';
 import Webcam from 'react-webcam';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
@@ -181,13 +182,16 @@ const QRScanner = ({ onClose }) => {
 	}
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center z-50">
-			<div className="absolute inset-0 bg-black opacity-50"></div>
-
+		<Modal
+			isOpen={true}
+			onRequestClose={handleClose}
+			className="absolute inset-0 flex items-center justify-center"
+			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+		>
 			{hasCameraPermission === false ? (
-				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
@@ -202,8 +206,8 @@ const QRScanner = ({ onClose }) => {
 							</svg>
 						</button>
 					</div>
-					<hr className="mb-2 border-t border-custom-blue/80" />
-					<p className='text-red-600'>
+					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+					<p className='text-red-600 dark:text-red-500'>
 						{t('qrCodeScanner.cameraPermissionAllow')}
 					</p>
 				</div>
@@ -212,9 +216,9 @@ const QRScanner = ({ onClose }) => {
 					<Spinner />
 				</div>
 			) : (
-				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
@@ -229,11 +233,11 @@ const QRScanner = ({ onClose }) => {
 							</svg>
 						</button>
 					</div>
-					<hr className="mb-2 border-t border-custom-blue/80" />
-					<p className="italic pd-2 text-gray-700">
+					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+					<p className="italic pd-2 text-gray-700 dark:text-gray-300">
 						{t('qrCodeScanner.description')}
 					</p>
-					<div className="webcam-container" style={{ position: 'relative', overflow: 'hidden' }}>
+					<div className="webcam-container mt-4" style={{ position: 'relative', overflow: 'hidden' }}>
 						<Webcam
 							key={devices[currentDeviceIndex]?.deviceId}
 							audio={false}
@@ -255,7 +259,7 @@ const QRScanner = ({ onClose }) => {
 					</div>
 					<div className='flex justify-between align-center'>
 						<div className="flex items-center my-4 pr-4 w-full">
-							<RiZoomOutFill className="text-gray-400 mr-2 mt-2" onClick={handleZoomOut} size={35} />
+							<RiZoomOutFill className="text-gray-400 dark:text-gray-200 mr-2 mt-2" onClick={handleZoomOut} size={35} />
 							<input
 								type="range"
 								min="1"
@@ -265,12 +269,12 @@ const QRScanner = ({ onClose }) => {
 								onChange={handleZoomChange}
 								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
 							/>
-							<RiZoomInFill className="text-gray-400 ml-2 mt-2" onClick={handleZoomIn} size={35} />
+							<RiZoomInFill className="text-gray-400 dark:text-gray-200 ml-2 mt-2" onClick={handleZoomIn} size={35} />
 						</div>
-						{devices.length > 1 && (
+						{devices.length > 0 && (
 							<button
 								type="button"
-								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm ml-4 p-2 my-2"
+								className="text-gray-400 dark:text-gray-200 bg-transparent rounded-lg text-sm ml-4 p-2 my-4"
 								onClick={switchCamera}
 							>
 								<PiCameraRotateFill size={25} />
@@ -279,7 +283,7 @@ const QRScanner = ({ onClose }) => {
 					</div>
 				</div>
 			)}
-		</div>
+		</Modal>
 	);
 };
 
