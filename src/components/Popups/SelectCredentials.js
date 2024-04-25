@@ -11,7 +11,7 @@ import GetButton from '../Buttons/GetButton';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 
 const formatTitle = (title) => {
-	return title.replace(/([A-Z])/g, ' $1').trim();
+  return title.replace(/([a-z])([A-Z])/g, '$1 $2');
 };
 
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
