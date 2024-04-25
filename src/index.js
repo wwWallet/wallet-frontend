@@ -4,7 +4,7 @@ import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
 import './index.css';
 
-ConsoleBehavior();
+// ConsoleBehavior();
 
 const root = createRoot(document.getElementById('root'));
 root.render(<App />);

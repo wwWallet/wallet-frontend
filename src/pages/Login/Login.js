@@ -579,7 +579,7 @@ const Login = () => {
 				<>
 					<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen">
 						<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-							<img className="w-40" src={logo} alt="logo" />
+							<img className="w-60" src={logo} alt="logo" />
 						</a>
 
 						<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
@@ -590,7 +590,6 @@ const Login = () => {
 								}}
 							/>
 						</h1>
-
 						<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
 							{/* Dropdown to change language */}
 							{/* <div className="absolute top-2 right-2">
