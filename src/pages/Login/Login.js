@@ -480,6 +480,12 @@ const Login = () => {
 	const navigate = useNavigate();
 	const keystore = useLocalStorageKeystore();
 
+	useEffect(() => {
+		if (api.isLoggedIn()) {
+			navigate('/');
+		}
+	}, [api, navigate]);
+
 	const { username, password, confirmPassword } = formData;
 
 	const handleInputChange = (event) => {
