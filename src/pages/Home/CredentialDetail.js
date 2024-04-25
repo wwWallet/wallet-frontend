@@ -25,9 +25,6 @@ const CredentialDetail = () => {
 	const { t } = useTranslation();
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 
-
-
-
 	useEffect(() => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
@@ -68,25 +65,29 @@ const CredentialDetail = () => {
 				<div className="flex flex-col sm:flex-row sm:items-center">
 					<div className="flex items-center">
 						<Link to="/">
-							<h1 className="text-2xl mb-2 font-bold text-gray-500">{t('common.navItemCredentials')}</h1>
+							<h1 className="text-2xl mb-2 font-bold text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline">{t('common.navItemCredentials')}</h1>
 						</Link>
-						<BiRightArrowAlt className="text-2xl mb-2 text-custom-blue" />
+						<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
 					</div>
 					{vcEntity && (
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{credentialFiendlyName}</h1>
+						<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{credentialFiendlyName}</h1>
 					)}
 				</div>
-				<hr className="mb-2 border-t border-custom-blue/80" />
-				<p className="italic text-gray-700">{t('pageCredentials.details.description')}</p>
+				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}
 					<div className='lg:w-1/2'>
 						{vcEntity ? (
 							// Open the modal when the credential is clicked
-							<div className="relative rounded-xl xl:w-4/5 pt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => setShowFullscreenImgPopup(true)}>
+							<button className="relative rounded-xl xl:w-4/5 mt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+								onClick={() => setShowFullscreenImgPopup(true)}
+								aria-label={`${credentialFiendlyName}`}
+								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+							>
 								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover rounded-xl"} />
-							</div>
+							</button>
 						) : (
 							<></>
 						)}
@@ -100,7 +101,7 @@ const CredentialDetail = () => {
 
 				<div className="flex flex-col lg:flex-row mt-4">
 					<div className="lg:w-1/2">
-						{vcEntity && <CredentialJson credential={vcEntity.credential} /> }
+						{vcEntity && <CredentialJson credential={vcEntity.credential} />}
 					</div>
 				</div>
 			</div>

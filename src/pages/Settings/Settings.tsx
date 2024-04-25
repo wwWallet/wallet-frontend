@@ -10,6 +10,7 @@ import { formatDate } from '../../functions/DateFormat';
 import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
+import GetButton from '../../components/Buttons/GetButton';
 
 const Dialog = ({
 	children,
@@ -170,23 +171,23 @@ const WebauthnRegistation = ({
 
 	return (
 		<>
-			<button
-				className={`px-2 py-2 text-white ${unlocked ? "bg-custom-blue hover:bg-custom-blue-hover" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"} font-medium rounded-lg text-sm px-4 py-2 text-center`}
-				onClick={onBegin}
-				disabled={registrationInProgress || !unlocked}
-				title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
-			>
-				<div className="flex items-center">
-					{(window.innerWidth < 768) ? (
-						<BsPlusCircle size={20} className="text-white sm:inline" />
-					) : (
-						<>
-							<BsPlusCircle size={20} className="text-white mr-2 sm:inline" />
+			<GetButton
+				content={
+					<div className="flex items-center">
+						<BsPlusCircle size={20} />
+						<span className='hidden md:block ml-2'>
 							{t('pageSettings.addPasskey')}
-						</>
-					)}
-				</div>
-			</button>
+						</span>
+					</div>
+				}
+				onClick={onBegin}
+				variant="primary"
+				disabled={registrationInProgress || !unlocked}
+				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
+
+				ariaLabel={unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				title={unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+			/>
 
 			<Dialog
 				open={stateChooseNickname}
@@ -196,11 +197,11 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
-								<p className="mb-2">{t('pageSettings.registerPasskey.giveNickname')}</p>
+								<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
+								<p className="mb-2 dark:text-white">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3"
 									aria-label="Nickname for new credential"
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -212,29 +213,26 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p>{t('pageSettings.registerPasskey.messageInteract')}</p>
+								<p className='dark:text-white'>{t('pageSettings.registerPasskey.messageInteract')}</p>
 							</>
 						)
 					}
 
-					<div className="pt-2">
-						<button
-							type="button"
-							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-gray-100 mr-2"
+					<div className="pt-2 flex justify-center gap-2">
+						<GetButton
+							content={t('common.cancel')}
 							onClick={onCancel}
+							variant="cancel"
 							disabled={isSubmitting}
-						>
-							{t('common.cancel')}
-						</button>
+						/>
 
 						{pendingCredential && (
-							<button
+							<GetButton
 								type="submit"
-								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
+								content={t('common.save')}
+								variant="secondary"
 								disabled={isSubmitting}
-							>
-								{t('common.save')}
-							</button>
+							/>
 						)}
 					</div>
 
@@ -245,40 +243,39 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.registerPasskey.messageDone')}</h3>
-				<p>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
-				<p>{t('pageSettings.registerPasskey.authOnceMore')}</p>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('pageSettings.registerPasskey.messageDone')}</h3>
+				<p className='dark:text-white'>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
+				<p className='dark:text-white'>{t('pageSettings.registerPasskey.authOnceMore')}</p>
 
-				<button
-					type="button"
-					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-					onClick={() => resolvePrfRetryPrompt(false)}
-				>
-					{t('common.cancel')}
-				</button>
-				<button
-					type="button"
-					className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
-					onClick={() => resolvePrfRetryPrompt(true)}
-					disabled={prfRetryAccepted}
-				>
-					{t('common.continue')}
-				</button>
+				<div className='flex justify-center gap-2'>
+					<GetButton
+						content={t('common.cancel')}
+						onClick={() => resolvePrfRetryPrompt(false)}
+						variant="cancel"
+					/>
+
+					<GetButton
+						content={t('common.continue')}
+						onClick={() => resolvePrfRetryPrompt(true)}
+						variant="secondary"
+						disabled={prfRetryAccepted}
+					/>
+				</div>
+
 			</Dialog>
 
 			<Dialog
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
-
-				<button
-					type="button"
-					className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-					onClick={onCancel}
-				>
-					{t('common.cancel')}
-				</button>
+				<p className='dark:text-white'>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
+				<div className='flex justify-center'>
+					<GetButton
+						content={t('common.cancel')}
+						onClick={onCancel}
+						variant="cancel"
+					/>
+				</div>
 			</Dialog>
 		</>
 	);
@@ -333,31 +330,31 @@ const WebauthnUnlock = ({
 	);
 
 	return (
-		<button
-			className="px-2 py-2 text-white bg-custom-blue hover:bg-custom-blue-hover font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue dark:hover:bg-custom-blue-hover"
-			onClick={unlocked ? onLock : onBeginUnlock}
-			disabled={inProgress}
-		>
-			<div className="flex items-center">
-				{unlocked
-					? <>
-						<BsUnlock size={20} className="text-white mr-2 sm:inline" />
-						{t('pageSettings.lockPasskeyManagement')}
-					</>
-					: <>
-						{(window.innerWidth < 768) ? (
-							<BsLock size={20} className="text-white sm:inline" />
-						) : (
-							<>
-								<BsLock size={20} className="text-white mr-2 sm:inline" />
+		<GetButton
+			content={
+				<div className="flex items-center">
+					{unlocked
+						? <>
+							<BsUnlock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.lockPasskeyManagement')}
+							</span>
+						</>
+						: <>
+							<BsLock size={20} />
+							<span className='hidden md:block ml-2'>
 								{t('pageSettings.unlockPasskeyManagement')}
-							</>
-						)}
-
-					</>
-				}
-			</div>
-		</button>
+							</span>
+						</>
+					}
+				</div>
+			}
+			onClick={unlocked ? onLock : onBeginUnlock}
+			variant="primary"
+			disabled={inProgress}
+			ariaLabel={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement')) : ""}
+			title={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle')) : ""}
+		/>
 	);
 };
 
@@ -419,7 +416,7 @@ const WebauthnCredentialItem = ({
 
 	return (
 		<form
-			className="mb-2 pl-4 bg-white px-4 py-2 border border-gray-300 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
+			className="mb-2 pl-4 bg-white dark:bg-gray-800 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
 			onSubmit={onSubmit}
 		>
 			<div className="grow">
@@ -427,11 +424,12 @@ const WebauthnCredentialItem = ({
 					? (
 						<>
 							<div className="flex items-center">
-								<p className="font-semibold">
+								<p className="font-semibold dark:text-white">
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="shadow appearance-none border rounded-md w-36 p-2 text-gray-700 leading-tight"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 w-36"
+
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
@@ -446,28 +444,28 @@ const WebauthnCredentialItem = ({
 					: (
 						<div className="flex items-center">
 							<p>
-								<span className="font-semibold">
+								<span className="font-semibold dark:text-white">
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</span>
-								<span className="font-bold text-custom-blue">
+								<span className="font-bold text-primary dark:text-primary-light">
 									{currentLabel}
 								</span>
 							</p>
 						</div>
 					)
 				}
-				<p>
+				<p className='dark:text-white'>
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.created')}:&nbsp;
 					</span>
 					{formatDate(credential.createTime)}
 				</p>
-				<p>
+				<p className='dark:text-white'>
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.lastUsed')}:&nbsp;
 					</span>
 					{formatDate(credential.lastUseTime)}</p>
-				<p>
+				<p className='dark:text-white'>
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
@@ -477,54 +475,50 @@ const WebauthnCredentialItem = ({
 			<div className="items-start	 flex inline-flex">
 				{editing
 					? (
-						<>
-							<button
-								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-								type="button"
-								disabled={submitting}
+
+						<div className='flex gap-2'>
+							<GetButton
+								content={t('common.cancel')}
 								onClick={() => setEditing(false)}
-								aria-label={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
-							>
-								{t('common.cancel')}
-							</button>
-							<button
-								className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
-								type="submit"
+								variant="cancel"
 								disabled={submitting}
-								aria-label={t('pageSettings.passkeyItem.saveChangesAriaLabel', { passkeyLabel: currentLabel })}
-							>
-								{t('common.save')}
-							</button>
-						</>
+								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
+							/>
+							<GetButton
+								type="submit"
+								content={t('common.save')}
+								disabled={submitting}
+								variant="secondary"
+							/>
+						</div>
 					)
 					: (
-						<>
-							<button
-								className={` ${!onDelete || unlocked ? "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700" : "bg-blue-600 hover:bg-blue-700 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"} flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center`}
-								type="button"
-								onClick={() => setEditing(true)}
-								disabled={!unlocked}
-								title={!unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
-								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-							>
-								<FaEdit size={16} className="mr-2" /> {t('pageSettings.passkeyItem.rename')}
-							</button>
-						</>
+						<GetButton
+							content={
+								<>
+									<FaEdit size={16} className="mr-2" />
+									{t('pageSettings.passkeyItem.rename')}
+								</>
+							}
+							onClick={() => setEditing(true)}
+							variant="secondary"
+							disabled={onDelete && !unlocked}
+							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
+							title={onDelete && !unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
+						/>
 					)
 				}
 
 				{onDelete && (
-					<button
-						className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} text-sm font-medium rounded-lg text-sm px-5 py-2.5 text-center ml-2 px-4 py-2`}
-						type="button"
+					<GetButton
+						content={<FaTrash size={16} />}
 						onClick={openDeleteConfirmation}
+						variant="delete"
 						disabled={!unlocked}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : ""}
-
-					>
-						<FaTrash size={16} />
-					</button>
+						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+						additionalClassName='ml-2 py-2.5'
+					/>
 				)}
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
@@ -644,13 +638,13 @@ const Settings = () => {
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h1 className="text-2xl mb-2 font-bold text-custom-blue">{t('common.navItemSettings')}</h1>
-						<hr className="mb-2 border-t border-custom-blue/80" />
-						<p className="italic pd-2 text-gray-700">{t('pageSettings.description')}</p>
+						<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemSettings')}</h1>
+						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+						<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageSettings.description')}</p>
 
 						<div className="my-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.loggedInPasskey')}</h1>
-							<hr className="mb-2 border-t border-gray-700" />
+							<h1 className="text-lg mt-2 mb-2 font-bold text-primary dark:text-primary-light">{t('pageSettings.title.loggedInPasskey')}</h1>
+							<hr className="mb-2 border-t border-primary/80 dark:border-primary-light/80" />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
@@ -662,7 +656,7 @@ const Settings = () => {
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-custom-blue">{t('pageSettings.title.manageAcount')}</h1>
+								<h1 className="text-lg mt-2 mb-2 font-bold text-primary dark:text-primary-light">{t('pageSettings.title.manageAcount')}</h1>
 								<div className='flex'>
 									<WebauthnUnlock
 										unlocked={unlocked}
@@ -677,11 +671,11 @@ const Settings = () => {
 									/>
 								</div>
 							</div>
-							<hr className="mb-2 border-t border-gray-500" />
+							<hr className="mb-2 border-t border-primary/80 dark:border-primary-light/80" />
 							<div className='mb-2'>
 								<div className="pt-4">
 									<div className="flex justify-between items-center">
-										<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.title.manageOtherPasskeys')}</h1>
+										<h1 className="font-semibold text-gray-700 dark:text-gray-400 my-2">{t('pageSettings.title.manageOtherPasskeys')}</h1>
 										<div className='flex'>
 											<WebauthnRegistation
 												existingPrfKey={existingPrfKey}
@@ -690,7 +684,7 @@ const Settings = () => {
 											/>
 										</div>
 									</div>
-									<hr className="mb-2 border-t border-gray-300" />
+									<hr className="mb-2 border-t border-gray-700/80 dark:border-gray-400/80" />
 									<ul className="mt-4">
 
 										{userData.webauthnCredentials
@@ -707,27 +701,24 @@ const Settings = () => {
 											))}
 										{userData.webauthnCredentials
 											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
-												<p>{t('pageSettings.noOtherPasskeys')}</p>
+												<p className='dark:text-white'>{t('pageSettings.noOtherPasskeys')}</p>
 											)}
 									</ul>
 								</div>
 
 								<div className="pt-4">
-									<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.deleteAccount.title')}</h1>
-									<hr className="mb-2 border-t border-gray-300" />
-									<p className='mb-2'>
+									<h1 className="font-semibold text-gray-700 dark:text-gray-400 my-2">{t('pageSettings.deleteAccount.title')}</h1>
+									<hr className="mb-2 border-t border-gray-700/80 dark:border-gray-400/80" />
+									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
-									<button
-										type="button"
-										className={` ${unlocked ? "bg-red-600 hover:bg-red-700 hover:text-white text-white" : "bg-gray-300 text-red-400 cursor-not-allowed hover:bg-gray-300"} px-4 py-2 border border-gray-300 rounded-md font-medium rounded-lg text-sm mr-2`}
+									<GetButton
+										content={t('pageSettings.deleteAccount.buttonText')}
 										onClick={openDeleteConfirmation}
+										variant="delete"
 										disabled={!unlocked}
 										title={!unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
-
-									>
-										{t('pageSettings.deleteAccount.buttonText')}
-									</button>
+									/>
 								</div>
 							</div>
 

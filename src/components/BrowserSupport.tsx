@@ -5,6 +5,7 @@ import { useSessionStorage } from './useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import GetButton from './Buttons/GetButton';
 
 const noWarnPlatforms = [
 	{ browser: /chrome/ui, not: { os: /ios/ui } },
@@ -22,7 +23,7 @@ type ContextValue = {
 const BrowserSupportedContext = createContext<ContextValue>({
 	browserSupported: true,
 	bypassWarning: true,
-	setBypass: () => {},
+	setBypass: () => { },
 	showWarningPortal: false,
 });
 
@@ -80,15 +81,15 @@ export function WarningPortal({
 					{t('browserSupportWarningPortal.heading')}
 				</h2>
 
-				<p className="text-sm">{t('browserSupportWarningPortal.intro')}</p>
+				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.intro')}</p>
 
-				<p className="text-sm">{t('browserSupportWarningPortal.supportedList.intro')}</p>
+				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.supportedList.intro')}</p>
 				<ul className="ml-4 list-none text-sm">
 					<li className="flex justify-start items-center" style={{ textAlign: 'left' }}>
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.windows')}
 						</div>
 					</li>
@@ -96,7 +97,7 @@ export function WarningPortal({
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.macos')}
 						</div>
 					</li>
@@ -104,7 +105,7 @@ export function WarningPortal({
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.android')}
 						</div>
 					</li>
@@ -112,43 +113,42 @@ export function WarningPortal({
 						<div className="w-1/12">
 							<FaCheckCircle className="text-md text-green-500" />
 						</div>
-						<div className="w-11/12 pl-1">
+						<div className="w-11/12 pl-1 dark:text-gray-300">
 							{t('browserSupportWarningPortal.supportedList.linux')}
 						</div>
 					</li>
 				</ul>
 
-				<p className="text-sm">
+				<p className="text-sm dark:text-gray-300">
 					<Trans
 						i18nKey="browserSupportWarningPortal.moreDetails"
 						components={{
 							docLink: <a
 								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-								className="font-medium text-custom-blue hover:underline dark:text-blue-500"
+								className="font-medium text-primary hover:underline dark:text-blue-500"
 							/>
 						}}
 					/>
 				</p>
 
-				<p className="text-sm">{t('browserSupportWarningPortal.outro')}</p>
+				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.outro')}</p>
 
-				<button
-					className={`w-full text-white bg-gray-300 hover:bg-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-300 dark:hover:bg-gray-400 dark:focus:ring-gray-400 ${classes || ""}`}
+				<GetButton
+					content={t('browserSupportWarningPortal.continueAnyway')}
 					onClick={() => setBypass(true)}
-					type="button"
-				>
-					{t('browserSupportWarningPortal.continueAnyway')}
-				</button>
+					variant="custom"
+					additionalClassName='text-white bg-gray-300 hover:bg-gray-400 w-full'
+				/>
 			</>
 		);
 	}
 
 	return (
 		<Ctx>
-			<If test={(ctx) => !ctx.showWarningPortal }>
+			<If test={(ctx) => !ctx.showWarningPortal}>
 				{children}
 			</If>
-			<If test={(ctx) => ctx.showWarningPortal }>
+			<If test={(ctx) => ctx.showWarningPortal}>
 				<Content classes={classes} />
 			</If>
 		</Ctx>

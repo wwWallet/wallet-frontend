@@ -10,10 +10,12 @@ module.exports = {
 				'55': 55,
 			},
 			colors: {
-				'custom-blue': '#003476',
-				'custom-blue-hover': '#002b62',
-				'custom-light-blue': '#68caf1',
-				'light-red': '#ffcccc',
+				'primary': '#003476',
+				'primary-hover': '#002b62',
+				'primary-light': '#4169E1',
+				'primary-light-hover': '#0F52BA',
+				'extra-light': '#42B6E9',
+				'extra-light-hover': '#5DB5D8',
 			},
 			screens: {
 				'max480': { 'max': '480px' },
@@ -22,4 +24,3 @@ module.exports = {
 	},
 	plugins: [],
 };
-
