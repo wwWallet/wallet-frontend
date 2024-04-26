@@ -11,9 +11,9 @@ const BottomNav = ({ isOpen, toggle }) => {
 
 	const navItems = [
 		{ icon: <FaWallet size={26} />, path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}` },
-		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}` },
 		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}` },
 		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}` },
+		{ icon: <IoIosTime size={26} />, path: '/history', label: `${t("common.navItemHistory")}` },
 	];
 
 	const handleNavigate = (path) => {
