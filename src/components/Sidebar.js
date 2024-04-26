@@ -118,12 +118,6 @@ const Sidebar = ({ isOpen, toggle }) => {
 							</NavItem>
 						</div>
 						<div className='max480:hidden'>
-							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-								<IoIosTime size={30} />
-								<span>{t("common.navItemHistory")}</span>
-							</NavItem>
-						</div>
-						<div className='max480:hidden'>
 							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 								<IoIosAddCircle size={30} />
 								<span>{t("common.navItemAddCredentials")}</span>
@@ -133,6 +127,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 								<IoIosSend size={30} />
 								<span>{t("common.navItemSendCredentials")}</span>
+							</NavItem>
+						</div>
+						<div className='max480:hidden'>
+							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
+								<IoIosTime size={30} />
+								<span>{t("common.navItemHistory")}</span>
 							</NavItem>
 						</div>
 						<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
