@@ -11,8 +11,10 @@
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
+		"next": "Next",
+		"previous": "Previous",
 		"save": "Save",
-		"submit": "submit",
+		"submit": "Submit",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -43,6 +45,8 @@
 		"enterUsername": "Enter your username",
 		"enterconfirmPasswordLabel": "Enter your confirm password",
 		"fillInFieldsError": "Please fill in all required fields",
+		"forgetCachedUserAriaLabel": "Forget Cached User {{name}}",
+		"forgetCachedUserTitle": "Click to Forget Cached User",
 		"incorrectCredentialsError": "Incorrect username or password",
 		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
 		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
@@ -67,6 +71,10 @@
 		"passwordLabel": "Password",
 		"passwordLength": "Minimum length: 8 characters",
 		"passwordsNotMatchError": "Passwords do not match",
+		"passwordHideAriaLabel": "Hide password",
+		"passwordShowAriaLabel": "Show password",
+		"passwordHideTitle": "Click to hide password",
+		"passwordShowTitle": "Click to show password",
 		"signUp": "Sign Up",
 		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
@@ -122,7 +130,15 @@
 		"description": "View all of your credentials, and use the 'Add new credentials' card to add more",
 		"details": {
 			"description": "View all the information about the chosen credential"
-		}
+		},
+		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
+		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
+		"slideNext": "next",
+		"slidePrevious": "previous",
+		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
+		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
+		"slideButtonAriaLabelDisable": "No {{direction}} credential",
+		"slideButtonTitleDisable": "No {{direction}} credential available"
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
@@ -141,6 +157,7 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey",
+		"addPasskeyTitle": "Click to Add passkey",
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",
@@ -152,6 +169,7 @@
 		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
+		"lockPasskeyManagementTitle": "Click to Lock passkey management",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
@@ -161,6 +179,7 @@
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
 			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
+			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
 			"messageDeletePasskeyPart1": "Are you sure you want to delete",
 			"messageDeletePasskeyPart2": "passkey?",
@@ -188,7 +207,8 @@
 			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
-		"unlockPasskeyManagement": "Unlock management"
+		"unlockPasskeyManagement": "Unlock management",
+		"unlockPasskeyManagementTitle": "Click to Unlock management"
 	},
 	"PinInputPopup": {
 		"description": "Please enter the PIN which was displayed from the issuer",
@@ -202,11 +222,16 @@
 		"title": "Scan the QR Code"
 	},
 	"selectCredentialPopup": {
-		"description": "Please select one of the credentials below to proceed with the presentation",
-		"requestedFieldsHide": "Hide Requested Fields",
-		"requestedFieldsinfo": "The following fields were requested from the verifier",
-		"requestedFieldsShow": "Show Requested Fields",
-		"title": "Select an Option:"
+		"credentialSelectTitle": "Click to select the {{friendlyName}}",
+		"descriptionFieldsSingle": "The <strong> {{verifierDomainName}} </strong> requests the field:",
+		"descriptionFieldsMultiple": "The <strong> {{verifierDomainName}} </strong> requests the fields:",
+		"descriptionSelect": "Select the one Credential you want to present.",
+		"detailsHide": "Hide Details",
+		"detailsShow": "Show Details",
+		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
+		"requestedFieldsLess": "Show less",
+		"requestedFieldsMore": "Show more",
+		"title": "Select : "
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
@@ -219,9 +244,9 @@
 		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",
 		"tourStep2": "Click this button to scan a QR code for sending or receiving credentials.",
 		"tourStep3": "The 'Credentials' page is your Home page, where you can manage your credentials.",
-		"tourStep4": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
-		"tourStep5": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
-		"tourStep6": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
+		"tourStep4": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
+		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
+		"tourStep6": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
 		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings.",
 		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
 		"closeTourButton": "Close Tour"

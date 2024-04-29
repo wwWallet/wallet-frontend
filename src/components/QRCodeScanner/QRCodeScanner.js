@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Modal from 'react-modal';
 import Webcam from 'react-webcam';
-import jsQR from 'jsqr';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
 import Spinner from '../Spinner';
 import { useTranslation } from 'react-i18next';
 import { FaCheckCircle } from "react-icons/fa";
-import CornerBox from './CornerBox';
-import ScanningLine from './ScanningLine';
 import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
+import QrScanner from 'qr-scanner';
 
 const QRScanner = ({ onClose }) => {
 
@@ -19,7 +18,6 @@ const QRScanner = ({ onClose }) => {
 	const [loading, setLoading] = useState(false);
 	const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
 	const [qrDetected, setQrDetected] = useState(false);
-	const [boxSize, setBoxSize] = useState(null);
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
@@ -113,119 +111,87 @@ const QRScanner = ({ onClose }) => {
 		}
 	}, [hasCameraPermission]);
 
+	const stopMediaTracks = (stream) => {
+		stream.getTracks().forEach(track => {
+			track.stop();
+		});
+	};
+
 	const switchCamera = () => {
 		if (devices.length > 1) {
 			const newIndex = (currentDeviceIndex + 1) % devices.length;
+			if (webcamRef.current && webcamRef.current.stream) {
+				stopMediaTracks(webcamRef.current.stream);
+			}
 			setCurrentDeviceIndex(newIndex);
 		}
 	};
 
-	const capture = () => {
-		if (webcamRef.current) {
-			const imageSrc = webcamRef.current.getScreenshot();
-			if (imageSrc) {
-				const image = new Image();
-				image.src = imageSrc;
-				image.onload = () => {
-					const canvas = document.createElement('canvas');
-					const context = canvas.getContext('2d');
-					canvas.width = image.width;
-					canvas.height = image.height;
-					context.drawImage(image, 0, 0, image.width, image.height);
-					const imageData = context.getImageData(0, 0, image.width, image.height);
-					const code = jsQR(imageData.data, imageData.width, imageData.height);
-					if (code) {
-						setQrDetected(true);
-						// Redirect to the URL found in the QR code
-						const scannedUrl = code.data;
-						setTimeout(() => {
-							setLoading(true);
-						}, 1000);
-						setTimeout(() => {
-							const baseUrl = window.location.origin;
-							const params = scannedUrl.split('?');
-							const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-							window.location.href = cvUrl;
-						}, 1000);
-
-					}
-				};
-			}
-		}
-	};
-
-	const calculateBoxSize = () => {
-		if (webcamRef.current && webcamRef.current.video.videoWidth) {
-			const webcamElement = webcamRef.current.video;
-			const width = webcamElement.offsetWidth;
-			const height = webcamElement.offsetHeight;
-			const size = Math.min(width, height) * 0.9;
-			let scanningMargin = 20;
-			if (height > width) {
-				scanningMargin = (height - size) / 2;
-			}
-			document.documentElement.style.setProperty('--scanning-margin', scanningMargin + 'px');
-			document.documentElement.style.setProperty('--scanning', size + 'px');
-			setBoxSize(size);
-		}
-	};
-
-	useEffect(() => {
-		if (cameraReady) {
-			const interval = setInterval(capture, 500);
-			return () => clearInterval(interval);
-		}
-	}, [cameraReady]);
-
-	useEffect(() => {
-		calculateBoxSize();
-		console.log('calculate box');
-		window.addEventListener('resize', calculateBoxSize);
-		return () => window.removeEventListener('resize', calculateBoxSize);
-	}, []);
-
-	const waitForVideoDimensions = () => {
-		const checkDimensions = () => {
-			if (webcamRef.current && webcamRef.current.video.videoWidth) {
-				calculateBoxSize();
-			} else {
-				setTimeout(checkDimensions, 100);
-			}
-		};
-		checkDimensions();
-	};
 
 	const onUserMedia = () => {
-		waitForVideoDimensions();
-	};
 
+		if (webcamRef.current && webcamRef.current.video) {
+
+			const videoElement = webcamRef.current.video;
+			const qrScanner = new QrScanner(videoElement, (result) => {
+				console.log('decoded qr code:', result);
+				setQrDetected(true);
+				// Redirect to the URL found in the QR code
+				const scannedUrl = result.data;
+				setTimeout(() => {
+					setLoading(true);
+				}, 3000);
+				setTimeout(() => {
+					const baseUrl = window.location.origin;
+					const params = scannedUrl.split('?');
+					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
+					window.location.href = cvUrl;
+				}, 1000);
+			}, { highlightScanRegion: true, highlightCodeOutline: true });
+
+			qrScanner.start().catch(err => {
+				console.error('Error starting QR Scanner: ', err);
+				// Optionally update UI or state to reflect the error
+			});
+
+			return () => {
+				qrScanner.stop();
+				qrScanner.destroy();
+			};
+		}
+	};
 
 	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
 	const maxResolution = bestCameraResolutions[currentCameraType];
 
 	let idealWidth, idealHeight;
 	if (maxResolution) {
-		if ((maxResolution.width < maxResolution.height)) {
-			idealHeight = maxResolution.width;
-			idealWidth = maxResolution.width;
+		console.log(maxResolution);
 
+		// Determine the smaller dimension to be the basis for square dimensions
+		let smallerDimension = Math.min(maxResolution.width, maxResolution.height);
+
+		// Cap the dimension at 1920 if it exceeds this value
+		if (smallerDimension > 1920) {
+			idealWidth = 1920;
+			idealHeight = 1920;
 		} else {
-			idealHeight = maxResolution.height;
-			idealWidth = maxResolution.height;
+			idealWidth = smallerDimension;
+			idealHeight = smallerDimension;
 		}
-	} else {
-		idealWidth = 1080;
-		idealHeight = 1080;
 	}
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center z-50">
-			<div className="absolute inset-0 bg-black opacity-50"></div>
-
+		<Modal
+			isOpen={true}
+			onRequestClose={handleClose}
+			className="absolute inset-0 flex items-center justify-center"
+			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+		>
 			{hasCameraPermission === false ? (
-				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
@@ -240,19 +206,19 @@ const QRScanner = ({ onClose }) => {
 							</svg>
 						</button>
 					</div>
-					<hr className="mb-2 border-t border-custom-blue/80" />
-					<p className='text-red-600'>
+					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+					<p className='text-red-600 dark:text-red-500'>
 						{t('qrCodeScanner.cameraPermissionAllow')}
-						</p>
+					</p>
 				</div>
 			) : (!cameraReady || loading) ? (
 				<div className="flex items-center justify-center h-24">
 					<Spinner />
 				</div>
 			) : (
-				<div className="bg-white p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-custom-blue">
+						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
@@ -267,12 +233,13 @@ const QRScanner = ({ onClose }) => {
 							</svg>
 						</button>
 					</div>
-					<hr className="mb-2 border-t border-custom-blue/80" />
-					<p className="italic pd-2 text-gray-700">
+					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+					<p className="italic pd-2 text-gray-700 dark:text-gray-300">
 						{t('qrCodeScanner.description')}
 					</p>
-					<div className="webcam-container" style={{ position: 'relative', overflow: 'hidden' }}>
+					<div className="webcam-container mt-4" style={{ position: 'relative', overflow: 'hidden' }}>
 						<Webcam
+							key={devices[currentDeviceIndex]?.deviceId}
 							audio={false}
 							ref={webcamRef}
 							screenshotFormat="image/jpeg"
@@ -281,18 +248,9 @@ const QRScanner = ({ onClose }) => {
 								height: { ideal: idealHeight },
 								width: { ideal: idealWidth }
 							}}
-							style={{ height: 'auto', transform: `scale(${zoomLevel})`, transformOrigin: 'center', width: '100%', }}
+							style={{ transform: `scale(${zoomLevel})` }}
 							onUserMedia={onUserMedia}
 						/>
-						{boxSize && (
-							<>
-								<CornerBox qrDetected={qrDetected} side="borderLeft" position="borderTop" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderRight" position="borderTop" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderLeft" position="borderBottom" boxSize={boxSize} />
-								<CornerBox qrDetected={qrDetected} side="borderRight" position="borderBottom" boxSize={boxSize} />
-								<ScanningLine qrDetected={qrDetected} boxSize={boxSize} />
-							</>
-						)}
 						{qrDetected && (
 							<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
 								<FaCheckCircle size={100} color="green" />
@@ -301,7 +259,7 @@ const QRScanner = ({ onClose }) => {
 					</div>
 					<div className='flex justify-between align-center'>
 						<div className="flex items-center my-4 pr-4 w-full">
-							<RiZoomOutFill className="text-gray-400 mr-2 mt-2" onClick={handleZoomOut} size={35} />
+							<RiZoomOutFill className="text-gray-400 dark:text-gray-200 mr-2 mt-2" onClick={handleZoomOut} size={35} />
 							<input
 								type="range"
 								min="1"
@@ -311,12 +269,12 @@ const QRScanner = ({ onClose }) => {
 								onChange={handleZoomChange}
 								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
 							/>
-							<RiZoomInFill className="text-gray-400 ml-2 mt-2" onClick={handleZoomIn} size={35} />
+							<RiZoomInFill className="text-gray-400 dark:text-gray-200 ml-2 mt-2" onClick={handleZoomIn} size={35} />
 						</div>
-						{devices.length > 1 && (
+						{devices.length > 0 && (
 							<button
 								type="button"
-								className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm ml-4 p-2 my-2"
+								className="text-gray-400 dark:text-gray-200 bg-transparent rounded-lg text-sm ml-4 p-2 my-4"
 								onClick={switchCamera}
 							>
 								<PiCameraRotateFill size={25} />
@@ -325,7 +283,7 @@ const QRScanner = ({ onClose }) => {
 					</div>
 				</div>
 			)}
-		</div>
+		</Modal>
 	);
 };
 

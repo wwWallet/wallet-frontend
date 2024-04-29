@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
-import { BsQrCodeScan } from 'react-icons/bs'
 
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
@@ -20,6 +19,8 @@ import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
+import QRButton from '../../components/Buttons/QRButton';
+import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 
 const Home = () => {
 	const api = useApi();
@@ -38,13 +39,15 @@ const Home = () => {
 	const settings = {
 		dots: false,
 		arrows: false,
-		infinite: true,
+		infinite: false,
 		speed: 500,
 		slidesToShow: 1,
 		slidesToScroll: 1,
-		afterChange: (current) => setCurrentSlide(current + 1),
-		centerMode: true, // Enable center mode
-		centerPadding: '10px', // Set the padding between adjacent images to 2 pixels
+		afterChange: (current) => {
+			setCurrentSlide(current + 1);
+		},
+		centerMode: true,
+		centerPadding: '10px',
 		style: { margin: '0 10px' },
 	};
 
@@ -63,7 +66,11 @@ const Home = () => {
 	useEffect(() => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
-			const vcEntityList = response.data.vc_list;
+			const vcEntityList = await Promise.all(response.data.vc_list.map(async vcEntity => {
+				const name = await extractCredentialFriendlyName(vcEntity.credential);
+				return { ...vcEntity, friendlyName: name };
+			}));
+			vcEntityList.sort((vcA, vcB) => vcB.issuanceDate - vcA.issuanceDate);
 			setVcEntityList(vcEntityList);
 		};
 		getData();
@@ -104,61 +111,77 @@ const Home = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<div className="flex justify-between items-center">
-					<h1 className="text-2xl font-bold text-custom-blue">{t('common.navItemCredentials')}</h1>
-
-					{isSmallScreen && (
-						<button
-							className="step-2 px-2 py-2 mb-2 text-white bg-custom-blue hover:bg-custom-blue-hover focus:ring-4 focus:outline-none focus:ring-custom-blue font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-custom-blue-hover dark:hover:bg-custom-blue-hover dark:focus:ring-custom-blue-hover"
-							onClick={openQRScanner} // Open the QR code scanner modal
-						>
-							<div className="flex items-center">
-								<BsQrCodeScan size={20} className="text-white" />
-							</div>
-						</button>
-					)}
-
+					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemCredentials')}</h1>
+					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
 				</div>
-				<hr className="mb-2 border-t border-custom-blue/80" />
-				<p className="italic pd-2 text-gray-700">{t('pageCredentials.description')}</p>
+				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				<div className='my-4'>
 					{isSmallScreen ? (
 						<>
 
 							{vcEntityList.length === 0 ? (
-								<div
-									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+								<button
+									className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 									onClick={handleAddCredential}
 								>
 									<img
 										src={addImage}
-										alt="add new credential"
-										className="step-1 w-full h-auto object-cover rounded-xl opacity-100 hover:opacity-120"
+										className="w-full h-auto object-cover rounded-xl opacity-100 hover:opacity-120"
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
 										<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
 									</div>
-								</div>
+								</button>
 							) : (
 								<>
 									<Slider ref={sliderRef} {...settings}>
-										{vcEntityList && vcEntityList.map((vcEntity) => (
+										{vcEntityList && vcEntityList.map((vcEntity, index) => (
 											<>
-												<div className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full" onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}>
-													<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
+												<React.Fragment key={vcEntity.id}>
+													{(currentSlide === index + 1 ? 'button' : 'div')
+														.split()
+														.map(Tag => (
+															<>
+																<Tag
+																	className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2" onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
+																	aria-label={`${vcEntity.friendlyName}`}
+																	title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
+																>
+																	<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
+																</Tag>
+																<div className="flex items-center justify-end">
+																	<span className="mr-4 dark:text-white">{currentSlide} of {vcEntityList.length}</span>
+																	<Tag
+																		onClick={() => sliderRef.current.slickPrev()}
+																		aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
+																		title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
+																		disabled={currentSlide === 1}
+																		className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+																	>
+																		<BiLeftArrow size={22} />
+																	</Tag>
+																	<Tag
+																		onClick={() => sliderRef.current.slickNext()}
+																		aria-label={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
+																		title={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
+																		disabled={currentSlide === vcEntityList.length}
+																		className={`${currentSlide === vcEntityList.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+																	>
+																		<BiRightArrow size={22} />
+																	</Tag>
+																</div>
+															</>
+														))}
+
+												</React.Fragment>
+
+												<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-auto opacity-100' : 'max-h-0 opacity-0'}`}>
+													<CredentialInfo credential={vcEntity.credential} />
+													<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedVcEntity(vcEntity); }} />
+													<CredentialJson credential={vcEntity.credential} />
 												</div>
-												<div className="flex items-center justify-end mt-2 mr-3">
-													<span className="mr-4">{currentSlide} of {vcEntityList.length}</span>
-													<button className="" onClick={() => sliderRef.current.slickPrev()}>
-														<BiLeftArrow size={22} />
-													</button>
-													<button onClick={() => sliderRef.current.slickNext()}>
-														<BiRightArrow size={22} />
-													</button>
-												</div>
-												<CredentialInfo credential={vcEntity.credential} />
-												<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedVcEntity(vcEntity); }} />
-												<CredentialJson credential={vcEntity.credential} />
 
 											</>
 										))}
@@ -169,28 +192,30 @@ const Home = () => {
 					) : (
 						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
 							{vcEntityList.map((vcEntity) => (
-								<div
+								<button
 									key={vcEntity.id}
 									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 									onClick={() => handleImageClick(vcEntity)}
+									aria-label={`${vcEntity.friendlyName}`}
+									title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
 								>
 									<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
-								</div>
+								</button>
 							))}
-							<div
-								className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+
+							<button
+								className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 								onClick={handleAddCredential}
 							>
 								<img
 									src={addImage}
-									alt="add new credential"
-									className="step-1 w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+									className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
 								/>
 								<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 									<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
 									<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
 								</div>
-							</div>
+							</button>
 						</div>
 					)}
 				</div>

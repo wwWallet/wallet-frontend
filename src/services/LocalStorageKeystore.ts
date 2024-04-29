@@ -1,25 +1,12 @@
 import { useCallback, useEffect, useMemo } from "react";
-import * as jose from "jose";
-import { JWK, SignJWT } from "jose";
-import { v4 as uuidv4 } from "uuid";
-import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
-import { util } from '@cef-ebsi/key-did-resolver';
 
-import { verifiablePresentationSchemaURL } from "../constants";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
+import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
-import { base58btc } from 'multiformats/bases/base58';
-import { varint } from 'multiformats';
-import * as KeyDidResolver from 'key-did-resolver'
-import {Resolver} from 'did-resolver'
+import * as keystore from "./keystore";
+import type { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
-
-const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION;
-
-const keyDidResolver = KeyDidResolver.getResolver();
-const didResolver = new Resolver(keyDidResolver);
 
 type UserData = {
 	displayName: string;
@@ -37,252 +24,6 @@ export type CachedUser = {
 
 	prfKeys: WebauthnPrfSaltInfo[];
 }
-
-export type EncryptedContainer = {
-	jwe: string;
-	passwordKey?: PasswordKeyInfo;
-	prfKeys: WebauthnPrfEncryptionKeyInfo[];
-}
-
-// Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
-const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
-const pbkdfIterations: number = 600000;
-
-export type WrappedKeyInfo = {
-	wrappedKey: Uint8Array,
-	unwrapAlgo: "AES-KW",
-	unwrappedKeyAlgo: KeyAlgorithm,
-}
-
-type PasswordKeyInfo = {
-	mainKey: WrappedKeyInfo,
-	pbkdf2Params: Pbkdf2Params;
-}
-
-type WebauthnPrfSaltInfo = {
-	credentialId: Uint8Array,
-	prfSalt: Uint8Array,
-}
-
-type WebauthnPrfEncryptionKeyInfo = WebauthnPrfSaltInfo & {
-	mainKey: WrappedKeyInfo,
-	hkdfSalt: Uint8Array,
-	hkdfInfo: Uint8Array,
-}
-
-type PrfExtensionInput = { eval: { first: BufferSource } } | { evalByCredential: PrfEvalByCredential };
-type PrfEvalByCredential = { [credentialId: string]: { first: BufferSource } };
-type PrfExtensionOutput = { enabled: boolean, results?: { first?: ArrayBuffer } };
-
-export type PublicData = {
-	publicKey: JWK,
-	did: string,
-	alg: string,
-	verificationMethod: string,
-}
-
-export type PrivateData = PublicData & {
-	wrappedPrivateKey: WrappedPrivateKey,
-}
-
-type WrappedPrivateKey = {
-	privateKey: BufferSource,
-	aesGcmParams: AesGcmParams,
-	unwrappedKeyAlgo: EcKeyImportParams,
-}
-
-
-async function createMainKey(wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
-	const mainKey = await crypto.subtle.generateKey(
-		{ name: "AES-GCM", length: 256 },
-		true,
-		["encrypt"],
-	);
-	return await wrapKey(wrappingKey, mainKey);
-}
-
-async function wrapKey(wrappingKey: CryptoKey, keyToWrap: CryptoKey): Promise<WrappedKeyInfo> {
-	const wrapAlgo = "AES-KW";
-	const wrappedKey = new Uint8Array(await crypto.subtle.wrapKey(
-		"raw",
-		keyToWrap,
-		wrappingKey,
-		wrapAlgo,
-	));
-
-	return {
-		unwrappedKeyAlgo: keyToWrap.algorithm,
-		unwrapAlgo: wrapAlgo,
-		wrappedKey,
-	};
-}
-
-async function unwrapKey(wrappingKey: CryptoKey, keyInfo: WrappedKeyInfo, extractable: boolean = false): Promise<CryptoKey> {
-	return await crypto.subtle.unwrapKey(
-		"raw",
-		keyInfo.wrappedKey,
-		wrappingKey,
-		keyInfo.unwrapAlgo,
-		keyInfo.unwrappedKeyAlgo,
-		extractable,
-		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
-	);
-}
-
-async function rewrapKey(wrappedKey: WrappedKeyInfo, unwrappingKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedKeyInfo> {
-	const unwrappedKey = await unwrapKey(unwrappingKey, wrappedKey, true);
-	return await wrapKey(wrappingKey, unwrappedKey);
-}
-
-async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
-	return await crypto.subtle.unwrapKey(
-		"jwk",
-		wrappedPrivateKey.privateKey,
-		wrappingKey,
-		wrappedPrivateKey.aesGcmParams,
-		wrappedPrivateKey.unwrappedKeyAlgo,
-		extractable,
-		["sign"],
-	);
-};
-
-async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
-	const privateKeyAesGcmParams: AesGcmParams = {
-		name: "AES-GCM",
-		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
-		additionalData: new Uint8Array([]),
-		tagLength: 128,
-	};
-	return {
-		privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
-		aesGcmParams: privateKeyAesGcmParams,
-		unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-	};
-};
-
-async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
-	const cleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
-	return await new jose.CompactEncrypt(cleartext)
-		.setProtectedHeader({ alg: "A256GCMKW", enc: "A256GCM" })
-		.encrypt(encryptionKey);
-};
-
-async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
-	return jsonParseTaggedBinary(
-		new TextDecoder().decode(
-			(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
-		));
-};
-
-async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, toKey: CryptoKey): Promise<string> {
-	const privateData = await decryptPrivateData(privateDataJwe, fromKey);
-	const privateKey = await unwrapPrivateKey(privateData.wrappedPrivateKey, fromKey, true);
-	privateData.wrappedPrivateKey = await wrapPrivateKey(privateKey, toKey);
-	return await encryptPrivateData(privateData, toKey);
-}
-
-async function derivePasswordKey(password: string, pbkdf2Params: Pbkdf2Params): Promise<CryptoKey> {
-	const keyMaterial = await crypto.subtle.importKey(
-		"raw",
-		new TextEncoder().encode(password),
-		"PBKDF2",
-		false,
-		["deriveKey"],
-	);
-
-	return await crypto.subtle.deriveKey(
-		pbkdf2Params,
-		keyMaterial,
-		{ name: "AES-KW", length: 256 },
-		true,
-		["wrapKey", "unwrapKey"],
-	);
-};
-
-async function derivePrfKey(prfOutput: BufferSource, hkdfSalt: BufferSource, hkdfInfo: BufferSource): Promise<CryptoKey> {
-	const hkdfKey = await crypto.subtle.importKey(
-		"raw",
-		prfOutput,
-		"HKDF",
-		false,
-		["deriveKey"],
-	);
-
-	return await crypto.subtle.deriveKey(
-		{ name: "HKDF", hash: "SHA-256", salt: hkdfSalt, info: hkdfInfo },
-		hkdfKey,
-		{ name: "AES-KW", length: 256 },
-		true,
-		["wrapKey", "unwrapKey"],
-	);
-}
-
-export function makePrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]): {
-	allowCredentials: PublicKeyCredentialDescriptor[],
-	prfInput: PrfExtensionInput,
-} {
-	return {
-		allowCredentials: prfKeys.map(
-			(keyInfo: WebauthnPrfSaltInfo) => ({
-				type: "public-key",
-				id: keyInfo.credentialId,
-			})
-		),
-		prfInput: {
-			evalByCredential: prfKeys.reduce(
-				(result: { [credentialId: string]: { first: BufferSource } }, keyInfo: WebauthnPrfSaltInfo) => {
-					result[toBase64Url(keyInfo.credentialId)] = { first: keyInfo.prfSalt };
-					return result;
-				},
-				{},
-			),
-		}
-	};
-}
-
-async function getPrfOutput(
-	credential: PublicKeyCredential | null,
-	rpId: string,
-	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
-	promptForRetry: () => Promise<boolean>,
-): Promise<[ArrayBuffer, PublicKeyCredential]> {
-	console.log("getPrfOutput", credential, rpId, prfInputs);
-
-	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput };
-	const canRetry = !clientExtensionOutputs?.prf || clientExtensionOutputs?.prf?.enabled;
-
-	if (clientExtensionOutputs?.prf?.results?.first) {
-		return [clientExtensionOutputs?.prf?.results?.first, credential];
-
-	} else if (canRetry) {
-		if (await promptForRetry()) {
-			try {
-				const retryCred = await navigator.credentials.get({
-					publicKey: {
-						rpId,
-						challenge: crypto.getRandomValues(new Uint8Array(32)),
-						allowCredentials: prfInputs?.allowCredentials,
-						extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
-					},
-				}) as PublicKeyCredential;
-				return await getPrfOutput(retryCred, rpId, prfInputs, async () => false);
-			} catch (err) {
-				if (err instanceof DOMException && err.name === "NotAllowedError") {
-					throw { errorId: "prf_retry_failed", credential };
-				} else {
-					throw { errorId: "failed" };
-				}
-			}
-
-		} else {
-			throw { errorId: "canceled" };
-		}
-
-	} else {
-		throw { errorId: "prf_not_supported" };
-	}
-}
-
 
 export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
@@ -305,7 +46,7 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
 	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
-	unlockPassword(privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void>,
+	unlockPassword(privateData: EncryptedContainer, password: string): Promise<void>,
 	unlockPrf(
 		privateData: EncryptedContainer,
 		credential: PublicKeyCredential,
@@ -322,6 +63,7 @@ export interface LocalStorageKeystore {
 	generateOpenid4vciProof(nonce: string, audience: string): Promise<{ proof_jwt: string }>,
 }
 
+/** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [privateDataCache, setPrivateDataCache, clearPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
@@ -390,8 +132,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				closeTabLocal();
 
 			} else if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
-				console.log("useEffect userHandle");
-
 				// When user logs in in any tab, log out in all other tabs
 				// that are logged in to a different account
 				closeTabLocal();
@@ -402,52 +142,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 	return useMemo(
 		() => {
-			const createSessionKey = async (): Promise<CryptoKey> => {
-				const sessionKey = await crypto.subtle.generateKey(
-					{ name: "AES-GCM", length: 256 },
-					true,
-					["encrypt", "wrapKey"],
-				);
-				const exportedSessionKey = await crypto.subtle.exportKey(
-					"raw",
-					sessionKey,
-				);
-				setSessionKey(exportedSessionKey);
-				return sessionKey;
-			}
-
-			const getSessionKey = async (): Promise<CryptoKey> => {
-				if (sessionKey) {
-					return await crypto.subtle.importKey(
-						"raw",
-						sessionKey,
-						"AES-GCM",
-						false,
-						["decrypt", "unwrapKey"],
-					);
-				} else {
-					throw new Error("Session key not initialized");
-				}
-			};
-
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
 				if (privateDataJwe) {
-					const sessionKey = await getSessionKey();
-					const privateData = jsonParseTaggedBinary(
-						new TextDecoder().decode(
-							(await jose.compactDecrypt(privateDataJwe, sessionKey)).plaintext
-						));
-					return [privateData, sessionKey];
+					return await keystore.openPrivateData(sessionKey, privateDataJwe);
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
 			};
 
-			const unlock = async (mainKey: CryptoKey, privateData: EncryptedContainer, user: CachedUser | UserData): Promise<void> => {
-				const sessionKey = await createSessionKey();
-				const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, sessionKey);
-				setPrivateDataCache(privateData);
-				setPrivateDataJwe(reencryptedPrivateData);
+			const finishUnlock = async (
+				{ exportedSessionKey, privateDataCache, privateDataJwe }: UnlockSuccess,
+				user: CachedUser | UserData | null,
+			): Promise<void> => {
+				setSessionKey(exportedSessionKey);
+				setPrivateDataCache(privateDataCache);
+				setPrivateDataJwe(privateDataJwe);
 
 				if (user) {
 					const userHandleB64u = ("prfKeys" in user
@@ -473,190 +182,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				}
 			};
 
-			const unlockPassword = async (privateData: EncryptedContainer, password: string, keyInfo: PasswordKeyInfo): Promise<void> => {
-				const passwordKey = await derivePasswordKey(password, keyInfo.pbkdf2Params);
-				const mainKey = await unwrapKey(passwordKey, keyInfo.mainKey);
-				return await unlock(mainKey, privateData, null);
-			};
-
-			const createPrfKey = async (
-				credential: PublicKeyCredential | null,
-				prfSalt: Uint8Array,
-				rpId: string,
-				wrappedMainKey: WrappedKeyInfo | null,
-				unwrappingKey: CryptoKey | null,
-				promptForPrfRetry: () => Promise<boolean>,
-			): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> => {
-				const [prfOutput,] = await getPrfOutput(
-					credential,
-					rpId,
-					{
-						allowCredentials: [{ type: "public-key", id: credential.rawId }],
-						prfInput: { eval: { first: prfSalt } },
-					},
-					promptForPrfRetry,
-				);
-				const hkdfSalt = crypto.getRandomValues(new Uint8Array(32));
-				const hkdfInfo = new TextEncoder().encode("eDiplomas PRF");
-				const prfKey = await derivePrfKey(prfOutput, hkdfSalt, hkdfInfo);
-				const mainKey = wrappedMainKey
-					? await rewrapKey(wrappedMainKey, unwrappingKey, prfKey)
-					: await createMainKey(prfKey);
-				const keyInfo: WebauthnPrfEncryptionKeyInfo = {
-					mainKey,
-					credentialId: new Uint8Array(credential.rawId),
-					prfSalt,
-					hkdfSalt,
-					hkdfInfo,
-				};
-				return [prfKey, keyInfo];
-			}
-
-			const getPrfKey = async (
-				privateData: EncryptedContainer,
-				credential: PublicKeyCredential | null,
-				rpId: string,
-				promptForPrfRetry: () => Promise<boolean>,
-			): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> => {
-				console.log("getPrfKey", privateData, credential, rpId);
-				const [prfOutput, prfCredential] = await getPrfOutput(
-					credential,
-					rpId,
-					makePrfExtensionInputs(privateData.prfKeys),
-					promptForPrfRetry,
-				);
-				const keyInfo = privateData.prfKeys.find(keyInfo => toBase64Url(keyInfo.credentialId) === prfCredential.id);
-				return [await derivePrfKey(prfOutput, keyInfo.hkdfSalt, keyInfo.hkdfInfo), keyInfo];
-			}
-
-			const unlockPrf = async (
-				privateData: EncryptedContainer,
-				credential: PublicKeyCredential,
-				rpId: string,
-				promptForPrfRetry: () => Promise<boolean>,
-				user: CachedUser | UserData | null,
-			): Promise<void> => {
-				const [prfKey, keyInfo] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
-				const mainKey = await unwrapKey(prfKey, keyInfo.mainKey);
-				const result = await unlock(mainKey, privateData, user);
-				setWebauthnRpId(rpId);
-				return result;
-			};
-
-			const compressPublicKey = async (uncompressedRawPublicKey: Uint8Array) => {
-				// Check if the uncompressed public key has the correct length
-				if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {
-					throw new Error('Invalid uncompressed public key format');
-				}
-
-				// Get the x-coordinate
-				const x = uncompressedRawPublicKey.subarray(1, 33) as any;
-				const y = uncompressedRawPublicKey.subarray(33, 65) as any;
-				// Determine the parity (odd or even) from the last byte
-				const parity = y % 2 === 0 ? 0x02 : 0x03;
-
-				// Create the compressed public key by concatenating the x-coordinate and the parity byte
-				const compressedPublicKey = new Uint8Array([parity, ...x]);
-
-				return compressedPublicKey;
-			}
-
-			const getPublicKeyFromDID = async (did: string) => {
-				let decodedPublicKey = {}
-				const multibaseValue = did.split(':')[2];
-				const decodedMultibaseValue = base58btc.decode(multibaseValue);
-				let multicodecValue = varint.decode(decodedMultibaseValue.slice(0, 2)); // header
-				const rawPublicKeyBytes = decodedMultibaseValue.slice(2,);
-				console.log("Raw public key bytes = ", rawPublicKeyBytes);
-				console.log("Raw public key bytes len = ", rawPublicKeyBytes.length);
-			}
-
-			const createW3CDID = async (publicKey: CryptoKey) => {
-				const rawPublicKey = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
-				const compressedPublicKeyBytes = await compressPublicKey(rawPublicKey)
-				console.log("Raw pub key bytes = ", compressedPublicKeyBytes)
-				// Concatenate keyType and publicKey Uint8Arrays
-				const multicodecPublicKey = new Uint8Array(2 + compressedPublicKeyBytes.length);
-				console.log("Compresses pub key length = ", compressedPublicKeyBytes.length)
-				varint.encodeTo(0x1200, multicodecPublicKey, 0);
-
-				multicodecPublicKey.set(compressedPublicKeyBytes, 2);
-
-				// Base58-btc encode the multicodec public key
-				const base58EncodedPublicKey = base58btc.encode(multicodecPublicKey);
-
-				// Construct the did:key string
-				const didKeyString = `did:key:${base58EncodedPublicKey}`;
-
-				const doc = await didResolver.resolve(didKeyString);
-				if (doc.didDocument == null) {
-					throw new Error("Failed to resolve the generated DID");
-				}
-				console.log("Getting back")
-				await getPublicKeyFromDID(didKeyString);
-				return { didKeyString };
-			}
-
-			const createWallet = async (mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> => {
-				const jwtAlg = "ES256";
-				const signatureAlgorithmFamily = "ECDSA";
-				const namedCurve = "P-256";
-
-				const { publicKey, privateKey } = await crypto.subtle.generateKey(
-					{ name: signatureAlgorithmFamily, namedCurve: namedCurve },
-					true,
-					[ 'sign', 'verify' ]
-				);
-
-				const publicKeyJWK: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
-
-				let did = null;
-				if (DID_KEY_VERSION === "p256-pub") {
-					const { didKeyString } = await createW3CDID(publicKey);
-					did = didKeyString;
-				}
-				else if (DID_KEY_VERSION === "jwk_jcs-pub") {
-					did = util.createDid(publicKeyJWK as JWK);
-				}
-				else {
-					throw new Error("Application was not configured with a correct DID_KEY_VERSION");
-				}
-				const wrappedPrivateKey: WrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
-
-				const publicData = {
-					publicKey: publicKeyJWK,
-					did: did,
-					alg: jwtAlg,
-					verificationMethod: did + "#" + did.split(':')[2]
-				};
-				const privateData: PrivateData = {
-					...publicData,
-					wrappedPrivateKey,
-				}
-				const privateDataJwe = await encryptPrivateData(privateData, mainKey);
-
-				return {
-					publicData,
-					privateDataJwe,
-				};
-			};
-
 			const init = async (
 				wrappedMainKey: WrappedKeyInfo,
 				wrappingKey: CryptoKey,
-				keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] },
+				keyInfo: EncryptedContainerKeys,
 				user: UserData,
 			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-				console.log("init");
-
-				const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
-
-				const { publicData, privateDataJwe } = await createWallet(mainKey);
-				const privateData: EncryptedContainer = {
-					...keyInfo,
-					jwe: privateDataJwe,
-				};
-				await unlock(mainKey, privateData, user);
+				const { mainKey, publicData, privateData } = await keystore.init(wrappedMainKey, wrappingKey, keyInfo);
+				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
 
 				return {
 					publicData,
@@ -665,29 +198,12 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			return {
-				isOpen: () => {
-					return privateDataJwe !== null && sessionKey !== null;
-				},
+				isOpen: (): boolean => privateDataJwe !== null && sessionKey !== null,
 				close,
 
 				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-					console.log("initPassword");
-
-					const pbkdf2Params: Pbkdf2Params = {
-						name: "PBKDF2",
-						hash: pbkdfHash,
-						iterations: pbkdfIterations,
-						salt: crypto.getRandomValues(new Uint8Array(32)),
-					};
-					const passwordKey = await derivePasswordKey(password, pbkdf2Params);
-					const wrappedMainKey = await createMainKey(passwordKey);
-					const passwordKeyInfo = {
-						mainKey: wrappedMainKey,
-						pbkdf2Params,
-						prfKeys: [],
-					};
-
-					return await init(wrappedMainKey, passwordKey, { passwordKey: passwordKeyInfo, prfKeys:[] }, null);
+					const [wrappedMainKey, wrappingKey, keys] = await keystore.initPassword(password);
+					return await init(wrappedMainKey, wrappingKey, keys, null);
 				},
 
 				initPrf: async (
@@ -697,9 +213,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					promptForPrfRetry: () => Promise<boolean>,
 					user: UserData,
 				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-					console.log("initPrf");
-					const [prfKey, keyInfo] = await createPrfKey(credential, prfSalt, rpId, null, null, promptForPrfRetry);
-					const result = await init(keyInfo.mainKey, prfKey, { prfKeys: [keyInfo] }, user);
+					const [wrappedMainKey, wrappingKey, keys] = await keystore.initPrf(credential, prfSalt, rpId, promptForPrfRetry);
+					const result = await init(wrappedMainKey, wrappingKey, keys, user);
 					setWebauthnRpId(rpId);
 					return result;
 				},
@@ -711,15 +226,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					wrappedMainKey: WrappedKeyInfo,
 					promptForPrfRetry: () => Promise<boolean>,
 				): Promise<[EncryptedContainer, CommitCallback]> => {
-					const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-					const [, keyInfo] = await createPrfKey(credential, prfSalt, rpId, wrappedMainKey, existingPrfKey, promptForPrfRetry);
-					const newPrivateData = {
-						...privateDataCache,
-						prfKeys: [
-							...privateDataCache.prfKeys,
-							keyInfo,
-						],
-					};
+					const newPrivateData = await keystore.addPrf(privateDataCache, credential, rpId, existingPrfKey, wrappedMainKey, promptForPrfRetry);
 					return [
 						newPrivateData,
 						async () => {
@@ -729,12 +236,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				deletePrf: (credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
-					const newPrivateData = {
-						...privateDataCache,
-						prfKeys: privateDataCache.prfKeys.filter((keyInfo) => (
-							toBase64Url(keyInfo.credentialId) !== toBase64Url(credentialId)
-						)),
-					};
+					const newPrivateData = keystore.deletePrf(privateDataCache, credentialId);
 					return [
 						newPrivateData,
 						async () => {
@@ -743,14 +245,27 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					];
 				},
 
-				unlockPassword,
-				unlockPrf,
+				unlockPassword: async (privateData: EncryptedContainer, password: string): Promise<void> => {
+					return await finishUnlock(await keystore.unlockPassword(privateData, password), null);
+				},
+
+				unlockPrf: async (
+					privateData: EncryptedContainer,
+					credential: PublicKeyCredential,
+					rpId: string,
+					promptForPrfRetry: () => Promise<boolean>,
+					user: CachedUser | UserData | null,
+				): Promise<void> => {
+					const result = await finishUnlock(await keystore.unlockPrf(privateData, credential, rpId, promptForPrfRetry), user);
+					setWebauthnRpId(rpId);
+					return result;
+				},
 
 				getPrfKeyFromSession: async (
 					promptForPrfRetry: () => Promise<boolean>,
 				): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo]> => {
 					if (privateDataCache && webauthnRpId) {
-						return await getPrfKey(privateDataCache, null, webauthnRpId, promptForPrfRetry);
+						return await keystore.getPrfKey(privateDataCache, null, webauthnRpId, promptForPrfRetry);
 
 					} else {
 						throw new Error("Session not initialized");
@@ -765,71 +280,17 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 				},
 
-				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => {
-					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
-					const jws = await new SignJWT({ nonce: nonce })
-						.setProtectedHeader({
-							alg,
-							typ: "JWT",
-							kid: did + "#" + did.split(":")[2],
-						})
-						.setSubject(did)
-						.setIssuer(did)
-						.setExpirationTime('1m')
-						.setAudience(audience)
-						.setIssuedAt()
-						.sign(privateKey);
+				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => (
+					await keystore.createIdToken(await openPrivateData(), nonce, audience)
+				),
 
-					return { id_token: jws };
-				},
+				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
+					await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
+				),
 
-				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => {
-					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
-
-					const jws = await new SignVerifiablePresentationJWT()
-						.setProtectedHeader({
-							alg,
-							typ: "JWT",
-							kid: did + "#" + did.split(":")[2],
-						})
-						.setVerifiableCredential(verifiableCredentials)
-						.setContext(["https://www.w3.org/2018/credentials/v1"])
-						.setType(["VerifiablePresentation"])
-						.setAudience(audience)
-						.setCredentialSchema(
-							verifiablePresentationSchemaURL,
-							"FullJsonSchemaValidator2021")
-						.setIssuer(did)
-						.setSubject(did)
-						.setHolder(did)
-						.setJti(`urn:id:${uuidv4()}`)
-						.setNonce(nonce)
-						.setIssuedAt()
-						.setExpirationTime('1m')
-						.sign(privateKey);
-					return { vpjwt: jws };
-				},
-
-				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => {
-					const [{ alg, did, wrappedPrivateKey }, sessionKey] = await openPrivateData();
-					const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
-					const header = {
-						alg,
-						typ: "openid4vci-proof+jwt",
-						kid: did + "#" + did.split(":")[2]
-					};
-
-					const jws = await new SignJWT({ nonce: nonce })
-						.setProtectedHeader(header)
-						.setIssuedAt()
-						.setIssuer(did)
-						.setAudience(audience)
-						.setExpirationTime('1m')
-						.sign(privateKey);
-					return { proof_jwt: jws };
-				},
+				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => (
+					await keystore.generateOpenid4vciProof(await openPrivateData(), nonce, audience)
+				),
 			};
 		},
 		[

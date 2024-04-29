@@ -2,7 +2,8 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
+import { makeAssertionPrfExtensionInputs } from '../services/keystore';
+import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
@@ -169,7 +170,7 @@ export function useApi(): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
-						await keystore.unlockPassword(privateData, password, privateData.passwordKey);
+						await keystore.unlockPassword(privateData, password);
 						setSession(response, null, 'login', false);
 						return Ok.EMPTY;
 					} catch (e) {
@@ -263,7 +264,7 @@ export function useApi(): BackendApi {
 					const beginData = beginResp.data;
 
 					try {
-						const prfInputs = cachedUser && makePrfExtensionInputs(cachedUser.prfKeys);
+						const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
 						const getOptions = prfInputs
 							? {
 								...beginData.getOptions,
