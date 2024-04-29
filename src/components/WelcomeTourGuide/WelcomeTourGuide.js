@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Tour from 'reactour';
 import { useTranslation } from 'react-i18next';
-
 import WelcomeModal from './WecomeModal';
 import { useApi } from '../../api';
+import GetButton from '../Buttons/GetButton';
 
 const TourGuide = ({ toggleMenu, isOpen }) => {
 	const [isTourOpen, setIsTourOpen] = useState(false);
@@ -57,10 +57,11 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 					<>
 						<p className='mt-2'>{t("tourGuide.tourComplete")}</p>
 						<div className='flex justify-center mt-2'>
-							<button className="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
-								onClick={() => setIsTourOpen(false)}>
-								{t("tourGuide.closeTourButton")}
-							</button>
+							<GetButton
+								content={t("tourGuide.closeTourButton")}
+								onClick={() => setIsTourOpen(false)}
+								variant="primary"
+							/>
 						</div>
 					</>
 
@@ -107,11 +108,11 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	const renderModal = () => {
 
 		if (authenticationType === 'signup' && showWelcome) {
-			return (
-				<div>
-					<WelcomeModal isOpen={isModalOpen} onStartTour={startTour} onClose={closeModalAndDisable} />
-				</div>
-			);
+		return (
+			<div>
+				<WelcomeModal isOpen={isModalOpen} onStartTour={startTour} onClose={closeModalAndDisable} />
+			</div>
+		);
 		} else {
 			return null;
 		}
@@ -126,6 +127,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				rounded={5}
 				onRequestClose={() => setIsTourOpen(false)}
 				disableInteraction={true}
+				className="reactour_close"
 			/>
 		</div>
 	);
