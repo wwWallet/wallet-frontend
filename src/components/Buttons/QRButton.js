@@ -14,7 +14,7 @@ const QRButton = ({ openQRScanner, isSmallScreen }) => {
 					}
 					onClick={openQRScanner}
 					variant="primary"
-					additionalClassName={`${isMobile ? "fixed z-20 bottom-[85px] right-5" : ""}`}
+					additionalClassName={`${isMobile ? "fixed z-20 bottom-[85px] right-5" : ""} step-2`}
 				/>
 			</div>
 
