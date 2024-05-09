@@ -7,4 +7,4 @@ Disallow: /send
 Allow: /login
 
 Allow: /
-Sitemap: https://demo.wwwallet.org/sitemap.xml
+Sitemap: https://wallet.dc4eu.eu/sitemap.xml

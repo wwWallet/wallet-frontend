@@ -252,10 +252,10 @@
 		"closeTourButton": "Close Tour"
 	},
 	"welcomeModal": {
-		"title": "Welcome to wwWallet!",
+		"title": "Welcome to DC4EU Wallet!",
 		"descriptionPart1": "Discover the",
 		"descriptionPart2": ", your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
-		"question": "Are you ready to explore the features of wwWallet through a guided tour?",
+		"question": "Are you ready to explore the features of DC4EU Wallet through a guided tour?",
 		"dismissButton": "Dismiss",
 		"startTourButton": "Start Tour"
 	}
