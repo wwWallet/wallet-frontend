@@ -586,7 +586,7 @@ const Login = () => {
 					<div className='h-max min-h-screen'>
 						<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
 							<a href="/" className="flex justify-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-								<img className="w-40" src={logo} alt="logo" />
+								<img className="w-60" src={logo} alt="logo" />
 							</a>
 
 							<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">

@@ -59,7 +59,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 						<img
 							src={logo}
 							alt="Logo"
-							className="w-10 h-auto cursor-pointer"
+							className="w-12 h-auto cursor-pointer"
 						/>
 					</button>
 				</div>

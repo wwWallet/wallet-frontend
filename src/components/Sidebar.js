@@ -82,7 +82,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<img
 								src={logo}
 								alt="Logo"
-								className="w-20 h-22 cursor-pointer"
+								className="w-16 h-22 cursor-pointer"
 							/>
 						</button>
 						<a href={('/')}
