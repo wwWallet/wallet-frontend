@@ -4,6 +4,7 @@ import { AiOutlineMenu } from "react-icons/ai";
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
+import WelcomeTourGuide from './WelcomeTourGuide/WelcomeTourGuide';
 import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
@@ -139,6 +140,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 			{/* Bottom Nav menu */}
 			<BottomNav isOpen={isOpen} toggle={toggleSidebar} />
+			<WelcomeTourGuide toggleMenu={toggleSidebar} isOpen={isOpen} />
 		</div>
 	);
 };

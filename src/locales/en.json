@@ -239,5 +239,24 @@
 	},
 	"statusRibbon": {
 		"expired": "Expired"
+	},
+	"tourGuide": {
+		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",
+		"tourStep2": "Click this button to scan a QR code for sending or receiving credentials.",
+		"tourStep3": "The 'Credentials' page is your Home page, where you can manage your credentials.",
+		"tourStep4": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
+		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
+		"tourStep6": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
+		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings.",
+		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
+		"closeTourButton": "Close Tour"
+	},
+	"welcomeModal": {
+		"title": "Welcome to DC4EU Wallet!",
+		"descriptionPart1": "Discover the",
+		"descriptionPart2": ", your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
+		"question": "Are you ready to explore the features of DC4EU Wallet through a guided tour?",
+		"dismissButton": "Dismiss",
+		"startTourButton": "Start Tour"
 	}
 }

@@ -122,7 +122,7 @@ const Home = () => {
 
 							{vcEntityList.length === 0 ? (
 								<button
-									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+									className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 									onClick={handleAddCredential}
 								>
 									<img
@@ -204,7 +204,7 @@ const Home = () => {
 							))}
 
 							<button
-								className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+								className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 								onClick={handleAddCredential}
 							>
 								<img

@@ -111,35 +111,36 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-4 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<div className='max480:hidden'>
+						<div className='step-3 max480:hidden'>
 							<NavItem path="/" alias="/cb" location={location} handleNavigate={handleNavigate}>
 								<FaWallet size={30} />
 								<span>{t("common.navItemCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='max480:hidden'>
-							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-								<IoIosTime size={30} />
-								<span>{t("common.navItemHistory")}</span>
-							</NavItem>
-						</div>
-						<div className='max480:hidden'>
+						<div className='step-4 max480:hidden'>
 							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 								<IoIosAddCircle size={30} />
 								<span>{t("common.navItemAddCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='max480:hidden'>
+						<div className='step-5 max480:hidden'>
 							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 								<IoIosSend size={30} />
 								<span>{t("common.navItemSendCredentials")}</span>
 							</NavItem>
 						</div>
-						<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
-							<IoMdSettings size={30} />
-							<span>{t("common.navItemSettings")}</span>
-						</NavItem>
-
+						<div className='step-6 max480:hidden'>
+							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
+								<IoIosTime size={30} />
+								<span>{t("common.navItemHistory")}</span>
+							</NavItem>
+						</div>
+						<div className='step-7'>
+							<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
+								<IoMdSettings size={30} />
+								<span>{t("common.navItemSettings")}</span>
+							</NavItem>
+						</div>
 						<hr className="my-4 border-t border-white/20" />
 
 

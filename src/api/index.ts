@@ -2,7 +2,8 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { CachedUser, LocalStorageKeystore, makePrfExtensionInputs } from '../services/LocalStorageKeystore';
+import { makeAssertionPrfExtensionInputs } from '../services/keystore';
+import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
@@ -15,6 +16,8 @@ type SessionState = {
 	username: string,
 	displayName: string,
 	webauthnCredentialCredentialId: string,
+	authenticationType: 'signup' | 'login',
+	showWelcome: boolean,
 }
 
 type SignupWebauthnError = (
@@ -128,6 +131,14 @@ export function useApi(): BackendApi {
 					});
 			}
 
+			function updateShowWelcome(showWelcome: boolean): void {
+				if (sessionState) {
+						setSessionState((prevState) => ({
+								...prevState,
+								showWelcome: showWelcome,
+						}));
+				}
+			}
 
 			function getSession(): SessionState {
 				return sessionState;
@@ -142,12 +153,14 @@ export function useApi(): BackendApi {
 				events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 			}
 
-			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null): void {
+			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): void {
 				setAppToken(response.data.appToken);
 				setSessionState({
 					displayName: response.data.displayName,
 					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
+					authenticationType,
+					showWelcome,
 				});
 			}
 
@@ -157,8 +170,8 @@ export function useApi(): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
-						await keystore.unlockPassword(privateData, password, privateData.passwordKey);
-						setSession(response, null);
+						await keystore.unlockPassword(privateData, password);
+						setSession(response, null, 'login', false);
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to unlock local keystore", e);
@@ -184,7 +197,7 @@ export function useApi(): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSession(response, null);
+						setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -251,7 +264,7 @@ export function useApi(): BackendApi {
 					const beginData = beginResp.data;
 
 					try {
-						const prfInputs = cachedUser && makePrfExtensionInputs(cachedUser.prfKeys);
+						const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
 						const getOptions = prfInputs
 							? {
 								...beginData.getOptions,
@@ -302,7 +315,7 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSession(finishResp, credential);
+								setSession(finishResp, credential, 'login', false);
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -385,7 +398,7 @@ export function useApi(): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSession(finishResp, credential);
+								setSession(finishResp, credential, 'signup', true);
 								return Ok.EMPTY;
 
 							} catch (e) {
@@ -438,6 +451,8 @@ export function useApi(): BackendApi {
 				del,
 				get,
 				post,
+
+				updateShowWelcome,
 
 				getSession,
 				isLoggedIn,
