@@ -6,6 +6,7 @@ import Spinner from './components/Spinner'; // Make sure this Spinner component 
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 
+import { CredentialsProvider } from './context/CredentialsContext';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
@@ -81,35 +82,36 @@ function App() {
 	};
 	return (
 		<I18nextProvider i18n={i18n}>
-			<Snowfalling />
-
-			<Router>
-				<Suspense fallback={<Spinner />}>
-					<HandlerNotification>
-						<Routes>
-							<Route path="/login" element={<Login />} />
-							<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
-							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-							<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
-							<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
-							<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
-							<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
-							<Route path="*" element={<NotFound />} />
-						</Routes>
-						{showSelectCredentialsPopup &&
-							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
-						}
-						{showPinInputPopup &&
-							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
-						}
-						{showMessagePopup &&
-							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-						}
-					</HandlerNotification>
-				</Suspense>
-			</Router>
+			<CredentialsProvider>
+				<Snowfalling />
+				<Router>
+					<Suspense fallback={<Spinner />}>
+						<HandlerNotification>
+							<Routes>
+								<Route path="/login" element={<Login />} />
+								<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+								<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+								<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
+								<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
+								<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
+								<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
+								<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
+								<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
+								<Route path="*" element={<NotFound />} />
+							</Routes>
+							{showSelectCredentialsPopup &&
+								<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
+							}
+							{showPinInputPopup &&
+								<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+							}
+							{showMessagePopup &&
+								<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+							}
+						</HandlerNotification>
+					</Suspense>
+				</Router>
+			</CredentialsProvider>
 		</I18nextProvider>
 	);
 }
