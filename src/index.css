@@ -96,3 +96,32 @@ button.reactour__close {
 	top: 12px;
 	right: 12px;
 }
+
+/* Animations for new credentials */
+@keyframes highlight-filter {
+	0%, 100% {
+			filter: brightness(1);
+	}
+	50% {
+			filter: brightness(1.15);
+	}
+}
+
+@keyframes fade-in {
+	0% {
+			opacity: 0;
+			transform: translateY(-300px);
+	}
+	100% {
+			opacity: 1;
+			transform: translateY(0);
+	}
+}
+
+.highlight-filter {
+	animation: highlight-filter 5s ease-in-out;
+}
+
+.fade-in {
+	animation: fade-in 1s ease-in-out;
+}

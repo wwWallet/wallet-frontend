@@ -86,7 +86,7 @@ function App() {
 				<Snowfalling />
 				<Router>
 					<Suspense fallback={<Spinner />}>
-						<HandlerNotification>
+						<HandlerNotification/>
 							<Routes>
 								<Route path="/login" element={<Login />} />
 								<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
@@ -108,7 +108,6 @@ function App() {
 							{showMessagePopup &&
 								<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 							}
-						</HandlerNotification>
 					</Suspense>
 				</Router>
 			</CredentialsProvider>

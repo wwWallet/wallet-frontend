@@ -24,7 +24,7 @@ import CredentialsContext from '../../context/CredentialsContext';
 
 const Home = () => {
 	const api = useApi();
-	const { vcEntityList, refreshCredentials } = useContext(CredentialsContext);
+	const { vcEntityList,latestCredentials, getData } = useContext(CredentialsContext);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -50,6 +50,10 @@ const Home = () => {
 		centerPadding: '10px',
 		style: { margin: '0 10px' },
 	};
+
+	useEffect(() => {
+		getData();
+	}, [getData]);
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -86,7 +90,7 @@ const Home = () => {
 		setLoading(true);
 		try {
 			await api.del(`/storage/vc/${selectedVcEntity.credentialIdentifier}`);
-			await refreshCredentials();
+			await getData();
 		} catch (error) {
 			console.error('Failed to delete data', error);
 		}
@@ -129,14 +133,12 @@ const Home = () => {
 												{(currentSlide === index + 1 ? 'button' : 'div')
 													.split()
 													.map(Tag => (
-														<Tag
-															key={`${vcEntity.id}-${Tag}`}
-															className="relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2"
+														<Tag key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 															onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
 															aria-label={`${vcEntity.friendlyName}`}
 															title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
 														>
-															<CredentialImage credential={vcEntity.credential} className="w-full h-full object-cover rounded-xl" />
+															<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
 														</Tag>
 													))}
 												<div className="flex items-center justify-end">
@@ -176,12 +178,12 @@ const Home = () => {
 							{vcEntityList.map((vcEntity) => (
 								<button
 									key={vcEntity.id}
-									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+									className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 									onClick={() => handleImageClick(vcEntity)}
 									aria-label={`${vcEntity.friendlyName}`}
 									title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
 								>
-									<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
+									<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
 								</button>
 							))}
 							<button

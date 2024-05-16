@@ -30,9 +30,9 @@ const ToastDisplay = ({ id, notification }) => {
 	);
 };
 
-const HandlerNotification = ({ children }) => {
+const HandlerNotification = () => {
 	const [notification, setNotification] = useState({ title: '', body: '' });
-	const { refreshCredentials } = useContext(CredentialsContext);
+	const { getData } = useContext(CredentialsContext);
 
 	const showToast = () =>
 		toast((t) => <ToastDisplay id={t.id} notification={notification} />);
@@ -50,7 +50,7 @@ const HandlerNotification = ({ children }) => {
 					title: payload?.notification?.title,
 					body: payload?.notification?.body,
 				});
-				refreshCredentials();
+				getData();
 			})
 			.catch((err) => {
 				console.log('Failed to receive message:', err);
@@ -61,13 +61,10 @@ const HandlerNotification = ({ children }) => {
 				messageListener();
 			}
 		};
-	}, [refreshCredentials]);
+	}, [getData]);
 
 	return (
-		<div>
 			<Toaster />
-			{children}
-		</div>
 	);
 };
 
