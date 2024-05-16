@@ -45,3 +45,5 @@ src/config/config.prod.js
 ssl_keys/*
 *.tar.gz
 .npmrc
+
+variables.vars

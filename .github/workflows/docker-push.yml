@@ -1,0 +1,20 @@
+name: Push Docker image
+on:
+  push:
+    tags:
+      - v0.*
+      - v1.*
+      - v2.*
+
+jobs:
+  push-front:
+    permissions:
+      contents: read
+      packages: write
+
+    uses: wwwallet/wallet-ecosystem/.github/workflows/docker-build-push.yml@master
+    secrets: inherit
+    with:
+      image-tag: ghcr.io/wwwallet/wallet-frontend:${{ github.ref_name }}
+      docker-push: true
+      dockerfile-path: ./Dockerfile

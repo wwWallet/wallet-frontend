@@ -1,0 +1,19 @@
+name: Build Docker image
+on:
+  push:
+    branches-ignore:
+      - master
+  pull_request:
+
+jobs:
+  build-front:
+    permissions:
+      contents: read
+      packages: read
+
+    uses: wwwallet/wallet-ecosystem/.github/workflows/docker-build-push.yml@master
+    secrets: inherit
+    with:
+      image-tag: ghcr.io/wwwallet/wallet-frontend:latest
+      docker-push: false
+      dockerfile-path: ./Dockerfile
