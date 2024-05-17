@@ -103,7 +103,7 @@ button.reactour__close {
 			filter: brightness(1);
 	}
 	50% {
-			filter: brightness(1.15);
+			filter: brightness(1.17);
 	}
 }
 
@@ -119,7 +119,7 @@ button.reactour__close {
 }
 
 .highlight-filter {
-	animation: highlight-filter 5s ease-in-out;
+	animation: highlight-filter 3s ease-in-out;
 }
 
 .fade-in {

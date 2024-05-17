@@ -26,7 +26,7 @@ export const CredentialsProvider = ({ children }) => {
 				setLatestCredentials(latestCreds);
 				setTimeout(() => {
 					setLatestCredentials(new Set());
-				}, 8000);  // Clear the highlight after 5 seconds
+				}, 4000);
 			}
 
 			setVcEntityList(vcEntityList);
