@@ -122,7 +122,7 @@ const Verifiers = () => {
 					<input
 						type="text"
 						placeholder={t('pageSendCredentials.searchPlaceholder')}
-						className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 w-full px-3 py-2"
+						className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride w-full px-3 py-2"
 						value={searchQuery}
 						onChange={handleSearch}
 					/>

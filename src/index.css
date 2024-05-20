@@ -96,3 +96,15 @@ button.reactour__close {
 	top: 12px;
 	right: 12px;
 }
+
+/* Light and Dark mode input autofill */
+input:-webkit-autofill {
+	-webkit-box-shadow: 0 0 0 30px rgb(245, 245, 245) inset !important;
+}
+
+@layer components {
+	.inputDarkModeOverride:-webkit-autofill {
+		-webkit-box-shadow: 0 0 0 30px rgb(70, 70, 70) inset !important;
+		-webkit-text-fill-color: white;
+	}
+}
