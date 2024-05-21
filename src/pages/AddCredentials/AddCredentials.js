@@ -137,7 +137,7 @@ const Issuers = () => {
 					<input
 						type="text"
 						placeholder={t('pageAddCredentials.searchPlaceholder')}
-						className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride"
 						value={searchQuery}
 						onChange={handleSearch}
 					/>
