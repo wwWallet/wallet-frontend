@@ -97,6 +97,33 @@ button.reactour__close {
 	right: 12px;
 }
 
+/* Animations for new credentials */
+@keyframes highlight-filter {
+	0%, 100% {
+			filter: brightness(1);
+	}
+	50% {
+			filter: brightness(1.17);
+	}
+}
+
+@keyframes fade-in {
+	0% {
+			opacity: 0;
+			transform: translateY(-300px);
+	}
+	100% {
+			opacity: 1;
+			transform: translateY(0);
+	}
+}
+
+.highlight-filter {
+	animation: highlight-filter 3s ease-in-out;
+}
+
+.fade-in {
+	animation: fade-in 1s ease-in-out;
 /* Light and Dark mode input autofill */
 input:-webkit-autofill {
 	-webkit-box-shadow: 0 0 0 30px rgb(245, 245, 245) inset !important;
