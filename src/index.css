@@ -124,4 +124,14 @@ button.reactour__close {
 
 .fade-in {
 	animation: fade-in 1s ease-in-out;
+/* Light and Dark mode input autofill */
+input:-webkit-autofill {
+	-webkit-box-shadow: 0 0 0 30px rgb(245, 245, 245) inset !important;
+}
+
+@layer components {
+	.inputDarkModeOverride:-webkit-autofill {
+		-webkit-box-shadow: 0 0 0 30px rgb(70, 70, 70) inset !important;
+		-webkit-text-fill-color: white;
+	}
 }
