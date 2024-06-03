@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { onMessageListener } from '../firebase';
 import { AiOutlineClose } from 'react-icons/ai';
 import logo from '../assets/images/logo.png';
+import CredentialsContext from '../context/CredentialsContext';
 
 const ToastDisplay = ({ id, notification }) => {
 	return (
@@ -29,16 +30,12 @@ const ToastDisplay = ({ id, notification }) => {
 	);
 };
 
-const HandlerNotification = ({ children }) => {
+const HandlerNotification = () => {
 	const [notification, setNotification] = useState({ title: '', body: '' });
-	const [isMessageReceived, setMessageReceived] = useState(null);
+	const { getData } = useContext(CredentialsContext);
 
 	const showToast = () =>
-		toast((t) => <ToastDisplay id={t.id} notification={notification} />, {
-			onClick: () => {
-				window.location.href = '/';
-			},
-		});
+		toast((t) => <ToastDisplay id={t.id} notification={notification} />);
 
 	useEffect(() => {
 		if (notification?.title) {
@@ -47,47 +44,28 @@ const HandlerNotification = ({ children }) => {
 	}, [notification]);
 
 	useEffect(() => {
-		let messageReceived = false;
-		const unregisterMessageListener = onMessageListener()
+		const messageListener = onMessageListener()
 			.then((payload) => {
-				// Process the received message
 				setNotification({
 					title: payload?.notification?.title,
 					body: payload?.notification?.body,
 				});
-				setMessageReceived(true); // Message has been received
+				getData();
 			})
 			.catch((err) => {
 				console.log('Failed to receive message:', err);
-				setMessageReceived(false); // Set isMessageReceived to false if there's an error
 			});
 
-
 		return () => {
-			if (!messageReceived) {
-				setMessageReceived(false); // Set isMessageReceived to false if no message was received before unmount
+			if (messageListener && typeof messageListener === 'function') {
+				messageListener();
 			}
 		};
-	}, []);
+	}, [getData]);
 
-	// Render just children when waiting for message reception
-	if (isMessageReceived === null || isMessageReceived === false) {
-		// Render children when waiting for a message
-		return (
-			<div>
-				{children}
-			</div>
-		);
-	} else {
-		// Render Toaster and children when a message is received
-		return (
-			<div>
-				<Toaster />
-				{children}
-			</div>
-		);
-	}
-
+	return (
+			<Toaster />
+	);
 };
 
 export default HandlerNotification;

@@ -202,7 +202,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2 dark:text-white">{t('pageSettings.registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
 									aria-label="Nickname for new credential"
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -429,7 +429,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 py-1.5 px-3 w-36"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
