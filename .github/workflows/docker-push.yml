@@ -12,9 +12,9 @@ jobs:
       contents: read
       packages: write
 
-    uses: wwwallet/wallet-ecosystem/.github/workflows/docker-build-push.yml@master
+    uses: gunet/wallet-ecosystem/.github/workflows/docker-build-push.yml@dc4eu-rome
     secrets: inherit
     with:
-      image-tag: ghcr.io/wwwallet/wallet-frontend:${{ github.ref_name }}
+      image-tag: ghcr.io/gunet/wallet-frontend:${{ github.ref_name }}
       docker-push: true
       dockerfile-path: ./Dockerfile
