@@ -77,7 +77,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
 					{/* Conditional Notification Message */}
-					{(!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && tokenSentInSession === false && isMessageGrantedVisible === false) ? (
+					{isPermissionGranted != null && ((!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && tokenSentInSession === false && isMessageGrantedVisible === false)) && (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
 							<div className="mr-4 text-orange-500">
 								<FaExclamationTriangle size={24} />
@@ -123,8 +123,6 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 							)}
 
 						</div>
-					) : (
-						<></>
 					)}
 					<CSSTransition
 						in={isContentVisible}
