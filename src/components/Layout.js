@@ -18,8 +18,8 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
 	const api = useApi();
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', null));
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', null));
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const { t } = useTranslation();
 
 	const handleNavigate = (path) => {
@@ -77,7 +77,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
 					{/* Conditional Notification Message */}
-					{(!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && !tokenSentInSession && isMessageGrantedVisible === false) ? (
+					{isPermissionGranted != null && ((!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && tokenSentInSession === false && isMessageGrantedVisible === false)) && (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
 							<div className="mr-4 text-orange-500">
 								<FaExclamationTriangle size={24} />
@@ -100,7 +100,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 									</button>
 								</>
 							)}
-							{isPermissionGranted && !tokenSentInSession && (
+							{isPermissionGranted && tokenSentInSession === false && (
 								<>
 									<div className="flex-grow">
 										<p className='text-sm'>
@@ -123,8 +123,6 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 							)}
 
 						</div>
-					) : (
-						<></>
 					)}
 					<CSSTransition
 						in={isContentVisible}

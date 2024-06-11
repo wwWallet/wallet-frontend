@@ -9,7 +9,7 @@ import { useSessionStorage } from '../components/useStorage';
 
 const PrivateRoute = ({ children }) => {
 	const api = useApi();
-	const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const keystore = useLocalStorageKeystore();
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
@@ -24,7 +24,8 @@ const PrivateRoute = ({ children }) => {
 
 			try {
 				if (Notification.permission !== 'granted') {
-					setTokenSentInSession(false)
+					setTokenSentInSession(false);
+					setIsPermissionGranted(false);
 					const permissionResult = await Notification.requestPermission();
 					if (permissionResult === 'granted') {
 						setIsPermissionGranted(true);
@@ -84,16 +85,18 @@ const PrivateRoute = ({ children }) => {
 		return <Navigate to="/login" state={{ from: location }} replace />;
 	}
 
-	return (
-		<>
-			{loading && <Spinner />}
-			{!loading && (
-				<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
-					{children}
-				</Layout>
-			)}
-		</>
-	);
+	if (loading || tokenSentInSession === null) {
+		return (
+			<Spinner />
+		)
+	}
+	else {
+		return (
+		<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
+			{children}
+		</Layout>
+		)
+	}
 
 };
 
