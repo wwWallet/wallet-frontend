@@ -56,7 +56,7 @@ const StatusRibbon = ({ credential }) => {
 		return (
 			<>
 				{
-					<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${credentialStatus == 'revoked' ? 'bg-red-500' : 'bg-green-500'}`}>
+					<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${credentialStatus == 'revoked' && 'bg-red-500'}`}>
 						{ t('statusRibbon.revoked') }
 					</div>
 				}
@@ -67,7 +67,7 @@ const StatusRibbon = ({ credential }) => {
 		return (
 			<>
 				{
-					<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${credentialStatus == 'expired' ? 'bg-red-500' : 'bg-green-500'}`}>
+					<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${credentialStatus == 'expired' && 'bg-orange-500'}`}>
 						{ t('statusRibbon.expired') }
 					</div>
 				}
