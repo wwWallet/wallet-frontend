@@ -18,15 +18,22 @@ const StatusRibbon = ({ credential }) => {
 	};
 
 	const CheckRevoked = async () => {
+		if (!parsedCredential.credentialStatus) {
+			return false;
+		}
 		const [crlListURL, id] = parsedCredential.credentialStatus.id.split('#');
-		if (typeof crlListURL != 'string' || typeof id != 'string') {
+		if (crlListURL && id && typeof crlListURL != 'string' || typeof id != 'string') {
 			return false;
 		}
 
 		const crlResult = await axios.get(crlListURL);
 		const { crl } = crlResult.data;
-		console.log("crl = ", crl)
+	
 		const crlRecord = crl.filter((record) => record.id == id)[0];
+		if (!crlRecord) {
+			console.log("Could not get crl record for this credential");
+			return false;
+		}
 		return (crlRecord && crlRecord.revocation_date != null);
 	};
 
