@@ -28,7 +28,7 @@ const StatusRibbon = ({ credential }) => {
 
 		const crlResult = await axios.get(crlListURL);
 		const { crl } = crlResult.data;
-	
+
 		const crlRecord = crl.filter((record) => record.id == id)[0];
 		if (!crlRecord) {
 			console.log("Could not get crl record for this credential");
