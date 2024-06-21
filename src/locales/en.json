@@ -238,7 +238,8 @@
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
 	},
 	"statusRibbon": {
-		"expired": "Expired"
+		"expired": "Expired",
+		"revoked": "Revoked"
 	},
 	"tourGuide": {
 		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",
