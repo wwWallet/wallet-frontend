@@ -400,7 +400,8 @@ export function useApi(): BackendApi {
 									},
 								});
 								setSession(finishResp, credential, 'signup', true);
-								await addItem('user', finishResp.data.newUser);
+								await addItem('users',finishResp.data.newUser.id, finishResp.data.newUser);
+								await addItem('UserHandleToUserID',finishResp.data.newUser.webauthnUserHandle, finishResp.data.newUser.id);
 								return Ok.EMPTY;
 
 							} catch (e) {
