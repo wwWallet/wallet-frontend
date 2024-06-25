@@ -7,6 +7,7 @@ import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeysto
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
+import { addItem } from '../indexedDB';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -154,10 +155,10 @@ export function useApi(): BackendApi {
 			}
 
 			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): void {
-				setAppToken(response.data.appToken);
+				setAppToken(response.data.session.appToken);
 				setSessionState({
-					displayName: response.data.displayName,
-					username: response.data.username,
+					displayName: response.data.session.displayName,
+					username: response.data.session.username,
 					webauthnCredentialCredentialId: credential?.id,
 					authenticationType,
 					showWelcome,
@@ -399,6 +400,7 @@ export function useApi(): BackendApi {
 									},
 								});
 								setSession(finishResp, credential, 'signup', true);
+								await addItem('user', finishResp.data.newUser);
 								return Ok.EMPTY;
 
 							} catch (e) {
