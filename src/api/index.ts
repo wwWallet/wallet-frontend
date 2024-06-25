@@ -302,7 +302,7 @@ export function useApi(): BackendApi {
 							});
 
 							try {
-								const userData = finishResp.data as UserData;
+								const userData = finishResp.data.session as UserData;
 								const privateData = jsonParseTaggedBinary(userData.privateData);
 								await keystore.unlockPrf(
 									privateData,
