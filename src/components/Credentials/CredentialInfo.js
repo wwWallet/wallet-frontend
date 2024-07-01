@@ -65,17 +65,42 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
 						<>
+							{renderRow('expdate', 'Valid From', formatDate(parsedCredential.credentialSubject.validityPeriod.startingDate))}
 							{renderRow('expdate', 'Expiration', formatDate(parsedCredential.expirationDate))}
-							{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.familyName)}
-							{renderRow('firstName', 'First Name', parsedCredential.credentialSubject.firstName)}
-							{renderRow('id', 'Personal ID', parsedCredential.credentialSubject.personalIdentifier)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.dateOfBirth)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.birthdate)}
-							{renderRow('diplomaTitle', 'Title', parsedCredential.credentialSubject.diplomaTitle)}
-							{renderRow('eqfLevel', 'EQF', parsedCredential.credentialSubject.eqfLevel)}
-							{renderRow('grade', 'Grade', parsedCredential.credentialSubject.grade)}
-							{renderRow('id', 'SSN', parsedCredential.credentialSubject.socialSecurityIdentification?.ssn)}
-							{renderRow('id', 'Document ID', parsedCredential.credentialSubject.documentId)}
+
+							{parsedCredential.name === "PID" && (
+								<>
+									{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.familyName)}
+									{renderRow('firstName', 'First Name', parsedCredential.credentialSubject.firstName)}
+									{renderRow('id', 'Personal ID', parsedCredential.credentialSubject.personalIdentifier)}
+									{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.dateOfBirth)}
+									{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.birthdate)}
+								</>
+							)}
+							{/* {renderRow('diplomaTitle', 'Title', parsedCredential.credentialSubject.diplomaTitle)} */}
+							{/* {renderRow('eqfLevel', 'EQF', parsedCredential.credentialSubject.eqfLevel)} */}
+							{/* {renderRow('grade', 'Grade', parsedCredential.credentialSubject.grade)} */}
+
+							{parsedCredential.name === "EHIC ID Card" && (
+								<>
+									{renderRow('id', 'SSN', parsedCredential.credentialSubject.socialSecurityIdentification?.ssn)}
+									{renderRow('id', 'Document ID', parsedCredential.credentialSubject.documentId)}
+									{renderRow('id', 'Institution ID', parsedCredential.credentialSubject.competentInstitution?.competentInstitutionId)}
+									{renderRow('id', 'Institution Name', parsedCredential.credentialSubject.competentInstitution?.competentInstitutionName)}
+									{renderRow('id', 'Institution Country', parsedCredential.credentialSubject.competentInstitution?.competentInstitutionCountryCode)}
+								</>
+							)}
+							{parsedCredential.name === "PDA1" && (
+								<>
+									{renderRow('id', 'MS Legislation', parsedCredential.credentialSubject.decisionOnApplicableLegislation?.decisionOnMSWhoseLegislationApplies.memberStateWhoseLegislationIsToBeApplied)}
+									{renderRow('id', 'Employer Name', parsedCredential.credentialSubject.employer?.name)}
+									{renderRow('id', 'Employer Country', parsedCredential.credentialSubject.employer?.countryCode)}
+									{renderRow('id', 'Place of Work', parsedCredential.credentialSubject.placeOfWork?.companyName)}
+									{renderRow('id', 'Town', parsedCredential.credentialSubject.placeOfWork?.town)}
+									{renderRow('id', 'postal Code', parsedCredential.credentialSubject.placeOfWork?.postalCode)}
+									{renderRow('id', 'countryCode', parsedCredential.credentialSubject.placeOfWork?.countryCode)}
+								</>
+							)}
 						</>
 					)}
 				</tbody>
