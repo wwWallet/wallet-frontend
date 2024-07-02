@@ -26,7 +26,9 @@ export const CredentialsProvider = ({ children }) => {
 				setLatestCredentials(latestCreds);
 				setTimeout(() => {
 					setLatestCredentials(new Set());
-				}, 4000);
+				}, 2000);
+			} else {
+				setLatestCredentials(new Set());
 			}
 
 			setVcEntityList(vcEntityList);
