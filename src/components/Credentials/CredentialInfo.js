@@ -84,6 +84,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 							{renderRow('id', 'Personal ID', parsedCredential.credentialSubject.personalIdentifier)}
 							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.dateOfBirth)}
 							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.birthdate)}
+							{renderRow('id', 'Revoke ID', parsedCredential.credentialStatus.id?.split('#')[1])}
 
 							{renderRow('id', 'SSN', parsedCredential.credentialSubject.socialSecurityIdentification?.ssn)}
 							{renderRow('id', 'Document ID', parsedCredential.credentialSubject.documentId)}
