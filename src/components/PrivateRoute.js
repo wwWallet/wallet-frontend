@@ -59,6 +59,7 @@ const PrivateRoute = ({ children }) => {
 							console.log('FCM Token success:', fcmToken);
 						} else {
 							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
+							setTokenSentInSession(false)
 						}
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
