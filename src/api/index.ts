@@ -74,7 +74,7 @@ export interface BackendApi {
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 }
 
-export function useApi(): BackendApi {
+export function useApi(isOnline: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
@@ -258,6 +258,7 @@ export function useApi(): BackendApi {
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 			> {
 				try {
+					console.log("IS online = ", isOnline)
 
 					const beginResp = await post('/user/login-webauthn-begin', {});
 					console.log("begin", beginResp);
@@ -479,6 +480,7 @@ export function useApi(): BackendApi {
 			sessionState,
 			setAppToken,
 			setSessionState,
+			isOnline
 		],
 	);
 }
