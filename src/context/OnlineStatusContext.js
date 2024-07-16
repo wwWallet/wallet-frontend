@@ -7,7 +7,7 @@ export const OnlineStatusProvider = ({ children }) => {
 	const [isOnline, setIsOnline] = useState(null);
 
 	const update = async () => {
-		while(1) {
+		while (1) {
 			const newStatusUpdate = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					// will later use web sockets
@@ -20,7 +20,7 @@ export const OnlineStatusProvider = ({ children }) => {
 						});
 				}, 3000);
 			});
-			if (isOnline == null || isOnline != newStatusUpdate) {
+			if (isOnline === null || isOnline !== newStatusUpdate) {
 				setIsOnline(newStatusUpdate);
 			}
 		}
