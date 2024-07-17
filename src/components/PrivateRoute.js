@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
@@ -6,9 +6,11 @@ import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from '../components/useStorage';
+import OnlineStatusContext from '../context/OnlineStatusContext';
 
 const PrivateRoute = ({ children }) => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const keystore = useLocalStorageKeystore();
@@ -70,8 +72,13 @@ const PrivateRoute = ({ children }) => {
 			}
 		}
 
-		sendFcmTokenToBackend();
-	}, [isPermissionGranted]);
+		console.log("is online = ", isOnline)
+		if (isOnline) {
+			sendFcmTokenToBackend();
+		} else {
+			setTokenSentInSession(false);
+		}
+	}, [isPermissionGranted, isOnline]);
 
 
 	useEffect(() => {
@@ -79,7 +86,7 @@ const PrivateRoute = ({ children }) => {
 			const destination = location.pathname + location.search;
 			navigate('/login', { state: { from: destination } });
 		}
-	}, [isLoggedIn, location, navigate]);
+	}, [isLoggedIn, location, navigate, isOnline]);
 
 
 	if (!isLoggedIn) {

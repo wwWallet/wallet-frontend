@@ -7,6 +7,20 @@ export const OnlineStatusProvider = ({ children }) => {
 	const [isOnline, setIsOnline] = useState(null);
 
 	const update = async () => {
+		// perform first check
+		try {
+			await axios.get(`${process.env.REACT_APP_WALLET_BACKEND_URL}/status`, { timeout: 2000 })
+			if (isOnline === null || isOnline === false) {
+				setIsOnline(true);
+			}
+		}
+		catch(err) {
+			if (isOnline === null || isOnline === true) {
+				setIsOnline(false);
+			}
+		}
+
+		// loop for checks
 		while (1) {
 			const newStatusUpdate = await new Promise((resolve, reject) => {
 				setTimeout(() => {

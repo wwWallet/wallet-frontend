@@ -8,6 +8,8 @@ import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
 import { addItem } from '../indexedDB';
+import { LocalAuthentication } from './LocalAuthentication';
+import { base64url } from 'jose';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
@@ -79,6 +81,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
+	const localAuthentication = LocalAuthentication();
 
 	return useMemo(
 		() => {
@@ -259,12 +262,18 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 			> {
 				try {
-					console.log("IS online = ", isOnline)
-
-					const beginResp = await post('/user/login-webauthn-begin', {});
-					console.log("begin", beginResp);
-					const beginData = beginResp.data;
-
+					const beginData = await (async () => {
+						if (isOnline) {
+							const beginResp = await post('/user/login-webauthn-begin', {});
+							console.log("begin", beginResp);
+							const beginData = beginResp.data;
+							return beginData;
+						}
+						else {
+							return localAuthentication.loginWebAuthnBeginOffline();
+						}
+					})();
+					
 					try {
 						const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
 						const getOptions = prfInputs
@@ -282,25 +291,38 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							: beginData.getOptions;
 						const credential = await navigator.credentials.get(getOptions) as PublicKeyCredential;
 						const response = credential.response as AuthenticatorAssertionResponse;
-						console.log("asserted", credential);
+						const cred = {
+							type: credential.type,
+							id: credential.id,
+							rawId: credential.id,
+							response: {
+								authenticatorData: toBase64Url(response.authenticatorData),
+								clientDataJSON: toBase64Url(response.clientDataJSON),
+								signature: toBase64Url(response.signature),
+								userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
+							},
+							authenticatorAttachment: credential.authenticatorAttachment,
+							clientExtensionResults: credential.getClientExtensionResults(),
+						};
 
 						try {
-							const finishResp = await post('/user/login-webauthn-finish', {
-								challengeId: beginData.challengeId,
-								credential: {
-									type: credential.type,
-									id: credential.id,
-									rawId: credential.id,
-									response: {
-										authenticatorData: toBase64Url(response.authenticatorData),
-										clientDataJSON: toBase64Url(response.clientDataJSON),
-										signature: toBase64Url(response.signature),
-										userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
-									},
-									authenticatorAttachment: credential.authenticatorAttachment,
-									clientExtensionResults: credential.getClientExtensionResults(),
-								},
-							});
+							const finishResp = await (async () => {
+								if (isOnline) {
+									const finishResp = await post('/user/login-webauthn-finish', {
+										challengeId: beginData.challengeId,
+										credential: cred
+									});
+									return finishResp;
+								}
+								else {
+									const finishResp: { data: any } = { data: {} };
+									const offlineRes = await localAuthentication.loginWebAuthnFinishOffline(beginData, response, credential, cred, cachedUser);
+									finishResp.data.session = offlineRes.session;
+									finishResp.data.newUser = offlineRes.newUser;
+									finishResp.data.session.appToken = "";
+									return finishResp;
+								}
+							})() as any;
 
 							try {
 								const userData = finishResp.data.session as UserData;
@@ -402,7 +424,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								});
 								setSession(finishResp, credential, 'signup', true);
 								await addItem('users',finishResp.data.newUser.id, finishResp.data.newUser);
-								await addItem('UserHandleToUserID',finishResp.data.newUser.webauthnUserHandle, finishResp.data.newUser.id);
+								await addItem('UserHandleToUserID', base64url.encode(finishResp.data.newUser.webauthnUserHandle), finishResp.data.newUser.id);
 								return Ok.EMPTY;
 
 							} catch (e) {
