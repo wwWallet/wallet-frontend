@@ -18,8 +18,6 @@ import Settings from './pages/Settings/Settings';
 import AddCredentials from './pages/AddCredentials/AddCredentials';
 import SendCredentials from './pages/SendCredentials/SendCredentials';
 
-import { OnlineStatusProvider } from './context/OnlineStatusContext';
-
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
@@ -83,40 +81,37 @@ function App() {
 		}
 	};
 	return (
-		<OnlineStatusProvider>
-			<I18nextProvider i18n={i18n}>
-				<CredentialsProvider>
-					<Snowfalling />
-					<Router>
-						<Suspense fallback={<Spinner />}>
-							<HandlerNotification/>
-								<Routes>
-									<Route path="/login" element={<Login />} />
-									<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-									<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-									<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
-									<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-									<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
-									<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
-									<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
-									<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
-									<Route path="*" element={<NotFound />} />
-								</Routes>
-								{showSelectCredentialsPopup &&
-									<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
-								}
-								{showPinInputPopup &&
-									<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
-								}
-								{showMessagePopup &&
-									<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-								}
-						</Suspense>
-					</Router>
-				</CredentialsProvider>
-			</I18nextProvider>
-		</OnlineStatusProvider>
-
+		<I18nextProvider i18n={i18n}>
+			<CredentialsProvider>
+				<Snowfalling />
+				<Router>
+					<Suspense fallback={<Spinner />}>
+						<HandlerNotification />
+						<Routes>
+							<Route path="/login" element={<Login />} />
+							<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
+							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
+							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
+							<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
+							<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
+							<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
+							<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route path="*" element={<NotFound />} />
+						</Routes>
+						{showSelectCredentialsPopup &&
+							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
+						}
+						{showPinInputPopup &&
+							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+						}
+						{showMessagePopup &&
+							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+						}
+					</Suspense>
+				</Router>
+			</CredentialsProvider>
+		</I18nextProvider>
 	);
 }
 

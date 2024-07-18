@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
-import './index.css';
-
+import { OnlineStatusProvider } from './context/OnlineStatusContext';
 import { initializeDataSource } from './indexedDB';
+import './index.css';
 
 ConsoleBehavior();
 
@@ -26,4 +26,8 @@ const RootComponent = () => {
 };
 
 const root = createRoot(document.getElementById('root'));
-root.render(<RootComponent />);
+root.render(
+	<OnlineStatusProvider>
+		<RootComponent />
+	</OnlineStatusProvider>
+);
