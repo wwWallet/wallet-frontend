@@ -8,6 +8,7 @@ export type Verifier = {
 	}[];
 }
 export type UserData = {
+	id: number;
 	displayName: string;
 	did: string;
 	publicKey: JsonWebKey;

@@ -149,6 +149,7 @@ export const LocalAuthentication = () => {
 			return {
 				newUser: user,
 				session: {
+					id: user.id,
 					appToken: "",
 					did: user.did,
 					displayName: user.displayName,
