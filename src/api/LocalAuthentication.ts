@@ -95,7 +95,7 @@ export const LocalAuthentication = () => {
 	const createChallenge = async (type: "get", userHandle?: string, prfSalt?: Uint8Array) => {
 		try {
 			const array = new Uint8Array(32);
-			
+
 			// Fill the array with cryptographically secure random values
 			const challenge = window.crypto.getRandomValues(array);
 			const returnData = {
@@ -122,7 +122,7 @@ export const LocalAuthentication = () => {
 			}
 		},
 
-	
+
 		loginWebAuthnFinishOffline: async (beginData: any, response: AuthenticatorAssertionResponse, credential: PublicKeyCredential, transformedCredential: any, cachedUser?: CachedUser) => {
 			const getUserByWebauthnCredential = async (userHandle: string, credentialId: Uint8Array): Promise<{ user: any, credentialRecord: any }> => {
 				const userId = await getItem("UserHandleToUserID", userHandle);
@@ -142,11 +142,11 @@ export const LocalAuthentication = () => {
 					counter: credentialRecord.signatureCount,
 				},
 			});
-	
+
 			if (!verification.verified) {
 				throw new Error('Could not verify the webauthn credential');
 			}
- 			return {
+			return {
 				newUser: user,
 				session: {
 					appToken: "",

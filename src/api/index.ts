@@ -273,7 +273,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							return localAuthentication.loginWebAuthnBeginOffline();
 						}
 					})();
-					
+
 					try {
 						const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
 						const getOptions = prfInputs
