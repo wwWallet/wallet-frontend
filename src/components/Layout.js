@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Sidebar from './Sidebar';
 import { AiOutlineMenu } from "react-icons/ai";
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
@@ -10,8 +10,11 @@ import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
 import BottomNav from './BottomNav';
+import OnlineStatusContext from '../context/OnlineStatusContext';
+import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
+	const { isOnline } = useContext(OnlineStatusContext);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [isContentVisible, setIsContentVisible] = useState(false);
@@ -54,6 +57,11 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 			<header
 				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
+				{isOnline ? (
+					<PiWifiHighBold size={25} title={t('common.online')} />
+				) : (
+					<PiWifiSlashBold size={25} title={t('common.offline')} />
+				)}
 				<div className="flex items-center">
 					<button className='mr-2' onClick={() => handleNavigate('/')}>
 						<img
@@ -62,12 +70,12 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 							className="w-10 h-auto cursor-pointer"
 						/>
 					</button>
+					<a href={('/')}
+						className="text-white text-xl font-bold cursor-pointer"
+					>
+						{t('common.walletName')}
+					</a>
 				</div>
-				<a href={('/')}
-					className="text-white text-xl font-bold cursor-pointer"
-				>
-					{t('common.walletName')}
-				</a>
 				<button className="text-white max480:hidden" onClick={toggleSidebar}>
 					<AiOutlineMenu size={24} />
 				</button>
