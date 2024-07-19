@@ -1,4 +1,4 @@
-import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -12,6 +12,11 @@ import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+
+interface OnlineStatusContextType {
+	isOnline: boolean | null;
+}
 
 const Dialog = ({
 	children,
@@ -537,10 +542,9 @@ const WebauthnCredentialItem = ({
 	);
 };
 
-
-
 const Settings = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [existingPrfKey, setExistingPrfKey] = useState<CryptoKey | null>(null);
