@@ -80,7 +80,7 @@ export default function handleServerMessagesGuard(Component) {
 
 		}, [appToken, isOnline, api, keystore, signingRequestHandlerService]);
 
-		if (!isOnline || handshakeEstablished || !appToken) {
+		if (isOnline === true || handshakeEstablished || !appToken) {
 			console.log('Rendering component');
 			return (<Component {...props} />);
 		} else {
