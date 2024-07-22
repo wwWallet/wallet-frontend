@@ -46,7 +46,7 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.get('/legal_person/issuers/all');
+				const response = await api.getExternalEntity('/legal_person/issuers/all');
 				const fetchedIssuers = response.data;
 				setIssuers(fetchedIssuers);
 				setFilteredIssuers(fetchedIssuers);
