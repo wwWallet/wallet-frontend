@@ -32,7 +32,11 @@ export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
 
-	initPassword(password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	initPassword(password: string): Promise<{
+		publicData: PublicData,
+		privateData: EncryptedContainer,
+		setWebauthnRpId: (rpId: string) => void,
+	}>,
 	initPrf(
 		credential: PublicKeyCredential,
 		prfSalt: Uint8Array,
@@ -50,6 +54,7 @@ export interface LocalStorageKeystore {
 	unlockPassword(
 		privateData: EncryptedContainer,
 		password: string,
+		webauthnRpId: string,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	unlockPrf(
 		privateData: EncryptedContainer,
@@ -195,13 +200,18 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				mainKey: CryptoKey,
 				keyInfo: AsymmetricEncryptedContainerKeys,
 				user: UserData,
-			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+			): Promise<{
+				publicData: PublicData,
+				privateData: EncryptedContainer,
+				setWebauthnRpId: (rpId: string) => void,
+			}> => {
 				const { publicData, privateData } = await keystore.init(mainKey, keyInfo, DID_KEY_VERSION);
 				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
 
 				return {
 					publicData,
 					privateData,
+					setWebauthnRpId: rpId => setWebauthnRpId(rpId),
 				};
 			};
 
@@ -209,7 +219,11 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				isOpen: (): boolean => privateDataJwe !== null && sessionKey !== null,
 				close,
 
-				initPassword: async (password: string): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+				initPassword: async (password: string): Promise<{
+					publicData: PublicData,
+					privateData: EncryptedContainer,
+					setWebauthnRpId: (rpId: string) => void,
+				}> => {
 					const { mainKey, keyInfo } = await keystore.initPassword(password);
 					return await init(mainKey, keyInfo, null);
 				},
@@ -223,7 +237,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
 					const { mainKey, keyInfo } = await keystore.initPrf(credential, prfSalt, rpId, promptForPrfRetry);
 					const result = await init(mainKey, keyInfo, user);
-					setWebauthnRpId(rpId);
+					result.setWebauthnRpId(rpId);
 					return result;
 				},
 
@@ -255,9 +269,11 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				unlockPassword: async (
 					privateData: EncryptedContainer,
 					password: string,
+					webauthnRpId: string,
 				): Promise<[EncryptedContainer, CommitCallback] | null> => {
 					const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
 					await finishUnlock(unlockResult, null);
+					setWebauthnRpId(webauthnRpId);
 					return (
 						newPrivateData
 							?

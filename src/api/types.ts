@@ -14,6 +14,7 @@ export type UserData = {
 	webauthnUserHandle: string;
 	webauthnCredentials: WebauthnCredential[];
 	privateData: Uint8Array;
+	webauthnRpId: string,
 }
 
 export type WebauthnCredential = {

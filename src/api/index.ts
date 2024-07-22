@@ -171,7 +171,7 @@ export function useApi(): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						const updatePrivateData = await keystore.unlockPassword(privateData, password);
+						const updatePrivateData = await keystore.unlockPassword(privateData, password, userData.webauthnRpId);
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							const updateResp = await post(
@@ -202,7 +202,7 @@ export function useApi(): BackendApi {
 			async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 
 				try {
-					const { publicData, privateData } = await keystore.initPassword(password);
+					const { publicData, privateData, setWebauthnRpId } = await keystore.initPassword(password);
 
 					try {
 						const response = await post('/user/register', {
@@ -213,6 +213,7 @@ export function useApi(): BackendApi {
 							privateData: serializePrivateData(privateData),
 						});
 						setSession(response, null, 'signup', true);
+						setWebauthnRpId((response.data as UserData).webauthnRpId);
 						return Ok.EMPTY;
 
 					} catch (e) {
