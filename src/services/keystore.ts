@@ -52,6 +52,17 @@ type StaticEncapsulationInfo = {
 }
 
 
+function isAsymmetricEncryptedContainer(privateData: EncryptedContainer): privateData is AsymmetricEncryptedContainer {
+	return (
+		(privateData.passwordKey
+			? isAsymmetricPasswordKeyInfo(privateData.passwordKey)
+			: true)
+		&& (privateData.prfKeys
+			? privateData.prfKeys.every(isPrfKeyV2)
+			: true)
+	);
+}
+
 // Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
 const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
 const pbkdfIterations: number = 600000;
@@ -196,6 +207,47 @@ async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ ke
 		},
 		mainKey,
 		privateKey: mainPrivateKey,
+	};
+}
+
+export async function rotateMainKey(
+	privateData: AsymmetricEncryptedContainer,
+	[unwrappingKey, keyInfo]: [CryptoKey, WrappedKeyInfo],
+): Promise<AsymmetricEncryptedContainer> {
+	if (!isAsymmetricEncryptedContainer(privateData)) {
+		throw new Error("EncryptedContainer is not fully asymmetric-encrypted");
+	}
+
+	const currentMainKey = await unwrapKey(unwrappingKey, privateData.mainKey, keyInfo, false);
+	const {
+		keyInfo: newMainPublicKeyInfo,
+		mainKey: newMainKey,
+		privateKey: newMainPrivateKey,
+	} = await createAsymmetricMainKey();
+
+	return {
+		mainKey: newMainPublicKeyInfo,
+		jwe: await reencryptPrivateData(privateData.jwe, currentMainKey, newMainKey),
+		passwordKey: privateData.passwordKey && {
+			...privateData.passwordKey,
+			...await encapsulateKey(
+				newMainPrivateKey,
+				privateData.passwordKey.keypair.publicKey,
+				privateData.passwordKey.keypair,
+				newMainKey,
+			),
+		},
+		prfKeys: privateData.prfKeys && await Promise.all(
+			privateData.prfKeys.map(async keyInfo => ({
+				...keyInfo,
+				...await encapsulateKey(
+					newMainPrivateKey,
+					keyInfo.keypair.publicKey,
+					keyInfo.keypair,
+					newMainKey,
+				),
+			}))
+		),
 	};
 }
 
