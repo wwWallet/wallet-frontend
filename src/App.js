@@ -27,22 +27,6 @@ const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
-
-// Check that service workers are supported
-if ('serviceWorker' in navigator) {
-	window.addEventListener('load', () => {
-		navigator.serviceWorker.register('/firebase-messaging-sw.js')
-			.then(registration => {
-				console.log('Service Worker registered! Scope is: ', registration.scope);
-			})
-			.catch(err => {
-				console.log('Service Worker registration failed: ', err);
-				// Add your error handling code here. For instance:
-				alert('Failed to register service worker. Some features may not work properly.');
-			});
-	});
-}
-
 function App() {
 
 	const url = window.location.href;

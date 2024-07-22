@@ -4,6 +4,8 @@ import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
 import { OnlineStatusProvider } from './context/OnlineStatusContext';
 import { initializeDataSource } from './indexedDB';
+import * as offlineSW from './offlineRegistrationSW';
+import * as firebaseSW from './firebase';
 import './index.css';
 
 ConsoleBehavior();
@@ -14,7 +16,6 @@ const RootComponent = () => {
 			try {
 				await initializeDataSource();
 				console.log('Database initialized');
-				// You can add further initialization logic here if needed
 			} catch (err) {
 				console.error('Error initializing database', err);
 			}
@@ -31,3 +32,6 @@ root.render(
 		<RootComponent />
 	</OnlineStatusProvider>
 );
+
+firebaseSW.register()
+offlineSW.register();

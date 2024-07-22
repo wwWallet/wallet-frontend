@@ -21,7 +21,7 @@ export default function handleServerMessagesGuard(Component) {
 		const { isOnline } = useContext(OnlineStatusContext);
 
 		useEffect(() => {
-			if (isOnline && appToken) {
+			if (appToken) {
 				if (!socketRef.current) {
 					console.log('Attempting to establish WebSocket connection...');
 					const socket = new WebSocket(REACT_APP_WS_URL);
@@ -80,7 +80,7 @@ export default function handleServerMessagesGuard(Component) {
 
 		}, [appToken, isOnline, api, keystore, signingRequestHandlerService]);
 
-		if (isOnline === true || handshakeEstablished || !appToken) {
+		if (isOnline !== null || handshakeEstablished || !appToken) {
 			console.log('Rendering component');
 			return (<Component {...props} />);
 		} else {
