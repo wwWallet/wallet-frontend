@@ -5,8 +5,10 @@ import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import type { EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { DidKeyVersion, EncryptedContainer, EncryptedContainerKeys, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
+
+const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION as DidKeyVersion;
 
 type UserData = {
 	displayName: string;
@@ -188,7 +190,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				keyInfo: EncryptedContainerKeys,
 				user: UserData,
 			): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-				const { mainKey, publicData, privateData } = await keystore.init(wrappedMainKey, wrappingKey, keyInfo);
+				const { mainKey, publicData, privateData } = await keystore.init(wrappedMainKey, wrappingKey, keyInfo, DID_KEY_VERSION);
 				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
 
 				return {

@@ -12,7 +12,7 @@ import { verifiablePresentationSchemaURL } from "../constants";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 
 
-const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION;
+export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
 
@@ -426,10 +426,11 @@ export async function init(
 	wrappedMainKey: WrappedKeyInfo,
 	wrappingKey: CryptoKey,
 	keyInfo: { passwordKey?: PasswordKeyInfo, prfKeys: WebauthnPrfEncryptionKeyInfo[] },
+	didKeyVersion: DidKeyVersion,
 ): Promise<{ mainKey: CryptoKey, publicData: PublicData, privateData: EncryptedContainer }> {
 	const mainKey = await unwrapKey(wrappingKey, wrappedMainKey);
 
-	const { publicData, privateDataJwe } = await createWallet(mainKey);
+	const { publicData, privateDataJwe } = await createWallet(mainKey, didKeyVersion);
 	const privateData: EncryptedContainer = {
 		...keyInfo,
 		jwe: privateDataJwe,
@@ -509,7 +510,7 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 	return { didKeyString };
 }
 
-async function createWallet(mainKey: CryptoKey): Promise<{ publicData: PublicData, privateDataJwe: string }> {
+async function createWallet(mainKey: CryptoKey, didKeyVersion: DidKeyVersion): Promise<{ publicData: PublicData, privateDataJwe: string }> {
 	const jwtAlg = "ES256";
 	const signatureAlgorithmFamily = "ECDSA";
 	const namedCurve = "P-256";
@@ -523,11 +524,11 @@ async function createWallet(mainKey: CryptoKey): Promise<{ publicData: PublicDat
 	const publicKeyJWK: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
 
 	let did = null;
-	if (DID_KEY_VERSION === "p256-pub") {
+	if (didKeyVersion === "p256-pub") {
 		const { didKeyString } = await createW3CDID(publicKey);
 		did = didKeyString;
 	}
-	else if (DID_KEY_VERSION === "jwk_jcs-pub") {
+	else if (didKeyVersion === "jwk_jcs-pub") {
 		did = util.createDid(publicKeyJWK as JWK);
 	}
 	else {
