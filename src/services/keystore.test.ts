@@ -191,6 +191,37 @@ describe("The keystore", () => {
 		);
 	});
 
+	it("can decrypt a container encrypted with both a V1 password key and a V1 PRF key, using either method.", async () => {
+		// 1000 iterations is artificially low to keep the test fast
+		const privateData: keystore.EncryptedContainer = jsonParseTaggedBinary('{"passwordKey":{"mainKey":{"unwrappedKeyAlgo":{"name":"AES-GCM","length":256},"unwrapAlgo":"AES-KW","wrappedKey":{"$b64u":"z8mIhLceHv-SrM8iiKlHUf0PRN0bQ0uysRklssCLCMMGFdDLAcmlpg"}},"pbkdf2Params":{"name":"PBKDF2","hash":"SHA-256","iterations":1000,"salt":{"$b64u":"45mHLHfNwhsaJPOHPmYo5D-pBxeZemBiIdSoe9vUR4M"}}},"prfKeys":[{"mainKey":{"unwrappedKeyAlgo":{"name":"AES-GCM","length":256},"unwrapAlgo":"AES-KW","wrappedKey":{"$b64u":"FFaDeFn0WWRVvyZ_m3MJIPiqKlxKt0Ez3gMRQYCdqAv4ziHqpPMtOw"}},"credentialId":{"$b64u":"GF9yfx2l-LfYJGWFr-Remg"},"prfSalt":{"$b64u":"6z-xfGIJzkCO6nR3N8UovFKFFmkHPwL1MbEQsmIfN3s"},"hkdfSalt":{"$b64u":"8SMLCWkqUV3QEhfJ61uUEwlGdBCbylzDPlteSgpMLu0"},"hkdfInfo":{"$b64u":"ZURpcGxvbWFzIFBSRg"}}],"jwe":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiIzeWhCQVM5M2FFZjQyeTVtIiwidGFnIjoiTHFaMkhfNVhCdzJ3NnphNkpmOFM2dyJ9.IJo2o_ea_KRItWBt2ZTJhPMk_8kSVKA_MgqCZkfdRJo.uQYxTNVtQxfn3rFi.jNCPwOvOHSKPR_SQ4iLgosTURYTr6hOJJ4dh2ttdotIK3gai3VBdNoQCjmL7mFYaWwmrUPkT0U3tr76-OkQduPeT4OImJC68sI9iyWEqffLWlq2PEl9k9KTaZdYamAJbcBqZYxenx6fzfJOOPgql_Y7zG3Ieo13EXuXUc9aN-gH8poQAR5FbnwNX2fR41JPSWSxZq5HdXyXRFcBp47IiP4giXXuEcQEAzJdTbMPl_bssGb42vCOKciD8nf_6O1CPguvzOULr0ah4Jv4b3dbZ9xkcpt7OAICZ-rrnUlzkfLw4jIESUWr2WrXdFuI3-3fNkg9L5lfx4fgKRDUB3Ies3v1cMpU4T7QIB1GHVwNe-5dtCL_b4mvmLAWVpgZha-0HVtR6LgJFWGNq7EmxqJ5LlaJWMSALym8Q5pgpspP28nF6CHrhAQm31eXwsITOId2NTtzBjfoQxgkDmpUfvFNPO1oSneb8qMfMvCbWpDqrQyheJ2ehrlM9aFv8k2NbFsPGm-8kf_RcTy_xY5MweOHmCtSab5r1LR0YZs91w040gX3bbShIqDiq6_Jd7j9W3LnHtTXcFC24IIgMV0R35wOw43sLMJnHSDdu857RC1hACZ6U52m9zKcDsSHV2qsBqMxogQKP2lF_mmsOUsJd22XLxdEoliXm1mAgw8Rq5wW77nPmE1yQ50qtYjXsrxkpfL7Z_4jf4KWFTQ1gkf31vb6Uqg7Tb8Vow-v34DPjrgH8q5B4UPmb3K_lc4zbFQnGE7J2pA9jbVHTUIRnN4dBE_23T8SROIH08hrtS8Vt68_n34bMFBxbMLUmR1lIYXya6dKWOtEbRES2IoK4lNhHGBWUJf2uUCMCVAMEkRUL2ecmizCzsFlfqrPza81YYecvThnsi2CRD21jt_J-5Do1uEWCmhecpyy19NjEGxvbDVWwJE6iTZhiZ5CKPPkYoxRQWexEaiNroO-ufMLWaQ_LAGksfKze5LaYvmr1l6v50VeNxV7SBGzqO7uVAJYZ2RrUQ5MmidNjViSTx0_v4Ls7ri8ZxTY--SRs8T8I5Sw7vczKMcUyZ5DtX7i8qa14uAmzVYNI1N1vsddeGk8B2y-y_SuqZhwzsDtGML2VH-IsatQ93YNHqzt7_mHz7b6NGvQn0Bi5wF6EXxdCpQw5zi6Fh6mNiFJY7wCsOO9TYxj4rVdVp0OgfV6KWMgk63BmKCCmuQ4qwawCQNxjz86aajTO_tCjiyWiWtnYNLZv8eZd9Mb5krumh4NdfTRVbrjtV62yxdPKr_z6u7_EZcy6dFXbkPJn3Leuu3ROHVKcY21DG8OOtmBtS_yRcpkugC2Typgkl2M2PbYvX0JgGe3WbJarmGwv9X5DE-BmyyoO-Q6EX-RQCfI0aeiEsQhGj6LLBHS_pLZhc8THXnxXeQ7WV_xhJOdIpT3C1d1WNriH6KmM2iTxOidv4eb8QNLYFrk9yiQnnujDhVmnuOCgdgYN_QZFC0mu8n2BDS88o5TG3fnPOvHnlK1_--uN4UqAUOkqFKEkznhxkae0C1ZzzIaR-pXA4XBEc0zO34kqKCPiKlSvFR6ygnnZldSpxBr7bHUMOOHYla9tfNTPNOC2-145D6Si_J3JcijBAC7nJmd1mfsYuSZ2BCqB3UW9T6QpfZoNg5W3QJlrRSKpppzhk7oHqo3GD7tN6PXEQZ29PfeGnCRiO2T_QRc-fl35pg.P6E9einF467fdpnuMT5_6w"}');
+
+		{
+			const [unlocked,] = await keystore.unlockPassword(
+				privateData,
+				"Asdf123!",
+			);
+			assert.strictEqual(unlocked.privateDataCache, privateData);
+
+			await asyncAssertThrows(
+				() => keystore.unlockPassword(privateData, "asdf123!"),
+				"Expected unlock with incorrect password to fail",
+			);
+		}
+
+		{
+			const [unlocked,] = await keystore.unlockPrf(
+				privateData,
+				mockPrfCredential({
+					id: privateData.prfKeys[0].credentialId,
+					prfOutput: fromBase64("TFHyH8pMltWz3S9rl20+HSvy1+hnMZnmvjmZL5ghjNo="),
+				}),
+				"localhost",
+				async () => false,
+			);
+			assert.strictEqual(unlocked.privateDataCache, privateData);
+		}
+	});
+
 	it("can decrypt a container encrypted with a session key.", async () => {
 		const exportedSessionKey: Uint8Array = fromBase64("USc6dqwBz5mDhbuOxfcjJqn/MdVrm6Rjp5NEGmvLGs8=");
 		const privateDataJwe = "eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJaV01wRXlWY1dQTlVaNF8tIiwidGFnIjoiakRta0xVclloOHlSeHYwLUpLM1k3USJ9.RuAudt3-ikCdDeYW5bQY6d9nANu_ga8LT2ErWoga3Qc.gcWZK1xaZlHDouo1.lo0dx41EPxotCespQO3xCdv6SmDDt97y8IbFtfrCGowEBOkN8tOQsWaUxjB5cOWPI_axv3jKixB9dTBKAGoTPjEUfHFq-SR9gYo42CoEp91bzxwEn809BLLSW3_Kii7Z3FCs7zgpZwfcDXOp-o_Wb_FkvgrsdZqRCCzYY0V9MUFOZZrLjH95nemWpAcdKlcyn4L9GsGPWnO0sk5gJi9sxkb5l4ptQqcKepUMIl7j9MZ8RtewvfU9S7YcJQPKIOrRNLgDFC26NoGjsIyTq_xnDpn2pkOn7w4IjDIxe8DJJy9_jyRkXzhSb8ZnbkO74KfHmy0Z2XAK8fl76qNumPZIYBquPNTS24FhgJOXHFuCDmktl-kDeO113LZTo0aEo2OflWWPtUtzSwRTPE6Xp1fAucG-2XTTsL7BfzCuKYO0us_Mm1LucfH_vD1aHh0LESO2YIXmrB2afA8zB9oNuP9pIasqKCKl6bzeaDvZdDdiV01Pz0d6FIOryXDR0PDE6O5TcFxmdfsxpqRzjBO0ZC3W4lTRILqUlION8PZCEKyo6M2AkmyZmFttW3czX7EN_vXXRPUwFn7UNMCWF9BtT42CDBhOZpa91h_T974qWd3rlHiagJScI10rrqZTOe3zzDGlFsIpQAFG55lX0RNT0da0nWLGjQlgZrZgvVdk8b6m4p-O5zdSKyJKUgJWJplLsi5ie56pwcExYcgexS18g-lHuIk2Mcq1-lza_kN2PZDuwPRJ_XKKF-AkVSbL-_XmU92CBoHg0jKmsE_U-85SWhSXjW8ICYi1jDWbY5N4O4hdL7oLyT5KoiOX6htIDsMYyr8U9-vTbz29j-HjXUiRzzAXTc3SsHw2rJcPq4uVEVKIftzihQEdftLY9O0hNWh46hNz9K-0FoEgICOtz_bZKGiDBkPmeqBfwN91kgn0Z_xkRcaxq-oIHsVFTKI729MhjxtQiempvp852wmFW4l9vhPKNijDAj4LrtaPhYd7EsxQS-Lb5EqxHqUAmWgkaKLFeNE5EV9HLvN-XRrUMlXD8KzUzwC8j1Sab-nkmMJb_0Iim1tdh91vm_b2EfnCC3CCIwuSylrkcVUBTFi-DUP-ppDAFAk4SLJEAFdzAu43P7W6XLwoyOwQ970EjUXiueLmNVbHkbOApo07VpuFvl-DBkaZG1a8VRcuYXnxlWjYrjOOCVh0HgYluatQzwA1PXFQwXzJJeeqFHFOOGdfwtq6ZIR4OIT6aAfwXYCdhHnLm1BQf-yaRopaMBkjdnCzpdmPDr0UjfJa2p4c62IrKwZPrZ2mGDhbUtzVhfyx7gWhyxBpblwDWc9Pm7mBpoq5ya3i6QYrQ8Ky6Y-jubc_NWy_leNxqSI92fwhcQ1Bq8kd60PYOm_v3137qDzfQRGzLkJGjPgVBFwa8Olf6RYTgh0DWLsy2PZoFFYqUF0_E0U_JPBFPkKmI4daifNhb9dO6N9uA0JL49slJpxypvj0MEANxKrjiMwm8C3d2fSHArKaoTpeQy2KCCSvM4cX-xgpgB3tEQUEKvIZNCQGh_sggMn_DcqkDvXVpaPme0HUzsXDSpRSwvUXmvt1cJeOWyUnRhwNW6j9V11p2B3eQkHiB8k1nZk8tBq1PE33314wJ0GFy33bvh0vzwIYTb6HXaMzp-uQxoiHO4PXqUdvJmhNC_ezteVNThAHpkJFArWKha5MnNz2pGbcFKmGFQ.pqtV6YBXWtVXUUSMUKTwBA";
