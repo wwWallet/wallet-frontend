@@ -154,9 +154,11 @@ const Issuers = () => {
 						{filteredIssuers.map((issuer) => (
 							<button
 								key={issuer.id}
-								className="bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left"
+								className={`bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left ${!isOnline ? ' text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' : 'cursor-pointer'}`}
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.did)}
+								disabled={!isOnline}
+								title={!isOnline && t('common.offlineTitle')}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
 							</button>

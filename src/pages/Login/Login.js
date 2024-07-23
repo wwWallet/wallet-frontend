@@ -733,8 +733,10 @@ const Login = () => {
 											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 											<a
 												href="/"
-												className="font-medium text-primary hover:underline dark:text-primary-light"
+												className={`font-medium text-primary hover:underline dark:text-primary-light ${isOnline ===false && 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline'}`}
+												title={`${isOnline ===false && t('common.offlineTitle')}`}
 												onClick={toggleForm}
+												disabled={isOnline === false}
 											>
 												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
 											</a>
