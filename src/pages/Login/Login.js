@@ -663,6 +663,12 @@ const Login = () => {
 												<PiWifiSlashBold size={25} title={t('common.offline')} />
 											)}
 										</div>
+										{isOnline === false && (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+												<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+												{t('loginSignup.messageOffline')}
+											</p>
+										)}
 										{(loginWithPassword) ?
 											<>
 												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
