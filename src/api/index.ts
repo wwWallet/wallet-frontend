@@ -80,6 +80,50 @@ export function useApi(): BackendApi {
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 
+	/**
+	 * Synchronization tag for the encrypted private data. To prevent data loss,
+	 * this MUST be refreshed only when a new version of the private data is
+	 * loaded into the keystore or successfully uploaded to the server.
+	 */
+	const [privateDataEtag, setPrivateDataEtag] = useSessionStorage<string | null>("privateDataEtag", null);
+
+	function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
+		if (resp.headers['x-private-data-etag']) {
+			setPrivateDataEtag(resp.headers['x-private-data-etag']);
+		}
+		return resp;
+	}
+
+	/**
+	 * Wrap a request function to check for status code 412 (Precondition Failed)
+	 * and retry the request with the addition of the `X-Private-Data-If-Match`
+	 * header if the response has an `X-Private-Data-ETag` header matching the
+	 * current local copy of `X-Private-Data-ETag`.
+	 *
+	 * The local copy of `X-Private-Data-ETag` must be initialized explicitly
+	 * using the `updatePrivateDataEtag` function. This is done in the signup and
+	 * login functions.
+	 */
+	async function retryWithPrivateDataEtag(
+		func: (additionalHeaders?: { [name: string]: string }) => Promise<AxiosResponse>,
+	): Promise<AxiosResponse> {
+		try {
+			return await func();
+		} catch (e) {
+			if (e.response?.status === 412) {
+				const remotePrivateDataEtag = (e.response?.headers || {})['x-private-data-etag'];
+				if (remotePrivateDataEtag) {
+					if (remotePrivateDataEtag === privateDataEtag) {
+						return updatePrivateDataEtag(await func({ 'X-Private-Data-If-Match': privateDataEtag }));
+					} else {
+						throw new Error('x-private-data-etag');
+					}
+				}
+			}
+			throw e;
+		}
+	}
+
 	return useMemo(
 		() => {
 			function getAppToken(): string | null {
@@ -106,30 +150,40 @@ export function useApi(): BackendApi {
 				);
 			}
 
-			async function post(path: string, body: object, options?: { appToken?: string }): Promise<AxiosResponse> {
-				return await axios.post(
-					`${walletBackendUrl}${path}`,
-					body,
-					{
-						headers: {
-							Authorization: `Bearer ${options?.appToken || appToken}`,
-							'Content-Type': 'application/json',
-						},
-						transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
-						transformResponse,
+			async function post(path: string, body: object, options?: {appToken?: string}): Promise<AxiosResponse> {
+				return retryWithPrivateDataEtag(
+					async (additionalHeaders?: { [name: string]: string }) => {
+						return await axios.post(
+							`${walletBackendUrl}${path}`,
+							body,
+							{
+								headers: {
+									Authorization: `Bearer ${options?.appToken || appToken}`,
+									'Content-Type': 'application/json',
+									...additionalHeaders,
+								},
+								transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
+								transformResponse,
+							},
+						);
 					},
 				);
 			}
 
 			async function del(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-				return await axios.delete(
-					`${walletBackendUrl}${path}`,
-					{
-						headers: {
-							Authorization: `Bearer ${options?.appToken || appToken}`,
-						},
-						transformResponse,
-					});
+				return retryWithPrivateDataEtag(
+					async (additionalHeaders?: { [name: string]: string }) => {
+						return await axios.delete(
+							`${walletBackendUrl}${path}`,
+							{
+								headers: {
+									Authorization: `Bearer ${options?.appToken || appToken}`,
+									...additionalHeaders,
+								},
+								transformResponse,
+							});
+					},
+				);
 			}
 
 			function updateShowWelcome(showWelcome: boolean): void {
@@ -167,7 +221,7 @@ export function useApi(): BackendApi {
 
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 				try {
-					const response = await post('/user/login', { username, password });
+					const response = updatePrivateDataEtag(await post('/user/login', { username, password }));
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
@@ -205,13 +259,13 @@ export function useApi(): BackendApi {
 					const { publicData, privateData, setWebauthnRpId } = await keystore.initPassword(password);
 
 					try {
-						const response = await post('/user/register', {
+						const response = updatePrivateDataEtag(await post('/user/register', {
 							username,
 							password,
 							displayName: username,
 							keys: publicData,
 							privateData: serializePrivateData(privateData),
-						});
+						}));
 						setSession(response, null, 'signup', true);
 						setWebauthnRpId((response.data as UserData).webauthnRpId);
 						return Ok.EMPTY;
@@ -299,7 +353,7 @@ export function useApi(): BackendApi {
 						console.log("asserted", credential);
 
 						try {
-							const finishResp = await post('/user/login-webauthn-finish', {
+							const finishResp = updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
 								challengeId: beginData.challengeId,
 								credential: {
 									type: credential.type,
@@ -314,7 +368,7 @@ export function useApi(): BackendApi {
 									authenticatorAttachment: credential.authenticatorAttachment,
 									clientExtensionResults: credential.getClientExtensionResults(),
 								},
-							});
+							}));
 
 							try {
 								const userData = finishResp.data as UserData;
@@ -410,7 +464,7 @@ export function useApi(): BackendApi {
 							try {
 
 
-								const finishResp = await post('/user/register-webauthn-finish', {
+								const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
 									challengeId: beginData.challengeId,
 									displayName: name,
 									keys: publicData,
@@ -427,7 +481,7 @@ export function useApi(): BackendApi {
 										authenticatorAttachment: credential.authenticatorAttachment,
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
-								});
+								}));
 								setSession(finishResp, credential, 'signup', true);
 								return Ok.EMPTY;
 
