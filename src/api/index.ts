@@ -7,7 +7,7 @@ import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeysto
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
-import { addItem } from '../indexedDB';
+import { addItem, getItem } from '../indexedDB';
 import { LocalAuthentication } from './LocalAuthentication';
 import { base64url } from 'jose';
 
@@ -16,6 +16,7 @@ const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 
 type SessionState = {
+	id: string;
 	username: string,
 	displayName: string,
 	webauthnCredentialCredentialId: string,
@@ -43,6 +44,7 @@ const events: EventTarget = new EventTarget();
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>,
 	get(path: string): Promise<AxiosResponse>,
+	getExternalEntity(path: string): Promise<AxiosResponse>,
 	post(path: string, body: object): Promise<AxiosResponse>,
 
 	getSession(): SessionState,
@@ -97,16 +99,73 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}
 			}
 
-			async function get(path: string): Promise<AxiosResponse> {
-				return await axios.get(
+			async function get(path: string, sessionAppToken?: string, sessionId?: number): Promise<AxiosResponse> {
+				const token = appToken || sessionAppToken;
+				const userId = sessionState?.id || sessionId;
+
+				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
+
+				const respIndexDB = await getItem(path, (userId).toString());
+
+				// Offline case
+				if (!isOnline) {
+					return {
+						data: respIndexDB,
+					} as AxiosResponse;
+				}
+
+				// Online case
+				const respBackend = await axios.get(
 					`${walletBackendUrl}${path}`,
 					{
 						headers: {
-							Authorization: `Bearer ${appToken}`,
+							Authorization: `Bearer ${token}`,
 						},
 						transformResponse,
 					},
 				);
+				await addItem(path, userId.toString(), respBackend.data);
+				return respBackend;
+			}
+
+			async function getExternalEntity(path: string, sessionAppToken?: string): Promise<AxiosResponse> {
+				const token = appToken || sessionAppToken;
+				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
+
+				const respIndexDB = await getItem(path, path);
+
+				// Offline case
+				if (!isOnline) {
+					return {
+						data: respIndexDB,
+					} as AxiosResponse;
+				}
+
+				//Online case
+				const respBackend = await axios.get(
+					`${walletBackendUrl}${path}`,
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+						transformResponse,
+					},
+				);
+				await addItem(path, path, respBackend.data);
+				return respBackend;
+			}
+
+			async function fetchInitialData(sessionAppToken: string, sessionId: number): Promise<void> {
+				try {
+					await get('/storage/vc', sessionAppToken, sessionId);
+					await get('/storage/vp', sessionAppToken, sessionId);
+					await get('/user/session/account-info', sessionAppToken, sessionId);
+					await getExternalEntity('/legal_person/issuers/all', sessionAppToken);
+					await getExternalEntity('/verifiers/all', sessionAppToken);
+
+				} catch (error) {
+					console.error('Failed to perform get requests', error);
+				}
 			}
 
 			async function post(path: string, body: object): Promise<AxiosResponse> {
@@ -137,10 +196,10 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 			function updateShowWelcome(showWelcome: boolean): void {
 				if (sessionState) {
-						setSessionState((prevState) => ({
-								...prevState,
-								showWelcome: showWelcome,
-						}));
+					setSessionState((prevState) => ({
+						...prevState,
+						showWelcome: showWelcome,
+					}));
 				}
 			}
 
@@ -157,15 +216,22 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 			}
 
-			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): void {
+			async function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): Promise<void> {
 				setAppToken(response.data.session.appToken);
 				setSessionState({
+					id: response.data.session.id,
 					displayName: response.data.session.displayName,
 					username: response.data.session.username,
 					webauthnCredentialCredentialId: credential?.id,
 					authenticationType,
 					showWelcome,
 				});
+
+				await addItem('users', response.data.newUser.id, response.data.newUser);
+				await addItem('UserHandleToUserID', base64url.encode(response.data.newUser.webauthnUserHandle), response.data.newUser.id);
+				if (isOnline) {
+					await fetchInitialData(response.data.session.appToken, response.data.session.id).catch((error) => console.error('Error in performGetRequests', error));
+				}
 			}
 
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
@@ -217,7 +283,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 			async function getAllVerifiers(): Promise<Verifier[]> {
 				try {
-					const result = await get('/verifiers/all');
+					const result = await getExternalEntity('/verifiers/all');
 					const { verifiers } = result.data;
 					console.log("verifiers = ", verifiers)
 					return verifiers;
@@ -423,8 +489,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									},
 								});
 								setSession(finishResp, credential, 'signup', true);
-								await addItem('users',finishResp.data.newUser.id, finishResp.data.newUser);
-								await addItem('UserHandleToUserID', base64url.encode(finishResp.data.newUser.webauthnUserHandle), finishResp.data.newUser.id);
 								return Ok.EMPTY;
 
 							} catch (e) {
@@ -476,6 +540,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			return {
 				del,
 				get,
+				getExternalEntity,
 				post,
 
 				updateShowWelcome,
