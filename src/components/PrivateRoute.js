@@ -16,6 +16,7 @@ const PrivateRoute = ({ children }) => {
 	const keystore = useLocalStorageKeystore();
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
+	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -88,6 +89,18 @@ const PrivateRoute = ({ children }) => {
 		}
 	}, [isLoggedIn, location, navigate, isOnline]);
 
+	// New useEffect to detect changes in isOnline status
+	useEffect(() => {
+		if (latestIsOnlineStatus === false && isOnline === true) {
+			const performLogout = async () => {
+				api.clearSession();
+				await keystore.close();
+				window.location.href = '/login';
+			};
+			performLogout();
+		}
+		setLatestIsOnlineStatus(isOnline);
+	}, [isOnline, latestIsOnlineStatus]);
 
 	if (!isLoggedIn) {
 		return <Navigate to="/login" state={{ from: location }} replace />;
@@ -100,9 +113,9 @@ const PrivateRoute = ({ children }) => {
 	}
 	else {
 		return (
-		<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
-			{children}
-		</Layout>
+			<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
+				{children}
+			</Layout>
 		)
 	}
 
