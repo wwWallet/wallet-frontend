@@ -60,7 +60,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined,
 	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
+		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
 	>,
 	signupWebauthn(
 		name: string,
@@ -228,16 +228,23 @@ export function useApi(): BackendApi {
 						const updatePrivateData = await keystore.unlockPassword(privateData, password, userData.webauthnRpId);
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
-							const updateResp = await post(
-								'/user/session/update-private-data',
-								serializePrivateData(newPrivateData),
-								{ appToken: response.data.appToken },
-							);
-							if (updateResp.status === 204) {
-								await keystoreCommit();
-							} else {
-								console.error("Failed to upgrade password key", updateResp.status, updateResp);
-								return Err('loginKeystoreFailed');
+							try {
+								const updateResp = await post(
+									'/user/session/update-private-data',
+									serializePrivateData(newPrivateData),
+									{ appToken: response.data.appToken },
+								);
+								if (updateResp.status === 204) {
+									await keystoreCommit();
+								} else {
+									console.error("Failed to upgrade password key", updateResp.status, updateResp);
+									return Err('loginKeystoreFailed');
+								}
+							} catch (e) {
+								if (e?.message === 'x-private-data-etag') {
+									return Err(e);
+								}
+								throw e;
 							}
 						}
 						setSession(response, null, 'login', false);
@@ -325,7 +332,7 @@ export function useApi(): BackendApi {
 				promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				cachedUser: CachedUser | undefined,
 			): Promise<
-				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
+				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
 			> {
 				try {
 
@@ -387,16 +394,23 @@ export function useApi(): BackendApi {
 								);
 								if (updatePrivateData) {
 									const [newPrivateData, keystoreCommit] = updatePrivateData;
-									const updateResp = await post(
-										'/user/session/update-private-data',
-										serializePrivateData(newPrivateData),
-										{ appToken: finishResp.data.appToken },
-									);
-									if (updateResp.status === 204) {
-										await keystoreCommit();
-									} else {
-										console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
-										return Err('loginKeystoreFailed');
+									try {
+										const updateResp = await post(
+											'/user/session/update-private-data',
+											serializePrivateData(newPrivateData),
+											{ appToken: finishResp.data.appToken },
+										);
+										if (updateResp.status === 204) {
+											await keystoreCommit();
+										} else {
+											console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
+											return Err('loginKeystoreFailed');
+										}
+									} catch (e) {
+										if (e?.message === 'x-private-data-etag') {
+											return Err('x-private-data-etag');
+										}
+										throw e;
 									}
 								}
 								setSession(finishResp, credential, 'login', false);

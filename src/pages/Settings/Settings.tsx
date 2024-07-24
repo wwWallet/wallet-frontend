@@ -735,15 +735,24 @@ const Settings = () => {
 
 	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
 		const [newPrivateData, keystoreCommit] = keystore.deletePrf(credential.credentialId);
-		const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
-			privateData: serializePrivateData(newPrivateData),
-		});
-		if (deleteResp.status === 204) {
-			await keystoreCommit();
-		} else {
-			console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
+		try {
+			const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
+				privateData: serializePrivateData(newPrivateData),
+			});
+			if (deleteResp.status === 204) {
+				await keystoreCommit();
+			} else {
+				console.error("Failed to delete WebAuthn credential", deleteResp.status, deleteResp);
+			}
+			await refreshData();
+
+		} catch (e) {
+			if (e?.message === 'x-private-data-etag') {
+				// TODO: Show this error to the user
+				throw e;
+			}
+			throw e;
 		}
-		await refreshData();
 	};
 
 	const onRenameWebauthnCredential = async (credential: WebauthnCredential, nickname: string): Promise<boolean> => {
@@ -784,6 +793,11 @@ const Settings = () => {
 				console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
 			}
 		} catch (e) {
+			if (e?.message === 'x-private-data-etag') {
+				// TODO: Show this error to the user
+				throw e;
+			}
+
 			console.error("Failed to upgrade PRF key", e);
 			setUpgradePrfState(state => ({ state: "err", err: e, prfKeyInfo, webauthnCredential: state?.webauthnCredential }));
 		}

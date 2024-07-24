@@ -168,6 +168,10 @@ const WebauthnSignupLogin = ({
 						setError(t('loginSignup.passkeyLoginFailedServerError'));
 						break;
 
+					case 'x-private-data-etag':
+						setError(t('loginSignup.privateDataConflict'));
+						break;
+
 					default:
 						throw result;
 				}
