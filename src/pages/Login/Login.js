@@ -452,8 +452,9 @@ const WebauthnSignupLogin = ({
 								</>
 							}
 							variant="primary"
-							disabled={isSubmitting || nameByteLimitReached}
-							additionalClassName={`w-full ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
+							disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
+							additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+							title={!isLogin && !isOnline && t("common.offlineTitle")}
 						/>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
@@ -558,14 +559,16 @@ const Login = () => {
 
 	const toggleForm = (event) => {
 		event.preventDefault();
-		setIsLogin(!isLogin);
-		setError('');
-		setFormData({
-			username: '',
-			password: '',
-			confirmPassword: '',
-		});
-	};
+		if (isOnline || !isLogin) {
+			setIsLogin(!isLogin);
+			setError('');
+			setFormData({
+				username: '',
+				password: '',
+				confirmPassword: '',
+			});
+		};
+	}
 
 	const getPasswordStrength = (password) => {
 		const lengthScore = password.length >= 8 ? 25 : 0;
@@ -732,11 +735,10 @@ const Login = () => {
 										<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 											<a
-												href="/"
-												className={`font-medium text-primary hover:underline dark:text-primary-light ${isOnline ===false && 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline'}`}
-												title={`${isOnline ===false && t('common.offlineTitle')}`}
+												href={isLogin && isOnline ? "/" : ""}
+												className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+												title={`${isOnline === false && t('common.offlineTitle')}`}
 												onClick={toggleForm}
-												disabled={isOnline === false}
 											>
 												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
 											</a>
