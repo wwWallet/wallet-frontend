@@ -1,4 +1,3 @@
-import axios from 'axios';
 import React, { useEffect, Suspense, createContext, useState } from 'react';
 
 const OnlineStatusContext = createContext();
@@ -7,35 +6,15 @@ export const OnlineStatusProvider = ({ children }) => {
 	const [isOnline, setIsOnline] = useState(null);
 
 	const update = async () => {
-		// perform first check
-		try {
-			await axios.get(`${process.env.REACT_APP_WALLET_BACKEND_URL}/status`, { timeout: 2000 })
-			if (isOnline === null || isOnline === false) {
-				setIsOnline(true);
-			}
-		}
-		catch(err) {
-			if (isOnline === null || isOnline === true) {
-				setIsOnline(false);
-			}
-		}
-
-		// loop for checks
-		while (1) {
-			const newStatusUpdate = await new Promise((resolve, reject) => {
+		setIsOnline(() => navigator.onLine)
+		while (1) { // loop for checks
+			await new Promise((resolve, reject) => { // wait 3 seconds
 				setTimeout(() => {
-					// will later use web sockets
-					axios.get(`${process.env.REACT_APP_WALLET_BACKEND_URL}/status`, { timeout: 2000 })
-						.then((res) => {
-							resolve(true);
-						})
-						.catch(err => {
-							resolve(false);
-						});
+					resolve();
 				}, 3000);
 			});
-			if (isOnline === null || isOnline !== newStatusUpdate) {
-				setIsOnline(newStatusUpdate);
+			if (isOnline === null || isOnline !== navigator.onLine) {
+				setIsOnline(() => navigator.onLine);
 			}
 		}
 	}
@@ -43,6 +22,10 @@ export const OnlineStatusProvider = ({ children }) => {
 	useEffect(() => {
 		update();
 	}, [])
+
+	useEffect(() => {
+		console.log("Online status changed to ", isOnline)
+	}, [isOnline])
 
 	return (
 		<OnlineStatusContext.Provider value={{ isOnline }}>

@@ -70,7 +70,7 @@ class WebauthnCredentialEntity {
 
 
 export const LocalAuthentication = () => {
-	const rpId = "localhost";
+	const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
 
 	const makeGetOptions = ({
 		challenge,
