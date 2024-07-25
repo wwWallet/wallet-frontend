@@ -382,9 +382,17 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								}
 								else {
 									const finishResp: { data: any } = { data: {} };
-									const offlineRes = await localAuthentication.loginWebAuthnFinishOffline(beginData, response, credential, cred, cachedUser);
-									finishResp.data.session = offlineRes.session;
-									finishResp.data.newUser = offlineRes.newUser;
+									const userId = await getItem("UserHandleToUserID", response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u);
+									const user = await getItem("users", String(userId));
+									finishResp.data.session = {
+										id: user.id,
+										appToken: "",
+										did: user.did,
+										displayName: user.displayName,
+										privateData: user.privateData,
+										username: null
+									};
+									finishResp.data.newUser = user;
 									finishResp.data.session.appToken = "";
 									return finishResp;
 								}
