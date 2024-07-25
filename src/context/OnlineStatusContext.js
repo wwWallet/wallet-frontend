@@ -6,15 +6,15 @@ export const OnlineStatusProvider = ({ children }) => {
 	const [isOnline, setIsOnline] = useState(null);
 
 	const update = async () => {
-		setIsOnline(() => navigator.onLine)
+		setIsOnline(() => navigator.onLine && navigator.connection?.type !== "unknown")
 		while (1) { // loop for checks
 			await new Promise((resolve, reject) => { // wait 3 seconds
 				setTimeout(() => {
 					resolve();
 				}, 3000);
 			});
-			if (isOnline === null || isOnline !== navigator.onLine) {
-				setIsOnline(() => navigator.onLine);
+			if (isOnline === null || isOnline !== (navigator.onLine && navigator.connection?.type !== "unknown")) {
+				setIsOnline(() => (navigator.onLine && navigator.connection?.type !== "unknown"));
 			}
 		}
 	}
