@@ -99,13 +99,11 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}
 			}
 
-			async function get(path: string, sessionAppToken?: string, sessionId?: number): Promise<AxiosResponse> {
+			async function getWithUserId(path: string, userId: string, sessionAppToken?: string): Promise<AxiosResponse> {
 				const token = appToken || sessionAppToken;
-				const userId = sessionState?.id || sessionId;
-
 				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
-				const respIndexDB = await getItem(path, (userId).toString());
+				const respIndexDB = await getItem(path, userId);
 
 				// Offline case
 				if (!isOnline) {
@@ -124,35 +122,16 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						transformResponse,
 					},
 				);
-				await addItem(path, userId.toString(), respBackend.data);
+				await addItem(path, userId, respBackend.data);
 				return respBackend;
 			}
 
+			async function get(path: string, sessionAppToken?: string, sessionId?: number): Promise<AxiosResponse> {
+				return getWithUserId(path, sessionState?.id || sessionId.toString(), sessionAppToken);
+			}
+
 			async function getExternalEntity(path: string, sessionAppToken?: string): Promise<AxiosResponse> {
-				const token = appToken || sessionAppToken;
-				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
-
-				const respIndexDB = await getItem(path, path);
-
-				// Offline case
-				if (!isOnline) {
-					return {
-						data: respIndexDB,
-					} as AxiosResponse;
-				}
-
-				//Online case
-				const respBackend = await axios.get(
-					`${walletBackendUrl}${path}`,
-					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-						transformResponse,
-					},
-				);
-				await addItem(path, path, respBackend.data);
-				return respBackend;
+				return getWithUserId(path, path, sessionAppToken);
 			}
 
 			async function fetchInitialData(sessionAppToken: string, sessionId: number): Promise<void> {
