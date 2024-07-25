@@ -89,7 +89,6 @@ const PrivateRoute = ({ children }) => {
 		}
 	}, [isLoggedIn, location, navigate, isOnline]);
 
-	// New useEffect to detect changes in isOnline status
 	useEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true) {
 			const performLogout = async () => {
@@ -99,8 +98,12 @@ const PrivateRoute = ({ children }) => {
 			};
 			performLogout();
 		}
-		setLatestIsOnlineStatus(isOnline);
-	}, [isOnline, latestIsOnlineStatus]);
+		if (isLoggedIn) {
+			setLatestIsOnlineStatus(isOnline);
+		} else {
+			setLatestIsOnlineStatus(null);
+		}
+	}, [isLoggedIn, isOnline]);
 
 	if (!isLoggedIn) {
 		return <Navigate to="/login" state={{ from: location }} replace />;
