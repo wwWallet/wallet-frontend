@@ -19,7 +19,7 @@ export const LocalAuthentication = () => {
 		};
 	}
 
-	const createChallenge = async (type: "get") => {
+	const createChallenge = async () => {
 		try {
 			const array = new Uint8Array(32);
 
@@ -37,7 +37,7 @@ export const LocalAuthentication = () => {
 	}
 	return {
 		loginWebAuthnBeginOffline: async (): Promise<{ challengeId: string, getOptions: any }> => {
-			const challenge = await createChallenge("get");
+			const challenge = await createChallenge();
 			const getOptions = makeGetOptions({ challenge: challenge.challenge });
 			return {
 				challengeId: challenge.id,
