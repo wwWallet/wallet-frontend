@@ -219,7 +219,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
 						await keystore.unlockPassword(privateData, password);
-						setSession(response, null, 'login', false);
+						await setSession(response, null, 'login', false);
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to unlock local keystore", e);
@@ -245,7 +245,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSession(response, null, 'signup', true);
+						await setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -392,7 +392,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSession(finishResp, credential, 'login', false);
+								await setSession(finishResp, credential, 'login', false);
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -475,7 +475,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSession(finishResp, credential, 'signup', true);
+								await setSession(finishResp, credential, 'signup', true);
 								return Ok.EMPTY;
 
 							} catch (e) {
