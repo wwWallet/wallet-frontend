@@ -1,37 +1,35 @@
-import React, { useEffect, Suspense, createContext, useState } from 'react';
+import React, { useEffect, createContext, useState } from 'react';
 
 const OnlineStatusContext = createContext();
 
 export const OnlineStatusProvider = ({ children }) => {
-	const [isOnline, setIsOnline] = useState(null);
+	const [isOnline, setIsOnline] = useState(() => navigator.onLine && navigator.connection?.type !== "unknown");
 
-	const update = async () => {
-		setIsOnline(() => navigator.onLine && navigator.connection?.type !== "unknown")
-		while (1) { // loop for checks
-			await new Promise((resolve, reject) => { // wait 3 seconds
-				setTimeout(() => {
-					resolve();
-				}, 3000);
-			});
-			if (isOnline === null || isOnline !== (navigator.onLine && navigator.connection?.type !== "unknown")) {
-				setIsOnline(() => (navigator.onLine && navigator.connection?.type !== "unknown"));
-			}
-		}
-	}
+	const updateOnlineStatus = () => {
+		setIsOnline(navigator.onLine && navigator.connection?.type !== "unknown");
+	};
 
 	useEffect(() => {
-		update();
-	}, [])
+		window.addEventListener('online', updateOnlineStatus);
+		window.addEventListener('offline', updateOnlineStatus);
+		navigator.connection?.addEventListener('change', updateOnlineStatus);
+
+		return () => {
+			window.removeEventListener('online', updateOnlineStatus);
+			window.removeEventListener('offline', updateOnlineStatus);
+			navigator.connection?.removeEventListener('change', updateOnlineStatus);
+		};
+	}, []);
 
 	useEffect(() => {
-		console.log("Online status changed to ", isOnline)
-	}, [isOnline])
+		console.log("Online status changed to ", isOnline);
+	}, [isOnline]);
 
 	return (
 		<OnlineStatusContext.Provider value={{ isOnline }}>
 			{children}
 		</OnlineStatusContext.Provider>
-	)
-}
+	);
+};
 
 export default OnlineStatusContext;
