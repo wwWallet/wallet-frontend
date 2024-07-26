@@ -372,7 +372,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										username: null
 									};
 									finishResp.data.newUser = user;
-									finishResp.data.session.appToken = "";
 									return finishResp;
 								}
 							})() as any;
