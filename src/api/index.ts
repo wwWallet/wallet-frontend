@@ -360,18 +360,21 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									return finishResp;
 								}
 								else {
-									const finishResp: { data: any } = { data: {} };
 									const userId = await getItem("UserHandleToUserID", response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u);
 									const user = await getItem("users", String(userId));
-									finishResp.data.session = {
-										id: user.id,
-										appToken: "",
-										did: user.did,
-										displayName: user.displayName,
-										privateData: user.privateData,
-										username: null
+									const finishResp = {
+										data: {
+											session: {
+												id: user.id,
+												appToken: "",
+												did: user.did,
+												displayName: user.displayName,
+												privateData: user.privateData,
+												username: null
+											},
+											newUser: user,
+										},
 									};
-									finishResp.data.newUser = user;
 									return finishResp;
 								}
 							})() as any;
