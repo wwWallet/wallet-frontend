@@ -102,12 +102,10 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				const token = appToken || sessionAppToken;
 				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
-				const respIndexDB = await getItem(path, userId);
-
 				// Offline case
 				if (!isOnline) {
 					return {
-						data: respIndexDB,
+						data: await getItem(path, userId),
 					} as AxiosResponse;
 				}
 
