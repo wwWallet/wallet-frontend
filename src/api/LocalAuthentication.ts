@@ -22,10 +22,7 @@ export const LocalAuthentication = () => {
 
 			// Fill the array with cryptographically secure random values
 			const challenge = window.crypto.getRandomValues(array);
-			const returnData = {
-				challenge: challenge,
-			};
-			return returnData;
+			return challenge;
 		}
 		catch(err) {
 			return null;
@@ -34,7 +31,7 @@ export const LocalAuthentication = () => {
 	return {
 		loginWebAuthnBeginOffline: async (): Promise<{ getOptions: any }> => {
 			const challenge = await createChallenge();
-			const getOptions = makeGetOptions({ challenge: challenge.challenge });
+			const getOptions = makeGetOptions({ challenge });
 			return {
 				getOptions: getOptions
 			}
