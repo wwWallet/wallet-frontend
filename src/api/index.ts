@@ -336,26 +336,25 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							: beginData.getOptions;
 						const credential = await navigator.credentials.get(getOptions) as PublicKeyCredential;
 						const response = credential.response as AuthenticatorAssertionResponse;
-						const cred = {
-							type: credential.type,
-							id: credential.id,
-							rawId: credential.id,
-							response: {
-								authenticatorData: toBase64Url(response.authenticatorData),
-								clientDataJSON: toBase64Url(response.clientDataJSON),
-								signature: toBase64Url(response.signature),
-								userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
-							},
-							authenticatorAttachment: credential.authenticatorAttachment,
-							clientExtensionResults: credential.getClientExtensionResults(),
-						};
 
 						try {
 							const finishResp = await (async () => {
 								if (isOnline) {
 									const finishResp = await post('/user/login-webauthn-finish', {
 										challengeId: beginData.challengeId,
-										credential: cred
+										credential: {
+											type: credential.type,
+											id: credential.id,
+											rawId: credential.id,
+											response: {
+												authenticatorData: toBase64Url(response.authenticatorData),
+												clientDataJSON: toBase64Url(response.clientDataJSON),
+												signature: toBase64Url(response.signature),
+												userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
+											},
+											authenticatorAttachment: credential.authenticatorAttachment,
+											clientExtensionResults: credential.getClientExtensionResults(),
+										},
 									});
 									return finishResp;
 								}
