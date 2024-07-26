@@ -310,8 +310,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						if (isOnline) {
 							const beginResp = await post('/user/login-webauthn-begin', {});
 							console.log("begin", beginResp);
-							const beginData = beginResp.data;
-							return beginData;
+							return beginResp.data;
 						}
 						else {
 							return loginWebAuthnBeginOffline();
