@@ -19,16 +19,13 @@ export const LocalAuthentication = () => {
 		};
 	}
 
-
-	const createChallenge = async (type: "get", userHandle?: string, prfSalt?: Uint8Array) => {
+	const createChallenge = async (type: "get") => {
 		try {
 			const array = new Uint8Array(32);
 
 			// Fill the array with cryptographically secure random values
 			const challenge = window.crypto.getRandomValues(array);
 			const returnData = {
-				userHandle,
-				prfSalt,
 				id: uuidv4(),
 				challenge: challenge,
 			};
