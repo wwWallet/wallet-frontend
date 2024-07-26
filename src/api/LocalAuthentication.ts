@@ -1,6 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
-
-
 export const LocalAuthentication = () => {
 	const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
 
@@ -26,7 +23,6 @@ export const LocalAuthentication = () => {
 			// Fill the array with cryptographically secure random values
 			const challenge = window.crypto.getRandomValues(array);
 			const returnData = {
-				id: uuidv4(),
 				challenge: challenge,
 			};
 			return returnData;
@@ -36,11 +32,10 @@ export const LocalAuthentication = () => {
 		}
 	}
 	return {
-		loginWebAuthnBeginOffline: async (): Promise<{ challengeId: string, getOptions: any }> => {
+		loginWebAuthnBeginOffline: async (): Promise<{ getOptions: any }> => {
 			const challenge = await createChallenge();
 			const getOptions = makeGetOptions({ challenge: challenge.challenge });
 			return {
-				challengeId: challenge.id,
 				getOptions: getOptions
 			}
 		},
