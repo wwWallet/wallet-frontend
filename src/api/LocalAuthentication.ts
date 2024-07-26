@@ -1,56 +1,15 @@
-import { v4 as uuidv4 } from 'uuid';
+const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
 
-
-export const LocalAuthentication = () => {
-	const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
-
-	const makeGetOptions = ({
-		challenge,
-		user,
-	}: {
-		challenge: Uint8Array,
-		user?: {
-			webauthnCredentials?: any[],
-		},
-	}) => {
-		return {
+export function loginWebAuthnBeginOffline(): { getOptions: { publicKey: PublicKeyCredentialRequestOptions } } {
+	return {
+		getOptions: {
 			publicKey: {
 				rpId: rpId,
-				challenge: challenge,
+				// Throwaway challenge, we won't actually verify this for offline login
+				challenge: window.crypto.getRandomValues(new Uint8Array(32)),
 				allowCredentials: [],
 				userVerification: "required",
 			},
-		};
-	}
-
-
-	const createChallenge = async (type: "get", userHandle?: string, prfSalt?: Uint8Array) => {
-		try {
-			const array = new Uint8Array(32);
-
-			// Fill the array with cryptographically secure random values
-			const challenge = window.crypto.getRandomValues(array);
-			const returnData = {
-				userHandle,
-				prfSalt,
-				id: uuidv4(),
-				challenge: challenge,
-			};
-			return returnData;
-		}
-		catch(err) {
-			return null;
-		}
-	}
-	return {
-		loginWebAuthnBeginOffline: async (): Promise<{ challengeId: string, getOptions: any }> => {
-			const challenge = await createChallenge("get");
-			const getOptions = makeGetOptions({ challenge: challenge.challenge });
-			return {
-				challengeId: challenge.id,
-				getOptions: getOptions
-			}
 		},
-	}
-
+	};
 }

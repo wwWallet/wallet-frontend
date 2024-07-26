@@ -8,7 +8,7 @@ import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
 import { addItem, getItem } from '../indexedDB';
-import { LocalAuthentication } from './LocalAuthentication';
+import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { base64url } from 'jose';
 
 
@@ -83,7 +83,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
-	const localAuthentication = LocalAuthentication();
 
 	return useMemo(
 		() => {
@@ -307,15 +306,17 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 			> {
 				try {
-					const beginData = await (async () => {
+					const beginData = await (async (): Promise<{
+						challengeId?: string,
+						getOptions: { publicKey: PublicKeyCredentialRequestOptions },
+					}> => {
 						if (isOnline) {
 							const beginResp = await post('/user/login-webauthn-begin', {});
 							console.log("begin", beginResp);
-							const beginData = beginResp.data;
-							return beginData;
+							return beginResp.data;
 						}
 						else {
-							return localAuthentication.loginWebAuthnBeginOffline();
+							return loginWebAuthnBeginOffline();
 						}
 					})();
 
@@ -328,7 +329,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									...beginData.getOptions.publicKey,
 									allowCredentials: prfInputs.allowCredentials,
 									extensions: {
-										...beginData.getOptions.extensions,
+										...beginData.getOptions.publicKey.extensions,
 										prf: prfInputs.prfInput,
 									},
 								},
@@ -336,26 +337,25 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							: beginData.getOptions;
 						const credential = await navigator.credentials.get(getOptions) as PublicKeyCredential;
 						const response = credential.response as AuthenticatorAssertionResponse;
-						const cred = {
-							type: credential.type,
-							id: credential.id,
-							rawId: credential.id,
-							response: {
-								authenticatorData: toBase64Url(response.authenticatorData),
-								clientDataJSON: toBase64Url(response.clientDataJSON),
-								signature: toBase64Url(response.signature),
-								userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
-							},
-							authenticatorAttachment: credential.authenticatorAttachment,
-							clientExtensionResults: credential.getClientExtensionResults(),
-						};
 
 						try {
 							const finishResp = await (async () => {
 								if (isOnline) {
 									const finishResp = await post('/user/login-webauthn-finish', {
 										challengeId: beginData.challengeId,
-										credential: cred
+										credential: {
+											type: credential.type,
+											id: credential.id,
+											rawId: credential.id,
+											response: {
+												authenticatorData: toBase64Url(response.authenticatorData),
+												clientDataJSON: toBase64Url(response.clientDataJSON),
+												signature: toBase64Url(response.signature),
+												userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
+											},
+											authenticatorAttachment: credential.authenticatorAttachment,
+											clientExtensionResults: credential.getClientExtensionResults(),
+										},
 									});
 									return finishResp;
 								}
