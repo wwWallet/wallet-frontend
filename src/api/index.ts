@@ -306,7 +306,10 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 			> {
 				try {
-					const beginData = await (async () => {
+					const beginData = await (async (): Promise<{
+						challengeId?: string,
+						getOptions: { publicKey: PublicKeyCredentialRequestOptions },
+					}> => {
 						if (isOnline) {
 							const beginResp = await post('/user/login-webauthn-begin', {});
 							console.log("begin", beginResp);
@@ -326,7 +329,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									...beginData.getOptions.publicKey,
 									allowCredentials: prfInputs.allowCredentials,
 									extensions: {
-										...beginData.getOptions.extensions,
+										...beginData.getOptions.publicKey.extensions,
 										prf: prfInputs.prfInput,
 									},
 								},
