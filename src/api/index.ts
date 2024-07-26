@@ -341,7 +341,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						try {
 							const finishResp = await (async () => {
 								if (isOnline) {
-									const finishResp = await post('/user/login-webauthn-finish', {
+									return await post('/user/login-webauthn-finish', {
 										challengeId: beginData.challengeId,
 										credential: {
 											type: credential.type,
@@ -357,12 +357,11 @@ export function useApi(isOnline: boolean = true): BackendApi {
 											clientExtensionResults: credential.getClientExtensionResults(),
 										},
 									});
-									return finishResp;
 								}
 								else {
 									const userId = await getItem("UserHandleToUserID", response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u);
 									const user = await getItem("users", String(userId));
-									const finishResp = {
+									return {
 										data: {
 											session: {
 												id: user.id,
@@ -375,7 +374,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 											newUser: user,
 										},
 									};
-									return finishResp;
 								}
 							})() as any;
 
