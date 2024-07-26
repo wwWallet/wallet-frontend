@@ -98,14 +98,14 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}
 			}
 
-			async function getWithUserId(path: string, userId: string, sessionAppToken?: string): Promise<AxiosResponse> {
+			async function getWithLocalDbKey(path: string, dbKey: string, sessionAppToken?: string): Promise<AxiosResponse> {
 				const token = appToken || sessionAppToken;
 				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 				// Offline case
 				if (!isOnline) {
 					return {
-						data: await getItem(path, userId),
+						data: await getItem(path, dbKey),
 					} as AxiosResponse;
 				}
 
@@ -119,16 +119,16 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						transformResponse,
 					},
 				);
-				await addItem(path, userId, respBackend.data);
+				await addItem(path, dbKey, respBackend.data);
 				return respBackend;
 			}
 
 			async function get(path: string, sessionAppToken?: string, sessionId?: number): Promise<AxiosResponse> {
-				return getWithUserId(path, sessionState?.id || sessionId.toString(), sessionAppToken);
+				return getWithLocalDbKey(path, sessionState?.id || sessionId.toString(), sessionAppToken);
 			}
 
 			async function getExternalEntity(path: string, sessionAppToken?: string): Promise<AxiosResponse> {
-				return getWithUserId(path, path, sessionAppToken);
+				return getWithLocalDbKey(path, path, sessionAppToken);
 			}
 
 			async function fetchInitialData(sessionAppToken: string, sessionId: number): Promise<void> {
