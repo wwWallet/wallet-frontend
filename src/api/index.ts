@@ -124,7 +124,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			}
 
 			async function get(path: string, sessionAppToken?: string, sessionId?: number): Promise<AxiosResponse> {
-				return getWithLocalDbKey(path, sessionState?.id || sessionId.toString(), sessionAppToken);
+				return getWithLocalDbKey(path, sessionState?.id.toString() || sessionId.toString(), sessionAppToken);
 			}
 
 			async function getExternalEntity(path: string, sessionAppToken?: string): Promise<AxiosResponse> {
