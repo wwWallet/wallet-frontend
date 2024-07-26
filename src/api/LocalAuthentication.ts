@@ -6,12 +6,8 @@ export const LocalAuthentication = () => {
 
 	const makeGetOptions = ({
 		challenge,
-		user,
 	}: {
 		challenge: Uint8Array,
-		user?: {
-			webauthnCredentials?: any[],
-		},
 	}) => {
 		return {
 			publicKey: {
