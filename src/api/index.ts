@@ -8,7 +8,7 @@ import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
 import { addItem, getItem } from '../indexedDB';
-import { LocalAuthentication } from './LocalAuthentication';
+import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { base64url } from 'jose';
 
 
@@ -83,7 +83,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
-	const localAuthentication = LocalAuthentication();
 
 	return useMemo(
 		() => {
@@ -315,7 +314,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							return beginData;
 						}
 						else {
-							return localAuthentication.loginWebAuthnBeginOffline();
+							return loginWebAuthnBeginOffline();
 						}
 					})();
 

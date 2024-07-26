@@ -1,20 +1,15 @@
-export const LocalAuthentication = () => {
-	const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
+const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
 
+export async function loginWebAuthnBeginOffline(): Promise<{ getOptions: any }> {
 	return {
-		loginWebAuthnBeginOffline: async (): Promise<{ getOptions: any }> => {
-			return {
-				getOptions: {
-					publicKey: {
-						rpId: rpId,
-						// Throwaway challenge, we won't actually verify this for offline login
-						challenge: window.crypto.getRandomValues(new Uint8Array(32)),
-						allowCredentials: [],
-						userVerification: "required",
-					},
-				},
-			}
+		getOptions: {
+			publicKey: {
+				rpId: rpId,
+				// Throwaway challenge, we won't actually verify this for offline login
+				challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+				allowCredentials: [],
+				userVerification: "required",
+			},
 		},
-	}
-
+	};
 }
