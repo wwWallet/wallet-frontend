@@ -16,22 +16,12 @@ export const LocalAuthentication = () => {
 		};
 	}
 
-	const createChallenge = async () => {
-		try {
-			const array = new Uint8Array(32);
-
-			// Fill the array with cryptographically secure random values
-			const challenge = window.crypto.getRandomValues(array);
-			return challenge;
-		}
-		catch(err) {
-			return null;
-		}
-	}
 	return {
 		loginWebAuthnBeginOffline: async (): Promise<{ getOptions: any }> => {
-			const challenge = await createChallenge();
-			const getOptions = makeGetOptions({ challenge });
+			const getOptions = makeGetOptions({
+				// Throwaway challenge, we won't actually verify this for offline login
+				challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+			});
 			return {
 				getOptions: getOptions
 			}
