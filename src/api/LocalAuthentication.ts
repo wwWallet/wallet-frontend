@@ -1,4 +1,4 @@
-const rpId = process.env.REACT_APP_WEBAUTHN_RPID;
+const rpId = process.env.REACT_APP_WEBAUTHN_RPID ?? "localhost";
 
 export function loginWebAuthnBeginOffline(): { getOptions: { publicKey: PublicKeyCredentialRequestOptions } } {
 	return {
