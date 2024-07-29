@@ -45,7 +45,8 @@ describe("The keystore", () => {
 	});
 
 	it("can initialize the key store with a password key.", async () => {
-		const { mainKey, keyInfo } = await keystore.initPassword("Asdf123!");
+		// 1000 iterations is artificially low to keep the test fast
+		const { mainKey, keyInfo } = await keystore.initPassword("Asdf123!", { pbkdfIterations: 1000 });
 		const { privateData } = await keystore.init(mainKey, keyInfo, "jwk_jcs-pub");
 		const [unlocked, ] = await keystore.unlockPassword(privateData, "Asdf123!");
 		assert.isNotNull(unlocked);

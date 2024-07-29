@@ -853,11 +853,14 @@ export async function init(
 	};
 }
 
-export async function initPassword(password: string): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
+export async function initPassword(
+	password: string,
+	options?: { pbkdfIterations: number },
+): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
 	const pbkdf2Params: Pbkdf2Params = {
 		name: "PBKDF2",
 		hash: pbkdfHash,
-		iterations: pbkdfIterations,
+		iterations: options?.pbkdfIterations ?? pbkdfIterations,
 		salt: crypto.getRandomValues(new Uint8Array(32)),
 	};
 	const deriveKeyInfo: DerivePasswordKeyInfo = {
