@@ -9,7 +9,6 @@ import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
 import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
 import * as config from '../config';
-import { verifiablePresentationSchemaURL } from "../constants";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 
 
@@ -579,7 +578,7 @@ export async function signJwtPresentation([privateData, sessionKey]: [PrivateDat
 		.setType(["VerifiablePresentation"])
 		.setAudience(audience)
 		.setCredentialSchema(
-			verifiablePresentationSchemaURL,
+			config.verifiablePresentationSchemaURL,
 			"FullJsonSchemaValidator2021")
 		.setIssuer(did)
 		.setSubject(did)

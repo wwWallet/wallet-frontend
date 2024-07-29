@@ -15,3 +15,5 @@ export const FIREBASE_VAPIDKEY = process.env.REACT_APP_FIREBASE_VAPIDKEY;
 export const LOGIN_WITH_PASSWORD: boolean = process.env.REACT_APP_LOGIN_WITH_PASSWORD === 'true';
 export const WEBAUTHN_RPID = process.env.REACT_APP_WEBAUTHN_RPID ?? "localhost";
 export const WS_URL = process.env.REACT_APP_WS_URL;
+
+export const verifiablePresentationSchemaURL = "https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/zFj7VdCiHdG4GB6fezdAUKhDEuxFR2bri2ihKLkiZYpE9";
