@@ -94,27 +94,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	 */
 	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
 
-	function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
-		if (resp.headers['x-private-data-etag']) {
-			setPrivateDataEtag(resp.headers['x-private-data-etag']);
-		}
-		return resp;
-	}
-
-	function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
-		const authz = headers?.appToken || appToken;
-		return {
-			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
-		};
-	}
-
-	function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
-		return {
-			...buildGetHeaders(headers),
-			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
-		};
-	}
-
 	return useMemo(
 		() => {
 			function getAppToken(): string | null {
@@ -127,6 +106,28 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				} else {
 					return data;
 				}
+			}
+
+			function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
+				const newValue = resp.headers['x-private-data-etag']
+				if (newValue) {
+					setPrivateDataEtag(newValue);
+				}
+				return resp;
+			}
+
+			function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
+				const authz = headers?.appToken || appToken;
+				return {
+					...(authz ? { Authorization: `Bearer ${authz}` } : {}),
+				};
+			}
+
+			function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
+				return {
+					...buildGetHeaders(headers),
+					...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
+				};
 			}
 
 			async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }): Promise<AxiosResponse> {
