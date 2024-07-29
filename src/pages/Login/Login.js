@@ -345,7 +345,7 @@ const WebauthnSignupLogin = ({
 											/>
 											<GetButton
 												type="submit"
-												content={t('loginSignup.tryAgain')}
+												content={t('common.tryAgain')}
 												variant="secondary"
 											/>
 										</div>

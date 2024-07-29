@@ -1,6 +1,8 @@
+export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
+
 export const APP_VERSION = process.env.REACT_APP_VERSION;
 export const BACKEND_URL = process.env.REACT_APP_WALLET_BACKEND_URL;
-export const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION;
+export const DID_KEY_VERSION: DidKeyVersion = process.env.REACT_APP_DID_KEY_VERSION as DidKeyVersion;
 export const DISPLAY_CONSOLE = process.env.REACT_APP_DISPLAY_CONSOLE;
 export const FIREBASE = {
 	apiKey: process.env.REACT_APP_FIREBASE_API_KEY,

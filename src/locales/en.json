@@ -18,6 +18,7 @@
 		"previous": "Previous",
 		"save": "Save",
 		"submit": "Submit",
+		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
 	"browserSupportWarningPortal": {
@@ -80,6 +81,7 @@
 		"passwordShowAriaLabel": "Show password",
 		"passwordHideTitle": "Click to hide password",
 		"passwordShowTitle": "Click to show password",
+		"passwordUnlockFailed": "Failed to unlock wallet with password",
 		"signUp": "Sign Up",
 		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
@@ -88,7 +90,6 @@
 		"reachedLengthLimit": "Length limit exceeded",
 		"strength": "Strength",
 		"submitting": "Submitting...",
-		"tryAgain": "Try again",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
@@ -188,9 +189,12 @@
 			"lastUsed": "Last Used",
 			"messageDeletePasskeyPart1": "Are you sure you want to delete",
 			"messageDeletePasskeyPart2": "passkey?",
+			"needsPrfUpgrade": "Needs upgrade",
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
 			"nicknameInputAriaLabel": "Enter new nickname for passkey {{passkeyLabel}}",
+			"prfUpgrade": "Upgrade",
+			"prfUpgradeAriaLabel": "Upgrade passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
 			"renameButtonTitleLocked": "You cannot edit passkey while locked",
@@ -213,7 +217,18 @@
 			"manageOtherPasskeys": "Manage other Passkeys"
 		},
 		"unlockPasskeyManagement": "Unlock management",
-		"unlockPasskeyManagementTitle": "Click to Unlock management"
+		"unlockPasskeyManagementTitle": "Click to Unlock management",
+		"unlockPassword": {
+			"description": "Please enter your password to unlock the wallet.",
+			"passwordInputAriaLabel": "Password",
+			"passwordInputPlaceholder": "Password",
+			"title": "Enter password"
+		},
+		"upgradePrfKey": {
+			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
+			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
+			"title": "Upgrading passkey encryption key"
+		}
 	},
 	"PinInputPopup": {
 		"description": "Please enter the PIN which was displayed from the issuer",
