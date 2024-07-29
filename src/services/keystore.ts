@@ -8,11 +8,11 @@ import { v4 as uuidv4 } from "uuid";
 import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
 import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
+import * as config from '../config';
 import { verifiablePresentationSchemaURL } from "../constants";
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 
 
-const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION;
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
 
@@ -515,11 +515,11 @@ async function createWallet(mainKey: CryptoKey): Promise<{ publicData: PublicDat
 	const publicKeyJWK: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
 
 	let did = null;
-	if (DID_KEY_VERSION === "p256-pub") {
+	if (config.DID_KEY_VERSION === "p256-pub") {
 		const { didKeyString } = await createW3CDID(publicKey);
 		did = didKeyString;
 	}
-	else if (DID_KEY_VERSION === "jwk_jcs-pub") {
+	else if (config.DID_KEY_VERSION === "jwk_jcs-pub") {
 		did = util.createDid(publicKeyJWK as JWK);
 	}
 	else {
