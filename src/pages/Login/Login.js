@@ -1,15 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
-
+import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
+import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
@@ -108,7 +109,9 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 }) => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+
+	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
@@ -449,8 +452,9 @@ const WebauthnSignupLogin = ({
 								</>
 							}
 							variant="primary"
-							disabled={isSubmitting || nameByteLimitReached}
-							additionalClassName={`w-full ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
+							disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
+							additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+							title={!isLogin && !isOnline && t("common.offlineTitle")}
 						/>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
@@ -461,7 +465,8 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -554,14 +559,16 @@ const Login = () => {
 
 	const toggleForm = (event) => {
 		event.preventDefault();
-		setIsLogin(!isLogin);
-		setError('');
-		setFormData({
-			username: '',
-			password: '',
-			confirmPassword: '',
-		});
-	};
+		if (isOnline || !isLogin) {
+			setIsLogin(!isLogin);
+			setError('');
+			setFormData({
+				username: '',
+				password: '',
+				confirmPassword: '',
+			});
+		};
+	}
 
 	const getPasswordStrength = (password) => {
 		const lengthScore = password.length >= 8 ? 25 : 0;
@@ -647,11 +654,24 @@ const Login = () => {
 										</p>
 									</CheckBrowserSupport.If>
 								</CheckBrowserSupport.Ctx>
-								<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
+								<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
 									<CheckBrowserSupport.WarningPortal>
 										<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 											{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 										</h1>
+										<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+											{isOnline ? (
+												<PiWifiHighBold size={25} title={t('common.online')} />
+											) : (
+												<PiWifiSlashBold size={25} title={t('common.offline')} />
+											)}
+										</div>
+										{isOnline === false && (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+												<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+												{t('loginSignup.messageOffline')}
+											</p>
+										)}
 										{(loginWithPassword) ?
 											<>
 												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
@@ -715,8 +735,9 @@ const Login = () => {
 										<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 											<a
-												href="/"
-												className="font-medium text-primary hover:underline dark:text-primary-light"
+												href={isLogin && isOnline ? "/" : ""}
+												className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+												title={`${isOnline === false && t('common.offlineTitle')}`}
 												onClick={toggleForm}
 											>
 												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}

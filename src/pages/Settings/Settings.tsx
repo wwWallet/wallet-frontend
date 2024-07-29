@@ -1,4 +1,4 @@
-import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -13,6 +13,11 @@ import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+
+interface OnlineStatusContextType {
+	isOnline: boolean | null;
+}
 
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
@@ -85,6 +90,7 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
+	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
 	const api = useApi();
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -209,11 +215,11 @@ const WebauthnRegistation = ({
 				}
 				onClick={onBegin}
 				variant="primary"
-				disabled={registrationInProgress || !unlocked}
+				disabled={registrationInProgress || !unlocked || !isOnline}
 				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
 
-				ariaLabel={unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-				title={unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 			/>
 
 			<Dialog
@@ -317,6 +323,7 @@ const UnlockMainKey = ({
 	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
+	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
 	const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
@@ -413,9 +420,9 @@ const UnlockMainKey = ({
 				}
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
-				disabled={inProgress}
-				ariaLabel={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement')) : ""}
-				title={window.innerWidth < 768 ? (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle')) : ""}
+				disabled={inProgress || (!unlocked && !isOnline)}
+				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
+				title={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
 			/>
 			<Dialog
 				open={isPromptingForPassword}
@@ -480,6 +487,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 }) => {
+	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
@@ -629,9 +637,9 @@ const WebauthnCredentialItem = ({
 							}
 							onClick={() => setEditing(true)}
 							variant="secondary"
-							disabled={onDelete && !unlocked}
+							disabled={(onDelete && !unlocked) || !isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-							title={onDelete && !unlocked ? t("pageSettings.passkeyItem.renameButtonTitleLocked") : ""}
+							title={!isOnline ? t("common.offlineTitle") : onDelete && !unlocked && t("pageSettings.passkeyItem.renameButtonTitleLocked")}
 						/>
 					)
 				}
@@ -641,9 +649,9 @@ const WebauthnCredentialItem = ({
 						content={<FaTrash size={16} />}
 						onClick={openDeleteConfirmation}
 						variant="delete"
-						disabled={!unlocked}
+						disabled={!unlocked || !isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-						title={!unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+						title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
 					/>
 				)}
@@ -663,10 +671,9 @@ const WebauthnCredentialItem = ({
 	);
 };
 
-
-
 const Settings = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
@@ -886,8 +893,8 @@ const Settings = () => {
 										content={t('pageSettings.deleteAccount.buttonText')}
 										onClick={openDeleteConfirmation}
 										variant="delete"
-										disabled={!unlocked}
-										title={!unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+										disabled={!unlocked || !isOnline}
+										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
 									/>
 								</div>
 							</div>
