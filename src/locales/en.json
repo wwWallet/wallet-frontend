@@ -12,6 +12,9 @@
 		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
 		"next": "Next",
+		"online": "Online",
+		"offline": "Offline",
+		"offlineTitle": "You are offline. You don't have access here right now.",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"save": "Save",
@@ -35,7 +38,8 @@
 	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
-		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
+		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
+		"messageOffline": "You are currently <strong>offline. Some features may not be available.</strong>"
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
@@ -59,6 +63,7 @@
 		"loginOtherPasskey": "Login with other passkey",
 		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
+		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "New here? ",
 		"number": "At least one number",
 		"or": "OR",

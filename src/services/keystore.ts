@@ -8,11 +8,11 @@ import { v4 as uuidv4 } from "uuid";
 import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
 import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
-import { verifiablePresentationSchemaURL } from "../constants";
+import * as config from '../config';
+import type { DidKeyVersion } from '../config';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 
 
-export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
 
@@ -591,7 +591,6 @@ export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]):
 
 async function getPrfOutput(
 	credential: PublicKeyCredential | null,
-	rpId: string,
 	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
 	promptForRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
@@ -607,14 +606,14 @@ async function getPrfOutput(
 			try {
 				const retryCred = await navigator.credentials.get({
 					publicKey: {
-						rpId,
+						rpId: config.WEBAUTHN_RPID,
 						challenge: crypto.getRandomValues(new Uint8Array(32)),
 						allowCredentials: prfInputs?.allowCredentials,
 						extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
 					},
 					signal: retryOrAbortSignal === true ? undefined : retryOrAbortSignal,
 				}) as PublicKeyCredential;
-				return await getPrfOutput(retryCred, rpId, prfInputs, async () => false);
+				return await getPrfOutput(retryCred, prfInputs, async () => false);
 			} catch (err) {
 				if (err instanceof DOMException && err.name === "NotAllowedError") {
 					throw { errorId: "prf_retry_failed", credential };
@@ -635,14 +634,12 @@ async function getPrfOutput(
 async function createPrfKey(
 	credential: PublicKeyCredential,
 	prfSalt: Uint8Array,
-	rpId: string,
 	mainKeyInfo: EphemeralEncapsulationInfo,
 	mainKey: CryptoKey,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<WebauthnPrfEncryptionKeyInfoV2> {
 	const [prfOutput,] = await getPrfOutput(
 		credential,
-		rpId,
 		makeRegistrationPrfExtensionInputs(credential, prfSalt),
 		promptForPrfRetry,
 	);
@@ -664,12 +661,10 @@ async function createPrfKey(
 export async function getPrfKey(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential | null,
-	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[CryptoKey, WebauthnPrfEncryptionKeyInfo, PublicKeyCredential]> {
 	const [prfOutput, prfCredential] = await getPrfOutput(
 		credential,
-		rpId,
 		makeAssertionPrfExtensionInputs(privateData.prfKeys),
 		promptForPrfRetry,
 	);
@@ -684,7 +679,6 @@ export async function upgradePrfKey(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential | null,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfoV1,
-	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
 	const [prfKey,, prfCredential] = await getPrfKey(
@@ -695,7 +689,6 @@ export async function upgradePrfKey(
 			)),
 		},
 		credential,
-		rpId,
 		promptForPrfRetry,
 	);
 
@@ -710,7 +703,6 @@ export async function upgradePrfKey(
 				const newPrfKeyInfo = await createPrfKey(
 					prfCredential,
 					prfKeyInfo.prfSalt,
-					rpId,
 					mainKeyInfo,
 					mainKey,
 					async () => false,
@@ -728,7 +720,6 @@ export async function upgradePrfKey(
 export async function addPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
-	rpId: string,
 	[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
@@ -739,7 +730,6 @@ export async function addPrf(
 	const keyInfo = await createPrfKey(
 		credential,
 		prfSalt,
-		rpId,
 		mainKeyInfo,
 		mainKey,
 		promptForPrfRetry,
@@ -819,10 +809,9 @@ export async function unlockPassword(
 export async function unlockPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
-	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[UnlockSuccess, EncryptedContainer | null]> {
-	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, rpId, promptForPrfRetry);
+	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
 	const mainKey = isPrfKeyV2(keyInfo)
 		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(prfKey, null, keyInfo.mainKey);
@@ -830,7 +819,7 @@ export async function unlockPrf(
 	const newPrivateData = (
 		isPrfKeyV2(keyInfo)
 			? null
-			: await upgradePrfKey(privateData, prfCredential, keyInfo, rpId, promptForPrfRetry)
+			: await upgradePrfKey(privateData, prfCredential, keyInfo, promptForPrfRetry)
 	);
 
 	return [await unlock(mainKey, privateData), newPrivateData];
@@ -853,11 +842,14 @@ export async function init(
 	};
 }
 
-export async function initPassword(password: string): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
+export async function initPassword(
+	password: string,
+	options?: { pbkdfIterations: number },
+): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
 	const pbkdf2Params: Pbkdf2Params = {
 		name: "PBKDF2",
 		hash: pbkdfHash,
-		iterations: pbkdfIterations,
+		iterations: options?.pbkdfIterations ?? pbkdfIterations,
 		salt: crypto.getRandomValues(new Uint8Array(32)),
 	};
 	const deriveKeyInfo: DerivePasswordKeyInfo = {
@@ -885,14 +877,12 @@ export async function initPassword(password: string): Promise<{ mainKey: CryptoK
 export async function initPrf(
 	credential: PublicKeyCredential,
 	prfSalt: Uint8Array,
-	rpId: string,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
 	const mainKeyInfo = await createAsymmetricMainKey();
 	const keyInfo = await createPrfKey(
 		credential,
 		prfSalt,
-		rpId,
 		mainKeyInfo.keyInfo,
 		mainKeyInfo.mainKey,
 		promptForPrfRetry,
@@ -1024,7 +1014,7 @@ export async function signJwtPresentation([privateData, sessionKey]: [PrivateDat
 		.setType(["VerifiablePresentation"])
 		.setAudience(audience)
 		.setCredentialSchema(
-			verifiablePresentationSchemaURL,
+			config.verifiablePresentationSchemaURL,
 			"FullJsonSchemaValidator2021")
 		.setIssuer(did)
 		.setSubject(did)

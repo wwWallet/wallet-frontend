@@ -35,17 +35,17 @@ describe("The keystore", () => {
 		const { mainKey, keyInfo } = await keystore.initPrf(
 			mockCredential,
 			prfSalt,
-			"localhost",
 			async () => false,
 		);
 		const { privateData } = await keystore.init(mainKey, keyInfo, "p256-pub");
-		const [unlocked, ] = await keystore.unlockPrf(privateData, mockCredential, "localhost", async () => false);
+		const [unlocked, ] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		assert.isNotNull(unlocked);
 		assert.isNotNull(unlocked.privateDataCache.prfKeys[0]);
 	});
 
 	it("can initialize the key store with a password key.", async () => {
-		const { mainKey, keyInfo } = await keystore.initPassword("Asdf123!");
+		// 1000 iterations is artificially low to keep the test fast
+		const { mainKey, keyInfo } = await keystore.initPassword("Asdf123!", { pbkdfIterations: 1000 });
 		const { privateData } = await keystore.init(mainKey, keyInfo, "jwk_jcs-pub");
 		const [unlocked, ] = await keystore.unlockPassword(privateData, "Asdf123!");
 		assert.isNotNull(unlocked);
@@ -62,7 +62,6 @@ describe("The keystore", () => {
 					id: privateData.prfKeys[0].credentialId,
 					prfOutput: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 				}),
-				"localhost",
 				async () => false,
 			);
 			assert.strictEqual(unlocked.privateDataCache, privateData);
@@ -77,7 +76,6 @@ describe("The keystore", () => {
 							id: privateData.prfKeys[0].credentialId,
 							prfOutput: fromBase64("KgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 						}),
-						"localhost",
 						async () => false,
 					),
 				"Expected unlock with incorrect PRF output to fail",
@@ -95,7 +93,6 @@ describe("The keystore", () => {
 					id: privateData.prfKeys[0].credentialId,
 					prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 				}),
-				"localhost",
 				async () => false,
 			);
 			assert.strictEqual(unlocked.privateDataCache, privateData);
@@ -111,7 +108,6 @@ describe("The keystore", () => {
 							id: privateData.prfKeys[0].credentialId,
 							prfOutput: fromBase64("1WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 						}),
-						"localhost",
 						async () => false,
 					),
 				"Expected unlock with incorrect PRF output to fail",
@@ -215,7 +211,6 @@ describe("The keystore", () => {
 					id: privateData.prfKeys[0].credentialId,
 					prfOutput: fromBase64("TFHyH8pMltWz3S9rl20+HSvy1+hnMZnmvjmZL5ghjNo="),
 				}),
-				"localhost",
 				async () => false,
 			);
 			assert.strictEqual(unlocked.privateDataCache, privateData);
@@ -262,7 +257,7 @@ describe("The keystore", () => {
 			id: credentialId,
 			prfOutput: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 		});
-		const [unlocked, newPrivateData] = await keystore.unlockPrf(privateData, mockCredential, "localhost", async () => false);
+		const [unlocked, newPrivateData] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		assert.strictEqual(unlocked.privateDataCache, privateData);
 		assert.isNotNull(newPrivateData);
 		assert.isTrue(
@@ -271,7 +266,7 @@ describe("The keystore", () => {
 			"Expected PRF key to be upgraded to V2 in new private data",
 		);
 
-		const [unlocked2, newPrivateData2] = await keystore.unlockPrf(newPrivateData, mockCredential, "localhost", async () => false);
+		const [unlocked2, newPrivateData2] = await keystore.unlockPrf(newPrivateData, mockCredential, async () => false);
 		assert.strictEqual(unlocked2.privateDataCache, newPrivateData);
 		assert.isNull(newPrivateData2, "Expected no upgrade when PRF key is already V2");
 	});
@@ -312,7 +307,6 @@ describe("The keystore", () => {
 				id: credentialId,
 				prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
 			}),
-			"localhost",
 			[passwordKey, privateData.passwordKey],
 			async () => false,
 		);
@@ -332,7 +326,6 @@ describe("The keystore", () => {
 				id: privateData.prfKeys[0].credentialId,
 				prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 			}),
-			"localhost",
 			async () => false,
 		);
 
@@ -343,7 +336,6 @@ describe("The keystore", () => {
 				id: newCredentialId,
 				prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
 			}),
-			"localhost",
 			[prfKey, keyInfo as keystore.WebauthnPrfEncryptionKeyInfoV2],
 			async () => false,
 		);
@@ -371,7 +363,6 @@ describe("The keystore", () => {
 		const [prfKey1, prfKeyInfo1,] = await keystore.getPrfKey(
 			privateData,
 			mockCredential1,
-			"localhost",
 			async () => false,
 		) as [CryptoKey, keystore.WebauthnPrfEncryptionKeyInfoV2, any];
 
@@ -382,7 +373,6 @@ describe("The keystore", () => {
 		const [prfKey2, prfKeyInfo2,] = await keystore.getPrfKey(
 			privateData,
 			mockCredential2,
-			"localhost",
 			async () => false,
 		) as [CryptoKey, keystore.WebauthnPrfEncryptionKeyInfoV2, any];
 
@@ -414,8 +404,8 @@ describe("The keystore", () => {
 
 		for (const [unlocked, newPrivateData2] of [
 			await keystore.unlockPassword(newPrivateData, "Asdf123!"),
-			await keystore.unlockPrf(newPrivateData, mockCredential1, "localhost", async () => false),
-			await keystore.unlockPrf(newPrivateData, mockCredential2, "localhost", async () => false),
+			await keystore.unlockPrf(newPrivateData, mockCredential1, async () => false),
+			await keystore.unlockPrf(newPrivateData, mockCredential2, async () => false),
 		]) {
 			assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
 			assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");

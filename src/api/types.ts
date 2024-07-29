@@ -8,13 +8,13 @@ export type Verifier = {
 	}[];
 }
 export type UserData = {
+	id: number;
 	displayName: string;
 	did: string;
 	publicKey: JsonWebKey;
 	webauthnUserHandle: string;
 	webauthnCredentials: WebauthnCredential[];
 	privateData: Uint8Array;
-	webauthnRpId: string,
 }
 
 export type WebauthnCredential = {

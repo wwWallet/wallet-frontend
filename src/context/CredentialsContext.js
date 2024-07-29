@@ -1,11 +1,13 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import { useApi } from '../api';
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
+import OnlineStatusContext from '../context/OnlineStatusContext';
 
 const CredentialsContext = createContext();
 
 export const CredentialsProvider = ({ children }) => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const [vcEntityList, setVcEntityList] = useState([]);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 
