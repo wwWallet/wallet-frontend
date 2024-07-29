@@ -8,7 +8,7 @@ import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
-import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
+import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../components/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { base64url } from 'jose';
@@ -91,7 +91,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	 * this MUST be refreshed only when a new version of the private data is
 	 * loaded into the keystore or successfully uploaded to the server.
 	 */
-	const [privateDataEtag, setPrivateDataEtag] = useSessionStorage<string | null>("privateDataEtag", null);
+	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
 
 	function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
 		if (resp.headers['x-private-data-etag']) {
