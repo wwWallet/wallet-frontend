@@ -100,34 +100,18 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		return resp;
 	}
 
-	/**
-	 * Wrap a request function to check for status code 412 (Precondition Failed)
-	 * and retry the request with the addition of the `X-Private-Data-If-Match`
-	 * header if the response has an `X-Private-Data-ETag` header matching the
-	 * current local copy of `X-Private-Data-ETag`.
-	 *
-	 * The local copy of `X-Private-Data-ETag` must be initialized explicitly
-	 * using the `updatePrivateDataEtag` function. This is done in the signup and
-	 * login functions.
-	 */
-	async function retryWithPrivateDataEtag(
-		func: (additionalHeaders?: { [name: string]: string }) => Promise<AxiosResponse>,
-	): Promise<AxiosResponse> {
-		try {
-			return await func();
-		} catch (e) {
-			if (e.response?.status === 412) {
-				const remotePrivateDataEtag = (e.response?.headers || {})['x-private-data-etag'];
-				if (remotePrivateDataEtag) {
-					if (remotePrivateDataEtag === privateDataEtag) {
-						return updatePrivateDataEtag(await func({ 'X-Private-Data-If-Match': privateDataEtag }));
-					} else {
-						throw new Error('x-private-data-etag');
-					}
-				}
-			}
-			throw e;
-		}
+	function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
+		const authz = headers?.appToken || appToken;
+		return {
+			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
+		};
+	}
+
+	function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
+		return {
+			...buildGetHeaders(headers),
+			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
+		};
 	}
 
 	return useMemo(
@@ -145,7 +129,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			}
 
 			async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-				const token = appToken || options?.appToken;
 				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 				// Offline case
@@ -159,9 +142,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				const respBackend = await axios.get(
 					`${walletBackendUrl}${path}`,
 					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
+						headers: buildGetHeaders({ appToken: options?.appToken }),
 						transformResponse,
 					},
 				);
@@ -190,40 +171,28 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}
 			}
 
-			async function post(path: string, body: object, options?: {appToken?: string}): Promise<AxiosResponse> {
-				return retryWithPrivateDataEtag(
-					async (additionalHeaders?: { [name: string]: string }) => {
-						return await axios.post(
-							`${walletBackendUrl}${path}`,
-							body,
-							{
-								headers: {
-									Authorization: `Bearer ${options?.appToken || appToken}`,
-									'Content-Type': 'application/json',
-									...additionalHeaders,
-								},
-								transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
-								transformResponse,
-							},
-						);
+			async function post(path: string, body: object, options?: { appToken?: string }): Promise<AxiosResponse> {
+				return await axios.post(
+					`${walletBackendUrl}${path}`,
+					body,
+					{
+						headers: {
+							'Content-Type': 'application/json',
+							...buildMutationHeaders({ appToken: options?.appToken }),
+						},
+						transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
+						transformResponse,
 					},
 				);
 			}
 
 			async function del(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-				return retryWithPrivateDataEtag(
-					async (additionalHeaders?: { [name: string]: string }) => {
-						return await axios.delete(
-							`${walletBackendUrl}${path}`,
-							{
-								headers: {
-									Authorization: `Bearer ${options?.appToken || appToken}`,
-									...additionalHeaders,
-								},
-								transformResponse,
-							});
-					},
-				);
+				return await axios.delete(
+					`${walletBackendUrl}${path}`,
+					{
+						headers: buildMutationHeaders({ appToken: options?.appToken }),
+						transformResponse,
+					});
 			}
 
 			function updateShowWelcome(showWelcome: boolean): void {
