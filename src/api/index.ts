@@ -193,20 +193,20 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			}
 
 			async function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): Promise<void> {
-				setAppToken(response.data.session.appToken);
+				setAppToken(response.data.appToken);
 				setSessionState({
-					id: response.data.session.id,
-					displayName: response.data.session.displayName,
-					username: response.data.session.username,
+					id: response.data.id,
+					displayName: response.data.displayName,
+					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
 					authenticationType,
 					showWelcome,
 				});
 
-				await addItem('users', response.data.newUser.id, response.data.newUser);
-				await addItem('UserHandleToUserID', base64url.encode(response.data.newUser.webauthnUserHandle), response.data.newUser.id);
+				await addItem('users', response.data.id, response.data);
+				await addItem('UserHandleToUserID', base64url.encode(response.data.webauthnUserHandle), response.data.id);
 				if (isOnline) {
-					await fetchInitialData(response.data.session.appToken, response.data.session.id).catch((error) => console.error('Error in performGetRequests', error));
+					await fetchInitialData(response.data.appToken, response.data.id).catch((error) => console.error('Error in performGetRequests', error));
 				}
 			}
 
@@ -361,22 +361,21 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									const user = await getItem("users", String(userId));
 									return {
 										data: {
-											session: {
-												id: user.id,
-												appToken: "",
-												did: user.did,
-												displayName: user.displayName,
-												privateData: user.privateData,
-												username: null
-											},
-											newUser: user,
+											id: user.id,
+											appToken: "",
+											did: user.did,
+											displayName: user.displayName,
+											privateData: user.privateData,
+											username: null,
+											webauthnUserHandle: user.webauthnUserHandle,
+											webauthnCredentials: user.webauthnCredentials
 										},
 									};
 								}
 							})() as any;
 
 							try {
-								const userData = finishResp.data.session as UserData;
+								const userData = finishResp.data as UserData;
 								const privateData = jsonParseTaggedBinary(userData.privateData);
 								await keystore.unlockPrf(
 									privateData,
