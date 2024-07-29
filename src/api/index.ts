@@ -218,7 +218,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						const updatePrivateData = await keystore.unlockPassword(privateData, password, userData.webauthnRpId);
+						const updatePrivateData = await keystore.unlockPassword(privateData, password);
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							const updateResp = await post(
@@ -249,7 +249,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 
 				try {
-					const { publicData, privateData, setWebauthnRpId } = await keystore.initPassword(password);
+					const { publicData, privateData } = await keystore.initPassword(password);
 
 					try {
 						const response = await post('/user/register', {
@@ -260,7 +260,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							privateData: serializePrivateData(privateData),
 						});
 						await setSession(response, null, 'signup', true);
-						setWebauthnRpId((response.data as UserData).webauthnRpId);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -396,7 +395,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								const updatePrivateData = await keystore.unlockPrf(
 									privateData,
 									credential,
-									beginData.getOptions.publicKey.rpId,
 									promptForPrfRetry,
 									cachedUser || {
 										...userData,
@@ -476,7 +474,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							const { publicData, privateData } = await keystore.initPrf(
 								credential,
 								prfSalt,
-								beginData.createOptions.publicKey.rp.id,
 								promptForPrfRetry,
 								{ displayName: name, userHandle: beginData.createOptions.publicKey.user.id },
 							);

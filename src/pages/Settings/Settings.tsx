@@ -153,7 +153,6 @@ const WebauthnRegistation = ({
 			try {
 				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 					pendingCredential,
-					beginData.createOptions.publicKey.rp.id,
 					[unwrappingKey, wrappedMainKey],
 					async () => {
 						setNeedPrfRetry(true);
