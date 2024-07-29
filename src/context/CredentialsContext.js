@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import React, { createContext, useState, useCallback, useContext } from 'react';
 import { useApi } from '../api';
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
 import OnlineStatusContext from '../context/OnlineStatusContext';

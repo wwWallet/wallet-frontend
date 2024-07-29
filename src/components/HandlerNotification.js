@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { onMessageListener } from '../firebase';
 import { AiOutlineClose } from 'react-icons/ai';
@@ -34,14 +34,16 @@ const HandlerNotification = () => {
 	const [notification, setNotification] = useState({ title: '', body: '' });
 	const { getData } = useContext(CredentialsContext);
 
-	const showToast = () =>
-		toast((t) => <ToastDisplay id={t.id} notification={notification} />);
+	const showToast = useCallback(
+		() => toast((t) => <ToastDisplay id={t.id} notification={notification} />),
+		[notification]
+	);
 
 	useEffect(() => {
 		if (notification?.title) {
 			showToast();
 		}
-	}, [notification]);
+	}, [notification, showToast]);
 
 	useEffect(() => {
 		const messageListener = onMessageListener()

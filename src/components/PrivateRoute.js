@@ -44,7 +44,7 @@ const PrivateRoute = ({ children }) => {
 		if (isLoggedIn) {
 			requestNotificationPermission();
 		}
-	}, [isLoggedIn, location]);
+	}, [isLoggedIn, location, setTokenSentInSession]);
 
 	useEffect(() => {
 		const sendFcmTokenToBackend = async () => {
@@ -58,11 +58,11 @@ const PrivateRoute = ({ children }) => {
 						const fcmToken = await fetchToken();
 						if (fcmToken !== null) {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
-							setTokenSentInSession(true)
+							setTokenSentInSession(true);
 							console.log('FCM Token success:', fcmToken);
 						} else {
 							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
-							setTokenSentInSession(false)
+							setTokenSentInSession(false);
 						}
 					} catch (error) {
 						console.error('Error sending FCM token to the backend:', error);
@@ -71,16 +71,21 @@ const PrivateRoute = ({ children }) => {
 					}
 				}
 			}
-		}
+		};
 
-		console.log("is online = ", isOnline)
+		console.log("is online = ", isOnline);
 		if (isOnline) {
 			sendFcmTokenToBackend();
 		} else {
 			setTokenSentInSession(false);
 		}
-	}, [isPermissionGranted, isOnline]);
-
+	}, [
+		api,
+		isOnline,
+		isPermissionGranted,
+		setTokenSentInSession,
+		tokenSentInSession,
+	]);
 
 	useEffect(() => {
 		if (!isLoggedIn) {
@@ -103,7 +108,14 @@ const PrivateRoute = ({ children }) => {
 		} else {
 			setLatestIsOnlineStatus(null);
 		}
-	}, [isLoggedIn, isOnline]);
+	}, [
+		api,
+		isLoggedIn,
+		isOnline,
+		keystore,
+		latestIsOnlineStatus,
+		setLatestIsOnlineStatus,
+	]);
 
 	if (!isLoggedIn) {
 		return <Navigate to="/login" state={{ from: location }} replace />;
@@ -112,14 +124,14 @@ const PrivateRoute = ({ children }) => {
 	if (loading || tokenSentInSession === null) {
 		return (
 			<Spinner />
-		)
+		);
 	}
 	else {
 		return (
 			<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
 				{children}
 			</Layout>
-		)
+		);
 	}
 
 };

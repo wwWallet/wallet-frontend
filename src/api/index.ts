@@ -3,7 +3,6 @@ import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import type { EncryptedContainer } from '../services/keystore';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';

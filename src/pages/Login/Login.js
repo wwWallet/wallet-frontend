@@ -179,7 +179,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t],
+		[api, from, keystore, navigate, t],
 	);
 
 	const onSignup = useCallback(
@@ -219,6 +219,7 @@ const WebauthnSignupLogin = ({
 							<Trans
 								i18nKey="loginSignup.passkeySignupPrfNotSupported"
 								components={{
+									// eslint-disable-next-line jsx-a11y/anchor-has-content
 									docLink: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 										className="font-medium text-primary hover:underline dark:text-blue-500"
@@ -239,7 +240,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[api, retrySignupFrom, keystore, navigate, t],
+		[api, from, retrySignupFrom, keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {
@@ -621,14 +622,17 @@ const Login = () => {
 												<Trans
 													i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
 													components={{
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
 														docLinkPrf: <a
 															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 															className="font-medium text-primary dark:text-primary-light hover:underline"
 														/>,
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
 														docLinkLaunchpad: <a
 															href="https://launchpad.wwwallet.org" target='blank_'
 															className="font-medium text-primary dark:text-primary-light hover:underline"
 														/>,
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
 														docLinkScenarios: <a
 															href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
 															className="font-medium text-primary dark:text-primary-light hover:underline"
@@ -647,6 +651,7 @@ const Login = () => {
 												<Trans
 													i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
 													components={{
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
 														docLinkPrf: <a
 															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 															className="font-medium text-primary hover:underline dark:text-blue-500"
@@ -755,6 +760,7 @@ const Login = () => {
 								<Trans
 									i18nKey="sidebar.poweredBy"
 									components={{
+										// eslint-disable-next-line jsx-a11y/anchor-has-content
 										docLinkWalletGithub: <a
 											href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
 										/>
