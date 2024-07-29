@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
@@ -8,6 +8,8 @@ import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
+import OnlineStatusContext from '../context/OnlineStatusContext';
+import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 const NavItem = ({
 	children,
@@ -28,7 +30,7 @@ const NavItem = ({
 };
 
 const Sidebar = ({ isOpen, toggle }) => {
-
+	const { isOnline } = useContext(OnlineStatusContext);
 	const api = useApi();
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
@@ -64,20 +66,22 @@ const Sidebar = ({ isOpen, toggle }) => {
 			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div className="sm:hidden flex items-center justify-between mb-4">
-					<button onClick={() => handleNavigate('/')}>
-						<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" />
-					</button>
-					<a href={('/')}
-						className="text-white text-xl font-bold cursor-pointer"
-					>
-						{t('common.walletName')}
-					</a>
+					<div className='flex items-center'>
+						<button className='mr-2' onClick={() => handleNavigate('/')}>
+							<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" />
+						</button>
+						<a href={('/')}
+							className="text-white text-xl font-bold cursor-pointer"
+						>
+							{t('common.walletName')}
+						</a>
+					</div>
 					<button onClick={toggle}>
 						{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
 					</button>
 				</div>
 				<div>
-					<div className="hidden sm:flex justify-between items-center mb-4">
+					<div className="hidden sm:flex justify-between items-center">
 						<button className='mb-2 mr-2' onClick={() => handleNavigate('/')}>
 							<img
 								src={logo}
@@ -94,21 +98,35 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<AiOutlineClose size={30} />
 						</button>
 					</div>
-					<hr className="my-4 border-t border-white/20" />
+
+					<hr className="my-2 border-t border-white/20" />
 
 					{/* User */}
 					<ul>
-						<div className='flex items-center space-x-2 mb-4 p-2 rounded-r-xl'>
-							<FaUserCircle size={30} title={displayName || username} />
+						<div className='flex items-center space-x-2 p-2 rounded-r-xl'>
+							{isOnline ? (
+								<>
+									<PiWifiHighBold size={20} />
+									<span className='text-sm'>{t('common.online')}</span>
+								</>
+							) : (
+								<>
+									<PiWifiSlashBold size={20} />
+									<span className='text-sm'>{t('common.offline')}</span>
+								</>
+							)}
+						</div>
+						<div className='flex items-center space-x-2 mb-2 p-2 rounded-r-xl'>
+							<FaUserCircle size={20} title={displayName || username} />
 							<span
-								className="text-overflow-ellipsis overflow-hidden whitespace-nowrap md:max-w-[130px]"
+								className="text-overflow-ellipsis text-sm overflow-hidden whitespace-nowrap md:max-w-[130px]"
 								title={displayName || username}
 							>
 								{displayName || username}
 							</span>
 						</div>
 
-						<hr className="my-4 border-t border-white/20" />
+						<hr className="my-2 border-t border-white/20" />
 
 						{/* Nav Menu */}
 						<div className='step-3 max480:hidden'>
@@ -141,8 +159,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 								<span>{t("common.navItemSettings")}</span>
 							</NavItem>
 						</div>
-						<hr className="my-4 border-t border-white/20" />
 
+						<hr className="my-2 border-t border-white/20" />
 
 						<button
 							onClick={handleLogout}

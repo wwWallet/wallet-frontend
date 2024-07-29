@@ -7,12 +7,16 @@ import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeysto
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
+import { addItem, getItem } from '../indexedDB';
+import { loginWebAuthnBeginOffline } from './LocalAuthentication';
+import { base64url } from 'jose';
 
 
 const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 
 type SessionState = {
+	id: string;
 	username: string,
 	displayName: string,
 	webauthnCredentialCredentialId: string,
@@ -40,6 +44,7 @@ const events: EventTarget = new EventTarget();
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>,
 	get(path: string): Promise<AxiosResponse>,
+	getExternalEntity(path: string): Promise<AxiosResponse>,
 	post(path: string, body: object): Promise<AxiosResponse>,
 
 	getSession(): SessionState,
@@ -74,7 +79,7 @@ export interface BackendApi {
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 }
 
-export function useApi(): BackendApi {
+export function useApi(isOnline: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
@@ -93,16 +98,50 @@ export function useApi(): BackendApi {
 				}
 			}
 
-			async function get(path: string): Promise<AxiosResponse> {
-				return await axios.get(
+			async function getWithLocalDbKey(path: string, dbKey: string, sessionAppToken?: string): Promise<AxiosResponse> {
+				const token = appToken || sessionAppToken;
+				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
+
+				// Offline case
+				if (!isOnline) {
+					return {
+						data: await getItem(path, dbKey),
+					} as AxiosResponse;
+				}
+
+				// Online case
+				const respBackend = await axios.get(
 					`${walletBackendUrl}${path}`,
 					{
 						headers: {
-							Authorization: `Bearer ${appToken}`,
+							Authorization: `Bearer ${token}`,
 						},
 						transformResponse,
 					},
 				);
+				await addItem(path, dbKey, respBackend.data);
+				return respBackend;
+			}
+
+			async function get(path: string, sessionAppToken?: string, sessionId?: number): Promise<AxiosResponse> {
+				return getWithLocalDbKey(path, sessionState?.id.toString() || sessionId.toString(), sessionAppToken);
+			}
+
+			async function getExternalEntity(path: string, sessionAppToken?: string): Promise<AxiosResponse> {
+				return getWithLocalDbKey(path, path, sessionAppToken);
+			}
+
+			async function fetchInitialData(sessionAppToken: string, sessionId: number): Promise<void> {
+				try {
+					await get('/storage/vc', sessionAppToken, sessionId);
+					await get('/storage/vp', sessionAppToken, sessionId);
+					await get('/user/session/account-info', sessionAppToken, sessionId);
+					await getExternalEntity('/legal_person/issuers/all', sessionAppToken);
+					await getExternalEntity('/verifiers/all', sessionAppToken);
+
+				} catch (error) {
+					console.error('Failed to perform get requests', error);
+				}
 			}
 
 			async function post(path: string, body: object): Promise<AxiosResponse> {
@@ -133,10 +172,10 @@ export function useApi(): BackendApi {
 
 			function updateShowWelcome(showWelcome: boolean): void {
 				if (sessionState) {
-						setSessionState((prevState) => ({
-								...prevState,
-								showWelcome: showWelcome,
-						}));
+					setSessionState((prevState) => ({
+						...prevState,
+						showWelcome: showWelcome,
+					}));
 				}
 			}
 
@@ -153,15 +192,22 @@ export function useApi(): BackendApi {
 				events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 			}
 
-			function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): void {
+			async function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): Promise<void> {
 				setAppToken(response.data.appToken);
 				setSessionState({
+					id: response.data.id,
 					displayName: response.data.displayName,
 					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
 					authenticationType,
 					showWelcome,
 				});
+
+				await addItem('users', response.data.id, response.data);
+				await addItem('UserHandleToUserID', base64url.encode(response.data.webauthnUserHandle), response.data.id);
+				if (isOnline) {
+					await fetchInitialData(response.data.appToken, response.data.id).catch((error) => console.error('Error in performGetRequests', error));
+				}
 			}
 
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
@@ -171,7 +217,7 @@ export function useApi(): BackendApi {
 					const privateData = jsonParseTaggedBinary(userData.privateData);
 					try {
 						await keystore.unlockPassword(privateData, password);
-						setSession(response, null, 'login', false);
+						await setSession(response, null, 'login', false);
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to unlock local keystore", e);
@@ -197,7 +243,7 @@ export function useApi(): BackendApi {
 							keys: publicData,
 							privateData: jsonStringifyTaggedBinary(privateData),
 						});
-						setSession(response, null, 'signup', true);
+						await setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
 					} catch (e) {
@@ -213,7 +259,7 @@ export function useApi(): BackendApi {
 
 			async function getAllVerifiers(): Promise<Verifier[]> {
 				try {
-					const result = await get('/verifiers/all');
+					const result = await getExternalEntity('/verifiers/all');
 					const { verifiers } = result.data;
 					console.log("verifiers = ", verifiers)
 					return verifiers;
@@ -258,10 +304,19 @@ export function useApi(): BackendApi {
 				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
 			> {
 				try {
-
-					const beginResp = await post('/user/login-webauthn-begin', {});
-					console.log("begin", beginResp);
-					const beginData = beginResp.data;
+					const beginData = await (async (): Promise<{
+						challengeId?: string,
+						getOptions: { publicKey: PublicKeyCredentialRequestOptions },
+					}> => {
+						if (isOnline) {
+							const beginResp = await post('/user/login-webauthn-begin', {});
+							console.log("begin", beginResp);
+							return beginResp.data;
+						}
+						else {
+							return loginWebAuthnBeginOffline();
+						}
+					})();
 
 					try {
 						const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
@@ -272,7 +327,7 @@ export function useApi(): BackendApi {
 									...beginData.getOptions.publicKey,
 									allowCredentials: prfInputs.allowCredentials,
 									extensions: {
-										...beginData.getOptions.extensions,
+										...beginData.getOptions.publicKey.extensions,
 										prf: prfInputs.prfInput,
 									},
 								},
@@ -280,25 +335,43 @@ export function useApi(): BackendApi {
 							: beginData.getOptions;
 						const credential = await navigator.credentials.get(getOptions) as PublicKeyCredential;
 						const response = credential.response as AuthenticatorAssertionResponse;
-						console.log("asserted", credential);
 
 						try {
-							const finishResp = await post('/user/login-webauthn-finish', {
-								challengeId: beginData.challengeId,
-								credential: {
-									type: credential.type,
-									id: credential.id,
-									rawId: credential.id,
-									response: {
-										authenticatorData: toBase64Url(response.authenticatorData),
-										clientDataJSON: toBase64Url(response.clientDataJSON),
-										signature: toBase64Url(response.signature),
-										userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
-									},
-									authenticatorAttachment: credential.authenticatorAttachment,
-									clientExtensionResults: credential.getClientExtensionResults(),
-								},
-							});
+							const finishResp = await (async () => {
+								if (isOnline) {
+									return await post('/user/login-webauthn-finish', {
+										challengeId: beginData.challengeId,
+										credential: {
+											type: credential.type,
+											id: credential.id,
+											rawId: credential.id,
+											response: {
+												authenticatorData: toBase64Url(response.authenticatorData),
+												clientDataJSON: toBase64Url(response.clientDataJSON),
+												signature: toBase64Url(response.signature),
+												userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
+											},
+											authenticatorAttachment: credential.authenticatorAttachment,
+											clientExtensionResults: credential.getClientExtensionResults(),
+										},
+									});
+								}
+								else {
+									const userId = await getItem("UserHandleToUserID", response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u);
+									const user = await getItem("users", String(userId));
+									return {
+										data: {
+											id: user.id,
+											appToken: "",
+											did: user.did,
+											displayName: user.displayName,
+											privateData: user.privateData,
+											username: null,
+											webauthnUserHandle: user.webauthnUserHandle
+										},
+									};
+								}
+							})() as any;
 
 							try {
 								const userData = finishResp.data as UserData;
@@ -315,7 +388,7 @@ export function useApi(): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								setSession(finishResp, credential, 'login', false);
+								await setSession(finishResp, credential, 'login', false);
 								return Ok.EMPTY;
 							} catch (e) {
 								console.error("Failed to open keystore", e);
@@ -398,7 +471,7 @@ export function useApi(): BackendApi {
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
 								});
-								setSession(finishResp, credential, 'signup', true);
+								await setSession(finishResp, credential, 'signup', true);
 								return Ok.EMPTY;
 
 							} catch (e) {
@@ -450,6 +523,7 @@ export function useApi(): BackendApi {
 			return {
 				del,
 				get,
+				getExternalEntity,
 				post,
 
 				updateShowWelcome,
@@ -479,6 +553,7 @@ export function useApi(): BackendApi {
 			sessionState,
 			setAppToken,
 			setSessionState,
+			isOnline
 		],
 	);
 }

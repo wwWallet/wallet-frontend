@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { MdDelete } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import GetButton from '../../components/Buttons/GetButton';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
 
 const CredentialDeleteButton = ({ onDelete }) => {
 	const { t } = useTranslation();
+	const { isOnline } = useContext(OnlineStatusContext);
 
 	const handleClick = () => {
 		onDelete();
@@ -20,6 +22,9 @@ const CredentialDeleteButton = ({ onDelete }) => {
 				}
 				onClick={handleClick}
 				variant="delete"
+				disabled={!isOnline}
+				title={!isOnline && t('common.offlineTitle')}
+
 			/>
 		</div>
 	);

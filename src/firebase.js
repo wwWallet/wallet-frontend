@@ -25,6 +25,18 @@ const initializeFirebase = async () => {
 
 };
 
+export async function register() {
+	if ('serviceWorker' in navigator) {
+		try {
+			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/notifications/' });
+			console.log('App: Firebase Messaging Service Worker registered! Scope is:', registration.scope);
+		} catch (err) {
+			console.log('App: Firebase Messaging Service Worker registration failed:', err);
+		}
+	} else {
+		console.log('Service Workers are not supported in this browser.');
+	}
+};
 
 const requestForToken = async () => {
 	if (!supported) {
@@ -64,7 +76,7 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 	if ('serviceWorker' in navigator) {
 		try {
 			// Re-register the service worker
-			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/notifications/' });
 			if (registration) {
 				console.log('Service Worker re-registered', registration);
 				const token = await requestForToken();
