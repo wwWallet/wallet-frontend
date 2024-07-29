@@ -1,10 +1,12 @@
 //ConsoleBehavior.js
 
+import * as config from './config';
+
+
 function ConsoleBehavior() {
 	// If displayConsole is undefined, proceed as true
-	const displayConsole = process.env.REACT_APP_DISPLAY_CONSOLE;
 
-	if (displayConsole === 'false') {
+	if (config.DISPLAY_CONSOLE === 'false') {
 		Object.keys(console).forEach(method => {
 			if (typeof console[method] === 'function') {
 				console[method] = () => { };

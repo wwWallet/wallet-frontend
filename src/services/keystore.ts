@@ -8,11 +8,11 @@ import { v4 as uuidv4 } from "uuid";
 import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
 import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
-import { verifiablePresentationSchemaURL } from "../constants";
+import * as config from '../config';
+import type { DidKeyVersion } from '../config';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 
 
-export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
 
@@ -1027,7 +1027,7 @@ export async function signJwtPresentation([privateData, sessionKey]: [PrivateDat
 		.setType(["VerifiablePresentation"])
 		.setAudience(audience)
 		.setCredentialSchema(
-			verifiablePresentationSchemaURL,
+			config.verifiablePresentationSchemaURL,
 			"FullJsonSchemaValidator2021")
 		.setIssuer(did)
 		.setSubject(did)

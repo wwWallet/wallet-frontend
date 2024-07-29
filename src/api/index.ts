@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
+import * as config from '../config';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import type { EncryptedContainer } from '../services/keystore';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
@@ -13,7 +14,7 @@ import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { base64url } from 'jose';
 
 
-const walletBackendUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
+const walletBackendUrl = config.BACKEND_URL;
 
 
 type SessionState = {

@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo } from "react";
 
+import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainerKeys, DidKeyVersion, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainerKeys, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
-
-const DID_KEY_VERSION = process.env.REACT_APP_DID_KEY_VERSION as DidKeyVersion;
 
 type UserData = {
 	displayName: string;
@@ -205,7 +204,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				privateData: EncryptedContainer,
 				setWebauthnRpId: (rpId: string) => void,
 			}> => {
-				const { publicData, privateData } = await keystore.init(mainKey, keyInfo, DID_KEY_VERSION);
+				const { publicData, privateData } = await keystore.init(mainKey, keyInfo, config.DID_KEY_VERSION);
 				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
 
 				return {
