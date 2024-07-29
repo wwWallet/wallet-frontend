@@ -367,8 +367,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 											displayName: user.displayName,
 											privateData: user.privateData,
 											username: null,
-											webauthnUserHandle: user.webauthnUserHandle,
-											webauthnCredentials: user.webauthnCredentials
+											webauthnUserHandle: user.webauthnUserHandle
 										},
 									};
 								}
