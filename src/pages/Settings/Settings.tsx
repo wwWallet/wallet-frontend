@@ -167,7 +167,7 @@ const WebauthnRegistation = ({
 				);
 
 				setIsSubmitting(true);
-				await api.post('/user/session/webauthn/register-finish', {
+				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
 					nickname,
 					credential: {
@@ -183,7 +183,7 @@ const WebauthnRegistation = ({
 						clientExtensionResults: pendingCredential.getClientExtensionResults(),
 					},
 					privateData: serializePrivateData(newPrivateData),
-				});
+				}));
 				onSuccess();
 				setNickname("");
 				await keystoreCommit();
@@ -742,9 +742,9 @@ const Settings = () => {
 	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
 		const [newPrivateData, keystoreCommit] = keystore.deletePrf(credential.credentialId);
 		try {
-			const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
+			const deleteResp = api.updatePrivateDataEtag(await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
 				privateData: serializePrivateData(newPrivateData),
-			});
+			}));
 			if (deleteResp.status === 204) {
 				await keystoreCommit();
 			} else {
@@ -792,7 +792,9 @@ const Settings = () => {
 				},
 			);
 			setUpgradePrfState(null);
-			const updateResp = await api.post('/user/session/update-private-data', serializePrivateData(newPrivateData));
+			const updateResp = api.updatePrivateDataEtag(
+				await api.post('/user/session/update-private-data', serializePrivateData(newPrivateData)),
+			);
 			if (updateResp.status === 204) {
 				await keystoreCommit();
 			} else {

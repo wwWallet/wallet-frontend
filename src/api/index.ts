@@ -74,6 +74,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>>,
+	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
 
 	addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void,
 	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
@@ -245,11 +246,11 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							try {
-								const updateResp = await post(
+								const updateResp = updatePrivateDataEtag(await post(
 									'/user/session/update-private-data',
 									serializePrivateData(newPrivateData),
 									{ appToken: response.data.appToken },
-								);
+								));
 								if (updateResp.status === 204) {
 									await keystoreCommit();
 								} else {
@@ -606,6 +607,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 				loginWebauthn,
 				signupWebauthn,
+				updatePrivateDataEtag,
 
 				addEventListener,
 				removeEventListener,
