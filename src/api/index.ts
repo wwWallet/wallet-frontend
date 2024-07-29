@@ -618,10 +618,12 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		[
 			appToken,
 			clearSessionStorage,
+			isOnline,
+			privateDataEtag,
 			sessionState,
 			setAppToken,
+			setPrivateDataEtag,
 			setSessionState,
-			isOnline
 		],
 	);
 }
