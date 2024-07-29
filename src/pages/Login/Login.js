@@ -5,6 +5,8 @@ import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
+
+import * as config from '../../config';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
@@ -16,9 +18,6 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 
-const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
-	process.env.REACT_APP_LOGIN_WITH_PASSWORD == 'true' :
-	false;
 
 const FormInputRow = ({
 	IconComponent,
@@ -672,7 +671,7 @@ const Login = () => {
 												{t('loginSignup.messageOffline')}
 											</p>
 										)}
-										{(loginWithPassword) ?
+										{config.LOGIN_WITH_PASSWORD ?
 											<>
 												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 													{error && <div className="text-red-500">{error}</div>}
@@ -758,7 +757,7 @@ const Login = () => {
 									}}
 								/>
 							</p>
-							<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{process.env.REACT_APP_VERSION}</p>
+							<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{config.APP_VERSION}</p>
 
 						</div>
 					</div>

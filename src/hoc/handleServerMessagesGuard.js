@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState, useContext } from "react";
+
+import * as config from '../config';
 import { SignatureAction } from "../types/shared.types";
 import { useLocalStorageKeystore } from "../services/LocalStorageKeystore";
 import Spinner from '../components/Spinner';
@@ -6,7 +8,6 @@ import { SigningRequestHandlerService } from '../services/SigningRequestHandlers
 import { useApi } from "../api";
 import OnlineStatusContext from '../context/OnlineStatusContext';
 
-const REACT_APP_WS_URL = process.env.REACT_APP_WS_URL;
 
 export default function handleServerMessagesGuard(Component) {
 
@@ -24,7 +25,7 @@ export default function handleServerMessagesGuard(Component) {
 			if (appToken) {
 				if (!socketRef.current) {
 					console.log('Attempting to establish WebSocket connection...');
-					const socket = new WebSocket(REACT_APP_WS_URL);
+					const socket = new WebSocket(config.WS_URL);
 					socketRef.current = socket;
 
 					const sendInit = () => {
