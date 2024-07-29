@@ -8,7 +8,7 @@ import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
-import { UseStorageHandle, useClearStorages, useSessionStorage } from '../components/useStorage';
+import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../components/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { base64url } from 'jose';
@@ -66,7 +66,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined,
 	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
+		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
 	>,
 	signupWebauthn(
 		name: string,
@@ -86,6 +86,34 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 
+	/**
+	 * Synchronization tag for the encrypted private data. To prevent data loss,
+	 * this MUST be refreshed only when a new version of the private data is
+	 * loaded into the keystore or successfully uploaded to the server.
+	 */
+	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
+
+	function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
+		if (resp.headers['x-private-data-etag']) {
+			setPrivateDataEtag(resp.headers['x-private-data-etag']);
+		}
+		return resp;
+	}
+
+	function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
+		const authz = headers?.appToken || appToken;
+		return {
+			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
+		};
+	}
+
+	function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
+		return {
+			...buildGetHeaders(headers),
+			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
+		};
+	}
+
 	return useMemo(
 		() => {
 			function getAppToken(): string | null {
@@ -101,7 +129,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			}
 
 			async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-				const token = appToken || options?.appToken;
 				console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 				// Offline case
@@ -115,9 +142,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				const respBackend = await axios.get(
 					`${walletBackendUrl}${path}`,
 					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
+						headers: buildGetHeaders({ appToken: options?.appToken }),
 						transformResponse,
 					},
 				);
@@ -152,8 +177,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					body,
 					{
 						headers: {
-							Authorization: `Bearer ${options?.appToken || appToken}`,
 							'Content-Type': 'application/json',
+							...buildMutationHeaders({ appToken: options?.appToken }),
 						},
 						transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
 						transformResponse,
@@ -165,9 +190,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				return await axios.delete(
 					`${walletBackendUrl}${path}`,
 					{
-						headers: {
-							Authorization: `Bearer ${options?.appToken || appToken}`,
-						},
+						headers: buildMutationHeaders({ appToken: options?.appToken }),
 						transformResponse,
 					});
 			}
@@ -214,23 +237,30 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 			async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 				try {
-					const response = await post('/user/login', { username, password });
+					const response = updatePrivateDataEtag(await post('/user/login', { username, password }));
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
 						const updatePrivateData = await keystore.unlockPassword(privateData, password);
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
-							const updateResp = await post(
-								'/user/session/update-private-data',
-								serializePrivateData(newPrivateData),
-								{ appToken: response.data.appToken },
-							);
-							if (updateResp.status === 204) {
-								await keystoreCommit();
-							} else {
-								console.error("Failed to upgrade password key", updateResp.status, updateResp);
-								return Err('loginKeystoreFailed');
+							try {
+								const updateResp = await post(
+									'/user/session/update-private-data',
+									serializePrivateData(newPrivateData),
+									{ appToken: response.data.appToken },
+								);
+								if (updateResp.status === 204) {
+									await keystoreCommit();
+								} else {
+									console.error("Failed to upgrade password key", updateResp.status, updateResp);
+									return Err('loginKeystoreFailed');
+								}
+							} catch (e) {
+								if (e?.message === 'x-private-data-etag') {
+									return Err(e);
+								}
+								throw e;
 							}
 						}
 						await setSession(response, null, 'login', false);
@@ -252,13 +282,13 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const { publicData, privateData } = await keystore.initPassword(password);
 
 					try {
-						const response = await post('/user/register', {
+						const response = updatePrivateDataEtag(await post('/user/register', {
 							username,
 							password,
 							displayName: username,
 							keys: publicData,
 							privateData: serializePrivateData(privateData),
-						});
+						}));
 						await setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
@@ -317,7 +347,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				cachedUser: CachedUser | undefined,
 			): Promise<
-				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError'>
+				Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
 			> {
 				try {
 					const beginData = await (async (): Promise<{
@@ -355,7 +385,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						try {
 							const finishResp = await (async () => {
 								if (isOnline) {
-									return await post('/user/login-webauthn-finish', {
+									return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
 										challengeId: beginData.challengeId,
 										credential: {
 											type: credential.type,
@@ -370,7 +400,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 											authenticatorAttachment: credential.authenticatorAttachment,
 											clientExtensionResults: credential.getClientExtensionResults(),
 										},
-									});
+									}));
 								}
 								else {
 									const userId = await getItem("UserHandleToUserID", response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u);
@@ -405,16 +435,23 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								);
 								if (updatePrivateData) {
 									const [newPrivateData, keystoreCommit] = updatePrivateData;
-									const updateResp = await post(
-										'/user/session/update-private-data',
-										serializePrivateData(newPrivateData),
-										{ appToken: finishResp.data.appToken },
-									);
-									if (updateResp.status === 204) {
-										await keystoreCommit();
-									} else {
-										console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
-										return Err('loginKeystoreFailed');
+									try {
+										const updateResp = await post(
+											'/user/session/update-private-data',
+											serializePrivateData(newPrivateData),
+											{ appToken: finishResp.data.appToken },
+										);
+										if (updateResp.status === 204) {
+											await keystoreCommit();
+										} else {
+											console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
+											return Err('loginKeystoreFailed');
+										}
+									} catch (e) {
+										if (e?.message === 'x-private-data-etag') {
+											return Err('x-private-data-etag');
+										}
+										throw e;
 									}
 								}
 								await setSession(finishResp, credential, 'login', false);
@@ -481,7 +518,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							try {
 
 
-								const finishResp = await post('/user/register-webauthn-finish', {
+								const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
 									challengeId: beginData.challengeId,
 									displayName: name,
 									keys: publicData,
@@ -498,7 +535,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										authenticatorAttachment: credential.authenticatorAttachment,
 										clientExtensionResults: credential.getClientExtensionResults(),
 									},
-								});
+								}));
 								await setSession(finishResp, credential, 'signup', true);
 								return Ok.EMPTY;
 
