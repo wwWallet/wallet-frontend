@@ -17,6 +17,7 @@ const PrivateRoute = ({ children }) => {
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
+	const cachedUsers = keystore.getCachedUsers();
 
 	const location = useLocation();
 	const queryParams = new URLSearchParams(location.search);
@@ -98,8 +99,20 @@ const PrivateRoute = ({ children }) => {
 		}
 	}, [isLoggedIn, isOnline]);
 
+
+	const userExistsInCache = (state) => {
+		if (!state) return false;
+		try {
+			const decodedState = JSON.parse(atob(state));
+			return cachedUsers.some(user => user.userHandleB64u === decodedState.userHandleB64u);
+		} catch (error) {
+			console.error('Error decoding state:', error);
+			return false;
+		}
+	};
+
 	if (!isLoggedIn) {
-		if (state) {
+		if (state && userExistsInCache(state)) {
 			return <Navigate to="/login-state" state={{ from: location }} replace />;
 		} else {
 			return <Navigate to="/login" state={{ from: location }} replace />;
