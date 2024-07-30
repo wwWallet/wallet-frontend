@@ -137,7 +137,6 @@ export function WarningPortal({
 				<GetButton
 					content={t('browserSupportWarningPortal.continueAnyway')}
 					onClick={() => setBypass(true)}
-					variant="custom"
 					additionalClassName='text-white bg-gray-300 hover:bg-gray-400 w-full'
 				/>
 			</>
