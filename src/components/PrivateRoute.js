@@ -19,7 +19,8 @@ const PrivateRoute = ({ children }) => {
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	const location = useLocation();
-	const navigate = useNavigate();
+	const queryParams = new URLSearchParams(location.search);
+	const state = queryParams.get('state');
 
 	useEffect(() => {
 		const requestNotificationPermission = async () => {
@@ -81,14 +82,6 @@ const PrivateRoute = ({ children }) => {
 		}
 	}, [isPermissionGranted, isOnline]);
 
-
-	useEffect(() => {
-		if (!isLoggedIn) {
-			const destination = location.pathname + location.search;
-			navigate('/login', { state: { from: destination } });
-		}
-	}, [isLoggedIn, location, navigate, isOnline]);
-
 	useEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true) {
 			const performLogout = async () => {
@@ -106,7 +99,11 @@ const PrivateRoute = ({ children }) => {
 	}, [isLoggedIn, isOnline]);
 
 	if (!isLoggedIn) {
-		return <Navigate to="/login" state={{ from: location }} replace />;
+		if (state) {
+			return <Navigate to="/login-state" state={{ from: location }} replace />;
+		} else {
+			return <Navigate to="/login" state={{ from: location }} replace />;
+		}
 	}
 
 	if (loading || tokenSentInSession === null) {

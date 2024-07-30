@@ -41,6 +41,12 @@
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
 		"messageOffline": "You are currently <strong>offline. Some features may not be available.</strong>"
 	},
+	"loginState": {
+		"confirm": "Confirm",
+		"message": "You are currently in an <strong>active session</strong>. Use your passkey to continue and fetch your credential in your wallet.",
+		"title": "Hi,",
+		"welcomeBackMessage": "Welcome back to <highlight>wwWallet</highlight>"
+	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"capitalLetter": "At least one capital letter",
