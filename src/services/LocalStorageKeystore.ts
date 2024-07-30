@@ -4,6 +4,7 @@ import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
 import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
+import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainerKeys, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
@@ -114,6 +115,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		},
 		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateDataCache],
 	);
+
+	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
 	useEffect(
 		() => {
