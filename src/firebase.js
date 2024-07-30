@@ -4,14 +4,13 @@ import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messagi
 import * as config from './config';
 
 
-let firebase = null;
 let messaging = null;
 let supported = false;
 
 const initializeFirebase = async () => {
 	supported = await isSupported();
 	if (supported) {
-		firebase = initializeApp(config.FIREBASE);
+		initializeApp(config.FIREBASE);
 		messaging = getMessaging();
 	}
 	console.log("Supported", supported);
