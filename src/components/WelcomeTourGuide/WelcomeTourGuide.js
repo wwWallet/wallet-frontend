@@ -92,7 +92,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 		});
 
 		setSteps(updatedSteps);
-	}, [toggleMenu, isOpen]);
+	}, [t, toggleMenu, isOpen]);
 
 	const startTour = () => {
 		setIsModalOpen(false);

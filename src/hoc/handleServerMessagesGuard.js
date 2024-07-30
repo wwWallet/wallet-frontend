@@ -56,11 +56,11 @@ export default function handleServerMessagesGuard(Component) {
 					const handleMessage = (event) => {
 						try {
 							const { message_id, request } = JSON.parse(event.data.toString());
-							if (request.action == SignatureAction.createIdToken) {
+							if (request.action === SignatureAction.createIdToken) {
 								signingRequestHandlerService.handleCreateIdToken(socket, keystore, { message_id, ...request });
-							} else if (request.action == SignatureAction.signJwtPresentation) {
+							} else if (request.action === SignatureAction.signJwtPresentation) {
 								signingRequestHandlerService.handleSignJwtPresentation(socket, keystore, { message_id, ...request });
-							} else if (request.action == SignatureAction.generateOpenid4vciProof) {
+							} else if (request.action === SignatureAction.generateOpenid4vciProof) {
 								signingRequestHandlerService.handleGenerateOpenid4vciProofSigningRequest(socket, keystore, { message_id, ...request });
 							}
 						} catch (e) {

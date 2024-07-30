@@ -95,7 +95,6 @@ const WebauthnRegistation = ({
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
-	const [nicknameChosen, setNicknameChosen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
@@ -147,7 +146,6 @@ const WebauthnRegistation = ({
 	const onFinish = async (event) => {
 		event.preventDefault();
 		console.log("onFinish", event);
-		setNicknameChosen(true);
 
 		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
 			try {
@@ -514,7 +512,7 @@ const WebauthnCredentialItem = ({
 				setEditing(false);
 			}
 		},
-		[],
+		[credential.nickname],
 	);
 
 	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -693,7 +691,7 @@ const Settings = () => {
 	const deleteAccount = async () => {
 		try {
 			await api.del('/user/session');
-			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName == userData.displayName)[0];
+			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName === userData.displayName)[0];
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
@@ -717,6 +715,7 @@ const Settings = () => {
 
 	const refreshData = useCallback(
 		async () => {
+			keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
 			try {
 				const response = await api.get('/user/session/account-info');
 				console.log(response.data);
