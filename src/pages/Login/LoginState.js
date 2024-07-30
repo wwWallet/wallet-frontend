@@ -182,7 +182,7 @@ const WebauthnSignupLogin = ({
 										{isSubmitting ? t('loginSignup.submitting') : t('common.cancel')}
 									</>
 								}
-								onClick={() => onLoginCachedUser(filteredUser)}
+								onClick={() => navigate('/')}
 								variant="cancel"
 								disabled={isSubmitting}
 								additionalClassName='w-full'
