@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useResettableTimeout } from './useResettableTimeout';
-import { debounce } from '../util';
+import { throttle } from '../util';
 
 
 /**
@@ -20,14 +20,14 @@ export function useOnUserInactivity(action: () => void, timeoutMillis: number) {
 			// you'd have to poll `navigator.userActivation.isActive` in a fairly
 			// tight loop in order to actually hit the transient activation window.
 
-			const debouncedReset = debounce(resetTimeout, timeoutMillis / 4);
+			const throttledReset = throttle(resetTimeout, timeoutMillis / 4);
 			const eventTypes = ["keydown", "pointermove", "pointerdown"];
 			for (const eventType of eventTypes) {
-				window.document.addEventListener(eventType, debouncedReset, { passive: true });
+				window.document.addEventListener(eventType, throttledReset, { passive: true });
 			}
 			return () => {
 				for (const eventType of eventTypes) {
-					window.document.removeEventListener(eventType, debouncedReset);
+					window.document.removeEventListener(eventType, throttledReset);
 				}
 			}
 		},
