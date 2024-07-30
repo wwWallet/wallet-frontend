@@ -13,6 +13,13 @@ export function useOnUserInactivity(action: () => void, timeoutMillis: number) {
 
 	useEffect(
 		() => {
+			// I would have liked to use the User Activation API
+			// (https://developer.mozilla.org/en-US/docs/Web/API/UserActivation/isActive)
+			// for this, but it doesn't appear to provide an event source and the
+			// transient activation duration is on the order of a few seconds, so
+			// you'd have to poll `navigator.userActivation.isActive` in a fairly
+			// tight loop in order to actually hit the transient activation window.
+
 			const debouncedReset = debounce(resetTimeout, timeoutMillis / 4);
 			const eventTypes = ["keydown", "pointermove", "pointerdown"];
 			for (const eventType of eventTypes) {
