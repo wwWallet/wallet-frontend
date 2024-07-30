@@ -172,27 +172,41 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			}
 
 			async function post(path: string, body: object, options?: { appToken?: string }): Promise<AxiosResponse> {
-				return await axios.post(
-					`${walletBackendUrl}${path}`,
-					body,
-					{
-						headers: {
-							'Content-Type': 'application/json',
-							...buildMutationHeaders({ appToken: options?.appToken }),
+				try {
+					return await axios.post(
+						`${walletBackendUrl}${path}`,
+						body,
+						{
+							headers: {
+								'Content-Type': 'application/json',
+								...buildMutationHeaders({ appToken: options?.appToken }),
+							},
+							transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
+							transformResponse,
 						},
-						transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
-						transformResponse,
-					},
-				);
+					);
+				} catch (e) {
+					if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
+						return Promise.reject({ cause: 'x-private-data-etag' });
+					}
+					throw e;
+				}
 			}
 
 			async function del(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-				return await axios.delete(
-					`${walletBackendUrl}${path}`,
-					{
-						headers: buildMutationHeaders({ appToken: options?.appToken }),
-						transformResponse,
-					});
+				try {
+					return await axios.delete(
+						`${walletBackendUrl}${path}`,
+						{
+							headers: buildMutationHeaders({ appToken: options?.appToken }),
+							transformResponse,
+						});
+				} catch (e) {
+					if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
+						return Promise.reject({ cause: 'x-private-data-etag' });
+					}
+					throw e;
+				}
 			}
 
 			function updateShowWelcome(showWelcome: boolean): void {
@@ -256,8 +270,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									return Err('loginKeystoreFailed');
 								}
 							} catch (e) {
-								if (e?.message === 'x-private-data-etag') {
-									return Err(e);
+								if (e?.cause === 'x-private-data-etag') {
+									return Err('x-private-data-etag');
 								}
 								throw e;
 							}
@@ -447,7 +461,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 											return Err('loginKeystoreFailed');
 										}
 									} catch (e) {
-										if (e?.message === 'x-private-data-etag') {
+										if (e?.cause === 'x-private-data-etag') {
 											return Err('x-private-data-etag');
 										}
 										throw e;

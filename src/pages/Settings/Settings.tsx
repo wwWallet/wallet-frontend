@@ -754,7 +754,7 @@ const Settings = () => {
 			await refreshData();
 
 		} catch (e) {
-			if (e?.message === 'x-private-data-etag') {
+			if (e?.cause === 'x-private-data-etag') {
 				// TODO: Show this error to the user
 				throw e;
 			}
@@ -802,7 +802,7 @@ const Settings = () => {
 				console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
 			}
 		} catch (e) {
-			if (e?.message === 'x-private-data-etag') {
+			if (e?.cause === 'x-private-data-etag') {
 				// TODO: Show this error to the user
 				throw e;
 			}
