@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
@@ -10,70 +10,6 @@ import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
-
-import SeparatorLine from '../../components/SeparatorLine';
-
-const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
-	process.env.REACT_APP_LOGIN_WITH_PASSWORD == 'true' :
-	false;
-
-const FormInputRow = ({
-	IconComponent,
-	children,
-	label,
-	name,
-}) => (
-	<div className="mb-4 relative">
-		<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
-			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500 dark:text-white" />
-			{label}
-		</label>
-		{children}
-	</div>
-);
-
-const FormInputField = ({
-	ariaLabel,
-	name,
-	onChange,
-	placeholder,
-	required,
-	value,
-	type,
-}) => {
-	const [show, setShow] = useState(false);
-	const onToggleShow = () => { setShow(!show); };
-	const { t } = useTranslation();
-
-	return (
-		<div className="relative">
-			<input
-				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white dark:inputDarkModeOverride w-full py-1.5 pl-10 pr-3"
-				type={show ? 'text' : type}
-				name={name}
-				placeholder={placeholder}
-				value={value}
-				onChange={onChange}
-				aria-label={ariaLabel}
-				required={required}
-			/>
-
-			{type === 'password' && (
-				<div className="absolute inset-y-0 right-3 flex items-center">
-					<button
-						type="button"
-						onClick={onToggleShow}
-						className="text-gray-500 hover:text-gray-600"
-						aria-label={show ? (t('loginSignup.passwordHideAriaLabel')) : (t('loginSignup.passwordShowAriaLabel'))}
-						title={show ? (t('loginSignup.passwordHideTitle')) : (t('loginSignup.passwordShowTitle'))}
-					>
-						{show ? <FaEyeSlash className='dark:text-white' /> : <FaEye className='dark:text-white' />}
-					</button>
-				</div>
-			)}
-		</div>
-	);
-};
 
 
 const WebauthnSignupLogin = ({
@@ -208,28 +144,19 @@ const WebauthnSignupLogin = ({
 	);
 };
 
-const Login = () => {
+const loginState = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
 
-	const [formData, setFormData] = useState({
-		username: '',
-		password: '',
-		confirmPassword: '',
-	});
-	const [error, setError] = useState('');
-	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [filteredUser, setFilteredUser] = useState(null);
 	const navigate = useNavigate();
 	const keystore = useLocalStorageKeystore();
 	const cachedUsers = keystore.getCachedUsers();
-	console.log('cachedUsers', cachedUsers)
 	const from = location.state?.from;
-	console.log('from:', from)
 
 	useEffect(() => {
 		const queryParams = new URLSearchParams(from.search);
@@ -252,36 +179,6 @@ const Login = () => {
 			navigate('/');
 		}
 	}, [api, navigate]);
-
-	const { username, password, confirmPassword } = formData;
-
-	const handleInputChange = (event) => {
-		const { name, value } = event.target;
-		setFormData((prevFormData) => ({
-			...prevFormData,
-			[name]: value,
-		}));
-		setError(''); // Clear the error message
-	};
-
-	const handleFormSubmit = async (event) => {
-		event.preventDefault();
-
-		if (username === '' || password === '') {
-			setError(t('loginSignup.fillInFieldsError'));
-			return;
-		}
-		setIsSubmitting(true);
-
-		const result = await api.login(username, password, keystore);
-		if (result.ok) {
-			navigate(from, { replace: true });
-		} else {
-			setError(t('loginSignup.incorrectCredentialsError'));
-		}
-
-		setIsSubmitting(false);
-	};
 
 	useEffect(() => {
 		setIsContentVisible(true);
@@ -334,48 +231,6 @@ const Login = () => {
 										/>
 									</p>
 
-									{(loginWithPassword) ?
-										<>
-											<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-												{error && <div className="text-red-500">{error}</div>}
-												<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
-													<FormInputField
-														ariaLabel="Username"
-														name="username"
-														onChange={handleInputChange}
-														placeholder={t('loginSignup.enterUsername')}
-														type="text"
-														value={username}
-													/>
-												</FormInputRow>
-
-												<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
-													<FormInputField
-														ariaLabel="Password"
-														name="password"
-														onChange={handleInputChange}
-														placeholder={t('loginSignup.enterPassword')}
-														type="password"
-														value={password}
-													/>
-												</FormInputRow>
-
-
-												<GetButton
-													type="submit"
-													content={isSubmitting ? t('loginSignup.submitting') : t('loginSignup.login')}
-													variant="primary"
-													disabled={isSubmitting}
-													additionalClassName='w-full'
-												/>
-											</form>
-											<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
-										</>
-										:
-										<></>
-									}
-
-
 									<WebauthnSignupLogin
 										isLogin={true}
 										isSubmitting={isSubmitting}
@@ -407,4 +262,4 @@ const Login = () => {
 	);
 };
 
-export default Login;
+export default loginState;
