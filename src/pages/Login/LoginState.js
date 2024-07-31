@@ -12,8 +12,7 @@ import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 
-const WebauthnSignupLogin = ({
-	isLogin,
+const WebauthnLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 	filteredUser,
@@ -28,12 +27,6 @@ const WebauthnSignupLogin = ({
 
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
-	useEffect(
-		() => {
-			setError("");
-		},
-		[isLogin],
-	);
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
@@ -199,8 +192,7 @@ const LoginState = () => {
 										/>
 									</p>
 
-									<WebauthnSignupLogin
-										isLogin={true}
+									<WebauthnLogin
 										isSubmitting={isSubmitting}
 										setIsSubmitting={setIsSubmitting}
 										filteredUser={filteredUser}
