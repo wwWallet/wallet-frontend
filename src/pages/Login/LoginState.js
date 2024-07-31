@@ -21,11 +21,7 @@ const WebauthnSignupLogin = ({
 	const { isOnline } = useContext(OnlineStatusContext);
 
 	const api = useApi(isOnline);
-	const [inProgress, setInProgress] = useState(false);
 	const [error, setError] = useState('');
-	const [needPrfRetry, setNeedPrfRetry] = useState(false);
-	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState(null);
-	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const from = location.state?.from || '/';
@@ -39,20 +35,9 @@ const WebauthnSignupLogin = ({
 		[isLogin],
 	);
 
-	const promptForPrfRetry = async () => {
-		setNeedPrfRetry(true);
-		return new Promise((resolve, reject) => {
-			setResolvePrfRetryPrompt(() => resolve);
-		}).finally(() => {
-			setNeedPrfRetry(false);
-			setPrfRetryAccepted(true);
-			setResolvePrfRetryPrompt(null);
-		});
-	};
-
 	const onLogin = useCallback(
 		async (cachedUser) => {
-			const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+			const result = await api.loginWebauthn(keystore, async () => false, cachedUser);
 			if (result.ok) {
 
 				navigate(from, { replace: true });
@@ -81,70 +66,53 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t],
+		[api, keystore, navigate, t, from],
 	);
-
-	const onSubmit = async (event) => {
-		event.preventDefault();
-
-		setError();
-		setInProgress(true);
-		setIsSubmitting(true);
-
-		await onLogin();
-
-		setInProgress(false);
-		setIsSubmitting(false);
-	};
 
 	const onLoginCachedUser = async (cachedUser) => {
 		setError();
-		setInProgress(true);
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
-		setInProgress(false);
 		setIsSubmitting(false);
 	};
 
 	return (
-		<form onSubmit={onSubmit}>
-			<>
-				<ul className=" p-2">
-					{filteredUser && (
-						<div className='flex flex-row gap-4 justify-center mr-2'>
-							<GetButton
-								content={
-									<>
-										{isSubmitting ? t('loginSignup.submitting') : t('common.cancel')}
-									</>
-								}
-								onClick={() => navigate('/')}
-								variant="cancel"
-								disabled={isSubmitting}
-								additionalClassName='w-full'
-							/>
-							<GetButton
-								content={
-									<>
-										<GoPasskeyFill className="inline text-xl mr-2" />
-										{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
-									</>
-								}
-								onClick={() => onLoginCachedUser(filteredUser)}
-								variant="primary"
-								disabled={isSubmitting}
-								additionalClassName='w-full'
-							/>
-						</div>
-					)}
-				</ul>
-				{error && <div className="text-red-500 pt-4">{error}</div>}
-			</>
-		</form>
+		<>
+			<ul className=" p-2">
+				{filteredUser && (
+					<div className='flex flex-row gap-4 justify-center mr-2'>
+						<GetButton
+							content={
+								<>
+									{t('common.cancel')}
+								</>
+							}
+							onClick={() => navigate('/')}
+							variant="cancel"
+							disabled={isSubmitting}
+							additionalClassName='w-full'
+						/>
+						<GetButton
+							content={
+								<>
+									<GoPasskeyFill className="inline text-xl mr-2" />
+									{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
+								</>
+							}
+							onClick={() => onLoginCachedUser(filteredUser)}
+							variant="primary"
+							disabled={isSubmitting}
+							additionalClassName='w-full'
+						/>
+					</div>
+				)}
+			</ul>
+			{error && <div className="text-red-500 pt-4">{error}</div>}
+		</>
 	);
 };
 
-const loginState = () => {
+const LoginState = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const api = useApi(isOnline);
 	const { t } = useTranslation();
@@ -172,7 +140,7 @@ const loginState = () => {
 				console.error('Error decoding state:', error);
 			}
 		}
-	}, [location.search]);
+	}, [cachedUsers, from.search]);
 
 	useEffect(() => {
 		if (api.isLoggedIn()) {
@@ -246,6 +214,7 @@ const loginState = () => {
 								<Trans
 									i18nKey="sidebar.poweredBy"
 									components={{
+										// eslint-disable-next-line jsx-a11y/anchor-has-content
 										docLinkWalletGithub: <a
 											href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
 										/>
@@ -262,4 +231,4 @@ const loginState = () => {
 	);
 };
 
-export default loginState;
+export default LoginState;

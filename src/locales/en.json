@@ -263,7 +263,8 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
 	"statusRibbon": {
 		"expired": "Expired"
