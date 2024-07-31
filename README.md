@@ -71,6 +71,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - REACT_APP_FIREBASE_APP_ID: Your Firebase App ID.
 	 - REACT_APP_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
 	 - REACT_APP_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
+	 - REACT_APP_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
 
 4. Install dependencies:
 	```bash

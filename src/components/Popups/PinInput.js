@@ -20,17 +20,18 @@ function PinInput({ showPopup, setShowPopup }) {
 		useRef(null),
 		useRef(null)
 	];
+	const firstInputRef = inputRefs[0];
 
 	useEffect(() => {
-		if (inputRefs[0].current) {
-			inputRefs[0].current.focus();
+		if (firstInputRef.current) {
+			firstInputRef.current.focus();
 		}
-	}, []);
+	}, [firstInputRef]);
 
 	const handleCancel = () => {
 		setShowPopup(false);
 		navigate('/');
-	}
+	};
 
 	const handleSubmit = async () => {
 		try {
@@ -144,7 +145,7 @@ function PinInput({ showPopup, setShowPopup }) {
 						onClick={() => handleInputClick(index)}
 						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
 						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride"
 						ref={inputRefs[index]}
 					/>
 				))}

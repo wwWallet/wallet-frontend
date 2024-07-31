@@ -6,19 +6,19 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
 
+import * as config from '../../config';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
+import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 import SessionContext from '../../context/SessionContext';
 
-const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
-	process.env.REACT_APP_LOGIN_WITH_PASSWORD == 'true' :
-	false;
 
 const FormInputRow = ({
 	IconComponent,
@@ -60,7 +60,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white w-full py-1.5 pl-10 pr-3"
+				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white dark:inputDarkModeOverride w-full py-1.5 pl-10 pr-3"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -109,7 +109,9 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 }) => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+
+	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
@@ -169,12 +171,16 @@ const WebauthnSignupLogin = ({
 						setError(t('loginSignup.passkeyLoginFailedServerError'));
 						break;
 
+					case 'x-private-data-etag':
+						setError(t('loginSignup.privateDataConflict'));
+						break;
+
 					default:
 						throw result;
 				}
 			}
 		},
-		[api, keystore, navigate, t],
+		[api, from, keystore, navigate, t],
 	);
 
 	const onSignup = useCallback(
@@ -214,6 +220,7 @@ const WebauthnSignupLogin = ({
 							<Trans
 								i18nKey="loginSignup.passkeySignupPrfNotSupported"
 								components={{
+									// eslint-disable-next-line jsx-a11y/anchor-has-content
 									docLink: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 										className="font-medium text-primary hover:underline dark:text-blue-500"
@@ -234,7 +241,7 @@ const WebauthnSignupLogin = ({
 				}
 			}
 		},
-		[api, retrySignupFrom, keystore, navigate, t],
+		[api, from, retrySignupFrom, keystore, navigate, t],
 	);
 
 	const onSubmit = async (event) => {
@@ -344,7 +351,7 @@ const WebauthnSignupLogin = ({
 											/>
 											<GetButton
 												type="submit"
-												content={t('loginSignup.tryAgain')}
+												content={t('common.tryAgain')}
 												variant="secondary"
 											/>
 										</div>
@@ -450,8 +457,9 @@ const WebauthnSignupLogin = ({
 								</>
 							}
 							variant="primary"
-							disabled={isSubmitting || nameByteLimitReached}
-							additionalClassName={`w-full ${nameByteLimitReached && 'cursor-not-allowed bg-gray-300 hover:bg-gray-300'}`}
+							disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
+							additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+							title={!isLogin && !isOnline && t("common.offlineTitle")}
 						/>
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
@@ -462,8 +470,9 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
+	const { isOnline } = useContext(OnlineStatusContext);
 	const { isLoggedIn } = useContext(SessionContext);
-	const api = useApi();
+	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -556,14 +565,16 @@ const Login = () => {
 
 	const toggleForm = (event) => {
 		event.preventDefault();
-		setIsLogin(!isLogin);
-		setError('');
-		setFormData({
-			username: '',
-			password: '',
-			confirmPassword: '',
-		});
-	};
+		if (isOnline || !isLogin) {
+			setIsLogin(!isLogin);
+			setError('');
+			setFormData({
+				username: '',
+				password: '',
+				confirmPassword: '',
+			});
+		};
+	}
 
 	const getPasswordStrength = (password) => {
 		const lengthScore = password.length >= 8 ? 25 : 0;
@@ -585,161 +596,182 @@ const Login = () => {
 
 			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in">
 				<>
-					<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-max min-h-screen">
-						<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-							<img className="w-40" src={logo} alt="logo" />
-						</a>
+					<div className='h-max min-h-screen'>
+						<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
+							<a href="/" className="flex justify-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+								<img className="w-40" src={logo} alt="logo" />
+							</a>
 
-						<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
-							<Trans
-								i18nKey="loginSignup.welcomeMessage"
-								components={{
-									highlight: <span className="text-primary dark:text-primary-light" />
-								}}
-							/>
-						</h1>
+							<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+								<Trans
+									i18nKey="loginSignup.welcomeMessage"
+									components={{
+										highlight: <span className="text-primary dark:text-primary-light" />
+									}}
+								/>
+							</h1>
 
-						<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
-							{/* Dropdown to change language */}
-							{/* <div className="absolute top-2 right-2">
+							<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
+								{/* Dropdown to change language */}
+								{/* <div className="absolute top-2 right-2">
 							<LanguageSelector />
 						</div> */}
-							<CheckBrowserSupport.Ctx>
-								<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-									<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-										<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
-											<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-											<Trans
-												i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
-												components={{
-													docLinkPrf: <a
-														href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-														className="font-medium text-primary dark:text-primary-light hover:underline"
-													/>,
-													docLinkLaunchpad: <a
-														href="https://launchpad.wwwallet.org" target='blank_'
-														className="font-medium text-primary dark:text-primary-light hover:underline"
-													/>,
-													docLinkScenarios: <a
-														href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-														className="font-medium text-primary dark:text-primary-light hover:underline"
-													/>
-												}}
-											/>
-											<div className='mt-1'>
+								<CheckBrowserSupport.Ctx>
+									<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
+										<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+											<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
 												<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 												<Trans
-													i18nKey="loginSignup.infoAboutTimeAndLocation"
+													i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
+													components={{
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
+														docLinkPrf: <a
+															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+															className="font-medium text-primary dark:text-primary-light hover:underline"
+														/>,
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
+														docLinkLaunchpad: <a
+															href="https://launchpad.wwwallet.org" target='blank_'
+															className="font-medium text-primary dark:text-primary-light hover:underline"
+														/>,
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
+														docLinkScenarios: <a
+															href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
+															className="font-medium text-primary dark:text-primary-light hover:underline"
+														/>
+													}}
 												/>
-											</div>
-										</CheckBrowserSupport.If>
-										<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
-											<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
-											<Trans
-												i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
-												components={{
-													docLinkPrf: <a
-														href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-														className="font-medium text-primary hover:underline dark:text-blue-500"
+												<div className='mt-1'>
+													<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+													<Trans
+														i18nKey="loginSignup.infoAboutTimeAndLocation"
 													/>
-												}}
-											/>
-										</CheckBrowserSupport.If>
-									</p>
-								</CheckBrowserSupport.If>
-							</CheckBrowserSupport.Ctx>
-							<div className="p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-								<CheckBrowserSupport.WarningPortal>
-									<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-										{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-									</h1>
-									{(loginWithPassword) ?
-										<>
-											<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-												{error && <div className="text-red-500">{error}</div>}
-												<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
-													<FormInputField
-														ariaLabel="Username"
-														name="username"
-														onChange={handleInputChange}
-														placeholder={t('loginSignup.enterUsername')}
-														type="text"
-														value={username}
-													/>
-												</FormInputRow>
-
-												<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
-													<FormInputField
-														ariaLabel="Password"
-														name="password"
-														onChange={handleInputChange}
-														placeholder={t('loginSignup.enterPassword')}
-														type="password"
-														value={password}
-													/>
-													{!isLogin && password !== '' && <PasswordStrength label={t('loginSignup.strength')} value={passwordStrength} />}
-												</FormInputRow>
-
-												{!isLogin && (
-													<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+												</div>
+											</CheckBrowserSupport.If>
+											<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
+												<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+												<Trans
+													i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
+													components={{
+														// eslint-disable-next-line jsx-a11y/anchor-has-content
+														docLinkPrf: <a
+															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+															className="font-medium text-primary hover:underline dark:text-blue-500"
+														/>
+													}}
+												/>
+											</CheckBrowserSupport.If>
+										</p>
+									</CheckBrowserSupport.If>
+								</CheckBrowserSupport.Ctx>
+								<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
+									<CheckBrowserSupport.WarningPortal>
+										<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+											{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+										</h1>
+										<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+											{isOnline ? (
+												<PiWifiHighBold size={25} title={t('common.online')} />
+											) : (
+												<PiWifiSlashBold size={25} title={t('common.offline')} />
+											)}
+										</div>
+										{isOnline === false && (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+												<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+												{t('loginSignup.messageOffline')}
+											</p>
+										)}
+										{config.LOGIN_WITH_PASSWORD ?
+											<>
+												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+													{error && <div className="text-red-500">{error}</div>}
+													<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
 														<FormInputField
-															ariaLabel="Confirm Password"
-															name="confirmPassword"
+															ariaLabel="Username"
+															name="username"
 															onChange={handleInputChange}
-															placeholder={t('loginSignup.enterconfirmPasswordLabel')}
-															type="password"
-															value={confirmPassword}
+															placeholder={t('loginSignup.enterUsername')}
+															type="text"
+															value={username}
 														/>
 													</FormInputRow>
-												)}
-												<GetButton
-													type="submit"
-													content={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-													variant="primary"
-													disabled={isSubmitting}
-													additionalClassName='w-full'
-												/>
-											</form>
-											<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
-										</>
-										:
-										<></>
-									}
+
+													<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
+														<FormInputField
+															ariaLabel="Password"
+															name="password"
+															onChange={handleInputChange}
+															placeholder={t('loginSignup.enterPassword')}
+															type="password"
+															value={password}
+														/>
+														{!isLogin && password !== '' && <PasswordStrength label={t('loginSignup.strength')} value={passwordStrength} />}
+													</FormInputRow>
+
+													{!isLogin && (
+														<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+															<FormInputField
+																ariaLabel="Confirm Password"
+																name="confirmPassword"
+																onChange={handleInputChange}
+																placeholder={t('loginSignup.enterconfirmPasswordLabel')}
+																type="password"
+																value={confirmPassword}
+															/>
+														</FormInputRow>
+													)}
+													<GetButton
+														type="submit"
+														content={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+														variant="primary"
+														disabled={isSubmitting}
+														additionalClassName='w-full'
+													/>
+												</form>
+												<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
+											</>
+											:
+											<></>
+										}
 
 
-									<WebauthnSignupLogin
-										isLogin={isLogin}
-										isSubmitting={isSubmitting}
-										setIsSubmitting={setIsSubmitting}
-									/>
+										<WebauthnSignupLogin
+											isLogin={isLogin}
+											isSubmitting={isSubmitting}
+											setIsSubmitting={setIsSubmitting}
+										/>
 
-									<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-										{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-										<a
-											href="/"
-											className="font-medium text-primary hover:underline dark:text-primary-light"
-											onClick={toggleForm}
-										>
-											{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-										</a>
-									</p>
-								</CheckBrowserSupport.WarningPortal>
+										<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
+											<a
+												href={isLogin && isOnline ? "/" : ""}
+												className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+												title={`${isOnline === false && t('common.offlineTitle')}`}
+												onClick={toggleForm}
+											>
+												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
+											</a>
+										</p>
+									</CheckBrowserSupport.WarningPortal>
+								</div>
 							</div>
 						</div>
-					</div>
-					<div>
-						<p className='text-gray-700 dark:text-gray-400 text-center min-mt-10'>
-							<Trans
-								i18nKey="sidebar.poweredBy"
-								components={{
-									docLinkWalletGithub: <a
-										href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
-									/>
-								}}
-							/>
-						</p>
-						<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{process.env.REACT_APP_VERSION}</p>
+						<div className='h-[5vh]'>
+							<p className='text-gray-700 dark:text-gray-400 text-center min-mt-10'>
+								<Trans
+									i18nKey="sidebar.poweredBy"
+									components={{
+										// eslint-disable-next-line jsx-a11y/anchor-has-content
+										docLinkWalletGithub: <a
+											href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
+										/>
+									}}
+								/>
+							</p>
+							<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{config.APP_VERSION}</p>
 
+						</div>
 					</div>
 				</>
 			</CSSTransition>

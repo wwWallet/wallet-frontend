@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { useApi } from '../../api';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -18,7 +19,8 @@ function highlightBestSequence(issuer, search) {
 }
 
 const Issuers = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
@@ -44,7 +46,7 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.get('/legal_person/issuers/all');
+				const response = await api.getExternalEntity('/legal_person/issuers/all');
 				const fetchedIssuers = response.data;
 				setIssuers(fetchedIssuers);
 				setFilteredIssuers(fetchedIssuers);
@@ -137,7 +139,7 @@ const Issuers = () => {
 					<input
 						type="text"
 						placeholder={t('pageAddCredentials.searchPlaceholder')}
-						className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride"
 						value={searchQuery}
 						onChange={handleSearch}
 					/>
@@ -152,9 +154,11 @@ const Issuers = () => {
 						{filteredIssuers.map((issuer) => (
 							<button
 								key={issuer.id}
-								className="bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left"
+								className={`bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left ${!isOnline ? ' text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' : 'cursor-pointer'}`}
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.did)}
+								disabled={!isOnline}
+								title={!isOnline && t('common.offlineTitle')}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
 							</button>

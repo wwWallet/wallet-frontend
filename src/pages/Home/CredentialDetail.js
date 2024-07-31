@@ -1,6 +1,6 @@
 // CredentialDetail.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
@@ -14,9 +14,11 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
 
 const CredentialDetail = () => {
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const api = useApi(isOnline);
 	const { id } = useParams();
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -29,7 +31,7 @@ const CredentialDetail = () => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
 			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier == id)[0];
+				.filter((vcEntity) => vcEntity.credentialIdentifier === id)[0];
 			if (!vcEntity) {
 				throw new Error("Credential not found");
 			}

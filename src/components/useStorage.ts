@@ -4,7 +4,6 @@ import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 type ClearHandle = () => void;
 export type UseStorageHandle<T> = [T, Dispatch<SetStateAction<T>>, ClearHandle];
 type UseStorageEvent = { storageArea: Storage };
-type ClearEvent = UseStorageEvent;
 type SetValueEvent<T> = UseStorageEvent & { name: string, value: T };
 
 function makeUseStorage<T>(
@@ -16,6 +15,8 @@ function makeUseStorage<T>(
 	}
 
 	return (name: string, initialValue: T) => {
+		const [initValue,] = useState(initialValue);
+
 		const getCurrentValue = useCallback(
 			() => {
 				const storedValueStr = storage.getItem(name);
@@ -24,12 +25,12 @@ function makeUseStorage<T>(
 						return jsonParseTaggedBinary(storedValueStr);
 					}
 				} catch (e) {
-					// Fall back to initialValue
+					// Fall back to initValue
 					storage.removeItem(name);
 				}
-				return initialValue;
+				return initValue;
 			},
-			[],
+			[initValue, name],
 		);
 
 		const [currentValue, setValue] = useState(getCurrentValue);
@@ -55,7 +56,7 @@ function makeUseStorage<T>(
 					})
 				);
 			},
-			[],
+			[getCurrentValue, name],
 		);
 
 		const clearValue = useCallback(
@@ -70,12 +71,12 @@ function makeUseStorage<T>(
 						detail: {
 							storageArea: storage,
 							name,
-							value: initialValue,
+							value: initValue,
 						},
 					})
 				);
 			},
-			[],
+			[initValue, name],
 		);
 
 		useEffect(
@@ -91,7 +92,7 @@ function makeUseStorage<T>(
 							setValue(jsonParseTaggedBinary(event.newValue));
 
 						} else if (event.key === null) { // Storage.clear()
-							setValue(initialValue);
+							setValue(initValue);
 						}
 					}
 				};
@@ -101,7 +102,7 @@ function makeUseStorage<T>(
 					window.removeEventListener('storage', listener);
 				};
 			},
-			[]
+			[initValue, name]
 		);
 
 		useEffect(
@@ -119,7 +120,7 @@ function makeUseStorage<T>(
 					window.removeEventListener('useStorage.set', listener);
 				};
 			},
-			[],
+			[name],
 		);
 
 		return [currentValue, updateValue, clearValue];
@@ -137,5 +138,5 @@ export const useClearStorages: (...clearHandles: ClearHandle[]) => ClearHandle =
 		() => {
 			clearHandles.forEach(clear => clear());
 		},
-		[...clearHandles],
+		[...clearHandles], // eslint-disable-line react-hooks/exhaustive-deps -- Arrays are not stable under Object.is, so we have to use spread operator here
 	);

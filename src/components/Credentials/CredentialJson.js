@@ -15,7 +15,7 @@ const CredentialJson = ({ credential }) => {
 		parseCredential(credential).then((c) => {
 			setParsedCredential(c);
 		});
-	}, []);
+	}, [credential]);
 
 	return (
 		<div className=" lg:p-0 p-2 w-full">

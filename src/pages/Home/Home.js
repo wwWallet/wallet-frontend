@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -20,11 +20,11 @@ import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
-import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
+import CredentialsContext from '../../context/CredentialsContext';
 
 const Home = () => {
 	const api = useApi();
-	const [vcEntityList, setVcEntityList] = useState([]);
+	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -52,6 +52,10 @@ const Home = () => {
 	};
 
 	useEffect(() => {
+		getData();
+	}, [getData]);
+
+	useEffect(() => {
 		const handleResize = () => {
 			setIsSmallScreen(window.innerWidth < 768);
 		};
@@ -62,19 +66,6 @@ const Home = () => {
 			window.removeEventListener('resize', handleResize);
 		};
 	}, []);
-
-	useEffect(() => {
-		const getData = async () => {
-			const response = await api.get('/storage/vc');
-			const vcEntityList = await Promise.all(response.data.vc_list.map(async vcEntity => {
-				const name = await extractCredentialFriendlyName(vcEntity.credential);
-				return { ...vcEntity, friendlyName: name };
-			}));
-			vcEntityList.sort((vcA, vcB) => vcB.issuanceDate - vcA.issuanceDate);
-			setVcEntityList(vcEntityList);
-		};
-		getData();
-	}, [api]);
 
 	const handleAddCredential = () => {
 		navigate('/add');
@@ -99,12 +90,12 @@ const Home = () => {
 		setLoading(true);
 		try {
 			await api.del(`/storage/vc/${selectedVcEntity.credentialIdentifier}`);
+			await getData();
 		} catch (error) {
 			console.error('Failed to delete data', error);
 		}
 		setLoading(false);
 		setShowDeletePopup(false);
-		window.location.href = '/';
 	};
 
 	return (
@@ -122,12 +113,13 @@ const Home = () => {
 
 							{vcEntityList.length === 0 ? (
 								<button
-									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+									className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 									onClick={handleAddCredential}
 								>
 									<img
 										src={addImage}
 										className="w-full h-auto object-cover rounded-xl opacity-100 hover:opacity-120"
+										alt=""
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
@@ -137,53 +129,43 @@ const Home = () => {
 							) : (
 								<>
 									<Slider ref={sliderRef} {...settings}>
-										{vcEntityList && vcEntityList.map((vcEntity, index) => (
-											<>
-												<React.Fragment key={vcEntity.id}>
-													{(currentSlide === index + 1 ? 'button' : 'div')
-														.split()
-														.map(Tag => (
-															<>
-																<Tag
-																	className="relative rounded-xl xl:w-4/5 md:w-full	sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2" onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
-																	aria-label={`${vcEntity.friendlyName}`}
-																	title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
-																>
-																	<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
-																</Tag>
-																<div className="flex items-center justify-end">
-																	<span className="mr-4 dark:text-white">{currentSlide} of {vcEntityList.length}</span>
-																	<Tag
-																		onClick={() => sliderRef.current.slickPrev()}
-																		aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
-																		title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
-																		disabled={currentSlide === 1}
-																		className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
-																	>
-																		<BiLeftArrow size={22} />
-																	</Tag>
-																	<Tag
-																		onClick={() => sliderRef.current.slickNext()}
-																		aria-label={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
-																		title={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
-																		disabled={currentSlide === vcEntityList.length}
-																		className={`${currentSlide === vcEntityList.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
-																	>
-																		<BiRightArrow size={22} />
-																	</Tag>
-																</div>
-															</>
-														))}
-
-												</React.Fragment>
-
-												<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-auto opacity-100' : 'max-h-0 opacity-0'}`}>
+										{vcEntityList.map((vcEntity, index) => (
+											<div key={vcEntity.id}>
+												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
+													onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
+													aria-label={`${vcEntity.friendlyName}`}
+													tabindex={(currentSlide !== index + 1) && -1}
+													title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
+												>
+													<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
+												</button>
+												<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-auto opacity-100' : 'hidden max-h-0 opacity-0'}`}>
+													<div className="flex items-center justify-end">
+														<span className="mr-4 dark:text-white">{currentSlide} of {vcEntityList.length}</span>
+														<button
+															onClick={() => sliderRef.current.slickPrev()}
+															aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
+															title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
+															disabled={currentSlide === 1}
+															className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+														>
+															<BiLeftArrow size={22} />
+														</button>
+														<button
+															onClick={() => sliderRef.current.slickNext()}
+															aria-label={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
+															title={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
+															disabled={currentSlide === vcEntityList.length}
+															className={`${currentSlide === vcEntityList.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+														>
+															<BiRightArrow size={22} />
+														</button>
+													</div>
 													<CredentialInfo credential={vcEntity.credential} />
 													<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedVcEntity(vcEntity); }} />
 													<CredentialJson credential={vcEntity.credential} />
 												</div>
-
-											</>
+											</div>
 										))}
 									</Slider>
 								</>
@@ -194,22 +176,22 @@ const Home = () => {
 							{vcEntityList.map((vcEntity) => (
 								<button
 									key={vcEntity.id}
-									className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+									className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 									onClick={() => handleImageClick(vcEntity)}
 									aria-label={`${vcEntity.friendlyName}`}
 									title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
 								>
-									<CredentialImage credential={vcEntity.credential} className={"w-full h-full object-cover rounded-xl"} />
+									<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
 								</button>
 							))}
-
 							<button
-								className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+								className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 								onClick={handleAddCredential}
 							>
 								<img
 									src={addImage}
 									className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+									alt=""
 								/>
 								<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 									<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
