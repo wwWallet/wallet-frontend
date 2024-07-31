@@ -13,20 +13,18 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 
 const WebauthnLogin = ({
-	isSubmitting,
-	setIsSubmitting,
 	filteredUser,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-
 	const api = useApi(isOnline);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
 	const from = location.state?.from || '/';
-
 	const { t } = useTranslation();
 	const keystore = useLocalStorageKeystore();
+
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
@@ -111,7 +109,6 @@ const LoginState = () => {
 	const { t } = useTranslation();
 	const location = useLocation();
 
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [filteredUser, setFilteredUser] = useState(null);
 	const navigate = useNavigate();
@@ -193,8 +190,6 @@ const LoginState = () => {
 									</p>
 
 									<WebauthnLogin
-										isSubmitting={isSubmitting}
-										setIsSubmitting={setIsSubmitting}
 										filteredUser={filteredUser}
 									/>
 
