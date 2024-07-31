@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
@@ -14,6 +14,7 @@ import GetButton from '../../components/Buttons/GetButton';
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
+import SessionContext from '../../context/SessionContext';
 
 const loginWithPassword = process.env.REACT_APP_LOGIN_WITH_PASSWORD ?
 	process.env.REACT_APP_LOGIN_WITH_PASSWORD == 'true' :
@@ -461,6 +462,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
+	const { isLoggedIn } = useContext(SessionContext);
 	const api = useApi();
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -481,10 +483,10 @@ const Login = () => {
 	const keystore = useLocalStorageKeystore();
 
 	useEffect(() => {
-		if (api.isLoggedIn()) {
+		if (isLoggedIn) {
 			navigate('/');
 		}
-	}, [api, navigate]);
+	}, [isLoggedIn, navigate]);
 
 	const { username, password, confirmPassword } = formData;
 

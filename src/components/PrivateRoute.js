@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useApi } from '../api';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from '../components/useStorage';
+import SessionContext from '../context/SessionContext';
 
 const PrivateRoute = ({ children }) => {
+	const { isLoggedIn } = useContext(SessionContext);
 	const api = useApi();
 	const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const keystore = useLocalStorageKeystore();
-	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 
 	const location = useLocation();

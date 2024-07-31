@@ -9,7 +9,8 @@ import i18n from './i18n';
 import useCheckURL from './components/useCheckURL'; // Import the custom hook
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
-import Snowfalling from './components/ChistmasAnimation/Snowfalling'
+import { withSessionContext } from './context/SessionContext';
+import Snowfalling from './components/ChistmasAnimation/Snowfalling';
 
 import Home from './pages/Home/Home';
 import History from './pages/History/History';
@@ -114,4 +115,4 @@ function App() {
 	);
 }
 
-export default handleServerMessagesGuard(App);
+export default withSessionContext(handleServerMessagesGuard(App));
