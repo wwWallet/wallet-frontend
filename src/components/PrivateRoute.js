@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { fetchToken } from '../firebase';
@@ -17,9 +17,11 @@ const PrivateRoute = ({ children }) => {
 	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
+	const cachedUsers = keystore.getCachedUsers();
 
 	const location = useLocation();
-	const navigate = useNavigate();
+	const queryParams = new URLSearchParams(location.search);
+	const state = queryParams.get('state');
 
 	useEffect(() => {
 		const requestNotificationPermission = async () => {
@@ -88,13 +90,6 @@ const PrivateRoute = ({ children }) => {
 	]);
 
 	useEffect(() => {
-		if (!isLoggedIn) {
-			const destination = location.pathname + location.search;
-			navigate('/login', { state: { from: destination } });
-		}
-	}, [isLoggedIn, location, navigate, isOnline]);
-
-	useEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true) {
 			const performLogout = async () => {
 				api.clearSession();
@@ -117,8 +112,24 @@ const PrivateRoute = ({ children }) => {
 		setLatestIsOnlineStatus,
 	]);
 
+
+	const userExistsInCache = (state) => {
+		if (!state) return false;
+		try {
+			const decodedState = JSON.parse(atob(state));
+			return cachedUsers.some(user => user.userHandleB64u === decodedState.userHandleB64u);
+		} catch (error) {
+			console.error('Error decoding state:', error);
+			return false;
+		}
+	};
+
 	if (!isLoggedIn) {
-		return <Navigate to="/login" state={{ from: location }} replace />;
+		if (state && userExistsInCache(state)) {
+			return <Navigate to="/login-state" state={{ from: location }} replace />;
+		} else {
+			return <Navigate to="/login" state={{ from: location }} replace />;
+		}
 	}
 
 	if (loading || tokenSentInSession === null) {
