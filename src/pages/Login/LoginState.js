@@ -117,7 +117,7 @@ const LoginState = () => {
 	const from = location.state?.from;
 
 	useEffect(() => {
-		const queryParams = new URLSearchParams(from.search);
+		const queryParams = new URLSearchParams(from?.search ?? location.search);
 		const state = queryParams.get('state');
 
 		if (state) {
@@ -130,7 +130,7 @@ const LoginState = () => {
 				console.error('Error decoding state:', error);
 			}
 		}
-	}, [cachedUsers, from.search]);
+	}, [cachedUsers, from?.search, location.search]);
 
 	useEffect(() => {
 		if (api.isLoggedIn()) {
