@@ -70,33 +70,31 @@ const WebauthnLogin = ({
 	return (
 		<>
 			<ul className=" p-2">
-				{filteredUser && (
-					<div className='flex flex-row gap-4 justify-center mr-2'>
-						<GetButton
-							content={
-								<>
-									{t('common.cancel')}
-								</>
-							}
-							onClick={() => navigate('/')}
-							variant="cancel"
-							disabled={isSubmitting}
-							additionalClassName='w-full'
-						/>
-						<GetButton
-							content={
-								<>
-									<GoPasskeyFill className="inline text-xl mr-2" />
-									{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
-								</>
-							}
-							onClick={() => onLoginCachedUser(filteredUser)}
-							variant="primary"
-							disabled={isSubmitting}
-							additionalClassName='w-full'
-						/>
-					</div>
-				)}
+				<div className='flex flex-row gap-4 justify-center mr-2'>
+					<GetButton
+						content={
+							<>
+								{t('common.cancel')}
+							</>
+						}
+						onClick={() => navigate('/')}
+						variant="cancel"
+						disabled={isSubmitting}
+						additionalClassName='w-full'
+					/>
+					<GetButton
+						content={
+							<>
+								<GoPasskeyFill className="inline text-xl mr-2" />
+								{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
+							</>
+						}
+						onClick={() => onLoginCachedUser(filteredUser)}
+						variant="primary"
+						disabled={isSubmitting}
+						additionalClassName='w-full'
+					/>
+				</div>
 			</ul>
 			{error && <div className="text-red-500 pt-4">{error}</div>}
 		</>
