@@ -41,6 +41,12 @@
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
 		"messageOffline": "You are currently <strong>offline. Some features may not be available.</strong>"
 	},
+	"loginState": {
+		"confirm": "Confirm",
+		"message": "Use your <strong>passkey</strong> to continue and fetch your credential in your wallet.",
+		"title": "Hi,",
+		"welcomeBackMessage": "Welcome back to <highlight>wwWallet</highlight>"
+	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"capitalLetter": "At least one capital letter",
@@ -257,7 +263,8 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>"
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
 	"statusRibbon": {
 		"expired": "Expired"

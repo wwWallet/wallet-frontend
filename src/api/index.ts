@@ -247,7 +247,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							try {
 								const updateResp = updatePrivateDataEtag(await post(
-									'/user/session/update-private-data',
+									'/user/session/private-data',
 									serializePrivateData(newPrivateData),
 									{ appToken: response.data.appToken },
 								));
@@ -438,7 +438,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									const [newPrivateData, keystoreCommit] = updatePrivateData;
 									try {
 										const updateResp = await post(
-											'/user/session/update-private-data',
+											'/user/session/private-data',
 											serializePrivateData(newPrivateData),
 											{ appToken: finishResp.data.appToken },
 										);

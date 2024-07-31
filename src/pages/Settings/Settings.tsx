@@ -790,7 +790,7 @@ const Settings = () => {
 			);
 			setUpgradePrfState(null);
 			const updateResp = api.updatePrivateDataEtag(
-				await api.post('/user/session/update-private-data', serializePrivateData(newPrivateData)),
+				await api.post('/user/session/private-data', serializePrivateData(newPrivateData)),
 			);
 			if (updateResp.status === 204) {
 				await keystoreCommit();

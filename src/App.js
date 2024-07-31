@@ -20,6 +20,7 @@ import AddCredentials from './pages/AddCredentials/AddCredentials';
 import SendCredentials from './pages/SendCredentials/SendCredentials';
 
 const Login = React.lazy(() => import('./pages/Login/Login'));
+const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
@@ -74,6 +75,7 @@ function App() {
 						<HandlerNotification />
 						<Routes>
 							<Route path="/login" element={<Login />} />
+							<Route path="/login-state" element={<LoginState />} />
 							<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
 							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
