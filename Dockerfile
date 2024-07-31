@@ -24,7 +24,7 @@ COPY . .
 RUN yarn build
 
 
-FROM nginx:alpine as deploy
+FROM nginx:alpine AS deploy
 
 WORKDIR /usr/share/nginx/html
 
