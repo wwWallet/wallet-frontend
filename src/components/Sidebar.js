@@ -40,7 +40,6 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 	const handleLogout = async () => {
 		await logout();
-		navigate('/login');
 	};
 
 	const handleNavigate = (path) => {

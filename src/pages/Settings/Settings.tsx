@@ -11,7 +11,6 @@ import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../service
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
-import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
@@ -683,7 +682,6 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const navigate = useNavigate();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
@@ -698,7 +696,6 @@ const Settings = () => {
 				keystore.forgetCachedUser(cachedUser);
 			}
 			await logout();
-			navigate('/login');
 		}
 		catch (err) {
 			console.log('Error = ', err)

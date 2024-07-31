@@ -95,11 +95,7 @@ const PrivateRoute = ({ children }) => {
 
 	useEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true) {
-			const performLogout = async () => {
-				await logout();
-				window.location.href = '/login';
-			};
-			performLogout();
+			logout();
 		}
 		if (isLoggedIn) {
 			setLatestIsOnlineStatus(isOnline);
