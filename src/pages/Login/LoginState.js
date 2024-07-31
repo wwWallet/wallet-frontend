@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
@@ -110,39 +110,36 @@ const LoginState = () => {
 	const location = useLocation();
 
 	const [isContentVisible, setIsContentVisible] = useState(false);
-	const [filteredUser, setFilteredUser] = useState(null);
-	const navigate = useNavigate();
 	const keystore = useLocalStorageKeystore();
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.state?.from;
 
-	useEffect(() => {
+	const getCachedUser = () => {
 		const queryParams = new URLSearchParams(from?.search ?? location.search);
 		const state = queryParams.get('state');
-
 		if (state) {
 			try {
-				console.log('state', state)
+				console.log('state', state);
 				const decodedState = atob(state);
 				const stateObj = JSON.parse(decodedState);
-				setFilteredUser(cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u));
+				return cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u);
 			} catch (error) {
 				console.error('Error decoding state:', error);
 			}
-		} else {
-			navigate('/login');
 		}
-	}, [cachedUsers, from?.search, location.search]);
-
-	useEffect(() => {
-		if (api.isLoggedIn()) {
-			navigate('/');
-		}
-	}, [api, navigate]);
+		return null;
+	};
+	const filteredUser = getCachedUser();
 
 	useEffect(() => {
 		setIsContentVisible(true);
 	}, []);
+
+	if (!filteredUser) {
+		return <Navigate to="/login" replace />;
+	} else if (api.isLoggedIn()) {
+		return <Navigate to="/" replace />;
+	}
 
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
@@ -166,11 +163,9 @@ const LoginState = () => {
 
 							<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
 								<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-									{filteredUser && (
-										<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-											{t('loginState.title')} {filteredUser.displayName}
-										</h1>
-									)}
+									<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+										{t('loginState.title')} {filteredUser.displayName}
+									</h1>
 									<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 										{isOnline ? (
 											<PiWifiHighBold size={25} title={t('common.online')} />
