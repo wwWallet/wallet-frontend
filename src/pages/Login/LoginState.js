@@ -129,6 +129,8 @@ const LoginState = () => {
 			} catch (error) {
 				console.error('Error decoding state:', error);
 			}
+		} else {
+			navigate('/login');
 		}
 	}, [cachedUsers, from?.search, location.search]);
 
