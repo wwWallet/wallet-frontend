@@ -691,7 +691,9 @@ const Settings = () => {
 	const deleteAccount = async () => {
 		try {
 			await api.del('/user/session');
-			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName === userData.displayName)[0];
+			const userHandleB64u = new TextEncoder().encode(userData.webauthnUserHandle);
+			const cachedUser = keystore.getCachedUsers()
+				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
