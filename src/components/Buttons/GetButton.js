@@ -15,7 +15,7 @@ const GetButton = ({ type = 'button', content, onClick, variant = 'custom', addi
 				return `${commonClasses} ${!disabled ? "text-gray-900 bg-gray-300 hover:bg-gray-400" : "text-white bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
 			case 'delete':
 				return `${commonClasses} ${!disabled ? "text-white bg-red-600 hover:bg-red-700" : "text-red-400 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"}`;
-			case 'custom':
+			default:
 				return `${commonClasses}`;
 		}
 	};

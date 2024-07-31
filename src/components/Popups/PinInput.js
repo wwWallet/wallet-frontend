@@ -20,17 +20,18 @@ function PinInput({ showPopup, setShowPopup }) {
 		useRef(null),
 		useRef(null)
 	];
+	const firstInputRef = inputRefs[0];
 
 	useEffect(() => {
-		if (inputRefs[0].current) {
-			inputRefs[0].current.focus();
+		if (firstInputRef.current) {
+			firstInputRef.current.focus();
 		}
-	}, []);
+	}, [firstInputRef]);
 
 	const handleCancel = () => {
 		setShowPopup(false);
 		navigate('/');
-	}
+	};
 
 	const handleSubmit = async () => {
 		try {

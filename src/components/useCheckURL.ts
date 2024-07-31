@@ -46,7 +46,7 @@ function useCheckURL(urlToCheck: string): {
 
 				const res = await api.post('/communication/handle', { url, camera_was_used: (wwwallet_camera_was_used != null && wwwallet_camera_was_used === 'true') });
 				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin, error } = res.data;
-				if (error && error == HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
+				if (error && error === HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
 					console.error(`${HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS}`);
 					setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
 					setTypeMessagePopup('error');
@@ -54,7 +54,7 @@ function useCheckURL(urlToCheck: string): {
 					return false;
 				}
 
-				if (preauth && preauth == true) {
+				if (preauth && preauth === true) {
 					if (ask_for_pin) {
 						setShowPinInputPopup(true);
 						return true;
@@ -92,7 +92,7 @@ function useCheckURL(urlToCheck: string): {
 			})();
 		}
 
-	}, [api, keystore, urlToCheck, isLoggedIn]);
+	}, [api, keystore, t, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
 		if (selectionMap) {
@@ -104,7 +104,7 @@ function useCheckURL(urlToCheck: string): {
 				console.log(success);
 				const { redirect_to, error } = success.data;
 
-				if (error && error == SendResponseError.SEND_RESPONSE_ERROR) {
+				if (error && error === SendResponseError.SEND_RESPONSE_ERROR) {
 					setTextMessagePopup({ title: `${t('messagePopup.sendResponseError.title')}`, description: `${t('messagePopup.sendResponseError.description')}` });
 					setTypeMessagePopup('error');
 					setMessagePopup(true);
@@ -124,7 +124,7 @@ function useCheckURL(urlToCheck: string): {
 				console.error(err);
 			});
 		}
-	}, [api, keystore, selectionMap]);
+	}, [api, keystore, selectionMap, t]);
 
 	return { showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup, verifierDomainName, showMessagePopup, setMessagePopup, textMessagePopup, typeMessagePopup };
 }

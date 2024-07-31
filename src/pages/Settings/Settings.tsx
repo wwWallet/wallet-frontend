@@ -95,7 +95,6 @@ const WebauthnRegistation = ({
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
-	const [nicknameChosen, setNicknameChosen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
@@ -147,7 +146,6 @@ const WebauthnRegistation = ({
 	const onFinish = async (event) => {
 		event.preventDefault();
 		console.log("onFinish", event);
-		setNicknameChosen(true);
 
 		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
 			try {
@@ -167,7 +165,7 @@ const WebauthnRegistation = ({
 				);
 
 				setIsSubmitting(true);
-				await api.post('/user/session/webauthn/register-finish', {
+				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
 					nickname,
 					credential: {
@@ -183,7 +181,7 @@ const WebauthnRegistation = ({
 						clientExtensionResults: pendingCredential.getClientExtensionResults(),
 					},
 					privateData: serializePrivateData(newPrivateData),
-				});
+				}));
 				onSuccess();
 				setNickname("");
 				await keystoreCommit();
@@ -514,7 +512,7 @@ const WebauthnCredentialItem = ({
 				setEditing(false);
 			}
 		},
-		[],
+		[credential.nickname],
 	);
 
 	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -693,7 +691,7 @@ const Settings = () => {
 	const deleteAccount = async () => {
 		try {
 			await api.del('/user/session');
-			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName == userData.displayName)[0];
+			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName === userData.displayName)[0];
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
@@ -717,6 +715,7 @@ const Settings = () => {
 
 	const refreshData = useCallback(
 		async () => {
+			keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
 			try {
 				const response = await api.get('/user/session/account-info');
 				console.log(response.data);
@@ -742,9 +741,9 @@ const Settings = () => {
 	const deleteWebauthnCredential = async (credential: WebauthnCredential) => {
 		const [newPrivateData, keystoreCommit] = keystore.deletePrf(credential.credentialId);
 		try {
-			const deleteResp = await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
+			const deleteResp = api.updatePrivateDataEtag(await api.post(`/user/session/webauthn/credential/${credential.id}/delete`, {
 				privateData: serializePrivateData(newPrivateData),
-			});
+			}));
 			if (deleteResp.status === 204) {
 				await keystoreCommit();
 			} else {
@@ -792,7 +791,9 @@ const Settings = () => {
 				},
 			);
 			setUpgradePrfState(null);
-			const updateResp = await api.post('/user/session/update-private-data', serializePrivateData(newPrivateData));
+			const updateResp = api.updatePrivateDataEtag(
+				await api.post('/user/session/update-private-data', serializePrivateData(newPrivateData)),
+			);
 			if (updateResp.status === 204) {
 				await keystoreCommit();
 			} else {

@@ -3,7 +3,6 @@ import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import type { EncryptedContainer } from '../services/keystore';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -74,6 +73,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>>,
+	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
 
 	addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void,
 	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
@@ -93,27 +93,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	 */
 	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
 
-	function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
-		if (resp.headers['x-private-data-etag']) {
-			setPrivateDataEtag(resp.headers['x-private-data-etag']);
-		}
-		return resp;
-	}
-
-	function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
-		const authz = headers?.appToken || appToken;
-		return {
-			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
-		};
-	}
-
-	function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
-		return {
-			...buildGetHeaders(headers),
-			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
-		};
-	}
-
 	return useMemo(
 		() => {
 			function getAppToken(): string | null {
@@ -126,6 +105,28 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				} else {
 					return data;
 				}
+			}
+
+			function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
+				const newValue = resp.headers['x-private-data-etag']
+				if (newValue) {
+					setPrivateDataEtag(newValue);
+				}
+				return resp;
+			}
+
+			function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
+				const authz = headers?.appToken || appToken;
+				return {
+					...(authz ? { Authorization: `Bearer ${authz}` } : {}),
+				};
+			}
+
+			function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
+				return {
+					...buildGetHeaders(headers),
+					...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
+				};
 			}
 
 			async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }): Promise<AxiosResponse> {
@@ -245,11 +246,11 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							try {
-								const updateResp = await post(
+								const updateResp = updatePrivateDataEtag(await post(
 									'/user/session/update-private-data',
 									serializePrivateData(newPrivateData),
 									{ appToken: response.data.appToken },
-								);
+								));
 								if (updateResp.status === 204) {
 									await keystoreCommit();
 								} else {
@@ -606,6 +607,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 				loginWebauthn,
 				signupWebauthn,
+				updatePrivateDataEtag,
 
 				addEventListener,
 				removeEventListener,
@@ -615,10 +617,12 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		[
 			appToken,
 			clearSessionStorage,
+			isOnline,
+			privateDataEtag,
 			sessionState,
 			setAppToken,
+			setPrivateDataEtag,
 			setSessionState,
-			isOnline
 		],
 	);
 }

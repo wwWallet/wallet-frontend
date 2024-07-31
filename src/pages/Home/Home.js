@@ -119,6 +119,7 @@ const Home = () => {
 									<img
 										src={addImage}
 										className="w-full h-auto object-cover rounded-xl opacity-100 hover:opacity-120"
+										alt=""
 									/>
 									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
@@ -133,7 +134,7 @@ const Home = () => {
 												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 													onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
 													aria-label={`${vcEntity.friendlyName}`}
-													tabindex={(currentSlide != index + 1) && -1}
+													tabindex={(currentSlide !== index + 1) && -1}
 													title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
 												>
 													<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
@@ -190,6 +191,7 @@ const Home = () => {
 								<img
 									src={addImage}
 									className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
+									alt=""
 								/>
 								<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
 									<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
