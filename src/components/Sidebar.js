@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
@@ -6,8 +6,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
+import SessionContext from '../context/SessionContext';
 
 const NavItem = ({
 	children,
@@ -30,15 +30,14 @@ const NavItem = ({
 const Sidebar = ({ isOpen, toggle }) => {
 
 	const api = useApi();
+	const { logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 
 	const handleLogout = async () => {
-		api.clearSession();
-		await keystore.close();
+		await logout();
 		navigate('/login');
 	};
 

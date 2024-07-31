@@ -2,17 +2,30 @@ import React, { createContext } from 'react';
 import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 
-const SessionContext = createContext({
+type SessionContextValue = {
+	isLoggedIn: boolean,
+	logout: () => Promise<void>,
+};
+
+const SessionContext: React.Context<SessionContextValue> = createContext({
 	isLoggedIn: false,
+	logout: async () => {},
 });
 
 export const SessionContextProvider = ({ children }) => {
 	const api = useApi();
 	const keystore = useLocalStorageKeystore();
-	const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
+
+	const value: SessionContextValue = {
+		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
+		logout: async () => {
+			api.clearSession();
+			await keystore.close();
+		},
+	};
 
 	return (
-		<SessionContext.Provider value={{ isLoggedIn }}>
+		<SessionContext.Provider value={ value }>
 			{children}
 		</SessionContext.Provider>
 	);

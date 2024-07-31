@@ -1,4 +1,4 @@
-import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -11,6 +11,7 @@ import { WrappedKeyInfo, useLocalStorageKeystore } from '../../services/LocalSto
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
+import SessionContext from '../../context/SessionContext';
 
 const Dialog = ({
 	children,
@@ -539,6 +540,7 @@ const WebauthnCredentialItem = ({
 
 
 const Settings = () => {
+	const { logout } = useContext(SessionContext);
 	const api = useApi();
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -562,8 +564,7 @@ const Settings = () => {
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
-			api.clearSession();
-			await keystore.close();
+			await logout();
 			navigate('/login');
 		}
 		catch (err) {
