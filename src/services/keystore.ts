@@ -192,7 +192,7 @@ async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ ke
 	const mainKey = currentMainKey || await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
 		true,
-		["decrypt", "encrypt", "unwrapKey", "wrapKey"],
+		["decrypt", "encrypt", "wrapKey"],
 	);
 
 	const [mainPublicKeyInfo, mainPrivateKey] = await generateEncapsulationKeypair();
@@ -251,36 +251,30 @@ export async function rotateMainKey(
 	};
 }
 
-async function createSessionKey(): Promise<[CryptoKey, ArrayBuffer]> {
-	const sessionKey = await crypto.subtle.generateKey(
-		{ name: "AES-GCM", length: 256 },
-		true,
-		["encrypt", "wrapKey"],
-	);
-	const exportedSessionKey = await crypto.subtle.exportKey(
+async function exportMainKey(mainKey: CryptoKey): Promise<ArrayBuffer> {
+	return await crypto.subtle.exportKey(
 		"raw",
-		sessionKey,
+		mainKey,
 	);
-	return [sessionKey, exportedSessionKey];
 }
 
-async function importSessionKey(exportedSessionKey: BufferSource): Promise<CryptoKey> {
+async function importMainKey(exportedMainKey: BufferSource): Promise<CryptoKey> {
 	return await crypto.subtle.importKey(
 		"raw",
-		exportedSessionKey,
+		exportedMainKey,
 		"AES-GCM",
 		false,
 		["decrypt", "unwrapKey"],
 	);
 }
 
-export async function openPrivateData(exportedSessionKey: BufferSource, privateDataJwe: string): Promise<[PrivateData, CryptoKey]> {
-	const sessionKey = await importSessionKey(exportedSessionKey);
-	const privateData = jsonParseTaggedBinary(
+export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey]> {
+	const mainKey = await importMainKey(exportedMainKey);
+	const privateDataContent = jsonParseTaggedBinary(
 		new TextDecoder().decode(
-			(await jose.compactDecrypt(privateDataJwe, sessionKey)).plaintext
+			(await jose.compactDecrypt(privateData.jwe, mainKey)).plaintext
 		));
-	return [privateData, sessionKey];
+	return [privateDataContent, mainKey];
 }
 
 async function generateEncapsulationKeypair(): Promise<[EncapsulationPublicKeyInfo, CryptoKey]> {
@@ -421,7 +415,7 @@ export async function unwrapKey(
 	extractable: boolean = false,
 ): Promise<CryptoKey> {
 	if (isAsymmetricWrappedKeyInfo(keyInfo)) {
-		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]);
+		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["decrypt", "unwrapKey"]);
 	} else {
 		return await crypto.subtle.unwrapKey(
 			"raw",
@@ -430,7 +424,7 @@ export async function unwrapKey(
 			keyInfo.unwrapAlgo,
 			keyInfo.unwrappedKeyAlgo,
 			extractable,
-			["encrypt", "decrypt", "wrapKey", "unwrapKey"],
+			["decrypt", "unwrapKey"],
 		);
 	}
 }
@@ -753,17 +747,15 @@ export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Ar
 }
 
 export type UnlockSuccess = {
-	exportedSessionKey: ArrayBuffer,
-	privateDataCache: EncryptedContainer,
-	privateDataJwe: string,
+	exportedMainKey: ArrayBuffer,
+	privateData: EncryptedContainer,
 }
 export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer): Promise<UnlockSuccess> {
-	const [sessionKey, exportedSessionKey] = await createSessionKey();
-	const reencryptedPrivateData = await reencryptPrivateData(privateData.jwe, mainKey, sessionKey);
+	await decryptPrivateData(privateData.jwe, mainKey); // Throw error if decryption fails
+	const exportedMainKey = await exportMainKey(mainKey);
 	return {
-		exportedSessionKey,
-		privateDataCache: privateData,
-		privateDataJwe: reencryptedPrivateData,
+		exportedMainKey,
+		privateData,
 	};
 }
 
@@ -794,8 +786,8 @@ export async function unlockPassword(
 	}
 	const passwordKey = await derivePasswordKey(password, keyInfo);
 	const mainKey = isAsymmetricPasswordKeyInfo(keyInfo)
-		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
-		: await unwrapKey(passwordKey, null, keyInfo.mainKey);
+		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, true, ["decrypt", "unwrapKey"])
+		: await unwrapKey(passwordKey, null, keyInfo.mainKey, true);
 
 	const newPrivateData = (
 		isAsymmetricPasswordKeyInfo(keyInfo)
@@ -813,8 +805,8 @@ export async function unlockPrf(
 ): Promise<[UnlockSuccess, EncryptedContainer | null]> {
 	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
 	const mainKey = isPrfKeyV2(keyInfo)
-		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, false, ["encrypt", "decrypt", "wrapKey", "unwrapKey"])
-		: await unwrapKey(prfKey, null, keyInfo.mainKey);
+		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "unwrapKey"])
+		: await unwrapKey(prfKey, null, keyInfo.mainKey, true);
 
 	const newPrivateData = (
 		isPrfKeyV2(keyInfo)
@@ -829,16 +821,15 @@ export async function init(
 	mainKey: CryptoKey,
 	keyInfo: AsymmetricEncryptedContainerKeys,
 	didKeyVersion: DidKeyVersion,
-): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> {
+): Promise<UnlockSuccess & { publicData: PublicData }> {
 	const { publicData, privateDataJwe } = await createWallet(mainKey, didKeyVersion);
 	const privateData: EncryptedContainer = {
 		...keyInfo,
 		jwe: privateDataJwe,
 	};
-
 	return {
+		...await unlock(mainKey, privateData),
 		publicData,
-		privateData,
 	};
 }
 
@@ -980,9 +971,9 @@ async function createWallet(mainKey: CryptoKey, didKeyVersion: DidKeyVersion): P
 	};
 };
 
-export async function createIdToken([privateData, sessionKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ id_token: string; }> {
+export async function createIdToken([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ id_token: string; }> {
 	const { alg, did, wrappedPrivateKey } = privateData;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
 	const jws = await new SignJWT({ nonce: nonce })
 		.setProtectedHeader({
 			alg,
@@ -999,9 +990,9 @@ export async function createIdToken([privateData, sessionKey]: [PrivateData, Cry
 	return { id_token: jws };
 }
 
-export async function signJwtPresentation([privateData, sessionKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
+export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
 	const { alg, did, wrappedPrivateKey } = privateData;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
 
 	const jws = await new SignVerifiablePresentationJWT()
 		.setProtectedHeader({
@@ -1027,9 +1018,9 @@ export async function signJwtPresentation([privateData, sessionKey]: [PrivateDat
 	return { vpjwt: jws };
 }
 
-export async function generateOpenid4vciProof([privateData, sessionKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ proof_jwt: string }> {
+export async function generateOpenid4vciProof([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ proof_jwt: string }> {
 	const { alg, did, wrappedPrivateKey } = privateData;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, sessionKey);
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
 	const header = {
 		alg,
 		typ: "openid4vci-proof+jwt",
