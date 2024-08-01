@@ -6,9 +6,9 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
 import OnlineStatusContext from '../context/OnlineStatusContext';
+import SessionContext from '../context/SessionContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 const NavItem = ({
@@ -32,16 +32,14 @@ const NavItem = ({
 const Sidebar = ({ isOpen, toggle }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const api = useApi();
+	const { logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 
 	const handleLogout = async () => {
-		api.clearSession();
-		await keystore.close();
-		navigate('/login');
+		await logout();
 	};
 
 	const handleNavigate = (path) => {

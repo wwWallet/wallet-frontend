@@ -11,9 +11,9 @@ import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../service
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
-import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import SessionContext from '../../context/SessionContext';
 
 interface OnlineStatusContextType {
 	isOnline: boolean | null;
@@ -670,6 +670,7 @@ const WebauthnCredentialItem = ({
 
 const Settings = () => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { logout } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -681,7 +682,6 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const navigate = useNavigate();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
@@ -695,9 +695,7 @@ const Settings = () => {
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
-			api.clearSession();
-			await keystore.close();
-			navigate('/login');
+			await logout();
 		}
 		catch (err) {
 			console.log('Error = ', err)

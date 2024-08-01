@@ -17,6 +17,7 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
+import SessionContext from '../../context/SessionContext';
 
 
 const FormInputRow = ({
@@ -470,6 +471,7 @@ const WebauthnSignupLogin = ({
 
 const Login = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
+	const { isLoggedIn } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -490,10 +492,10 @@ const Login = () => {
 	const keystore = useLocalStorageKeystore();
 
 	useEffect(() => {
-		if (api.isLoggedIn()) {
+		if (isLoggedIn) {
 			navigate('/');
 		}
-	}, [api, navigate]);
+	}, [isLoggedIn, navigate]);
 
 	const { username, password, confirmPassword } = formData;
 
