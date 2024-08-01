@@ -196,9 +196,12 @@ const LoginState = () => {
 								<Trans
 									i18nKey="sidebar.poweredBy"
 									components={{
-										// eslint-disable-next-line jsx-a11y/anchor-has-content
 										docLinkWalletGithub: <a
-											href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
+											href="https://github.com/wwWallet"
+											rel="noreferrer"
+											target='blank_'
+											className="underline text-primary dark:text-primary-light"
+											aria-label={t('sidebar.poweredbyAriaLabel')}
 										/>
 									}}
 								/>
