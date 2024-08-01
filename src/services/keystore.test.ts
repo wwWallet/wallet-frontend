@@ -1,6 +1,8 @@
 import { assert, describe, it } from "vitest";
 import * as jose from "jose";
 
+import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
+
 import * as keystore from "./keystore.js";
 import { byteArrayEquals, fromBase64, jsonParseTaggedBinary, toBase64, toBase64Url } from "../util";
 
@@ -354,7 +356,7 @@ describe("The keystore", () => {
 		assert.strictEqual(toBase64(newPrivateData.prfKeys[1].credentialId), toBase64(newCredentialId));
 	});
 
-	it("can rotate the mainKey of a container encrypted with a password key and multiple PRF keys.", async () => {
+	describe("can update the contents and rotate the main key of an container encrypted with a password key and multiple PRF keys,", async () => {
 		const privateData: keystore.AsymmetricEncryptedContainer = jsonParseTaggedBinary('{"mainKey":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BNunIeN4Js_iBvCDJEVOz8869zluTVLGhIGoXTdAq3inUGOsDGnQh5jlN_PHGqGEdAOfCbbfgFGFGGiSTMzr1-k"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"unwrapKey":{"format":"raw","unwrapAlgo":"AES-KW","unwrappedKeyAlgo":{"name":"AES-GCM","length":256}}},"passwordKey":{"pbkdf2Params":{"name":"PBKDF2","hash":"SHA-256","iterations":1000,"salt":{"$b64u":"u8SbZmq3whLjddp0bZguopZmoXvwyQoXcEGClemCp8I"}},"algorithm":{"name":"AES-GCM","length":256},"keypair":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BOFaP7mYez0NKiBQU2dDpN-t05AadNKfjvJ7-T0cXVlMjj21ehNNMv6j3jk2lZnu4F3W9xNXBdIVS2haA0aKnpA"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"privateKey":{"unwrapKey":{"format":"jwk","wrappedKey":{"$b64u":"qWDkpdWnlTleshhlM3CxAsSFua0vQYniF3e3dmT5_-eaqArvhZyItUEWU3dHgenL1R7j5wh4dPy3oudC1xNvfCBHDrOy_YoOrOx1cbHhehge2ITHDo2frgMBuhm1s62_MUp56b38QfQIOTTLrmKQBYL2sWprPFMp2I8S2a-d3MR1jXdPnvupS_vgRTJ2fXbVB62DfE7U1OxADSSFprUt0bxbbCC7GS4hEkVV9nYf5BRB_q19DDpb1HMwz7_nYfLJidqt6Nx_WUag5BZddw99-dSh6mp0bASQGtCA6zpwFIV91U8"},"unwrapAlgo":{"name":"AES-GCM","iv":{"$b64u":"F8E9s7NxPhAtzbnE"}},"unwrappedKeyAlgo":{"name":"ECDH","namedCurve":"P-256"}}}},"unwrapKey":{"wrappedKey":{"$b64u":"gEM0ic_pgCIZGlheJfHho08vWOngHWuSMDOJJPa0cv3une2aIGpuDA"},"unwrappingKey":{"deriveKey":{"algorithm":{"name":"ECDH"},"derivedKeyAlgorithm":{"name":"AES-KW","length":256}}}}},"prfKeys":[{"credentialId":{"$b64u":"0MM_YI2iaGiTFuXdH8yZZO61DvthovXBPbFkz8UHzeEeO-xFfUkEbUSp7MkjuJOy"},"prfSalt":{"$b64u":"Gb1xFiZySV1Capojuk7Daf-O11e0G-kyhAoYEc_eKvM"},"hkdfSalt":{"$b64u":"m8CFJBtxAaUFvrdHjnoU8mxmX62CKula6IIrHPVEp7E"},"hkdfInfo":{"$b64u":"ZURpcGxvbWFzIFBSRg"},"algorithm":{"name":"AES-GCM","length":256},"keypair":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BFBM0vAWx2NAvslZq3alSvO4pZ18Mcvo_NibPFEQtautmS1vBSNpODG5ayxoG3p2JzV1MpjXJpAHrz8JKnE2QQo"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"privateKey":{"unwrapKey":{"format":"jwk","wrappedKey":{"$b64u":"aw7WMubFXy8PJJX3NkSWGfOjgWORbUzUEcIjlaZFI1iqjsIBA32lWKoeI-yKzOfYA6Bhir6IFUIazuZNL1DGitHxrSjG70X5dQwEM5Kkp2QCqRw5FaAGleRy7jT52n2gG_f-qHqYgdG0o-E6kSuB-B57AJiXeaDmu7OKeXKmSiMwADroRzHc3T4UpgA_RW4YQRcjs0iJm0Qs5KZpgAyRkqRbIYPXqWJGj1w_M1WqNLKqdiNkQpdZpgnrTxQ8OzZDkUZd-rT5jIXVjfdNZ0BrtTwKEFtx6XwMTBd4r3rcZvM80MI"},"unwrapAlgo":{"name":"AES-GCM","iv":{"$b64u":"gBnENnHFsW_xAiZu"}},"unwrappedKeyAlgo":{"name":"ECDH","namedCurve":"P-256"}}}},"unwrapKey":{"wrappedKey":{"$b64u":"c6wEMBDuQFSAyExsuUL5ieSZOvk1cYgRSlJOOKATEvLhlTDUOmlj6w"},"unwrappingKey":{"deriveKey":{"algorithm":{"name":"ECDH"},"derivedKeyAlgorithm":{"name":"AES-KW","length":256}}}}},{"credentialId":{"$b64u":"U1ZjVB_LEZqOBm10kf39OVwBTdJkLjHikpUftRR5wL_tD08GC_0QHkzcxKNYY-eO"},"prfSalt":{"$b64u":"6MRed82OBXJ1WQ9aPnZMSQ_CGehNZKr9ABa0ACMqIcY"},"hkdfSalt":{"$b64u":"xfKHBNmx7EJ239xbvBE0HCIuWqsB3H28VNoXbQI7CZg"},"hkdfInfo":{"$b64u":"ZURpcGxvbWFzIFBSRg"},"algorithm":{"name":"AES-GCM","length":256},"keypair":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BPXK4Q-vU4safIHDJEsmM6cZqquBRzeTJAr_lxKXoYC4lkz02WFvyFJkWIA9jrim6ok1yHSppSJBa2l6Hb9lQB8"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"privateKey":{"unwrapKey":{"format":"jwk","wrappedKey":{"$b64u":"pr8DoqE8Nz9S_2OS-Vu2RZNK-M9JxLWib-R6aDALkBYIxssChWrkN-vEAnpTgOe0lQGkTAEx07ENmg4LvCGAZkHEz581WBlD6MOn4Hqh8OP_CuvajmtM6hNH72qozHsu2QnvUtMUxtIxSrY8Y4sZVlGLtCyjtnmm9MLNSlFcsTpIk_pWi_BzTv-mgos6r-InAxeIgyJir7muOj0OxR4P-gKKGYC6lMp5qK_Ixgc3x_z9w9-tUwJ2TPUjCLX-MsBn00wunsz36pCRjM2RuB90IbmdSEHDRXZ0NMFaHRlktRZsYZ8"},"unwrapAlgo":{"name":"AES-GCM","iv":{"$b64u":"KBOix07YMFCJEg5I"}},"unwrappedKeyAlgo":{"name":"ECDH","namedCurve":"P-256"}}}},"unwrapKey":{"wrappedKey":{"$b64u":"n9lD77nkjpI5iBZX4gP8hZdQRhrucg3IvWcSfUlCGpYsrnEWiVVGYw"},"unwrappingKey":{"deriveKey":{"algorithm":{"name":"ECDH"},"derivedKeyAlgorithm":{"name":"AES-KW","length":256}}}}}],"jwe":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJuRDhmTWdZVXdSUF9nU3VGIiwidGFnIjoiaVdSRnFsb0FneTdEaElVRDBqTVBmdyJ9.-XD8oZjK6o1VMHlpe-AazEyC9Sij2UIkyUizlAc2u3w.SSwBLZhoAc1KyA_0.GJSciNkM99lF0oguOizZ1TtzrAkFBDelPSKtZVTOE0AUl1566Hmh8SHmvS0_jKtJjayFBhxoHk-44292gPIXzViEY8DCndwLMjG9BivHr19vOy1B8TxGl_4pUPjDRjKQWovyo_Z4vfUkKEWg7BEbLNw5kQ783AyvixQo1dh6GHC5dt-LIDMREMCw7ZRtE2jM6PhTMfFBKJ54QP16T6no6ULTm-DWfKVdmwPLnz9esNY9-sDC49GmZce9H-AoDLa0RFTE1KH70YBfaFrOpYkrSxMOJyjfpvbOLIuYc7IGLmjnQKLuH7jb-fKZDvGZiHh010qrOFgeINIoG7KzThbe0EHgCukmIG8KlTcILZJj29fYFM6QQPxHTOe4KqyzAAVtcMzCRMSKOZdounGPDJlRsrnedhqDviV7bqoGgSkH2YJXXcNfS2MfAxm0fGKdcuVJ7xfCo9e5c8CKOXw73suzxsTHHl6YjZhqhdNYgWQLCjDaF83wlowb-x2MxZr2pJ4Zrf-1jHgFQbp-8vI8yoGghyslZmSOTMg6dZj_ueBtgCP--dUVB7kprbspJ3oNmuEO1dsw4lsUrdwaHFDaVYDkYjLZBdfzDzdcx7SJ8sQQANKt3vtNmgveRnjEaZ0aHrIbEy6OYIllApTbaGqrRETZohXHdwrBIudO0MScjESOcEvAuXYc8xPFUynXKvn3xl6Iuhsk_bt-gZeOoV-S1SVfEvV4zK9BfjsrRqPzQGzDM8048-_eraKiCWjZppe4XU3m-RSZS5fyt1Z5XsPsw5ZQov2GM-aKNqkho27NkhaXuN4L-xMoc56WUShgCk20vcO2r36yHjZYf2OONrsDVnJZNDSl3SxmXB5uGW_l0YgyPrm6MNnFN3bvVmSUy9M3VH15t2vFfDKCwoHJzHcMdFy5TOv8ZmQNai2Xi4eNUs4723QXlIy3intYb4HEAaMDsE85nrtMjRCmjXOc28eB-2mRXs1m-3umAo2rqLVO88ZdJuTXkbwW_eU6gXEdGtmJ06RJ6N6BhHhm1GYFjHl4c1h7Jqr_ELZexor3Dd0DA8EcTV8F0dIAz1dVzraXMK0KNft6gDsRXXCZ88--syLAo2ayyqO39m8NZca_rH6h72e2J2UZ8h1qPoseHCuoSa95YpkrcP0FMWAMYVNeW0T69R2pNusByoc1FlTayo8Ms25HlS-vax3ylJHHOkU82dmHcGeqRJHT6gnk9LRc3B8E3t_GjeVPao0qzOGX-hqB6yFS_K3lHFN1yQ73PDji8GvJq3oBPdvFO7NvfH_X19HTl2rxXqgwvy-mfsd4CP0AphI9NO1erFKXNfUkgBVibO5emZqakkWmFknog2T8QyFEzCDR2awqUTlcRfvd1HkG4qBPKdIV9f-d8iw9PNcTwk2IFLjy4Lx2dVen6_eWBnJJu-5wdYp1f3UKQapr28hFVwdqGXIbpNYXsMPf7XYmLGOjkLnwtamS4pKwn7UYkPUKfmwQELDOJgLHWVUc9POuF4GUqUZNhRh0y0GxinZ_w-tbAtJjysrniqED8pHsxHSTCZ85wR5Lha41c_yvlchybgjLQ_IgM4TzIk_ZolKbdR5XUKoj2yGEU8-XkAhutDbHCJwFglbYTY7Y8ZwO7QVGFlbHFqWSTnwCB_3lw8V1PUxyxymcRgBhSSjsJxx8LIR1Lx5qKYTZZqPeWpLKGrtJVyB_nRarVFtHEg.QBUeKjmFep5cwbdOM8Ikug"}');
 
 		const prfOutput1 = fromBase64("Pt83hCqtFqYOmZ0EUt4wG8ptn4N6rphOn1ujw83FbA4=");
@@ -396,28 +398,89 @@ describe("The keystore", () => {
 			assert.isNotNull(unlocked, "Expected to be able to unlock keystore with existing key");
 		}
 
-		const newPrivateData = await keystore.rotateMainKey(privateData, [prfKey1, prfKeyInfo1]);
-
-		for (const oldMainKey of oldMainKeys) {
-			await asyncAssertThrows(
-				() => keystore.unlock(oldMainKey, newPrivateData),
-				"Expected failure to unlock keystore with old key",
+		it("when the update is a no-op.", async () => {
+			const newPrivateData = await keystore.updatePrivateData(
+				privateData,
+				oldMainKeys[0],
+				async (privateData, updateWrappedPrivateKey) =>
+					// No-op
+					privateData,
 			);
-		}
 
-		assert.strictEqual(privateData.passwordKey.keypair, newPrivateData.passwordKey.keypair);
-		assert.strictEqual(privateData.prfKeys[0].keypair, newPrivateData.prfKeys[0].keypair);
-		assert.strictEqual(privateData.prfKeys[1].keypair, newPrivateData.prfKeys[1].keypair);
-		assert.strictEqual(privateData.prfKeys[0].credentialId, newPrivateData.prfKeys[0].credentialId);
-		assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
+			for (const oldMainKey of oldMainKeys) {
+				await asyncAssertThrows(
+					() => keystore.unlock(oldMainKey, newPrivateData),
+					"Expected failure to unlock keystore with old key",
+				);
+			}
 
-		for (const [unlocked, newPrivateData2] of [
-			await keystore.unlockPassword(newPrivateData, "Asdf123!"),
-			await keystore.unlockPrf(newPrivateData, mockCredential1, async () => false),
-			await keystore.unlockPrf(newPrivateData, mockCredential2, async () => false),
-		]) {
-			assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
-			assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");
-		}
+			assert.strictEqual(privateData.passwordKey.keypair, newPrivateData.passwordKey.keypair);
+			assert.strictEqual(privateData.prfKeys[0].keypair, newPrivateData.prfKeys[0].keypair);
+			assert.strictEqual(privateData.prfKeys[1].keypair, newPrivateData.prfKeys[1].keypair);
+			assert.strictEqual(privateData.prfKeys[0].credentialId, newPrivateData.prfKeys[0].credentialId);
+			assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
+
+			for (const [unlocked, newPrivateData2] of [
+				await keystore.unlockPassword(newPrivateData, "Asdf123!"),
+				await keystore.unlockPrf(newPrivateData, mockCredential1, async () => false),
+				await keystore.unlockPrf(newPrivateData, mockCredential2, async () => false),
+			]) {
+				assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
+				assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");
+			}
+		});
+
+		it("when the update replaces the user's key pair.", async () => {
+			const newPrivateData = await keystore.updatePrivateData(
+				privateData,
+				oldMainKeys[0],
+				async (privateData, updateWrappedPrivateKey) => {
+					const { publicKey, privateKey } = await crypto.subtle.generateKey(
+						{ name: "ECDSA", namedCurve: "P-256" },
+						true,
+						['sign', 'verify']
+					);
+					const publicKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", publicKey) as jose.JWK;
+					const did = util.createDid(publicKeyJwk);
+					const wrappedPrivateKey = await updateWrappedPrivateKey(privateData.wrappedPrivateKey, async () => privateKey);
+
+					return {
+						publicKey: publicKeyJwk,
+						did: did,
+						alg: "ES256",
+						verificationMethod: did + "#" + did.split(':')[2],
+						wrappedPrivateKey,
+					};
+				},
+			);
+
+			for (const oldMainKey of oldMainKeys) {
+				await asyncAssertThrows(
+					() => keystore.unlock(oldMainKey, newPrivateData),
+					"Expected failure to unlock keystore with old key",
+				);
+			}
+
+			assert.strictEqual(privateData.passwordKey.keypair, newPrivateData.passwordKey.keypair);
+			assert.strictEqual(privateData.prfKeys[0].keypair, newPrivateData.prfKeys[0].keypair);
+			assert.strictEqual(privateData.prfKeys[1].keypair, newPrivateData.prfKeys[1].keypair);
+			assert.strictEqual(privateData.prfKeys[0].credentialId, newPrivateData.prfKeys[0].credentialId);
+			assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
+
+			const [oldUnlocked,] = await keystore.unlockPrf(privateData, mockCredential1, async () => false);
+			const [oldPrivateDataContent,] = await keystore.openPrivateData(oldUnlocked.exportedMainKey, oldUnlocked.privateData);
+
+			for (const [unlocked, newPrivateData2] of [
+				await keystore.unlockPassword(newPrivateData, "Asdf123!"),
+				await keystore.unlockPrf(newPrivateData, mockCredential1, async () => false),
+				await keystore.unlockPrf(newPrivateData, mockCredential2, async () => false),
+			]) {
+				assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
+				assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");
+				const [privateDataContent,] = await keystore.openPrivateData(unlocked.exportedMainKey, unlocked.privateData);
+				assert.notStrictEqual(privateDataContent.did, oldPrivateDataContent.did);
+				assert.notDeepEqual(privateDataContent.publicKey, oldPrivateDataContent.publicKey);
+			}
+		});
 	});
 });

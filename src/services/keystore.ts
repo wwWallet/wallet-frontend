@@ -210,24 +210,44 @@ async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ ke
 	};
 }
 
-export async function rotateMainKey(
+export type AsyncMapFunc<T> = (value: T) => Promise<T>;
+export type WrappedMapFunc<CT, CL> = (wrappedValue: CT, update: AsyncMapFunc<CL>) => Promise<CT>;
+export async function updatePrivateData(
 	privateData: AsymmetricEncryptedContainer,
-	[unwrappingKey, keyInfo]: [CryptoKey, WrappedKeyInfo],
+	currentMainKey: CryptoKey,
+	update: (
+		privateData: PrivateData,
+		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
+	) => Promise<PrivateData>,
 ): Promise<AsymmetricEncryptedContainer> {
 	if (!isAsymmetricEncryptedContainer(privateData)) {
 		throw new Error("EncryptedContainer is not fully asymmetric-encrypted");
 	}
 
-	const currentMainKey = await unwrapKey(unwrappingKey, privateData.mainKey, keyInfo, false);
 	const {
 		keyInfo: newMainPublicKeyInfo,
 		mainKey: newMainKey,
 		privateKey: newMainPrivateKey,
 	} = await createAsymmetricMainKey();
 
+	const privateDataContent = await decryptPrivateData(privateData.jwe, currentMainKey);
+	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey>) => {
+		const privateKey = await unwrapPrivateKey(wrappedPrivateKey, currentMainKey, true);
+		const newPrivateKey = await update(privateKey);
+		return await wrapPrivateKey(newPrivateKey, currentMainKey);
+	};
+	const updatedPrivateDataContent = await update(privateDataContent, updateWrappedPrivateKey);
+	const newPrivateDataContent = {
+		...updatedPrivateDataContent,
+		wrappedPrivateKey: await wrapPrivateKey(
+			await unwrapPrivateKey(updatedPrivateDataContent.wrappedPrivateKey, currentMainKey, true),
+			newMainKey,
+		),
+	};
+
 	return {
 		mainKey: newMainPublicKeyInfo,
-		jwe: await reencryptPrivateData(privateData.jwe, currentMainKey, newMainKey),
+		jwe: await encryptPrivateData(newPrivateDataContent, newMainKey),
 		passwordKey: privateData.passwordKey && {
 			...privateData.passwordKey,
 			...await encapsulateKey(
@@ -415,7 +435,7 @@ export async function unwrapKey(
 	extractable: boolean = false,
 ): Promise<CryptoKey> {
 	if (isAsymmetricWrappedKeyInfo(keyInfo)) {
-		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["decrypt", "unwrapKey"]);
+		return await decapsulateKey(wrappingKey, ephemeralInfo, keyInfo, extractable, ["decrypt", "wrapKey", "unwrapKey"]);
 	} else {
 		return await crypto.subtle.unwrapKey(
 			"raw",
@@ -424,7 +444,7 @@ export async function unwrapKey(
 			keyInfo.unwrapAlgo,
 			keyInfo.unwrappedKeyAlgo,
 			extractable,
-			["decrypt", "unwrapKey"],
+			["decrypt", "wrapKey", "unwrapKey"],
 		);
 	}
 }
@@ -468,13 +488,6 @@ async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoK
 			(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
 		));
 };
-
-async function reencryptPrivateData(privateDataJwe: string, fromKey: CryptoKey, toKey: CryptoKey): Promise<string> {
-	const privateData = await decryptPrivateData(privateDataJwe, fromKey);
-	const privateKey = await unwrapPrivateKey(privateData.wrappedPrivateKey, fromKey, true);
-	privateData.wrappedPrivateKey = await wrapPrivateKey(privateKey, toKey);
-	return await encryptPrivateData(privateData, toKey);
-}
 
 async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInfo): Promise<CryptoKey> {
 	const keyMaterial = await crypto.subtle.importKey(
