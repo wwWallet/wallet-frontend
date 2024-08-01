@@ -12,7 +12,7 @@ import { useApi } from '../../api';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import ConnectivityBars from '../../components/Connectivity/ConnectivityBars';
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
@@ -109,7 +109,6 @@ const WebauthnSignupLogin = ({
 	setIsSubmitting,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-
 	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
@@ -469,7 +468,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline, connectivityQuality } = useContext(OnlineStatusContext);
 	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -668,11 +667,9 @@ const Login = () => {
 											{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 										</h1>
 										<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-											{isOnline ? (
-												<PiWifiHighBold size={25} title={t('common.online')} />
-											) : (
-												<PiWifiSlashBold size={25} title={t('common.offline')} />
-											)}
+											<ConnectivityBars
+												quality={isOnline ? connectivityQuality : 0}
+											/>
 										</div>
 										{isOnline === false && (
 											<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">

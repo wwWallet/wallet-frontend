@@ -9,7 +9,7 @@ import logo from '../assets/images/wallet_white.png';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
 import OnlineStatusContext from '../context/OnlineStatusContext';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import ConnectivityBars from '../components/Connectivity/ConnectivityBars';
 
 const NavItem = ({
 	children,
@@ -30,7 +30,7 @@ const NavItem = ({
 };
 
 const Sidebar = ({ isOpen, toggle }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline, connectivityQuality } = useContext(OnlineStatusContext);
 	const api = useApi();
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
@@ -104,17 +104,11 @@ const Sidebar = ({ isOpen, toggle }) => {
 					{/* User */}
 					<ul>
 						<div className='flex items-center space-x-2 p-2 rounded-r-xl'>
-							{isOnline ? (
-								<>
-									<PiWifiHighBold size={20} />
-									<span className='text-sm'>{t('common.online')}</span>
-								</>
-							) : (
-								<>
-									<PiWifiSlashBold size={20} />
-									<span className='text-sm'>{t('common.offline')}</span>
-								</>
-							)}
+							<ConnectivityBars
+								quality={isOnline ? connectivityQuality : 0}
+								backgroundColor='dark'
+							/>
+							<span className='text-sm'>{isOnline ? t('common.online') : t('common.offline')}</span>
 						</div>
 						<div className='flex items-center space-x-2 mb-2 p-2 rounded-r-xl'>
 							<FaUserCircle size={20} title={displayName || username} />

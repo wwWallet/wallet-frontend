@@ -11,10 +11,10 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
 import BottomNav from './BottomNav';
 import OnlineStatusContext from '../context/OnlineStatusContext';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import ConnectivityBars from '../components/Connectivity/ConnectivityBars';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline, connectivityQuality } = useContext(OnlineStatusContext);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [isContentVisible, setIsContentVisible] = useState(false);
@@ -62,11 +62,9 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 			<header
 				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
 			>
-				{isOnline ? (
-					<PiWifiHighBold size={25} title={t('common.online')} />
-				) : (
-					<PiWifiSlashBold size={25} title={t('common.offline')} />
-				)}
+				<ConnectivityBars
+					quality={isOnline ? connectivityQuality : 0}
+				/>
 				<div className="flex items-center">
 					<button className='mr-2' onClick={() => handleNavigate('/')}>
 						<img
