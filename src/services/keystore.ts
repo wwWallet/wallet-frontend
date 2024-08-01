@@ -290,11 +290,7 @@ async function importMainKey(exportedMainKey: BufferSource): Promise<CryptoKey> 
 
 export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey]> {
 	const mainKey = await importMainKey(exportedMainKey);
-	const privateDataContent = jsonParseTaggedBinary(
-		new TextDecoder().decode(
-			(await jose.compactDecrypt(privateData.jwe, mainKey)).plaintext
-		));
-	return [privateDataContent, mainKey];
+	return [await decryptPrivateData(privateData.jwe, mainKey), mainKey];
 }
 
 async function generateEncapsulationKeypair(): Promise<[EncapsulationPublicKeyInfo, CryptoKey]> {
