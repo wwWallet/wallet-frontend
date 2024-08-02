@@ -315,7 +315,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 								const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateDataCache, password);
 								return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
 							} catch {
-								return Promise.reject({ errorId: "passwordUnlockFailed" });
+								throw new Error("Failed to unlock key store", { cause: { errorId: "passwordUnlockFailed" } });
 							}
 						}
 

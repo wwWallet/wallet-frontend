@@ -616,18 +616,18 @@ async function getPrfOutput(
 				return await getPrfOutput(retryCred, prfInputs, async () => false);
 			} catch (err) {
 				if (err instanceof DOMException && err.name === "NotAllowedError") {
-					return Promise.reject({ errorId: "prf_retry_failed", credential });
+					throw new Error("Failed to evaluate PRF", { cause: { errorId: "prf_retry_failed", credential, err } });
 				} else {
-					return Promise.reject({ errorId: "failed" });
+					throw new Error("Failed to evaluate PRF", { cause: err });
 				}
 			}
 
 		} else {
-			return Promise.reject({ errorId: "canceled" });
+			throw new Error("Canceled by user", { cause: { errorId: "canceled" } });
 		}
 
 	} else {
-		return Promise.reject({ errorId: "prf_not_supported" });
+		throw new Error("Browser or authenticator does not support PRF", { cause: { errorId: "prf_not_supported" } });
 	}
 }
 
