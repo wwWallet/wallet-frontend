@@ -391,7 +391,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										credential: {
 											type: credential.type,
 											id: credential.id,
-											rawId: credential.id,
+											rawId: credential.id, // SimpleWebauthn on server side expects this base64url encoded
 											response: {
 												authenticatorData: toBase64Url(response.authenticatorData),
 												clientDataJSON: toBase64Url(response.clientDataJSON),
@@ -527,7 +527,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									credential: {
 										type: credential.type,
 										id: credential.id,
-										rawId: credential.id,
+										rawId: credential.id, // SimpleWebauthn on server side expects this base64url encoded
 										response: {
 											attestationObject: toBase64Url(response.attestationObject),
 											clientDataJSON: toBase64Url(response.clientDataJSON),
