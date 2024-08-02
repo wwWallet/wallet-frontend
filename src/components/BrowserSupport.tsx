@@ -123,10 +123,10 @@ export function WarningPortal({
 					<Trans
 						i18nKey="browserSupportWarningPortal.moreDetails"
 						components={{
-							// eslint-disable-next-line jsx-a11y/anchor-has-content
 							docLink: <a
 								href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
 								className="font-medium text-primary hover:underline dark:text-blue-500"
+								aria-label={t('learnMoreAboutPrfCompatibilityAriaLabel')}
 							/>
 						}}
 					/>

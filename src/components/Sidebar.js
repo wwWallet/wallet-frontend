@@ -176,9 +176,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<Trans
 					i18nKey="sidebar.poweredBy"
 					components={{
-						// eslint-disable-next-line jsx-a11y/anchor-has-content
 						docLinkWalletGithub: <a
-							href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"
+							href="https://github.com/wwWallet"
+							rel="noreferrer"
+							target='blank_'
+							className="underline"
+							aria-label={t('sidebar.poweredbyAriaLabel')}
 						/>
 					}}
 				/>
