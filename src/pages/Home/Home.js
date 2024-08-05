@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
@@ -227,10 +227,11 @@ const Home = () => {
 					onConfirm={handleSureDelete}
 					onCancel={() => setShowDeletePopup(false)}
 					message={
-						<span>
-							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {selectedVcEntity.credentialIdentifier}</strong> {t('pageCredentials.deletePopup.messagePart2')}
-							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
-						</span>
+						<Trans
+							i18nKey="pageCredentials.deletePopupMessage"
+							values={{ credentialName: selectedVcEntity.credentialIdentifier }}
+							components={{ strong: <strong />, br: <br /> }}
+						/>
 					}
 					loading={loading}
 				/>

@@ -1,7 +1,7 @@
 import React from 'react';
 import Modal from 'react-modal';
 import { FaHandshake } from "react-icons/fa";
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import GetButton from '../Buttons/GetButton';
 
 const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
@@ -23,7 +23,11 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 			</div>
 			<div className="px-4 py-2 sm:px-6">
 				<p className="pt-2 text-md text-center text-gray-700 dark:text-white">
-					{t("welcomeModal.descriptionPart1")} <strong>{t("common.walletName")}</strong> {t("welcomeModal.descriptionPart2")}
+					<Trans
+						i18nKey="welcomeModal.description"
+						values={{ walletName: t("common.walletName") }}
+						components={{ strong: <strong /> }}
+					/>
 				</p>
 			</div>
 			<p className="text-center text-gray-700 dark:text-white mb-4">

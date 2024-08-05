@@ -173,7 +173,7 @@ const Issuers = () => {
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.friendlyName}`}
-					popupMessage={`${t('pageAddCredentials.popup.messagePart1')} ${selectedIssuer?.friendlyName}${t('pageAddCredentials.popup.messagePart2')}`}
+					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.friendlyName })}
 				/>
 			)}
 

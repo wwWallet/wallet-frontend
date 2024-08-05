@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import { BiRightArrowAlt } from 'react-icons/bi';
 
@@ -127,10 +127,11 @@ const CredentialDetail = () => {
 					onConfirm={handleSureDelete}
 					onCancel={() => setShowDeletePopup(false)}
 					message={
-						<span>
-							{t('pageCredentials.deletePopup.messagePart1')}{' '} <strong> {credentialFiendlyName}</strong> {t('pageCredentials.deletePopup.messagePart2')}
-							<br /> {t('pageCredentials.deletePopup.messagePart3')}{' '} <strong>{t('pageCredentials.deletePopup.messagePart4')}</strong>
-						</span>
+						<Trans
+							i18nKey="pageCredentials.deletePopupMessage"
+							values={{ credentialName: credentialFiendlyName }}
+							components={{ strong: <strong />, br: <br /> }}
+						/>
 					}
 					loading={loading}
 				/>

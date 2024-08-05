@@ -131,20 +131,14 @@
 		"description": "Search and choose an issuer for credential retrieval",
 		"noFound": "No matching issuers found.",
 		"popup": {
-			"messagePart1": "You have selected",
-			"messagePart2": ". If you continue, you will be redirected in the current tab to the issuer's page.",
+			"message": "You have selected {{issuerName}}. If you continue, you will be redirected in the current tab to the issuer's page.",
 			"title": "Selected Issuer:"
 		},
 		"searchPlaceholder": "Search issuers..."
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
-		"deletePopup": {
-			"messagePart1": "Are you sure you want to delete the",
-			"messagePart2": "credential?",
-			"messagePart3": "If you delete it,",
-			"messagePart4": "all the presentations that include this VC will be removed from your history."
-		},
+		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials, and use the 'Add new credentials' card to add more",
 		"details": {
 			"description": "View all the information about the chosen credential"
@@ -167,8 +161,7 @@
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
 		"popup": {
-			"messagePart1": "You have selected",
-			"messagePart2": ". If you continue, you will be redirected in the current tab to the verifier's page.",
+			"message": "You have selected {{verifierName}}. If you continue, you will be redirected in the current tab to the issuer's page.",
 			"title": "Selected Verifier:"
 		},
 		"searchPlaceholder": "Search verifiers..."
@@ -180,8 +173,7 @@
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
-			"messageDeleteAccount1": "Are you sure you want to delete ",
-			"messageDeleteAccount2": "your Account",
+			"message": "Are you sure you want to delete <strong>your Account</strong> ?",
 			"title": "Delete account"
 		},
 		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
@@ -199,8 +191,7 @@
 			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
 			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
-			"messageDeletePasskeyPart1": "Are you sure you want to delete",
-			"messageDeletePasskeyPart2": "passkey?",
+			"messageDeletePasskey": "Are you sure you want to delete <strong>{{nickname}}</strong> passkey?",
 			"needsPrfUpgrade": "Needs upgrade",
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
@@ -286,8 +277,7 @@
 	},
 	"welcomeModal": {
 		"title": "Welcome to wwWallet!",
-		"descriptionPart1": "Discover the",
-		"descriptionPart2": ", your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
+		"description": "Discover the <strong> {{walletName}} </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
 		"question": "Are you ready to explore the features of wwWallet through a guided tour?",
 		"dismissButton": "Dismiss",
 		"startTourButton": "Start Tour"
