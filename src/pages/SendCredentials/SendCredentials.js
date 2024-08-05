@@ -144,7 +144,7 @@ const Verifiers = () => {
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleVerifierClick(verifier.did)}
 								disabled={!isOnline}
-								title={!isOnline && t('common.offlineTitle')}
+								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
 							</button>
