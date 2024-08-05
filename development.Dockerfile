@@ -1,4 +1,4 @@
-FROM node:21-bullseye-slim as dependencies
+FROM node:21-bullseye-slim AS dependencies
 
 WORKDIR /dependencies
 
@@ -8,7 +8,7 @@ RUN --mount=type=secret,id=npmrc,required=true,target=./.npmrc,uid=1000 \
 	yarn install && yarn cache clean -f
 
 
-FROM node:21-bullseye-slim as development
+FROM node:21-bullseye-slim AS development
 
 ENV NODE_PATH=/node_modules
 COPY --from=dependencies /dependencies/node_modules /node_modules

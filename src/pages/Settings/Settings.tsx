@@ -11,9 +11,9 @@ import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../service
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
-import { useNavigate } from 'react-router-dom';
 import GetButton from '../../components/Buttons/GetButton';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import SessionContext from '../../context/SessionContext';
 
 interface OnlineStatusContextType {
 	isOnline: boolean | null;
@@ -171,7 +171,7 @@ const WebauthnRegistation = ({
 					credential: {
 						type: pendingCredential.type,
 						id: pendingCredential.id,
-						rawId: pendingCredential.id,
+						rawId: pendingCredential.id, // SimpleWebauthn on server side expects this base64url encoded
 						response: {
 							attestationObject: toBase64Url(pendingCredential.response.attestationObject),
 							clientDataJSON: toBase64Url(pendingCredential.response.clientDataJSON),
@@ -670,6 +670,7 @@ const WebauthnCredentialItem = ({
 
 const Settings = () => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { logout } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -681,7 +682,6 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const navigate = useNavigate();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
@@ -691,13 +691,13 @@ const Settings = () => {
 	const deleteAccount = async () => {
 		try {
 			await api.del('/user/session');
-			const cachedUser = keystore.getCachedUsers().filter((cachedUser) => cachedUser.displayName === userData.displayName)[0];
+			const userHandleB64u = new TextEncoder().encode(userData.webauthnUserHandle);
+			const cachedUser = keystore.getCachedUsers()
+				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}
-			api.clearSession();
-			await keystore.close();
-			navigate('/login');
+			await logout();
 		}
 		catch (err) {
 			console.log('Error = ', err)

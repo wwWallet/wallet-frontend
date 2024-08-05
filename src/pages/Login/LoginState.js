@@ -10,6 +10,7 @@ import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import SessionContext from '../../context/SessionContext';
 
 
 const WebauthnLogin = ({
@@ -103,7 +104,7 @@ const WebauthnLogin = ({
 
 const LoginState = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { isLoggedIn } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -135,7 +136,7 @@ const LoginState = () => {
 
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
-	} else if (api.isLoggedIn()) {
+	} else if (isLoggedIn) {
 		return <Navigate to="/" replace />;
 	}
 
@@ -196,9 +197,12 @@ const LoginState = () => {
 								<Trans
 									i18nKey="sidebar.poweredBy"
 									components={{
-										// eslint-disable-next-line jsx-a11y/anchor-has-content
 										docLinkWalletGithub: <a
-											href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline text-primary dark:text-primary-light"
+											href="https://github.com/wwWallet"
+											rel="noreferrer"
+											target='blank_'
+											className="underline text-primary dark:text-primary-light"
+											aria-label={t('sidebar.poweredbyAriaLabel')}
 										/>
 									}}
 								/>

@@ -6,10 +6,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { Trans, useTranslation } from 'react-i18next';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import ConnectivityBars from '../components/Connectivity/ConnectivityBars';
+import SessionContext from '../context/SessionContext';
 
 const NavItem = ({
 	children,
@@ -32,16 +32,14 @@ const NavItem = ({
 const Sidebar = ({ isOpen, toggle }) => {
 	const { isOnline, connectivityQuality } = useContext(OnlineStatusContext);
 	const api = useApi();
+	const { logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 
 	const handleLogout = async () => {
-		api.clearSession();
-		await keystore.close();
-		navigate('/login');
+		await logout();
 	};
 
 	const handleNavigate = (path) => {
@@ -172,9 +170,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<Trans
 					i18nKey="sidebar.poweredBy"
 					components={{
-						// eslint-disable-next-line jsx-a11y/anchor-has-content
 						docLinkWalletGithub: <a
-							href="https://github.com/wwWallet" rel="noreferrer" target='blank_' className="underline"
+							href="https://github.com/wwWallet"
+							rel="noreferrer"
+							target='blank_'
+							className="underline"
+							aria-label={t('sidebar.poweredbyAriaLabel')}
 						/>
 					}}
 				/>
