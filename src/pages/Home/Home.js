@@ -229,7 +229,7 @@ const Home = () => {
 					message={
 						<Trans
 							i18nKey="pageCredentials.deletePopupMessage"
-							values={{ credentialName: selectedVcEntity.credentialIdentifier }}
+							values={{ credentialName: selectedVcEntity.friendlyName }}
 							components={{ strong: <strong />, br: <br /> }}
 						/>
 					}
