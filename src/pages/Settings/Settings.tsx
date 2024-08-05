@@ -171,10 +171,10 @@ const WebauthnRegistation = ({
 					credential: {
 						type: pendingCredential.type,
 						id: pendingCredential.id,
-						rawId: pendingCredential.id, // SimpleWebauthn on server side expects this base64url encoded
+						rawId: pendingCredential.rawId,
 						response: {
-							attestationObject: toBase64Url(pendingCredential.response.attestationObject),
-							clientDataJSON: toBase64Url(pendingCredential.response.clientDataJSON),
+							attestationObject: pendingCredential.response.attestationObject,
+							clientDataJSON: pendingCredential.response.clientDataJSON,
 							transports: pendingCredential.response.getTransports(),
 						},
 						authenticatorAttachment: pendingCredential.authenticatorAttachment,

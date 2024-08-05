@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -391,12 +391,12 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										credential: {
 											type: credential.type,
 											id: credential.id,
-											rawId: credential.id, // SimpleWebauthn on server side expects this base64url encoded
+											rawId: credential.rawId,
 											response: {
-												authenticatorData: toBase64Url(response.authenticatorData),
-												clientDataJSON: toBase64Url(response.clientDataJSON),
-												signature: toBase64Url(response.signature),
-												userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
+												authenticatorData: response.authenticatorData,
+												clientDataJSON: response.clientDataJSON,
+												signature: response.signature,
+												userHandle: response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u),
 											},
 											authenticatorAttachment: credential.authenticatorAttachment,
 											clientExtensionResults: credential.getClientExtensionResults(),
@@ -527,10 +527,10 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									credential: {
 										type: credential.type,
 										id: credential.id,
-										rawId: credential.id, // SimpleWebauthn on server side expects this base64url encoded
+										rawId: credential.rawId,
 										response: {
-											attestationObject: toBase64Url(response.attestationObject),
-											clientDataJSON: toBase64Url(response.clientDataJSON),
+											attestationObject: response.attestationObject,
+											clientDataJSON: response.clientDataJSON,
 											transports: response.getTransports(),
 										},
 										authenticatorAttachment: credential.authenticatorAttachment,
