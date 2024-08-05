@@ -158,8 +158,8 @@ const Verifiers = () => {
 					loading={loading}
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedVerifier?.name}`}
-					popupMessage={`${t('pageSendCredentials.popup.messagePart1')} ${selectedVerifier?.name}${t('pageSendCredentials.popup.messagePart2')}`}
+					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
+					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
 				/>
 			)}
 

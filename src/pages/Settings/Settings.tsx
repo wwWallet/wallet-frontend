@@ -657,9 +657,11 @@ const WebauthnCredentialItem = ({
 					onConfirm={handleDelete}
 					onCancel={closeDeleteConfirmation}
 					message={
-						<span>
-							{t("pageSettings.passkeyItem.messageDeletePasskeyPart1")} <strong>{nickname}</strong> {t("pageSettings.passkeyItem.messageDeletePasskeyPart2")}
-						</span>
+						<Trans
+							i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
+							values={{ nickname: nickname }}
+							components={{ strong: <strong /> }}
+						/>
 					}
 					loading={loading}
 				/>
@@ -921,9 +923,10 @@ const Settings = () => {
 					onConfirm={handleDelete}
 					onCancel={closeDeleteConfirmation}
 					message={
-						<span>
-							{t('pageSettings.deleteAccount.messageDeleteAccount1')} <strong> {t('pageSettings.deleteAccount.messageDeleteAccount2')} </strong>?
-						</span>
+						<Trans
+							i18nKey="pageSettings.deleteAccount.message"
+							components={{ strong: <strong /> }}
+						/>
 					}
 					loading={loading}
 				/>
