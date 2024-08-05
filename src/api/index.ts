@@ -545,9 +545,9 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							}
 
 						} catch (e) {
-							if (e?.errorId === "prf_retry_failed") {
+							if (e?.cause?.errorId === "prf_retry_failed") {
 								return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
-							} else if (e?.errorId === "prf_not_supported") {
+							} else if (e?.cause?.errorId === "prf_not_supported") {
 								return Err('passkeySignupPrfNotSupported');
 							} else {
 								return Err('passkeySignupKeystoreFailed');

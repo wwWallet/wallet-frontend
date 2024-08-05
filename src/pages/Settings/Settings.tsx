@@ -353,7 +353,7 @@ const UnlockMainKey = ({
 				onUnlock(unwrappingKey, wrappedMainKey);
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e.errorId) {
+				switch (e?.cause?.errorId) {
 					case 'passkeyInvalid':
 						setError(t('passkeyInvalid'));
 						break;
