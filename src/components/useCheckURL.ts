@@ -93,6 +93,19 @@ function useCheckURL(urlToCheck: string): {
 			})();
 		}
 
+		if (urlToCheck && isLoggedIn) {
+			const urlParams = new URLSearchParams(window.location.search);
+			const state = urlParams.get('state');
+			const error = urlParams.get('error');
+			const errorDescription = urlParams.get('error_description');
+
+			if (state && error) {
+				setTextMessagePopup({ title: error, description: errorDescription });
+				setTypeMessagePopup('error');
+				setMessagePopup(true);
+			}
+		}
+
 	}, [api, keystore, t, urlToCheck, isLoggedIn]);
 
 	useEffect(() => {
