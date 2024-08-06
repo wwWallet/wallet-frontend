@@ -35,6 +35,7 @@ export interface LocalStorageKeystore {
 	initPassword(password: string): Promise<{
 		publicData: PublicData,
 		privateData: EncryptedContainer,
+		setUserHandleB64u: (userHandleB64u: string) => void,
 	}>,
 	initPrf(
 		credential: PublicKeyCredential,
@@ -217,9 +218,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				initPassword: async (password: string): Promise<{
 					publicData: PublicData,
 					privateData: EncryptedContainer,
+					setUserHandleB64u: (userHandleB64u: string) => void,
 				}> => {
 					const { mainKey, keyInfo } = await keystore.initPassword(password);
-					return await init(mainKey, keyInfo, null);
+					return { ...await init(mainKey, keyInfo, null), setUserHandleB64u };
 				},
 
 				initPrf: async (

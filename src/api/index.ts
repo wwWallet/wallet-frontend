@@ -280,7 +280,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 
 				try {
-					const { publicData, privateData } = await keystore.initPassword(password);
+					const { publicData, privateData, setUserHandleB64u } = await keystore.initPassword(password);
 
 					try {
 						const response = updatePrivateDataEtag(await post('/user/register', {
@@ -290,6 +290,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							keys: publicData,
 							privateData: serializePrivateData(privateData),
 						}));
+						setUserHandleB64u(toBase64Url(new TextEncoder().encode(response.data.webauthnUserHandle)));
 						await setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
