@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
-import { toBase64Url } from "../util";
+import { toBase64, toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
@@ -32,7 +32,7 @@ export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
 
-	initPassword(password: string): Promise<{
+	initPassword(password: string, user: UserData | null): Promise<{
 		publicData: PublicData,
 		privateData: EncryptedContainer,
 	}>,
@@ -214,11 +214,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				isOpen: (): boolean => privateDataJwe !== null && sessionKey !== null,
 				close,
 
-				initPassword: async (password: string): Promise<{
+				initPassword: async (password: string, user: UserData | null): Promise<{
 					publicData: PublicData,
 					privateData: EncryptedContainer,
 				}> => {
 					const { mainKey, keyInfo } = await keystore.initPassword(password);
+					if (user) {
+						setUserHandleB64u(toBase64Url(user.userHandle));
+					}
 					return await init(mainKey, keyInfo, null);
 				},
 
@@ -263,7 +266,8 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					user: UserData,
 				): Promise<[EncryptedContainer, CommitCallback] | null> => {
 					const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
-					await finishUnlock(unlockResult, user);
+					setUserHandleB64u(toBase64Url(user.userHandle));
+					await finishUnlock(unlockResult, null);
 					return (
 						newPrivateData
 							?
