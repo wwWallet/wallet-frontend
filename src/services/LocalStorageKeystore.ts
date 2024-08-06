@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
-import { toBase64, toBase64Url } from "../util";
+import { toBase64Url } from "../util";
 import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
