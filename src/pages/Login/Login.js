@@ -403,7 +403,7 @@ const WebauthnSignupLogin = ({
 
 						{isLogin && (
 							<ul className="overflow-y-auto max-h-24 p-2 custom-scrollbar">
-								{cachedUsers.map((cachedUser) => (
+								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser) => (
 									<li
 										key={cachedUser.userHandleB64u}
 										className="w-full flex flex-row flex-nowrap mb-2"
