@@ -51,6 +51,7 @@ export interface LocalStorageKeystore {
 	unlockPassword(
 		privateData: EncryptedContainer,
 		password: string,
+		user: UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	unlockPrf(
 		privateData: EncryptedContainer,
@@ -259,9 +260,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				unlockPassword: async (
 					privateData: EncryptedContainer,
 					password: string,
+					user: UserData,
 				): Promise<[EncryptedContainer, CommitCallback] | null> => {
 					const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
-					await finishUnlock(unlockResult, null);
+					await finishUnlock(unlockResult, user);
 					return (
 						newPrivateData
 							?

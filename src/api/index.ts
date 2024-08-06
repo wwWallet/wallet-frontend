@@ -242,7 +242,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						const updatePrivateData = await keystore.unlockPassword(privateData, password);
+						const updatePrivateData = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: new TextEncoder().encode(userData.webauthnUserHandle) });
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							try {
