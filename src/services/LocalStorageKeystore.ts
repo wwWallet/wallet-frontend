@@ -85,12 +85,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [privateDataJwe, setPrivateDataJwe, clearPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearSessionKey, clearPrivateDataJwe);
 
-	useEffect(() => {
-		// Moved from local storage to session storage
-		window?.localStorage?.removeItem("userHandle");
-		window?.localStorage?.removeItem("webauthnRpId");
-	}, []);
-
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
 			const objectStore = db.createObjectStore("keys", { keyPath: "id" });
