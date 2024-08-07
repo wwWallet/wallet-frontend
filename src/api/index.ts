@@ -3,7 +3,7 @@ import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
 import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
-import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
+import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
@@ -72,6 +72,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>>,
+	updatePrivateData(newPrivateData: EncryptedContainer): Promise<void>,
 	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
 
 	addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void,
@@ -254,26 +255,18 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						const updatePrivateData = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: UserId.fromId(userData.uuid).asUserHandle() });
-						if (updatePrivateData) {
-							const [newPrivateData, keystoreCommit] = updatePrivateData;
+						const privateDataUpdate = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: UserId.fromId(userData.uuid).asUserHandle() });
+						if (privateDataUpdate) {
+							const [newPrivateData, keystoreCommit] = privateDataUpdate;
 							try {
-								const updateResp = updatePrivateDataEtag(await post(
-									'/user/session/private-data',
-									serializePrivateData(newPrivateData),
-									{ appToken: response.data.appToken },
-								));
-								if (updateResp.status === 204) {
-									await keystoreCommit();
-								} else {
-									console.error("Failed to upgrade password key", updateResp.status, updateResp);
-									return Err('loginKeystoreFailed');
-								}
+								await updatePrivateData(newPrivateData, { appToken: response.data.appToken });
+								await keystoreCommit();
 							} catch (e) {
+								console.error("Failed to upgrade password key", e, e.status);
 								if (e?.cause === 'x-private-data-etag') {
 									return Err('x-private-data-etag');
 								}
-								throw e;
+								return Err('loginKeystoreFailed');
 							}
 						}
 						await setSession(response, null, 'login', false);
@@ -302,7 +295,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							keys: publicData,
 							privateData: serializePrivateData(privateData),
 						}));
-						setUserHandleB64u(toBase64Url(new TextEncoder().encode(response.data.webauthnUserHandle)));
+						const userData = response.data as UserData;
+						setUserHandleB64u(toBase64Url(UserId.fromId(userData.uuid).asUserHandle()));
 						await setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
@@ -314,6 +308,26 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				} catch (e) {
 					console.error("Failed to initialize local keystore", e);
 					return Err(e);
+				}
+			}
+
+			async function updatePrivateData(newPrivateData: EncryptedContainer, options?: { appToken?: string }): Promise<void> {
+				try {
+					const updateResp = updatePrivateDataEtag(
+						await post('/user/session/private-data', serializePrivateData(newPrivateData), options),
+					);
+					if (updateResp.status === 204) {
+						return;
+					} else {
+						console.error("Failed to update private data", updateResp.status, updateResp);
+						return Promise.reject(updateResp);
+					}
+				} catch (e) {
+					console.error("Failed to update private data", e, e?.response?.status);
+					if (e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) {
+						throw new Error("Private data version conflict", { cause: 'x-private-data-etag' });
+					}
+					throw e;
 				}
 			}
 
@@ -435,7 +449,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							try {
 								const userData = finishResp.data as UserData;
 								const privateData = await parsePrivateData(userData.privateData);
-								const updatePrivateData = await keystore.unlockPrf(
+								const privateDataUpdate = await keystore.unlockPrf(
 									privateData,
 									credential,
 									promptForPrfRetry,
@@ -446,25 +460,17 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										userHandle: new Uint8Array(response.userHandle),
 									},
 								);
-								if (updatePrivateData) {
-									const [newPrivateData, keystoreCommit] = updatePrivateData;
+								if (privateDataUpdate) {
+									const [newPrivateData, keystoreCommit] = privateDataUpdate;
 									try {
-										const updateResp = await post(
-											'/user/session/private-data',
-											serializePrivateData(newPrivateData),
-											{ appToken: finishResp.data.appToken },
-										);
-										if (updateResp.status === 204) {
-											await keystoreCommit();
-										} else {
-											console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
-											return Err('loginKeystoreFailed');
-										}
+										await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
+										await keystoreCommit();
 									} catch (e) {
+										console.error("Failed to upgrade PRF key", e, e.status);
 										if (e?.cause === 'x-private-data-etag') {
 											return Err('x-private-data-etag');
 										}
-										throw e;
+										return Err('loginKeystoreFailed');
 									}
 								}
 								await setSession(finishResp, credential, 'login', false);
@@ -619,6 +625,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 				loginWebauthn,
 				signupWebauthn,
+				updatePrivateData,
 				updatePrivateDataEtag,
 
 				addEventListener,
