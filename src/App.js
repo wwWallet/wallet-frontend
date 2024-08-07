@@ -31,7 +31,6 @@ const VerificationResult = React.lazy(() => import('./pages/VerificationResult/V
 
 function App() {
 
-	// const url = useLocation();
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 	const {
