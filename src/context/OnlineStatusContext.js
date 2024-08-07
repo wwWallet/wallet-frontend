@@ -3,10 +3,10 @@ import React, { useEffect, createContext, useState } from 'react';
 const OnlineStatusContext = createContext();
 
 export const OnlineStatusProvider = ({ children }) => {
-	const [isOnline, setIsOnline] = useState(() => navigator.onLine && navigator.connection?.type !== "unknown");
+	const [isOnline, setIsOnline] = useState(() => navigator.onLine && (navigator.connection?.downlink ?? 0) !== 0);
 
 	const updateOnlineStatus = () => {
-		setIsOnline(navigator.onLine && navigator.connection?.type !== "unknown");
+		setIsOnline(navigator.onLine && (navigator.connection?.downlink ?? 0) !== 0);
 	};
 
 	useEffect(() => {
