@@ -399,9 +399,8 @@ describe("The keystore", () => {
 		}
 
 		it("when the update is a no-op.", async () => {
-			const newPrivateData = await keystore.updatePrivateData(
-				privateData,
-				oldMainKeys[0],
+			const [newPrivateData, newMainKey] = await keystore.updatePrivateData(
+				[privateData, oldMainKeys[0]],
 				async (privateData, updateWrappedPrivateKey) =>
 					// No-op
 					privateData,
@@ -413,6 +412,8 @@ describe("The keystore", () => {
 					"Expected failure to unlock keystore with old key",
 				);
 			}
+			const newUnlocked = await keystore.unlock(newMainKey, newPrivateData);
+			assert.isDefined(newUnlocked?.privateData, "Expected to be able to unlock new keystore with new main key");
 
 			assert.strictEqual(privateData.passwordKey.keypair, newPrivateData.passwordKey.keypair);
 			assert.strictEqual(privateData.prfKeys[0].keypair, newPrivateData.prfKeys[0].keypair);
@@ -431,9 +432,8 @@ describe("The keystore", () => {
 		});
 
 		it("when the update replaces the user's key pair.", async () => {
-			const newPrivateData = await keystore.updatePrivateData(
-				privateData,
-				oldMainKeys[0],
+			const [newPrivateData, newMainKey] = await keystore.updatePrivateData(
+				[privateData, oldMainKeys[0]],
 				async (privateData, updateWrappedPrivateKey) => {
 					const { publicKey, privateKey } = await crypto.subtle.generateKey(
 						{ name: "ECDSA", namedCurve: "P-256" },
@@ -460,6 +460,8 @@ describe("The keystore", () => {
 					"Expected failure to unlock keystore with old key",
 				);
 			}
+			const newUnlocked = await keystore.unlock(newMainKey, newPrivateData);
+			assert.isDefined(newUnlocked?.privateData, "Expected to be able to unlock new keystore with new main key");
 
 			assert.strictEqual(privateData.passwordKey.keypair, newPrivateData.passwordKey.keypair);
 			assert.strictEqual(privateData.prfKeys[0].keypair, newPrivateData.prfKeys[0].keypair);

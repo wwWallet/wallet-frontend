@@ -31,6 +31,7 @@ export type AsymmetricEncryptedContainerKeys = {
 	prfKeys: WebauthnPrfEncryptionKeyInfoV2[],
 }
 export type AsymmetricEncryptedContainer = AsymmetricEncryptedContainerKeys & EncryptedContainerContent;
+export type OpenedContainer = [AsymmetricEncryptedContainer, CryptoKey];
 
 export type EncryptedContainer = MixedEncryptedContainer | AsymmetricEncryptedContainer;
 
@@ -213,13 +214,12 @@ async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ ke
 export type AsyncMapFunc<T> = (value: T) => Promise<T>;
 export type WrappedMapFunc<CT, CL> = (wrappedValue: CT, update: AsyncMapFunc<CL>) => Promise<CT>;
 export async function updatePrivateData(
-	privateData: AsymmetricEncryptedContainer,
-	currentMainKey: CryptoKey,
+	[privateData, currentMainKey]: OpenedContainer,
 	update: (
 		privateData: PrivateData,
 		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
 	) => Promise<PrivateData>,
-): Promise<AsymmetricEncryptedContainer> {
+): Promise<OpenedContainer> {
 	if (!isAsymmetricEncryptedContainer(privateData)) {
 		throw new Error("EncryptedContainer is not fully asymmetric-encrypted");
 	}
@@ -245,30 +245,33 @@ export async function updatePrivateData(
 		),
 	};
 
-	return {
-		mainKey: newMainPublicKeyInfo,
-		jwe: await encryptPrivateData(newPrivateDataContent, newMainKey),
-		passwordKey: privateData.passwordKey && {
-			...privateData.passwordKey,
-			...await encapsulateKey(
-				newMainPrivateKey,
-				privateData.passwordKey.keypair.publicKey,
-				privateData.passwordKey.keypair,
-				newMainKey,
-			),
-		},
-		prfKeys: privateData.prfKeys && await Promise.all(
-			privateData.prfKeys.map(async keyInfo => ({
-				...keyInfo,
+	return [
+		{
+			mainKey: newMainPublicKeyInfo,
+			jwe: await encryptPrivateData(newPrivateDataContent, newMainKey),
+			passwordKey: privateData.passwordKey && {
+				...privateData.passwordKey,
 				...await encapsulateKey(
 					newMainPrivateKey,
-					keyInfo.keypair.publicKey,
-					keyInfo.keypair,
+					privateData.passwordKey.keypair.publicKey,
+					privateData.passwordKey.keypair,
 					newMainKey,
 				),
-			}))
-		),
-	};
+			},
+			prfKeys: privateData.prfKeys && await Promise.all(
+				privateData.prfKeys.map(async keyInfo => ({
+					...keyInfo,
+					...await encapsulateKey(
+						newMainPrivateKey,
+						keyInfo.keypair.publicKey,
+						keyInfo.keypair,
+						newMainKey,
+					),
+				}))
+			),
+		},
+		newMainKey,
+	];
 }
 
 async function exportMainKey(mainKey: CryptoKey): Promise<ArrayBuffer> {
