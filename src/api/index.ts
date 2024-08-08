@@ -232,7 +232,11 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 	}
 
-	async function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): Promise<void> {
+	async function setSession(
+		response: AxiosResponse,
+		credential: PublicKeyCredential | null,
+		authenticationType: 'signup' | 'login',
+	): Promise<void> {
 		setAppToken(response.data.appToken);
 		setSessionState({
 			uuid: response.data.uuid,
@@ -240,7 +244,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			username: response.data.username,
 			webauthnCredentialCredentialId: credential?.id,
 			authenticationType,
-			showWelcome,
+			showWelcome: authenticationType === 'signup',
 		});
 
 		await addItem('users', response.data.uuid, response.data);
@@ -269,7 +273,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						return Err('loginKeystoreFailed');
 					}
 				}
-				await setSession(response, null, 'login', false);
+				await setSession(response, null, 'login');
 				return Ok.EMPTY;
 			} catch (e) {
 				console.error("Failed to unlock local keystore", e);
@@ -296,7 +300,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}));
 				const userData = response.data as UserData;
 				setUserHandleB64u(toBase64Url(UserId.fromId(userData.uuid).asUserHandle()));
-				await setSession(response, null, 'signup', true);
+				await setSession(response, null, 'signup');
 				return Ok.EMPTY;
 
 			} catch (e) {
@@ -469,7 +473,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								return Err('loginKeystoreFailed');
 							}
 						}
-						await setSession(finishResp, credential, 'login', false);
+						await setSession(finishResp, credential, 'login');
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to open keystore", e);
@@ -550,7 +554,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
 						}));
-						await setSession(finishResp, credential, 'signup', true);
+						await setSession(finishResp, credential, 'signup');
 						return Ok.EMPTY;
 
 					} catch (e) {
