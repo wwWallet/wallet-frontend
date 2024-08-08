@@ -16,8 +16,14 @@ declare global {
 	}
 }
 
+interface OnlineStatusContextValue {
+	isOnline: boolean;
+}
 
-const OnlineStatusContext = createContext({});
+
+const OnlineStatusContext: React.Context<OnlineStatusContextValue> = createContext({
+	isOnline: null,
+});
 
 function getOnlineStatus(): boolean {
 	const rtt = (

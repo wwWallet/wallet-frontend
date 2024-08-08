@@ -15,10 +15,6 @@ import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
 import { H1, H2, H3 } from '../../components/Heading';
 
-interface OnlineStatusContextType {
-	isOnline: boolean | null;
-}
-
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -90,7 +86,7 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { isOnline } = useContext(OnlineStatusContext);
 	const { keystore } = useContext(SessionContext);
 	const api = useApi();
 	const [beginData, setBeginData] = useState(null);
@@ -324,7 +320,7 @@ const UnlockMainKey = ({
 	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { isOnline } = useContext(OnlineStatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
@@ -488,7 +484,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { isOnline } = useContext(OnlineStatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
@@ -682,7 +678,7 @@ const WebauthnCredentialItem = ({
 };
 
 const Settings = () => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { isOnline } = useContext(OnlineStatusContext);
 	const { logout, keystore } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
