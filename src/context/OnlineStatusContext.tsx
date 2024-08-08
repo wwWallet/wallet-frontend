@@ -1,6 +1,23 @@
 import React, { useEffect, createContext, useState } from 'react';
 
-const OnlineStatusContext = createContext();
+
+/**
+ * Type polyfill for https://wicg.github.io/netinfo/#networkinformation-interface
+ * but defining only the properties we use here.
+ */
+interface NetworkInformation extends EventTarget {
+	downlink: Megabit,
+}
+type Megabit = number;
+
+declare global {
+	export interface Navigator {
+		connection?: NetworkInformation;
+	}
+}
+
+
+const OnlineStatusContext = createContext({});
 
 const getConnectivityQuality = (downlink) => {
 	if (downlink >= 10) return 5;
