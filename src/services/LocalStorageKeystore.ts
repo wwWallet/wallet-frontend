@@ -7,7 +7,7 @@ import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
 
 type UserData = {
@@ -32,17 +32,13 @@ export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
 
-	initPassword(password: string): Promise<{
-		publicData: PublicData,
-		privateData: EncryptedContainer,
-		setUserHandleB64u: (userHandleB64u: string) => void,
-	}>,
+	initPassword(password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]>,
 	initPrf(
 		credential: PublicKeyCredential,
 		prfSalt: Uint8Array,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: UserData,
-	): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	): Promise<EncryptedContainer>,
 	addPrf(
 		credential: PublicKeyCredential,
 		[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
@@ -217,30 +213,20 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				mainKey: CryptoKey,
 				keyInfo: AsymmetricEncryptedContainerKeys,
 				user: UserData,
-			): Promise<{
-				publicData: PublicData,
-				privateData: EncryptedContainer,
-			}> => {
-				const unlocked = await keystore.init(mainKey, keyInfo, config.DID_KEY_VERSION);
+			): Promise<EncryptedContainer> => {
+				const unlocked = await keystore.init(mainKey, keyInfo);
 				await finishUnlock(unlocked, user);
-				const { publicData, privateData } = unlocked;
-				return {
-					publicData,
-					privateData,
-				};
+				const { privateData } = unlocked;
+				return privateData;
 			};
 
 			return {
 				isOpen: (): boolean => privateData !== null && mainKey !== null,
 				close,
 
-				initPassword: async (password: string): Promise<{
-					publicData: PublicData,
-					privateData: EncryptedContainer,
-					setUserHandleB64u: (userHandleB64u: string) => void,
-				}> => {
+				initPassword: async (password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]> => {
 					const { mainKey, keyInfo } = await keystore.initPassword(password);
-					return { ...await init(mainKey, keyInfo, null), setUserHandleB64u };
+					return [await init(mainKey, keyInfo, null), setUserHandleB64u];
 				},
 
 				initPrf: async (
@@ -248,7 +234,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					prfSalt: Uint8Array,
 					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 					user: UserData,
-				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+				): Promise<EncryptedContainer> => {
 					const { mainKey, keyInfo } = await keystore.initPrf(credential, prfSalt, promptForPrfRetry);
 					const result = await init(mainKey, keyInfo, user);
 					return result;
@@ -384,6 +370,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					await editPrivateData(async (container) =>
 						await keystore.createIdToken(
 							container,
+							config.DID_KEY_VERSION,
 							nonce,
 							audience,
 						)
@@ -402,6 +389,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					await editPrivateData(async (container) =>
 						await keystore.generateOpenid4vciProof(
 							container,
+							config.DID_KEY_VERSION,
 							nonce,
 							audience,
 						),

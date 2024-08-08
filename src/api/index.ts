@@ -285,14 +285,13 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 
 				try {
-					const { publicData, privateData, setUserHandleB64u } = await keystore.initPassword(password);
+					const [privateData, setUserHandleB64u] = await keystore.initPassword(password);
 
 					try {
 						const response = updatePrivateDataEtag(await post('/user/register', {
 							username,
 							password,
 							displayName: username,
-							keys: publicData,
 							privateData: serializePrivateData(privateData),
 						}));
 						const userData = response.data as UserData;
@@ -527,7 +526,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						console.log("created", credential);
 
 						try {
-							const { publicData, privateData } = await keystore.initPrf(
+							const privateData = await keystore.initPrf(
 								credential,
 								prfSalt,
 								promptForPrfRetry,
@@ -540,7 +539,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
 									challengeId: beginData.challengeId,
 									displayName: name,
-									keys: publicData,
 									privateData: serializePrivateData(privateData),
 									credential: {
 										type: credential.type,
