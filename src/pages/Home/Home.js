@@ -11,7 +11,6 @@ import "slick-carousel/slick/slick-theme.css";
 
 import addImage from '../../assets/images/cred.png';
 
-import { useApi } from '../../api';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
@@ -21,9 +20,10 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import CredentialsContext from '../../context/CredentialsContext';
+import SessionContext from '../../context/SessionContext';
 
 const Home = () => {
-	const api = useApi();
+	const { api } = useContext(SessionContext);
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);

@@ -1,14 +1,14 @@
 // PinInput.js
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
-import { useApi } from '../../api';
 import GetButton from '../Buttons/GetButton';
+import SessionContext from '../../context/SessionContext';
 
 function PinInput({ showPopup, setShowPopup }) {
-	const api = useApi();
+	const { api } = useContext(SessionContext);
 	const navigate = useNavigate();
 	const [errMessage, setErrMessage] = useState('');
 	const [pin, setPin] = useState(['', '', '', '']);

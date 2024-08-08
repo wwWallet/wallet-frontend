@@ -3,7 +3,6 @@ import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
-import { useApi } from '../../api';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
@@ -86,8 +85,7 @@ const WebauthnRegistation = ({
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { keystore } = useContext(SessionContext);
-	const api = useApi();
+	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
@@ -678,8 +676,7 @@ const WebauthnCredentialItem = ({
 
 const Settings = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { logout, keystore } = useContext(SessionContext);
-	const api = useApi(isOnline);
+	const { api, logout, keystore } = useContext(SessionContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);

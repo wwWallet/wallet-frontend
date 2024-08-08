@@ -8,7 +8,6 @@ import { CSSTransition } from 'react-transition-group';
 
 import * as config from '../../config';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
-import { useApi } from '../../api';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import ConnectivityBars from '../../components/Connectivity/ConnectivityBars';
@@ -109,9 +108,8 @@ const WebauthnSignupLogin = ({
 	setIsSubmitting,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { keystore } = useContext(SessionContext);
+	const { api, keystore } = useContext(SessionContext);
 
-	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [error, setError] = useState('');
@@ -470,8 +468,7 @@ const WebauthnSignupLogin = ({
 
 const Login = () => {
 	const { isOnline, connectivityQuality } = useContext(OnlineStatusContext);
-	const { isLoggedIn, keystore } = useContext(SessionContext);
-	const api = useApi(isOnline);
+	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
 

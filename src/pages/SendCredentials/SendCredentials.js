@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
-import { useApi } from '../../api';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import SessionContext from '../../context/SessionContext';
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {
@@ -20,7 +20,7 @@ function highlightBestSequence(verifier, search) {
 
 const Verifiers = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { api } = useContext(SessionContext);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [verifiers, setVerifiers] = useState([]);
 	const [filteredVerifiers, setFilteredVerifiers] = useState([]);
