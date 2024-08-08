@@ -16,8 +16,16 @@ declare global {
 	}
 }
 
+interface OnlineStatusContextValue {
+	isOnline: boolean;
+	connectivityQuality: number;
+}
 
-const OnlineStatusContext = createContext({});
+
+const OnlineStatusContext: React.Context<OnlineStatusContextValue> = createContext({
+	isOnline: null,
+	connectivityQuality: null,
+});
 
 const getConnectivityQuality = (downlink) => {
 	if (downlink >= 10) return 5;
