@@ -138,8 +138,7 @@ const History = () => {
 							{matchingCredentials.map((vcEntity, index) => (
 								<>
 									<React.Fragment key={vcEntity.id}>
-										{(currentSlide === index + 1 ? 'button' : 'div')
-											.split()
+										{[currentSlide === index + 1 ? 'button' : 'div']
 											.map(Tag => (
 												<>
 													<div
