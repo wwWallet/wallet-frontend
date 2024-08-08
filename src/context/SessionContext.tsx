@@ -19,12 +19,13 @@ export const SessionContextProvider = ({ children }) => {
 	const value: SessionContextValue = {
 		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
 		logout: async () => {
+
+			// Clear URL parameters
+			window.history.replaceState(null, '', '/');
+
 			api.clearSession();
 			await keystore.close();
 
-			// Clear URL parameters and redirect to /
-			window.history.replaceState(null, '', '/');
-			window.location.href = '/';
 		},
 	};
 

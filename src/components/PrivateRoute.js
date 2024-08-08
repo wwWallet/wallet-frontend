@@ -21,7 +21,7 @@ const PrivateRoute = ({ children }) => {
 	const cachedUsers = keystore.getCachedUsers();
 
 	const location = useLocation();
-	const queryParams = new URLSearchParams(location.search);
+	const queryParams = new URLSearchParams(window.location.search);
 	const state = queryParams.get('state');
 
 	useEffect(() => {
