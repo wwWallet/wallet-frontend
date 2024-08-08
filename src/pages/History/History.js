@@ -141,7 +141,6 @@ const History = () => {
 									<React.Fragment key={vcEntity}>
 										<div
 											className="relative rounded-xl xl:w-full md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg w-full mb-2"
-											aria-label={`${vcEntity.friendlyName}`}
 										>
 											<CredentialImage credential={vcEntity} className={"w-full h-full object-cover rounded-xl"} />
 										</div>
