@@ -7,7 +7,7 @@ import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainerKeys, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
 
 type UserData = {
@@ -69,9 +69,13 @@ export interface LocalStorageKeystore {
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
 
-	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
+	createIdToken(nonce: string, audience: string): Promise<[{ id_token: string; }, AsymmetricEncryptedContainer, CommitCallback]>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProof(nonce: string, audience: string): Promise<{ proof_jwt: string }>,
+	generateOpenid4vciProof(nonce: string, audience: string): Promise<[
+		{ proof_jwt: string },
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -148,8 +152,31 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	return useMemo(
 		() => {
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
-				if (privateData) {
-					return await keystore.openPrivateData(mainKey, privateData);
+				if (mainKey && privateData) {
+					return await keystore.openPrivateData(mainKey, privateData)
+				} else {
+					throw new Error("Private data not present in storage.");
+				}
+			};
+
+			const editPrivateData = async <T>(
+				action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
+			): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
+				if (mainKey && privateData) {
+					const [result, [newPrivateData, newMainKey]] = await action(
+						[
+							keystore.assertAsymmetricEncryptedContainer(privateData),
+							await keystore.importMainKey(mainKey),
+						],
+					);
+					return [
+						result,
+						newPrivateData,
+						async () => {
+							setPrivateData(newPrivateData);
+							setMainKey(await keystore.exportMainKey(newMainKey));
+						},
+					];
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
@@ -349,16 +376,36 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 				},
 
-				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => (
-					await keystore.createIdToken(await openPrivateData(), nonce, audience)
+				createIdToken: async (nonce: string, audience: string): Promise<[
+					{ id_token: string; },
+					AsymmetricEncryptedContainer,
+					CommitCallback,
+				]> => (
+					await editPrivateData(async (container) =>
+						await keystore.createIdToken(
+							container,
+							nonce,
+							audience,
+						)
+					)
 				),
 
 				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
 					await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
 				),
 
-				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => (
-					await keystore.generateOpenid4vciProof(await openPrivateData(), nonce, audience)
+				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<[
+					{ proof_jwt: string },
+					AsymmetricEncryptedContainer,
+					CommitCallback,
+				]> => (
+					await editPrivateData(async (container) =>
+						await keystore.generateOpenid4vciProof(
+							container,
+							nonce,
+							audience,
+						),
+					)
 				),
 			};
 		},

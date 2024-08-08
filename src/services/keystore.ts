@@ -64,6 +64,14 @@ function isAsymmetricEncryptedContainer(privateData: EncryptedContainer): privat
 	);
 }
 
+export function assertAsymmetricEncryptedContainer(privateData: EncryptedContainer): AsymmetricEncryptedContainer {
+	if (isAsymmetricEncryptedContainer(privateData)) {
+		return privateData;
+	} else {
+		throw new Error("Keystore must be upgraded to asymmetric format");
+	}
+}
+
 // Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
 const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
 const pbkdfIterations: number = 600000;
@@ -236,11 +244,14 @@ export async function updatePrivateData(
 		const newPrivateKey = await update(privateKey);
 		return await wrapPrivateKey(newPrivateKey, currentMainKey);
 	};
-	const updatedPrivateDataContent = await update(privateDataContent, updateWrappedPrivateKey);
+
+	const tmpNewPrivateDataContent = {
+		...await update(privateDataContent, updateWrappedPrivateKey),
+	};
 	const newPrivateDataContent = {
-		...updatedPrivateDataContent,
+		...tmpNewPrivateDataContent,
 		wrappedPrivateKey: await wrapPrivateKey(
-			await unwrapPrivateKey(updatedPrivateDataContent.wrappedPrivateKey, currentMainKey, true),
+			await unwrapPrivateKey(tmpNewPrivateDataContent.wrappedPrivateKey, currentMainKey, true),
 			newMainKey,
 		),
 	};
@@ -274,20 +285,20 @@ export async function updatePrivateData(
 	];
 }
 
-async function exportMainKey(mainKey: CryptoKey): Promise<ArrayBuffer> {
+export async function exportMainKey(mainKey: CryptoKey): Promise<ArrayBuffer> {
 	return await crypto.subtle.exportKey(
 		"raw",
 		mainKey,
 	);
 }
 
-async function importMainKey(exportedMainKey: BufferSource): Promise<CryptoKey> {
+export async function importMainKey(exportedMainKey: BufferSource): Promise<CryptoKey> {
 	return await crypto.subtle.importKey(
 		"raw",
 		exportedMainKey,
 		"AES-GCM",
 		false,
-		["decrypt", "unwrapKey"],
+		["decrypt", "wrapKey", "unwrapKey"],
 	);
 }
 
@@ -983,8 +994,12 @@ async function createWallet(mainKey: CryptoKey, didKeyVersion: DidKeyVersion): P
 	};
 };
 
-export async function createIdToken([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ id_token: string; }> {
-	const { alg, did, wrappedPrivateKey } = privateData;
+export async function createIdToken(
+	[privateData, mainKey]: OpenedContainer,
+	nonce: string,
+	audience: string,
+): Promise<[{ id_token: string }, OpenedContainer]> {
+	const { alg, did, wrappedPrivateKey } = await decryptPrivateData(privateData.jwe, mainKey);
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
 	const jws = await new SignJWT({ nonce: nonce })
 		.setProtectedHeader({
@@ -999,7 +1014,7 @@ export async function createIdToken([privateData, mainKey]: [PrivateData, Crypto
 		.setIssuedAt()
 		.sign(privateKey);
 
-	return { id_token: jws };
+	return [{ id_token: jws }, [privateData, mainKey]];
 }
 
 export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
@@ -1030,8 +1045,12 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 	return { vpjwt: jws };
 }
 
-export async function generateOpenid4vciProof([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string): Promise<{ proof_jwt: string }> {
-	const { alg, did, wrappedPrivateKey } = privateData;
+export async function generateOpenid4vciProof(
+	[privateData, mainKey]: OpenedContainer,
+	nonce: string,
+	audience: string
+): Promise<[{ proof_jwt: string }, OpenedContainer]> {
+	const { alg, did, wrappedPrivateKey } = await decryptPrivateData(privateData.jwe, mainKey);
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
 	const header = {
 		alg,
@@ -1046,5 +1065,5 @@ export async function generateOpenid4vciProof([privateData, mainKey]: [PrivateDa
 		.setAudience(audience)
 		.setExpirationTime('1m')
 		.sign(privateKey);
-	return { proof_jwt: jws };
+	return [{ proof_jwt: jws }, [privateData, mainKey]];
 }
