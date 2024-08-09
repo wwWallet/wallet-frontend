@@ -1,5 +1,7 @@
 // src/indexedDB.ts
 import localforage from 'localforage';
+import { UserId } from './api/types';
+import { fromBase64Url } from './util';
 
 const stores = {
 	users: localforage.createInstance({
@@ -30,7 +32,6 @@ const stores = {
 
 const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
-	'UserHandleToUserID': 'UserHandleToUserID',
 	'vc': 'vc',
 	'/storage/vc': 'vc',
 	'vp': 'vp',
@@ -51,14 +52,66 @@ function getMappedStoreName(storeName: string): string {
 export async function initializeDataSource(): Promise<void> {
 	try {
 		await stores.users.ready();
-		await stores.UserHandleToUserID.ready();
 		await stores.vc.ready();
 		await stores.vp.ready();
 		await stores.externalEntities.ready();
+
+		await migrateDataSource();
+
 		console.log('Database initialized successfully');
 	} catch (err) {
 		console.error('Error initializing database', err);
 	}
+}
+
+async function migrateDataSource(): Promise<void> {
+	await migration1();
+}
+
+/** Re-key the local databases from numeric user ID to uuid */
+async function migration1(): Promise<void> {
+	const UserHandleToUserID = localforage.createInstance({
+		name: 'AppDataSource',
+		storeName: 'UserHandleToUserID',
+	});
+	await UserHandleToUserID.ready();
+	await stores.users.ready();
+	const userHandles = await UserHandleToUserID.keys();
+	await Promise.all(userHandles.map(async (userHandleB64u) => {
+		const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
+		const userNumericId: string = (await UserHandleToUserID.getItem(userHandleB64u)).toString();
+		console.log("Migrating UserHandleToUserID:", [userHandleB64u, userNumericId]);
+
+		const user: any = await stores.users.getItem(userNumericId);
+		if (user) {
+			user.uuid = userId.id;
+			delete user["id"];
+			delete user["webauthnUserHandle"];
+			await stores.users.setItem(user.uuid, user);
+			await stores.users.removeItem(userNumericId);
+		}
+
+		const accountInfo: any = await stores.accountInfo.getItem(userNumericId);
+		if (accountInfo) {
+			accountInfo.uuid = userId.id;
+			delete accountInfo["webauthnUserHandle"];
+			await stores.accountInfo.setItem(user.uuid, accountInfo);
+			await stores.accountInfo.removeItem(userNumericId);
+		}
+
+		const vc: any = await stores.vc.getItem(userNumericId);
+		if (vc) {
+			await stores.vc.setItem(user.uuid, vc);
+			await stores.vc.removeItem(userNumericId);
+		}
+
+		const vp: any = await stores.vp.getItem(userNumericId);
+		if (vp) {
+			await stores.vp.setItem(user.uuid, vp);
+			await stores.vp.removeItem(userNumericId);
+		}
+	}));
+	await UserHandleToUserID.dropInstance();
 }
 
 export async function addItem(storeName: string, key: any, value: any): Promise<void> {

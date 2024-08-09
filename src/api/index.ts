@@ -5,19 +5,18 @@ import * as config from '../config';
 import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
-import { UserData, Verifier } from './types';
+import { UserData, UserId, Verifier } from './types';
 import { useEffect, useMemo } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../components/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
-import { base64url } from 'jose';
 
 
 const walletBackendUrl = config.BACKEND_URL;
 
 
 type SessionState = {
-	id: string;
+	uuid: string;
 	username: string,
 	displayName: string,
 	webauthnCredentialCredentialId: string,
@@ -151,19 +150,19 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				return respBackend;
 			}
 
-			async function get(path: string, sessionId?: number, options?: { appToken?: string }): Promise<AxiosResponse> {
-				return getWithLocalDbKey(path, sessionState?.id.toString() || sessionId.toString(), options);
+			async function get(path: string, userUuid?: string, options?: { appToken?: string }): Promise<AxiosResponse> {
+				return getWithLocalDbKey(path, sessionState?.uuid || userUuid, options);
 			}
 
 			async function getExternalEntity(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
 				return getWithLocalDbKey(path, path, options);
 			}
 
-			async function fetchInitialData(appToken: string, sessionId: number): Promise<void> {
+			async function fetchInitialData(appToken: string, userUuid: string): Promise<void> {
 				try {
-					await get('/storage/vc', sessionId, { appToken });
-					await get('/storage/vp', sessionId, { appToken });
-					await get('/user/session/account-info', sessionId, { appToken });
+					await get('/storage/vc', userUuid, { appToken });
+					await get('/storage/vp', userUuid, { appToken });
+					await get('/user/session/account-info', userUuid, { appToken });
 					await getExternalEntity('/legal_person/issuers/all', { appToken });
 					await getExternalEntity('/verifiers/all', { appToken });
 
@@ -221,7 +220,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			async function setSession(response: AxiosResponse, credential: PublicKeyCredential | null, authenticationType: 'signup' | 'login', showWelcome: boolean): Promise<void> {
 				setAppToken(response.data.appToken);
 				setSessionState({
-					id: response.data.id,
+					uuid: response.data.uuid,
 					displayName: response.data.displayName,
 					username: response.data.username,
 					webauthnCredentialCredentialId: credential?.id,
@@ -229,10 +228,9 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					showWelcome,
 				});
 
-				await addItem('users', response.data.id, response.data);
-				await addItem('UserHandleToUserID', base64url.encode(response.data.webauthnUserHandle), response.data.id);
+				await addItem('users', response.data.uuid, response.data);
 				if (isOnline) {
-					await fetchInitialData(response.data.appToken, response.data.id).catch((error) => console.error('Error in performGetRequests', error));
+					await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 				}
 			}
 
@@ -242,7 +240,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						const updatePrivateData = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: new TextEncoder().encode(userData.webauthnUserHandle) });
+						const updatePrivateData = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: UserId.fromId(userData.uuid).asUserHandle() });
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							try {
@@ -405,17 +403,16 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									}));
 								}
 								else {
-									const userId = await getItem("UserHandleToUserID", response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u);
-									const user = await getItem("users", String(userId));
+									const userId = UserId.fromUserHandle(response.userHandle);
+									const user = await getItem("users", userId.id);
 									return {
 										data: {
-											id: user.id,
+											uuid: user.uuid,
 											appToken: "",
 											did: user.did,
 											displayName: user.displayName,
 											privateData: user.privateData,
 											username: null,
-											webauthnUserHandle: user.webauthnUserHandle
 										},
 									};
 								}
