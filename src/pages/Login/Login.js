@@ -306,11 +306,11 @@ const WebauthnSignupLogin = ({
 								{
 									prfRetryAccepted
 										? (
-											<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+											<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">Almost done!</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">{t('registerPasskey.messageDone')}</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
@@ -339,9 +339,12 @@ const WebauthnSignupLogin = ({
 							retrySignupFrom && !inProgress
 								? (
 									<div className="text-center">
-										<p className="dark:text-white pb-3">Something went wrong, please try again.</p>
-										<p className="dark:text-white pb-3">Please note that you need to use the same passkey you created in the previous step.</p>
-
+										<p className="dark:text-white pb-3">
+											<Trans
+												i18nKey="registerPasskey.messageErrorTryAgain"
+												components={{ br: <br /> }}
+											/>
+										</p>
 										<div className='flex justify-center gap-4'>
 
 											<GetButton
@@ -359,7 +362,7 @@ const WebauthnSignupLogin = ({
 								)
 								: (
 									<>
-										<p className="dark:text-white pb-3">Please interact with your authenticator...</p>
+										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 										<GetButton
 											content={t('common.cancel')}
 											onClick={onCancel}

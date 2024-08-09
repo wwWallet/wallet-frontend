@@ -227,8 +227,8 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('pageSettings.registerPasskey.messageSuccess')}</h3>
-								<p className="mb-2 dark:text-white">{t('pageSettings.registerPasskey.giveNickname')}</p>
+								<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('registerPasskey.messageSuccess')}</h3>
+								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
 									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
@@ -243,7 +243,7 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p className='dark:text-white'>{t('pageSettings.registerPasskey.messageInteract')}</p>
+								<p className='dark:text-white'>{t('registerPasskey.messageInteract')}</p>
 							</>
 						)
 					}
@@ -273,9 +273,9 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('pageSettings.registerPasskey.messageDone')}</h3>
-				<p className='dark:text-white'>{t('pageSettings.registerPasskey.passkeyCreated')}</p>
-				<p className='dark:text-white'>{t('pageSettings.registerPasskey.authOnceMore')}</p>
+				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('registerPasskey.messageDone')}</h3>
+				<p className='dark:text-white'>{t('registerPasskey.passkeyCreated')}</p>
+				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
 				<div className='flex justify-center gap-2'>
 					<GetButton
@@ -298,7 +298,7 @@ const WebauthnRegistation = ({
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p className='dark:text-white'>{t('pageSettings.registerPasskey.messageInteractNewPasskey')}</p>
+				<p className='dark:text-white'>{t('registerPasskey.messageInteractNewPasskey')}</p>
 				<div className='flex justify-center'>
 					<GetButton
 						content={t('common.cancel')}
