@@ -505,14 +505,21 @@ const WebauthnCredentialItem = ({
 		}
 	};
 
+	const onCancelEditing = useCallback(
+		() => {
+			setNickname(credential.nickname || '');
+			setEditing(false);
+		},
+		[credential.nickname],
+	);
+
 	const onKeyUp = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
 			if (event.key === "Escape") {
-				setNickname(credential.nickname || '');
-				setEditing(false);
+				onCancelEditing();
 			}
 		},
-		[credential.nickname],
+		[onCancelEditing],
 	);
 
 	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -611,7 +618,7 @@ const WebauthnCredentialItem = ({
 						<div className='flex gap-2'>
 							<GetButton
 								content={t('common.cancel')}
-								onClick={() => setEditing(false)}
+								onClick={onCancelEditing}
 								variant="cancel"
 								disabled={submitting}
 								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
