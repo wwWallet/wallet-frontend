@@ -301,10 +301,6 @@ export async function updatePrivateData(
 		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
 	) => Promise<PrivateData>,
 ): Promise<OpenedContainer> {
-	if (!isAsymmetricEncryptedContainer(privateData)) {
-		throw new Error("EncryptedContainer is not fully asymmetric-encrypted");
-	}
-
 	const {
 		keyInfo: newMainPublicKeyInfo,
 		mainKey: newMainKey,
