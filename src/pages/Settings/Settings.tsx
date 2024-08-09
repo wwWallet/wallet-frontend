@@ -188,6 +188,10 @@ const WebauthnRegistation = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
+				if (e?.cause === 'x-private-data-etag') {
+					// TODO: Show this error to the user
+					throw new Error("Private data version conflict", { cause: e });
+				}
 
 			} finally {
 				onCancel();
@@ -761,9 +765,10 @@ const Settings = () => {
 			await refreshData();
 
 		} catch (e) {
-			if (e?.message === 'x-private-data-etag') {
+			console.error("Failed to delete WebAuthn credential", e);
+			if (e?.cause === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw e;
+				throw new Error("Private data version conflict", { cause: e });
 			}
 			throw e;
 		}
@@ -800,18 +805,17 @@ const Settings = () => {
 				},
 			);
 			setUpgradePrfState(null);
-			const updateResp = api.updatePrivateDataEtag(
-				await api.post('/user/session/private-data', serializePrivateData(newPrivateData)),
-			);
-			if (updateResp.status === 204) {
+			try {
+				await api.updatePrivateData(newPrivateData);
 				await keystoreCommit();
-			} else {
-				console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
+			} catch (e) {
+				console.error("Failed to upgrade PRF key", e, e.status);
 			}
 		} catch (e) {
-			if (e?.message === 'x-private-data-etag') {
+			console.error("Failed to upgrade PRF key", e);
+			if (e?.cause === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw e;
+				throw new Error("Private data version conflict", { cause: e });
 			}
 
 			console.error("Failed to upgrade PRF key", e);
