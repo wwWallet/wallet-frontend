@@ -9,7 +9,7 @@ type SessionContextValue = {
 
 const SessionContext: React.Context<SessionContextValue> = createContext({
 	isLoggedIn: false,
-	logout: async () => {},
+	logout: async () => { },
 });
 
 export const SessionContextProvider = ({ children }) => {
@@ -19,13 +19,18 @@ export const SessionContextProvider = ({ children }) => {
 	const value: SessionContextValue = {
 		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
 		logout: async () => {
+
+			// Clear URL parameters
+			window.history.replaceState(null, '', '/');
+
 			api.clearSession();
 			await keystore.close();
+
 		},
 	};
 
 	return (
-		<SessionContext.Provider value={ value }>
+		<SessionContext.Provider value={value}>
 			{children}
 		</SessionContext.Provider>
 	);

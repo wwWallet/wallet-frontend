@@ -6,9 +6,12 @@ import { OnlineStatusProvider } from './context/OnlineStatusContext';
 import { initializeDataSource } from './indexedDB';
 import * as offlineSW from './offlineRegistrationSW';
 import * as firebaseSW from './firebase';
+import Modal from 'react-modal';
 import './index.css';
 
 ConsoleBehavior();
+
+Modal.setAppElement('#root');
 
 const RootComponent = () => {
 	useEffect(() => {

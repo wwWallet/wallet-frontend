@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import Sidebar from './Sidebar';
 import { AiOutlineMenu } from "react-icons/ai";
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
@@ -25,6 +25,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
 	const { t } = useTranslation();
+	const nodeRef = useRef(null);
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
@@ -166,8 +167,11 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 						classNames="content-fade-in"
 						appear
 						key={location.pathname}
+						nodeRef={nodeRef}
 					>
-						{children}
+						<div ref={nodeRef}>
+							{children}
+						</div>
 					</CSSTransition>
 				</div>
 			</div>

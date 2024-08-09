@@ -24,7 +24,7 @@ export const CredentialsProvider = ({ children }) => {
 			const latestIssuanceDate = vcEntityList[0]?.issuanceDate;
 			const latestCreds = new Set(vcEntityList.filter(vc => vc.issuanceDate === latestIssuanceDate).map(vc => vc.id));
 
-			if (window.location.pathname.includes('/cb')) {
+			if (window.location.search.includes('code')) {
 				setLatestCredentials(latestCreds);
 				setTimeout(() => {
 					setLatestCredentials(new Set());

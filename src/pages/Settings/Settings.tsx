@@ -171,10 +171,10 @@ const WebauthnRegistation = ({
 					credential: {
 						type: pendingCredential.type,
 						id: pendingCredential.id,
-						rawId: pendingCredential.id, // SimpleWebauthn on server side expects this base64url encoded
+						rawId: pendingCredential.rawId,
 						response: {
-							attestationObject: toBase64Url(pendingCredential.response.attestationObject),
-							clientDataJSON: toBase64Url(pendingCredential.response.clientDataJSON),
+							attestationObject: pendingCredential.response.attestationObject,
+							clientDataJSON: pendingCredential.response.clientDataJSON,
 							transports: pendingCredential.response.getTransports(),
 						},
 						authenticatorAttachment: pendingCredential.authenticatorAttachment,
@@ -353,7 +353,7 @@ const UnlockMainKey = ({
 				onUnlock(unwrappingKey, wrappedMainKey);
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e.errorId) {
+				switch (e?.cause?.errorId) {
 					case 'passkeyInvalid':
 						setError(t('passkeyInvalid'));
 						break;
@@ -657,9 +657,11 @@ const WebauthnCredentialItem = ({
 					onConfirm={handleDelete}
 					onCancel={closeDeleteConfirmation}
 					message={
-						<span>
-							{t("pageSettings.passkeyItem.messageDeletePasskeyPart1")} <strong>{nickname}</strong> {t("pageSettings.passkeyItem.messageDeletePasskeyPart2")}
-						</span>
+						<Trans
+							i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
+							values={{ nickname: nickname }}
+							components={{ strong: <strong /> }}
+						/>
 					}
 					loading={loading}
 				/>
@@ -921,9 +923,10 @@ const Settings = () => {
 					onConfirm={handleDelete}
 					onCancel={closeDeleteConfirmation}
 					message={
-						<span>
-							{t('pageSettings.deleteAccount.messageDeleteAccount1')} <strong> {t('pageSettings.deleteAccount.messageDeleteAccount2')} </strong>?
-						</span>
+						<Trans
+							i18nKey="pageSettings.deleteAccount.message"
+							components={{ strong: <strong /> }}
+						/>
 					}
 					loading={loading}
 				/>

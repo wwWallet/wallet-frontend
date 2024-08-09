@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
 import { makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, Verifier } from './types';
@@ -242,7 +242,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					const userData = response.data as UserData;
 					const privateData = await parsePrivateData(userData.privateData);
 					try {
-						const updatePrivateData = await keystore.unlockPassword(privateData, password);
+						const updatePrivateData = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: new TextEncoder().encode(userData.webauthnUserHandle) });
 						if (updatePrivateData) {
 							const [newPrivateData, keystoreCommit] = updatePrivateData;
 							try {
@@ -280,7 +280,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			async function signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
 
 				try {
-					const { publicData, privateData } = await keystore.initPassword(password);
+					const { publicData, privateData, setUserHandleB64u } = await keystore.initPassword(password);
 
 					try {
 						const response = updatePrivateDataEtag(await post('/user/register', {
@@ -290,6 +290,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							keys: publicData,
 							privateData: serializePrivateData(privateData),
 						}));
+						setUserHandleB64u(toBase64Url(new TextEncoder().encode(response.data.webauthnUserHandle)));
 						await setSession(response, null, 'signup', true);
 						return Ok.EMPTY;
 
@@ -391,12 +392,12 @@ export function useApi(isOnline: boolean = true): BackendApi {
 										credential: {
 											type: credential.type,
 											id: credential.id,
-											rawId: credential.id, // SimpleWebauthn on server side expects this base64url encoded
+											rawId: credential.rawId,
 											response: {
-												authenticatorData: toBase64Url(response.authenticatorData),
-												clientDataJSON: toBase64Url(response.clientDataJSON),
-												signature: toBase64Url(response.signature),
-												userHandle: response.userHandle ? toBase64Url(response.userHandle) : cachedUser?.userHandleB64u,
+												authenticatorData: response.authenticatorData,
+												clientDataJSON: response.clientDataJSON,
+												signature: response.signature,
+												userHandle: response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u),
 											},
 											authenticatorAttachment: credential.authenticatorAttachment,
 											clientExtensionResults: credential.getClientExtensionResults(),
@@ -527,10 +528,10 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									credential: {
 										type: credential.type,
 										id: credential.id,
-										rawId: credential.id, // SimpleWebauthn on server side expects this base64url encoded
+										rawId: credential.rawId,
 										response: {
-											attestationObject: toBase64Url(response.attestationObject),
-											clientDataJSON: toBase64Url(response.clientDataJSON),
+											attestationObject: response.attestationObject,
+											clientDataJSON: response.clientDataJSON,
 											transports: response.getTransports(),
 										},
 										authenticatorAttachment: credential.authenticatorAttachment,
@@ -545,9 +546,9 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							}
 
 						} catch (e) {
-							if (e?.errorId === "prf_retry_failed") {
+							if (e?.cause?.errorId === "prf_retry_failed") {
 								return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
-							} else if (e?.errorId === "prf_not_supported") {
+							} else if (e?.cause?.errorId === "prf_not_supported") {
 								return Err('passkeySignupPrfNotSupported');
 							} else {
 								return Err('passkeySignupKeystoreFailed');

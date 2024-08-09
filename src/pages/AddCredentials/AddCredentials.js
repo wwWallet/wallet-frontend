@@ -158,7 +158,7 @@ const Issuers = () => {
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.did)}
 								disabled={!isOnline}
-								title={!isOnline && t('common.offlineTitle')}
+								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.friendlyName, searchQuery) }} />
 							</button>
@@ -173,7 +173,7 @@ const Issuers = () => {
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.friendlyName}`}
-					popupMessage={`${t('pageAddCredentials.popup.messagePart1')} ${selectedIssuer?.friendlyName}${t('pageAddCredentials.popup.messagePart2')}`}
+					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.friendlyName })}
 				/>
 			)}
 

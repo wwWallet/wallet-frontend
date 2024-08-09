@@ -144,7 +144,7 @@ const Verifiers = () => {
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleVerifierClick(verifier.did)}
 								disabled={!isOnline}
-								title={!isOnline && t('common.offlineTitle')}
+								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
 							</button>
@@ -158,8 +158,8 @@ const Verifiers = () => {
 					loading={loading}
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedVerifier?.name}`}
-					popupMessage={`${t('pageSendCredentials.popup.messagePart1')} ${selectedVerifier?.name}${t('pageSendCredentials.popup.messagePart2')}`}
+					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
+					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
 				/>
 			)}
 

@@ -20,11 +20,12 @@ const getConnectivityValues = () => {
 };
 
 export const OnlineStatusProvider = ({ children }) => {
-	const [isOnline, setIsOnline] = useState(() => navigator.onLine && navigator.connection?.type !== "unknown");
+
+	const [isOnline, setIsOnline] = useState(() => navigator.onLine && (navigator.connection?.downlink ?? 0) !== 0);
 	const [connectivityQuality, setConnectivityQuality] = useState(1);
 
 	const updateOnlineStatus = () => {
-		setIsOnline(navigator.onLine && navigator.connection?.type !== "unknown");
+		setIsOnline(navigator.onLine && (navigator.connection?.downlink ?? 0) !== 0);
 		const quality = getConnectivityQuality(getConnectivityValues().downlink);
 		setConnectivityQuality(quality);
 	};
