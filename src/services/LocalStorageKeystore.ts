@@ -77,13 +77,12 @@ export interface LocalStorageKeystore {
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [privateDataCache, setPrivateDataCache, clearPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [privateData, setPrivateData, clearPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
 	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
-	const [sessionKey, setSessionKey, clearSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
-	const [privateDataJwe, setPrivateDataJwe, clearPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
-	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearSessionKey, clearPrivateDataJwe);
+	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
+	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
 
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
@@ -105,25 +104,25 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const close = useCallback(
 		async (): Promise<void> => {
 			await idb.destroy();
-			clearPrivateDataCache();
+			clearPrivateData();
 			clearGlobalUserHandleB64u();
 			closeTabLocal();
 		},
-		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateDataCache],
+		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
 	useEffect(
 		() => {
-			if (privateDataCache && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
+			if (privateData && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
 				// When PRF keys are added, deleted or edited in any tab,
 				// propagate changes to cached users
 				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
 					if (cu.userHandleB64u === userHandleB64u) {
 						return {
 							...cu,
-							prfKeys: privateDataCache.prfKeys.map((keyInfo) => ({
+							prfKeys: privateData.prfKeys.map((keyInfo) => ({
 								credentialId: keyInfo.credentialId,
 								prfSalt: keyInfo.prfSalt,
 							})),
@@ -133,7 +132,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					}
 				}));
 
-			} else if (!privateDataCache) {
+			} else if (!privateData) {
 				// When user logs out in any tab, log out in all tabs
 				closeTabLocal();
 
@@ -143,26 +142,25 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				closeTabLocal();
 			}
 		},
-		[close, closeTabLocal, privateDataCache, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[close, closeTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
 	return useMemo(
 		() => {
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
-				if (privateDataJwe) {
-					return await keystore.openPrivateData(sessionKey, privateDataJwe);
+				if (privateData) {
+					return await keystore.openPrivateData(mainKey, privateData);
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
 			};
 
 			const finishUnlock = async (
-				{ exportedSessionKey, privateDataCache, privateDataJwe }: UnlockSuccess,
+				{ exportedMainKey, privateData }: UnlockSuccess,
 				user: CachedUser | UserData | null,
 			): Promise<void> => {
-				setSessionKey(exportedSessionKey);
-				setPrivateDataCache(privateDataCache);
-				setPrivateDataJwe(privateDataJwe);
+				setMainKey(exportedMainKey);
+				setPrivateData(privateData);
 
 				if (user) {
 					const userHandleB64u = ("prfKeys" in user
@@ -196,9 +194,9 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				publicData: PublicData,
 				privateData: EncryptedContainer,
 			}> => {
-				const { publicData, privateData } = await keystore.init(mainKey, keyInfo, config.DID_KEY_VERSION);
-				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
-
+				const unlocked = await keystore.init(mainKey, keyInfo, config.DID_KEY_VERSION);
+				await finishUnlock(unlocked, user);
+				const { publicData, privateData } = unlocked;
 				return {
 					publicData,
 					privateData,
@@ -206,7 +204,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			};
 
 			return {
-				isOpen: (): boolean => privateDataJwe !== null && sessionKey !== null,
+				isOpen: (): boolean => privateData !== null && mainKey !== null,
 				close,
 
 				initPassword: async (password: string): Promise<{
@@ -234,21 +232,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				): Promise<[EncryptedContainer, CommitCallback]> => {
-					const newPrivateData = await keystore.addPrf(privateDataCache, credential, [existingUnwrapKey, wrappedMainKey], promptForPrfRetry);
+					const newPrivateData = await keystore.addPrf(privateData, credential, [existingUnwrapKey, wrappedMainKey], promptForPrfRetry);
 					return [
 						newPrivateData,
 						async () => {
-							setPrivateDataCache(newPrivateData);
+							setPrivateData(newPrivateData);
 						},
 					];
 				},
 
 				deletePrf: (credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
-					const newPrivateData = keystore.deletePrf(privateDataCache, credentialId);
+					const newPrivateData = keystore.deletePrf(privateData, credentialId);
 					return [
 						newPrivateData,
 						async () => {
-							setPrivateDataCache(newPrivateData);
+							setPrivateData(newPrivateData);
 						},
 					];
 				},
@@ -265,7 +263,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							?
 							[newPrivateData,
 								async () => {
-									setPrivateDataCache(newPrivateData);
+									setPrivateData(newPrivateData);
 								},
 							]
 							: null
@@ -285,7 +283,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							?
 							[newPrivateData,
 								async () => {
-									setPrivateDataCache(newPrivateData);
+									setPrivateData(newPrivateData);
 								},
 							]
 							: null
@@ -293,24 +291,24 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				},
 
 				getPrfKeyInfo: (id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined => {
-					return privateDataCache?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
+					return privateData?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
 				},
 
 				getPasswordOrPrfKeyFromSession: async (
 					promptForPassword: () => Promise<string | null>,
 					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 				): Promise<[CryptoKey, WrappedKeyInfo]> => {
-					if (privateDataCache && privateDataCache?.prfKeys?.length > 0) {
-						const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateDataCache, null, promptForPrfRetry);
+					if (privateData && privateData?.prfKeys?.length > 0) {
+						const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateData, null, promptForPrfRetry);
 						return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
 
-					} else if (privateDataCache && privateDataCache?.passwordKey) {
+					} else if (privateData && privateData?.passwordKey) {
 						const password = await promptForPassword();
 						if (password === null) {
 							throw new Error("Password prompt aborted");
 						} else {
 							try {
-								const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateDataCache, password);
+								const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateData, password);
 								return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
 							} catch {
 								throw new Error("Failed to unlock key store", { cause: { errorId: "passwordUnlockFailed" } });
@@ -329,12 +327,12 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					if (keystore.isPrfKeyV2(prfKeyInfo)) {
 						throw new Error("Key is already upgraded");
 
-					} else if (privateDataCache) {
-						const newPrivateData = await keystore.upgradePrfKey(privateDataCache, null, prfKeyInfo, promptForPrfRetry);
+					} else if (privateData) {
+						const newPrivateData = await keystore.upgradePrfKey(privateData, null, prfKeyInfo, promptForPrfRetry);
 						return [
 							newPrivateData,
 							async () => {
-								setPrivateDataCache(newPrivateData);
+								setPrivateData(newPrivateData);
 							},
 						];
 
@@ -367,14 +365,12 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		[
 			cachedUsers,
 			close,
-			privateDataCache,
-			privateDataJwe,
-			sessionKey,
+			mainKey,
+			privateData,
 			setCachedUsers,
 			setGlobalUserHandleB64u,
-			setPrivateDataCache,
-			setPrivateDataJwe,
-			setSessionKey,
+			setMainKey,
+			setPrivateData,
 			setUserHandleB64u,
 		],
 	);
