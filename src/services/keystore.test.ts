@@ -235,7 +235,10 @@ describe("The keystore", () => {
 			async () => false,
 		);
 		const exportedMainKey = new Uint8Array(exportedMainKeyBuffer);
-		const [privateDataContent, mainKey] = await keystore.openPrivateData(exportedMainKey, privateData);
+		const [privateDataContent, mainKey] = await keystore.openPrivateData(
+			await keystore.importMainKey(exportedMainKey),
+			privateData,
+		);
 		const { publicKey } = privateDataContent.S.keypairs[0].keypair;
 		assert.isDefined(publicKey);
 		assert.isNotNull(publicKey);
@@ -243,7 +246,10 @@ describe("The keystore", () => {
 		assert.isNotNull(mainKey);
 
 		await asyncAssertThrows(
-			() => keystore.openPrivateData(new Uint8Array([exportedMainKey[0] ^ 0x01, ...exportedMainKey.slice(1)]), privateData),
+			async () => keystore.openPrivateData(
+				await keystore.importMainKey(new Uint8Array([exportedMainKey[0] ^ 0x01, ...exportedMainKey.slice(1)])),
+				privateData,
+			),
 			"Expected unlock with incorrect main key to fail",
 		);
 	});
@@ -265,8 +271,7 @@ describe("The keystore", () => {
 				"test-audience",
 				"test-issuer",
 			);
-			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
-			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
+			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			const { kid, publicKey: publicKeyJwk } = calculatedState.keypairs[0].keypair;
 			const publicKey = await jose.importJWK(publicKeyJwk)
 			const { protectedHeader } = await jose.jwtVerify(proof_jwts[0], publicKey, { audience: "test-audience", issuer: "test-issuer" });
@@ -293,8 +298,7 @@ describe("The keystore", () => {
 				numKeys,
 			);
 			assert.equal(keypairs.length, numKeys);
-			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
-			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
+			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			for (const { kid, publicKey, wrappedPrivateKey } of keypairs) {
 				const { publicKey: storedPublicKey } = calculatedState.keypairs.filter((keypair) => keypair.kid === kid)[0].keypair;
 				assert.deepEqual(publicKey, storedPublicKey);
@@ -522,7 +526,10 @@ describe("The keystore", () => {
 			assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
 
 			const [oldUnlocked,] = await keystore.unlockPrf(privateData, mockCredential1, async () => false);
-			const [oldPrivateDataContent,,] = await keystore.openPrivateData(oldUnlocked.exportedMainKey, oldUnlocked.privateData);
+			const [oldPrivateDataContent,,] = await keystore.openPrivateData(
+				await keystore.importMainKey(oldUnlocked.exportedMainKey),
+				oldUnlocked.privateData,
+			);
 			const oldKid = oldPrivateDataContent.S.keypairs[0].kid;
 
 			for (const [unlocked, newPrivateData2] of [
@@ -532,7 +539,10 @@ describe("The keystore", () => {
 			]) {
 				assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
 				assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");
-				const [privateDataContent,] = await keystore.openPrivateData(unlocked.exportedMainKey, unlocked.privateData);
+				const [privateDataContent,] = await keystore.openPrivateData(
+					await keystore.importMainKey(unlocked.exportedMainKey),
+					unlocked.privateData,
+				);
 				const newKid = privateDataContent.S.keypairs[0].kid;
 				assert.notStrictEqual(privateDataContent.S.keypairs.filter(k => k.kid === newKid)[0].kid, oldPrivateDataContent.S.keypairs.filter(k => k.kid === oldKid)[0].kid);
 				assert.notDeepEqual(privateDataContent.S.keypairs.filter(k => k.kid === newKid)[0].keypair.publicKey, oldPrivateDataContent.S.keypairs.filter(k => k.kid === oldKid)[0].keypair.publicKey);

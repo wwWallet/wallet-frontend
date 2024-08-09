@@ -366,8 +366,7 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 	);
 }
 
-export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, WalletState]> {
-	const mainKey = await importMainKey(exportedMainKey);
+export async function openPrivateData(mainKey: CryptoKey, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, WalletState]> {
 	const openedPrivateData = await decryptPrivateData(privateData.jwe, mainKey);
 	const calculatedState = foldState(openedPrivateData);
 	return [openedPrivateData, mainKey, calculatedState];
