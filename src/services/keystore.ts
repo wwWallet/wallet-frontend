@@ -76,7 +76,7 @@ export function assertAsymmetricEncryptedContainer(privateData: EncryptedContain
 	if (isAsymmetricEncryptedContainer(privateData)) {
 		return privateData;
 	} else {
-		throw new Error("Keystore must be upgraded to asymmetric format");
+		throw new Error("Keystore must be upgraded to asymmetric format", { cause: 'keystore_not_asymmetric' });
 	}
 }
 
