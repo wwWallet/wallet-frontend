@@ -36,6 +36,14 @@
 			"windows": "Chrome, Edge, Opera or Brave on Windows"
 		}
 	},
+	"connectivityBars": {
+		"excellent": "Excellent",
+		"fair": "Fair",
+		"good": "Good",
+		"poor": "Poor",
+		"title": "Online - Network quality:",
+		"veryPoor": "VeryPoor"
+	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
