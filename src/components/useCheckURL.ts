@@ -1,6 +1,5 @@
 import { useEffect, useState, Dispatch, SetStateAction, useContext } from 'react';
 import { useApi } from '../api';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { useTranslation } from 'react-i18next';
 import SessionContext from '../context/SessionContext';
 
@@ -27,7 +26,7 @@ function useCheckURL(urlToCheck: string): {
 	typeMessagePopup: string;
 } {
 	const api = useApi();
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const [showSelectCredentialsPopup, setShowSelectCredentialsPopup] = useState<boolean>(false);
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);
@@ -36,7 +35,6 @@ function useCheckURL(urlToCheck: string): {
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 
 	useEffect(() => {

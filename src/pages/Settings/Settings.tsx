@@ -9,7 +9,6 @@ import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
-import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import GetButton from '../../components/Buttons/GetButton';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
@@ -91,6 +90,7 @@ const WebauthnRegistation = ({
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { keystore } = useContext(SessionContext);
 	const api = useApi();
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -100,7 +100,6 @@ const WebauthnRegistation = ({
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
-	const keystore = useLocalStorageKeystore();
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
@@ -325,12 +324,12 @@ const UnlockMainKey = ({
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
 	const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 	const isPromptingForPassword = Boolean(resolvePasswordPromise);
 
@@ -683,7 +682,7 @@ const WebauthnCredentialItem = ({
 
 const Settings = () => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
-	const { logout } = useContext(SessionContext);
+	const { logout, keystore } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -691,7 +690,6 @@ const Settings = () => {
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const showDelete = userData?.webauthnCredentials?.length > 1;
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);

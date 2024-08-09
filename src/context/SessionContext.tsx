@@ -1,15 +1,19 @@
 import React, { createContext } from 'react';
 import { useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
+
 
 type SessionContextValue = {
 	isLoggedIn: boolean,
+	keystore: LocalStorageKeystore,
 	logout: () => Promise<void>,
 };
 
 const SessionContext: React.Context<SessionContextValue> = createContext({
 	isLoggedIn: false,
-	logout: async () => { },
+	keystore: undefined,
+	logout: async () => {},
 });
 
 export const SessionContextProvider = ({ children }) => {
@@ -18,6 +22,7 @@ export const SessionContextProvider = ({ children }) => {
 
 	const value: SessionContextValue = {
 		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
+		keystore,
 		logout: async () => {
 
 			// Clear URL parameters
