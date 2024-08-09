@@ -21,6 +21,7 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import CredentialsContext from '../../context/CredentialsContext';
+import { H1 } from '../../components/Heading';
 
 const Home = () => {
 	const api = useApi();
@@ -101,11 +102,9 @@ const Home = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<div className="flex justify-between items-center">
-					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemCredentials')}</h1>
+				<H1 heading={t('common.navItemCredentials')}>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				<div className='my-4'>
 					{isSmallScreen ? (
