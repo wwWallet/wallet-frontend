@@ -171,15 +171,11 @@
 		"addPasskeyTitle": "Click to Add passkey",
 		"deleteAccount": {
 			"buttonText": "Delete your account",
-			"deleteButtonTitleLocked": "You cannot delete your account while locked",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
 			"message": "Are you sure you want to delete <strong>your Account</strong> ?",
 			"title": "Delete account"
 		},
-		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
-		"lockPasskeyManagement": "Lock passkey management",
-		"lockPasskeyManagementTitle": "Click to Lock passkey management",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
@@ -188,7 +184,6 @@
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
-			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
 			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
 			"messageDeletePasskey": "Are you sure you want to delete <strong>{{nickname}}</strong> passkey?",
@@ -200,7 +195,6 @@
 			"prfUpgradeAriaLabel": "Upgrade passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
-			"renameButtonTitleLocked": "You cannot edit passkey while locked",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
@@ -218,14 +212,6 @@
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys"
-		},
-		"unlockPasskeyManagement": "Unlock management",
-		"unlockPasskeyManagementTitle": "Click to Unlock management",
-		"unlockPassword": {
-			"description": "Please enter your password to unlock the wallet.",
-			"passwordInputAriaLabel": "Password",
-			"passwordInputPlaceholder": "Password",
-			"title": "Enter password"
 		},
 		"upgradePrfKey": {
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
