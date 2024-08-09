@@ -315,7 +315,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [mainKey, privateData, setPrivateData, setMainKey]);
 
 	const finishUnlock = useCallback(async (
-		{ exportedMainKey, privateData }: UnlockSuccess,
+		{ mainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
 		if (user) {
@@ -351,10 +351,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			});
 		}
 
-		setMainKey(exportedMainKey);
+		setMainKey(await keystore.exportMainKey(mainKey));
 		setPrivateData(privateData);
 		// after private data update, the calculated wallet state must be re-computed
-		const [, , newCalculatedWalletState] = await keystore.openPrivateData(await keystore.importMainKey(exportedMainKey), privateData);
+		const [, , newCalculatedWalletState] = await keystore.openPrivateData(mainKey, privateData);
 		setCalculatedWalletState(newCalculatedWalletState);
 	}, [
 		setUserHandleB64u,
