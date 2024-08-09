@@ -15,6 +15,7 @@ import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
 
 const CredentialDetail = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -64,18 +65,16 @@ const CredentialDetail = () => {
 	return (
 		<>
 			<div className=" sm:px-6">
-				<div className="flex flex-col sm:flex-row sm:items-center">
-					<div className="flex items-center">
-						<Link to="/">
-							<h1 className="text-2xl mb-2 font-bold text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline">{t('common.navItemCredentials')}</h1>
-						</Link>
-						<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
-					</div>
+				<H1
+					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
+					flexJustifyContent="start"
+					textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
+				>
+					<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
 					{vcEntity && (
-						<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{credentialFiendlyName}</h1>
+						<H1 heading={credentialFiendlyName} hr={false} />
 					)}
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
 
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
