@@ -830,14 +830,13 @@ export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Ar
 }
 
 export type UnlockSuccess = {
-	exportedMainKey: ArrayBuffer,
+	mainKey: CryptoKey,
 	privateData: EncryptedContainer,
 }
 export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer): Promise<UnlockSuccess> {
 	await decryptPrivateData(privateData.jwe, mainKey); // Throw error if decryption fails
-	const exportedMainKey = await exportMainKey(mainKey);
 	return {
-		exportedMainKey,
+		mainKey,
 		privateData,
 	};
 }
@@ -869,7 +868,7 @@ export async function unlockPassword(
 	}
 	const passwordKey = await derivePasswordKey(password, keyInfo);
 	const mainKey = isAsymmetricPasswordKeyInfo(keyInfo)
-		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, true, ["decrypt", "unwrapKey"])
+		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(passwordKey, null, keyInfo.mainKey, true);
 
 	const newPrivateData = (
@@ -888,7 +887,7 @@ export async function unlockPrf(
 ): Promise<[UnlockSuccess, EncryptedContainer | null]> {
 	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
 	const mainKey = isPrfKeyV2(keyInfo)
-		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "unwrapKey"])
+		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(prfKey, null, keyInfo.mainKey, true);
 
 	const newPrivateData = (

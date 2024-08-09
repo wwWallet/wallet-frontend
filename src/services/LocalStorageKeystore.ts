@@ -178,10 +178,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	};
 
 	const finishUnlock = async (
-		{ exportedMainKey, privateData }: UnlockSuccess,
+		{ mainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
-		setMainKey(exportedMainKey);
+		setMainKey(await keystore.exportMainKey(mainKey));
 		setPrivateData(privateData);
 
 		if (user) {
