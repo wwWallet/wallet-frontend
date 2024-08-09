@@ -110,6 +110,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
 
+	async function assertKeystoreOpen(): Promise<[EncryptedContainer, CryptoKey]> {
+		if (privateData && mainKey) {
+			return [privateData, await keystore.importMainKey(mainKey)];
+		} else {
+			throw new Error("Key store is closed.", { cause: 'keystore_closed' });
+		}
+	};
+
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
 	useEffect(
@@ -145,34 +153,28 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	);
 
 	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
-		if (mainKey && privateData) {
-			return await keystore.openPrivateData(mainKey, privateData)
-		} else {
-			throw new Error("Private data not present in storage.");
-		}
+		const [privateData, mainKey] = await assertKeystoreOpen();
+		return await keystore.openPrivateData(mainKey, privateData)
 	};
 
 	const editPrivateData = async <T>(
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
 	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
-		if (mainKey && privateData) {
-			const [result, [newPrivateData, newMainKey]] = await action(
-				[
-					keystore.assertAsymmetricEncryptedContainer(privateData),
-					await keystore.importMainKey(mainKey),
-				],
-			);
-			return [
-				result,
-				newPrivateData,
-				async () => {
-					setPrivateData(newPrivateData);
-					setMainKey(await keystore.exportMainKey(newMainKey));
-				},
-			];
-		} else {
-			throw new Error("Private data not present in storage.");
-		}
+		const [privateData, mainKey] = await assertKeystoreOpen();
+		const [result, [newPrivateData, newMainKey]] = await action(
+			[
+				keystore.assertAsymmetricEncryptedContainer(privateData),
+				mainKey,
+			],
+		);
+		return [
+			result,
+			newPrivateData,
+			async () => {
+				setPrivateData(newPrivateData);
+				setMainKey(await keystore.exportMainKey(newMainKey));
+			},
+		];
 	};
 
 	const finishUnlock = async (
