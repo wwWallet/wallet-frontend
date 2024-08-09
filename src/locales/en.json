@@ -204,15 +204,6 @@
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
-		"registerPasskey": {
-			"authOnceMore": "To finish setting up, please authenticate with it once more.",
-			"giveNickname": "Give this credential a nickname:",
-			"messageSuccess": "Success!",
-			"messageDone": "Almost done!",
-			"messageInteract": "Please interact with your authenticator...",
-			"messageInteractNewPasskey": "Please authenticate with the new passkey...",
-			"passkeyCreated": "Your passkey has been created."
-		},
 		"title": {
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
@@ -243,6 +234,16 @@
 		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
+	},
+	"registerPasskey": {
+		"authOnceMore": "To finish setting up, please authenticate with it once more.",
+		"giveNickname": "Give this credential a nickname:",
+		"messageSuccess": "Success!",
+		"messageDone": "Almost done!",
+		"messageInteract": "Please interact with your authenticator...",
+		"messageInteractNewPasskey": "Please authenticate with the new passkey...",
+		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
+		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
