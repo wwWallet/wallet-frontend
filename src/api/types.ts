@@ -35,8 +35,6 @@ export class UserId {
 export type UserData = {
 	uuid: string;
 	displayName: string;
-	did: string;
-	publicKey: JsonWebKey;
 	webauthnCredentials: WebauthnCredential[];
 	privateData: Uint8Array;
 }

@@ -7,7 +7,7 @@ import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainerKeys, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
 
 type UserData = {
@@ -32,17 +32,13 @@ export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
 
-	initPassword(password: string): Promise<{
-		publicData: PublicData,
-		privateData: EncryptedContainer,
-		setUserHandleB64u: (userHandleB64u: string) => void,
-	}>,
+	initPassword(password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]>,
 	initPrf(
 		credential: PublicKeyCredential,
 		prfSalt: Uint8Array,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: UserData,
-	): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	): Promise<EncryptedContainer>,
 	addPrf(
 		credential: PublicKeyCredential,
 		[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
@@ -69,9 +65,13 @@ export interface LocalStorageKeystore {
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
 
-	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
+	createIdToken(nonce: string, audience: string): Promise<[{ id_token: string; }, AsymmetricEncryptedContainer, CommitCallback]>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProof(nonce: string, audience: string): Promise<{ proof_jwt: string }>,
+	generateOpenid4vciProof(nonce: string, audience: string): Promise<[
+		{ proof_jwt: string },
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -148,8 +148,31 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	return useMemo(
 		() => {
 			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
-				if (privateData) {
-					return await keystore.openPrivateData(mainKey, privateData);
+				if (mainKey && privateData) {
+					return await keystore.openPrivateData(mainKey, privateData)
+				} else {
+					throw new Error("Private data not present in storage.");
+				}
+			};
+
+			const editPrivateData = async <T>(
+				action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
+			): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
+				if (mainKey && privateData) {
+					const [result, [newPrivateData, newMainKey]] = await action(
+						[
+							keystore.assertAsymmetricEncryptedContainer(privateData),
+							await keystore.importMainKey(mainKey),
+						],
+					);
+					return [
+						result,
+						newPrivateData,
+						async () => {
+							setPrivateData(newPrivateData);
+							setMainKey(await keystore.exportMainKey(newMainKey));
+						},
+					];
 				} else {
 					throw new Error("Private data not present in storage.");
 				}
@@ -190,30 +213,20 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				mainKey: CryptoKey,
 				keyInfo: AsymmetricEncryptedContainerKeys,
 				user: UserData,
-			): Promise<{
-				publicData: PublicData,
-				privateData: EncryptedContainer,
-			}> => {
-				const unlocked = await keystore.init(mainKey, keyInfo, config.DID_KEY_VERSION);
+			): Promise<EncryptedContainer> => {
+				const unlocked = await keystore.init(mainKey, keyInfo);
 				await finishUnlock(unlocked, user);
-				const { publicData, privateData } = unlocked;
-				return {
-					publicData,
-					privateData,
-				};
+				const { privateData } = unlocked;
+				return privateData;
 			};
 
 			return {
 				isOpen: (): boolean => privateData !== null && mainKey !== null,
 				close,
 
-				initPassword: async (password: string): Promise<{
-					publicData: PublicData,
-					privateData: EncryptedContainer,
-					setUserHandleB64u: (userHandleB64u: string) => void,
-				}> => {
+				initPassword: async (password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]> => {
 					const { mainKey, keyInfo } = await keystore.initPassword(password);
-					return { ...await init(mainKey, keyInfo, null), setUserHandleB64u };
+					return [await init(mainKey, keyInfo, null), setUserHandleB64u];
 				},
 
 				initPrf: async (
@@ -221,7 +234,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					prfSalt: Uint8Array,
 					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 					user: UserData,
-				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
+				): Promise<EncryptedContainer> => {
 					const { mainKey, keyInfo } = await keystore.initPrf(credential, prfSalt, promptForPrfRetry);
 					const result = await init(mainKey, keyInfo, user);
 					return result;
@@ -349,16 +362,38 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 				},
 
-				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => (
-					await keystore.createIdToken(await openPrivateData(), nonce, audience)
+				createIdToken: async (nonce: string, audience: string): Promise<[
+					{ id_token: string; },
+					AsymmetricEncryptedContainer,
+					CommitCallback,
+				]> => (
+					await editPrivateData(async (container) =>
+						await keystore.createIdToken(
+							container,
+							config.DID_KEY_VERSION,
+							nonce,
+							audience,
+						)
+					)
 				),
 
 				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
 					await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
 				),
 
-				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => (
-					await keystore.generateOpenid4vciProof(await openPrivateData(), nonce, audience)
+				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<[
+					{ proof_jwt: string },
+					AsymmetricEncryptedContainer,
+					CommitCallback,
+				]> => (
+					await editPrivateData(async (container) =>
+						await keystore.generateOpenid4vciProof(
+							container,
+							config.DID_KEY_VERSION,
+							nonce,
+							audience,
+						),
+					)
 				),
 			};
 		},
