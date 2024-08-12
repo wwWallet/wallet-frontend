@@ -138,7 +138,7 @@ const History = () => {
 							{matchingCredentials.map((vcEntity, index) => {
 								const Tag = currentSlide === index + 1 ? 'button' : 'div';
 								return (
-									<React.Fragment key={vcEntity.id}>
+									<React.Fragment key={vcEntity}>
 										<div
 											className="relative rounded-xl xl:w-full md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg w-full mb-2"
 											aria-label={`${vcEntity.friendlyName}`}
