@@ -1063,32 +1063,6 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 	}
 }
 
-export async function createIdToken(
-	container: OpenedContainer,
-	didKeyVersion: DidKeyVersion,
-	nonce: string,
-	audience: string,
-): Promise<[{ id_token: string }, OpenedContainer]> {
-	const deriveKid = async (publicKey: CryptoKey, did: string) => did;
-	const { privateKey, keypair, newPrivateData } = await addNewCredentialKeypair(container, didKeyVersion, deriveKid);
-	const { kid, did } = keypair;
-
-	const jws = await new SignJWT({ nonce: nonce })
-		.setProtectedHeader({
-			alg: keypair.alg,
-			typ: "JWT",
-			kid,
-		})
-		.setSubject(did)
-		.setIssuer(did)
-		.setExpirationTime('1m')
-		.setAudience(audience)
-		.setIssuedAt()
-		.sign(privateKey);
-
-	return [{ id_token: jws }, newPrivateData];
-}
-
 export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
 	const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
 	const sub = inputJwt.payload?.sub as string;

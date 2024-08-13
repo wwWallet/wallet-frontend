@@ -65,7 +65,6 @@ export interface LocalStorageKeystore {
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
 
-	createIdToken(nonce: string, audience: string): Promise<[{ id_token: string; }, AsymmetricEncryptedContainer, CommitCallback]>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
 	generateOpenid4vciProof(nonce: string, audience: string): Promise<[
 		{ proof_jwt: string },
@@ -361,21 +360,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				forgetCachedUser: (user: CachedUser): void => {
 					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 				},
-
-				createIdToken: async (nonce: string, audience: string): Promise<[
-					{ id_token: string; },
-					AsymmetricEncryptedContainer,
-					CommitCallback,
-				]> => (
-					await editPrivateData(async (container) =>
-						await keystore.createIdToken(
-							container,
-							config.DID_KEY_VERSION,
-							nonce,
-							audience,
-						)
-					)
-				),
 
 				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
 					await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
