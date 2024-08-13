@@ -60,6 +60,8 @@ export default function handleServerMessagesGuard(Component) {
 								signingRequestHandlerService.handleSignJwtPresentation(socket, keystore, { message_id, ...request });
 							} else if (request.action === SignatureAction.generateOpenid4vciProof) {
 								signingRequestHandlerService.handleGenerateOpenid4vciProofSigningRequest(api, socket, keystore, { message_id, ...request });
+							} else {
+								throw new Error("Unknown action: " + request.action, { cause: { unknown_action: request } });
 							}
 						} catch (e) {
 							console.error("Failed to handle message", e);
