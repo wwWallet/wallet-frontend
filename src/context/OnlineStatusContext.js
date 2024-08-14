@@ -4,7 +4,12 @@ import React, { useEffect, createContext, useState } from 'react';
 const OnlineStatusContext = createContext();
 
 function getOnlineStatus() {
-	return navigator.onLine && (navigator.connection?.downlink ?? 0 !== 0);
+	const downlink = (
+		navigator.connection?.downlink
+		// Ignore downlink if browser doesn't support navigator.connection
+		?? Infinity
+	);
+	return navigator.onLine && downlink > 0;
 }
 
 export const OnlineStatusProvider = ({ children }) => {
