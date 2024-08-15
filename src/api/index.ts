@@ -535,8 +535,11 @@ export function useApi(isOnline: boolean | null): BackendApi {
 						await setSession(finishResp, credential, 'login');
 						return Ok.EMPTY;
 					} catch (e) {
-						console.error("Failed to open keystore", e);
-						return Err('loginKeystoreFailed');
+						switch (e?.cause?.errorId) {
+							default:
+								console.error("Failed to open keystore", e);
+								return Err('loginKeystoreFailed');
+						}
 					}
 
 				} catch (e) {
@@ -621,12 +624,15 @@ export function useApi(isOnline: boolean | null): BackendApi {
 					}
 
 				} catch (e) {
-					if (e?.cause?.errorId === "prf_retry_failed") {
-						return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
-					} else if (e?.cause?.errorId === "prf_not_supported") {
-						return Err('passkeySignupPrfNotSupported');
-					} else {
-						return Err('passkeySignupKeystoreFailed');
+					switch (e?.cause?.errorId) {
+						case "prf_retry_failed":
+							return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
+
+						case "prf_not_supported":
+							return Err('passkeySignupPrfNotSupported');
+
+						default:
+							return Err('passkeySignupKeystoreFailed');
 					}
 				}
 
