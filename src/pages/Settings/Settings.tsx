@@ -99,14 +99,13 @@ const WebauthnRegistation = ({
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const screenType = useScreenType();
 
-	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
+	const stateChooseNickname = Boolean(beginData) && !resolvePrfRetryPrompt;
 
 	const onBegin = useCallback(
 		async (webauthnHint) => {
@@ -148,7 +147,6 @@ const WebauthnRegistation = ({
 		console.log("onCancel");
 		setPendingCredential(null);
 		setBeginData(null);
-		setNeedPrfRetry(false);
 		setResolvePrfRetryPrompt(null);
 		setPrfRetryAccepted(false);
 		setIsSubmitting(false);
@@ -164,11 +162,9 @@ const WebauthnRegistation = ({
 					pendingCredential,
 					[unwrappingKey, wrappedMainKey],
 					async () => {
-						setNeedPrfRetry(true);
 						return new Promise<boolean>((resolve, reject) => {
 							setResolvePrfRetryPrompt(() => resolve);
 						}).finally(() => {
-							setNeedPrfRetry(false);
 							setPrfRetryAccepted(true);
 							setResolvePrfRetryPrompt(null);
 						});
@@ -297,7 +293,7 @@ const WebauthnRegistation = ({
 			</Dialog>
 
 			<Dialog
-				open={needPrfRetry && !prfRetryAccepted}
+				open={resolvePrfRetryPrompt && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
 				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('registerPasskey.messageDone')}</h3>
