@@ -357,10 +357,6 @@ const WebauthnSignupLogin = ({
 		setIsSubmitting(false);
 	};
 
-	const onForgetCachedUser = (cachedUser: CachedUser) => {
-		keystore.forgetCachedUser(cachedUser);
-	};
-
 	const onCancel = () => {
 		console.log("onCancel");
 		setInProgress(false);
@@ -507,7 +503,7 @@ const WebauthnSignupLogin = ({
 												content={
 													<GoTrash className="inline text-xl" />
 												}
-												onClick={() => onForgetCachedUser(cachedUser)}
+												onClick={() => keystore.forgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
