@@ -328,12 +328,14 @@ const WebauthnSignupLogin = ({
 					break;
 
 				default:
-					if (result.val?.errorId === 'prfRetryFailed') {
-						setRetrySignupFrom(result.val?.retryFrom);
+					switch (result.val?.errorId) {
+						case 'prfRetryFailed':
+							setRetrySignupFrom(result.val?.retryFrom);
+							break;
 
-					} else {
-						setError(t('loginSignup.passkeySignupPrfRetryFailed'));
-						throw result;
+						default:
+							setError(t('loginSignup.passkeySignupPrfRetryFailed'));
+							throw result;
 					}
 			}
 		}
