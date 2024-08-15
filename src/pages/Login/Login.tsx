@@ -1,10 +1,12 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState, useRef, ChangeEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
+
+import type { CachedUser } from '../../services/LocalStorageKeystore';
 
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
@@ -51,6 +53,14 @@ const FormInputField = ({
 	required,
 	value,
 	type,
+}: {
+	ariaLabel?: string,
+	name: string,
+	onChange: ChangeEventHandler<HTMLInputElement>,
+	placeholder?: string,
+	required?: boolean,
+	value: string,
+	type?: 'password' | 'text',
 }) => {
 	const [show, setShow] = useState(false);
 	const onToggleShow = () => { setShow(!show); };
@@ -87,7 +97,7 @@ const FormInputField = ({
 };
 
 const PasswordStrength = ({ label, value }) => (
-	< div className="flex items-center mt-1" >
+	<div className="flex items-center mt-1">
 		<p className="text-sm text-gray-600 mr-2">{label}</p>
 		<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
 			<div
@@ -98,7 +108,7 @@ const PasswordStrength = ({ label, value }) => (
 						: 'bg-green-500'
 					}`}
 				style={{ width: `${value}%` }}
-			></div>
+			/>
 		</div>
 	</div>
 );
@@ -111,6 +121,14 @@ const WebauthnSignupLogin = ({
 	setIsLoginCache,
 	error,
 	setError,
+}: {
+	isLogin: boolean,
+	isSubmitting: boolean,
+	setIsSubmitting: (isSubmitting: boolean) => void,
+	isLoginCache: boolean,
+	setIsLoginCache: (isLoginCache: boolean) => void,
+	error: React.ReactNode,
+	setError: (error: React.ReactNode) => void,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -118,7 +136,7 @@ const WebauthnSignupLogin = ({
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
-	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState(null);
+	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -136,9 +154,9 @@ const WebauthnSignupLogin = ({
 		[isLogin],
 	);
 
-	const promptForPrfRetry = async () => {
+	const promptForPrfRetry = async (): Promise<boolean> => {
 		setNeedPrfRetry(true);
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: (accept: boolean) => void, reject) => {
 			setResolvePrfRetryPrompt(() => resolve);
 		}).finally(() => {
 			setNeedPrfRetry(false);
@@ -147,7 +165,7 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
-	const onLogin = async (cachedUser) => {
+	const onLogin = async (cachedUser?: CachedUser) => {
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		if (result.ok) {
 			navigate(from, { replace: true });
@@ -186,14 +204,14 @@ const WebauthnSignupLogin = ({
 			name,
 			keystore,
 			retrySignupFrom
-				? () => Promise.resolve(true) // "Try again" already means user agreed to continue
+				? async () => true // "Try again" already means user agreed to continue
 				: promptForPrfRetry,
 			retrySignupFrom,
 		);
 		if (result.ok) {
 			navigate(from, { replace: true });
 
-		} else {
+		} else if (result.err) {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {
 				case 'passkeySignupFailedServerError':
@@ -242,7 +260,7 @@ const WebauthnSignupLogin = ({
 	const onSubmit = async (event) => {
 		event.preventDefault();
 
-		setError();
+		setError('');
 		setInProgress(true);
 		setIsSubmitting(true);
 
@@ -257,8 +275,8 @@ const WebauthnSignupLogin = ({
 		setIsSubmitting(false);
 	};
 
-	const onLoginCachedUser = async (cachedUser) => {
-		setError();
+	const onLoginCachedUser = async (cachedUser: CachedUser) => {
+		setError('');
 		setInProgress(true);
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
@@ -266,7 +284,7 @@ const WebauthnSignupLogin = ({
 		setIsSubmitting(false);
 	};
 
-	const onForgetCachedUser = (cachedUser) => {
+	const onForgetCachedUser = (cachedUser: CachedUser) => {
 		setIsLoginCache(keystore.getCachedUsers().length - 1 > 0);
 		keystore.forgetCachedUser(cachedUser);
 	};
@@ -479,8 +497,8 @@ const Login = () => {
 		password: '',
 		confirmPassword: '',
 	});
-	const [error, setError] = useState('');
-	const [webauthnError, setWebauthnError] = useState('');
+	const [error, setError] = useState<React.ReactNode>('');
+	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isContentVisible, setIsContentVisible] = useState(false);
