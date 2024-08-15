@@ -24,6 +24,13 @@ type SessionState = {
 	showWelcome: boolean,
 }
 
+type LoginWebauthnError = (
+	'loginKeystoreFailed'
+	| 'passkeyInvalid'
+	| 'passkeyLoginFailedTryAgain'
+	| 'passkeyLoginFailedServerError'
+	| 'x-private-data-etag'
+);
 type SignupWebauthnError = (
 	'passkeySignupFailedServerError'
 	| 'passkeySignupFailedTryAgain'
@@ -63,9 +70,7 @@ export interface BackendApi {
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined,
-	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
-	>,
+	): Promise<Result<void, LoginWebauthnError>>,
 	signupWebauthn(
 		name: string,
 		keystore: LocalStorageKeystore,
@@ -375,7 +380,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined,
 	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
+		Result<void, LoginWebauthnError>
 	> {
 		try {
 			const beginData = await (async (): Promise<{
