@@ -7,6 +7,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
+import { calculateByteSize } from '../../util';
 
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
@@ -297,12 +298,6 @@ const WebauthnSignupLogin = ({
 		setResolvePrfRetryPrompt(null);
 		setIsSubmitting(false);
 		setRetrySignupFrom(null);
-	};
-
-	const calculateByteSize = (string) => {
-		const encoder = new TextEncoder();
-		const encoded = encoder.encode(string);
-		return encoded.length;
 	};
 
 	const nameByteLength = calculateByteSize(name);
