@@ -17,6 +17,7 @@ import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 import SessionContext from '../../context/SessionContext';
 import { CachedUser } from '../../services/LocalStorageKeystore';
+import { calculateByteSize } from '../../util';
 
 
 const FormInputRow = ({
@@ -287,12 +288,6 @@ const WebauthnSignupLogin = ({
 		setResolvePrfRetryPrompt(null);
 		setIsSubmitting(false);
 		setRetrySignupFrom(null);
-	};
-
-	const calculateByteSize = (string) => {
-		const encoder = new TextEncoder();
-		const encoded = encoder.encode(string);
-		return encoded.length;
 	};
 
 	const nameByteLength = calculateByteSize(name);
