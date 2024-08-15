@@ -23,14 +23,16 @@ type SessionState = {
 }
 
 type LoginWebauthnError = (
-	'loginKeystoreFailed'
+	'canceled'
+	| 'loginKeystoreFailed'
 	| 'passkeyInvalid'
-	| 'passkeyLoginFailedTryAgain'
 	| 'passkeyLoginFailedServerError'
+	| 'passkeyLoginFailedTryAgain'
 	| 'x-private-data-etag'
 );
 type SignupWebauthnError = (
-	'passkeySignupFailedServerError'
+	'canceled'
+	| 'passkeySignupFailedServerError'
 	| 'passkeySignupFailedTryAgain'
 	| 'passkeySignupFinishFailedServerError'
 	| 'passkeySignupKeystoreFailed'
@@ -525,6 +527,9 @@ export function useApi(isOnline: boolean | null): BackendApi {
 						return Ok.EMPTY;
 					} catch (e) {
 						switch (e?.cause?.errorId) {
+							case 'canceled':
+								return Err('canceled');
+
 							default:
 								console.error("Failed to open keystore", e);
 								return Err('loginKeystoreFailed');
@@ -614,6 +619,9 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 				} catch (e) {
 					switch (e?.cause?.errorId) {
+						case "canceled":
+							return Err('canceled');
+
 						case "prf_retry_failed":
 							return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
 
