@@ -75,8 +75,8 @@ const FormInputField = ({
 						type="button"
 						onClick={onToggleShow}
 						className="text-gray-500 hover:text-gray-600"
-						aria-label={show ? (t('loginSignup.passwordHideAriaLabel')) : (t('loginSignup.passwordShowAriaLabel'))}
-						title={show ? (t('loginSignup.passwordHideTitle')) : (t('loginSignup.passwordShowTitle'))}
+						aria-label={show ? (t('common.passwordHideAriaLabel')) : (t('common.passwordShowAriaLabel'))}
+						title={show ? (t('common.passwordHideTitle')) : (t('common.passwordShowTitle'))}
 					>
 						{show ? <FaEyeSlash className='dark:text-white' /> : <FaEye className='dark:text-white' />}
 					</button>
