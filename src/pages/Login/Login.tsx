@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef, ChangeEventHandler } from 'react';
+import React, { useContext, useEffect, useState, useRef, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
@@ -99,6 +99,100 @@ const FormInputField = ({
 				</div>
 			)}
 		</div>
+	);
+};
+
+type UsernamePasswordFormData = {
+	username: string,
+	password: string,
+	confirmPassword: string,
+}
+
+const UsernamePasswordForm = ({
+	choosePassword,
+	disabled,
+	onChange,
+	onSubmit,
+	submitButtonContent,
+}: {
+	choosePassword?: boolean,
+	disabled?: boolean,
+	onChange: (changed: { username?: string, password?: string, confirmPassword?: string }) => void,
+	onSubmit: (event: React.FormEvent<HTMLFormElement>, formData: UsernamePasswordFormData) => void,
+	submitButtonContent: React.ReactNode,
+}) => {
+	const { t } = useTranslation();
+
+	const [formData, setFormData] = useState<UsernamePasswordFormData>({
+		username: '',
+		password: '',
+		confirmPassword: '',
+	});
+	const { username, password, confirmPassword } = formData;
+
+	const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+		const { name, value } = event.target;
+		setFormData((prevFormData) => ({
+			...prevFormData,
+			[name]: value,
+		}));
+		onChange({ [name]: value });
+	};
+
+	const handleFormSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+		onSubmit(event, formData);
+	};
+
+	return (
+		<>
+			<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
+				<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
+					<FormInputField
+						ariaLabel="Username"
+						name="username"
+						onChange={handleInputChange}
+						placeholder={t('loginSignup.enterUsername')}
+						type="text"
+						value={username}
+						disabled={disabled}
+					/>
+				</FormInputRow>
+
+				<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
+					<FormInputField
+						ariaLabel="Password"
+						name="password"
+						onChange={handleInputChange}
+						placeholder={t('loginSignup.enterPassword')}
+						type="password"
+						value={password}
+						disabled={disabled}
+					/>
+					{choosePassword && password !== '' && <PasswordStrength label={t('loginSignup.strength')} password={password} />}
+				</FormInputRow>
+
+				{choosePassword && (
+					<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+						<FormInputField
+							ariaLabel="Confirm Password"
+							name="confirmPassword"
+							onChange={handleInputChange}
+							placeholder={t('loginSignup.enterconfirmPasswordLabel')}
+							type="password"
+							value={confirmPassword}
+							disabled={disabled}
+						/>
+					</FormInputRow>
+				)}
+				<GetButton
+					type="submit"
+					content={submitButtonContent}
+					variant="primary"
+					disabled={disabled}
+					additionalClassName='w-full'
+				/>
+			</form>
+		</>
 	);
 };
 
@@ -475,11 +569,6 @@ const Login = () => {
 
 	const from = location.state?.from || '/';
 
-	const [formData, setFormData] = useState({
-		username: '',
-		password: '',
-		confirmPassword: '',
-	});
 	const [error, setError] = useState<React.ReactNode>('');
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');
 	const [isLogin, setIsLogin] = useState(true);
@@ -496,18 +585,9 @@ const Login = () => {
 		}
 	}, [isLoggedIn, navigate]);
 
-	const { username, password, confirmPassword } = formData;
+	const handleFormChange = () => setError('');
 
-	const handleInputChange = (event) => {
-		const { name, value } = event.target;
-		setFormData((prevFormData) => ({
-			...prevFormData,
-			[name]: value,
-		}));
-		setError(''); // Clear the error message
-	};
-
-	const handleFormSubmit = async (event) => {
+	const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>, { username, password, confirmPassword }: UsernamePasswordFormData) => {
 		event.preventDefault();
 
 		if (username === '' || password === '') {
@@ -567,11 +647,6 @@ const Login = () => {
 		if (isOnline || !isLogin) {
 			setIsLogin(!isLogin);
 			setError('');
-			setFormData({
-				username: '',
-				password: '',
-				confirmPassword: '',
-			});
 		};
 	}
 
@@ -677,53 +752,17 @@ const Login = () => {
 												{t('loginSignup.messageOffline')}
 											</p>
 										)}
+
 										{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
 											<>
-												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-													{error && <div className="text-red-500">{error}</div>}
-													<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
-														<FormInputField
-															ariaLabel="Username"
-															name="username"
-															onChange={handleInputChange}
-															placeholder={t('loginSignup.enterUsername')}
-															type="text"
-															value={username}
-														/>
-													</FormInputRow>
-
-													<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
-														<FormInputField
-															ariaLabel="Password"
-															name="password"
-															onChange={handleInputChange}
-															placeholder={t('loginSignup.enterPassword')}
-															type="password"
-															value={password}
-														/>
-														{!isLogin && password !== '' && <PasswordStrength label={t('loginSignup.strength')} password={password} />}
-													</FormInputRow>
-
-													{!isLogin && (
-														<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
-															<FormInputField
-																ariaLabel="Confirm Password"
-																name="confirmPassword"
-																onChange={handleInputChange}
-																placeholder={t('loginSignup.enterconfirmPasswordLabel')}
-																type="password"
-																value={confirmPassword}
-															/>
-														</FormInputRow>
-													)}
-													<GetButton
-														type="submit"
-														content={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-														variant="primary"
-														disabled={isSubmitting}
-														additionalClassName='w-full'
-													/>
-												</form>
+												{error && <div className="text-red-500">{error}</div>}
+												<UsernamePasswordForm
+													choosePassword={!isLogin}
+													disabled={isSubmitting}
+													onChange={handleFormChange}
+													onSubmit={handleFormSubmit}
+													submitButtonContent={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+												/>
 												<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
 											</>
 											:
