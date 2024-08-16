@@ -6,6 +6,8 @@ import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from '../components/useStorage';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import SessionContext from '../context/SessionContext';
+import NotificationPermissionWarning from './NotificationPermissionWarning';
+
 
 const PrivateRoute = ({ children }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -131,7 +133,11 @@ const PrivateRoute = ({ children }) => {
 	}
 	else {
 		return (
-			<Layout isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession}>
+			<Layout
+				noFadeInChildren={
+					<NotificationPermissionWarning isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession} />
+				}
+			>
 				{children}
 			</Layout>
 		);
