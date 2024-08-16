@@ -3,14 +3,13 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { fetchToken, notificationApiIsSupported } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
-import { useSessionStorage } from '../components/useStorage';
+import { useSessionStorage } from './useStorage';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import SessionContext from '../context/SessionContext';
 import NotificationPermissionWarning from './NotificationPermissionWarning';
 
 
-
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactNode => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { api, isLoggedIn, keystore, logout } = useContext(SessionContext);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
@@ -113,7 +112,7 @@ const PrivateRoute = ({ children }) => {
 	]);
 
 
-	const userExistsInCache = (state) => {
+	const userExistsInCache = (state: string) => {
 		if (!state) return false;
 		try {
 			const decodedState = JSON.parse(atob(state));
