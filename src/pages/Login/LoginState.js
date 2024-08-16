@@ -1,9 +1,8 @@
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
-import { CSSTransition } from 'react-transition-group';
 
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
@@ -11,6 +10,7 @@ import SessionContext from '../../context/SessionContext';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import FadeInContentTransition from '../../components/FadeInContentTransition';
 
 
 const WebauthnLogin = ({
@@ -106,7 +106,6 @@ const LoginState = () => {
 	const { t } = useTranslation();
 	const location = useLocation();
 
-	const [isContentVisible, setIsContentVisible] = useState(false);
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.state?.from;
 
@@ -127,10 +126,6 @@ const LoginState = () => {
 	};
 	const filteredUser = getCachedUser();
 
-	useEffect(() => {
-		setIsContentVisible(true);
-	}, []);
-
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
 	} else if (isLoggedIn) {
@@ -140,7 +135,7 @@ const LoginState = () => {
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 
-			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in">
+			<FadeInContentTransition>
 				<>
 					<div className='h-max min-h-screen'>
 						<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
@@ -209,7 +204,7 @@ const LoginState = () => {
 						</div>
 					</div>
 				</>
-			</CSSTransition>
+			</FadeInContentTransition>
 		</section>
 	);
 };

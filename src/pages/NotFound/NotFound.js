@@ -1,29 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import logo from '../../assets/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CSSTransition } from 'react-transition-group';
 import GetButton from '../../components/Buttons/GetButton';
+import FadeInContentTransition from '../../components/FadeInContentTransition';
 
 const NotFound = () => {
 	const navigate = useNavigate();
-	const [isContentVisible, setIsContentVisible] = useState(false);
-
 	const { t } = useTranslation();
 
 	const handleBackToHome = () => {
 		navigate('/');
 	};
 
-	useEffect(() => {
-		setTimeout(() => {
-			setIsContentVisible(true);
-		}, 0);
-	}, []);
-
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900">
-			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in">
+			<FadeInContentTransition>
 				<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-screen pb-20">
 					<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 						<img className="w-20" src={logo} alt="logo" />
@@ -49,7 +41,7 @@ const NotFound = () => {
 						</div>
 					</div>
 				</div>
-			</CSSTransition>
+			</FadeInContentTransition>
 		</section>
 	);
 };
