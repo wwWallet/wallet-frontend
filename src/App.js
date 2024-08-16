@@ -18,16 +18,60 @@ import History from './pages/History/History';
 import Settings from './pages/Settings/Settings';
 import AddCredentials from './pages/AddCredentials/AddCredentials';
 import SendCredentials from './pages/SendCredentials/SendCredentials';
+import Layout from './components/Layout';
+
+
+const reactLazyWithNonDefaultExports = (load, ...names) => {
+	const nonDefaults = (names ?? []).map(name => {
+		const handles = {
+			name,
+			resolve: null,
+			reject: null,
+			promise: null,
+		};
+		handles.promise = new Promise((resolve, reject) => {
+			handles.resolve = resolve;
+			handles.reject = reject;
+		});
+		return handles;
+	});
+
+	const loadDefault = () => {
+		return load()
+			.then(module => {
+				nonDefaults.forEach(({ name, resolve }) => {
+					resolve({ default: module[name] });
+				});
+				return module;
+			})
+			.catch(err => {
+				nonDefaults.forEach(({ reject }) => {
+					reject(err);
+				});
+				return Promise.reject(err);
+			});
+	};
+
+	const defaultExport = React.lazy(loadDefault);
+	nonDefaults.forEach(({ promise, name }) => {
+		defaultExport[name] = React.lazy(() => promise);
+	});
+	return defaultExport;
+};
 
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
-const PrivateRoute = React.lazy(() => import('./components/PrivateRoute'));
+const PrivateRoute = reactLazyWithNonDefaultExports(
+	() => import('./components/PrivateRoute'),
+	'NotificationPermissionWarning',
+);
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
+
 
 function App() {
 
@@ -76,7 +120,13 @@ function App() {
 						<Routes>
 							<Route path="/login" element={<Login />} />
 							<Route path="/login-state" element={<LoginState />} />
-							<Route element={<PrivateRoute><Outlet /></PrivateRoute>}>
+							<Route element={
+								<PrivateRoute>
+									<Layout noFadeInChildren={<PrivateRoute.NotificationPermissionWarning />}>
+										<Outlet />
+									</Layout>
+								</PrivateRoute>
+							}>
 								<Route path="/settings" element={<Settings />} />
 								<Route path="/" element={<Home />} />
 								<Route path="/credential/:id" element={<CredentialDetail />} />
