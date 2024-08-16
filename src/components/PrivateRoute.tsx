@@ -5,7 +5,7 @@ import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { Trans } from 'react-i18next';
 
 import Spinner from './Spinner'; // Import your spinner component
-import { useSessionStorage } from './useStorage';
+import { useSessionStorage } from '../hooks/useStorage';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import SessionContext from '../context/SessionContext';
 

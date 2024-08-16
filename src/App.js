@@ -7,7 +7,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 
 import { CredentialsProvider } from './context/CredentialsContext';
-import useCheckURL from './components/useCheckURL'; // Import the custom hook
+import useCheckURL from './hooks/useCheckURL';
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
 import { withSessionContext } from './context/SessionContext';

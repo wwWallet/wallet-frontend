@@ -1,7 +1,7 @@
 import React, { ReactNode, createContext, useContext } from 'react';
 import { UAParser } from 'ua-parser-js';
 
-import { useSessionStorage } from './useStorage';
+import { useSessionStorage } from '../hooks/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
