@@ -7,7 +7,7 @@ import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, 
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
 import { useEffect } from 'react';
-import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../components/useStorage';
+import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 
