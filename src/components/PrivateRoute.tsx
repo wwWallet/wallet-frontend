@@ -4,7 +4,6 @@ import { fetchToken, notificationApiIsSupported } from '../firebase';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { Trans } from 'react-i18next';
 
-import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from './useStorage';
 import OnlineStatusContext from '../context/OnlineStatusContext';
@@ -22,7 +21,7 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 });
 
 
-function NotificationPermissionWarning(): React.ReactNode {
+export function NotificationPermissionWarning(): React.ReactNode {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
@@ -263,13 +262,10 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	else {
 		return (
 			<PrivateRouteContext.Provider value={{ isPermissionGranted, tokenSentInSession }}>
-				<Layout noFadeInChildren={<NotificationPermissionWarning />}>
-					{children}
-				</Layout>
+				{children}
 			</PrivateRouteContext.Provider>
 		);
 	}
-
 };
 
 export default PrivateRoute;
