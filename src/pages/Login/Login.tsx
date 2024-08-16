@@ -20,7 +20,6 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 import PasswordStrength from '../../components/PasswordStrength';
-import FadeInContentTransition from '../../components/FadeInContentTransition';
 
 
 const FormInputRow = ({
@@ -656,172 +655,169 @@ const Login = () => {
 
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
+			<>
+				<div className='h-max min-h-screen'>
+					<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
+						<a href="/" className="flex justify-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
+							<img className="w-40" src={logo} alt="logo" />
+						</a>
 
-			<FadeInContentTransition>
-				<>
-					<div className='h-max min-h-screen'>
-						<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
-							<a href="/" className="flex justify-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-								<img className="w-40" src={logo} alt="logo" />
-							</a>
+						<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+							<Trans
+								i18nKey="loginSignup.welcomeMessage"
+								components={{
+									highlight: <span className="text-primary dark:text-primary-light" />
+								}}
+							/>
+						</h1>
 
-							<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
-								<Trans
-									i18nKey="loginSignup.welcomeMessage"
-									components={{
-										highlight: <span className="text-primary dark:text-primary-light" />
-									}}
-								/>
-							</h1>
-
-							<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
-								{/* Dropdown to change language */}
-								{/* <div className="absolute top-2 right-2">
+						<div className="relative w-full md:mt-0 sm:max-w-md xl:p-0">
+							{/* Dropdown to change language */}
+							{/* <div className="absolute top-2 right-2">
 							<LanguageSelector />
 						</div> */}
-								<CheckBrowserSupport.Ctx>
-									<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-										<div className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-											<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
+							<CheckBrowserSupport.Ctx>
+								<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
+									<div className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+										<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
+											<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+											<Trans
+												i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
+												components={{
+													docLinkPrf: <a
+														href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+														className="font-medium text-primary dark:text-primary-light hover:underline"
+														aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
+													/>,
+													docLinkLaunchpad: <a
+														href="https://launchpad.wwwallet.org" target='blank_'
+														className="font-medium text-primary dark:text-primary-light hover:underline"
+														aria-label={t('loginSignup.learnMoreAboutLaunchpadAriaLabel')}
+													/>,
+													docLinkScenarios: <a
+														href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
+														className="font-medium text-primary dark:text-primary-light hover:underline"
+														aria-label={t('loginSignup.learnMoreAboutScenariosAriaLabel')}
+													/>
+												}}
+											/>
+											<div className='mt-1'>
 												<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 												<Trans
-													i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
-													components={{
-														docLinkPrf: <a
-															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-															className="font-medium text-primary dark:text-primary-light hover:underline"
-															aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
-														/>,
-														docLinkLaunchpad: <a
-															href="https://launchpad.wwwallet.org" target='blank_'
-															className="font-medium text-primary dark:text-primary-light hover:underline"
-															aria-label={t('loginSignup.learnMoreAboutLaunchpadAriaLabel')}
-														/>,
-														docLinkScenarios: <a
-															href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-															className="font-medium text-primary dark:text-primary-light hover:underline"
-															aria-label={t('loginSignup.learnMoreAboutScenariosAriaLabel')}
-														/>
-													}}
+													i18nKey="loginSignup.infoAboutTimeAndLocation"
 												/>
-												<div className='mt-1'>
-													<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-													<Trans
-														i18nKey="loginSignup.infoAboutTimeAndLocation"
+											</div>
+										</CheckBrowserSupport.If>
+										<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
+											<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
+											<Trans
+												i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
+												components={{
+													docLinkPrf: <a
+														href="https://github.com/wwWallet/wallet-frontend#prf-compatibility"
+														target='blank_'
+														className="font-medium text-primary hover:underline dark:text-blue-500"
+														aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
 													/>
-												</div>
-											</CheckBrowserSupport.If>
-											<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
-												<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
-												<Trans
-													i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
-													components={{
-														docLinkPrf: <a
-															href="https://github.com/wwWallet/wallet-frontend#prf-compatibility"
-															target='blank_'
-															className="font-medium text-primary hover:underline dark:text-blue-500"
-															aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
-														/>
-													}}
-												/>
-											</CheckBrowserSupport.If>
-										</div>
-									</CheckBrowserSupport.If>
-								</CheckBrowserSupport.Ctx>
-								<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-									<CheckBrowserSupport.WarningPortal>
-										<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-											{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-										</h1>
-										<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-											{isOnline ? (
-												<PiWifiHighBold size={25} title={t('common.online')} />
-											) : (
-												<PiWifiSlashBold size={25} title={t('common.offline')} />
-											)}
-										</div>
-										{isOnline === false && (
-											<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-												<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
-												{t('loginSignup.messageOffline')}
-											</p>
-										)}
-
-										{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
-											<>
-												{error && <div className="text-red-500">{error}</div>}
-												<UsernamePasswordForm
-													choosePassword={!isLogin}
-													disabled={isSubmitting}
-													onChange={handleFormChange}
-													onSubmit={handleFormSubmit}
-													submitButtonContent={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-												/>
-												<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
-											</>
-											:
-											<></>
-										}
-
-
-										<WebauthnSignupLogin
-											isLogin={isLogin}
-											isSubmitting={isSubmitting}
-											setIsSubmitting={setIsSubmitting}
-											isLoginCache={isLoginCache}
-											setIsLoginCache={setIsLoginCache}
-											error={webauthnError}
-											setError={setWebauthnError}
-										/>
-
-										{!isLoginCache ? (
-											<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-												{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-												<a
-													href={isLogin && isOnline ? "/" : ""}
-													className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
-													title={`${isOnline === false && t('common.offlineTitle')}`}
-													onClick={toggleForm}
-												>
-													{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-												</a>
-											</p>
+												}}
+											/>
+										</CheckBrowserSupport.If>
+									</div>
+								</CheckBrowserSupport.If>
+							</CheckBrowserSupport.Ctx>
+							<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
+								<CheckBrowserSupport.WarningPortal>
+									<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+										{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+									</h1>
+									<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+										{isOnline ? (
+											<PiWifiHighBold size={25} title={t('common.online')} />
 										) : (
-											<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
-												<a
-													className="font-medium text-primary hover:underline dark:text-primary-light"
-													onClick={useOtherAccount}
-												>
-													{t('loginSignup.useOtherAccount')}
-												</a>
-											</p>
+											<PiWifiSlashBold size={25} title={t('common.offline')} />
 										)}
+									</div>
+									{isOnline === false && (
+										<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+											<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+											{t('loginSignup.messageOffline')}
+										</p>
+									)}
 
-									</CheckBrowserSupport.WarningPortal>
-								</div>
+									{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
+										<>
+											{error && <div className="text-red-500">{error}</div>}
+											<UsernamePasswordForm
+												choosePassword={!isLogin}
+												disabled={isSubmitting}
+												onChange={handleFormChange}
+												onSubmit={handleFormSubmit}
+												submitButtonContent={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+											/>
+											<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
+										</>
+										:
+										<></>
+									}
+
+
+									<WebauthnSignupLogin
+										isLogin={isLogin}
+										isSubmitting={isSubmitting}
+										setIsSubmitting={setIsSubmitting}
+										isLoginCache={isLoginCache}
+										setIsLoginCache={setIsLoginCache}
+										error={webauthnError}
+										setError={setWebauthnError}
+									/>
+
+									{!isLoginCache ? (
+										<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
+											<a
+												href={isLogin && isOnline ? "/" : ""}
+												className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+												title={`${isOnline === false && t('common.offlineTitle')}`}
+												onClick={toggleForm}
+											>
+												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
+											</a>
+										</p>
+									) : (
+										<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
+											<a
+												className="font-medium text-primary hover:underline dark:text-primary-light"
+												onClick={useOtherAccount}
+											>
+												{t('loginSignup.useOtherAccount')}
+											</a>
+										</p>
+									)}
+
+								</CheckBrowserSupport.WarningPortal>
 							</div>
 						</div>
-						<div className='h-[5vh]'>
-							<p className='text-gray-700 dark:text-gray-400 text-center min-mt-10'>
-								<Trans
-									i18nKey="sidebar.poweredBy"
-									components={{
-										docLinkWalletGithub: <a
-											href="https://github.com/wwWallet"
-											rel="noreferrer"
-											target='blank_'
-											className="underline text-primary dark:text-primary-light"
-											aria-label={t('sidebar.poweredbyAriaLabel')}
-										/>
-									}}
-								/>
-							</p>
-							<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{config.APP_VERSION}</p>
-
-						</div>
 					</div>
-				</>
-			</FadeInContentTransition>
+					<div className='h-[5vh]'>
+						<p className='text-gray-700 dark:text-gray-400 text-center min-mt-10'>
+							<Trans
+								i18nKey="sidebar.poweredBy"
+								components={{
+									docLinkWalletGithub: <a
+										href="https://github.com/wwWallet"
+										rel="noreferrer"
+										target='blank_'
+										className="underline text-primary dark:text-primary-light"
+										aria-label={t('sidebar.poweredbyAriaLabel')}
+									/>
+								}}
+							/>
+						</p>
+						<p className='bg-gray-100 dark:bg-gray-900 text-gray-100 dark:text-gray-900'>{config.APP_VERSION}</p>
+
+					</div>
+				</div>
+			</>
 		</section>
 	);
 };
