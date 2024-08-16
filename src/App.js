@@ -138,8 +138,6 @@ function AppRoutes() {
 	const location = useLocation();
 	return (
 		<Routes>
-			<Route path="/login" element={<Login />} />
-			<Route path="/login-state" element={<LoginState />} />
 			<Route element={
 				<PrivateRoute>
 					<Layout>
@@ -159,7 +157,11 @@ function AppRoutes() {
 				<Route path="/verification/result" element={<VerificationResult />} />
 				<Route path="/cb" element={<Home />} />
 			</Route>
-			<Route path="*" element={<NotFound />} />
+			<Route element={<FadeInContentTransition><Outlet/></FadeInContentTransition>}>
+				<Route path="/login" element={<Login />} />
+				<Route path="/login-state" element={<LoginState />} />
+				<Route path="*" element={<NotFound />} />
+			</Route>
 		</Routes>
 	);
 }
