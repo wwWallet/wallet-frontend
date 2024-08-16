@@ -1,6 +1,6 @@
 // Import Libraries
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Spinner from './components/Spinner'; // Make sure this Spinner component exists and renders the spinner you want
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
@@ -76,14 +76,16 @@ function App() {
 						<Routes>
 							<Route path="/login" element={<Login />} />
 							<Route path="/login-state" element={<LoginState />} />
-							<Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-							<Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-							<Route path="/credential/:id" element={<PrivateRoute><CredentialDetail /></PrivateRoute>} />
-							<Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-							<Route path="/add" element={<PrivateRoute><AddCredentials /></PrivateRoute>} />
-							<Route path="/send" element={<PrivateRoute><SendCredentials /></PrivateRoute>} />
-							<Route path="/verification/result" element={<PrivateRoute><VerificationResult /></PrivateRoute>} />
-							<Route path="/cb" element={<PrivateRoute><Home /></PrivateRoute>} />
+							<Route element={<PrivateRoute><Outlet /></PrivateRoute>}>
+								<Route path="/settings" element={<Settings />} />
+								<Route path="/" element={<Home />} />
+								<Route path="/credential/:id" element={<CredentialDetail />} />
+								<Route path="/history" element={<History />} />
+								<Route path="/add" element={<AddCredentials />} />
+								<Route path="/send" element={<SendCredentials />} />
+								<Route path="/verification/result" element={<VerificationResult />} />
+								<Route path="/cb" element={<Home />} />
+							</Route>
 							<Route path="*" element={<NotFound />} />
 						</Routes>
 						{showSelectCredentialsPopup &&
