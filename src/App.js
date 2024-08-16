@@ -1,6 +1,6 @@
 // Import Libraries
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import Spinner from './components/Spinner'; // Make sure this Spinner component exists and renders the spinner you want
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
@@ -12,6 +12,7 @@ import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
 import HandlerNotification from './components/HandlerNotification';
 import { withSessionContext } from './context/SessionContext';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling';
+import FadeInContentTransition from './components/FadeInContentTransition';
 
 import Home from './pages/Home/Home';
 import History from './pages/History/History';
@@ -74,7 +75,6 @@ const VerificationResult = React.lazy(() => import('./pages/VerificationResult/V
 
 
 function App() {
-
 	const url = window.location.href;
 	const {
 		showSelectCredentialsPopup,
@@ -117,27 +117,7 @@ function App() {
 				<Router>
 					<Suspense fallback={<Spinner />}>
 						<HandlerNotification />
-						<Routes>
-							<Route path="/login" element={<Login />} />
-							<Route path="/login-state" element={<LoginState />} />
-							<Route element={
-								<PrivateRoute>
-									<Layout noFadeInChildren={<PrivateRoute.NotificationPermissionWarning />}>
-										<Outlet />
-									</Layout>
-								</PrivateRoute>
-							}>
-								<Route path="/settings" element={<Settings />} />
-								<Route path="/" element={<Home />} />
-								<Route path="/credential/:id" element={<CredentialDetail />} />
-								<Route path="/history" element={<History />} />
-								<Route path="/add" element={<AddCredentials />} />
-								<Route path="/send" element={<SendCredentials />} />
-								<Route path="/verification/result" element={<VerificationResult />} />
-								<Route path="/cb" element={<Home />} />
-							</Route>
-							<Route path="*" element={<NotFound />} />
-						</Routes>
+						<AppRoutes />
 						{showSelectCredentialsPopup &&
 							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
 						}
@@ -151,6 +131,36 @@ function App() {
 				</Router>
 			</CredentialsProvider>
 		</I18nextProvider>
+	);
+}
+
+function AppRoutes() {
+	const location = useLocation();
+	return (
+		<Routes>
+			<Route path="/login" element={<Login />} />
+			<Route path="/login-state" element={<LoginState />} />
+			<Route element={
+				<PrivateRoute>
+					<Layout>
+						<PrivateRoute.NotificationPermissionWarning />
+						<FadeInContentTransition appear reanimateKey={location.pathname}>
+							<Outlet />
+						</FadeInContentTransition>
+					</Layout>
+				</PrivateRoute>
+			}>
+				<Route path="/settings" element={<Settings />} />
+				<Route path="/" element={<Home />} />
+				<Route path="/credential/:id" element={<CredentialDetail />} />
+				<Route path="/history" element={<History />} />
+				<Route path="/add" element={<AddCredentials />} />
+				<Route path="/send" element={<SendCredentials />} />
+				<Route path="/verification/result" element={<VerificationResult />} />
+				<Route path="/cb" element={<Home />} />
+			</Route>
+			<Route path="*" element={<NotFound />} />
+		</Routes>
 	);
 }
 
