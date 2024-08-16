@@ -6,7 +6,7 @@ import SessionContext from '../context/SessionContext';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 
 
-export default function NotificationWarning({
+export default function NotificationPermissionWarning({
   isPermissionGranted,
 	tokenSentInSession,
 }: {
