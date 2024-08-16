@@ -47,6 +47,7 @@ const PasswordCriterionMessage = ({ text, ok }) => (
 
 const FormInputField = ({
 	ariaLabel,
+	disabled,
 	name,
 	onChange,
 	placeholder,
@@ -55,6 +56,7 @@ const FormInputField = ({
 	type,
 }: {
 	ariaLabel?: string,
+	disabled?: boolean,
 	name: string,
 	onChange: ChangeEventHandler<HTMLInputElement>,
 	placeholder?: string,
@@ -77,6 +79,7 @@ const FormInputField = ({
 				onChange={onChange}
 				aria-label={ariaLabel}
 				required={required}
+				disabled={disabled}
 			/>
 
 			{type === 'password' && (
@@ -87,6 +90,7 @@ const FormInputField = ({
 						className="text-gray-500 hover:text-gray-600"
 						aria-label={show ? (t('common.passwordHideAriaLabel')) : (t('common.passwordShowAriaLabel'))}
 						title={show ? (t('common.passwordHideTitle')) : (t('common.passwordShowTitle'))}
+						disabled={disabled}
 					>
 						{show ? <FaEyeSlash className='dark:text-white' /> : <FaEye className='dark:text-white' />}
 					</button>
