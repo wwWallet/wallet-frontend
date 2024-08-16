@@ -142,10 +142,12 @@ function AppRoutes() {
 			<Route element={
 				<PrivateRoute>
 					<Layout>
-						<PrivateRoute.NotificationPermissionWarning />
-						<FadeInContentTransition appear reanimateKey={location.pathname}>
-							<Outlet />
-						</FadeInContentTransition>
+						<Suspense fallback={<Spinner />}>
+							<PrivateRoute.NotificationPermissionWarning />
+							<FadeInContentTransition appear reanimateKey={location.pathname}>
+								<Outlet />
+							</FadeInContentTransition>
+						</Suspense>
 					</Layout>
 				</PrivateRoute>
 			}>
