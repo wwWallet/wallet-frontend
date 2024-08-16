@@ -15,25 +15,12 @@ import SessionContext from '../context/SessionContext';
 import FadeInContentTransition from './FadeInContentTransition';
 
 
-const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
+const NotificationWarning = ({ isPermissionGranted, tokenSentInSession }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const location = useLocation();
-	const navigate = useNavigate();
-	const [isOpen, setIsOpen] = useState(false);
-	const toggleSidebar = () => setIsOpen(!isOpen);
 	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
-	const { t } = useTranslation();
-
-	const handleNavigate = (path) => {
-		if (location.pathname === path) {
-			window.location.reload();
-		} else {
-			navigate(path);
-		}
-	};
 
 	const handleCloseMessageOffline = () => {
 		setIsMessageOfflineVisible(true);
@@ -45,6 +32,112 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 
 	const handleCloseMessageGranted = () => {
 		setIsMessageGrantedVisible(true);
+	};
+
+	const show = (
+		(isOnline === false && isMessageOfflineVisible === false)
+		|| (
+			isOnline === true
+			&& isPermissionGranted != null
+			&& notificationApiIsSupported()
+			&& (
+				(!isPermissionGranted && isMessageNoGrantedVisible === false)
+				|| (
+					isPermissionGranted
+					&& tokenSentInSession === false
+					&& isMessageGrantedVisible === false)
+			))
+	);
+
+	return (
+		show
+			? (
+				<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
+					<div className="mr-4 text-orange-500">
+						<FaExclamationTriangle size={24} />
+					</div>
+
+					{isOnline === false && isMessageOfflineVisible === false && (
+						<>
+							<div className="flex-grow">
+								<p className='text-sm'>
+									<Trans
+										i18nKey="layout.messageOffline"
+										components={{ strong: <strong /> }}
+									/>
+								</p>
+							</div>
+							<button
+								className="ml-2 text-gray-800"
+								onClick={handleCloseMessageOffline}
+							>
+								<FaTimes size={24} />
+							</button>
+						</>
+					)}
+					{isOnline === true && (
+						<>
+							{!isPermissionGranted && (
+								<>
+									<div className="flex-grow">
+										<p className='text-sm'>
+											<Trans
+												i18nKey="layout.messageAllowPermission"
+												components={{ strong: <strong /> }}
+											/>
+										</p>
+									</div>
+									<button
+										className="ml-2 text-gray-800"
+										onClick={handleCloseMessageNoGranted}
+									>
+										<FaTimes size={24} />
+									</button>
+								</>
+							)}
+							{isPermissionGranted && tokenSentInSession === false && (
+								<>
+									<div className="flex-grow">
+										<p className='text-sm'>
+											<Trans
+												i18nKey="layout.messageResetPermission"
+												components={{
+													strong: <strong />,
+													reloadButton: <button className='text-primary underline' onClick={() => window.location.reload()} />,
+												}}
+											/>
+										</p>
+									</div>
+									<button
+										className="ml-2 text-gray-800"
+										onClick={handleCloseMessageGranted}
+									>
+										<FaTimes size={24} />
+									</button>
+								</>
+							)}
+						</>
+					)}
+				</div>
+			)
+			: <></>
+	);
+};
+
+const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
+	const { isOnline } = useContext(OnlineStatusContext);
+	const location = useLocation();
+	const navigate = useNavigate();
+	const [isOpen, setIsOpen] = useState(false);
+	const toggleSidebar = () => setIsOpen(!isOpen);
+	const { t } = useTranslation();
+
+	const handleNavigate = (path) => {
+		if (location.pathname === path) {
+			window.location.reload();
+		} else {
+			navigate(path);
+		}
 	};
 
 	return (
@@ -82,79 +175,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
-
-					{((isOnline === false && isMessageOfflineVisible === false)) || (isOnline === true && isPermissionGranted != null && notificationApiIsSupported() && ((!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && tokenSentInSession === false && isMessageGrantedVisible === false))) ? (
-						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
-							<div className="mr-4 text-orange-500">
-								<FaExclamationTriangle size={24} />
-							</div>
-
-							{isOnline === false && isMessageOfflineVisible === false && (
-								<>
-									<div className="flex-grow">
-										<p className='text-sm'>
-											<Trans
-												i18nKey="layout.messageOffline"
-												components={{ strong: <strong /> }}
-											/>
-										</p>
-									</div>
-									<button
-										className="ml-2 text-gray-800"
-										onClick={handleCloseMessageOffline}
-									>
-										<FaTimes size={24} />
-									</button>
-								</>
-							)}
-							{isOnline === true && (
-								<>
-									{!isPermissionGranted && (
-										<>
-											<div className="flex-grow">
-												<p className='text-sm'>
-													<Trans
-														i18nKey="layout.messageAllowPermission"
-														components={{ strong: <strong /> }}
-													/>
-												</p>
-											</div>
-											<button
-												className="ml-2 text-gray-800"
-												onClick={handleCloseMessageNoGranted}
-											>
-												<FaTimes size={24} />
-											</button>
-										</>
-									)}
-									{isPermissionGranted && tokenSentInSession === false && (
-										<>
-											<div className="flex-grow">
-												<p className='text-sm'>
-													<Trans
-														i18nKey="layout.messageResetPermission"
-														components={{
-															strong: <strong />,
-															reloadButton: <button className='text-primary underline' onClick={() => window.location.reload()} />,
-														}}
-													/>
-												</p>
-											</div>
-											<button
-												className="ml-2 text-gray-800"
-												onClick={handleCloseMessageGranted}
-											>
-												<FaTimes size={24} />
-											</button>
-										</>
-									)}
-								</>
-							)}
-						</div>
-
-					) : (
-						<></>
-					)}
+					<NotificationWarning isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession} />
 					<FadeInContentTransition appear reanimateKey={location.pathname}>
 						{children}
 					</FadeInContentTransition>
