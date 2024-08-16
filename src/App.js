@@ -160,7 +160,11 @@ function AppRoutes() {
 				<Route path="/verification/result" element={<VerificationResult />} />
 				<Route path="/cb" element={<Home />} />
 			</Route>
-			<Route element={<FadeInContentTransition><Outlet/></FadeInContentTransition>}>
+			<Route element={
+				<FadeInContentTransition reanimateKey={location.pathname}>
+					<Outlet />
+				</FadeInContentTransition>
+			}>
 				<Route path="/login" element={<Login />} />
 				<Route path="/login-state" element={<LoginState />} />
 				<Route path="*" element={<NotFound />} />

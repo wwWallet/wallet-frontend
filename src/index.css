@@ -59,11 +59,11 @@
 }
 
 /* Fade in animation for content */
-.content-fade-in-enter {
+.content-fade-in-enter, .content-fade-in-appear {
 	opacity: 0;
 }
 
-.content-fade-in-enter-active {
+.content-fade-in-enter-active, .content-fade-in-appear-active {
 	opacity: 1;
 	transition: opacity 400ms ease-in;
 }
