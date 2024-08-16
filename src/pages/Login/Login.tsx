@@ -20,6 +20,7 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
+import PasswordStrength from '../../components/PasswordStrength';
 
 
 const FormInputRow = ({
@@ -96,23 +97,6 @@ const FormInputField = ({
 		</div>
 	);
 };
-
-const PasswordStrength = ({ label, value }) => (
-	<div className="flex items-center mt-1">
-		<p className="text-sm text-gray-600 mr-2">{label}</p>
-		<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-gray-300">
-			<div
-				className={`h-full rounded-full ${value < 50
-					? 'bg-red-500'
-					: value >= 50 && value < 100
-						? 'bg-yellow-500'
-						: 'bg-green-500'
-					}`}
-				style={{ width: `${value}%` }}
-			/>
-		</div>
-	</div>
-);
 
 const WebauthnSignupLogin = ({
 	isLogin,
@@ -593,17 +577,6 @@ const Login = () => {
 		setWebauthnError('');
 	}
 
-	const getPasswordStrength = (password) => {
-		const lengthScore = password.length >= 8 ? 25 : 0;
-		const capitalScore = /[A-Z]/.test(password) ? 25 : 0;
-		const numberScore = /[0-9]/.test(password) ? 25 : 0;
-		const specialCharScore = /[^A-Za-z0-9]/.test(password) ? 25 : 0;
-
-		return lengthScore + capitalScore + numberScore + specialCharScore;
-	};
-
-	const passwordStrength = getPasswordStrength(password);
-
 	useEffect(() => {
 		setIsContentVisible(true);
 	}, []);
@@ -724,7 +697,7 @@ const Login = () => {
 															type="password"
 															value={password}
 														/>
-														{!isLogin && password !== '' && <PasswordStrength label={t('loginSignup.strength')} value={passwordStrength} />}
+														{!isLogin && password !== '' && <PasswordStrength label={t('loginSignup.strength')} password={password} />}
 													</FormInputRow>
 
 													{!isLogin && (
