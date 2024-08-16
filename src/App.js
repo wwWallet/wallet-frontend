@@ -12,15 +12,8 @@ import { withSessionContext } from './context/SessionContext';
 
 import FadeInContentTransition from './components/FadeInContentTransition';
 import HandlerNotification from './components/HandlerNotification';
-import Layout from './components/Layout';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling';
 import Spinner from './components/Spinner';
-
-import Home from './pages/Home/Home';
-import History from './pages/History/History';
-import Settings from './pages/Settings/Settings';
-import AddCredentials from './pages/AddCredentials/AddCredentials';
-import SendCredentials from './pages/SendCredentials/SendCredentials';
 
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
@@ -61,6 +54,7 @@ const reactLazyWithNonDefaultExports = (load, ...names) => {
 	return defaultExport;
 };
 
+const Layout = React.lazy(() => import('./components/Layout'));
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
@@ -69,10 +63,15 @@ const PrivateRoute = reactLazyWithNonDefaultExports(
 );
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
 
+const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
+const History = React.lazy(() => import('./pages/History/History'));
+const Home = React.lazy(() => import('./pages/Home/Home'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
 const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
+const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
+const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
