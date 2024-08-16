@@ -1,25 +1,26 @@
 // Import Libraries
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
-import Spinner from './components/Spinner'; // Make sure this Spinner component exists and renders the spinner you want
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n';
 
-import { CredentialsProvider } from './context/CredentialsContext';
-import useCheckURL from './hooks/useCheckURL';
 import handleServerMessagesGuard from './hoc/handleServerMessagesGuard';
-import HandlerNotification from './components/HandlerNotification';
+import i18n from './i18n';
+import useCheckURL from './hooks/useCheckURL';
+import { CredentialsProvider } from './context/CredentialsContext';
 import { withSessionContext } from './context/SessionContext';
-import Snowfalling from './components/ChistmasAnimation/Snowfalling';
+
 import FadeInContentTransition from './components/FadeInContentTransition';
+import HandlerNotification from './components/HandlerNotification';
+import Layout from './components/Layout';
+import Snowfalling from './components/ChistmasAnimation/Snowfalling';
+import Spinner from './components/Spinner';
 
 import Home from './pages/Home/Home';
 import History from './pages/History/History';
 import Settings from './pages/Settings/Settings';
 import AddCredentials from './pages/AddCredentials/AddCredentials';
 import SendCredentials from './pages/SendCredentials/SendCredentials';
-import Layout from './components/Layout';
 
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
@@ -60,17 +61,18 @@ const reactLazyWithNonDefaultExports = (load, ...names) => {
 	return defaultExport;
 };
 
-const Login = React.lazy(() => import('./pages/Login/Login'));
-const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
-const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
+const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
+const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
 	() => import('./components/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
-const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
-const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
-const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
+
+const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
+const Login = React.lazy(() => import('./pages/Login/Login'));
+const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
+const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
 
