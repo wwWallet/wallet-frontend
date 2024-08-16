@@ -1,10 +1,9 @@
-import React, { useContext, useEffect, useState, useRef, ChangeEventHandler, FormEventHandler } from 'react';
+import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
-import { CSSTransition } from 'react-transition-group';
 
 import * as config from '../../config';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
@@ -19,6 +18,7 @@ import SessionContext from '../../context/SessionContext';
 import { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize } from '../../util';
 import PasswordStrength from '../../components/PasswordStrength';
+import FadeInContentTransition from '../../components/FadeInContentTransition';
 
 
 const FormInputRow = ({
@@ -561,8 +561,6 @@ const Login = () => {
 	const [error, setError] = useState<React.ReactNode>('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [isContentVisible, setIsContentVisible] = useState(false);
-	const nodeRef = useRef(null);
 
 	const navigate = useNavigate();
 
@@ -637,16 +635,12 @@ const Login = () => {
 		};
 	}
 
-	useEffect(() => {
-		setIsContentVisible(true);
-	}, []);
-
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
 
-			<CSSTransition in={isContentVisible} timeout={400} classNames="content-fade-in" nodeRef={nodeRef}>
+			<FadeInContentTransition>
 				<>
-					<div ref={nodeRef} className='h-max min-h-screen'>
+					<div className='h-max min-h-screen'>
 						<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-[95vh]">
 							<a href="/" className="flex justify-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
 								<img className="w-40" src={logo} alt="logo" />
@@ -790,7 +784,7 @@ const Login = () => {
 						</div>
 					</div>
 				</>
-			</CSSTransition>
+			</FadeInContentTransition>
 		</section>
 	);
 };

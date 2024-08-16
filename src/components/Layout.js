@@ -1,23 +1,23 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useContext } from 'react';
 import Sidebar from './Sidebar';
 import { AiOutlineMenu } from "react-icons/ai";
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import logo from '../assets/images/wallet_white.png';
 import { useLocation, useNavigate } from 'react-router-dom';
 import WelcomeTourGuide from './WelcomeTourGuide/WelcomeTourGuide';
-import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 import BottomNav from './BottomNav';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import ConnectivityBars from '../components/Connectivity/ConnectivityBars';
 import SessionContext from '../context/SessionContext';
+import FadeInContentTransition from './FadeInContentTransition';
+
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const { isOnline, connectivityQuality } = useContext(OnlineStatusContext);
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
 	const { api } = useContext(SessionContext);
@@ -25,7 +25,6 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
 	const { t } = useTranslation();
-	const nodeRef = useRef(null);
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
@@ -46,14 +45,6 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const handleCloseMessageGranted = () => {
 		setIsMessageGrantedVisible(true);
 	};
-
-	useEffect(() => {
-		setIsContentVisible(false);
-		const timer = setTimeout(() => {
-			setIsContentVisible(true);
-		}, 0);
-		return () => clearTimeout(timer);
-	}, [location.pathname]); // Only runs when location.pathname changes
 
 	return (
 		<div className="flex min-h-screen">
@@ -161,18 +152,9 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 					) : (
 						<></>
 					)}
-					<CSSTransition
-						in={isContentVisible}
-						timeout={400}
-						classNames="content-fade-in"
-						appear
-						key={location.pathname}
-						nodeRef={nodeRef}
-					>
-						<div ref={nodeRef}>
-							{children}
-						</div>
-					</CSSTransition>
+					<FadeInContentTransition appear reanimateKey={location.pathname}>
+						{children}
+					</FadeInContentTransition>
 				</div>
 			</div>
 
