@@ -10,10 +10,9 @@ import BottomNav from './BottomNav';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import FadeInContentTransition from './FadeInContentTransition';
-import NotificationPermissionWarning from '../components/NotificationPermissionWarning';
 
 
-const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
+const Layout = ({ children, noFadeInChildren }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -64,7 +63,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
-					<NotificationPermissionWarning isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession} />
+					{noFadeInChildren}
 					<FadeInContentTransition appear reanimateKey={location.pathname}>
 						{children}
 					</FadeInContentTransition>
