@@ -12,6 +12,8 @@ import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SdJwt } from "@sd-jwt/core";
+import { toArrayBuffer } from "../types/webauthn";
+import type { AuthenticationExtensionsPRFInputs } from "../types/webauthn";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -167,10 +169,6 @@ export function isPrfKeyV2(prfKeyInfo: WebauthnPrfEncryptionKeyInfo): prfKeyInfo
 			: isAsymmetricWrappedKeyInfo(prfKeyInfo)
 	);
 }
-
-type PrfExtensionInput = { eval: { first: BufferSource } } | { evalByCredential: PrfEvalByCredential };
-type PrfEvalByCredential = { [credentialId: string]: { first: BufferSource } };
-type PrfExtensionOutput = { enabled: boolean, results?: { first?: ArrayBuffer } };
 
 export type KeystoreV0PublicData = {
 	publicKey: JWK,
@@ -640,7 +638,7 @@ async function derivePrfKey(
 
 function makeRegistrationPrfExtensionInputs(credential: PublicKeyCredential, prfSalt: BufferSource): {
 	allowCredentials: PublicKeyCredentialDescriptor[],
-	prfInput: PrfExtensionInput,
+	prfInput: AuthenticationExtensionsPRFInputs,
 } {
 	return {
 		allowCredentials: [{ type: "public-key", id: credential.rawId }],
@@ -650,7 +648,7 @@ function makeRegistrationPrfExtensionInputs(credential: PublicKeyCredential, prf
 
 export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]): {
 	allowCredentials: PublicKeyCredentialDescriptor[],
-	prfInput: PrfExtensionInput,
+	prfInput: AuthenticationExtensionsPRFInputs,
 } {
 	return {
 		allowCredentials: prfKeys.map(
@@ -673,14 +671,14 @@ export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]):
 
 async function getPrfOutput(
 	credential: PublicKeyCredential | null,
-	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
+	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: AuthenticationExtensionsPRFInputs },
 	promptForRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
-	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput } | null;
+	const clientExtensionOutputs = credential?.getClientExtensionResults();
 	const canRetry = !clientExtensionOutputs?.prf || clientExtensionOutputs?.prf?.enabled;
 
 	if (credential && clientExtensionOutputs?.prf?.results?.first) {
-		return [clientExtensionOutputs?.prf?.results?.first, credential];
+		return [toArrayBuffer(clientExtensionOutputs?.prf?.results?.first), credential];
 
 	} else if (canRetry) {
 		const retryOrAbortSignal = await promptForRetry();
@@ -691,7 +689,7 @@ async function getPrfOutput(
 						rpId: config.WEBAUTHN_RPID,
 						challenge: crypto.getRandomValues(new Uint8Array(32)),
 						allowCredentials: prfInputs?.allowCredentials,
-						extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
+						extensions: { prf: prfInputs.prfInput },
 					},
 					signal: retryOrAbortSignal === true ? undefined : retryOrAbortSignal,
 				}) as PublicKeyCredential;
