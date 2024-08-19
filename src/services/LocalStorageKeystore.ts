@@ -7,7 +7,8 @@ import { useIndexedDb } from "../hooks/useIndexedDb";
 import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrecreatedPublicKeyCredential, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import { PublicKeyCredentialCreation } from "../types/webauthn";
 
 
 type UserData = {
@@ -34,13 +35,13 @@ export interface LocalStorageKeystore {
 
 	initPassword(password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]>,
 	initPrf(
-		credential: PublicKeyCredential,
-		prfSalt: Uint8Array,
+		credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: UserData,
-	): Promise<EncryptedContainer>,
-	addPrf(
-		credential: PublicKeyCredential,
+	): Promise<[PublicKeyCredential & { response: AuthenticatorAttestationResponse }, EncryptedContainer]>,
+	beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential>,
+	finishAddPrf(
+		credential: PrecreatedPublicKeyCredential,
 		[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
@@ -227,22 +228,30 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		},
 
 		initPrf: async (
-			credential: PublicKeyCredential,
-			prfSalt: Uint8Array,
+			credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 			user: UserData,
-		): Promise<EncryptedContainer> => {
-			const { mainKey, keyInfo } = await keystore.initPrf(credential, prfSalt, promptForPrfRetry);
+		): Promise<[PublicKeyCredentialCreation, EncryptedContainer]> => {
+			const { credential, mainKey, keyInfo } = await keystore.initPrf(credentialOrCreateOptions, promptForPrfRetry);
 			const result = await init(mainKey, keyInfo, user);
-			return result;
+			return [credential, result];
 		},
 
-		addPrf: async (
-			credential: PublicKeyCredential,
+		beginAddPrf: async (createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> => {
+			return await keystore.beginAddPrf(createOptions);
+		},
+
+		finishAddPrf: async (
+			credential: PrecreatedPublicKeyCredential,
 			[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[EncryptedContainer, CommitCallback]> => {
-			const newPrivateData = await keystore.addPrf(privateData, credential, [existingUnwrapKey, wrappedMainKey], promptForPrfRetry);
+			const newPrivateData = await keystore.finishAddPrf(
+				privateData,
+				credential,
+				[existingUnwrapKey, wrappedMainKey],
+				promptForPrfRetry,
+			);
 			return [
 				newPrivateData,
 				async () => {
