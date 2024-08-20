@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApi } from '../api';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { fetchToken } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
@@ -11,11 +10,10 @@ import SessionContext from '../context/SessionContext';
 
 const PrivateRoute = ({ children }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { isLoggedIn, logout } = useContext(SessionContext);
+	const { isLoggedIn, keystore, logout } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const keystore = useLocalStorageKeystore();
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 	const cachedUsers = keystore.getCachedUsers();

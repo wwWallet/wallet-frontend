@@ -9,7 +9,6 @@ import { CSSTransition } from 'react-transition-group';
 import * as config from '../../config';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { useApi } from '../../api';
-import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
@@ -110,6 +109,7 @@ const WebauthnSignupLogin = ({
 	setIsSubmitting,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
+	const { keystore } = useContext(SessionContext);
 
 	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
@@ -123,7 +123,6 @@ const WebauthnSignupLogin = ({
 	const from = location.state?.from || '/';
 
 	const { t } = useTranslation();
-	const keystore = useLocalStorageKeystore();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
 	const cachedUsers = keystore.getCachedUsers();
@@ -471,7 +470,7 @@ const WebauthnSignupLogin = ({
 
 const Login = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -490,7 +489,6 @@ const Login = () => {
 	const nodeRef = useRef(null);
 
 	const navigate = useNavigate();
-	const keystore = useLocalStorageKeystore();
 
 	useEffect(() => {
 		if (isLoggedIn) {
