@@ -4,7 +4,6 @@ import { LocalStorageKeystore } from "./LocalStorageKeystore";
 
 
 interface SigningRequestHandlers {
-	handleCreateIdToken(api: BackendApi, socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce }: { message_id: string; audience: string; nonce: string; }): Promise<void>;
 	handleSignJwtPresentation(socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce, verifiableCredentials }: { message_id: string; audience: string; nonce: string; verifiableCredentials: any[]; }): Promise<void>;
 	handleGenerateOpenid4vciProofSigningRequest(api: BackendApi, socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce }: { message_id: string; audience: string; nonce: string; }): Promise<void>;
 }
@@ -12,21 +11,6 @@ interface SigningRequestHandlers {
 
 export function SigningRequestHandlerService(): SigningRequestHandlers {
 	return {
-		handleCreateIdToken: async (api: BackendApi, socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce }: { message_id: string; audience: string; nonce: string; }) => {
-			const [{ id_token }, newPrivateData, keystoreCommit] = await keystore.createIdToken(nonce, audience)
-			await api.updatePrivateData(newPrivateData);
-			await keystoreCommit();
-			console.log("id token = ", id_token);
-			const outgoingMessage: ClientSocketMessage = {
-				message_id: message_id,
-				response: {
-					action: SignatureAction.createIdToken,
-					id_token: id_token
-				}
-			}
-			socket.send(JSON.stringify(outgoingMessage));
-		},
-
 		handleSignJwtPresentation: async (socket, keystore, { message_id, audience, nonce, verifiableCredentials }) => {
 			const { vpjwt } = await keystore.signJwtPresentation(nonce, audience, verifiableCredentials)
 			console.log("vp jwt = ", vpjwt);

@@ -56,12 +56,12 @@ export default function handleServerMessagesGuard(Component) {
 					const handleMessage = (event) => {
 						try {
 							const { message_id, request } = JSON.parse(event.data.toString());
-							if (request.action === SignatureAction.createIdToken) {
-								signingRequestHandlerService.handleCreateIdToken(api, socket, keystore, { message_id, ...request });
-							} else if (request.action === SignatureAction.signJwtPresentation) {
+							if (request.action === SignatureAction.signJwtPresentation) {
 								signingRequestHandlerService.handleSignJwtPresentation(socket, keystore, { message_id, ...request });
 							} else if (request.action === SignatureAction.generateOpenid4vciProof) {
 								signingRequestHandlerService.handleGenerateOpenid4vciProofSigningRequest(api, socket, keystore, { message_id, ...request });
+							} else {
+								throw new Error("Unknown action: " + request.action, { cause: { unknown_action: request } });
 							}
 						} catch (e) {
 							console.error("Failed to handle message", e);
