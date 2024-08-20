@@ -7,12 +7,34 @@ export type Verifier = {
 		description: string;
 	}[];
 }
+
+// Duplicated in wallet-backend-server
+export class UserId {
+	public readonly id: string;
+	private constructor(id: string) {
+		this.id = id;
+	}
+
+	public toString(): string {
+		return `UserId(this.id)`;
+	}
+
+	static fromId(id: string): UserId {
+		return new UserId(id);
+	}
+
+	static fromUserHandle(userHandle: BufferSource): UserId {
+		return new UserId(new TextDecoder().decode(userHandle));
+	}
+
+	public asUserHandle(): Uint8Array {
+		return new TextEncoder().encode(this.id);
+	}
+}
+
 export type UserData = {
-	id: number;
+	uuid: string;
 	displayName: string;
-	did: string;
-	publicKey: JsonWebKey;
-	webauthnUserHandle: string;
 	webauthnCredentials: WebauthnCredential[];
 	privateData: Uint8Array;
 }

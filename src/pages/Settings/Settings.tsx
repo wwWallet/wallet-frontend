@@ -9,7 +9,6 @@ import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
-import { useLocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import GetButton from '../../components/Buttons/GetButton';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
@@ -91,6 +90,7 @@ const WebauthnRegistation = ({
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { keystore } = useContext(SessionContext);
 	const api = useApi();
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -100,7 +100,6 @@ const WebauthnRegistation = ({
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
-	const keystore = useLocalStorageKeystore();
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
@@ -188,6 +187,10 @@ const WebauthnRegistation = ({
 
 			} catch (e) {
 				console.error("Failed to finish registration", e);
+				if (e?.cause === 'x-private-data-etag') {
+					// TODO: Show this error to the user
+					throw new Error("Private data version conflict", { cause: e });
+				}
 
 			} finally {
 				onCancel();
@@ -321,12 +324,12 @@ const UnlockMainKey = ({
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
 	const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 	const isPromptingForPassword = Boolean(resolvePasswordPromise);
 
@@ -505,14 +508,21 @@ const WebauthnCredentialItem = ({
 		}
 	};
 
+	const onCancelEditing = useCallback(
+		() => {
+			setNickname(credential.nickname || '');
+			setEditing(false);
+		},
+		[credential.nickname],
+	);
+
 	const onKeyUp = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
 			if (event.key === "Escape") {
-				setNickname(credential.nickname || '');
-				setEditing(false);
+				onCancelEditing();
 			}
 		},
-		[credential.nickname],
+		[onCancelEditing],
 	);
 
 	const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -611,7 +621,7 @@ const WebauthnCredentialItem = ({
 						<div className='flex gap-2'>
 							<GetButton
 								content={t('common.cancel')}
-								onClick={() => setEditing(false)}
+								onClick={onCancelEditing}
 								variant="cancel"
 								disabled={submitting}
 								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
@@ -672,7 +682,7 @@ const WebauthnCredentialItem = ({
 
 const Settings = () => {
 	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
-	const { logout } = useContext(SessionContext);
+	const { logout, keystore } = useContext(SessionContext);
 	const api = useApi(isOnline);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -680,7 +690,6 @@ const Settings = () => {
 	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const showDelete = userData?.webauthnCredentials?.length > 1;
-	const keystore = useLocalStorageKeystore();
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -693,7 +702,7 @@ const Settings = () => {
 	const deleteAccount = async () => {
 		try {
 			await api.del('/user/session');
-			const userHandleB64u = new TextEncoder().encode(userData.webauthnUserHandle);
+			const userHandleB64u = new TextEncoder().encode(userData.uuid);
 			const cachedUser = keystore.getCachedUsers()
 				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
 			if (cachedUser) {
@@ -754,9 +763,10 @@ const Settings = () => {
 			await refreshData();
 
 		} catch (e) {
-			if (e?.message === 'x-private-data-etag') {
+			console.error("Failed to delete WebAuthn credential", e);
+			if (e?.cause === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw e;
+				throw new Error("Private data version conflict", { cause: e });
 			}
 			throw e;
 		}
@@ -793,18 +803,17 @@ const Settings = () => {
 				},
 			);
 			setUpgradePrfState(null);
-			const updateResp = api.updatePrivateDataEtag(
-				await api.post('/user/session/private-data', serializePrivateData(newPrivateData)),
-			);
-			if (updateResp.status === 204) {
+			try {
+				await api.updatePrivateData(newPrivateData);
 				await keystoreCommit();
-			} else {
-				console.error("Failed to upgrade PRF key", updateResp.status, updateResp);
+			} catch (e) {
+				console.error("Failed to upgrade PRF key", e, e.status);
 			}
 		} catch (e) {
-			if (e?.message === 'x-private-data-etag') {
+			console.error("Failed to upgrade PRF key", e);
+			if (e?.cause === 'x-private-data-etag') {
 				// TODO: Show this error to the user
-				throw e;
+				throw new Error("Private data version conflict", { cause: e });
 			}
 
 			console.error("Failed to upgrade PRF key", e);

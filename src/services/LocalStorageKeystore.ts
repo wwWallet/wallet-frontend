@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
@@ -7,7 +7,7 @@ import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainerKeys, EncryptedContainer, PrivateData, PublicData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 
 
 type UserData = {
@@ -32,17 +32,13 @@ export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
 
-	initPassword(password: string): Promise<{
-		publicData: PublicData,
-		privateData: EncryptedContainer,
-		setUserHandleB64u: (userHandleB64u: string) => void,
-	}>,
+	initPassword(password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]>,
 	initPrf(
 		credential: PublicKeyCredential,
 		prfSalt: Uint8Array,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: UserData,
-	): Promise<{ publicData: PublicData, privateData: EncryptedContainer }>,
+	): Promise<EncryptedContainer>,
 	addPrf(
 		credential: PublicKeyCredential,
 		[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
@@ -69,21 +65,23 @@ export interface LocalStorageKeystore {
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
 
-	createIdToken(nonce: string, audience: string): Promise<{ id_token: string; }>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProof(nonce: string, audience: string): Promise<{ proof_jwt: string }>,
+	generateOpenid4vciProof(nonce: string, audience: string): Promise<[
+		{ proof_jwt: string },
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
 export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [privateDataCache, setPrivateDataCache, clearPrivateDataCache] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [privateData, setPrivateData, clearPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
 	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
-	const [sessionKey, setSessionKey, clearSessionKey] = useSessionStorage<BufferSource | null>("sessionKey", null);
-	const [privateDataJwe, setPrivateDataJwe, clearPrivateDataJwe] = useSessionStorage<string | null>("privateDataJwe", null);
-	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearSessionKey, clearPrivateDataJwe);
+	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
+	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
 
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
@@ -105,25 +103,25 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const close = useCallback(
 		async (): Promise<void> => {
 			await idb.destroy();
-			clearPrivateDataCache();
+			clearPrivateData();
 			clearGlobalUserHandleB64u();
 			closeTabLocal();
 		},
-		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateDataCache],
+		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
 	useEffect(
 		() => {
-			if (privateDataCache && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
+			if (privateData && userHandleB64u && (userHandleB64u === globalUserHandleB64u)) {
 				// When PRF keys are added, deleted or edited in any tab,
 				// propagate changes to cached users
 				setCachedUsers((cachedUsers) => cachedUsers.map((cu) => {
 					if (cu.userHandleB64u === userHandleB64u) {
 						return {
 							...cu,
-							prfKeys: privateDataCache.prfKeys.map((keyInfo) => ({
+							prfKeys: privateData.prfKeys.map((keyInfo) => ({
 								credentialId: keyInfo.credentialId,
 								prfSalt: keyInfo.prfSalt,
 							})),
@@ -133,7 +131,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					}
 				}));
 
-			} else if (!privateDataCache) {
+			} else if (!privateData) {
 				// When user logs out in any tab, log out in all tabs
 				closeTabLocal();
 
@@ -143,239 +141,241 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 				closeTabLocal();
 			}
 		},
-		[close, closeTabLocal, privateDataCache, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[close, closeTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
-	return useMemo(
-		() => {
-			const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
-				if (privateDataJwe) {
-					return await keystore.openPrivateData(sessionKey, privateDataJwe);
-				} else {
-					throw new Error("Private data not present in storage.");
+	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
+		if (mainKey && privateData) {
+			return await keystore.openPrivateData(mainKey, privateData)
+		} else {
+			throw new Error("Private data not present in storage.");
+		}
+	};
+
+	const editPrivateData = async <T>(
+		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
+	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
+		if (mainKey && privateData) {
+			const [result, [newPrivateData, newMainKey]] = await action(
+				[
+					keystore.assertAsymmetricEncryptedContainer(privateData),
+					await keystore.importMainKey(mainKey),
+				],
+			);
+			return [
+				result,
+				newPrivateData,
+				async () => {
+					setPrivateData(newPrivateData);
+					setMainKey(await keystore.exportMainKey(newMainKey));
+				},
+			];
+		} else {
+			throw new Error("Private data not present in storage.");
+		}
+	};
+
+	const finishUnlock = async (
+		{ exportedMainKey, privateData }: UnlockSuccess,
+		user: CachedUser | UserData | null,
+	): Promise<void> => {
+		setMainKey(exportedMainKey);
+		setPrivateData(privateData);
+
+		if (user) {
+			const userHandleB64u = ("prfKeys" in user
+				? user.userHandleB64u
+				: toBase64Url(user.userHandle)
+			);
+			const newUser = ("prfKeys" in user
+				? user
+				: {
+					displayName: user.displayName,
+					userHandleB64u,
+					prfKeys: [], // Placeholder - will be updated by useEffect above
 				}
-			};
+			);
 
-			const finishUnlock = async (
-				{ exportedSessionKey, privateDataCache, privateDataJwe }: UnlockSuccess,
-				user: CachedUser | UserData | null,
-			): Promise<void> => {
-				setSessionKey(exportedSessionKey);
-				setPrivateDataCache(privateDataCache);
-				setPrivateDataJwe(privateDataJwe);
+			setUserHandleB64u(userHandleB64u);
+			setGlobalUserHandleB64u(userHandleB64u);
+			setCachedUsers((cachedUsers) => {
+				// Move most recently used user to front of list
+				const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
+				return [newUser, ...otherUsers];
+			});
+		}
+	};
 
-				if (user) {
-					const userHandleB64u = ("prfKeys" in user
-						? user.userHandleB64u
-						: toBase64Url(user.userHandle)
-					);
-					const newUser = ("prfKeys" in user
-						? user
-						: {
-							displayName: user.displayName,
-							userHandleB64u,
-							prfKeys: [], // Placeholder - will be updated by useEffect above
-						}
-					);
+	const init = async (
+		mainKey: CryptoKey,
+		keyInfo: AsymmetricEncryptedContainerKeys,
+		user: UserData,
+	): Promise<EncryptedContainer> => {
+		const unlocked = await keystore.init(mainKey, keyInfo);
+		await finishUnlock(unlocked, user);
+		const { privateData } = unlocked;
+		return privateData;
+	};
 
-					setUserHandleB64u(userHandleB64u);
-					setGlobalUserHandleB64u(userHandleB64u);
-					setCachedUsers((cachedUsers) => {
-						// Move most recently used user to front of list
-						const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
-						return [newUser, ...otherUsers];
-					});
-				}
-			};
+	return {
+		isOpen: (): boolean => privateData !== null && mainKey !== null,
+		close,
 
-			const init = async (
-				mainKey: CryptoKey,
-				keyInfo: AsymmetricEncryptedContainerKeys,
-				user: UserData,
-			): Promise<{
-				publicData: PublicData,
-				privateData: EncryptedContainer,
-			}> => {
-				const { publicData, privateData } = await keystore.init(mainKey, keyInfo, config.DID_KEY_VERSION);
-				await finishUnlock(await keystore.unlock(mainKey, privateData), user);
-
-				return {
-					publicData,
-					privateData,
-				};
-			};
-
-			return {
-				isOpen: (): boolean => privateDataJwe !== null && sessionKey !== null,
-				close,
-
-				initPassword: async (password: string): Promise<{
-					publicData: PublicData,
-					privateData: EncryptedContainer,
-					setUserHandleB64u: (userHandleB64u: string) => void,
-				}> => {
-					const { mainKey, keyInfo } = await keystore.initPassword(password);
-					return { ...await init(mainKey, keyInfo, null), setUserHandleB64u };
-				},
-
-				initPrf: async (
-					credential: PublicKeyCredential,
-					prfSalt: Uint8Array,
-					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-					user: UserData,
-				): Promise<{ publicData: PublicData, privateData: EncryptedContainer }> => {
-					const { mainKey, keyInfo } = await keystore.initPrf(credential, prfSalt, promptForPrfRetry);
-					const result = await init(mainKey, keyInfo, user);
-					return result;
-				},
-
-				addPrf: async (
-					credential: PublicKeyCredential,
-					[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
-					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-				): Promise<[EncryptedContainer, CommitCallback]> => {
-					const newPrivateData = await keystore.addPrf(privateDataCache, credential, [existingUnwrapKey, wrappedMainKey], promptForPrfRetry);
-					return [
-						newPrivateData,
-						async () => {
-							setPrivateDataCache(newPrivateData);
-						},
-					];
-				},
-
-				deletePrf: (credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
-					const newPrivateData = keystore.deletePrf(privateDataCache, credentialId);
-					return [
-						newPrivateData,
-						async () => {
-							setPrivateDataCache(newPrivateData);
-						},
-					];
-				},
-
-				unlockPassword: async (
-					privateData: EncryptedContainer,
-					password: string,
-					user: UserData,
-				): Promise<[EncryptedContainer, CommitCallback] | null> => {
-					const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
-					await finishUnlock(unlockResult, user);
-					return (
-						newPrivateData
-							?
-							[newPrivateData,
-								async () => {
-									setPrivateDataCache(newPrivateData);
-								},
-							]
-							: null
-					);
-				},
-
-				unlockPrf: async (
-					privateData: EncryptedContainer,
-					credential: PublicKeyCredential,
-					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-					user: CachedUser | UserData | null,
-				): Promise<[EncryptedContainer, CommitCallback] | null> => {
-					const [unlockPrfResult, newPrivateData] = await keystore.unlockPrf(privateData, credential, promptForPrfRetry);
-					await finishUnlock(unlockPrfResult, user);
-					return (
-						newPrivateData
-							?
-							[newPrivateData,
-								async () => {
-									setPrivateDataCache(newPrivateData);
-								},
-							]
-							: null
-					);
-				},
-
-				getPrfKeyInfo: (id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined => {
-					return privateDataCache?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
-				},
-
-				getPasswordOrPrfKeyFromSession: async (
-					promptForPassword: () => Promise<string | null>,
-					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-				): Promise<[CryptoKey, WrappedKeyInfo]> => {
-					if (privateDataCache && privateDataCache?.prfKeys?.length > 0) {
-						const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateDataCache, null, promptForPrfRetry);
-						return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
-
-					} else if (privateDataCache && privateDataCache?.passwordKey) {
-						const password = await promptForPassword();
-						if (password === null) {
-							throw new Error("Password prompt aborted");
-						} else {
-							try {
-								const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateDataCache, password);
-								return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
-							} catch {
-								throw new Error("Failed to unlock key store", { cause: { errorId: "passwordUnlockFailed" } });
-							}
-						}
-
-					} else {
-						throw new Error("Session not initialized");
-					}
-				},
-
-				upgradePrfKey: async (
-					prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
-					promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-				): Promise<[EncryptedContainer, CommitCallback]> => {
-					if (keystore.isPrfKeyV2(prfKeyInfo)) {
-						throw new Error("Key is already upgraded");
-
-					} else if (privateDataCache) {
-						const newPrivateData = await keystore.upgradePrfKey(privateDataCache, null, prfKeyInfo, promptForPrfRetry);
-						return [
-							newPrivateData,
-							async () => {
-								setPrivateDataCache(newPrivateData);
-							},
-						];
-
-					} else {
-						throw new Error("Session not initialized");
-					}
-				},
-
-				getCachedUsers: (): CachedUser[] => {
-					return [...(cachedUsers || [])];
-				},
-
-				forgetCachedUser: (user: CachedUser): void => {
-					setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
-				},
-
-				createIdToken: async (nonce: string, audience: string): Promise<{ id_token: string; }> => (
-					await keystore.createIdToken(await openPrivateData(), nonce, audience)
-				),
-
-				signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
-					await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
-				),
-
-				generateOpenid4vciProof: async (nonce: string, audience: string): Promise<{ proof_jwt: string }> => (
-					await keystore.generateOpenid4vciProof(await openPrivateData(), nonce, audience)
-				),
-			};
+		initPassword: async (password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]> => {
+			const { mainKey, keyInfo } = await keystore.initPassword(password);
+			return [await init(mainKey, keyInfo, null), setUserHandleB64u];
 		},
-		[
-			cachedUsers,
-			close,
-			privateDataCache,
-			privateDataJwe,
-			sessionKey,
-			setCachedUsers,
-			setGlobalUserHandleB64u,
-			setPrivateDataCache,
-			setPrivateDataJwe,
-			setSessionKey,
-			setUserHandleB64u,
-		],
-	);
+
+		initPrf: async (
+			credential: PublicKeyCredential,
+			prfSalt: Uint8Array,
+			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+			user: UserData,
+		): Promise<EncryptedContainer> => {
+			const { mainKey, keyInfo } = await keystore.initPrf(credential, prfSalt, promptForPrfRetry);
+			const result = await init(mainKey, keyInfo, user);
+			return result;
+		},
+
+		addPrf: async (
+			credential: PublicKeyCredential,
+			[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
+			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		): Promise<[EncryptedContainer, CommitCallback]> => {
+			const newPrivateData = await keystore.addPrf(privateData, credential, [existingUnwrapKey, wrappedMainKey], promptForPrfRetry);
+			return [
+				newPrivateData,
+				async () => {
+					setPrivateData(newPrivateData);
+				},
+			];
+		},
+
+		deletePrf: (credentialId: Uint8Array): [EncryptedContainer, CommitCallback] => {
+			const newPrivateData = keystore.deletePrf(privateData, credentialId);
+			return [
+				newPrivateData,
+				async () => {
+					setPrivateData(newPrivateData);
+				},
+			];
+		},
+
+		unlockPassword: async (
+			privateData: EncryptedContainer,
+			password: string,
+			user: UserData,
+		): Promise<[EncryptedContainer, CommitCallback] | null> => {
+			const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
+			await finishUnlock(unlockResult, user);
+			return (
+				newPrivateData
+					?
+					[newPrivateData,
+						async () => {
+							setPrivateData(newPrivateData);
+						},
+					]
+					: null
+			);
+		},
+
+		unlockPrf: async (
+			privateData: EncryptedContainer,
+			credential: PublicKeyCredential,
+			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+			user: CachedUser | UserData | null,
+		): Promise<[EncryptedContainer, CommitCallback] | null> => {
+			const [unlockPrfResult, newPrivateData] = await keystore.unlockPrf(privateData, credential, promptForPrfRetry);
+			await finishUnlock(unlockPrfResult, user);
+			return (
+				newPrivateData
+					?
+					[newPrivateData,
+						async () => {
+							setPrivateData(newPrivateData);
+						},
+					]
+					: null
+			);
+		},
+
+		getPrfKeyInfo: (id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined => {
+			return privateData?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
+		},
+
+		getPasswordOrPrfKeyFromSession: async (
+			promptForPassword: () => Promise<string | null>,
+			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		): Promise<[CryptoKey, WrappedKeyInfo]> => {
+			if (privateData && privateData?.prfKeys?.length > 0) {
+				const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateData, null, promptForPrfRetry);
+				return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
+
+			} else if (privateData && privateData?.passwordKey) {
+				const password = await promptForPassword();
+				if (password === null) {
+					throw new Error("Password prompt aborted");
+				} else {
+					try {
+						const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateData, password);
+						return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
+					} catch {
+						throw new Error("Failed to unlock key store", { cause: { errorId: "passwordUnlockFailed" } });
+					}
+				}
+
+			} else {
+				throw new Error("Session not initialized");
+			}
+		},
+
+		upgradePrfKey: async (
+			prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		): Promise<[EncryptedContainer, CommitCallback]> => {
+			if (keystore.isPrfKeyV2(prfKeyInfo)) {
+				throw new Error("Key is already upgraded");
+
+			} else if (privateData) {
+				const newPrivateData = await keystore.upgradePrfKey(privateData, null, prfKeyInfo, promptForPrfRetry);
+				return [
+					newPrivateData,
+					async () => {
+						setPrivateData(newPrivateData);
+					},
+				];
+
+			} else {
+				throw new Error("Session not initialized");
+			}
+		},
+
+		getCachedUsers: (): CachedUser[] => {
+			return [...(cachedUsers || [])];
+		},
+
+		forgetCachedUser: (user: CachedUser): void => {
+			setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
+		},
+
+		signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
+			await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
+		),
+
+		generateOpenid4vciProof: async (nonce: string, audience: string): Promise<[
+			{ proof_jwt: string },
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => (
+			await editPrivateData(async (container) =>
+				await keystore.generateOpenid4vciProof(
+					container,
+					config.DID_KEY_VERSION,
+					nonce,
+					audience,
+				),
+			)
+		),
+	};
 }
