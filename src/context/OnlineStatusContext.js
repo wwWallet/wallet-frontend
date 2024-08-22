@@ -1,12 +1,22 @@
 import React, { useEffect, createContext, useState } from 'react';
 
+
 const OnlineStatusContext = createContext();
 
+function getOnlineStatus() {
+	const downlink = (
+		navigator.connection?.downlink
+		// Ignore downlink if browser doesn't support navigator.connection
+		?? Infinity
+	);
+	return navigator.onLine && downlink > 0;
+}
+
 export const OnlineStatusProvider = ({ children }) => {
-	const [isOnline, setIsOnline] = useState(() => navigator.onLine && (navigator.connection?.downlink ?? 0) !== 0);
+	const [isOnline, setIsOnline] = useState(getOnlineStatus);
 
 	const updateOnlineStatus = () => {
-		setIsOnline(navigator.onLine && (navigator.connection?.downlink ?? 0) !== 0);
+		setIsOnline(getOnlineStatus());
 	};
 
 	useEffect(() => {
