@@ -34,11 +34,6 @@ export interface AuthenticationExtensionsSignSignInputs {
 
 export type COSEKeyRef = BufferSource;
 
-export type WebauthnSignKeyHandle = {
-	credentialId: Uint8Array,
-	keyHandle: Uint8Array,
-}
-
 interface AuthenticationExtensionsSignOutputs {
 	generatedKey?: AuthenticationExtensionsSignGeneratedKey;
 	signature?: ArrayBuffer;
@@ -54,12 +49,12 @@ interface AuthenticationExtensionsSignGeneratedKey {
 declare global {
 	// Polyfill for https://www.w3.org/TR/webauthn-3/#prf-extension
 	export interface AuthenticationExtensionsClientInputs {
-		prf: AuthenticationExtensionsPRFInputs;
+		prf?: AuthenticationExtensionsPRFInputs;
 		sign?: AuthenticationExtensionsSignInputs;
 	}
 
 	export interface AuthenticationExtensionsClientOutputs {
-		prf: AuthenticationExtensionsPRFOutputs;
+		prf?: AuthenticationExtensionsPRFOutputs;
 		sign?: AuthenticationExtensionsSignOutputs;
 	}
 }
