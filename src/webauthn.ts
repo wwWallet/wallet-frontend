@@ -77,6 +77,24 @@ function parseAttestedCredentialData(bytes: Uint8Array): [{ aaguid: Uint8Array, 
 }
 
 export async function importCosePublicKey(cose: cbor.Map): Promise<CryptoKey> {
+	const coseKey = parseCoseKeyEc2Public(cose);
+	const rawBytes = new Uint8Array([
+		0x04,
+		...new Uint8Array(Math.max(0, 32 - coseKey.x.length)),
+		...coseKey.x,
+		...new Uint8Array(Math.max(0, 32 - coseKey.y.length)),
+		...coseKey.y,
+	]);
+	return await crypto.subtle.importKey(
+		"raw",
+		rawBytes,
+		{ name: "ECDSA", namedCurve: "P-256" },
+		true,
+		["verify"],
+	);
+}
+
+export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 	const kty = cose.get(1);
 	switch (kty) {
 
@@ -92,33 +110,32 @@ export async function importCosePublicKey(cose: cbor.Map): Promise<CryptoKey> {
 							const x = cose.get(-2);
 							const y = cose.get(-3);
 							if (x && y) {
-								const rawBytes = new Uint8Array([
-									0x04,
-									...new Uint8Array(Math.max(0, 32 - x.length)),
-									...x,
-									...new Uint8Array(Math.max(0, 32 - y.length)),
-									...y,
-								]);
-								return await crypto.subtle.importKey(
-									"raw",
-									rawBytes,
-									{ name: "ECDSA", namedCurve: "P-256" },
-									true,
-									["verify"],
-								);
+								if (!(x instanceof Uint8Array)) {
+									throw new Error(
+										`Incorrect type of "x (-2)" attribute of EC2 COSE_Key: ${typeof x} ${x}`,
+										{ cause: { x } },
+									);
+								}
+								if (!(y instanceof Uint8Array)) {
+									throw new Error(
+										`Incorrect type of "y (-3)" attribute of EC2 COSE_Key: ${typeof y} ${y}`,
+										{ cause: { y } },
+									);
+								}
+								return { kty, alg, crv, x, y };
 							} else {
-								throw new Error(`Invalid COSE EC2 ES256 key: missing x or y`);
+								throw new Error(`Invalid COSE EC2 ES256 key: missing x or y`, { cause: { x, y } });
 							}
 
 						default:
-							throw new Error(`Unsupported COSE elliptic curve: ${crv}`)
+							throw new Error(`Unsupported COSE elliptic curve: ${crv}`, { cause: { crv } })
 					}
 
 				default:
-					throw new Error(`Unsupported COSE algorithm: ${alg}`)
+					throw new Error(`Unsupported COSE algorithm: ${alg}`, { cause: { alg } })
 			}
 
 		default:
-			throw new Error(`Unsupported COSE key type: ${kty}`)
+			throw new Error(`Unsupported COSE key type: ${kty}`, { cause: { kty } });
 	}
 }
