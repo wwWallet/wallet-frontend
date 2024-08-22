@@ -53,6 +53,7 @@
     "@types/ua-parser-js": "^0.7.38",
     "@types/uuid": "^9.0.2",
     "@types/web": "^0.0.143",
+    "cbor-web": "^9.0.2",
     "vitest": "^1.5.0"
   },
   "scripts": {
