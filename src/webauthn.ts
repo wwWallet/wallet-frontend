@@ -1,4 +1,5 @@
 import * as cbor from 'cbor-web';
+import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from './coseConstants';
 
 
 export type ParsedCOSEKey = {
@@ -18,7 +19,8 @@ export type ParsedCOSEKeyEc2Public = ParsedCOSEKey & {
 };
 
 export type ParsedCOSEKeyArkgPubSeed = ParsedCOSEKey & {
-	kty: -65537,
+	kty: COSE_KTY_ARKG_PUB,
+	alg: COSEAlgorithmIdentifier,
 	pkBl: ParsedCOSEKey,
 	pkKem: ParsedCOSEKey,
 };
@@ -31,11 +33,11 @@ export type ParsedCOSEKeyRef = {
 };
 
 export type ParsedCOSEKeyRefArkgDerivedBase = ParsedCOSEKeyRef & {
-	kty: -65538,
-	kh: Uint8Array,
+	kty: COSE_KTY_ARKG_DERIVED,
 };
 
 export type ParsedCOSEKeyRefArkgDerived = ParsedCOSEKeyRefArkgDerivedBase & {
+	kh: Uint8Array,
 	info: Uint8Array,
 }
 
@@ -103,7 +105,7 @@ export function parseAuthenticatorData(bytes: Uint8Array): {
 
 function parseAttestedCredentialData(bytes: Uint8Array): [
 	{ aaguid: Uint8Array, credentialId: Uint8Array, credentialPublicKey: { [key: number]: any } },
-	{ [extensionId: string]: any }?
+	{ [extensionId: string]: any }?,
 ] {
 	const aaguid = bytes.slice(0, 16);
 	const credentialIdLength = new DataView(bytes.buffer).getUint16(16, false);
@@ -182,7 +184,8 @@ export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 			switch (alg) {
 
 				case -7: // ES256
-				case -25: // ECDH-ES + HKDF-256
+				case -9: // ESP256
+				case -25: // ECDH-ES w/ HKDF
 					const crv = cose.get(-1);
 					switch (crv) {
 
@@ -223,40 +226,45 @@ export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 export function parseCoseKeyArkgPubSeed(cose: cbor.Map): ParsedCOSEKeyArkgPubSeed {
 	const kty = cose.get(1);
 	switch (kty) {
+		case COSE_KTY_ARKG_PUB:
+			const kid = cose.get(2);
+			if (!(kid instanceof Uint8Array)) {
+				throw new Error(
+					`Incorrect type of "kid (2)" attribute of ARKG-pub COSE_Key: ${typeof kid} ${kid}`,
+					{ cause: { kid } },
+				);
+			}
 
-		case -65537: // ARKG-pub-seed https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-cose-key-types-registration
+			let alg = cose.get(3);
+			switch (alg) {
+				case COSE_ALG_ESP256_ARKG:
+					console.warn(`WARNING: Wrong alg (3) value in ARKG-pub COSE_Key: ${alg}; should probably be ${COSE_ALG_ARKG_P256}`);
+					alg = COSE_ALG_ARKG_P256;
+					break;
+
+				case COSE_ALG_ARKG_P256:
+					// OK; do nothing
+					break;
+
+				default:
+					throw new Error("Unsupported alg (3) in ARKG-pub COSE_Key: " + alg)
+			}
+
 			const pkBl = parseCoseKeyEc2Public(cose.get(-1));
 			const pkKem = parseCoseKeyEc2Public(cose.get(-2));
-			return { kty, pkBl, pkKem };
+			return { kty, kid, pkBl, pkKem, alg };
 
 		default:
 			throw new Error(`Unsupported COSE key type: ${kty}`, { cause: { kty } });
 	}
 }
 
-export function parseCoseRefArkgDerivedBase(cose: cbor.Map): ParsedCOSEKeyRefArkgDerivedBase {
-	const kid = cose.get(2);
-	if (!(kid instanceof Uint8Array)) {
-		throw new Error(
-			`Incorrect type of "kid (2)" attribute of ARKG-derived COSE_Key_Ref: ${typeof kid} ${kid}`,
-			{ cause: { kid } },
-		);
-	}
-
-	const kty = cose.get(1);
-	switch (kty) {
-
-		case -65538: // ARKG-derived https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-cose-key-types-registration
-			const kh = cose.get(-1);
-			if (!(kh instanceof Uint8Array)) {
-				throw new Error(
-					`Incorrect type of "kh (-1)" attribute of ARKG-derived COSE_Key_Ref: ${typeof kh} ${kh}`,
-					{ cause: { kh } },
-				);
-			}
-			return { kty, kid, kh };
-
-		default:
-			throw new Error(`Unsupported COSE_Key_Ref type: ${kty}`, { cause: { kty } });
-	}
+export function encodeCoseKeyRefArkgDerived(keyRef: ParsedCOSEKeyRefArkgDerived): ArrayBuffer {
+	return new Uint8Array(cbor.encodeCanonical(new cbor.Map([ // Can't use object literal because that turns integer keys into strings
+		[1, keyRef.kty],
+		[2, keyRef.kid.buffer],
+		[3, keyRef.alg],
+		[-1, keyRef.kh.buffer],
+		[-2, keyRef.info.buffer],
+	]))).buffer;
 }

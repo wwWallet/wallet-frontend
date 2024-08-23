@@ -13,6 +13,7 @@ export default defineConfig({
 		exclude: ['lib/**', 'node_modules/**'],
 		environmentMatchGlobs: [
 			['**/services/*.test.ts', 'node'],
+			['**/arkg/*.test.ts', 'node'],
 			['**', 'jsdom']
 		]
 	},
