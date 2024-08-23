@@ -52,7 +52,7 @@ export interface LocalStorageKeystore {
 	close(): Promise<void>,
 
 	initPassword(password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]>,
-	initPrf(
+	initWebauthn(
 		credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: UserData,
@@ -265,8 +265,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		mainKey: CryptoKey,
 		keyInfo: AsymmetricEncryptedContainerKeys,
 		user: UserData | null,
+		credential: PublicKeyCredentialCreation | null,
 	): Promise<EncryptedContainer> => {
-		const unlocked = await keystore.init(mainKey, keyInfo);
+		const unlocked = await keystore.init(mainKey, keyInfo, credential);
 		await finishUnlock(unlocked, user);
 		const { privateData } = unlocked;
 		return privateData;
@@ -296,14 +297,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[finishUnlock, setPrivateData]
 	);
 
-	const initPrf = useCallback(
+	const initWebauthn = useCallback(
 		async (
 			credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 			user: UserData,
 		): Promise<[PublicKeyCredentialCreation, EncryptedContainer]> => {
-			const { credential, mainKey, keyInfo } = await keystore.initPrf(credentialOrCreateOptions, promptForPrfRetry);
-			const result = await init(mainKey, keyInfo, user);
+			const { credential, mainKey, keyInfo } = await keystore.initWebauthn(credentialOrCreateOptions, promptForPrfRetry);
+			const result = await init(mainKey, keyInfo, user, credential);
 			return [credential, result];
 		},
 		[init]
@@ -312,7 +313,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const initPassword = useCallback(
 		async (password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]> => {
 			const { mainKey, keyInfo } = await keystore.initPassword(password);
-			return [await init(mainKey, keyInfo, null), setUserHandleB64u];
+			return [await init(mainKey, keyInfo, null, null), setUserHandleB64u];
 		},
 		[init, setUserHandleB64u]
 	);
@@ -522,7 +523,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		isOpen,
 		close,
 		initPassword,
-		initPrf,
+		initWebauthn,
 		beginAddPrf,
 		finishAddPrf,
 		deletePrf,
@@ -543,7 +544,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		isOpen,
 		close,
 		initPassword,
-		initPrf,
+		initWebauthn,
 		beginAddPrf,
 		finishAddPrf,
 		deletePrf,

@@ -9,7 +9,7 @@ import * as cbor from 'cbor-web';
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
+import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url, toHex } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
@@ -18,7 +18,11 @@ import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { toArrayBuffer } from "../types/webauthn";
 import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKeyArkgPubSeed, parseCoseRefArkgDerivedBase, ParsedCOSEKeyArkgPubSeed, ParsedCOSEKeyRefArkgDerivedBase } from "../webauthn";
+import { parseAuthenticatorData, parseCoseKeyArkgPubSeed, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
+import * as arkg from "wallet-common/dist/arkg";
+import * as ec from "wallet-common/dist/arkg/ec";
+import * as webauthn from "../webauthn";
+import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED } from "../coseConstants";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -172,9 +176,6 @@ export type WebauthnPrfEncryptionKeyInfoV2 = (
 	WebauthnPrfSaltInfo
 	& WebauthnPrfEncryptionKeyDeriveKeyParams
 	& StaticEncapsulationInfo
-	& {
-		arkgKey?: ArkgSeedKeypair,
-	}
 );
 export function isPrfKeyV2(prfKeyInfo: WebauthnPrfEncryptionKeyInfo): prfKeyInfo is WebauthnPrfEncryptionKeyInfoV2 {
 	return (
@@ -227,19 +228,14 @@ export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | Privat
 	}
 }
 
-type WebauthnSignArkgPrivateSeedRef = {
+type WebauthnSignArkgPublicSeed = {
 	credentialId: Uint8Array,
-	keyRef: ParsedCOSEKeyRefArkgDerivedBase,
+	publicSeed: ParsedCOSEKeyArkgPubSeed,
 }
 
 type WebauthnSignArkgDerivedKeyRef = {
 	credentialId: Uint8Array,
 	keyRef: Uint8Array,
-}
-
-type ArkgSeedKeypair = {
-	publicSeed: ParsedCOSEKeyArkgPubSeed,
-	privateKey: WebauthnSignArkgPrivateSeedRef,
 }
 
 type CredentialKeyPairCommon = {
@@ -248,13 +244,13 @@ type CredentialKeyPairCommon = {
 	alg: string,
 	publicKey: JWK,
 }
-type CredentialKeyPairWithWrappedPrivateKey = CredentialKeyPairCommon & {
+export type CredentialKeyPairWithWrappedPrivateKey = CredentialKeyPairCommon & {
 	wrappedPrivateKey: WrappedPrivateKey,
 }
 type CredentialKeyPairWithExternalPrivateKey = CredentialKeyPairCommon & {
 	externalPrivateKey: WebauthnSignArkgDerivedKeyRef,
 }
-export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey;
+export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey | CredentialKeyPairWithExternalPrivateKey;
 
 type WrappedPrivateKey = {
 	privateKey: BufferSource,
@@ -266,6 +262,7 @@ export type PrivateData = {
 	keypairs: {
 		[kid: string]: CredentialKeyPair,
 	},
+	arkgSeeds?: WebauthnSignArkgPublicSeed[],
 }
 
 
@@ -285,15 +282,15 @@ function makeWebauthnSignFunction(
 							keyHandleByCredential: {
 								[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
 							},
-							data,
+							tbs: await crypto.subtle.digest("SHA-256", data),
 						},
 					},
 				} as AuthenticationExtensionsClientInputs,
 			},
 		}) as PublicKeyCredential;
 		const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
-		if (authData.extensions?.sign?.sig) {
-			const sig = new Uint8Array(authData.extensions.sign.sig);
+		const sig = authData?.extensions?.sign?.get(6);
+		if (sig) {
 			switch (alg) {
 				case "ES256":
 					switch (publicKey.crv) {
@@ -304,6 +301,10 @@ function makeWebauthnSignFunction(
 			console.log("Will not reformat signature for signature algorithm:", alg, "and public key:", publicKey);
 			return sig;
 		} else {
+			console.error(
+				"Failed to sign data. authData:",
+				toHex(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData)),
+			);
 			throw new Error("Failed to sign data");
 		}
 	};
@@ -433,8 +434,12 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 	);
 }
 
-export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey]> {
-	const mainKey = await importMainKey(exportedMainKey);
+export async function openPrivateData(mainKeyOrExportedMainKey: CryptoKey | BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey]> {
+	const mainKey = (
+		(mainKeyOrExportedMainKey instanceof CryptoKey)
+			? mainKeyOrExportedMainKey
+			: await importMainKey(mainKeyOrExportedMainKey)
+	);
 	return [await decryptPrivateData(privateData.jwe, mainKey), mainKey];
 }
 
@@ -638,13 +643,19 @@ async function rewrapPrivateKeys(
 	toKey: CryptoKey,
 ): Promise<PrivateData> {
 	const rewrappedKeys: [string, CredentialKeyPair][] = await Promise.all(
-		Object.entries(privateData.keypairs).map(async ([kid, keypair]): Promise<[string, CredentialKeyPair]> => [
-			kid,
-			{
-				...keypair,
-				wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-			},
-		])
+		Object.entries(privateData.keypairs).map(async ([kid, keypair]): Promise<[string, CredentialKeyPair]> => {
+			if ("wrappedPrivateKey" in keypair) {
+				return [
+					kid,
+					{
+						...keypair,
+						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
+					},
+				];
+			} else {
+				return [kid, keypair];
+			}
+		})
 	);
 	return {
 		...privateData,
@@ -751,10 +762,7 @@ function addWebauthnRegistrationExtensionInputs(options: CredentialCreationOptio
 					},
 					sign: {
 						generateKey: {
-							algorithms: [
-								-65538,
-								-7,
-							],
+							algorithms: [COSE_ALG_ESP256_ARKG],
 						},
 					},
 				}
@@ -889,15 +897,12 @@ async function createPrfKey(
 	const prfKey = await derivePrfKey(prfOutput, deriveKeyParams);
 	const [prfKeypair, prfPrivateKey] = await generateWrappedEncapsulationKeypair(prfKey);
 
-	const arkgKey = parseArkgSeedKeypair(credential);
-
 	const keyInfo: WebauthnPrfEncryptionKeyInfoV2 = {
 		credentialId: new Uint8Array(credential.rawId),
 		transports: (credential.response as AuthenticatorAttestationResponse).getTransports() as AuthenticatorTransport[],
 		prfSalt,
 		...deriveKeyParams,
 		...await encapsulateKey(prfPrivateKey, mainKeyInfo.publicKey, prfKeypair, mainKey),
-		...(arkgKey ? { arkgKey } : {}),
 	};
 	return keyInfo;
 }
@@ -958,7 +963,23 @@ export async function upgradePrfKey(
 		})),
 	};
 
-	return newPrivateData;
+	const newArkgSeed = parseArkgSeedKeypair(credential) ?? parseArkgSeedKeypair(prfCredential);
+	if (newArkgSeed) {
+		const [newNewPrivateData,] = await updatePrivateData(
+			[newPrivateData as AsymmetricEncryptedContainer, mainKey],
+			async (privateData: PrivateData, _updateWrappedPrivateKey) => ({
+				...privateData,
+				arkgSeeds: [
+					...(privateData.arkgSeeds ?? []),
+					newArkgSeed,
+				],
+			}),
+		);
+		return newNewPrivateData;
+
+	} else {
+		return newPrivateData;
+	}
 };
 
 export async function beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> {
@@ -1075,10 +1096,15 @@ export async function unlockPrf(
 export async function init(
 	mainKey: CryptoKey,
 	keyInfo: AsymmetricEncryptedContainerKeys,
+	credential: PublicKeyCredentialCreation | null,
 ): Promise<UnlockSuccess> {
+	const arkgSeed = credential ? parseArkgSeedKeypair(credential) : null;
 	const privateData: EncryptedContainer = {
 		...keyInfo,
-		jwe: await encryptPrivateData({ keypairs: {} }, mainKey),
+		jwe: await encryptPrivateData({
+			keypairs: {},
+			arkgSeeds: (arkgSeed ? [arkgSeed] : []),
+		}, mainKey),
 	};
 	return await unlock(mainKey, privateData);
 }
@@ -1130,7 +1156,7 @@ async function createPublicKeyCredentialIfNeeded(
 	}
 }
 
-export async function initPrf(
+export async function initWebauthn(
 	credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<{
@@ -1197,6 +1223,52 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 	return { didKeyString };
 }
 
+async function generateCredentialKeypair(
+	[encryptedContainer, mainKey]: OpenedContainer,
+): Promise<[
+	CryptoKey,
+	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignArkgDerivedKeyRef }],
+]> {
+	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
+	if (privateData?.arkgSeeds?.length > 0) {
+		const { arkgSeeds } = privateData;
+		if (arkgSeeds.length > 1) {
+			throw new Error("Unimplemented: More than one ARKG seed available");
+		}
+
+		const [arkgSeed] = arkgSeeds;
+		const arkgInstance = arkg.getCoseEcInstance(arkgSeed.publicSeed.alg);
+		const arkgIkm = crypto.getRandomValues(new Uint8Array(32));
+		const arkgCtx = new TextEncoder().encode('wwwallet credential');
+		const [pkPoint, arkgKeyHandle] = await arkgInstance.derivePublicKey(
+			await arkg.ecPublicKeyFromCose(arkgSeed.publicSeed),
+			arkgIkm,
+			arkgCtx,
+		);
+		const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
+		const externalPrivateKey: WebauthnSignArkgDerivedKeyRef = {
+			credentialId: arkgSeed.credentialId,
+			keyRef: new Uint8Array(webauthn.encodeCoseKeyRefArkgDerived({
+				kty: COSE_KTY_ARKG_DERIVED,
+				kid: arkgSeed.publicSeed.kid,
+				alg: COSE_ALG_ESP256_ARKG,
+				kh: new Uint8Array(arkgKeyHandle),
+				info: arkgCtx,
+			})),
+		};
+		return [publicKey, [null /* TODO: Remove assumption that private key will be returned */, { externalPrivateKey }]];
+
+	} else {
+		const { publicKey, privateKey } = await crypto.subtle.generateKey(
+			{ name: "ECDSA", namedCurve: "P-256" },
+			true,
+			['sign']
+		);
+		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
+		return [publicKey, [privateKey, { wrappedPrivateKey }]];
+	}
+}
+
 async function addNewCredentialKeypairs(
 	[privateData, mainKey]: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
@@ -1209,13 +1281,8 @@ async function addNewCredentialKeypairs(
 }> {
 
 	const keypairsWithPrivateKeys = await Promise.all(Array.from({ length: numberOfKeyPairs }).map(async () => {
-		const { publicKey, privateKey } = await crypto.subtle.generateKey(
-			{ name: "ECDSA", namedCurve: "P-256" },
-			true,
-			['sign']
-		);
+		const [publicKey, [privateKey, wrappedPrivateKeyOrRef]] = await generateCredentialKeypair([privateData, mainKey]);
 		const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
-		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
 		const did = await createDid(publicKey, didKeyVersion);
 		const kid = await deriveKid(publicKey, did);
 
@@ -1224,7 +1291,7 @@ async function addNewCredentialKeypairs(
 			did,
 			alg: "ES256",
 			publicKey: publicKeyJwk,
-			wrappedPrivateKey,
+			...wrappedPrivateKeyOrRef,
 		};
 
 		return { kid, keypair, privateKey };
@@ -1289,11 +1356,26 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
-	const { alg, wrappedPrivateKey } = keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
+
+	const { alg } = keypair;
 	const sdJwt = verifiableCredentials[0];
 	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
-	const kbJWT = await new SignJWT({
+
+	const performSignature = async (signJwt: SignJWT, keypair: CredentialKeyPair) => {
+		if ("wrappedPrivateKey" in keypair) {
+			const { wrappedPrivateKey } = keypair;
+			const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
+			return signJwt.sign(privateKey);
+
+		} else {
+			return signJwt.sign(
+				null as jose.KeyLike,
+				{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair) },
+			);
+		}
+	}
+
+	const signJwt = new SignJWT({
 		nonce,
 		aud: audience,
 		sd_hash,
@@ -1302,8 +1384,8 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 		.setProtectedHeader({
 			typ: "kb+jwt",
 			alg: alg
-		})
-		.sign(privateKey);
+		});
+	const kbJWT = await performSignature(signJwt, keypair);
 
 	const jws = sdJwt + kbJWT;
 	return { vpjwt: jws };
@@ -1326,7 +1408,22 @@ export async function generateOpenid4vciProofs(
 
 	const proof_jwts = await Promise.all(keypairs.map(async (keypair, index) => {
 		const privateKey = privateKeys[index];
-		const jws: string = await new SignJWT({
+		const performSignature = async (signJwt: SignJWT, privateKey: CryptoKey, keypair: CredentialKeyPair) => {
+			if (privateKey) {
+				return signJwt.sign(privateKey);
+
+			} else if ("externalPrivateKey" in keypair) {
+				return signJwt.sign(
+					null as jose.KeyLike,
+					{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair) },
+				);
+
+			} else {
+				throw new Error("Failed to determine private signing key for new credential keypair");
+			}
+		}
+
+		const signJwt = new SignJWT({
 			nonce: nonce,
 			aud: audience,
 			iss: issuer,
@@ -1336,8 +1433,9 @@ export async function generateOpenid4vciProofs(
 				alg: keypair.alg,
 				typ: "openid4vci-proof+jwt",
 				jwk: { ...keypair.publicKey, kid: keypair.kid, key_ops: ['verify'] } as JWK,
-			})
-			.sign(privateKey);
+			});
+
+		const jws = await performSignature(signJwt, privateKey, keypair);
 		return jws;
 	}));
 
@@ -1455,15 +1553,12 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	return { deviceResponseMDoc };
 }
 
-function parseArkgSeedKeypair(credential: PublicKeyCredential): ArkgSeedKeypair | null {
+function parseArkgSeedKeypair(credential: PublicKeyCredential): WebauthnSignArkgPublicSeed | null {
 	const generatedKey = credential.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		return {
+			credentialId: new Uint8Array(credential.rawId),
 			publicSeed: parseCoseKeyArkgPubSeed(cbor.decodeFirstSync(generatedKey.publicKey)),
-			privateKey: {
-				credentialId: new Uint8Array(credential.rawId),
-				keyRef: parseCoseRefArkgDerivedBase(cbor.decodeFirstSync(generatedKey.keyHandle)),
-			},
 		};
 	} else {
 		return null;
