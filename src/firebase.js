@@ -7,18 +7,24 @@ import * as config from './config';
 let messaging = null;
 let supported = false;
 
+export const notificationApiIsSupported = () =>
+	'Notification' in window &&
+	'serviceWorker' in navigator &&
+	'PushManager' in window
+	
 const initializeFirebase = async () => {
-	supported = await isSupported();
-	if (supported) {
-		initializeApp(config.FIREBASE);
-		messaging = getMessaging();
+	if (notificationApiIsSupported()) {
+		supported = await isSupported();
+		if (supported) {
+			initializeApp(config.FIREBASE);
+			messaging = getMessaging();
+		}
 	}
 	console.log("Supported", supported);
-
 };
 
 export async function register() {
-	if ('serviceWorker' in navigator) {
+	if (supported && 'serviceWorker' in navigator) {
 		try {
 			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/notifications/' });
 			console.log('App: Firebase Messaging Service Worker registered! Scope is:', registration.scope);
@@ -65,6 +71,9 @@ const requestForToken = async () => {
 
 
 const reRegisterServiceWorkerAndGetToken = async () => {
+	if (!supported) {
+		return null;
+	}
 	if ('serviceWorker' in navigator) {
 		try {
 			// Re-register the service worker
@@ -91,7 +100,7 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 };
 
 export const fetchToken = async () => {
-	if (messaging) {
+	if (supported && messaging) {
 		const token = await requestForToken();
 		console.log('token:', token);
 		if (token) {
@@ -123,7 +132,7 @@ export const onMessageListener = () =>
 
 const initializeMessaging = async () => {
 	// Check for service worker
-	if ('serviceWorker' in navigator) {
+	if (supported && 'serviceWorker' in navigator) {
 		try {
 			const registration = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
 			if (registration) {

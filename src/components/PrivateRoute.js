@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useApi } from '../api';
-import { fetchToken } from '../firebase';
+import { fetchToken, notificationApiIsSupported } from '../firebase';
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from '../components/useStorage';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import SessionContext from '../context/SessionContext';
+
 
 const PrivateRoute = ({ children }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -24,9 +25,14 @@ const PrivateRoute = ({ children }) => {
 
 	useEffect(() => {
 		const requestNotificationPermission = async () => {
-			console.log(Notification.permission);
+			if (!notificationApiIsSupported()) {
+				setIsPermissionGranted(false);
+				setTokenSentInSession(false);
+				return;
+			}
 
 			try {
+				console.log(Notification.permission);
 				if (Notification.permission !== 'granted') {
 					setTokenSentInSession(false);
 					setIsPermissionGranted(false);
