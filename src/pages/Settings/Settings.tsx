@@ -13,6 +13,7 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import GetButton from '../../components/Buttons/GetButton';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
+import { H1, H2, H3 } from '../../components/Heading';
 
 interface OnlineStatusContextType {
 	isOnline: boolean | null;
@@ -836,13 +837,11 @@ const Settings = () => {
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
-						<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemSettings')}</h1>
-						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+						<H1 heading={t('common.navItemSettings')} />
 						<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageSettings.description')}</p>
 
 						<div className="my-2 py-2">
-							<h1 className="text-lg mt-2 mb-2 font-bold text-primary dark:text-primary-light">{t('pageSettings.title.loggedInPasskey')}</h1>
-							<hr className="mb-2 border-t border-primary/80 dark:border-primary-light/80" />
+							<H2 heading={t('pageSettings.title.loggedInPasskey')} />
 							{loggedInPasskey && (
 								<WebauthnCredentialItem
 									key={loggedInPasskey.id}
@@ -855,36 +854,28 @@ const Settings = () => {
 							)}
 						</div>
 						<div className="mt-2 mb-2 py-2">
-							<div className="flex justify-between items-center">
-								<h1 className="text-lg mt-2 mb-2 font-bold text-primary dark:text-primary-light">{t('pageSettings.title.manageAcount')}</h1>
-								<div className='flex'>
-									<UnlockMainKey
-										unlocked={unlocked}
-										onLock={() => {
-											setUnwrappingKey(null);
-											setWrappedMainKey(null);
-										}}
-										onUnlock={(unwrappingKey, wrappedMainKey) => {
-											setUnwrappingKey(unwrappingKey);
-											setWrappedMainKey(wrappedMainKey);
-										}}
-									/>
-								</div>
-							</div>
-							<hr className="mb-2 border-t border-primary/80 dark:border-primary-light/80" />
+							<H2 heading={t('pageSettings.title.manageAcount')}>
+								<UnlockMainKey
+									unlocked={unlocked}
+									onLock={() => {
+										setUnwrappingKey(null);
+										setWrappedMainKey(null);
+									}}
+									onUnlock={(unwrappingKey, wrappedMainKey) => {
+										setUnwrappingKey(unwrappingKey);
+										setWrappedMainKey(wrappedMainKey);
+									}}
+								/>
+							</H2>
 							<div className='mb-2'>
 								<div className="pt-4">
-									<div className="flex justify-between items-center">
-										<h1 className="font-semibold text-gray-700 dark:text-gray-400 my-2">{t('pageSettings.title.manageOtherPasskeys')}</h1>
-										<div className='flex'>
-											<WebauthnRegistation
-												unwrappingKey={unwrappingKey}
-												wrappedMainKey={wrappedMainKey}
-												onSuccess={() => refreshData()}
-											/>
-										</div>
-									</div>
-									<hr className="mb-2 border-t border-gray-700/80 dark:border-gray-400/80" />
+									<H3 heading={t('pageSettings.title.manageOtherPasskeys')}>
+										<WebauthnRegistation
+											unwrappingKey={unwrappingKey}
+											wrappedMainKey={wrappedMainKey}
+											onSuccess={() => refreshData()}
+										/>
+									</H3>
 									<ul className="mt-4">
 
 										{userData.webauthnCredentials
@@ -909,8 +900,7 @@ const Settings = () => {
 								</div>
 
 								<div className="pt-4">
-									<h1 className="font-semibold text-gray-700 dark:text-gray-400 my-2">{t('pageSettings.deleteAccount.title')}</h1>
-									<hr className="mb-2 border-t border-gray-700/80 dark:border-gray-400/80" />
+									<H3 heading={t('pageSettings.deleteAccount.title')} />
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>

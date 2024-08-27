@@ -14,6 +14,7 @@ import { formatDate } from '../../functions/DateFormat';
 import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
 
 const History = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -84,8 +85,7 @@ const History = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemHistory')}</h1>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<H1 heading={t('common.navItemHistory')} />
 				<p className="italic pd-2 text-gray-700 dark:text-gray-300">
 					{t('pageHistory.description')}
 				</p>
@@ -120,13 +120,13 @@ const History = () => {
 					overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 				>
 					{/* Popup content */}
-					<div class="flex items-start justify-between mb-2 dark:border-gray-600">
+					<div className="flex items-start justify-between mb-2 dark:border-gray-600">
 						<h2 className="right text-lg font-bold text-primary dark:text-white">
 							{t('pageHistory.popupTitle')}
 						</h2>
-						<button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => { setImageModalOpen(false); setCurrentSlide(1); }}>
-							<svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-								<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+						<button type="button" className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => { setImageModalOpen(false); setCurrentSlide(1); }}>
+							<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+								<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
 							</svg>
 						</button>
 					</div>
@@ -135,53 +135,47 @@ const History = () => {
 					{/* Display presented credentials */}
 					<div className=" py-2">
 						<Slider ref={sliderRef} {...settings}>
-							{matchingCredentials.map((vcEntity, index) => (
-								<>
-									<React.Fragment key={vcEntity.id}>
-										{(currentSlide === index + 1 ? 'button' : 'div')
-											.split()
-											.map(Tag => (
-												<>
-													<div
-														className="relative rounded-xl xl:w-full md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg w-full mb-2"
-														aria-label={`${vcEntity.friendlyName}`}
-													>
-														<CredentialImage credential={vcEntity} className={"w-full h-full object-cover rounded-xl"} />
-													</div>
-													<div className="flex items-center justify-end">
-														<span className="mr-4 dark:text-white">{currentSlide} of {matchingCredentials.length}</span>
-														<Tag
-															onClick={() => sliderRef.current.slickPrev()}
-															aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
-															title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
-															disabled={currentSlide === 1}
-															className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
-														>
-															<BiLeftArrow size={22} />
-														</Tag>
-														<Tag
-															onClick={() => sliderRef.current.slickNext()}
-															aria-label={currentSlide === matchingCredentials.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
-															title={currentSlide === matchingCredentials.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
-															disabled={currentSlide === matchingCredentials.length}
-															className={`${currentSlide === matchingCredentials.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-primary-light-hover dark:hover:text-gray-300'}`}
-														>
-															<BiRightArrow size={22} />
-														</Tag>
-													</div>
-												</>
-											))}
+							{matchingCredentials.map((vcEntity, index) => {
+								const Tag = currentSlide === index + 1 ? 'button' : 'div';
+								return (
+									<React.Fragment key={vcEntity}>
+										<div
+											className="relative rounded-xl xl:w-full md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg w-full mb-2"
+										>
+											<CredentialImage credential={vcEntity} className={"w-full h-full object-cover rounded-xl"} />
+										</div>
+										<div className="flex items-center justify-end">
+											<span className="mr-4 dark:text-white">{currentSlide} of {matchingCredentials.length}</span>
+											<Tag
+												onClick={() => sliderRef.current.slickPrev()}
+												aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
+												title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
+												disabled={currentSlide === 1}
+												className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+											>
+												<BiLeftArrow size={22} />
+											</Tag>
+											<Tag
+												onClick={() => sliderRef.current.slickNext()}
+												aria-label={currentSlide === matchingCredentials.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
+												title={currentSlide === matchingCredentials.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
+												disabled={currentSlide === matchingCredentials.length}
+												className={`${currentSlide === matchingCredentials.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-primary-light-hover dark:hover:text-gray-300'}`}
+											>
+												<BiRightArrow size={22} />
+											</Tag>
+										</div>
+
+										<div className='h-[30vh]'>
+
+											<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-[30vh] overflow-y-auto rounded-md custom-scrollbar my-2 bg-gray-800" opacity-100' : 'max-h-0 opacity-0'}`}>
+												<CredentialInfo credential={vcEntity} />
+											</div>
+										</div>
 
 									</React.Fragment>
-									<div className='h-[30vh]'>
-
-										<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-[30vh] overflow-y-auto rounded-md custom-scrollbar my-2 bg-gray-800" opacity-100' : 'max-h-0 opacity-0'}`}>
-											<CredentialInfo credential={vcEntity} />
-										</div>
-									</div>
-
-								</>
-							))}
+								);
+							})}
 						</Slider>
 					</div>
 				</Modal>

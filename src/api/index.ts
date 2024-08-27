@@ -56,7 +56,7 @@ export interface BackendApi {
 	login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
 	signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
 	getAllVerifiers(): Promise<Verifier[]>,
-	getAllPresentations(): Promise<AxiosResponse>,
+	getAllPresentations(): Promise<{ vp_list: any[] }>,
 	initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }>,
 
 	loginWebauthn(
@@ -343,7 +343,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}
 			}
 
-			async function getAllPresentations(): Promise<AxiosResponse> {
+			async function getAllPresentations(): Promise<{ vp_list: any[] }> {
 				try {
 					const result = await get('/storage/vp');
 					return result.data; // Return the Axios response.
