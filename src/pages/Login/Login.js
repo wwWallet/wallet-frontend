@@ -107,6 +107,7 @@ const WebauthnSignupLogin = ({
 	isLogin,
 	isSubmitting,
 	setIsSubmitting,
+	isLoginCache,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { keystore } = useContext(SessionContext);
@@ -400,7 +401,7 @@ const WebauthnSignupLogin = ({
 								</FormInputRow>
 							</>)}
 
-						{isLogin && (
+						{isLoginCache && (
 							<ul className="overflow-y-auto max-h-24 p-2 custom-scrollbar">
 								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser) => (
 									<li
@@ -438,28 +439,26 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
-						{isLogin && cachedUsers?.length > 0 && <SeparatorLine className="my-4" />}
-
-						<GetButton
-							type="submit"
-							content={
-								<>
-									<GoPasskeyFill className="inline text-xl mr-2" />
-									{isSubmitting
-										? t('loginSignup.submitting')
-										: isLogin
-											? cachedUsers?.length > 0
-												? t('loginSignup.loginOtherPasskey')
-												: t('loginSignup.loginPasskey')
-											: t('loginSignup.signupPasskey')
-									}
-								</>
-							}
-							variant="primary"
-							disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
-							additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
-							title={!isLogin && !isOnline && t("common.offlineTitle")}
-						/>
+						{!isLoginCache && (
+							<GetButton
+								type="submit"
+								content={
+									<>
+										<GoPasskeyFill className="inline text-xl mr-2" />
+										{isSubmitting
+											? t('loginSignup.submitting')
+											: isLogin
+												? t('loginSignup.loginPasskey')
+												: t('loginSignup.signupPasskey')
+										}
+									</>
+								}
+								variant="primary"
+								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
+								additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+								title={!isLogin && !isOnline && t("common.offlineTitle")}
+							/>
+						)}
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
 				)
@@ -489,6 +488,7 @@ const Login = () => {
 	const nodeRef = useRef(null);
 
 	const navigate = useNavigate();
+	const [isLoginCache, setIsLoginCache] = useState(keystore.getCachedUsers().length > 0);
 
 	useEffect(() => {
 		if (isLoggedIn) {
@@ -667,7 +667,7 @@ const Login = () => {
 								<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
 									<CheckBrowserSupport.WarningPortal>
 										<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-											{isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+											{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 										</h1>
 										<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 											{isOnline ? (
@@ -682,7 +682,7 @@ const Login = () => {
 												{t('loginSignup.messageOffline')}
 											</p>
 										)}
-										{config.LOGIN_WITH_PASSWORD ?
+										{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
 											<>
 												<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
 													{error && <div className="text-red-500">{error}</div>}
@@ -740,19 +740,32 @@ const Login = () => {
 											isLogin={isLogin}
 											isSubmitting={isSubmitting}
 											setIsSubmitting={setIsSubmitting}
+											isLoginCache={isLoginCache}
 										/>
 
-										<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-											{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-											<a
-												href={isLogin && isOnline ? "/" : ""}
-												className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
-												title={`${isOnline === false && t('common.offlineTitle')}`}
-												onClick={toggleForm}
-											>
-												{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-											</a>
-										</p>
+										{!isLoginCache ? (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+												{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
+												<a
+													href={isLogin && isOnline ? "/" : ""}
+													className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+													title={`${isOnline === false && t('common.offlineTitle')}`}
+													onClick={toggleForm}
+												>
+													{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
+												</a>
+											</p>
+										) : (
+											<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
+												<a
+													className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+													onClick={() => setIsLoginCache(false)}
+												>
+													{t('loginSignup.useOtherAccount')}
+												</a>
+											</p>
+										)}
+
 									</CheckBrowserSupport.WarningPortal>
 								</div>
 							</div>
