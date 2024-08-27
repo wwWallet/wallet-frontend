@@ -14,6 +14,7 @@ import { formatDate } from '../../functions/DateFormat';
 import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
 
 const History = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -84,8 +85,7 @@ const History = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemHistory')}</h1>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<H1 heading={t('common.navItemHistory')} />
 				<p className="italic pd-2 text-gray-700 dark:text-gray-300">
 					{t('pageHistory.description')}
 				</p>

@@ -6,6 +6,8 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { useApi } from '../../api';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
+import { H1 } from '../../components/Heading';
+
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {
@@ -113,11 +115,9 @@ const Verifiers = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<div className="flex justify-between items-center">
-					<h1 className="text-2xl mb-2 font-bold text-primary dark:text-white">{t('common.navItemSendCredentials')}</h1>
+				<H1 heading={t('common.navItemSendCredentials')}>
 					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</div>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				</H1>
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageSendCredentials.description')}</p>
 
 				<div className="my-4">
