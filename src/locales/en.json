@@ -67,9 +67,9 @@
 		"learnMoreAboutLaunchpadAriaLabel": "Discover our Launchpad",
 		"learnMoreAboutScenariosAriaLabel": "Learn more about sample scenarios",
 		"login": "Login",
+		"loginCache": "Choose your account",
 		"loginAsUser": "Log in as {{name}}",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
-		"loginOtherPasskey": "Login with other passkey",
 		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
 		"messageOffline": "You are offline. Some features may not be available.",
@@ -104,6 +104,7 @@
 		"submitting": "Submitting...",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
+		"useOtherAccount": "Use other Account",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
 	},
