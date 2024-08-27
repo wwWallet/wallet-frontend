@@ -11,6 +11,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { useApi } from '../api';
 import BottomNav from './BottomNav';
 import OnlineStatusContext from '../context/OnlineStatusContext';
+import { notificationApiIsSupported } from '../firebase';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
@@ -91,7 +92,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 				{/* Content */}
 				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
 
-					{((isOnline === false && isMessageOfflineVisible === false)) || (isOnline === true && isPermissionGranted != null && ((!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && tokenSentInSession === false && isMessageGrantedVisible === false))) ? (
+					{((isOnline === false && isMessageOfflineVisible === false)) || (isOnline === true && isPermissionGranted != null && notificationApiIsSupported() && ((!isPermissionGranted && isMessageNoGrantedVisible === false) || (isPermissionGranted && tokenSentInSession === false && isMessageGrantedVisible === false))) ? (
 						<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
 							<div className="mr-4 text-orange-500">
 								<FaExclamationTriangle size={24} />
