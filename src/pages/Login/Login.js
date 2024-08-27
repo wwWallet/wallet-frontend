@@ -313,8 +313,8 @@ const WebauthnSignupLogin = ({
 												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">{t('registerPasskey.messageDone')}</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
-														? 'To finish unlocking the wallet, please authenticate with your passkey once more.'
-														: 'To finish setting up your wallet, please authenticate with your passkey once more.'
+														? t('registerPasskey.authOnceMoreLogin')
+														: t('registerPasskey.authOnceMoreSignup')
 													}
 												</p>
 											</>
