@@ -132,7 +132,7 @@ const suites: { [suiteId in SuiteId]: SuiteParams } = {
 
 export type HashToCurveSuite = {
 	suiteId: SuiteId,
-	curve: Curve,
+	suiteParams: SuiteParams,
 
 	/**
 	A function hashing to the coordinate field of the curve.
@@ -169,7 +169,7 @@ export function hashToCurve(suiteId: SuiteId, DST: BufferSource): HashToCurveSui
 	const suite = suites[suiteId];
 	return {
 		suiteId,
-		curve: suite.curve,
+		suiteParams: suite,
 		hashToCoordinateField: make_hash_to_field({ ...suite, DST }),
 		hashToScalarField: make_hash_to_field({
 			...suite,
