@@ -30,7 +30,7 @@ USER node
 FROM builder-base AS test
 
 COPY . .
-RUN npm run test
+RUN SLOW_TESTS=true npm run test
 
 
 FROM builder-base AS builder
