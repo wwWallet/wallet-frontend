@@ -1,6 +1,8 @@
 /// Implementation of the hash_to_field function of RFC 9380
 /// https://www.rfc-editor.org/rfc/rfc9380#name-hash_to_field-implementatio
 
+import { Curve, curveSecp256r1, curveSecp521r1 } from "./ec";
+
 
 function toU8(b: BufferSource): Uint8Array {
 	if (b instanceof Uint8Array) {
@@ -98,6 +100,9 @@ function make_hash_to_field({ DST, p, m, L, expand_message }: HashToFieldParams)
 }
 
 type SuiteParams = {
+	/** Parameters of the elliptic curve. */
+	curve: Curve,
+
 	/** The characteristic of the curve coordinate field. */
 	p: bigint,
 
@@ -125,6 +130,7 @@ export type SuiteId = (
 /** Suites defined in https://www.rfc-editor.org/rfc/rfc9380#name-suites-for-hashing */
 const suites: { [suiteId in SuiteId]: SuiteParams } = {
 	'P256_XMD:SHA-256_SSWU_RO_': {
+		curve: curveSecp256r1(),
 		p: BigInt('0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff'),
 		m: 1,
 		prime_subgroup_order: BigInt('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551'),
@@ -137,6 +143,7 @@ const suites: { [suiteId in SuiteId]: SuiteParams } = {
 	},
 
 	'P521_XMD:SHA-512_SSWU_RO_': {
+		curve: curveSecp521r1(),
 		p: BigInt('0x01ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'),
 		m: 1,
 		prime_subgroup_order: BigInt('0x01fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409'),
@@ -150,8 +157,9 @@ const suites: { [suiteId in SuiteId]: SuiteParams } = {
 };
 
 
-export type HashToCurveFunctions = {
+export type HashToCurveSuite = {
 	suiteId: SuiteId,
+	curve: Curve,
 
 	/**
 	A function hashing to the coordinate field of the curve.
@@ -184,13 +192,15 @@ export type HashToCurveFunctions = {
 	@see https://www.rfc-editor.org/rfc/rfc9380#name-hashing-to-a-finite-field
 	@see https://www.rfc-editor.org/rfc/rfc9380#name-suites-for-hashing
 */
-export function hashToCurve(suiteId: SuiteId, DST: BufferSource): HashToCurveFunctions {
+export function hashToCurve(suiteId: SuiteId, DST: BufferSource): HashToCurveSuite {
+	const suite = suites[suiteId];
 	return {
 		suiteId,
-		hashToCoordinateField: make_hash_to_field({ ...suites[suiteId], DST }),
+		curve: suite.curve,
+		hashToCoordinateField: make_hash_to_field({ ...suite, DST }),
 		hashToScalarField: make_hash_to_field({
-			...suites[suiteId],
-			p: suites[suiteId].prime_subgroup_order,
+			...suite,
+			p: suite.prime_subgroup_order,
 			DST,
 		}),
 	};
