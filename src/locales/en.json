@@ -49,6 +49,7 @@
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
+		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
 		"choosePasskeyUsername": "What should we call you?",
 		"confirmPasswordLabel": "Confirm Password",
@@ -237,8 +238,6 @@
 	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
-		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
-		"authOnceMoreSignup": "To finish setting up your wallet, please authenticate with your passkey once more.",
 		"giveNickname": "Give this credential a nickname:",
 		"messageSuccess": "Success!",
 		"messageDone": "Almost done!",
