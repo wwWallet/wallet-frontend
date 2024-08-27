@@ -1,9 +1,12 @@
+import { concat, fromBase64Url, I2OSP, OS2IP, toBase64Url, toU8 } from "../util";
+
 export type Curve = {
 	a: bigint,
 	b: bigint,
 	modulus: bigint,
 	order: bigint,
 	generator: Point,
+	webCryptoName: string,
 };
 
 export type NonzeroPoint = { x: bigint, y: bigint };
@@ -11,7 +14,7 @@ export type ZeroPoint = "zero";
 export type Point = ZeroPoint | NonzeroPoint;
 
 
-function newCurve(a: bigint, b: bigint, modulus: bigint, order: bigint, generator: NonzeroPoint): Curve {
+function newCurve(a: bigint, b: bigint, modulus: bigint, order: bigint, generator: NonzeroPoint, webCryptoName: string): Curve {
 	const discriminant: bigint = 4n * a * a * a + 27n * b;
 	if (discriminant === 0n) {
 		throw Error("Discriminant is zero");
@@ -22,6 +25,7 @@ function newCurve(a: bigint, b: bigint, modulus: bigint, order: bigint, generato
 			modulus,
 			order,
 			generator,
+			webCryptoName,
 		};
 	}
 }
@@ -39,6 +43,7 @@ export function curveSecp256r1(): Curve {
 			x: BigInt("0x6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296"),
 			y: BigInt("0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5"),
 		},
+		"P-256",
 	);
 }
 
@@ -55,6 +60,7 @@ export function curveSecp521r1(): Curve {
 			x: BigInt("0x00c6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66"),
 			y: BigInt("0x011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650"),
 		},
+		"P-256",
 	);
 }
 
@@ -129,6 +135,14 @@ export function isOnCurve(crv: Curve, p: Point): boolean {
 	}
 }
 
+export function assertIsOnCurve(crv: Curve, p: Point): Point {
+	if (isOnCurve(crv, p)) {
+		return p;
+	} else {
+		throw new Error("Point is not on curve");
+	}
+}
+
 export function pointEquals(p: Point, q: Point): boolean {
 	return (p === "zero" && q === "zero")
 		|| (
@@ -195,6 +209,64 @@ export function vartimeMul(crv: Curve, p: Point, k: bigint): Point {
 	return result;
 }
 
+export async function publicKeyFromPoint(alg: string, namedCurve: "P-256", p: Point): Promise<CryptoKey> {
+	if (p === "zero") {
+		throw new Error("Invalid public key: " + p);
+	}
+
+	const L = (namedCurve === "P-256" ? 32 : null);
+	if (L === null) {
+		throw new Error("Unknown curve: " + namedCurve);
+	}
+
+	return await crypto.subtle.importKey(
+		"raw",
+		concat(new Uint8Array([0x04]), I2OSP(p.x, L), I2OSP(p.y, L)),
+		{ name: alg, namedCurve },
+		true,
+		["verify"],
+	);
+}
+
+export async function privateKeyFromScalar(alg: string, namedCurve: "P-256", d: bigint, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey> {
+	if (d === 0n) {
+		throw new Error("Invalid secret key");
+	}
+
+	const L = (namedCurve === "P-256" ? 32 : null);
+	if (L === null) {
+		throw new Error("Unknown curve: " + namedCurve);
+	}
+
+	const crv = (namedCurve === "P-256" ? curveSecp256r1() : null);
+	if (crv === null) {
+		throw new Error("Unknown curve: " + namedCurve);
+	}
+
+	const p = vartimeMul(crv, crv.generator, d);
+	if (p === "zero") {
+		throw new Error("Invalid public key: " + p);
+	}
+
+	const jwk = {
+		kty: "EC",
+		alg: "ES256",
+		crv: namedCurve,
+		x: toBase64Url(I2OSP(p.x, L)),
+		y: toBase64Url(I2OSP(p.y, L)),
+		d: toBase64Url(I2OSP(d, L)),
+	};
+	return await crypto.subtle.importKey("jwk", jwk, { name: alg, namedCurve }, extractable, keyUsages);
+}
+
+export async function pointFromPublicKey(crv: Curve, pubk: CryptoKey): Promise<Point> {
+	const pk = await crypto.subtle.exportKey("jwk", pubk);
+	return assertIsOnCurve(crv, {
+		x: OS2IP(fromBase64Url(pk.x)),
+		y: OS2IP(fromBase64Url(pk.y)),
+	});
+}
+
 
 import { assert, describe, it, test } from "vitest";
 
@@ -203,23 +275,6 @@ export function tests() {
 	// to the test module
 
 	const SLOW_TESTS: boolean = process.env.SLOW_TESTS === 'true';
-
-	function toU8(b: BufferSource): Uint8Array {
-		if (b instanceof Uint8Array) {
-			return b;
-		} else if (b instanceof ArrayBuffer) {
-			return new Uint8Array(b);
-		} else {
-			return new Uint8Array(b.buffer);
-		}
-	}
-
-	function OS2IP(binary: BufferSource): bigint {
-		return toU8(binary).reduce(
-			(result: bigint, b: number) => (result << 8n) + BigInt(b),
-			0n,
-		);
-	}
 
 	/** INSECURELY generate a random number modulo the given modulus. */
 	function randomBigint(modulus: bigint): bigint {
@@ -247,7 +302,7 @@ export function tests() {
 	}
 
 	describe("EC", () => {
-		const testCurve = { name: "test", ...newCurve(0n, 7n, 37n, 3n * 13n, "zero" as unknown as NonzeroPoint) };
+		const testCurve = { name: "test", ...newCurve(0n, 7n, 37n, 3n * 13n, "zero" as unknown as NonzeroPoint, "") };
 		const realCurves = [
 			{ name: "secp256r1", ...curveSecp256r1() },
 			{ name: "secp521r1", ...curveSecp521r1() },
