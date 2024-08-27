@@ -21,7 +21,7 @@ FROM builder-base AS test
 
 COPY . .
 COPY .env.prod .env
-RUN npm run vitest
+RUN SLOW_TESTS=true npm run vitest
 
 
 FROM builder-base AS builder
