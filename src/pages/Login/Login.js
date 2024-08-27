@@ -108,6 +108,7 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 	isLoginCache,
+	setIsLoginCache,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { keystore } = useContext(SessionContext);
@@ -272,6 +273,7 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onForgetCachedUser = (cachedUser) => {
+		setIsLoginCache(keystore.getCachedUsers().length - 1 > 0);
 		keystore.forgetCachedUser(cachedUser);
 	};
 
@@ -741,6 +743,7 @@ const Login = () => {
 											isSubmitting={isSubmitting}
 											setIsSubmitting={setIsSubmitting}
 											isLoginCache={isLoginCache}
+											setIsLoginCache={setIsLoginCache}
 										/>
 
 										{!isLoginCache ? (
