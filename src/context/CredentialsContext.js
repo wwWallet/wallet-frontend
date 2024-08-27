@@ -57,8 +57,7 @@ export const CredentialsProvider = ({ children }) => {
 			}
 
 			attempts += 1;
-			const sessionState = JSON.parse(sessionStorage.getItem('sessionState'));
-			const userId = sessionState.uuid;
+			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
 			const previousSize = previousVcList.vc_list.length;
 
@@ -81,8 +80,7 @@ export const CredentialsProvider = ({ children }) => {
 
 	const getData = useCallback(async () => {
 		try {
-			const sessionState = JSON.parse(sessionStorage.getItem('sessionState'));
-			const userId = sessionState.uuid;
+			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
 			const previousSize = previousVcList.vc_list.length;
 			const vcEntityList = await fetchVcData();
