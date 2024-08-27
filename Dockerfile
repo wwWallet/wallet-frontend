@@ -12,7 +12,7 @@ RUN --mount=type=secret,id=npmrc,required=true,target=./.npmrc,uid=1000 \
 FROM builder-base AS test
 
 COPY . .
-RUN npm run vitest
+RUN SLOW_TESTS=true npm run vitest
 
 
 FROM builder-base AS builder
