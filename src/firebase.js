@@ -11,7 +11,7 @@ export const notificationApiIsSupported = () =>
 	'Notification' in window &&
 	'serviceWorker' in navigator &&
 	'PushManager' in window
-	
+
 const initializeFirebase = async () => {
 	if (notificationApiIsSupported()) {
 		supported = await isSupported();
