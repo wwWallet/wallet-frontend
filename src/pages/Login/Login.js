@@ -764,7 +764,7 @@ const Login = () => {
 										) : (
 											<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
 												<a
-													className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
+													className="font-medium text-primary hover:underline dark:text-primary-light"
 													onClick={() => setIsLoginCache(false)}
 												>
 													{t('loginSignup.useOtherAccount')}
