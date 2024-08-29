@@ -175,7 +175,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 				false,
 				["sign"],
 			);
-			const t = toU8(await crypto.subtle.sign("HMAC", mk, info_sub)).slice(0, 16);
+			const t = toU8(await crypto.subtle.sign("HMAC", mk, c_prime)).slice(0, 16);
 
 			const k = await crypto.subtle.deriveBits(
 				{
@@ -214,7 +214,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 				["sign"],
 			);
 
-			const t_prime = new Uint8Array(await crypto.subtle.sign("HMAC", mk, info_sub)).slice(0, 16);
+			const t_prime = new Uint8Array(await crypto.subtle.sign("HMAC", mk, c_prime)).slice(0, 16);
 			if (byteArrayEquals(t, t_prime)) {
 				const k = await crypto.subtle.deriveBits(
 					{
