@@ -273,14 +273,27 @@ function arkgEcdhKem(
 }
 
 /**
-	The ARKG instance `ARKG-P256ADD-ECDH`.
-
 	@see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-arkg-p256add-ecdh
 	*/
-export function arkgP256addEcdh(): ArkgInstance<ec.Point, bigint, CryptoKey, CryptoKey, ec.Point, bigint> {
-	const kem = arkgEcdhKem("P-256", "SHA-256", new TextEncoder().encode('ARKG-P256ADD-ECDH'));
-	const bl = arkgBlEcAdd("P256_XMD:SHA-256_SSWU_RO_", new TextEncoder().encode('ARKG-P256ADD-ECDH'));
-	return arkg(bl, kem);
+export type EcInstanceId = (
+	'ARKG-P256ADD-ECDH'
+);
+
+// Declare as factory functions instead of a global variable registry to prevent callers from overriding internal properties
+const ecInstances: { [id in EcInstanceId]: () => ArkgInstance<ec.Point, bigint, CryptoKey, CryptoKey, ec.Point, bigint> } = {
+	'ARKG-P256ADD-ECDH': () => arkg(
+		arkgBlEcAdd("P256_XMD:SHA-256_SSWU_RO_", new TextEncoder().encode('ARKG-P256ADD-ECDH')),
+		arkgEcdhKem("P-256", "SHA-256", new TextEncoder().encode('ARKG-P256ADD-ECDH')),
+	),
+};
+
+/**
+	Instantiate an EC-based ARKG instance.
+
+	@see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-concrete-arkg-instantiation
+	*/
+export function getEcInstance(id: EcInstanceId): ArkgInstance<ec.Point, bigint, CryptoKey, CryptoKey, ec.Point, bigint> {
+	return ecInstances[id]();
 }
 
 
@@ -322,19 +335,19 @@ export function tests() {
 
 	describe("ARKG", async () => {
 		const instances: {
-			instanceName: string,
-			arkgInstance: ArkgInstance<unknown, unknown, unknown, unknown, ec.Point, bigint>,
+			instanceName: EcInstanceId,
 			namedCurve: "P-256",
 			signAlgorithm: EcdsaParams,
 		}[] = [
 				{
 					instanceName: "ARKG-P256ADD-ECDH",
-					arkgInstance: arkgP256addEcdh(),
 					namedCurve: "P-256",
 					signAlgorithm: { name: "ECDSA", hash: "SHA-256" },
 				},
 			];
-		for (const { instanceName, arkgInstance, namedCurve, signAlgorithm } of instances) {
+		for (const { instanceName, namedCurve, signAlgorithm } of instances) {
+			const arkgInstance = getEcInstance(instanceName);
+
 			describe(`instance ${instanceName}`, async () => {
 				it("is correct.", async () => {
 					const [pub_seed, pri_seed] = await arkgInstance.generateSeed();
