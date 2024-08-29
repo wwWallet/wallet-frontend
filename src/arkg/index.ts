@@ -1,3 +1,6 @@
+/// Implementation of ARKG
+/// https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html
+
 import * as ec from './ec';
 import * as hash_to_curve from './hash_to_curve';
 import { byteArrayEquals, concat, fromBase64Url, OS2IP, toBase64, toHex, toU8 } from '../util';
@@ -54,12 +57,18 @@ type ArkgDerivePrivateKeyFunction<BlPrivateKey, KemPrivateKey, DerivedPrivateKey
 	) => Promise<DerivedPrivateKey>
 );
 type ArkgInstance<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey, DerivedPublicKey, DerivedPrivateKey> = {
+	/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-function-arkg-generate- */
 	generateSeed: ArkgGenerateSeedFunction<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey>,
+
+	/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-function-arkg-derive-pu */
 	derivePublicKey: ArkgDerivePublicKeyFunction<BlPublicKey, KemPublicKey, DerivedPublicKey>,
+
+	/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-function-arkg-derive-pr */
 	derivePrivateKey: ArkgDerivePrivateKeyFunction<BlPrivateKey, KemPrivateKey, DerivedPrivateKey>,
 }
 
 
+/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-asynchronous-remote-key */
 function arkg<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey, DerivedPublicKey, DerivedPrivateKey>(
 	bl: BlScheme<BlPublicKey, BlPrivateKey, DerivedPublicKey, DerivedPrivateKey>,
 	kem: KemScheme<KemPublicKey, KemPrivateKey>,
@@ -99,6 +108,7 @@ function arkg<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey, DerivedPub
 	};
 }
 
+/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-using-elliptic-curve-additi */
 function arkgBlEcAdd(
 	hashToCurveSuiteId: hash_to_curve.SuiteId,
 	dst_ext: BufferSource,
@@ -149,6 +159,7 @@ function arkgBlEcAdd(
 	};
 }
 
+/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-using-hmac-to-adapt-a-kem-w */
 function arkgHmacKem<PublicKey, PrivateKey>(
 	hash: "SHA-256",
 	dst_ext: BufferSource,
@@ -235,6 +246,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 	};
 }
 
+/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-using-ecdh-as-the-kem */
 function arkgEcdhKem(
 	namedCurve: "P-256",
 	hash: "SHA-256",
