@@ -8,6 +8,10 @@ export function toU8(b: BufferSource): Uint8Array {
 	}
 }
 
+export function toHex(b: BufferSource): string {
+	return toU8(b).reduce((s, byte) => s + byte.toString(16).padStart(2, '0'), '');
+}
+
 export function concat(...b: BufferSource[]): ArrayBuffer {
 	return b.map(toU8).reduce((a, b) => new Uint8Array([...a, ...b]), new Uint8Array([])).buffer;
 }
