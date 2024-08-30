@@ -7,16 +7,8 @@ import * as keystore from "./keystore.js";
 import { byteArrayEquals, fromBase64, jsonParseTaggedBinary, toBase64, toBase64Url } from "../util";
 import { DidKeyVersion } from "../config.js";
 import { PublicKeyCredentialCreation } from "../types/webauthn.js";
+import { asyncAssertThrows } from "../testutil.js";
 
-
-async function asyncAssertThrows(fn: () => Promise<any>, message: string): Promise<unknown> {
-	try {
-		await fn();
-	} catch (e) {
-		return e;
-	}
-	assert.fail(message);
-}
 
 function mockPrfCredential(
 	{ id, prfOutput }: { id: Uint8Array, prfOutput: Uint8Array },
