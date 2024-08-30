@@ -1,22 +1,9 @@
 /// Implementation of the hash_to_field function of RFC 9380
 /// https://www.rfc-editor.org/rfc/rfc9380#name-hash_to_field-implementatio
 
+import { concat, I2OSP, OS2IP, toU8 } from "../util";
 import { Curve, curveSecp256r1, curveSecp521r1 } from "./ec";
 
-
-function toU8(b: BufferSource): Uint8Array {
-	if (b instanceof Uint8Array) {
-		return b;
-	} else if (b instanceof ArrayBuffer) {
-		return new Uint8Array(b);
-	} else {
-		return new Uint8Array(b.buffer);
-	}
-}
-
-function concat(...b: BufferSource[]): ArrayBuffer {
-	return b.map(toU8).reduce((a, b) => new Uint8Array([...a, ...b]), new Uint8Array([])).buffer;
-}
 
 function strxor(a: BufferSource, b: BufferSource): ArrayBuffer {
 	const ua = toU8(a);
@@ -25,20 +12,6 @@ function strxor(a: BufferSource, b: BufferSource): ArrayBuffer {
 		throw new Error(`Different lengths in xor: ${ua.length} != ${ub.length}`);
 	}
 	return new Uint8Array(ua.length).map((_, i: number) => ua[i] ^ ub[i]);
-}
-
-function OS2IP(binary: BufferSource): bigint {
-	return toU8(binary).reduce(
-		(result: bigint, b: number) => (result << 8n) + BigInt(b),
-		0n,
-	);
-}
-
-function I2OSP(a: bigint, length: number): ArrayBuffer {
-	return new Uint8Array(length).map(
-		(_, i: number): number =>
-			Number(BigInt.asUintN(8, a >> (BigInt(length - 1 - i) * 8n)))
-	).buffer;
 }
 
 type HashFunction = (msg: BufferSource) => Promise<ArrayBuffer>;

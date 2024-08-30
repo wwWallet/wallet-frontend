@@ -1,3 +1,5 @@
+import { OS2IP } from "../util";
+
 export type Curve = {
 	a: bigint,
 	b: bigint,
@@ -203,23 +205,6 @@ export function tests() {
 	// to the test module
 
 	const SLOW_TESTS: boolean = process.env.SLOW_TESTS === 'true';
-
-	function toU8(b: BufferSource): Uint8Array {
-		if (b instanceof Uint8Array) {
-			return b;
-		} else if (b instanceof ArrayBuffer) {
-			return new Uint8Array(b);
-		} else {
-			return new Uint8Array(b.buffer);
-		}
-	}
-
-	function OS2IP(binary: BufferSource): bigint {
-		return toU8(binary).reduce(
-			(result: bigint, b: number) => (result << 8n) + BigInt(b),
-			0n,
-		);
-	}
 
 	/** INSECURELY generate a random number modulo the given modulus. */
 	function randomBigint(modulus: bigint): bigint {
