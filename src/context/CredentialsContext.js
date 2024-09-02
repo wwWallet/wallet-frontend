@@ -43,15 +43,10 @@ export const CredentialsProvider = ({ children }) => {
 		isPolling.current = true;
 
 		intervalId.current = setInterval(async () => {
-			const urlParams = new URLSearchParams(window.location.search);
-			if (!urlParams.has('code')) {
-				console.log('Code parameter no longer exists, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
-				return;
-			}
+			console.log('isPolling', isPolling.current);
 
 			if (!isPolling.current) {
+				isPolling.current = false;
 				clearInterval(intervalId.current);
 				return;
 			}
@@ -91,9 +86,11 @@ export const CredentialsProvider = ({ children }) => {
 
 			if (shouldPoll && !newCredentialsFound) {
 				console.log("No new credentials, starting polling");
+				window.history.replaceState({}, '', `${window.location.pathname}`);
 				pollForCredentials();
 			} else if (newCredentialsFound) {
 				console.log("Found new credentials, no need to poll");
+				window.history.replaceState({}, '', `${window.location.pathname}`);
 				updateVcListAndLatestCredentials(vcEntityList);
 			} else {
 				setVcEntityList(vcEntityList);
