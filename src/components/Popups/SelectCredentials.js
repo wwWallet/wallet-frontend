@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState, useContext } from 'react';
 import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
-import { FaShare } from 'react-icons/fa';
-import { MdOutlineCheckBox, MdOutlineCheckBoxOutlineBlank } from "react-icons/md";
+import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
@@ -225,7 +224,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 					<>
 						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
 							<button
-								className={`relative rounded-xl w-2/3 overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-100' : 'opacity-50'}`}
+								className={`relative rounded-xl w-2/3 transition-shadow shadow-md hover:shadow-xl cursor-pointer ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-100' : 'opacity-50'}`}
 								onClick={() => handleClick(vcEntity.credentialIdentifier)}
 								aria-label={`${vcEntity.friendlyName}`}
 								title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
@@ -233,11 +232,11 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								<CredentialImage key={vcEntity.credentialIdentifier} credential={vcEntity.credential}
 									className={"w-full object-cover rounded-xl"}
 								/>
-								<div className="absolute bottom-2 right-2" style={{ zIndex: "2000" }}>
+								<div className="absolute top-[-5px] right-[-5px]" style={{ zIndex: "3000" }}>
 									{selectedCredential === vcEntity.credentialIdentifier ? (
-										<MdOutlineCheckBox size={20} className="text-white" />
+										<FaCheckCircle size={20} className="rounded-full bg-gray-50 dark:bg-white text-primary dark:text-primary-light" />
 									) : (
-										<MdOutlineCheckBoxOutlineBlank size={20} className="text-white" />
+										<FaRegCircle size={20} className="rounded-full bg-gray-50 dark:bg-gray-800 text-primary dark:text-white" />
 									)}
 								</div>
 							</button>
