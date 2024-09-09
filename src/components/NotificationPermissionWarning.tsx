@@ -7,7 +7,7 @@ import OnlineStatusContext from '../context/OnlineStatusContext';
 import { notificationApiIsSupported } from '../firebase';
 
 
-export default function NotificationWarning({
+export default function NotificationPermissionWarning({
 	isPermissionGranted,
 	tokenSentInSession,
 }: {
