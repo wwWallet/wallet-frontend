@@ -7,7 +7,7 @@ import { useIndexedDb } from "../components/useIndexedDb";
 import { useOnUserInactivity } from "../components/useOnUserInactivity";
 
 import * as keystore from "./keystore";
-import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo } from "./keystore";
 
 
 type UserData = {
@@ -41,7 +41,6 @@ export interface LocalStorageKeystore {
 	): Promise<EncryptedContainer>,
 	addPrf(
 		credential: PublicKeyCredential,
-		[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
 	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
@@ -57,10 +56,6 @@ export interface LocalStorageKeystore {
 		user: CachedUser | UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
-	getPasswordOrPrfKeyFromSession(
-		promptForPassword: () => Promise<string | null>,
-		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-	): Promise<[CryptoKey, WrappedKeyInfo]>,
 	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
@@ -110,6 +105,14 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
 
+	async function assertKeystoreOpen(): Promise<[EncryptedContainer, CryptoKey]> {
+		if (privateData && mainKey) {
+			return [privateData, await keystore.importMainKey(mainKey)];
+		} else {
+			throw new Error("Key store is closed.", { cause: 'keystore_closed' });
+		}
+	};
+
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
 	useEffect(
@@ -145,41 +148,35 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	);
 
 	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
-		if (mainKey && privateData) {
-			return await keystore.openPrivateData(mainKey, privateData)
-		} else {
-			throw new Error("Private data not present in storage.");
-		}
+		const [privateData, mainKey] = await assertKeystoreOpen();
+		return await keystore.openPrivateData(mainKey, privateData)
 	};
 
 	const editPrivateData = async <T>(
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
 	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
-		if (mainKey && privateData) {
-			const [result, [newPrivateData, newMainKey]] = await action(
-				[
-					keystore.assertAsymmetricEncryptedContainer(privateData),
-					await keystore.importMainKey(mainKey),
-				],
-			);
-			return [
-				result,
-				newPrivateData,
-				async () => {
-					setPrivateData(newPrivateData);
-					setMainKey(await keystore.exportMainKey(newMainKey));
-				},
-			];
-		} else {
-			throw new Error("Private data not present in storage.");
-		}
+		const [privateData, mainKey] = await assertKeystoreOpen();
+		const [result, [newPrivateData, newMainKey]] = await action(
+			[
+				keystore.assertAsymmetricEncryptedContainer(privateData),
+				mainKey,
+			],
+		);
+		return [
+			result,
+			newPrivateData,
+			async () => {
+				setPrivateData(newPrivateData);
+				setMainKey(await keystore.exportMainKey(newMainKey));
+			},
+		];
 	};
 
 	const finishUnlock = async (
-		{ exportedMainKey, privateData }: UnlockSuccess,
+		{ mainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
-		setMainKey(exportedMainKey);
+		setMainKey(await keystore.exportMainKey(mainKey));
 		setPrivateData(privateData);
 
 		if (user) {
@@ -239,10 +236,10 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 		addPrf: async (
 			credential: PublicKeyCredential,
-			[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[EncryptedContainer, CommitCallback]> => {
-			const newPrivateData = await keystore.addPrf(privateData, credential, [existingUnwrapKey, wrappedMainKey], promptForPrfRetry);
+			const [privateData, mainKey] = await assertKeystoreOpen();
+			const newPrivateData = await keystore.addPrf(privateData, credential, mainKey, promptForPrfRetry);
 			return [
 				newPrivateData,
 				async () => {
@@ -302,32 +299,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 
 		getPrfKeyInfo: (id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined => {
 			return privateData?.prfKeys.find(({ credentialId }) => toBase64Url(credentialId) === toBase64Url(id));
-		},
-
-		getPasswordOrPrfKeyFromSession: async (
-			promptForPassword: () => Promise<string | null>,
-			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-		): Promise<[CryptoKey, WrappedKeyInfo]> => {
-			if (privateData && privateData?.prfKeys?.length > 0) {
-				const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateData, null, promptForPrfRetry);
-				return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
-
-			} else if (privateData && privateData?.passwordKey) {
-				const password = await promptForPassword();
-				if (password === null) {
-					throw new Error("Password prompt aborted");
-				} else {
-					try {
-						const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateData, password);
-						return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
-					} catch {
-						throw new Error("Failed to unlock key store", { cause: { errorId: "passwordUnlockFailed" } });
-					}
-				}
-
-			} else {
-				throw new Error("Session not initialized");
-			}
 		},
 
 		upgradePrfKey: async (
