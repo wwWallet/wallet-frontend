@@ -1,14 +1,12 @@
 import React, { createContext, useState, useCallback, useContext, useRef } from 'react';
-import { useApi } from '../api';
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
-import OnlineStatusContext from '../context/OnlineStatusContext';
 import { getItem } from '../indexedDB';
+import SessionContext from './SessionContext';
 
 const CredentialsContext = createContext();
 
 export const CredentialsProvider = ({ children }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { api } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState([]);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const intervalId = useRef(null);

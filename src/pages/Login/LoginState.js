@@ -4,20 +4,19 @@ import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
+
 import OnlineStatusContext from '../../context/OnlineStatusContext';
-import { useApi } from '../../api';
+import SessionContext from '../../context/SessionContext';
+
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
-import SessionContext from '../../context/SessionContext';
 
 
 const WebauthnLogin = ({
 	filteredUser,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
-	const { keystore } = useContext(SessionContext);
-	const api = useApi(isOnline);
+	const { api, keystore } = useContext(SessionContext);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();

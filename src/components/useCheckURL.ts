@@ -1,7 +1,8 @@
 import { useEffect, useState, Dispatch, SetStateAction, useContext } from 'react';
-import { useApi } from '../api';
 import { useTranslation } from 'react-i18next';
+
 import SessionContext from '../context/SessionContext';
+
 
 export enum HandleOutboundRequestError {
 	INSUFFICIENT_CREDENTIALS = "INSUFFICIENT_CREDENTIALS",
@@ -25,8 +26,7 @@ function useCheckURL(urlToCheck: string): {
 	textMessagePopup: { title: string, description: string };
 	typeMessagePopup: string;
 } {
-	const api = useApi();
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const [showSelectCredentialsPopup, setShowSelectCredentialsPopup] = useState<boolean>(false);
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const [selectionMap, setSelectionMap] = useState<string | null>(null);

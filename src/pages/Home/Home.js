@@ -9,9 +9,10 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import addImage from '../../assets/images/cred.png';
+import CredentialsContext from '../../context/CredentialsContext';
+import SessionContext from '../../context/SessionContext';
 
-import { useApi } from '../../api';
+import addImage from '../../assets/images/cred.png';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
@@ -20,11 +21,11 @@ import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
-import CredentialsContext from '../../context/CredentialsContext';
 import { H1 } from '../../components/Heading';
 
+
 const Home = () => {
-	const api = useApi();
+	const { api } = useContext(SessionContext);
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);

@@ -4,7 +4,6 @@ import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { useApi } from '../api';
 import logo from '../assets/images/wallet_white.png';
 import { Trans, useTranslation } from 'react-i18next';
 import OnlineStatusContext from '../context/OnlineStatusContext';
@@ -31,8 +30,7 @@ const NavItem = ({
 
 const Sidebar = ({ isOpen, toggle }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi();
-	const { logout } = useContext(SessionContext);
+	const { api, logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();

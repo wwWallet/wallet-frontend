@@ -6,9 +6,10 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
 
-import * as config from '../../config';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
-import { useApi } from '../../api';
+import SessionContext from '../../context/SessionContext';
+
+import * as config from '../../config';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
@@ -16,7 +17,6 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
-import SessionContext from '../../context/SessionContext';
 
 
 const FormInputRow = ({
@@ -113,9 +113,8 @@ const WebauthnSignupLogin = ({
 	setError,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { keystore } = useContext(SessionContext);
+	const { api, keystore } = useContext(SessionContext);
 
-	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
@@ -475,8 +474,7 @@ const WebauthnSignupLogin = ({
 
 const Login = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { isLoggedIn, keystore } = useContext(SessionContext);
-	const api = useApi(isOnline);
+	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
 

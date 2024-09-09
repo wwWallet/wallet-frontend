@@ -3,12 +3,11 @@ import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
-import { useApi } from '../../api';
 import { CredentialImage } from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import GetButton from '../Buttons/GetButton';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import SessionContext from '../../context/SessionContext';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -57,8 +56,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 };
 
 function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
-	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
 	const navigate = useNavigate();
 	const { t } = useTranslation();

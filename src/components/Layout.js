@@ -8,11 +8,11 @@ import WelcomeTourGuide from './WelcomeTourGuide/WelcomeTourGuide';
 import { CSSTransition } from 'react-transition-group';
 import { useSessionStorage } from '../components/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
-import { useApi } from '../api';
 import BottomNav from './BottomNav';
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import { notificationApiIsSupported } from '../firebase';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import SessionContext from '../context/SessionContext';
 
 const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -21,7 +21,7 @@ const Layout = ({ children, isPermissionGranted, tokenSentInSession }) => {
 	const [isContentVisible, setIsContentVisible] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const toggleSidebar = () => setIsOpen(!isOpen);
-	const api = useApi();
+	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
