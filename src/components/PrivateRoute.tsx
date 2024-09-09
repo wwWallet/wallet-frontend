@@ -1,8 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { fetchToken, notificationApiIsSupported } from '../firebase';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { Trans } from 'react-i18next';
-import { fetchToken, notificationApiIsSupported } from '../firebase';
+
 import Layout from './Layout';
 import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from './useStorage';
@@ -10,18 +11,25 @@ import OnlineStatusContext from '../context/OnlineStatusContext';
 import SessionContext from '../context/SessionContext';
 
 
-function NotificationPermissionWarning({
-	isPermissionGranted,
-	tokenSentInSession,
-}: {
+type PrivateRouteContextValue = {
 	isPermissionGranted: boolean | null,
 	tokenSentInSession: boolean | null,
-}): React.ReactNode {
+}
+
+const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createContext({
+	isPermissionGranted: null,
+	tokenSentInSession: null,
+});
+
+
+function NotificationPermissionWarning(): React.ReactNode {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
+
+	const { isPermissionGranted, tokenSentInSession } = useContext(PrivateRouteContext);
 
 	const handleCloseMessageOffline = () => {
 		setIsMessageOfflineVisible(true);
@@ -124,7 +132,6 @@ function NotificationPermissionWarning({
 			: <></>
 	);
 }
-
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactNode => {
 	const { isOnline } = useContext(OnlineStatusContext);
@@ -255,13 +262,11 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	}
 	else {
 		return (
-			<Layout
-				noFadeInChildren={
-					<NotificationPermissionWarning isPermissionGranted={isPermissionGranted} tokenSentInSession={tokenSentInSession} />
-				}
-			>
-				{children}
-			</Layout>
+			<PrivateRouteContext.Provider value={{ isPermissionGranted, tokenSentInSession }}>
+				<Layout noFadeInChildren={<NotificationPermissionWarning />}>
+					{children}
+				</Layout>
+			</PrivateRouteContext.Provider>
 		);
 	}
 
