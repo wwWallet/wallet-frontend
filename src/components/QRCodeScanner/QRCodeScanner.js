@@ -164,7 +164,7 @@ const QRScanner = ({ onClose }) => {
 	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
 	const maxResolution = bestCameraResolutions[currentCameraType];
 
-	let idealWidth, idealHeight;
+	let idealHeight;
 	if (maxResolution) {
 		console.log(maxResolution);
 
@@ -173,11 +173,9 @@ const QRScanner = ({ onClose }) => {
 
 		// Cap the dimension at 1920 if it exceeds this value
 		if (smallerDimension > 1920) {
-			idealWidth = 1920;
-			idealHeight = 1920;
+			idealHeight = 1080;
 		} else {
-			idealWidth = smallerDimension;
-			idealHeight = smallerDimension;
+			idealHeight = maxResolution.height;
 		}
 	}
 
@@ -189,7 +187,7 @@ const QRScanner = ({ onClose }) => {
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 		>
 			{hasCameraPermission === false ? (
-				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 max-h-[80%] overflow-auto">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
@@ -216,7 +214,7 @@ const QRScanner = ({ onClose }) => {
 					<Spinner />
 				</div>
 			) : (
-				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
+				<div className="bg-white max-h-[80%] dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
@@ -237,25 +235,32 @@ const QRScanner = ({ onClose }) => {
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">
 						{t('qrCodeScanner.description')}
 					</p>
-					<div className="webcam-container mt-4" style={{ position: 'relative', overflow: 'hidden' }}>
-						<Webcam
-							key={devices[currentDeviceIndex]?.deviceId}
-							audio={false}
-							ref={webcamRef}
-							screenshotFormat="image/jpeg"
-							videoConstraints={{
-								deviceId: devices[currentDeviceIndex]?.deviceId,
-								height: { ideal: idealHeight },
-								width: { ideal: idealWidth }
-							}}
-							style={{ transform: `scale(${zoomLevel})` }}
-							onUserMedia={onUserMedia}
-						/>
-						{qrDetected && (
-							<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-								<FaCheckCircle size={100} color="green" />
-							</div>
-						)}
+					<div className="webcam-container mt-4 relative flex items-center justify-center">
+						<div className="relative w-full max-h-[50vh] flex justify-center items-center overflow-hidden">
+							<Webcam
+								key={devices[currentDeviceIndex]?.deviceId}
+								audio={false}
+								ref={webcamRef}
+								screenshotFormat="image/jpeg"
+								videoConstraints={{
+									deviceId: devices[currentDeviceIndex]?.deviceId,
+									height: { ideal: idealHeight, max: maxResolution.height }
+								}}
+								style={{
+									transform: `scale(${zoomLevel})`,
+									width: "100%",
+									height: "100%",
+									objectFit: "contain",
+									maxHeight: '100%',
+								}}
+								onUserMedia={onUserMedia}
+							/>
+							{qrDetected && (
+								<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+									<FaCheckCircle size={100} color="green" />
+								</div>
+							)}
+						</div>
 					</div>
 					<div className='flex justify-between align-center'>
 						<div className="flex items-center my-4 pr-4 w-full">
