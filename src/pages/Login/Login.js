@@ -109,6 +109,8 @@ const WebauthnSignupLogin = ({
 	setIsSubmitting,
 	isLoginCache,
 	setIsLoginCache,
+	error,
+	setError,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
 	const { keystore } = useContext(SessionContext);
@@ -116,7 +118,6 @@ const WebauthnSignupLogin = ({
 	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
-	const [error, setError] = useState('');
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
@@ -487,6 +488,7 @@ const Login = () => {
 		confirmPassword: '',
 	});
 	const [error, setError] = useState('');
+	const [webauthnError, setWebauthnError] = useState('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [isContentVisible, setIsContentVisible] = useState(false);
@@ -578,6 +580,12 @@ const Login = () => {
 				confirmPassword: '',
 			});
 		};
+	}
+
+	const useOtherAccount = () => {
+		setIsLoginCache(false);
+		setError('');
+		setWebauthnError('');
 	}
 
 	const getPasswordStrength = (password) => {
@@ -747,6 +755,8 @@ const Login = () => {
 											setIsSubmitting={setIsSubmitting}
 											isLoginCache={isLoginCache}
 											setIsLoginCache={setIsLoginCache}
+											error={webauthnError}
+											setError={setWebauthnError}
 										/>
 
 										{!isLoginCache ? (
@@ -765,7 +775,7 @@ const Login = () => {
 											<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
 												<a
 													className="font-medium text-primary hover:underline dark:text-primary-light"
-													onClick={() => setIsLoginCache(false)}
+													onClick={useOtherAccount}
 												>
 													{t('loginSignup.useOtherAccount')}
 												</a>
