@@ -7,9 +7,9 @@ function getOnlineStatus() {
 	const rtt = (
 		navigator.connection?.rtt
 		// Ignore rtt if browser doesn't support navigator.connection
-		?? Infinity
+		?? -Infinity
 	);
-	return navigator.onLine && rtt > 0;
+	return navigator.onLine && rtt < 30000;
 }
 
 export const OnlineStatusProvider = ({ children }) => {
