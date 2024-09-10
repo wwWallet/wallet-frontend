@@ -152,7 +152,7 @@ const WebauthnSignupLogin = ({
 		async (cachedUser) => {
 			const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 			if (result.ok) {
-				navigate(from, { replace: true });
+				window.location.href = from.pathname + from.search;
 
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
