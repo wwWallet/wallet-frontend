@@ -7,18 +7,17 @@ import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import { useApi } from '../../api';
+import SessionContext from '../../context/SessionContext';
 
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import { formatDate } from '../../functions/DateFormat';
 import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
-import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { H1 } from '../../components/Heading';
 
+
 const History = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { api } = useContext(SessionContext);
 	const [history, setHistory] = useState([]);
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);

@@ -3,21 +3,18 @@ import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
-import { useApi } from '../../api';
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+import SessionContext from '../../context/SessionContext';
+
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
 import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
+
 import DeletePopup from '../../components/Popups/DeletePopup';
 import GetButton from '../../components/Buttons/GetButton';
-import OnlineStatusContext from '../../context/OnlineStatusContext';
-import SessionContext from '../../context/SessionContext';
 import { H1, H2, H3 } from '../../components/Heading';
-
-interface OnlineStatusContextType {
-	isOnline: boolean | null;
-}
 
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
@@ -90,9 +87,8 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
-	const { keystore } = useContext(SessionContext);
-	const api = useApi();
+	const { isOnline } = useContext(OnlineStatusContext);
+	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
 	const [nickname, setNickname] = useState("");
@@ -324,7 +320,7 @@ const UnlockMainKey = ({
 	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { isOnline } = useContext(OnlineStatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
@@ -488,7 +484,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
+	const { isOnline } = useContext(OnlineStatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
@@ -682,9 +678,8 @@ const WebauthnCredentialItem = ({
 };
 
 const Settings = () => {
-	const { isOnline } = useContext(OnlineStatusContext) as OnlineStatusContextType;
-	const { logout, keystore } = useContext(SessionContext);
-	const api = useApi(isOnline);
+	const { isOnline } = useContext(OnlineStatusContext);
+	const { api, logout, keystore } = useContext(SessionContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);

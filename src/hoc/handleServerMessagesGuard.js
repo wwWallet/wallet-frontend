@@ -4,7 +4,6 @@ import * as config from '../config';
 import { SignatureAction } from "../types/shared.types";
 import Spinner from '../components/Spinner';
 import { SigningRequestHandlerService } from '../services/SigningRequestHandlers';
-import { useApi } from "../api";
 import OnlineStatusContext from '../context/OnlineStatusContext';
 import SessionContext from "../context/SessionContext";
 
@@ -12,14 +11,13 @@ import SessionContext from "../context/SessionContext";
 export default function handleServerMessagesGuard(Component) {
 
 	return (props) => {
-		const api = useApi();
-		const appToken = api.getAppToken();
 
 		const [handshakeEstablished, setHandshakeEstablished] = useState(false);
 		const socketRef = useRef(null);
 		const signingRequestHandlerService = SigningRequestHandlerService();
 		const { isOnline } = useContext(OnlineStatusContext);
-		const { keystore } = useContext(SessionContext);
+		const { api, keystore } = useContext(SessionContext);
+		const appToken = api.getAppToken();
 
 		useEffect(() => {
 			if (appToken) {

@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Tour from 'reactour';
 import { useTranslation } from 'react-i18next';
+
+import SessionContext from '../../context/SessionContext';
+
 import WelcomeModal from './WecomeModal';
-import { useApi } from '../../api';
 import GetButton from '../Buttons/GetButton';
+
 
 const TourGuide = ({ toggleMenu, isOpen }) => {
 	const [isTourOpen, setIsTourOpen] = useState(false);
 	const [isModalOpen, setIsModalOpen] = useState(true);
 	const [steps, setSteps] = useState([]);
-	const api = useApi();
+	const { api } = useContext(SessionContext);
 	const { authenticationType, showWelcome } = api.getSession();
 	const { t } = useTranslation();
 

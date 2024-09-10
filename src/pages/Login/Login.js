@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
@@ -6,9 +6,10 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 import { CSSTransition } from 'react-transition-group';
 
-import * as config from '../../config';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
-import { useApi } from '../../api';
+import SessionContext from '../../context/SessionContext';
+
+import * as config from '../../config';
 import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
@@ -16,7 +17,6 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
-import SessionContext from '../../context/SessionContext';
 
 
 const FormInputRow = ({
@@ -113,9 +113,8 @@ const WebauthnSignupLogin = ({
 	setError,
 }) => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { keystore } = useContext(SessionContext);
+	const { api, keystore } = useContext(SessionContext);
 
-	const api = useApi(isOnline);
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
@@ -148,103 +147,97 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
-	const onLogin = useCallback(
-		async (cachedUser) => {
-			const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
-			if (result.ok) {
-				navigate(from, { replace: true });
+	const onLogin = async (cachedUser) => {
+		const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+		if (result.ok) {
+			navigate(from, { replace: true });
 
-			} else {
-				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (result.val) {
-					case 'loginKeystoreFailed':
-						setError(t('loginSignup.loginKeystoreFailed'));
-						break;
+		} else {
+			// Using a switch here so the t() argument can be a literal, to ease searching
+			switch (result.val) {
+				case 'loginKeystoreFailed':
+					setError(t('loginSignup.loginKeystoreFailed'));
+					break;
 
-					case 'passkeyInvalid':
-						setError(t('loginSignup.passkeyInvalid'));
-						break;
+				case 'passkeyInvalid':
+					setError(t('loginSignup.passkeyInvalid'));
+					break;
 
-					case 'passkeyLoginFailedTryAgain':
-						setError(t('loginSignup.passkeyLoginFailedTryAgain'));
-						break;
+				case 'passkeyLoginFailedTryAgain':
+					setError(t('loginSignup.passkeyLoginFailedTryAgain'));
+					break;
 
-					case 'passkeyLoginFailedServerError':
-						setError(t('loginSignup.passkeyLoginFailedServerError'));
-						break;
+				case 'passkeyLoginFailedServerError':
+					setError(t('loginSignup.passkeyLoginFailedServerError'));
+					break;
 
-					case 'x-private-data-etag':
-						setError(t('loginSignup.privateDataConflict'));
-						break;
+				case 'x-private-data-etag':
+					setError(t('loginSignup.privateDataConflict'));
+					break;
 
-					default:
+				default:
+					throw result;
+			}
+		}
+	};
+
+	const onSignup = async (name) => {
+		const result = await api.signupWebauthn(
+			name,
+			keystore,
+			retrySignupFrom
+				? () => Promise.resolve(true) // "Try again" already means user agreed to continue
+				: promptForPrfRetry,
+			retrySignupFrom,
+		);
+		if (result.ok) {
+			navigate(from, { replace: true });
+
+		} else {
+			// Using a switch here so the t() argument can be a literal, to ease searching
+			switch (result.val) {
+				case 'passkeySignupFailedServerError':
+					setError(t('loginSignup.passkeySignupFailedServerError'));
+					break;
+
+				case 'passkeySignupFailedTryAgain':
+					setError(t('loginSignup.passkeySignupFailedTryAgain'));
+					break;
+
+				case 'passkeySignupFinishFailedServerError':
+					setError(t('loginSignup.passkeySignupFinishFailedServerError'));
+					break;
+
+				case 'passkeySignupKeystoreFailed':
+					setError(t('loginSignup.passkeySignupKeystoreFailed'));
+					break;
+
+				case 'passkeySignupPrfNotSupported':
+					setError(
+						<Trans
+							i18nKey="loginSignup.passkeySignupPrfNotSupported"
+							components={{
+								docLink: <a
+									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+									className="font-medium text-primary hover:underline dark:text-blue-500"
+									aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
+								/>
+							}}
+						/>
+					);
+					break;
+
+				default:
+					if (result.val?.errorId === 'prfRetryFailed') {
+						setRetrySignupFrom(result.val?.retryFrom);
+
+					} else {
+						setError(t('loginSignup.passkeySignupPrfRetryFailed'));
 						throw result;
-				}
+					}
 			}
-		},
-		[api, from, keystore, navigate, t],
-	);
-
-	const onSignup = useCallback(
-		async (name) => {
-			const result = await api.signupWebauthn(
-				name,
-				keystore,
-				retrySignupFrom
-					? () => Promise.resolve(true) // "Try again" already means user agreed to continue
-					: promptForPrfRetry,
-				retrySignupFrom,
-			);
-			if (result.ok) {
-				navigate(from, { replace: true });
-
-			} else {
-				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (result.val) {
-					case 'passkeySignupFailedServerError':
-						setError(t('loginSignup.passkeySignupFailedServerError'));
-						break;
-
-					case 'passkeySignupFailedTryAgain':
-						setError(t('loginSignup.passkeySignupFailedTryAgain'));
-						break;
-
-					case 'passkeySignupFinishFailedServerError':
-						setError(t('loginSignup.passkeySignupFinishFailedServerError'));
-						break;
-
-					case 'passkeySignupKeystoreFailed':
-						setError(t('loginSignup.passkeySignupKeystoreFailed'));
-						break;
-
-					case 'passkeySignupPrfNotSupported':
-						setError(
-							<Trans
-								i18nKey="loginSignup.passkeySignupPrfNotSupported"
-								components={{
-									docLink: <a
-										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-										className="font-medium text-primary hover:underline dark:text-blue-500"
-										aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
-									/>
-								}}
-							/>
-						);
-						break;
-
-					default:
-						if (result.val?.errorId === 'prfRetryFailed') {
-							setRetrySignupFrom(result.val?.retryFrom);
-
-						} else {
-							setError(t('loginSignup.passkeySignupPrfRetryFailed'));
-							throw result;
-						}
-				}
-			}
-		},
-		[api, from, retrySignupFrom, keystore, navigate, t],
-	);
+		}
+	};
 
 	const onSubmit = async (event) => {
 		event.preventDefault();
@@ -475,8 +468,7 @@ const WebauthnSignupLogin = ({
 
 const Login = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const { isLoggedIn, keystore } = useContext(SessionContext);
-	const api = useApi(isOnline);
+	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
 

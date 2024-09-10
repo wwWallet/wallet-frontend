@@ -1,12 +1,10 @@
-// CredentialDetail.js
-
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import { BiRightArrowAlt } from 'react-icons/bi';
 
-import { useApi } from '../../api';
+import SessionContext from '../../context/SessionContext';
 
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
@@ -14,12 +12,11 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
-import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { H1 } from '../../components/Heading';
 
+
 const CredentialDetail = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { api } = useContext(SessionContext);
 	const { id } = useParams();
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);

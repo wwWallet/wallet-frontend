@@ -1,9 +1,31 @@
 import React, { useEffect, createContext, useState } from 'react';
 
 
-const OnlineStatusContext = createContext();
+/**
+ * Type polyfill for https://wicg.github.io/netinfo/#networkinformation-interface
+ * but defining only the properties we use here.
+ */
+interface NetworkInformation extends EventTarget {
+	rtt: Millisecond,
+}
+type Millisecond = number;
 
-function getOnlineStatus() {
+declare global {
+	export interface Navigator {
+		connection?: NetworkInformation;
+	}
+}
+
+interface OnlineStatusContextValue {
+	isOnline: boolean;
+}
+
+
+const OnlineStatusContext: React.Context<OnlineStatusContextValue> = createContext({
+	isOnline: null,
+});
+
+function getOnlineStatus(): boolean {
 	const rtt = (
 		navigator.connection?.rtt
 		// Ignore rtt if browser doesn't support navigator.connection
@@ -12,7 +34,7 @@ function getOnlineStatus() {
 	return navigator.onLine && rtt > 0;
 }
 
-export const OnlineStatusProvider = ({ children }) => {
+export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState(getOnlineStatus);
 
 	const updateOnlineStatus = () => {

@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import OnlineStatusContext from '../../context/OnlineStatusContext';
+import SessionContext from '../../context/SessionContext';
+
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
-import { useApi } from '../../api';
-import OnlineStatusContext from '../../context/OnlineStatusContext';
 import { H1 } from '../../components/Heading';
+
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -21,7 +23,7 @@ function highlightBestSequence(issuer, search) {
 
 const Issuers = () => {
 	const { isOnline } = useContext(OnlineStatusContext);
-	const api = useApi(isOnline);
+	const { api } = useContext(SessionContext);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
