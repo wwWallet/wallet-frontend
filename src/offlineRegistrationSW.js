@@ -44,6 +44,7 @@ function registerValidSW(swUrl, config) {
 							console.log(
 								'New content is available and will be used when all tabs for this page are closed. See https://cra.link/PWA.'
 							);
+							window.location.reload();
 
 							if (config && config.onUpdate) {
 								config.onUpdate(registration);
