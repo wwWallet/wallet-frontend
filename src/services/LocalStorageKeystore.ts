@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from "react";
 
 import * as config from "../config";
-import { useClearStorages, useLocalStorage, useSessionStorage } from "../components/useStorage";
+import { useClearStorages, useLocalStorage, useSessionStorage } from "../hooks/useStorage";
 import { toBase64Url } from "../util";
-import { useIndexedDb } from "../components/useIndexedDb";
-import { useOnUserInactivity } from "../components/useOnUserInactivity";
+import { useIndexedDb } from "../hooks/useIndexedDb";
+import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
