@@ -1,6 +1,5 @@
-// Import Libraries
-import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect, Suspense, useState } from 'react';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
 
@@ -76,7 +75,8 @@ const VerificationResult = React.lazy(() => import('./pages/VerificationResult/V
 
 
 function App() {
-	const url = window.location.href;
+	const location = useLocation();
+	const [url, setUrl] = useState(window.location.href);
 	const {
 		showSelectCredentialsPopup,
 		setShowSelectCredentialsPopup,
@@ -90,6 +90,10 @@ function App() {
 		textMessagePopup,
 		typeMessagePopup,
 	} = useCheckURL(url);
+
+	useEffect(() => {
+		setUrl(window.location.href);
+	}, [location])
 
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
@@ -115,7 +119,6 @@ function App() {
 		<I18nextProvider i18n={i18n}>
 			<CredentialsProvider>
 				<Snowfalling />
-				<Router>
 					<Suspense fallback={<Spinner />}>
 						<HandlerNotification />
 						<AppRoutes />
@@ -129,7 +132,6 @@ function App() {
 							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 						}
 					</Suspense>
-				</Router>
 			</CredentialsProvider>
 		</I18nextProvider>
 	);
