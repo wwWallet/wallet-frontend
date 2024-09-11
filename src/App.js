@@ -119,59 +119,52 @@ function App() {
 		<I18nextProvider i18n={i18n}>
 			<CredentialsProvider>
 				<Snowfalling />
-					<Suspense fallback={<Spinner />}>
-						<HandlerNotification />
-						<AppRoutes />
-						{showSelectCredentialsPopup &&
-							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
-						}
-						{showPinInputPopup &&
-							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
-						}
-						{showMessagePopup &&
-							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-						}
-					</Suspense>
-			</CredentialsProvider>
-		</I18nextProvider>
-	);
-}
-
-function AppRoutes() {
-	const location = useLocation();
-	return (
-		<Routes>
-			<Route element={
-				<PrivateRoute>
-					<Layout>
-						<Suspense fallback={<Spinner />}>
-							<PrivateRoute.NotificationPermissionWarning />
-							<FadeInContentTransition appear reanimateKey={location.pathname}>
+				<Suspense fallback={<Spinner />}>
+					<HandlerNotification />
+					<Routes>
+						<Route element={
+							<PrivateRoute>
+								<Layout>
+									<Suspense fallback={<Spinner />}>
+										<PrivateRoute.NotificationPermissionWarning />
+										<FadeInContentTransition appear reanimateKey={location.pathname}>
+											<Outlet />
+										</FadeInContentTransition>
+									</Suspense>
+								</Layout>
+							</PrivateRoute>
+						}>
+							<Route path="/settings" element={<Settings />} />
+							<Route path="/" element={<Home />} />
+							<Route path="/credential/:id" element={<CredentialDetail />} />
+							<Route path="/history" element={<History />} />
+							<Route path="/add" element={<AddCredentials />} />
+							<Route path="/send" element={<SendCredentials />} />
+							<Route path="/verification/result" element={<VerificationResult />} />
+							<Route path="/cb" element={<Home />} />
+						</Route>
+						<Route element={
+							<FadeInContentTransition reanimateKey={location.pathname}>
 								<Outlet />
 							</FadeInContentTransition>
-						</Suspense>
-					</Layout>
-				</PrivateRoute>
-			}>
-				<Route path="/settings" element={<Settings />} />
-				<Route path="/" element={<Home />} />
-				<Route path="/credential/:id" element={<CredentialDetail />} />
-				<Route path="/history" element={<History />} />
-				<Route path="/add" element={<AddCredentials />} />
-				<Route path="/send" element={<SendCredentials />} />
-				<Route path="/verification/result" element={<VerificationResult />} />
-				<Route path="/cb" element={<Home />} />
-			</Route>
-			<Route element={
-				<FadeInContentTransition reanimateKey={location.pathname}>
-					<Outlet />
-				</FadeInContentTransition>
-			}>
-				<Route path="/login" element={<Login />} />
-				<Route path="/login-state" element={<LoginState />} />
-				<Route path="*" element={<NotFound />} />
-			</Route>
-		</Routes>
+						}>
+							<Route path="/login" element={<Login />} />
+							<Route path="/login-state" element={<LoginState />} />
+							<Route path="*" element={<NotFound />} />
+						</Route>
+					</Routes>
+					{showSelectCredentialsPopup &&
+						<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
+					}
+					{showPinInputPopup &&
+						<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+					}
+					{showMessagePopup &&
+						<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+					}
+				</Suspense>
+			</CredentialsProvider>
+		</I18nextProvider>
 	);
 }
 
