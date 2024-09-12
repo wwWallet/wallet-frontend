@@ -634,8 +634,7 @@ const Login = () => {
 		setIsSubmitting(false);
 	};
 
-	const toggleForm = (event) => {
-		event.preventDefault();
+	const toggleForm = () => {
 		if (isOnline || !isLogin) {
 			setIsLogin(!isLogin);
 			setError('');
@@ -756,23 +755,20 @@ const Login = () => {
 					{!isLoginCache ? (
 						<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 							{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-							<a
-								href={isLogin && isOnline ? "/" : ""}
-								className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
-								title={`${isOnline === false && t('common.offlineTitle')}`}
+							<Button
+								variant="link"
 								onClick={toggleForm}
+								disabled={!isOnline}
+								title={!isOnline && t('common.offlineTitle')}
 							>
 								{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-							</a>
+							</Button>
 						</p>
 					) : (
 						<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
-							<a
-								className="font-medium text-primary hover:underline dark:text-primary-light"
-								onClick={useOtherAccount}
-							>
+							<Button variant="link" onClick={useOtherAccount}>
 								{t('loginSignup.useOtherAccount')}
-							</a>
+							</Button>
 						</p>
 					)}
 
