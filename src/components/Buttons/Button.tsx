@@ -1,6 +1,35 @@
 import React from 'react';
 
-const Button = ({ type = 'button', content, onClick, variant = 'custom', additionalClassName = '', disabled = false, ariaLabel, title }) => {
+export type Variant = (
+	'primary'
+	| 'secondary'
+	| 'tertiary'
+	| 'cancel'
+	| 'delete'
+	| 'custom'
+);
+
+export type Props = {
+	type?: 'button' | 'reset' | 'submit',
+	content: React.ReactNode,
+	onClick?: React.MouseEventHandler<HTMLButtonElement>,
+	variant?: Variant,
+	additionalClassName?: string,
+	disabled?: boolean,
+	ariaLabel?: string,
+	title?: string,
+};
+
+const Button = ({
+	type = 'button',
+	content,
+	onClick,
+	variant = 'custom',
+	additionalClassName = '',
+	disabled = false,
+	ariaLabel,
+	title,
+}: Props) => {
 
 	const getVariantClassName = () => {
 		const commonClasses = 'rounded-lg shadow-sm text-sm px-4 py-2 text-center flex flex-row flex-nowrap items-center justify-center';
