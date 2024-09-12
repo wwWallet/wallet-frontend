@@ -14,6 +14,7 @@ import { formatDate } from '../../functions/DateFormat';
 import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import { H1 } from '../../components/Heading';
+import { compareBy } from '../../util';
 
 
 const History = () => {
@@ -63,7 +64,7 @@ const History = () => {
 				console.log(fetchedPresentations.vp_list);
 				// Extract and map the vp_list from fetchedPresentations.
 				const vpListFromApi = fetchedPresentations.vp_list
-					.sort((vpA, vpB) => vpB.issuanceDate - vpA.issuanceDate)
+					.sort(compareBy(vp => vp.issuanceDate))
 					.map((item) => ({
 						id: item.id,
 						presentation: item.presentation,
