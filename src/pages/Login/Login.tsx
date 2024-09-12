@@ -535,7 +535,7 @@ const WebauthnSignupLogin = ({
 								type="submit"
 								variant="primary"
 								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
-								additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+								additionalClassName="w-full"
 								title={!isLogin && !isOnline && t("common.offlineTitle")}
 							>
 								<GoPasskeyFill className="inline text-xl mr-2" />
