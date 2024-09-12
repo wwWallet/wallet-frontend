@@ -12,7 +12,6 @@ import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import * as config from '../../config';
-import logo from '../../assets/images/logo.png';
 import GetButton from '../../components/Buttons/GetButton';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
@@ -234,7 +233,7 @@ const WebauthnSignupLogin = ({
 		() => {
 			setError("");
 		},
-		[isLogin],
+		[isLogin, setError],
 	);
 
 	const promptForPrfRetry = async (): Promise<boolean> => {

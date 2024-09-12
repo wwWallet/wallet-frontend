@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useContext, useRef } from 'react';
+import React, { createContext, useState, useContext, useRef } from 'react';
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
@@ -77,7 +77,7 @@ export const CredentialsProvider = ({ children }) => {
 		}, 1000);
 	};
 
-	const getData = useCallback(async () => {
+	const getData = async () => {
 		try {
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
@@ -101,7 +101,7 @@ export const CredentialsProvider = ({ children }) => {
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	}, [api]);
+	};
 
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData }}>
