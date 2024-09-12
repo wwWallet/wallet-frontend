@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GetButton = ({ type = 'button', content, onClick, variant = 'custom', additionalClassName = '', disabled = false, ariaLabel, title }) => {
+const Button = ({ type = 'button', content, onClick, variant = 'custom', additionalClassName = '', disabled = false, ariaLabel, title }) => {
 
 	const getVariantClassName = () => {
 		const commonClasses = 'rounded-lg shadow-sm text-sm px-4 py-2 text-center flex flex-row flex-nowrap items-center justify-center';
@@ -37,4 +37,4 @@ const GetButton = ({ type = 'button', content, onClick, variant = 'custom', addi
 	);
 };
 
-export default GetButton;
+export default Button;

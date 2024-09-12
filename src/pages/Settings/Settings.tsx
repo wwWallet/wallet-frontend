@@ -13,7 +13,7 @@ import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../service
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Heading';
 
 
@@ -201,7 +201,7 @@ const WebauthnRegistation = ({
 
 	return (
 		<>
-			<GetButton
+			<Button
 				content={
 					<div className="flex items-center">
 						<BsPlusCircle size={20} />
@@ -249,7 +249,7 @@ const WebauthnRegistation = ({
 					}
 
 					<div className="pt-2 flex justify-center gap-2">
-						<GetButton
+						<Button
 							content={t('common.cancel')}
 							onClick={onCancel}
 							variant="cancel"
@@ -257,7 +257,7 @@ const WebauthnRegistation = ({
 						/>
 
 						{pendingCredential && (
-							<GetButton
+							<Button
 								type="submit"
 								content={t('common.save')}
 								variant="secondary"
@@ -278,13 +278,13 @@ const WebauthnRegistation = ({
 				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
 				<div className='flex justify-center gap-2'>
-					<GetButton
+					<Button
 						content={t('common.cancel')}
 						onClick={() => resolvePrfRetryPrompt(false)}
 						variant="cancel"
 					/>
 
-					<GetButton
+					<Button
 						content={t('common.continue')}
 						onClick={() => resolvePrfRetryPrompt(true)}
 						variant="secondary"
@@ -300,7 +300,7 @@ const WebauthnRegistation = ({
 			>
 				<p className='dark:text-white'>{t('registerPasskey.messageInteractNewPasskey')}</p>
 				<div className='flex justify-center'>
-					<GetButton
+					<Button
 						content={t('common.cancel')}
 						onClick={onCancel}
 						variant="cancel"
@@ -396,7 +396,7 @@ const UnlockMainKey = ({
 
 	return (
 		<>
-			<GetButton
+			<Button
 				content={
 					<div className="flex items-center">
 						{unlocked
@@ -616,14 +616,14 @@ const WebauthnCredentialItem = ({
 					? (
 
 						<div className='flex gap-2'>
-							<GetButton
+							<Button
 								content={t('common.cancel')}
 								onClick={onCancelEditing}
 								variant="cancel"
 								disabled={submitting}
 								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
 							/>
-							<GetButton
+							<Button
 								type="submit"
 								content={t('common.save')}
 								disabled={submitting}
@@ -632,7 +632,7 @@ const WebauthnCredentialItem = ({
 						</div>
 					)
 					: (
-						<GetButton
+						<Button
 							content={
 								<>
 									<FaEdit size={16} className="mr-2" />
@@ -649,7 +649,7 @@ const WebauthnCredentialItem = ({
 				}
 
 				{onDelete && (
-					<GetButton
+					<Button
 						content={<FaTrash size={16} />}
 						onClick={openDeleteConfirmation}
 						variant="delete"
@@ -899,7 +899,7 @@ const Settings = () => {
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
-									<GetButton
+									<Button
 										content={t('pageSettings.deleteAccount.buttonText')}
 										onClick={openDeleteConfirmation}
 										variant="delete"

@@ -3,7 +3,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 
 const MessagePopup = ({ type, message, onClose }) => {
 	const { title, description } = message || {};
@@ -37,7 +37,7 @@ const MessagePopup = ({ type, message, onClose }) => {
 					{description}
 				</p>
 				<div className="flex justify-end space-x-2 pt-4">
-					<GetButton
+					<Button
 						content={t('messagePopup.close')}
 						onClick={onClose}
 						variant="cancel"

@@ -5,7 +5,7 @@ import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import { CredentialImage } from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import SessionContext from '../../context/SessionContext';
 
@@ -239,7 +239,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								</div>
 							</button>
 							<div className='w-2/3 mt-2'>
-								<GetButton
+								<Button
 									content={credentialDisplay[vcEntity.credentialIdentifier] ? t('selectCredentialPopup.detailsHide') : t('selectCredentialPopup.detailsShow')}
 									onClick={() => toggleCredentialDisplay(vcEntity.credentialIdentifier)}
 									variant="primary"
@@ -256,7 +256,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				))}
 			</div>
 			<div className="flex justify-between mt-4">
-				<GetButton
+				<Button
 					content={t('common.cancel')}
 					onClick={handleCancel}
 					variant="cancel"
@@ -265,14 +265,14 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 
 				<div className="flex gap-2">
 					{currentIndex > 0 && (
-						<GetButton
+						<Button
 							content={t('common.previous')}
 							onClick={goToPreviousSelection}
 							variant="secondary"
 						/>
 					)}
 
-					<GetButton
+					<Button
 						content={currentIndex < keys.length - 1 ? t('common.next') : t('common.navItemSendCredentialsSimple')}
 						onClick={goToNextSelection}
 						variant="primary"

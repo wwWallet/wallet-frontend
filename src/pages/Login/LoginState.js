@@ -7,7 +7,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
 
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import LoginPageLayout from './LoginPageLayout';
 
@@ -69,7 +69,7 @@ const WebauthnLogin = ({
 		<>
 			<ul className=" p-2">
 				<div className='flex flex-row gap-4 justify-center mr-2'>
-					<GetButton
+					<Button
 						content={
 							<>
 								{t('common.cancel')}
@@ -80,7 +80,7 @@ const WebauthnLogin = ({
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					/>
-					<GetButton
+					<Button
 						content={
 							<>
 								<GoPasskeyFill className="inline text-xl mr-2" />

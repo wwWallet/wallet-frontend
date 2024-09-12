@@ -12,7 +12,7 @@ import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import * as config from '../../config';
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
@@ -183,7 +183,7 @@ const UsernamePasswordForm = ({
 						/>
 					</FormInputRow>
 				)}
-				<GetButton
+				<Button
 					type="submit"
 					content={submitButtonContent}
 					variant="primary"
@@ -411,12 +411,12 @@ const WebauthnSignupLogin = ({
 										)
 								}
 								<div className='flex justify-center gap-4'>
-									<GetButton
+									<Button
 										content={t('common.cancel')}
 										onClick={() => resolvePrfRetryPrompt(false)}
 										variant="cancel"
 									/>
-									<GetButton
+									<Button
 										content={t('common.continue')}
 										onClick={() => resolvePrfRetryPrompt(true)}
 										variant="secondary"
@@ -437,12 +437,12 @@ const WebauthnSignupLogin = ({
 										</p>
 										<div className='flex justify-center gap-4'>
 
-											<GetButton
+											<Button
 												content={t('common.cancel')}
 												onClick={onCancel}
 												variant="cancel"
 											/>
-											<GetButton
+											<Button
 												type="submit"
 												content={t('common.tryAgain')}
 												variant="secondary"
@@ -453,7 +453,7 @@ const WebauthnSignupLogin = ({
 								: (
 									<>
 										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
-										<GetButton
+										<Button
 											content={t('common.cancel')}
 											onClick={onCancel}
 											variant="cancel"
@@ -502,7 +502,7 @@ const WebauthnSignupLogin = ({
 										className="w-full flex flex-row flex-nowrap mb-2"
 									>
 										<div className='flex-grow mr-2'>
-											<GetButton
+											<Button
 												content={
 													<>
 														<GoPasskeyFill className="inline text-xl mr-2" />
@@ -516,7 +516,7 @@ const WebauthnSignupLogin = ({
 											/>
 										</div>
 										<div>
-											<GetButton
+											<Button
 												content={
 													<GoTrash className="inline text-xl" />
 												}
@@ -533,7 +533,7 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && (
-							<GetButton
+							<Button
 								type="submit"
 								content={
 									<>

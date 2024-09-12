@@ -2,7 +2,7 @@ import React from 'react';
 import logo from '../../assets/images/logo.png';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 
 
 const NotFound = () => {
@@ -31,7 +31,7 @@ const NotFound = () => {
 						<p className='text-center'>
 							{t('notFound.message')}
 						</p>
-						<GetButton
+						<Button
 							content={t('notFound.homeButton')}
 							onClick={handleBackToHome}
 							variant="secondary"

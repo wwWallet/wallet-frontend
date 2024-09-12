@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
 
 function PinInput({ showPopup, setShowPopup }) {
@@ -152,12 +152,12 @@ function PinInput({ showPopup, setShowPopup }) {
 			</div>
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<GetButton
+				<Button
 					content={t('common.cancel')}
 					onClick={handleCancel}
 					variant="cancel"
 				/>
-				<GetButton
+				<Button
 					content={t('common.submit')}
 					onClick={handleSubmit}
 					variant="primary"

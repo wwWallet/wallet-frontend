@@ -5,7 +5,7 @@ import { useSessionStorage } from '../hooks/useStorage';
 import { Trans, useTranslation } from 'react-i18next';
 
 import { FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import GetButton from './Buttons/GetButton';
+import Button from './Buttons/Button';
 
 const noWarnPlatforms = [
 	{ browser: /chrome/ui, not: { os: /ios/ui } },
@@ -134,7 +134,7 @@ export function WarningPortal({
 
 				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.outro')}</p>
 
-				<GetButton
+				<Button
 					content={t('browserSupportWarningPortal.continueAnyway')}
 					onClick={() => setBypass(true)}
 					additionalClassName='text-white bg-gray-300 hover:bg-gray-400 w-full'
