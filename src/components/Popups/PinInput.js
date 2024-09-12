@@ -152,16 +152,12 @@ function PinInput({ showPopup, setShowPopup }) {
 			</div>
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button
-					content={t('common.cancel')}
-					onClick={handleCancel}
-					variant="cancel"
-				/>
-				<Button
-					content={t('common.submit')}
-					onClick={handleSubmit}
-					variant="primary"
-				/>
+				<Button variant="cancel" onClick={handleCancel}>
+					{t('common.cancel')}
+				</Button>
+				<Button variant="primary" onClick={handleSubmit}>
+					{t('common.submit')}
+				</Button>
 			</div>
 		</Modal>
 	);

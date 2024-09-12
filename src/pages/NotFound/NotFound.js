@@ -32,11 +32,12 @@ const NotFound = () => {
 							{t('notFound.message')}
 						</p>
 						<Button
-							content={t('notFound.homeButton')}
 							onClick={handleBackToHome}
 							variant="secondary"
 							additionalClassName='w-full'
-						/>
+						>
+							{t('notFound.homeButton')}
+						</Button>
 					</div>
 				</div>
 			</div>

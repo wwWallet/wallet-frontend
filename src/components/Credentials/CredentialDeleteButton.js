@@ -15,17 +15,13 @@ const CredentialDeleteButton = ({ onDelete }) => {
 	return (
 		<div className="lg:p-0 p-2 w-full lg:mt-5 mt-2">
 			<Button
-				content={
-					<>
-						<MdDelete size={20} /> {t('common.delete')}
-					</>
-				}
 				onClick={handleClick}
 				variant="delete"
 				disabled={!isOnline}
 				title={!isOnline && t('common.offlineTitle')}
-
-			/>
+			>
+				<MdDelete size={20} /> {t('common.delete')}
+			</Button>
 		</div>
 	);
 };

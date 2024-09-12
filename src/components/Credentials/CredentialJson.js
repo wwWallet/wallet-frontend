@@ -21,19 +21,16 @@ const CredentialJson = ({ credential }) => {
 		<div className=" lg:p-0 p-2 w-full">
 			<div className="mb-4 flex items-center">
 				<Button
-					content={
-						<>
-							{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
-							{showJsonCredentials ? (
-								<AiOutlineUp className="ml-1" />
-							) : (
-								<AiOutlineDown className="ml-1" />
-							)}
-						</>
-					}
 					onClick={() => setShowJsonCredentials(!showJsonCredentials)}
 					variant="primary"
-				/>
+				>
+					{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
+					{showJsonCredentials ? (
+						<AiOutlineUp className="ml-1" />
+					) : (
+						<AiOutlineDown className="ml-1" />
+					)}
+				</Button>
 			</div>
 
 			<hr className="my-2 border-t border-primary dark:border-primary-light py-2" />

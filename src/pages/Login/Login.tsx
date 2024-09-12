@@ -185,11 +185,12 @@ const UsernamePasswordForm = ({
 				)}
 				<Button
 					type="submit"
-					content={submitButtonContent}
 					variant="primary"
 					disabled={disabled}
 					additionalClassName='w-full'
-				/>
+				>
+					{submitButtonContent}
+				</Button>
 			</form>
 		</>
 	);
@@ -412,16 +413,18 @@ const WebauthnSignupLogin = ({
 								}
 								<div className='flex justify-center gap-4'>
 									<Button
-										content={t('common.cancel')}
 										onClick={() => resolvePrfRetryPrompt(false)}
 										variant="cancel"
-									/>
+									>
+										{t('common.cancel')}
+									</Button>
 									<Button
-										content={t('common.continue')}
 										onClick={() => resolvePrfRetryPrompt(true)}
 										variant="secondary"
 										disabled={prfRetryAccepted}
-									/>
+									>
+										{t('common.continue')}
+									</Button>
 								</div>
 							</div>
 						)
@@ -437,16 +440,12 @@ const WebauthnSignupLogin = ({
 										</p>
 										<div className='flex justify-center gap-4'>
 
-											<Button
-												content={t('common.cancel')}
-												onClick={onCancel}
-												variant="cancel"
-											/>
-											<Button
-												type="submit"
-												content={t('common.tryAgain')}
-												variant="secondary"
-											/>
+											<Button variant="cancel" onClick={onCancel}>
+												{t('common.cancel')}
+											</Button>
+											<Button type="submit" variant="secondary">
+												{t('common.tryAgain')}
+											</Button>
 										</div>
 									</div>
 								)
@@ -454,11 +453,12 @@ const WebauthnSignupLogin = ({
 									<>
 										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 										<Button
-											content={t('common.cancel')}
 											onClick={onCancel}
 											variant="cancel"
 											additionalClassName='w-full'
-										/>
+										>
+											{t('common.cancel')}
+										</Button>
 									</>
 								)
 						)
@@ -503,29 +503,27 @@ const WebauthnSignupLogin = ({
 									>
 										<div className='flex-grow mr-2'>
 											<Button
-												content={
-													<>
-														<GoPasskeyFill className="inline text-xl mr-2" />
-														{isSubmitting ? t('loginSignup.submitting') : t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-													</>
-												}
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												additionalClassName='w-full'
-											/>
+											>
+												<GoPasskeyFill className="inline text-xl mr-2" />
+												{isSubmitting
+													? t('loginSignup.submitting')
+													: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+											</Button>
 										</div>
 										<div>
 											<Button
-												content={
-													<GoTrash className="inline text-xl" />
-												}
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUserTitle')}
-											/>
+											>
+												<GoTrash className="inline text-xl" />
+											</Button>
 										</div>
 									</li>
 								))}
@@ -535,22 +533,19 @@ const WebauthnSignupLogin = ({
 						{!isLoginCache && (
 							<Button
 								type="submit"
-								content={
-									<>
-										<GoPasskeyFill className="inline text-xl mr-2" />
-										{isSubmitting
-											? t('loginSignup.submitting')
-											: isLogin
-												? t('loginSignup.loginPasskey')
-												: t('loginSignup.signupPasskey')
-										}
-									</>
-								}
 								variant="primary"
 								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
 								additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
 								title={!isLogin && !isOnline && t("common.offlineTitle")}
-							/>
+							>
+								<GoPasskeyFill className="inline text-xl mr-2" />
+								{isSubmitting
+									? t('loginSignup.submitting')
+									: isLogin
+										? t('loginSignup.loginPasskey')
+										: t('loginSignup.signupPasskey')
+								}
+							</Button>
 						)}
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>

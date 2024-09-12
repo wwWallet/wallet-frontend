@@ -240,11 +240,15 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 							</button>
 							<div className='w-2/3 mt-2'>
 								<Button
-									content={credentialDisplay[vcEntity.credentialIdentifier] ? t('selectCredentialPopup.detailsHide') : t('selectCredentialPopup.detailsShow')}
 									onClick={() => toggleCredentialDisplay(vcEntity.credentialIdentifier)}
 									variant="primary"
 									additionalClassName='text-xs w-full'
-								/>
+								>
+									{credentialDisplay[vcEntity.credentialIdentifier]
+										? t('selectCredentialPopup.detailsHide')
+										: t('selectCredentialPopup.detailsShow')
+									}
+								</Button>
 								<div
 									className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg dark:bg-gray-700 ${credentialDisplay[vcEntity.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
 								>
@@ -257,29 +261,30 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			</div>
 			<div className="flex justify-between mt-4">
 				<Button
-					content={t('common.cancel')}
 					onClick={handleCancel}
 					variant="cancel"
 					className="mr-2"
-				/>
+				>
+					{t('common.cancel')}
+				</Button>
 
 				<div className="flex gap-2">
 					{currentIndex > 0 && (
-						<Button
-							content={t('common.previous')}
-							onClick={goToPreviousSelection}
-							variant="secondary"
-						/>
+						<Button variant="secondary" onClick={goToPreviousSelection}>
+							{t('common.previous')}
+						</Button>
 					)}
 
 					<Button
-						content={currentIndex < keys.length - 1 ? t('common.next') : t('common.navItemSendCredentialsSimple')}
 						onClick={goToNextSelection}
 						variant="primary"
 						disabled={!selectedCredential}
 						title={!selectedCredential ? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
-
-					/>
+					>
+						{currentIndex < keys.length - 1
+							? t('common.next')
+							: t('common.navItemSendCredentialsSimple')}
+					</Button>
 				</div>
 			</div>
 

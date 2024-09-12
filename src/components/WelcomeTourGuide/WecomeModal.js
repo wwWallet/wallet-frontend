@@ -35,16 +35,12 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 			</p>
 
 			<div className="flex justify-center gap-2 pt-4">
-				<Button
-					content={t("welcomeModal.dismissButton")}
-					onClick={onClose}
-					variant="cancel"
-				/>
-				<Button
-					content={t("welcomeModal.startTourButton")}
-					onClick={onStartTour}
-					variant="primary"
-				/>
+				<Button variant="cancel" onClick={onClose}>
+					{t("welcomeModal.dismissButton")}
+				</Button>
+				<Button variant="primary" onClick={onStartTour}>
+					{t("welcomeModal.startTourButton")}
+				</Button>
 			</div>
 		</Modal>
 	);

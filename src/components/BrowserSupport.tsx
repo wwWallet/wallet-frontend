@@ -135,10 +135,11 @@ export function WarningPortal({
 				<p className="text-sm dark:text-gray-300">{t('browserSupportWarningPortal.outro')}</p>
 
 				<Button
-					content={t('browserSupportWarningPortal.continueAnyway')}
 					onClick={() => setBypass(true)}
 					additionalClassName='text-white bg-gray-300 hover:bg-gray-400 w-full'
-				/>
+				>
+					t('browserSupportWarningPortal.continueAnyway')
+				</Button>
 			</>
 		);
 	}

@@ -37,11 +37,9 @@ const MessagePopup = ({ type, message, onClose }) => {
 					{description}
 				</p>
 				<div className="flex justify-end space-x-2 pt-4">
-					<Button
-						content={t('messagePopup.close')}
-						onClick={onClose}
-						variant="cancel"
-					/>
+					<Button variant="cancel" onClick={onClose}>
+						{t('messagePopup.close')}
+					</Button>
 				</div>
 		</Modal>
 	);

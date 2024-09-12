@@ -9,13 +9,12 @@ const QRButton = ({ openQRScanner, isSmallScreen }) => {
 		return (
 			<div className="mb-2">
 				<Button
-					content={
-						<BsQrCodeScan size={20} className="text-white" />
-					}
 					onClick={openQRScanner}
 					variant="primary"
 					additionalClassName={`${isMobile ? "fixed z-20 bottom-[85px] right-5" : ""} step-2`}
-				/>
+				>
+					<BsQrCodeScan size={20} className="text-white" />
+				</Button>
 			</div>
 
 		);

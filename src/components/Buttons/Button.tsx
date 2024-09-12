@@ -11,7 +11,7 @@ export type Variant = (
 
 export type Props = {
 	type?: 'button' | 'reset' | 'submit',
-	content: React.ReactNode,
+	children?: React.ReactNode,
 	onClick?: React.MouseEventHandler<HTMLButtonElement>,
 	variant?: Variant,
 	additionalClassName?: string,
@@ -22,7 +22,7 @@ export type Props = {
 
 const Button = ({
 	type = 'button',
-	content,
+	children,
 	onClick,
 	variant = 'custom',
 	additionalClassName = '',
@@ -61,7 +61,7 @@ const Button = ({
 			{...(ariaLabel && { 'aria-label': ariaLabel })}
 			{...(title && { title })}
 		>
-			{content}
+			{children}
 		</button>
 	);
 };

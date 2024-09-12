@@ -202,14 +202,6 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<Button
-				content={
-					<div className="flex items-center">
-						<BsPlusCircle size={20} />
-						<span className='hidden md:block ml-2'>
-							{t('pageSettings.addPasskey')}
-						</span>
-					</div>
-				}
 				onClick={onBegin}
 				variant="primary"
 				disabled={registrationInProgress || !unlocked || !isOnline}
@@ -217,7 +209,14 @@ const WebauthnRegistation = ({
 
 				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-			/>
+			>
+				<div className="flex items-center">
+					<BsPlusCircle size={20} />
+					<span className='hidden md:block ml-2'>
+						{t('pageSettings.addPasskey')}
+					</span>
+				</div>
+			</Button>
 
 			<Dialog
 				open={stateChooseNickname}
@@ -250,19 +249,21 @@ const WebauthnRegistation = ({
 
 					<div className="pt-2 flex justify-center gap-2">
 						<Button
-							content={t('common.cancel')}
 							onClick={onCancel}
 							variant="cancel"
 							disabled={isSubmitting}
-						/>
+						>
+							{t('common.cancel')}
+						</Button>
 
 						{pendingCredential && (
 							<Button
 								type="submit"
-								content={t('common.save')}
 								variant="secondary"
 								disabled={isSubmitting}
-							/>
+							>
+								{t('common.save')}
+							</Button>
 						)}
 					</div>
 
@@ -279,17 +280,19 @@ const WebauthnRegistation = ({
 
 				<div className='flex justify-center gap-2'>
 					<Button
-						content={t('common.cancel')}
 						onClick={() => resolvePrfRetryPrompt(false)}
 						variant="cancel"
-					/>
+					>
+						{t('common.cancel')}
+					</Button>
 
 					<Button
-						content={t('common.continue')}
 						onClick={() => resolvePrfRetryPrompt(true)}
 						variant="secondary"
 						disabled={prfRetryAccepted}
-					/>
+					>
+						{t('common.continue')}
+					</Button>
 				</div>
 
 			</Dialog>
@@ -300,11 +303,9 @@ const WebauthnRegistation = ({
 			>
 				<p className='dark:text-white'>{t('registerPasskey.messageInteractNewPasskey')}</p>
 				<div className='flex justify-center'>
-					<Button
-						content={t('common.cancel')}
-						onClick={onCancel}
-						variant="cancel"
-					/>
+					<Button variant="cancel" onClick={onCancel}>
+						{t('common.cancel')}
+					</Button>
 				</div>
 			</Dialog>
 		</>
@@ -397,30 +398,29 @@ const UnlockMainKey = ({
 	return (
 		<>
 			<Button
-				content={
-					<div className="flex items-center">
-						{unlocked
-							? <>
-								<BsUnlock size={20} />
-								<span className='hidden md:block ml-2'>
-									{t('pageSettings.lockPasskeyManagement')}
-								</span>
-							</>
-							: <>
-								<BsLock size={20} />
-								<span className='hidden md:block ml-2'>
-									{t('pageSettings.unlockPasskeyManagement')}
-								</span>
-							</>
-						}
-					</div>
-				}
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
 				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
 				title={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
-			/>
+			>
+				<div className="flex items-center">
+					{unlocked
+						? <>
+							<BsUnlock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.lockPasskeyManagement')}
+							</span>
+						</>
+						: <>
+							<BsLock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.unlockPasskeyManagement')}
+							</span>
+						</>
+					}
+				</div>
+			</Button>
 			<Dialog
 				open={isPromptingForPassword}
 				onCancel={onCancelPassword}
@@ -617,47 +617,47 @@ const WebauthnCredentialItem = ({
 
 						<div className='flex gap-2'>
 							<Button
-								content={t('common.cancel')}
 								onClick={onCancelEditing}
 								variant="cancel"
 								disabled={submitting}
 								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
-							/>
+							>
+								{t('common.cancel')}
+							</Button>
 							<Button
 								type="submit"
-								content={t('common.save')}
 								disabled={submitting}
 								variant="secondary"
-							/>
+							>
+								{t('common.save')}
+							</Button>
 						</div>
 					)
 					: (
 						<Button
-							content={
-								<>
-									<FaEdit size={16} className="mr-2" />
-									{t('pageSettings.passkeyItem.rename')}
-								</>
-							}
 							onClick={() => setEditing(true)}
 							variant="secondary"
 							disabled={(onDelete && !unlocked) || !isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							title={!isOnline ? t("common.offlineTitle") : onDelete && !unlocked && t("pageSettings.passkeyItem.renameButtonTitleLocked")}
-						/>
+						>
+							<FaEdit size={16} className="mr-2" />
+							{t('pageSettings.passkeyItem.rename')}
+						</Button>
 					)
 				}
 
 				{onDelete && (
 					<Button
-						content={<FaTrash size={16} />}
 						onClick={openDeleteConfirmation}
 						variant="delete"
 						disabled={!unlocked || !isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 						title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
-					/>
+					>
+						<FaTrash size={16} />
+					</Button>
 				)}
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
@@ -900,12 +900,13 @@ const Settings = () => {
 										{t('pageSettings.deleteAccount.description')}
 									</p>
 									<Button
-										content={t('pageSettings.deleteAccount.buttonText')}
 										onClick={openDeleteConfirmation}
 										variant="delete"
 										disabled={!unlocked || !isOnline}
 										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
-									/>
+									>
+										{t('pageSettings.deleteAccount.buttonText')}
+									</Button>
 								</div>
 							</div>
 
