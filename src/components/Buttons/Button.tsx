@@ -6,6 +6,7 @@ export type Variant = (
 	| 'tertiary'
 	| 'cancel'
 	| 'delete'
+	| 'link'
 	| 'custom'
 );
 
@@ -44,6 +45,8 @@ const Button = ({
 				return `${commonClasses} ${!disabled ? "text-gray-900 bg-gray-300 hover:bg-gray-400" : "text-white bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
 			case 'delete':
 				return `${commonClasses} ${!disabled ? "text-white bg-red-600 hover:bg-red-700" : "text-red-400 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"}`;
+			case 'link':
+				return `font-medium ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
 			default:
 				return `${commonClasses}`;
 		}
