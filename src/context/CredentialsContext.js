@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useRef } from 'react';
+import React, { createContext, useState, useContext, useRef, useCallback } from 'react';
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
@@ -13,7 +13,7 @@ export const CredentialsProvider = ({ children }) => {
 	const intervalId = useRef(null);
 	const isPolling = useRef(false);
 
-	const fetchVcData = async () => {
+	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
@@ -25,7 +25,7 @@ export const CredentialsProvider = ({ children }) => {
 		vcEntityList.sort(compareBy(vc => new Date(vc.issuanceDate)));
 
 		return vcEntityList;
-	};
+	}, [api]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.issuanceDate === vcEntityList[0].issuanceDate).map(vc => vc.id)));
@@ -37,7 +37,7 @@ export const CredentialsProvider = ({ children }) => {
 		setVcEntityList(vcEntityList);
 	};
 
-	const pollForCredentials = () => {
+	const pollForCredentials = useCallback(() => {
 		let attempts = 0;
 		isPolling.current = true;
 
@@ -75,9 +75,9 @@ export const CredentialsProvider = ({ children }) => {
 				clearInterval(intervalId.current);
 			}
 		}, 1000);
-	};
+	}, [api, fetchVcData]);
 
-	const getData = async () => {
+	const getData = useCallback(async () => {
 		try {
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
@@ -101,7 +101,7 @@ export const CredentialsProvider = ({ children }) => {
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	};
+	}, [api, fetchVcData, pollForCredentials]);
 
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData }}>
