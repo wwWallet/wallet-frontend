@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useRef, useCallback } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
@@ -10,8 +10,6 @@ export const CredentialsProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState([]);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
-	const intervalId = useRef(null);
-	const isPolling = useRef(false);
 
 	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
@@ -39,12 +37,10 @@ export const CredentialsProvider = ({ children }) => {
 
 	const pollForCredentials = useCallback(() => {
 		let attempts = 0;
-		isPolling.current = true;
-
-		intervalId.current = setInterval(async () => {
-			if (!isPolling.current) {
-				isPolling.current = false;
-				clearInterval(intervalId.current);
+		let isPolling = true;
+		const intervalId = setInterval(async () => {
+			if (!isPolling) {
+				clearInterval(intervalId);
 				return;
 			}
 
@@ -57,15 +53,15 @@ export const CredentialsProvider = ({ children }) => {
 
 			if (previousSize < vcEntityList.length) {
 				console.log('Found new credentials, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
+				isPolling = false;
+				clearInterval(intervalId);
 				updateVcListAndLatestCredentials(vcEntityList);
 			}
 
 			if (attempts >= 5) {
 				console.log('Max attempts reached, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
+				isPolling = false;
+				clearInterval(intervalId);
 			}
 		}, 1000);
 	}, [api, fetchVcData]);
