@@ -1,15 +1,13 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging';
-
 import * as config from './config';
-
 
 let messaging = null;
 
-export const notificationApiIsSupported = () =>
+export const notificationApiIsSupported =
 	'Notification' in window &&
 	'serviceWorker' in navigator &&
-	'PushManager' in window
+	'PushManager' in window;
 
 export async function register() {
 	if (await isSupported() && 'serviceWorker' in navigator) {
@@ -56,7 +54,6 @@ const requestForToken = async () => {
 		return null;
 	}
 };
-
 
 const reRegisterServiceWorkerAndGetToken = async () => {
 	if (!await isSupported()) {
@@ -108,7 +105,6 @@ export const fetchToken = async () => {
 	return null; // Return null in case of failure
 };
 
-
 export const onMessageListener = () =>
 	new Promise(async (resolve) => {
 		if (await isSupported()) {
@@ -118,9 +114,8 @@ export const onMessageListener = () =>
 		}
 	});
 
-
 const initializeFirebaseAndMessaging = async () => {
-	if (notificationApiIsSupported()) {
+	if (notificationApiIsSupported) {
 		let supported = await isSupported();
 		console.log("Supported", supported);
 		if (supported) {
