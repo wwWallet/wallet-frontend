@@ -42,15 +42,8 @@ export const CredentialsProvider = ({ children }) => {
 		isPolling.current = true;
 
 		intervalId.current = setInterval(async () => {
-			const urlParams = new URLSearchParams(window.location.search);
-			if (!urlParams.has('code')) {
-				console.log('Code parameter no longer exists, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
-				return;
-			}
-
 			if (!isPolling.current) {
+				isPolling.current = false;
 				clearInterval(intervalId.current);
 				return;
 			}
@@ -87,7 +80,7 @@ export const CredentialsProvider = ({ children }) => {
 
 			const shouldPoll = window.location.search.includes('code') && sessionStorage.getItem('tokenSentInSession') === 'false';
 			const newCredentialsFound = previousSize < vcEntityList.length;
-
+			window.history.replaceState({}, '', `/`);
 			if (shouldPoll && !newCredentialsFound) {
 				console.log("No new credentials, starting polling");
 				pollForCredentials();
@@ -96,7 +89,6 @@ export const CredentialsProvider = ({ children }) => {
 				updateVcListAndLatestCredentials(vcEntityList);
 			} else {
 				setVcEntityList(vcEntityList);
-				setLatestCredentials(new Set());
 			}
 		} catch (error) {
 			console.error('Failed to fetch data', error);
