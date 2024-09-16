@@ -78,7 +78,10 @@ export const CredentialsProvider = ({ children }) => {
 			const vcEntityList = await fetchVcData();
 			setVcEntityList(vcEntityList);
 
-			const shouldPoll = window.location.search.includes('code') && sessionStorage.getItem('tokenSentInSession') === 'false';
+			const queryParams = window.location.search;
+			const tokenSent = sessionStorage.getItem('tokenSentInSession') === 'false';
+			const shouldPoll = (queryParams.includes('code') || queryParams.includes('credential_offer')) && tokenSent;
+
 			const newCredentialsFound = previousSize < vcEntityList.length;
 			window.history.replaceState({}, '', `/`);
 			if (shouldPoll && !newCredentialsFound) {
