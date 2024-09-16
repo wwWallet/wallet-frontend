@@ -110,8 +110,8 @@ export const fetchToken = async () => {
 
 
 export const onMessageListener = () =>
-	new Promise((resolve) => {
-		if (isSupported()) {
+	new Promise(async (resolve) => {
+		if (await isSupported()) {
 			onMessage(messaging, (payload) => {
 				resolve(payload);
 			});
