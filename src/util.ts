@@ -91,6 +91,11 @@ export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 	};
 }
 
+/** Reverse the given comparator function. */
+export function reverse<T>(f: (a: T, b: T) => number): (a: T, b: T) => number {
+	return (a: T, b: T) => -f(a, b);
+}
+
 /**
  * Wrap `action` so that it will not execute again for `timeoutMillis` milliseconds after each execution.
  */
