@@ -69,7 +69,7 @@ export const CredentialsProvider = ({ children }) => {
 				updateVcListAndLatestCredentials(vcEntityList);
 			}
 
-			if (attempts >= 10) {
+			if (attempts >= 5) {
 				console.log('Max attempts reached, stopping polling');
 				isPolling.current = false;
 				clearInterval(intervalId.current);
