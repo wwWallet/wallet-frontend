@@ -12,7 +12,7 @@ export const notificationApiIsSupported = () =>
 	'PushManager' in window
 
 export async function register() {
-	if (isSupported() && 'serviceWorker' in navigator) {
+	if (await isSupported() && 'serviceWorker' in navigator) {
 		try {
 			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/notifications/' });
 			console.log('App: Firebase Messaging Service Worker registered! Scope is:', registration.scope);
@@ -25,7 +25,7 @@ export async function register() {
 };
 
 const requestForToken = async () => {
-	if (!isSupported()) {
+	if (!await isSupported()) {
 		return null;
 	}
 	if (messaging) {
@@ -59,7 +59,7 @@ const requestForToken = async () => {
 
 
 const reRegisterServiceWorkerAndGetToken = async () => {
-	if (!isSupported()) {
+	if (!await isSupported()) {
 		return null;
 	}
 	if ('serviceWorker' in navigator) {
@@ -88,7 +88,7 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 };
 
 export const fetchToken = async () => {
-	if (isSupported() && messaging) {
+	if (await isSupported() && messaging) {
 		const token = await requestForToken();
 		console.log('token:', token);
 		if (token) {
