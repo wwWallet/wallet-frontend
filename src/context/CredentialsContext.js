@@ -2,7 +2,7 @@ import React, { createContext, useState, useCallback, useContext, useRef } from 
 import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
-import { compareBy } from '../util';
+import { compareBy, reverse } from '../util';
 
 const CredentialsContext = createContext();
 
@@ -22,7 +22,7 @@ export const CredentialsProvider = ({ children }) => {
 			return { ...vcEntity, friendlyName: name };
 		}));
 
-		vcEntityList.sort(compareBy(vc => new Date(vc.issuanceDate)));
+		vcEntityList.sort(reverse(compareBy(vc => new Date(vc.issuanceDate))));
 
 		return vcEntityList;
 	};
