@@ -63,6 +63,20 @@ export function jsonParseTaggedBinary(json: string): any {
 	return JSON.parse(json, reviverTaggedBinaryToUint8Array);
 }
 
+/**
+	Create a comparator function comparing the result of passing each argument through the given function.
+	The function returned by `compareBy` is suitable as an argument to `Array.sort()`, for example.
+
+	Example:
+	```
+	list.sort(compareBy(obj => new Date(obj.issuanceDate)));
+	```
+
+	The above is equivalent to:
+	```
+	list.sort((objA, objB) => new Date(objB.issuanceDate) - new Date(objA.issuanceDate));
+	```
+ */
 export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 	return (a: T, b: T) => {
 		const fa = f(a);
@@ -75,6 +89,11 @@ export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 			return 0;
 		}
 	};
+}
+
+/** Reverse the given comparator function. */
+export function reverse<T>(f: (a: T, b: T) => number): (a: T, b: T) => number {
+	return (a: T, b: T) => -f(a, b);
 }
 
 /**

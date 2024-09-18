@@ -47,7 +47,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 		|| (
 			isOnline === true
 			&& isPermissionGranted != null
-			&& notificationApiIsSupported()
+			&& notificationApiIsSupported
 			&& (
 				(!isPermissionGranted && isMessageNoGrantedVisible === false)
 				|| (
@@ -147,7 +147,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 
 	useEffect(() => {
 		const requestNotificationPermission = async () => {
-			if (!notificationApiIsSupported()) {
+			if (!notificationApiIsSupported) {
 				setIsPermissionGranted(false);
 				setTokenSentInSession(false);
 				return;
