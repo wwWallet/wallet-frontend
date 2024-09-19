@@ -101,9 +101,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 |------------------|----------------|------|---------|--------|--------|--------|
 | Linux            | ✔ 				    	| -    | ❌      | -      |        | ✔    	 |
 | Windows          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
-| MacOS            | ✔ 				      | ✔    | ❌      | ✔      | ❌     | ✔       |
+| MacOS            | ✔ 				      | ✔    | ❌      | ✔      | ✔     | ✔       |
 | Android          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
-| iOS              | ❌          	 | ❌    | ❌      | ❌     | ❌     | ❌      |
+| iOS (v18)        | ✔          	  | ✔    | ❌      | ✔      | ✔      | ✔      |
 
 ### PRF Compatibility Scenarios
 
@@ -111,20 +111,21 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 |------------------|----------------------|---------------|--------------------|
 | Linux            | FIDO Security Key    | USB           | ✔                  |
 | Linux            | Android 					    | Hybrid     		| ✔                  |
-| Linux            | iOS 						      | Hybrid     		| ❌                  |
+| Linux            | iOS 						      | Hybrid     		| ✔                  |
 | Windows          | FIDO Security Key    | USB           | ✔                  |
 | Windows          | Android 				      | Hybrid     		| ✔                  |
-| Windows          | iOS 				          | Hybrid     		| ❌                  |
+| Windows          | iOS 				          | Hybrid     		| ✔                  |
 | Windows          | Windows 					    | Internal      | ❌                  |
 | MacOS            | FIDO Security Key 	  | USB           | ✔                  |
-| MacOS            | MacOS 	              | Internal      | ❌                  |
+| MacOS            | MacOS                | Internal      | ✔                  |
 | MacOS            | Android 				      | Hybrid     		| ✔                  |
-| MacOS            | iOS 				          | Hybrid     		| ❌                  |
+| MacOS            | iOS 				          | Hybrid     		| ✔                  |
 | Android          | Android 					    | Internal      | ✔                  |
 | Android          | FIDO Security Key 	  | USB           | ✔ <sup>[1]</sup>    |
 | Android          | Android          	  | Hybrid        | ❌                  |
 | Android          | FIDO Security Key    | NFC           | ❌                  |
-| iOS              | iOS 					        | Internal      | ❌                  |
+| iOS              | iOS 					        | Internal      | ✔                  |
+| iOS              | Android 			        | Hybrid        | ❌                  |
 | iOS              | FIDO Security Key 	  | NFC           | ❌                  |
 
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
