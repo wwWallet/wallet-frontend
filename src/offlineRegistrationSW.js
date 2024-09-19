@@ -66,9 +66,8 @@ function registerValidSW(swUrl, config) {
 if ('serviceWorker' in navigator) {
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
-			if (window.confirm('New version is available. Would you like to reload to get the latest now?')) {
-				window.location.reload();
-			}
+			console.log('New version is available. Would you like to reload to get the latest now?')
+			window.location.reload();
 		}
 	});
 }
