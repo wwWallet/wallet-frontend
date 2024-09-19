@@ -95,43 +95,162 @@ The wwWallet Frontend is designed to be compatible with the PRF extension to Web
 
 The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of a hash message authentication code stored on the security key during the retrieval of a credential. This mechanism is crucial for generating secret keys vital for encrypting user data. While WebAuthn supports various authentication methods, the focus of this table is the compatibility with the PRF extension.
 
-### PRF Compatibility Support by Operating System and Latest Browser Versions
+### PRF Compatibility Scenarios Support by Operating System and Latest Browser Versions
 
-| Operating System | Chrome (v116+) | Edge | Firefox | Opera  | Safari | Brave  |
-|------------------|----------------|------|---------|--------|--------|--------|
-| Linux            | ✔ 				    	| -    | ❌      | -      |        | ✔    	 |
-| Windows          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
-| MacOS            | ✔ 				      | ✔    | ❌      | ✔      | ✔     | ✔       |
-| Android          | ✔ 							| ✔    | ❌      | ✔      |        | ✔      |
-| iOS (v18)        | ✔          	  | ✔    | ❌      | ✔      | ✔      | ✔      |
-
-### PRF Compatibility Scenarios
-
-| Operating System | Authenticator        | Transport     | PRF Compatibility |
-|------------------|----------------------|---------------|--------------------|
-| Linux            | FIDO Security Key    | USB           | ✔                  |
-| Linux            | Android 					    | Hybrid     		| ✔                  |
-| Linux            | iOS 						      | Hybrid     		| ✔                  |
-| Windows          | FIDO Security Key    | USB           | ✔                  |
-| Windows          | Android 				      | Hybrid     		| ✔                  |
-| Windows          | iOS 				          | Hybrid     		| ✔                  |
-| Windows          | Windows 					    | Internal      | ❌                  |
-| MacOS            | FIDO Security Key 	  | USB           | ✔                  |
-| MacOS            | MacOS                | Internal      | ✔                  |
-| MacOS            | Android 				      | Hybrid     		| ✔                  |
-| MacOS            | iOS 				          | Hybrid     		| ✔                  |
-| Android          | Android 					    | Internal      | ✔                  |
-| Android          | FIDO Security Key 	  | USB           | ✔ <sup>[1]</sup>    |
-| Android          | Android          	  | Hybrid        | ❌                  |
-| Android          | FIDO Security Key    | NFC           | ❌                  |
-| iOS              | iOS 					        | Internal      | ✔                  |
-| iOS              | Android 			        | Hybrid        | ❌                  |
-| iOS              | FIDO Security Key 	  | NFC           | ❌                  |
+<table>
+  <thead>
+    <tr>
+      <th rowspan="2">OS</th>
+      <th rowspan="2">Authenticator</th>
+      <th rowspan="2">Transport</th>
+      <th colspan="3">PRF Compatibility</th>
+    </tr>
+    <tr>
+      <th style="display:flex;align-items:center;border:none;"><img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
+	  		<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
+				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
+				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
+			</th>
+      <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Linux</td>
+      <td>FIDO Security Key</td>
+      <td>USB</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Linux</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Linux</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Windows</td>
+      <td>FIDO Security Key</td>
+      <td>USB</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Windows</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Windows</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Windows</td>
+      <td>Windows</td>
+      <td>Internal</td>
+      <td>❌</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>Android</td>
+      <td>Internal</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>FIDO Security Key</td>
+      <td>USB</td>
+      <td>✅<sup>[1]</sup></td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>❌</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>FIDO Security Key</td>
+      <td>NFC</td>
+      <td>❌</td>
+      <td> </td>
+    </tr>
+	    <tr>
+      <td>MacOS</td>
+      <td>FIDO Security Key</td>
+      <td>USB</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>MacOS</td>
+      <td>MacOS</td>
+      <td>Internal</td>
+      <td>❌</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>MacOS</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>MacOS</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>iOS</td>
+      <td>iOS</td>
+      <td>Internal</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>iOS</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>iOS</td>
+      <td>FIDO Security Key</td>
+      <td>NFC</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+  </tbody>
+</table>
 
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
 
-***Note:** In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
+***Notes:**
+- In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
 For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.*
+- The **PRF extension is supported in Mozilla Firefox on iOS only in internal cases** because Firefox generally uses the Gecko engine, but on iOS, it is required for all browsers to run on WebKit.
+- iOS supports PRF extension starting with the **iOS 18** release.
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
 
