@@ -117,12 +117,12 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
   <tbody>
     <tr>
       <td>Linux</td>
-      <td>FIDO Security Key</td>
-      <td>USB</td>
-      <td>✅</td>
+      <td>Linux</td>
+      <td>Internal</td>
+      <td>❌</td>
       <td> </td>
     </tr>
-    <tr>
+		<tr>
       <td>Linux</td>
       <td>Android</td>
       <td>Hybrid</td>
@@ -137,23 +137,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td> </td>
     </tr>
     <tr>
-      <td>Windows</td>
+      <td>Linux</td>
       <td>FIDO Security Key</td>
       <td>USB</td>
-      <td>✅</td>
-      <td> </td>
-    </tr>
-    <tr>
-      <td>Windows</td>
-      <td>Android</td>
-      <td>Hybrid</td>
-      <td>✅</td>
-      <td> </td>
-    </tr>
-    <tr>
-      <td>Windows</td>
-      <td>iOS</td>
-      <td>Hybrid</td>
       <td>✅</td>
       <td> </td>
     </tr>
@@ -165,10 +151,73 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td> </td>
     </tr>
     <tr>
+      <td>Windows</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Windows</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Windows</td>
+      <td>FIDO Security Key</td>
+      <td>USB</td>
+      <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>MacOS</td>
+      <td>MacOS</td>
+      <td>Internal</td>
+      <td>❌</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>MacOS</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>MacOS</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+	  <tr>
+      <td>MacOS</td>
+      <td>FIDO Security Key</td>
+      <td>USB</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
       <td>Android</td>
       <td>Android</td>
       <td>Internal</td>
       <td>✅</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>❌</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Android</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
@@ -180,57 +229,36 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
     </tr>
     <tr>
       <td>Android</td>
-      <td>Android</td>
-      <td>Hybrid</td>
-      <td>❌</td>
-      <td> </td>
-    </tr>
-    <tr>
-      <td>Android</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
       <td>❌</td>
       <td> </td>
     </tr>
-	    <tr>
-      <td>MacOS</td>
+    <tr>
+      <td>iOS</td>
+      <td>iOS</td>
+      <td>Internal</td>
+      <td>✅</td>
+      <td>✅</td>
+    </tr>
+    <tr>
+      <td>iOS</td>
+      <td>Android</td>
+      <td>Hybrid</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>iOS</td>
+      <td>iOS</td>
+      <td>Hybrid</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <td>iOS</td>
       <td>FIDO Security Key</td>
       <td>USB</td>
-      <td>✅</td>
-      <td>✅</td>
-    </tr>
-    <tr>
-      <td>MacOS</td>
-      <td>MacOS</td>
-      <td>Internal</td>
-      <td>❌</td>
-      <td>✅</td>
-    </tr>
-    <tr>
-      <td>MacOS</td>
-      <td>Android</td>
-      <td>Hybrid</td>
-      <td>✅</td>
-      <td>❌</td>
-    </tr>
-    <tr>
-      <td>MacOS</td>
-      <td>iOS</td>
-      <td>Hybrid</td>
-      <td>✅</td>
-      <td>✅</td>
-    </tr>
-    <tr>
-      <td>iOS</td>
-      <td>iOS</td>
-      <td>Internal</td>
-      <td>✅</td>
-      <td>✅</td>
-    </tr>
-    <tr>
-      <td>iOS</td>
-      <td>Android</td>
-      <td>Hybrid</td>
       <td>❌</td>
       <td>❌</td>
     </tr>
