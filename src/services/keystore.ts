@@ -10,7 +10,7 @@ import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
+import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SdJwt } from "@sd-jwt/core";
 
 
@@ -682,14 +682,9 @@ function filterPrfAllowCredentials(credential: PublicKeyCredential | null, prfIn
 			prfInput: (
 				"evalByCredential" in prfInputs.prfInput
 					? {
-						evalByCredential: Object.entries(prfInputs.prfInput.evalByCredential).reduce(
-							(ebc, [credIdB64u, inputs]) => {
-								if (credIdB64u === credential.id) {
-									ebc[credIdB64u] = inputs;
-								}
-								return ebc;
-							},
-							{},
+						evalByCredential: filterObject(
+							prfInputs.prfInput.evalByCredential,
+							(_, credIdB64u) => credIdB64u === credential.id,
 						),
 					}
 					: prfInputs.prfInput
