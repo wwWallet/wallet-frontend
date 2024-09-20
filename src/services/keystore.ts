@@ -171,6 +171,10 @@ export function isPrfKeyV2(prfKeyInfo: WebauthnPrfEncryptionKeyInfo): prfKeyInfo
 type PrfExtensionInput = { eval: { first: BufferSource } } | { evalByCredential: PrfEvalByCredential };
 type PrfEvalByCredential = { [credentialId: string]: { first: BufferSource } };
 type PrfExtensionOutput = { enabled: boolean, results?: { first?: ArrayBuffer } };
+type PrfInputs = {
+	allowCredentials?: PublicKeyCredentialDescriptor[],
+	prfInput: PrfExtensionInput,
+};
 
 export type KeystoreV0PublicData = {
 	publicKey: JWK,
@@ -673,7 +677,7 @@ export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]):
 
 async function getPrfOutput(
 	credential: PublicKeyCredential | null,
-	prfInputs: { allowCredentials?: PublicKeyCredentialDescriptor[], prfInput: PrfExtensionInput },
+	prfInputs: PrfInputs,
 	promptForRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<[ArrayBuffer, PublicKeyCredential]> {
 	const clientExtensionOutputs = credential?.getClientExtensionResults() as { prf?: PrfExtensionOutput } | null;
