@@ -10,7 +10,7 @@ import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
+import { byteArrayEquals, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SdJwt } from "@sd-jwt/core";
 
 
@@ -675,6 +675,31 @@ export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]):
 	};
 }
 
+function filterPrfAllowCredentials(credential: PublicKeyCredential | null, prfInputs: PrfInputs): PrfInputs {
+	if (credential) {
+		return {
+			allowCredentials: prfInputs?.allowCredentials?.filter(credDesc => byteArrayEquals(credDesc.id, credential.rawId)),
+			prfInput: (
+				"evalByCredential" in prfInputs.prfInput
+					? {
+						evalByCredential: Object.entries(prfInputs.prfInput.evalByCredential).reduce(
+							(ebc, [credIdB64u, inputs]) => {
+								if (credIdB64u === credential.id) {
+									ebc[credIdB64u] = inputs;
+								}
+								return ebc;
+							},
+							{},
+						),
+					}
+					: prfInputs.prfInput
+			),
+		};
+	} else {
+		return prfInputs;
+	}
+}
+
 async function getPrfOutput(
 	credential: PublicKeyCredential | null,
 	prfInputs: PrfInputs,
@@ -690,12 +715,18 @@ async function getPrfOutput(
 		const retryOrAbortSignal = await promptForRetry();
 		if (retryOrAbortSignal) {
 			try {
+				// Restrict the PRF-retry to use the same passkey as the previous
+				// authentication. Otherwise users may have to click through "use a
+				// different option" dialogs twice in order to use a security key
+				// instead of the platform authenticator, for example.
+				const filteredPrfInputs = filterPrfAllowCredentials(credential, prfInputs);
+
 				const retryCred = await navigator.credentials.get({
 					publicKey: {
 						rpId: config.WEBAUTHN_RPID,
 						challenge: crypto.getRandomValues(new Uint8Array(32)),
-						allowCredentials: prfInputs?.allowCredentials,
-						extensions: { prf: prfInputs.prfInput } as AuthenticationExtensionsClientInputs,
+						allowCredentials: filteredPrfInputs?.allowCredentials,
+						extensions: { prf: filteredPrfInputs.prfInput } as AuthenticationExtensionsClientInputs,
 					},
 					signal: retryOrAbortSignal === true ? undefined : retryOrAbortSignal,
 				}) as PublicKeyCredential;
