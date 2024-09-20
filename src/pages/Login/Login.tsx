@@ -12,8 +12,7 @@ import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import * as config from '../../config';
-import logo from '../../assets/images/logo.png';
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
@@ -184,13 +183,14 @@ const UsernamePasswordForm = ({
 						/>
 					</FormInputRow>
 				)}
-				<GetButton
+				<Button
 					type="submit"
-					content={submitButtonContent}
 					variant="primary"
 					disabled={disabled}
 					additionalClassName='w-full'
-				/>
+				>
+					{submitButtonContent}
+				</Button>
 			</form>
 		</>
 	);
@@ -234,7 +234,7 @@ const WebauthnSignupLogin = ({
 		() => {
 			setError("");
 		},
-		[isLogin],
+		[isLogin, setError],
 	);
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
@@ -412,17 +412,19 @@ const WebauthnSignupLogin = ({
 										)
 								}
 								<div className='flex justify-center gap-4'>
-									<GetButton
-										content={t('common.cancel')}
+									<Button
 										onClick={() => resolvePrfRetryPrompt(false)}
 										variant="cancel"
-									/>
-									<GetButton
-										content={t('common.continue')}
+									>
+										{t('common.cancel')}
+									</Button>
+									<Button
 										onClick={() => resolvePrfRetryPrompt(true)}
 										variant="secondary"
 										disabled={prfRetryAccepted}
-									/>
+									>
+										{t('common.continue')}
+									</Button>
 								</div>
 							</div>
 						)
@@ -438,28 +440,25 @@ const WebauthnSignupLogin = ({
 										</p>
 										<div className='flex justify-center gap-4'>
 
-											<GetButton
-												content={t('common.cancel')}
-												onClick={onCancel}
-												variant="cancel"
-											/>
-											<GetButton
-												type="submit"
-												content={t('common.tryAgain')}
-												variant="secondary"
-											/>
+											<Button variant="cancel" onClick={onCancel}>
+												{t('common.cancel')}
+											</Button>
+											<Button type="submit" variant="secondary">
+												{t('common.tryAgain')}
+											</Button>
 										</div>
 									</div>
 								)
 								: (
 									<>
 										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
-										<GetButton
-											content={t('common.cancel')}
+										<Button
 											onClick={onCancel}
 											variant="cancel"
 											additionalClassName='w-full'
-										/>
+										>
+											{t('common.cancel')}
+										</Button>
 									</>
 								)
 						)
@@ -503,30 +502,28 @@ const WebauthnSignupLogin = ({
 										className="w-full flex flex-row flex-nowrap mb-2"
 									>
 										<div className='flex-grow mr-2'>
-											<GetButton
-												content={
-													<>
-														<GoPasskeyFill className="inline text-xl mr-2" />
-														{isSubmitting ? t('loginSignup.submitting') : t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-													</>
-												}
+											<Button
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												additionalClassName='w-full'
-											/>
+											>
+												<GoPasskeyFill className="inline text-xl mr-2" />
+												{isSubmitting
+													? t('loginSignup.submitting')
+													: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+											</Button>
 										</div>
 										<div>
-											<GetButton
-												content={
-													<GoTrash className="inline text-xl" />
-												}
+											<Button
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUserTitle')}
-											/>
+											>
+												<GoTrash className="inline text-xl" />
+											</Button>
 										</div>
 									</li>
 								))}
@@ -534,24 +531,21 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && (
-							<GetButton
+							<Button
 								type="submit"
-								content={
-									<>
-										<GoPasskeyFill className="inline text-xl mr-2" />
-										{isSubmitting
-											? t('loginSignup.submitting')
-											: isLogin
-												? t('loginSignup.loginPasskey')
-												: t('loginSignup.signupPasskey')
-										}
-									</>
-								}
 								variant="primary"
 								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
-								additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+								additionalClassName="w-full"
 								title={!isLogin && !isOnline && t("common.offlineTitle")}
-							/>
+							>
+								<GoPasskeyFill className="inline text-xl mr-2" />
+								{isSubmitting
+									? t('loginSignup.submitting')
+									: isLogin
+										? t('loginSignup.loginPasskey')
+										: t('loginSignup.signupPasskey')
+								}
+							</Button>
 						)}
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
@@ -640,8 +634,7 @@ const Login = () => {
 		setIsSubmitting(false);
 	};
 
-	const toggleForm = (event) => {
-		event.preventDefault();
+	const toggleForm = () => {
 		if (isOnline || !isLogin) {
 			setIsLogin(!isLogin);
 			setError('');
@@ -762,23 +755,20 @@ const Login = () => {
 					{!isLoginCache ? (
 						<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 							{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-							<a
-								href={isLogin && isOnline ? "/" : ""}
-								className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
-								title={`${isOnline === false && t('common.offlineTitle')}`}
+							<Button
+								variant="link"
 								onClick={toggleForm}
+								disabled={!isOnline}
+								title={!isOnline && t('common.offlineTitle')}
 							>
 								{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-							</a>
+							</Button>
 						</p>
 					) : (
 						<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
-							<a
-								className="font-medium text-primary hover:underline dark:text-primary-light"
-								onClick={useOtherAccount}
-							>
+							<Button variant="link" onClick={useOtherAccount}>
 								{t('loginSignup.useOtherAccount')}
-							</a>
+							</Button>
 						</p>
 					)}
 

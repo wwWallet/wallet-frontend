@@ -2,7 +2,7 @@ import React from 'react';
 import Modal from 'react-modal';
 import { FaHandshake } from "react-icons/fa";
 import { useTranslation, Trans } from 'react-i18next';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 
 const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 	const { t } = useTranslation();
@@ -35,16 +35,12 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 			</p>
 
 			<div className="flex justify-center gap-2 pt-4">
-				<GetButton
-					content={t("welcomeModal.dismissButton")}
-					onClick={onClose}
-					variant="cancel"
-				/>
-				<GetButton
-					content={t("welcomeModal.startTourButton")}
-					onClick={onStartTour}
-					variant="primary"
-				/>
+				<Button variant="cancel" onClick={onClose}>
+					{t("welcomeModal.dismissButton")}
+				</Button>
+				<Button variant="primary" onClick={onStartTour}>
+					{t("welcomeModal.startTourButton")}
+				</Button>
 			</div>
 		</Modal>
 	);

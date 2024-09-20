@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import SessionContext from '../../context/SessionContext';
 
 import WelcomeModal from './WecomeModal';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 
 
 const TourGuide = ({ toggleMenu, isOpen }) => {
@@ -60,14 +60,11 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 					<>
 						<p className='mt-2'>{t("tourGuide.tourComplete")}</p>
 						<div className='flex justify-center mt-2'>
-							<GetButton
-								content={t("tourGuide.closeTourButton")}
-								onClick={() => setIsTourOpen(false)}
-								variant="primary"
-							/>
+							<Button variant="primary" onClick={() => setIsTourOpen(false)}>
+								{t("tourGuide.closeTourButton")}
+							</Button>
 						</div>
 					</>
-
 				)
 			}
 

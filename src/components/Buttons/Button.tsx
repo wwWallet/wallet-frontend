@@ -1,6 +1,37 @@
 import React from 'react';
 
-const GetButton = ({ type = 'button', content, onClick, variant = 'custom', additionalClassName = '', disabled = false, ariaLabel, title }) => {
+export type Variant = (
+	'primary'
+	| 'secondary'
+	| 'tertiary'
+	| 'cancel'
+	| 'delete'
+	| 'outline'
+	| 'link'
+	| 'custom'
+);
+
+export type Props = {
+	type?: 'button' | 'reset' | 'submit',
+	children?: React.ReactNode,
+	onClick?: React.MouseEventHandler<HTMLButtonElement>,
+	variant?: Variant,
+	additionalClassName?: string,
+	disabled?: boolean,
+	ariaLabel?: string,
+	title?: string,
+};
+
+const Button = ({
+	type = 'button',
+	children,
+	onClick,
+	variant = 'custom',
+	additionalClassName = '',
+	disabled = false,
+	ariaLabel,
+	title,
+}: Props) => {
 
 	const getVariantClassName = () => {
 		const commonClasses = 'rounded-lg shadow-sm text-sm px-4 py-2 text-center flex flex-row flex-nowrap items-center justify-center';
@@ -15,6 +46,10 @@ const GetButton = ({ type = 'button', content, onClick, variant = 'custom', addi
 				return `${commonClasses} ${!disabled ? "text-gray-900 bg-gray-300 hover:bg-gray-400" : "text-white bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
 			case 'delete':
 				return `${commonClasses} ${!disabled ? "text-white bg-red-600 hover:bg-red-700" : "text-red-400 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"}`;
+			case 'outline':
+				return `bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' }`;
+			case 'link':
+				return `font-medium ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
 			default:
 				return `${commonClasses}`;
 		}
@@ -32,9 +67,9 @@ const GetButton = ({ type = 'button', content, onClick, variant = 'custom', addi
 			{...(ariaLabel && { 'aria-label': ariaLabel })}
 			{...(title && { title })}
 		>
-			{content}
+			{children}
 		</button>
 	);
 };
 
-export default GetButton;
+export default Button;
