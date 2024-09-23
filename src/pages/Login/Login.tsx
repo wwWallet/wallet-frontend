@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaExclamationTriangle, FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
@@ -12,12 +12,10 @@ import OnlineStatusContext from '../../context/OnlineStatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import * as config from '../../config';
-import logo from '../../assets/images/logo.png';
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-import * as CheckBrowserSupport from '../../components/BrowserSupport';
 import SeparatorLine from '../../components/SeparatorLine';
 import PasswordStrength from '../../components/PasswordStrength';
 import LoginPageLayout from './LoginPageLayout';
@@ -184,13 +182,14 @@ const UsernamePasswordForm = ({
 						/>
 					</FormInputRow>
 				)}
-				<GetButton
+				<Button
 					type="submit"
-					content={submitButtonContent}
 					variant="primary"
 					disabled={disabled}
 					additionalClassName='w-full'
-				/>
+				>
+					{submitButtonContent}
+				</Button>
 			</form>
 		</>
 	);
@@ -234,7 +233,7 @@ const WebauthnSignupLogin = ({
 		() => {
 			setError("");
 		},
-		[isLogin],
+		[isLogin, setError],
 	);
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
@@ -412,17 +411,19 @@ const WebauthnSignupLogin = ({
 										)
 								}
 								<div className='flex justify-center gap-4'>
-									<GetButton
-										content={t('common.cancel')}
+									<Button
 										onClick={() => resolvePrfRetryPrompt(false)}
 										variant="cancel"
-									/>
-									<GetButton
-										content={t('common.continue')}
+									>
+										{t('common.cancel')}
+									</Button>
+									<Button
 										onClick={() => resolvePrfRetryPrompt(true)}
 										variant="secondary"
 										disabled={prfRetryAccepted}
-									/>
+									>
+										{t('common.continue')}
+									</Button>
 								</div>
 							</div>
 						)
@@ -438,28 +439,25 @@ const WebauthnSignupLogin = ({
 										</p>
 										<div className='flex justify-center gap-4'>
 
-											<GetButton
-												content={t('common.cancel')}
-												onClick={onCancel}
-												variant="cancel"
-											/>
-											<GetButton
-												type="submit"
-												content={t('common.tryAgain')}
-												variant="secondary"
-											/>
+											<Button variant="cancel" onClick={onCancel}>
+												{t('common.cancel')}
+											</Button>
+											<Button type="submit" variant="secondary">
+												{t('common.tryAgain')}
+											</Button>
 										</div>
 									</div>
 								)
 								: (
 									<>
 										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
-										<GetButton
-											content={t('common.cancel')}
+										<Button
 											onClick={onCancel}
 											variant="cancel"
 											additionalClassName='w-full'
-										/>
+										>
+											{t('common.cancel')}
+										</Button>
 									</>
 								)
 						)
@@ -503,30 +501,28 @@ const WebauthnSignupLogin = ({
 										className="w-full flex flex-row flex-nowrap mb-2"
 									>
 										<div className='flex-grow mr-2'>
-											<GetButton
-												content={
-													<>
-														<GoPasskeyFill className="inline text-xl mr-2" />
-														{isSubmitting ? t('loginSignup.submitting') : t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
-													</>
-												}
+											<Button
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												additionalClassName='w-full'
-											/>
+											>
+												<GoPasskeyFill className="inline text-xl mr-2" />
+												{isSubmitting
+													? t('loginSignup.submitting')
+													: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+											</Button>
 										</div>
 										<div>
-											<GetButton
-												content={
-													<GoTrash className="inline text-xl" />
-												}
+											<Button
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
 												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUserTitle')}
-											/>
+											>
+												<GoTrash className="inline text-xl" />
+											</Button>
 										</div>
 									</li>
 								))}
@@ -534,24 +530,21 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && (
-							<GetButton
+							<Button
 								type="submit"
-								content={
-									<>
-										<GoPasskeyFill className="inline text-xl mr-2" />
-										{isSubmitting
-											? t('loginSignup.submitting')
-											: isLogin
-												? t('loginSignup.loginPasskey')
-												: t('loginSignup.signupPasskey')
-										}
-									</>
-								}
 								variant="primary"
 								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
-								additionalClassName={`w-full ${nameByteLimitReached || (!isLogin && !isOnline) ? 'cursor-not-allowed bg-gray-300 hover:bg-gray-300' : ''}`}
+								additionalClassName="w-full"
 								title={!isLogin && !isOnline && t("common.offlineTitle")}
-							/>
+							>
+								<GoPasskeyFill className="inline text-xl mr-2" />
+								{isSubmitting
+									? t('loginSignup.submitting')
+									: isLogin
+										? t('loginSignup.loginPasskey')
+										: t('loginSignup.signupPasskey')
+								}
+							</Button>
 						)}
 						{error && <div className="text-red-500 pt-4">{error}</div>}
 					</>
@@ -640,8 +633,7 @@ const Login = () => {
 		setIsSubmitting(false);
 	};
 
-	const toggleForm = (event) => {
-		event.preventDefault();
+	const toggleForm = () => {
 		if (isOnline || !isLogin) {
 			setIsLogin(!isLogin);
 			setError('');
@@ -664,125 +656,100 @@ const Login = () => {
 			/>
 		}>
 
-			<CheckBrowserSupport.Ctx>
-				<CheckBrowserSupport.If test={(ctx) => !ctx.showWarningPortal}>
-					<div className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-						<CheckBrowserSupport.If test={(ctx) => ctx.browserSupported}>
-							<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-							<Trans
-								i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
-								components={{
-									docLinkPrf: <a
-										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-										className="font-medium text-primary dark:text-primary-light hover:underline"
-										aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
-									/>,
-									docLinkLaunchpad: <a
-										href="https://launchpad.wwwallet.org" target='blank_'
-										className="font-medium text-primary dark:text-primary-light hover:underline"
-										aria-label={t('loginSignup.learnMoreAboutLaunchpadAriaLabel')}
-									/>,
-									docLinkScenarios: <a
-										href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-										className="font-medium text-primary dark:text-primary-light hover:underline"
-										aria-label={t('loginSignup.learnMoreAboutScenariosAriaLabel')}
-									/>
-								}}
-							/>
-							<div className='mt-1'>
-								<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-								<Trans
-									i18nKey="loginSignup.infoAboutTimeAndLocation"
-								/>
-							</div>
-						</CheckBrowserSupport.If>
-						<CheckBrowserSupport.If test={(ctx) => !ctx.browserSupported}>
-							<FaExclamationTriangle className="text-md inline-block text-orange-600 mr-2" />
-							<Trans
-								i18nKey="loginSignup.learnMoreAboutPrfCompatibility"
-								components={{
-									docLinkPrf: <a
-										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility"
-										target='blank_'
-										className="font-medium text-primary hover:underline dark:text-blue-500"
-										aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
-									/>
-								}}
-							/>
-						</CheckBrowserSupport.If>
-					</div>
-				</CheckBrowserSupport.If>
-			</CheckBrowserSupport.Ctx>
+			<div className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+				<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+				<Trans
+					i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
+					components={{
+						docLinkPrf: <a
+							href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
+							className="font-medium text-primary dark:text-primary-light hover:underline"
+							aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
+						/>,
+						docLinkLaunchpad: <a
+							href="https://launchpad.wwwallet.org" target='blank_'
+							className="font-medium text-primary dark:text-primary-light hover:underline"
+							aria-label={t('loginSignup.learnMoreAboutLaunchpadAriaLabel')}
+						/>,
+						docLinkScenarios: <a
+							href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
+							className="font-medium text-primary dark:text-primary-light hover:underline"
+							aria-label={t('loginSignup.learnMoreAboutScenariosAriaLabel')}
+						/>
+					}}
+				/>
+				<div className='mt-1'>
+					<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
+					<Trans
+						i18nKey="loginSignup.infoAboutTimeAndLocation"
+					/>
+				</div>
+			</div>
 
 			<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-				<CheckBrowserSupport.WarningPortal>
-					<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-						{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-					</h1>
-					<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-						{isOnline ? (
-							<PiWifiHighBold size={25} title={t('common.online')} />
-						) : (
-							<PiWifiSlashBold size={25} title={t('common.offline')} />
-						)}
-					</div>
-					{isOnline === false && (
-						<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-							<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
-							{t('loginSignup.messageOffline')}
-						</p>
-					)}
-
-					{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
-						<>
-							{error && <div className="text-red-500">{error}</div>}
-							<UsernamePasswordForm
-								choosePassword={!isLogin}
-								disabled={isSubmitting}
-								onChange={handleFormChange}
-								onSubmit={handleFormSubmit}
-								submitButtonContent={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-							/>
-							<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
-						</>
-						:
-						<></>
-					}
-
-					<WebauthnSignupLogin
-						isLogin={isLogin}
-						isSubmitting={isSubmitting}
-						setIsSubmitting={setIsSubmitting}
-						isLoginCache={isLoginCache}
-						setIsLoginCache={setIsLoginCache}
-						error={webauthnError}
-						setError={setWebauthnError}
-					/>
-
-					{!isLoginCache ? (
-						<p className="text-sm font-light text-gray-500 dark:text-gray-200">
-							{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
-							<a
-								href={isLogin && isOnline ? "/" : ""}
-								className={`font-medium ${isLogin && isOnline === false ? 'cursor-not-allowed text-gray-300 dark:text-gray-600 hover:no-underline' : 'text-primary hover:underline dark:text-primary-light '}`}
-								title={`${isOnline === false && t('common.offlineTitle')}`}
-								onClick={toggleForm}
-							>
-								{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
-							</a>
-						</p>
+				<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+				</h1>
+				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+					{isOnline ? (
+						<PiWifiHighBold size={25} title={t('common.online')} />
 					) : (
-						<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
-							<a
-								className="font-medium text-primary hover:underline dark:text-primary-light"
-								onClick={useOtherAccount}
-							>
-								{t('loginSignup.useOtherAccount')}
-							</a>
-						</p>
+						<PiWifiSlashBold size={25} title={t('common.offline')} />
 					)}
+				</div>
+				{isOnline === false && (
+					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
+						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+						{t('loginSignup.messageOffline')}
+					</p>
+				)}
 
-				</CheckBrowserSupport.WarningPortal>
+				{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
+					<>
+						{error && <div className="text-red-500">{error}</div>}
+						<UsernamePasswordForm
+							choosePassword={!isLogin}
+							disabled={isSubmitting}
+							onChange={handleFormChange}
+							onSubmit={handleFormSubmit}
+							submitButtonContent={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+						/>
+						<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
+					</>
+					:
+					<></>
+				}
+
+				<WebauthnSignupLogin
+					isLogin={isLogin}
+					isSubmitting={isSubmitting}
+					setIsSubmitting={setIsSubmitting}
+					isLoginCache={isLoginCache}
+					setIsLoginCache={setIsLoginCache}
+					error={webauthnError}
+					setError={setWebauthnError}
+				/>
+
+				{!isLoginCache ? (
+					<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
+						<Button
+							variant="link"
+							onClick={toggleForm}
+							disabled={!isOnline}
+							title={!isOnline && t('common.offlineTitle')}
+						>
+							{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
+						</Button>
+					</p>
+				) : (
+					<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
+						<Button variant="link" onClick={useOtherAccount}>
+							{t('loginSignup.useOtherAccount')}
+						</Button>
+					</p>
+				)}
+
 			</div>
 		</LoginPageLayout>
 	);

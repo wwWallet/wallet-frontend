@@ -33,6 +33,7 @@ function registerValidSW(swUrl, config) {
 		.register(swUrl)
 		.then((registration) => {
 			console.log('Service worker registered with scope:', registration.scope);
+
 			registration.onupdatefound = () => {
 				const installingWorker = registration.installing;
 				if (installingWorker == null) {
@@ -41,9 +42,7 @@ function registerValidSW(swUrl, config) {
 				installingWorker.onstatechange = () => {
 					if (installingWorker.state === 'installed') {
 						if (navigator.serviceWorker.controller) {
-							console.log(
-								'New content is available and will be used when all tabs for this page are closed. See https://cra.link/PWA.'
-							);
+							console.log('New content is available; please refresh.');
 
 							if (config && config.onUpdate) {
 								config.onUpdate(registration);
@@ -62,6 +61,15 @@ function registerValidSW(swUrl, config) {
 		.catch((error) => {
 			console.error('Error during service worker registration:', error);
 		});
+}
+
+if ('serviceWorker' in navigator) {
+	navigator.serviceWorker.addEventListener('message', (event) => {
+		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
+			console.log('New version is available. Would you like to reload to get the latest now?')
+			window.location.reload();
+		}
+	});
 }
 
 function checkValidServiceWorker(swUrl, config) {

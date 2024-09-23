@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 
 import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 import { parseCredential } from '../../functions/parseCredential';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 
 const CredentialJson = ({ credential }) => {
 	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
@@ -20,20 +20,17 @@ const CredentialJson = ({ credential }) => {
 	return (
 		<div className=" lg:p-0 p-2 w-full">
 			<div className="mb-4 flex items-center">
-				<GetButton
-					content={
-						<>
-							{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
-							{showJsonCredentials ? (
-								<AiOutlineUp className="ml-1" />
-							) : (
-								<AiOutlineDown className="ml-1" />
-							)}
-						</>
-					}
+				<Button
 					onClick={() => setShowJsonCredentials(!showJsonCredentials)}
 					variant="primary"
-				/>
+				>
+					{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
+					{showJsonCredentials ? (
+						<AiOutlineUp className="ml-1" />
+					) : (
+						<AiOutlineDown className="ml-1" />
+					)}
+				</Button>
 			</div>
 
 			<hr className="my-2 border-t border-primary dark:border-primary-light py-2" />

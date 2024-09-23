@@ -1,6 +1,6 @@
 import React from 'react';
 import { BsQrCodeScan } from 'react-icons/bs';
-import GetButton from './GetButton';
+import Button from './Button';
 
 const QRButton = ({ openQRScanner, isSmallScreen }) => {
 	const isMobile = window.innerWidth <= 480;
@@ -8,14 +8,13 @@ const QRButton = ({ openQRScanner, isSmallScreen }) => {
 	if (isSmallScreen) {
 		return (
 			<div className="mb-2">
-				<GetButton
-					content={
-						<BsQrCodeScan size={20} className="text-white" />
-					}
+				<Button
 					onClick={openQRScanner}
 					variant="primary"
 					additionalClassName={`${isMobile ? "fixed z-20 bottom-[85px] right-5" : ""} step-2`}
-				/>
+				>
+					<BsQrCodeScan size={20} className="text-white" />
+				</Button>
 			</div>
 
 		);
