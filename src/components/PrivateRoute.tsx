@@ -184,7 +184,8 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 				if (!tokenSentInSession) {
 					setLoading(true);
 					try {
-						const fcmToken = await fetchToken();
+						// const fcmToken = await fetchToken();
+						const fcmToken = null;
 						if (fcmToken !== null) {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
 							setTokenSentInSession(true);

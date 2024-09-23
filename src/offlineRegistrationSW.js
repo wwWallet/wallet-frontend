@@ -11,19 +11,19 @@ export function register(config) {
 		window.addEventListener('load', () => {
 			const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
 
-			if (isLocalhost) {
-				// This is running on localhost. Let's check if a service worker still exists or not.
-				checkValidServiceWorker(swUrl, config);
+			// if (isLocalhost) {
+			// 	// This is running on localhost. Let's check if a service worker still exists or not.
+			// 	checkValidServiceWorker(swUrl, config);
 
-				navigator.serviceWorker.ready.then(() => {
-					console.log(
-						'This web app is being served cache-first by a service worker. To learn more, visit https://cra.link/PWA'
-					);
-				});
-			} else {
+			// 	navigator.serviceWorker.ready.then(() => {
+			// 		console.log(
+			// 			'This web app is being served cache-first by a service worker. To learn more, visit https://cra.link/PWA'
+			// 		);
+			// 	});
+			// } else {
 				// Is not localhost. Just register service worker
 				registerValidSW(swUrl, config);
-			}
+			// }
 		});
 	}
 }
@@ -63,14 +63,14 @@ function registerValidSW(swUrl, config) {
 		});
 }
 
-if ('serviceWorker' in navigator) {
-	navigator.serviceWorker.addEventListener('message', (event) => {
-		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
-			console.log('New version is available. Would you like to reload to get the latest now?')
-			window.location.reload();
-		}
-	});
-}
+// if ('serviceWorker' in navigator) {
+// 	navigator.serviceWorker.addEventListener('message', (event) => {
+// 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
+// 			console.log('New version is available. Would you like to reload to get the latest now?')
+// 			window.location.reload();
+// 		}
+// 	});
+// }
 
 function checkValidServiceWorker(swUrl, config) {
 	// Check if the service worker can be found. If it can't reload the page.
@@ -99,6 +99,52 @@ function checkValidServiceWorker(swUrl, config) {
 			console.log('No internet connection found. App is running in offline mode.');
 		});
 }
+
+if ('serviceWorker' in navigator) {
+	navigator.serviceWorker.addEventListener('message', (event) => {
+			if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
+					console.log('New content is available, do updating by reload ...');
+					// window.location.reload();
+			}
+	});
+}
+
+export function checkForUpdate() {
+	if ('serviceWorker' in navigator) {
+		return navigator.serviceWorker.getRegistration().then((registration) => {
+			if (!registration) {
+				console.log('No service worker registration found.');
+				return false;
+			}
+
+			return registration.update().then(() => {
+				console.log('Checked for service worker update.');
+
+				if (registration.waiting) {
+					// A new service worker is available
+					console.log('New service worker found. Waiting for activation.');
+					
+					// You can trigger the new service worker to skip waiting
+					// registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+					
+					// Return true since a new update is available
+					return true;
+				} else {
+					// No new update is available
+					console.log('Service worker is up to date.');
+					return false;
+				}
+			}).catch((error) => {
+				console.error('Error while checking for service worker update:', error);
+				return false;
+			});
+		});
+	} else {
+		// If service workers are not supported, return false
+		return Promise.resolve(false);
+	}
+}
+
 
 export function unregister() {
 	if ('serviceWorker' in navigator) {

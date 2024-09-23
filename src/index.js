@@ -37,5 +37,5 @@ root.render(
 	</OnlineStatusProvider>
 );
 
-firebaseSW.register()
+// firebaseSW.register()
 offlineSW.register();

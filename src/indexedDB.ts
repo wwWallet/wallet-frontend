@@ -58,7 +58,7 @@ export async function initializeDataSource(): Promise<void> {
 
 		await migrateDataSource();
 
-		console.log('Database initialized successfully');
+		// console.log('Database initialized successfully');
 	} catch (err) {
 		console.error('Error initializing database', err);
 	}

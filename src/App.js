@@ -13,7 +13,7 @@ import FadeInContentTransition from './components/FadeInContentTransition';
 import HandlerNotification from './components/HandlerNotification';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling';
 import Spinner from './components/Spinner';
-
+import { checkForUpdate } from './offlineRegistrationSW';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -93,7 +93,12 @@ function App() {
 
 	useEffect(() => {
 		setUrl(window.location.href);
-	}, [location])
+			// Call checkForUpdate when the component mounts
+			checkForUpdate().then((isUpdateAvailable) => {
+				console.log('checkForUpdate: ',isUpdateAvailable);
+
+			});
+	}, [location]);
 
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
