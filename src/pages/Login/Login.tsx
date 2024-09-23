@@ -658,7 +658,6 @@ const Login = () => {
 		<LoginPageLayout heading={
 			<Trans
 				i18nKey="loginSignup.welcomeMessage"
-				values={{ walletName: t("common.walletName") }}
 				components={{
 					highlight: <span className="text-primary dark:text-primary-light" />
 				}}
@@ -672,7 +671,6 @@ const Login = () => {
 							<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
 							<Trans
 								i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
-								values={{ walletName: t("common.walletName") }}
 								components={{
 									docLinkPrf: <a
 										href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'

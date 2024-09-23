@@ -17,10 +17,7 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 			<div className="sm:px-6">
 				<h2 className="text-3xl text-center font-bold mb-2 text-primary dark:text-white">
 					<FaHandshake size={40} className="inline mr-2 mb-1" />
-					<Trans
-						i18nKey="welcomeModal.title"
-						values={{ walletName: t("common.walletName") }}
-					/>
+					{t('welcomeModal.title')}
 				</h2>
 				<hr className=" border-t border-primary/80 dark:border-white/80" />
 			</div>
@@ -28,16 +25,12 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 				<p className="pt-2 text-md text-center text-gray-700 dark:text-white">
 					<Trans
 						i18nKey="welcomeModal.description"
-						values={{ walletName: t("common.walletName") }}
 						components={{ strong: <strong /> }}
 					/>
 				</p>
 			</div>
 			<p className="text-center text-gray-700 dark:text-white mb-4">
-				<Trans
-					i18nKey="welcomeModal.question"
-					values={{ walletName: t("common.walletName") }}
-				/>
+				{t('welcomeModal.question')}
 			</p>
 
 			<div className="flex justify-center gap-2 pt-4">

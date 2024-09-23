@@ -135,7 +135,6 @@ const LoginState = () => {
 		<LoginPageLayout heading={
 			<Trans
 				i18nKey="loginState.welcomeBackMessage"
-				values={{ walletName: t("common.walletName") }}
 				components={{
 					highlight: <span className="text-primary dark:text-primary-light" />
 				}}
