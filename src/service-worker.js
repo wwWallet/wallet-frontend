@@ -40,3 +40,23 @@ registerRoute(
 		],
 	})
 );
+
+self.addEventListener('install', (event) => {
+	self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+	event.waitUntil(
+		self.clients.claim().then(() => {
+			console.log('Service worker activated and claimed all clients.', self.clients.matchAll());
+
+			return self.clients.matchAll().then((clients) => {
+				clients.forEach((client) => {
+					client.postMessage({
+						type: 'NEW_CONTENT_AVAILABLE',
+					});
+				});
+			});
+		})
+	);
+});
