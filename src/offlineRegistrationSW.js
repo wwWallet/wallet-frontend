@@ -63,15 +63,6 @@ function registerValidSW(swUrl, config) {
 		});
 }
 
-if ('serviceWorker' in navigator) {
-	navigator.serviceWorker.addEventListener('message', (event) => {
-		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
-			console.log('New version is available. Would you like to reload to get the latest now?')
-			window.location.reload();
-		}
-	});
-}
-
 function checkValidServiceWorker(swUrl, config) {
 	// Check if the service worker can be found. If it can't reload the page.
 	fetch(swUrl, {

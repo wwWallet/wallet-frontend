@@ -1,6 +1,6 @@
 import React, { useEffect, createContext, useState } from 'react';
-
-
+import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { useApi } from '../api';
 /**
  * Type polyfill for https://wicg.github.io/netinfo/#networkinformation-interface
  * but defining only the properties we use here.
@@ -18,11 +18,13 @@ declare global {
 
 interface OnlineStatusContextValue {
 	isOnline: boolean;
+	updateAvailable: boolean;
 }
 
 
 const OnlineStatusContext: React.Context<OnlineStatusContextValue> = createContext({
 	isOnline: null,
+	updateAvailable: false,
 });
 
 function getOnlineStatus(): boolean {
@@ -36,7 +38,9 @@ function getOnlineStatus(): boolean {
 
 export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState(getOnlineStatus);
-
+	const [updateAvailable, setUpdateAvailable] = useState(false);
+	const api = useApi(isOnline);
+	const keystore = useLocalStorageKeystore();
 	const updateOnlineStatus = () => {
 		setIsOnline(getOnlineStatus());
 	};
@@ -57,8 +61,21 @@ export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }
 		console.log("Online status changed to ", isOnline);
 	}, [isOnline]);
 
+	navigator.serviceWorker.addEventListener('message', (event) => {
+		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
+
+			const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
+
+			if (!isLoggedIn) {
+				window.location.reload();
+			} else {
+				setUpdateAvailable(true);
+			}
+		}
+	});
+
 	return (
-		<OnlineStatusContext.Provider value={{ isOnline }}>
+		<OnlineStatusContext.Provider value={{ isOnline, updateAvailable }}>
 			{children}
 		</OnlineStatusContext.Provider>
 	);
