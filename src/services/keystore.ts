@@ -140,6 +140,7 @@ export function isAsymmetricPasswordKeyInfo(passwordKeyInfo: PasswordKeyInfo): p
 
 export type WebauthnPrfSaltInfo = {
 	credentialId: Uint8Array,
+	transports?: AuthenticatorTransport[],
 	prfSalt: Uint8Array,
 }
 
@@ -661,6 +662,7 @@ export function makeAssertionPrfExtensionInputs(prfKeys: WebauthnPrfSaltInfo[]):
 			(keyInfo: WebauthnPrfSaltInfo) => ({
 				type: "public-key",
 				id: keyInfo.credentialId,
+				transports: keyInfo.transports ?? [],
 			})
 		),
 		prfInput: {
@@ -763,6 +765,7 @@ async function createPrfKey(
 	const [prfKeypair, prfPrivateKey] = await generateWrappedEncapsulationKeypair(prfKey);
 	const keyInfo: WebauthnPrfEncryptionKeyInfoV2 = {
 		credentialId: new Uint8Array(credential.rawId),
+		transports: (credential.response as AuthenticatorAttestationResponse).getTransports() as AuthenticatorTransport[],
 		prfSalt,
 		...deriveKeyParams,
 		...await encapsulateKey(prfPrivateKey, mainKeyInfo.publicKey, prfKeypair, mainKey),
