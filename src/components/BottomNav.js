@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { MdNotifications } from "react-icons/md";
+import StatusContext from '../context/StatusContext';
 
 const BottomNav = ({ isOpen, toggle }) => {
+	const { updateAvailable } = useContext(StatusContext);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -45,12 +48,18 @@ const BottomNav = ({ isOpen, toggle }) => {
 			))}
 			<button
 				key={t("common.navItemProfile")}
-				className={`cursor-pointer flex flex-col items-center w-[20%] ${isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+				className={`cursor-pointer flex flex-col items-center w-[20%] relative ${isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
 				onClick={toggle}
 				title={t("common.navItemProfile")}
 			>
 				<FaUserCircle size={26} />
 				<span className="text-xs">{t("common.navItemProfile")}</span>
+				{updateAvailable && (
+					<MdNotifications
+						size={22}
+						className="text-red-500 absolute top-[-10px] right-0"
+					/>
+				)}
 			</button>
 		</div>
 	);

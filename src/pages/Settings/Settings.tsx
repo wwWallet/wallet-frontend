@@ -2,6 +2,7 @@ import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, us
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
+import { MdNotifications } from "react-icons/md";
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
@@ -678,7 +679,7 @@ const WebauthnCredentialItem = ({
 };
 
 const Settings = () => {
-	const { isOnline } = useContext(StatusContext);
+	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -912,10 +913,31 @@ const Settings = () => {
 
 						</div>
 						<div className="my-2 py-2">
-							<H2 heading={t('pageSettings.title.appVersion')} />
-							<p className='mb-2 dark:text-white'>
-								{t('pageSettings.appVersion.description', { react_app_version: process.env.REACT_APP_VERSION })}
-							</p>
+							<div className='relative'>
+								<H2 heading={t('pageSettings.title.appVersion')} />
+								{updateAvailable && (
+									<MdNotifications
+										size={22}
+										className="text-red-500 absolute top-0 left-[105px]"
+									/>
+								)}
+							</div>
+							{updateAvailable ? (
+								<p className='mb-2 dark:text-white'>
+									<Trans
+										i18nKey="pageSettings.appVersion.descriptionOldVersion"
+										values={{ react_app_version: process.env.REACT_APP_VERSION }}
+										components={{
+											reloadButton: <button className='text-primary dark:text-extra-light underline' onClick={() => window.location.reload()} />, strong: <strong />, br: <br />,
+										}}
+									/>
+								</p>
+							) : (
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: process.env.REACT_APP_VERSION })}
+								</p>
+							)}
+
 						</div>
 					</>
 				)}

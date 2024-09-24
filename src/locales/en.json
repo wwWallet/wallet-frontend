@@ -209,7 +209,8 @@
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
-			"manageOtherPasskeys": "Manage other Passkeys"
+			"manageOtherPasskeys": "Manage other Passkeys",
+			"appVersion":"App Version"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
@@ -223,6 +224,10 @@
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
 			"title": "Upgrading passkey encryption key"
+		},
+		"appVersion": {
+			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
+			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A newer version is available.</strong> Please <reloadButton>reload</reloadButton> to update!"
 		}
 	},
 	"PinInputPopup": {
