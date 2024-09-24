@@ -911,6 +911,12 @@ const Settings = () => {
 							</div>
 
 						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.title.appVersion')} />
+							<p className='mb-2 dark:text-white'>
+								{t('pageSettings.appVersion.description', { react_app_version: process.env.REACT_APP_VERSION })}
+							</p>
+						</div>
 					</>
 				)}
 				<DeletePopup
