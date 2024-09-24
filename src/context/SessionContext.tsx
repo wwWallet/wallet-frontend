@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 
-import OnlineStatusContext from './OnlineStatusContext';
+import StatusContext from './StatusContext';
 import { BackendApi, useApi } from '../api';
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
@@ -21,7 +21,7 @@ const SessionContext: React.Context<SessionContextValue> = createContext({
 });
 
 export const SessionContextProvider = ({ children }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore();
 

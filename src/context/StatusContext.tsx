@@ -16,13 +16,13 @@ declare global {
 	}
 }
 
-interface OnlineStatusContextValue {
+interface StatusContextValue {
 	isOnline: boolean;
 	updateAvailable: boolean;
 }
 
 
-const OnlineStatusContext: React.Context<OnlineStatusContextValue> = createContext({
+const StatusContext: React.Context<StatusContextValue> = createContext({
 	isOnline: null,
 	updateAvailable: false,
 });
@@ -36,7 +36,7 @@ function getOnlineStatus(): boolean {
 	return navigator.onLine && rtt > 0;
 }
 
-export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }) => {
+export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState(getOnlineStatus);
 	const [updateAvailable, setUpdateAvailable] = useState(false);
 	const api = useApi(isOnline);
@@ -75,10 +75,10 @@ export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }
 	});
 
 	return (
-		<OnlineStatusContext.Provider value={{ isOnline, updateAvailable }}>
+		<StatusContext.Provider value={{ isOnline, updateAvailable }}>
 			{children}
-		</OnlineStatusContext.Provider>
+		</StatusContext.Provider>
 	);
 };
 
-export default OnlineStatusContext;
+export default StatusContext;

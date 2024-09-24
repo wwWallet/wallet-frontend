@@ -8,7 +8,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize } from '../../util';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import * as config from '../../config';
@@ -212,7 +212,7 @@ const WebauthnSignupLogin = ({
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 
 	const [inProgress, setInProgress] = useState(false);
@@ -555,7 +555,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Login = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();

@@ -3,7 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import { UserData, WebauthnCredential } from '../../api/types';
@@ -87,7 +87,7 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -321,7 +321,7 @@ const UnlockMainKey = ({
 	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
@@ -484,7 +484,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
@@ -678,7 +678,7 @@ const WebauthnCredentialItem = ({
 };
 
 const Settings = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();

@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import logo from '../assets/images/wallet_white.png';
 import { Trans, useTranslation } from 'react-i18next';
-import OnlineStatusContext from '../context/OnlineStatusContext';
+import StatusContext from '../context/StatusContext';
 import SessionContext from '../context/SessionContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
@@ -29,7 +29,7 @@ const NavItem = ({
 };
 
 const Sidebar = ({ isOpen, toggle }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();

@@ -7,12 +7,12 @@ import Sidebar from './Sidebar';
 import logo from '../assets/images/wallet_white.png';
 import WelcomeTourGuide from './WelcomeTourGuide/WelcomeTourGuide';
 import BottomNav from './BottomNav';
-import OnlineStatusContext from '../context/OnlineStatusContext';
+import StatusContext from '../context/StatusContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 
 const Layout = ({ children }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [isOpen, setIsOpen] = useState(false);
