@@ -21,8 +21,7 @@ const UpdateNotification = () => {
 	if (!visible) return null;
 
 	return (
-		<div className={`fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-green-600 bg-opacity-80 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 
-      animate-slide-in-up sm:animate-slide-in-down`}>
+		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-green-600 bg-opacity-80 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-slide-in-up sm:animate-slide-in-down">
 			<MdNotifications
 				size={22}
 				className="text-white"
