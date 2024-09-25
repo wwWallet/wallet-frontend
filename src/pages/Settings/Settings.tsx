@@ -918,7 +918,7 @@ const Settings = () => {
 								{updateAvailable && (
 									<MdNotifications
 										size={22}
-										className="text-red-500 absolute top-0 left-[105px]"
+										className="text-green-500 absolute top-0 left-[105px]"
 									/>
 								)}
 							</div>

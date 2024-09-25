@@ -158,7 +158,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 									{updateAvailable && (
 										<MdNotifications
 											size={22}
-											className="text-red-500"
+											className="text-green-500"
 										/>
 									)}
 								</div>

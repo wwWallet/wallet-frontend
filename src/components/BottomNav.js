@@ -57,7 +57,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				{updateAvailable && (
 					<MdNotifications
 						size={22}
-						className="text-red-500 absolute top-[-10px] right-0"
+						className="text-green-500 absolute top-[-10px] right-0"
 					/>
 				)}
 			</button>

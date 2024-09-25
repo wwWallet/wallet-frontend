@@ -228,7 +228,7 @@
 		},
 		"appVersion": {
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
-			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A newer version is available.</strong> Please <reloadButton>reload</reloadButton> to update!"
+			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		}
 	},
 	"PinInputPopup": {
