@@ -1,6 +1,4 @@
 import React, { useEffect, createContext, useState } from 'react';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
-import { useApi } from '../api';
 /**
  * Type polyfill for https://wicg.github.io/netinfo/#networkinformation-interface
  * but defining only the properties we use here.
@@ -39,8 +37,6 @@ function getOnlineStatus(): boolean {
 export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState(getOnlineStatus);
 	const [updateAvailable, setUpdateAvailable] = useState(false);
-	const api = useApi(isOnline);
-	const keystore = useLocalStorageKeystore();
 	const updateOnlineStatus = () => {
 		setIsOnline(getOnlineStatus());
 	};
@@ -63,10 +59,9 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
+			const isWindowHidden = document.hidden;
 
-			const isLoggedIn = api.isLoggedIn() && keystore.isOpen();
-
-			if (!isLoggedIn) {
+			if (isWindowHidden) {
 				window.location.reload();
 			} else {
 				setUpdateAvailable(true);
