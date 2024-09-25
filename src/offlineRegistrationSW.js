@@ -91,6 +91,15 @@ function checkValidServiceWorker(swUrl, config) {
 		});
 }
 
+export const checkForUpdates = async () => {
+	if (navigator.serviceWorker) {
+		const registration = await navigator.serviceWorker.getRegistration();
+		if (registration) {
+			registration.update();
+		}
+	}
+};
+
 export function unregister() {
 	if ('serviceWorker' in navigator) {
 		navigator.serviceWorker.ready

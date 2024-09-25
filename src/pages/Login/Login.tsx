@@ -19,7 +19,7 @@ import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import SeparatorLine from '../../components/SeparatorLine';
 import PasswordStrength from '../../components/PasswordStrength';
 import LoginPageLayout from './LoginPageLayout';
-
+import { checkForUpdates } from '../../offlineRegistrationSW';
 
 const FormInputRow = ({
 	IconComponent,
@@ -355,6 +355,7 @@ const WebauthnSignupLogin = ({
 
 		setInProgress(false);
 		setIsSubmitting(false);
+		checkForUpdates();
 	};
 
 	const onLoginCachedUser = async (cachedUser: CachedUser) => {
@@ -364,6 +365,7 @@ const WebauthnSignupLogin = ({
 		await onLogin(cachedUser);
 		setInProgress(false);
 		setIsSubmitting(false);
+		checkForUpdates();
 	};
 
 	const onForgetCachedUser = (cachedUser: CachedUser) => {
@@ -637,6 +639,7 @@ const Login = () => {
 		if (isOnline || !isLogin) {
 			setIsLogin(!isLogin);
 			setError('');
+			checkForUpdates();
 		};
 	}
 
@@ -644,6 +647,7 @@ const Login = () => {
 		setIsLoginCache(false);
 		setError('');
 		setWebauthnError('');
+		checkForUpdates();
 	}
 
 	return (

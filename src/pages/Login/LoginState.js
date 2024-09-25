@@ -10,7 +10,7 @@ import SessionContext from '../../context/SessionContext';
 import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import LoginPageLayout from './LoginPageLayout';
-
+import { checkForUpdates } from '../../offlineRegistrationSW';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -63,6 +63,7 @@ const WebauthnLogin = ({
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
 		setIsSubmitting(false);
+		checkForUpdates();
 	};
 
 	return (

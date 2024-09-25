@@ -22,6 +22,7 @@
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"save": "Save",
+		"refresh": "Refresh",
 		"submit": "Submit",
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
@@ -281,6 +282,9 @@
 		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings.",
 		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
 		"closeTourButton": "Close Tour"
+	},
+	"updateNotification": {
+		"description": "New Version is available!"
 	},
 	"welcomeModal": {
 		"title": "Welcome to $t(common.walletName)!",
