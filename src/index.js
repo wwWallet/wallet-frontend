@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
-import { OnlineStatusProvider } from './context/OnlineStatusContext';
+import { StatusProvider } from './context/StatusContext';
 import { initializeDataSource } from './indexedDB';
 import * as offlineSW from './offlineRegistrationSW';
 import * as firebaseSW from './firebase';
@@ -32,9 +32,9 @@ const RootComponent = () => {
 
 const root = createRoot(document.getElementById('root'));
 root.render(
-	<OnlineStatusProvider>
+	<StatusProvider>
 		<RootComponent />
-	</OnlineStatusProvider>
+	</StatusProvider>
 );
 
 firebaseSW.register()

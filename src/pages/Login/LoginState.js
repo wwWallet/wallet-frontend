@@ -4,13 +4,13 @@ import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import LoginPageLayout from './LoginPageLayout';
-
+import { checkForUpdates } from '../../offlineRegistrationSW';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -63,6 +63,7 @@ const WebauthnLogin = ({
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
 		setIsSubmitting(false);
+		checkForUpdates();
 	};
 
 	return (
@@ -96,7 +97,7 @@ const WebauthnLogin = ({
 };
 
 const LoginState = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();

@@ -2,8 +2,9 @@ import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, us
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
+import { MdNotifications } from "react-icons/md";
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import { UserData, WebauthnCredential } from '../../api/types';
@@ -87,7 +88,7 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -321,7 +322,7 @@ const UnlockMainKey = ({
 	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
@@ -484,7 +485,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
@@ -678,7 +679,7 @@ const WebauthnCredentialItem = ({
 };
 
 const Settings = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -909,6 +910,33 @@ const Settings = () => {
 									</Button>
 								</div>
 							</div>
+
+						</div>
+						<div className="my-2 py-2">
+							<div className='relative'>
+								<H2 heading={t('pageSettings.title.appVersion')} />
+								{updateAvailable && (
+									<MdNotifications
+										size={22}
+										className="text-green-500 absolute top-0 left-[105px]"
+									/>
+								)}
+							</div>
+							{updateAvailable ? (
+								<p className='mb-2 dark:text-white'>
+									<Trans
+										i18nKey="pageSettings.appVersion.descriptionOldVersion"
+										values={{ react_app_version: process.env.REACT_APP_VERSION }}
+										components={{
+											reloadButton: <button className='text-primary dark:text-extra-light underline' onClick={() => window.location.reload()} />, strong: <strong />, br: <br />,
+										}}
+									/>
+								</p>
+							) : (
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: process.env.REACT_APP_VERSION })}
+								</p>
+							)}
 
 						</div>
 					</>

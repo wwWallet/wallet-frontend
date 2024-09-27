@@ -2,11 +2,11 @@ import React, { useContext } from 'react';
 import { MdDelete } from 'react-icons/md';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 
 const CredentialDeleteButton = ({ onDelete }) => {
 	const { t } = useTranslation();
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 
 	const handleClick = () => {
 		onDelete();

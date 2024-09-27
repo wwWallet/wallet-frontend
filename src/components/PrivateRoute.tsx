@@ -6,7 +6,7 @@ import { Trans } from 'react-i18next';
 
 import Spinner from './Spinner'; // Import your spinner component
 import { useSessionStorage } from '../hooks/useStorage';
-import OnlineStatusContext from '../context/OnlineStatusContext';
+import StatusContext from '../context/StatusContext';
 import SessionContext from '../context/SessionContext';
 
 
@@ -22,7 +22,7 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 
 
 export function NotificationPermissionWarning(): React.ReactNode {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
@@ -133,7 +133,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 }
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactNode => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore, logout } = useContext(SessionContext);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);

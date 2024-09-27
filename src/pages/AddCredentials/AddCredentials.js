@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
@@ -23,7 +23,7 @@ function highlightBestSequence(issuer, search) {
 }
 
 const Issuers = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);

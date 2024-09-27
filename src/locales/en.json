@@ -22,6 +22,7 @@
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"save": "Save",
+		"refresh": "Refresh",
 		"submit": "Submit",
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
@@ -209,7 +210,8 @@
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
-			"manageOtherPasskeys": "Manage other Passkeys"
+			"manageOtherPasskeys": "Manage other Passkeys",
+			"appVersion":"App Version"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
@@ -223,6 +225,10 @@
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
 			"title": "Upgrading passkey encryption key"
+		},
+		"appVersion": {
+			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
+			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		}
 	},
 	"PinInputPopup": {
@@ -276,6 +282,9 @@
 		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings.",
 		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
 		"closeTourButton": "Close Tour"
+	},
+	"updateNotification": {
+		"description": "New Version is available!"
 	},
 	"welcomeModal": {
 		"title": "Welcome to $t(common.walletName)!",
