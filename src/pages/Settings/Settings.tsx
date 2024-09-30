@@ -8,7 +8,7 @@ import SessionContext from '../../context/SessionContext';
 
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
-import { formatDate } from '../../functions/DateFormat';
+import { formatDateTime } from '../../functions/DateFormat';
 import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
@@ -581,13 +581,13 @@ const WebauthnCredentialItem = ({
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.created')}:&nbsp;
 					</span>
-					{formatDate(credential.createTime)}
+					{formatDateTime(credential.createTime)}
 				</p>
 				<p className='dark:text-white'>
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.lastUsed')}:&nbsp;
 					</span>
-					{formatDate(credential.lastUseTime)}</p>
+					{formatDateTime(credential.lastUseTime)}</p>
 				<p className='dark:text-white'>
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;

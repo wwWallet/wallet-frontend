@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import jsonpointer from 'jsonpointer';
+import { formatDate } from '../../functions/DateFormat';
 
 const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
 	const [svgContent, setSvgContent] = useState(null);
@@ -27,9 +28,13 @@ const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
 	useEffect(() => {
 		if (svgContent) {
 			const regex = /{{([^}]+)}}/g;
-
+			const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/; // Matches ISO date format
 			const replacedSvgText = svgContent.replace(regex, (match, content) => {
 				const res = jsonpointer.get(credential, content.trim());
+				// Check if the resolved value is a date and format it
+				if (typeof res === 'string' && dateRegex.test(res)) {
+					return formatDate(res);
+				}
 				return res !== undefined ? res : match;
 			});
 			const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;

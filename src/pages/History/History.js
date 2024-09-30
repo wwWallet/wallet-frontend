@@ -10,7 +10,7 @@ import "slick-carousel/slick/slick-theme.css";
 import SessionContext from '../../context/SessionContext';
 
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import { formatDate } from '../../functions/DateFormat';
+import { formatDateTime } from '../../functions/DateFormat';
 import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import { H1 } from '../../components/Heading';
@@ -105,7 +105,7 @@ const History = () => {
 								onClick={() => handleHistoryItemClick(item)}
 							>
 								<div className="font-bold">{item.audience}</div>
-								<div>{formatDate(new Date(item.issuanceDate * 1000).toISOString())}</div>
+								<div>{formatDateTime(new Date(item.issuanceDate * 1000).toISOString())}</div>
 							</button>
 						))}
 					</div>

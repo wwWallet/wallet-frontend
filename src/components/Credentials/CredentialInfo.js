@@ -4,7 +4,7 @@ import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
 import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
-import { formatDate } from '../../functions/DateFormat';
+import { formatDateTime } from '../../functions/DateFormat';
 import { parseCredential } from '../../functions/parseCredential';
 
 const getFieldIcon = (fieldName) => {
@@ -71,7 +71,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
 						<>
-							{renderRow('expdate', 'Expiration', formatDate(parsedCredential.expirationDate))}
+							{renderRow('expdate', 'Expiration', formatDateTime(parsedCredential.expirationDate))}
 							{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.familyName)}
 							{renderRow('firstName', 'First Name', parsedCredential.credentialSubject.firstName)}
 							{renderRow('id', 'Personal ID', parsedCredential.credentialSubject.personalIdentifier)}
