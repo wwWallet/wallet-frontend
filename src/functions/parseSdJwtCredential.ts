@@ -30,12 +30,12 @@ export const parseSdJwtCredential = async (credential: string | object): Promise
 				return {
 					beautifiedForm: parsed
 				}
-				
+
 			}
 		}
 		return { error: "Could not parse SDJWT credential" };
 	}
-	catch(err) {
+	catch (err) {
 		console.error(err);
 		return { error: "Could not parse SDJWT credential" };
 	}

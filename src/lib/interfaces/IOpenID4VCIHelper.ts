@@ -3,15 +3,15 @@ import { OpenidCredentialIssuerMetadata } from "../schemas/OpenidCredentialIssue
 
 export interface IOpenID4VCIHelper {
 	/**
-	 * 
-	 * @param credentialIssuerIdentifier 
+	 *
+	 * @param credentialIssuerIdentifier
 	 * @throws
 	 */
 	getAuthorizationServerMetadata(credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata }>;
-	
-	
+
+
 	/**
-	 * 
+	 *
 	 * @param credentialIssuerIdentifier
 	 * @throws
 	 */

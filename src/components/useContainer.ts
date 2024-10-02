@@ -70,8 +70,8 @@ export function useContainer() {
 					const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
 					const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
 						.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct == result.beautifiedForm?.vct)
-						[0];
-					
+					[0];
+
 					const credentialImageURL = credentialConfigurationSupportedObj.display[0] ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : undefined;
 					const credentialFriendlyName = credentialConfigurationSupportedObj.display[0]?.name;
 					return {
@@ -80,8 +80,8 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
-				catch(err) {
-					return { 
+				catch (err) {
+					return {
 						beautifiedForm: result.beautifiedForm,
 						credentialFriendlyName: "Credential",
 						credentialImageURL: "/public/cred.png",
