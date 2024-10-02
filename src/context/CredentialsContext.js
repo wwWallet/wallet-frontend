@@ -1,5 +1,4 @@
 import React, { createContext, useState, useCallback, useContext, useRef } from 'react';
-import { extractCredentialFriendlyName } from '../functions/extractCredentialFriendlyName';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -18,17 +17,16 @@ export const CredentialsProvider = ({ children }) => {
 		const fetchedVcList = response.data.vc_list;
 
 		const vcEntityList = await Promise.all(fetchedVcList.map(async vcEntity => {
-			const name = await extractCredentialFriendlyName(vcEntity.credential);
-			return { ...vcEntity, friendlyName: name };
+			return { ...vcEntity };
 		}));
 
-		vcEntityList.sort(reverse(compareBy(vc => new Date(vc.issuanceDate))));
+		vcEntityList.sort(reverse(compareBy(vc => vc.id)));
 
 		return vcEntityList;
 	};
 
 	const updateVcListAndLatestCredentials = (vcEntityList) => {
-		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.issuanceDate === vcEntityList[0].issuanceDate).map(vc => vc.id)));
+		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
 
 		setTimeout(() => {
 			setLatestCredentials(new Set());

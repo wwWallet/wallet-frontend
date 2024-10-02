@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
@@ -6,8 +6,24 @@ import GetButton from '../Buttons/GetButton';
 import Spinner from '../../components/Spinner';
 
 
-const RedirectPopup = ({ loading, handleClose, handleContinue, popupTitle, popupMessage }) => {
+const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose, handleContinue, popupTitle, popupMessage }) => {
 	const { t } = useTranslation();
+
+	const locale = 'en-US';
+
+	const [selectedConfiguration, setSelectedConfiguration] = useState(null);
+
+	useEffect(() => {
+		if (availableCredentialConfigurations) {
+			setSelectedConfiguration(Object.values(availableCredentialConfigurations)[0])
+		}
+	}, [])
+
+	const handleOptionChange = (event) => {
+		if (availableCredentialConfigurations) {
+			setSelectedConfiguration(availableCredentialConfigurations[event.target.value]);
+		}
+	};
 
 	if (loading) {
 		return (
@@ -36,6 +52,28 @@ const RedirectPopup = ({ loading, handleClose, handleContinue, popupTitle, popup
 			<p className="mb-2 mt-4 text-gray-700 dark:text-white">
 				{popupMessage}
 			</p>
+
+			{availableCredentialConfigurations != undefined && Object.keys(availableCredentialConfigurations).map((credentialConfigurationId, index) => {
+				return (
+					<div class="flex items-center mb-4">
+						<input
+							id={"radio-" + index}
+							onChange={handleOptionChange}
+							type="radio"
+							value={credentialConfigurationId}
+							name="default-radio"
+							class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+							checked={selectedConfiguration === availableCredentialConfigurations[credentialConfigurationId]}
+							aria-label={`Option ${credentialConfigurationId}`}
+						/>
+						<label for={"radio-" + index} class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+							{(availableCredentialConfigurations[credentialConfigurationId]?.display ? availableCredentialConfigurations[credentialConfigurationId]?.display.filter((d) => d.locale === locale)[0].name : null) ?? credentialConfigurationId}
+						</label>
+					</div>
+				)
+			})}
+
+
 			<div className="flex justify-end space-x-2 pt-4">
 				<GetButton
 					content={t('common.cancel')}
@@ -44,7 +82,7 @@ const RedirectPopup = ({ loading, handleClose, handleContinue, popupTitle, popup
 				/>
 				<GetButton
 					content={t('common.continue')}
-					onClick={handleContinue}
+					onClick={() => handleContinue(selectedConfiguration)}
 					variant="primary"
 				/>
 			</div>

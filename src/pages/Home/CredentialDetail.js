@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import { BiRightArrowAlt } from 'react-icons/bi';
 
 import SessionContext from '../../context/SessionContext';
@@ -13,6 +12,7 @@ import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import { H1 } from '../../components/Heading';
+import ContainerContext from '../../context/ContainerContext';
 
 
 const CredentialDetail = () => {
@@ -24,6 +24,8 @@ const CredentialDetail = () => {
 	const [loading, setLoading] = useState(false);
 	const { t } = useTranslation();
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
+
+	const container = useContext(ContainerContext);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -40,12 +42,16 @@ const CredentialDetail = () => {
 	}, [api, id]);
 
 	useEffect(() => {
-		if (vcEntity && vcEntity.credential) {
-			extractCredentialFriendlyName(vcEntity.credential).then((name) => {
-				setCredentialFriendlyName(name);
-			});
+		if (!vcEntity) {
+			return;
 		}
-	}, [vcEntity]);
+		container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
+			if ('error' in c) {
+				return;
+			}
+			setCredentialFriendlyName(c.credentialFriendlyName);
+		});
+	}, [vcEntity, container]);
 
 	const handleSureDelete = async () => {
 		setLoading(true);

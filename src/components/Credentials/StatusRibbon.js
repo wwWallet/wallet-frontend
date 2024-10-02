@@ -1,12 +1,14 @@
 // StatusRibbon.js
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import { parseCredential } from '../../functions/parseCredential';
+import ContainerContext from '../../context/ContainerContext';
 
 const StatusRibbon = ({ credential }) => {
 	const { t } = useTranslation();
 
 	const [parsedCredential, setParsedCredential] = useState(null);
+
+	const container = useContext(ContainerContext);
 
 	const CheckExpired = (expDate) => {
 		const today = new Date();
@@ -15,10 +17,16 @@ const StatusRibbon = ({ credential }) => {
 	};
 
 	useEffect(() => {
-		parseCredential(credential).then((c) => {
-			setParsedCredential(c);
-		});
-	}, [credential]);
+		if (container) {
+			container.credentialParserRegistry.parse(credential).then((c) => {
+				if ('error' in c) {
+					return;
+				}
+				setParsedCredential(c.beautifiedForm);
+			});
+		}
+
+	}, [credential, container]);
 
 	return (
 		<>
