@@ -18,5 +18,5 @@ export const INACTIVE_LOGOUT_MILLIS = (process.env.REACT_APP_INACTIVE_LOGOUT_SEC
 export const LOGIN_WITH_PASSWORD: boolean = process.env.REACT_APP_LOGIN_WITH_PASSWORD ? JSON.parse(process.env.REACT_APP_LOGIN_WITH_PASSWORD) == true : false;
 export const WEBAUTHN_RPID = process.env.REACT_APP_WEBAUTHN_RPID ?? "localhost";
 export const WS_URL = process.env.REACT_APP_WS_URL;
-
-export const verifiablePresentationSchemaURL = "https://api-pilot.ebsi.eu/trusted-schemas-registry/v2/schemas/zFj7VdCiHdG4GB6fezdAUKhDEuxFR2bri2ihKLkiZYpE9";
+export const OPENID4VP_SAN_DNS_CHECK_SSL_CERTS = process.env.REACT_APP_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS ? process.env.REACT_APP_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS == 'true' : false;
+export const VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS = process.env.VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS ? process.env.VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS : false;
