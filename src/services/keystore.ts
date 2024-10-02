@@ -6,7 +6,6 @@ import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import { v4 as uuidv4 } from "uuid";
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
-import { SignVerifiablePresentationJWT } from "@wwwallet/ssi-sdk";
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
@@ -1065,8 +1064,13 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 
 export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
 	const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
-	const sub = inputJwt.payload?.sub as string;
-	const kid = sub;
+	const { cnf } = inputJwt.payload as { cnf?: { jwk?: JWK } };
+
+	if (!cnf?.jwk) {
+		throw new Error("Holder public key could not be resolved from cnf.jwk attribute");
+	}
+
+	const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
 
 	const keypair = privateData.keypairs[kid];
 	if (!keypair) {
@@ -1074,24 +1078,20 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 	}
 	const { alg, did, wrappedPrivateKey } = keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
-
-	const jws = await new SignVerifiablePresentationJWT()
-		.setProtectedHeader({ alg, typ: "JWT", kid })
-		.setVerifiableCredential(verifiableCredentials)
-		.setContext(["https://www.w3.org/2018/credentials/v1"])
-		.setType(["VerifiablePresentation"])
-		.setAudience(audience)
-		.setCredentialSchema(
-			config.verifiablePresentationSchemaURL,
-			"FullJsonSchemaValidator2021")
-		.setIssuer(did)
-		.setSubject(did)
-		.setHolder(did)
-		.setJti(`urn:id:${uuidv4()}`)
-		.setNonce(nonce)
-		.setIssuedAt()
-		.setExpirationTime('1m')
+	const sdJwt = verifiableCredentials[0];
+	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
+	const kbJWT = await new SignJWT({
+		nonce,
+		aud: audience,
+		sd_hash,
+	}).setIssuedAt()
+		.setProtectedHeader({
+			typ: "kb+jwt",
+			alg: alg
+		})
 		.sign(privateKey);
+
+	const jws = sdJwt + kbJWT;
 	return { vpjwt: jws };
 }
 
@@ -1099,22 +1099,28 @@ export async function generateOpenid4vciProof(
 	container: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
 	nonce: string,
-	audience: string
+	audience: string,
+	issuer: string
 ): Promise<[{ proof_jwt: string }, OpenedContainer]> {
-	const deriveKid = async (publicKey: CryptoKey, did: string) => did;
+	const deriveKid = async (publicKey: CryptoKey, did: string) => {
+		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
+		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
+		return jwkThumbprint;
+	};
 	const { privateKey, keypair, newPrivateData } = await addNewCredentialKeypair(container, didKeyVersion, deriveKid);
 	const { kid, did } = keypair;
 
-	const jws = await new SignJWT({ nonce: nonce })
+	const jws = await new SignJWT({
+		nonce: nonce,
+		aud: audience,
+		iss: issuer,
+	})
 		.setProtectedHeader({
 			alg: keypair.alg,
 			typ: "openid4vci-proof+jwt",
-			kid,
+			jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
 		})
 		.setIssuedAt()
-		.setIssuer(did)
-		.setAudience(audience)
-		.setExpirationTime('1m')
 		.sign(privateKey);
 	return [{ proof_jwt: jws }, newPrivateData];
 }

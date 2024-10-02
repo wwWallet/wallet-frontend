@@ -260,6 +260,7 @@ describe("The keystore", () => {
 				didKeyVersion,
 				"test-nonce",
 				"test-audience",
+				"test-issuer",
 			);
 			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
 			const [newPrivateDataContents,] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);

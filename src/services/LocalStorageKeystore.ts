@@ -64,9 +64,10 @@ export interface LocalStorageKeystore {
 	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
+	getUserHandleB64u(): string | null,
 
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProof(nonce: string, audience: string): Promise<[
+	generateOpenid4vciProof(nonce: string, audience: string, issuer: string): Promise<[
 		{ proof_jwt: string },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -359,11 +360,15 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 		},
 
+		getUserHandleB64u: (): string | null => {
+			return (userHandleB64u);
+		},
+
 		signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> => (
 			await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
 		),
 
-		generateOpenid4vciProof: async (nonce: string, audience: string): Promise<[
+		generateOpenid4vciProof: async (nonce: string, audience: string, issuer: string): Promise<[
 			{ proof_jwt: string },
 			AsymmetricEncryptedContainer,
 			CommitCallback,
@@ -374,6 +379,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 					config.DID_KEY_VERSION,
 					nonce,
 					audience,
+					issuer
 				),
 			)
 		),
