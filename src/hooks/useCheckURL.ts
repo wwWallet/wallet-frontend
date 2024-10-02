@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import SessionContext from '../context/SessionContext';
 import { BackgroundTasksContext } from '../context/BackgroundTasksContext';
 import { useContainer } from '../components/useContainer';
+import { HandleAuthorizationRequestError } from '../lib/interfaces/IOpenID4VPRelyingParty';
 
 
 function useCheckURL(urlToCheck: string): {
@@ -70,12 +71,12 @@ function useCheckURL(urlToCheck: string): {
 		else {
 			await container.openID4VPRelyingParty.handleAuthorizationRequest(urlToCheck).then((result) => {
 				if ('err' in result) {
-					if (result.err == "INSUFFICIENT_CREDENTIALS") {
+					if (result.err == HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
 						setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
 						setTypeMessagePopup('error');
 						setMessagePopup(true);
 					}
-					else if (result.err == "ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED") {
+					else if (result.err == HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED) {
 						setTextMessagePopup({ title: `${t('messagePopup.onlyOneInputDescriptor.title')}`, description: `${t('messagePopup.onlyOneInputDescriptor.description')}` });
 						setTypeMessagePopup('error');
 						setMessagePopup(true);
