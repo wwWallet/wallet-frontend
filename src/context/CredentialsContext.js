@@ -1,4 +1,5 @@
-import React, { createContext, useState, useCallback, useContext, useRef } from 'react';
+import React, { createContext, useState, useCallback, useContext } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -9,10 +10,8 @@ export const CredentialsProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState([]);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
-	const intervalId = useRef(null);
-	const isPolling = useRef(false);
 
-	const fetchVcData = async () => {
+	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
@@ -23,7 +22,7 @@ export const CredentialsProvider = ({ children }) => {
 		vcEntityList.sort(reverse(compareBy(vc => vc.id)));
 
 		return vcEntityList;
-	};
+	}, [api]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
@@ -35,21 +34,12 @@ export const CredentialsProvider = ({ children }) => {
 		setVcEntityList(vcEntityList);
 	};
 
-	const pollForCredentials = () => {
+	const pollForCredentials = useCallback(() => {
 		let attempts = 0;
-		isPolling.current = true;
-
-		intervalId.current = setInterval(async () => {
-			const urlParams = new URLSearchParams(window.location.search);
-			if (!urlParams.has('code')) {
-				console.log('Code parameter no longer exists, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
-				return;
-			}
-
-			if (!isPolling.current) {
-				clearInterval(intervalId.current);
+		let isPolling = true;
+		const intervalId = setInterval(async () => {
+			if (!isPolling) {
+				clearInterval(intervalId);
 				return;
 			}
 
@@ -62,18 +52,18 @@ export const CredentialsProvider = ({ children }) => {
 
 			if (previousSize < vcEntityList.length) {
 				console.log('Found new credentials, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
+				isPolling = false;
+				clearInterval(intervalId);
 				updateVcListAndLatestCredentials(vcEntityList);
 			}
 
-			if (attempts >= 10) {
+			if (attempts >= 5) {
 				console.log('Max attempts reached, stopping polling');
-				isPolling.current = false;
-				clearInterval(intervalId.current);
+				isPolling = false;
+				clearInterval(intervalId);
 			}
 		}, 1000);
-	};
+	}, [api, fetchVcData]);
 
 	const getData = useCallback(async () => {
 		try {
@@ -83,9 +73,12 @@ export const CredentialsProvider = ({ children }) => {
 			const vcEntityList = await fetchVcData();
 			setVcEntityList(vcEntityList);
 
-			const shouldPoll = window.location.search.includes('code') && sessionStorage.getItem('tokenSentInSession') === 'false';
-			const newCredentialsFound = previousSize < vcEntityList.length;
+			const queryParams = window.location.search;
+			const tokenSent = sessionStorage.getItem('tokenSentInSession') === 'false';
+			const shouldPoll = (queryParams.includes('code') || queryParams.includes('credential_offer')) && tokenSent;
 
+			const newCredentialsFound = previousSize < vcEntityList.length;
+			window.history.replaceState({}, '', `/`);
 			if (shouldPoll && !newCredentialsFound) {
 				console.log("No new credentials, starting polling");
 				pollForCredentials();
@@ -94,12 +87,11 @@ export const CredentialsProvider = ({ children }) => {
 				updateVcListAndLatestCredentials(vcEntityList);
 			} else {
 				setVcEntityList(vcEntityList);
-				setLatestCredentials(new Set());
 			}
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	}, [api]);
+	}, [api, fetchVcData, pollForCredentials]);
 
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData }}>

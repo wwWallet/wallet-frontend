@@ -124,6 +124,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 							...cu,
 							prfKeys: privateData.prfKeys.map((keyInfo) => ({
 								credentialId: keyInfo.credentialId,
+								transports: keyInfo.transports,
 								prfSalt: keyInfo.prfSalt,
 							})),
 						};

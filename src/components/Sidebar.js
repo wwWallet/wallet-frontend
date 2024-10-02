@@ -6,9 +6,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import logo from '../assets/images/wallet_white.png';
 import { Trans, useTranslation } from 'react-i18next';
-import OnlineStatusContext from '../context/OnlineStatusContext';
+import StatusContext from '../context/StatusContext';
 import SessionContext from '../context/SessionContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import { MdNotifications } from "react-icons/md";
 
 const NavItem = ({
 	children,
@@ -29,7 +30,7 @@ const NavItem = ({
 };
 
 const Sidebar = ({ isOpen, toggle }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
@@ -152,7 +153,15 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<div className='step-7'>
 							<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
 								<IoMdSettings size={30} />
-								<span>{t("common.navItemSettings")}</span>
+								<div className='flex gap-2 items-center'>
+									<span>{t("common.navItemSettings")}</span>
+									{updateAvailable && (
+										<MdNotifications
+											size={22}
+											className="text-green-500"
+										/>
+									)}
+								</div>
 							</NavItem>
 						</div>
 

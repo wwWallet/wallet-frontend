@@ -5,7 +5,7 @@ import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import { CredentialImage } from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
 
@@ -244,12 +244,16 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 								</div>
 							</button>
 							<div className='w-2/3 mt-2'>
-								<GetButton
-									content={credentialDisplay[vcEntity.credentialIdentifier] ? t('selectCredentialPopup.detailsHide') : t('selectCredentialPopup.detailsShow')}
+								<Button
 									onClick={() => toggleCredentialDisplay(vcEntity.credentialIdentifier)}
 									variant="primary"
 									additionalClassName='text-xs w-full'
-								/>
+								>
+									{credentialDisplay[vcEntity.credentialIdentifier]
+										? t('selectCredentialPopup.detailsHide')
+										: t('selectCredentialPopup.detailsShow')
+									}
+								</Button>
 								<div
 									className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg dark:bg-gray-700 ${credentialDisplay[vcEntity.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
 								>
@@ -261,30 +265,31 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				))}
 			</div>
 			<div className="flex justify-between mt-4">
-				<GetButton
-					content={t('common.cancel')}
+				<Button
 					onClick={handleCancel}
 					variant="cancel"
 					className="mr-2"
-				/>
+				>
+					{t('common.cancel')}
+				</Button>
 
 				<div className="flex gap-2">
 					{currentIndex > 0 && (
-						<GetButton
-							content={t('common.previous')}
-							onClick={goToPreviousSelection}
-							variant="secondary"
-						/>
+						<Button variant="secondary" onClick={goToPreviousSelection}>
+							{t('common.previous')}
+						</Button>
 					)}
 
-					<GetButton
-						content={currentIndex < keys.length - 1 ? t('common.next') : t('common.navItemSendCredentialsSimple')}
+					<Button
 						onClick={goToNextSelection}
 						variant="primary"
 						disabled={!selectedCredential}
 						title={!selectedCredential ? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
-
-					/>
+					>
+						{currentIndex < keys.length - 1
+							? t('common.next')
+							: t('common.navItemSendCredentialsSimple')}
+					</Button>
 				</div>
 			</div>
 

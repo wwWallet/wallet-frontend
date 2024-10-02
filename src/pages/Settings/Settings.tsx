@@ -2,8 +2,9 @@ import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, us
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
+import { MdNotifications } from "react-icons/md";
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import { UserData, WebauthnCredential } from '../../api/types';
@@ -13,7 +14,7 @@ import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../service
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Heading';
 
 
@@ -87,7 +88,7 @@ const WebauthnRegistation = ({
 	onSuccess: () => void,
 	wrappedMainKey?: WrappedKeyInfo,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
 	const [pendingCredential, setPendingCredential] = useState(null);
@@ -201,15 +202,7 @@ const WebauthnRegistation = ({
 
 	return (
 		<>
-			<GetButton
-				content={
-					<div className="flex items-center">
-						<BsPlusCircle size={20} />
-						<span className='hidden md:block ml-2'>
-							{t('pageSettings.addPasskey')}
-						</span>
-					</div>
-				}
+			<Button
 				onClick={onBegin}
 				variant="primary"
 				disabled={registrationInProgress || !unlocked || !isOnline}
@@ -217,7 +210,14 @@ const WebauthnRegistation = ({
 
 				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-			/>
+			>
+				<div className="flex items-center">
+					<BsPlusCircle size={20} />
+					<span className='hidden md:block ml-2'>
+						{t('pageSettings.addPasskey')}
+					</span>
+				</div>
+			</Button>
 
 			<Dialog
 				open={stateChooseNickname}
@@ -249,20 +249,22 @@ const WebauthnRegistation = ({
 					}
 
 					<div className="pt-2 flex justify-center gap-2">
-						<GetButton
-							content={t('common.cancel')}
+						<Button
 							onClick={onCancel}
 							variant="cancel"
 							disabled={isSubmitting}
-						/>
+						>
+							{t('common.cancel')}
+						</Button>
 
 						{pendingCredential && (
-							<GetButton
+							<Button
 								type="submit"
-								content={t('common.save')}
 								variant="secondary"
 								disabled={isSubmitting}
-							/>
+							>
+								{t('common.save')}
+							</Button>
 						)}
 					</div>
 
@@ -278,18 +280,20 @@ const WebauthnRegistation = ({
 				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
 				<div className='flex justify-center gap-2'>
-					<GetButton
-						content={t('common.cancel')}
+					<Button
 						onClick={() => resolvePrfRetryPrompt(false)}
 						variant="cancel"
-					/>
+					>
+						{t('common.cancel')}
+					</Button>
 
-					<GetButton
-						content={t('common.continue')}
+					<Button
 						onClick={() => resolvePrfRetryPrompt(true)}
 						variant="secondary"
 						disabled={prfRetryAccepted}
-					/>
+					>
+						{t('common.continue')}
+					</Button>
 				</div>
 
 			</Dialog>
@@ -300,11 +304,9 @@ const WebauthnRegistation = ({
 			>
 				<p className='dark:text-white'>{t('registerPasskey.messageInteractNewPasskey')}</p>
 				<div className='flex justify-center'>
-					<GetButton
-						content={t('common.cancel')}
-						onClick={onCancel}
-						variant="cancel"
-					/>
+					<Button variant="cancel" onClick={onCancel}>
+						{t('common.cancel')}
+					</Button>
 				</div>
 			</Dialog>
 		</>
@@ -320,7 +322,7 @@ const UnlockMainKey = ({
 	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
 	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
@@ -396,31 +398,30 @@ const UnlockMainKey = ({
 
 	return (
 		<>
-			<GetButton
-				content={
-					<div className="flex items-center">
-						{unlocked
-							? <>
-								<BsUnlock size={20} />
-								<span className='hidden md:block ml-2'>
-									{t('pageSettings.lockPasskeyManagement')}
-								</span>
-							</>
-							: <>
-								<BsLock size={20} />
-								<span className='hidden md:block ml-2'>
-									{t('pageSettings.unlockPasskeyManagement')}
-								</span>
-							</>
-						}
-					</div>
-				}
+			<Button
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
 				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
 				title={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
-			/>
+			>
+				<div className="flex items-center">
+					{unlocked
+						? <>
+							<BsUnlock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.lockPasskeyManagement')}
+							</span>
+						</>
+						: <>
+							<BsLock size={20} />
+							<span className='hidden md:block ml-2'>
+								{t('pageSettings.unlockPasskeyManagement')}
+							</span>
+						</>
+					}
+				</div>
+			</Button>
 			<Dialog
 				open={isPromptingForPassword}
 				onCancel={onCancelPassword}
@@ -484,7 +485,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 }) => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
 	const [editing, setEditing] = useState(false);
 	const { t } = useTranslation();
@@ -616,48 +617,48 @@ const WebauthnCredentialItem = ({
 					? (
 
 						<div className='flex gap-2'>
-							<GetButton
-								content={t('common.cancel')}
+							<Button
 								onClick={onCancelEditing}
 								variant="cancel"
 								disabled={submitting}
 								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
-							/>
-							<GetButton
+							>
+								{t('common.cancel')}
+							</Button>
+							<Button
 								type="submit"
-								content={t('common.save')}
 								disabled={submitting}
 								variant="secondary"
-							/>
+							>
+								{t('common.save')}
+							</Button>
 						</div>
 					)
 					: (
-						<GetButton
-							content={
-								<>
-									<FaEdit size={16} className="mr-2" />
-									{t('pageSettings.passkeyItem.rename')}
-								</>
-							}
+						<Button
 							onClick={() => setEditing(true)}
 							variant="secondary"
 							disabled={(onDelete && !unlocked) || !isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							title={!isOnline ? t("common.offlineTitle") : onDelete && !unlocked && t("pageSettings.passkeyItem.renameButtonTitleLocked")}
-						/>
+						>
+							<FaEdit size={16} className="mr-2" />
+							{t('pageSettings.passkeyItem.rename')}
+						</Button>
 					)
 				}
 
 				{onDelete && (
-					<GetButton
-						content={<FaTrash size={16} />}
+					<Button
 						onClick={openDeleteConfirmation}
 						variant="delete"
 						disabled={!unlocked || !isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 						title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
-					/>
+					>
+						<FaTrash size={16} />
+					</Button>
 				)}
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
@@ -678,7 +679,7 @@ const WebauthnCredentialItem = ({
 };
 
 const Settings = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
@@ -899,15 +900,43 @@ const Settings = () => {
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
-									<GetButton
-										content={t('pageSettings.deleteAccount.buttonText')}
+									<Button
 										onClick={openDeleteConfirmation}
 										variant="delete"
 										disabled={!unlocked || !isOnline}
 										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
-									/>
+									>
+										{t('pageSettings.deleteAccount.buttonText')}
+									</Button>
 								</div>
 							</div>
+
+						</div>
+						<div className="my-2 py-2">
+							<div className='relative'>
+								<H2 heading={t('pageSettings.title.appVersion')} />
+								{updateAvailable && (
+									<MdNotifications
+										size={22}
+										className="text-green-500 absolute top-0 left-[105px]"
+									/>
+								)}
+							</div>
+							{updateAvailable ? (
+								<p className='mb-2 dark:text-white'>
+									<Trans
+										i18nKey="pageSettings.appVersion.descriptionOldVersion"
+										values={{ react_app_version: process.env.REACT_APP_VERSION }}
+										components={{
+											reloadButton: <button className='text-primary dark:text-extra-light underline' onClick={() => window.location.reload()} />, strong: <strong />, br: <br />,
+										}}
+									/>
+								</p>
+							) : (
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: process.env.REACT_APP_VERSION })}
+								</p>
+							)}
 
 						</div>
 					</>

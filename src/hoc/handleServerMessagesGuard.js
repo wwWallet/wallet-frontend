@@ -4,7 +4,7 @@ import * as config from '../config';
 import { SignatureAction } from "../types/shared.types";
 import Spinner from '../components/Spinner';
 import { SigningRequestHandlerService } from '../services/SigningRequestHandlers';
-import OnlineStatusContext from '../context/OnlineStatusContext';
+import StatusContext from '../context/StatusContext';
 import SessionContext from "../context/SessionContext";
 
 
@@ -15,7 +15,7 @@ export default function handleServerMessagesGuard(Component) {
 		const [handshakeEstablished, setHandshakeEstablished] = useState(false);
 		const socketRef = useRef(null);
 		const signingRequestHandlerService = SigningRequestHandlerService();
-		const { isOnline } = useContext(OnlineStatusContext);
+		const { isOnline } = useContext(StatusContext);
 		const { api, keystore } = useContext(SessionContext);
 		const appToken = api.getAppToken();
 

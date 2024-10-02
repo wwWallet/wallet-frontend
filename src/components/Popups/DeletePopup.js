@@ -2,7 +2,7 @@ import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
 import Spinner from '../Spinner';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 
 const DeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
 	const { t } = useTranslation();
@@ -36,16 +36,12 @@ const DeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
 			<hr className="mb-2 border-t border-red-500/80" />
 			<p className="mb-2 mt-4 text-gray-700 dark:text-white">{message}</p>
 			<div className="flex justify-end space-x-2 pt-4">
-				<GetButton
-					content={t('common.cancel')}
-					onClick={onCancel}
-					variant="cancel"
-				/>
-				<GetButton
-					content={t('common.delete')}
-					onClick={onConfirm}
-					variant="delete"
-				/>
+				<Button variant="cancel" onClick={onCancel}>
+					{t('common.cancel')}
+				</Button>
+				<Button variant="delete" onClick={onConfirm}>
+					{t('common.delete')}
+				</Button>
 			</div>
 		</Modal>
 	);

@@ -15,7 +15,7 @@ export const FIREBASE = {
 };
 export const FIREBASE_VAPIDKEY = process.env.REACT_APP_FIREBASE_VAPIDKEY;
 export const INACTIVE_LOGOUT_MILLIS = (process.env.REACT_APP_INACTIVE_LOGOUT_SECONDS ? parseInt(process.env.REACT_APP_INACTIVE_LOGOUT_SECONDS, 10) : 60 * 15) * 1000
-export const LOGIN_WITH_PASSWORD: boolean = process.env.REACT_APP_LOGIN_WITH_PASSWORD ? JSON.parse(process.env.REACT_APP_LOGIN_WITH_PASSWORD) == true : false;
+export const LOGIN_WITH_PASSWORD: boolean = process.env.REACT_APP_LOGIN_WITH_PASSWORD ? JSON.parse(process.env.REACT_APP_LOGIN_WITH_PASSWORD) === true : false;
 export const WEBAUTHN_RPID = process.env.REACT_APP_WEBAUTHN_RPID ?? "localhost";
 export const WS_URL = process.env.REACT_APP_WS_URL;
 export const OPENID4VP_SAN_DNS_CHECK_SSL_CERTS = process.env.REACT_APP_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS ? process.env.REACT_APP_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS == 'true' : false;

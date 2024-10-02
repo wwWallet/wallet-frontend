@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
@@ -9,6 +9,8 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
 import ContainerContext from '../../context/ContainerContext';
+import Button from '../../components/Buttons/Button';
+
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -22,7 +24,7 @@ function highlightBestSequence(issuer, search) {
 }
 
 const Issuers = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
@@ -174,16 +176,17 @@ const Issuers = () => {
 						style={{ maxHeight: '80vh' }}
 					>
 						{filteredIssuers.map((issuer) => (
-							<button
+							<Button
+								variant="outline"
+								additionalClassName="break-words w-full text-left"
 								key={issuer.id}
-								className={`bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left ${!isOnline ? ' text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' : 'cursor-pointer'}`}
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleIssuerClick(issuer.credentialIssuerIdentifier)}
 								disabled={!isOnline}
 								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.credentialIssuerMetadata.display[0]?.name ?? "Uknown", searchQuery) }} />
-							</button>
+							</Button>
 						))}
 					</div>
 				)}

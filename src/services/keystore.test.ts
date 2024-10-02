@@ -24,6 +24,9 @@ function mockPrfCredential(
 		id: toBase64Url(id),
 		rawId: id.buffer,
 		getClientExtensionResults: () => ({ prf: { results: { first: prfOutput.buffer } } }),
+		response: {
+			getTransports: () => [],
+		},
 	} as unknown as PublicKeyCredential;
 }
 

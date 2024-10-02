@@ -8,6 +8,7 @@ import i18n from './i18n';
 import useCheckURL from './hooks/useCheckURL';
 import { CredentialsProvider } from './context/CredentialsContext';
 import { withSessionContext } from './context/SessionContext';
+import { checkForUpdates } from './offlineRegistrationSW';
 
 import FadeInContentTransition from './components/FadeInContentTransition';
 import HandlerNotification from './components/HandlerNotification';
@@ -15,6 +16,7 @@ import Snowfalling from './components/ChistmasAnimation/Snowfalling';
 import Spinner from './components/Spinner';
 import { ContainerContextProvider } from './context/ContainerContext';
 
+import UpdateNotification from './components/UpdateNotification';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -94,6 +96,7 @@ function App() {
 
 	useEffect(() => {
 		setUrl(window.location.href);
+		checkForUpdates();
 	}, [location])
 
 	useEffect(() => {
@@ -123,6 +126,7 @@ function App() {
 					<Snowfalling />
 					<Suspense fallback={<Spinner />}>
 						<HandlerNotification />
+						<UpdateNotification/>
 						<Routes>
 							<Route element={
 								<PrivateRoute>

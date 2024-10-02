@@ -4,13 +4,13 @@ import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
-import GetButton from '../../components/Buttons/GetButton';
+import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import LoginPageLayout from './LoginPageLayout';
-
+import { checkForUpdates } from '../../offlineRegistrationSW';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -63,35 +63,32 @@ const WebauthnLogin = ({
 		setIsSubmitting(true);
 		await onLogin(cachedUser);
 		setIsSubmitting(false);
+		checkForUpdates();
 	};
 
 	return (
 		<>
 			<ul className=" p-2">
 				<div className='flex flex-row gap-4 justify-center mr-2'>
-					<GetButton
-						content={
-							<>
-								{t('common.cancel')}
-							</>
-						}
+					<Button
 						onClick={() => navigate('/')}
 						variant="cancel"
 						disabled={isSubmitting}
 						additionalClassName='w-full'
-					/>
-					<GetButton
-						content={
-							<>
-								<GoPasskeyFill className="inline text-xl mr-2" />
-								{isSubmitting ? t('loginSignup.submitting') : t('common.continue')}
-							</>
-						}
+					>
+						{t('common.cancel')}
+					</Button>
+					<Button
 						onClick={() => onLoginCachedUser(filteredUser)}
 						variant="primary"
 						disabled={isSubmitting}
 						additionalClassName='w-full'
-					/>
+					>
+						<GoPasskeyFill className="inline text-xl mr-2" />
+						{isSubmitting
+							? t('loginSignup.submitting')
+							: t('common.continue')}
+					</Button>
 				</div>
 			</ul>
 			{error && <div className="text-red-500 pt-4">{error}</div>}
@@ -100,7 +97,7 @@ const WebauthnLogin = ({
 };
 
 const LoginState = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();

@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import OnlineStatusContext from '../../context/OnlineStatusContext';
+import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
+import Button from '../../components/Buttons/Button';
 
 
 function highlightBestSequence(verifier, search) {
@@ -22,7 +23,7 @@ function highlightBestSequence(verifier, search) {
 }
 
 const Verifiers = () => {
-	const { isOnline } = useContext(OnlineStatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [verifiers, setVerifiers] = useState([]);
@@ -139,16 +140,17 @@ const Verifiers = () => {
 						style={{ maxHeight: '80vh' }}
 					>
 						{filteredVerifiers.map((verifier) => (
-							<button
+							<Button
 								key={verifier.id}
-								className={`bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white break-words w-full text-left ${!isOnline ? ' text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed' : 'cursor-pointer'}`}
+								variant="outline"
+								additionalClassName="break-words w-full text-left"
 								style={{ wordBreak: 'break-all' }}
 								onClick={() => handleVerifierClick(verifier.did)}
 								disabled={!isOnline}
 								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
 								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
-							</button>
+							</Button>
 						))}
 					</div>
 				)}

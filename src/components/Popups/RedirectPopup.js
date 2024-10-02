@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import GetButton from '../Buttons/GetButton';
+import Button from '../Buttons/Button';
 import Spinner from '../../components/Spinner';
 
 
@@ -75,20 +75,15 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose
 
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<GetButton
-					content={t('common.cancel')}
-					onClick={handleClose}
-					variant="cancel"
-				/>
-				<GetButton
-					content={t('common.continue')}
-					onClick={() => handleContinue(selectedConfiguration)}
-					variant="primary"
-				/>
+				<Button variant="cancel" onClick={handleClose}>
+					{t('common.cancel')}
+				</Button>
+				<Button variant="primary" onClick={() => handleContinue(selectedConfiguration)}>
+					{t('common.continue')}
+				</Button>
 			</div>
 		</Modal>
 	);
 };
 
 export default RedirectPopup;
-

@@ -22,6 +22,7 @@
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"save": "Save",
+		"refresh": "Refresh",
 		"submit": "Submit",
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
@@ -49,7 +50,7 @@
 		"confirm": "Confirm",
 		"message": "Use your <strong>passkey</strong> to continue and fetch your credential in your wallet.",
 		"title": "Hi,",
-		"welcomeBackMessage": "Welcome back to <highlight>wwWallet</highlight>"
+		"welcomeBackMessage": "Welcome back to <highlight>$t(common.walletName)</highlight>"
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
@@ -66,8 +67,7 @@
 		"forgetCachedUserTitle": "Click to Forget Cached User",
 		"incorrectCredentialsError": "Incorrect username or password",
 		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
-		"learnMoreAboutPrfCompatibility": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support.</docLinkPrf>",
-		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover wwWallet via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
+		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover $t(common.walletName) via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
 		"learnMoreAboutPrfCompatibilityAriaLabel": "Learn more about PRF Compatibility regarding browser/OS support",
 		"learnMoreAboutLaunchpadAriaLabel": "Discover our Launchpad",
 		"learnMoreAboutScenariosAriaLabel": "Learn more about sample scenarios",
@@ -107,7 +107,7 @@
 		"usernameLabel": "Username",
 		"useOtherAccount": "Use other Account",
 		"weakPasswordError": "Weak password",
-		"welcomeMessage": "Welcome to <highlight>wwWallet</highlight>"
+		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
 	},
 	"messagePopup": {
 		"close": "Close",
@@ -210,7 +210,8 @@
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
-			"manageOtherPasskeys": "Manage other Passkeys"
+			"manageOtherPasskeys": "Manage other Passkeys",
+			"appVersion":"App Version"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
@@ -224,6 +225,10 @@
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
 			"title": "Upgrading passkey encryption key"
+		},
+		"appVersion": {
+			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
+			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		}
 	},
 	"PinInputPopup": {
@@ -278,10 +283,13 @@
 		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
 		"closeTourButton": "Close Tour"
 	},
+	"updateNotification": {
+		"description": "New Version is available!"
+	},
 	"welcomeModal": {
-		"title": "Welcome to wwWallet!",
-		"description": "Discover the <strong> {{walletName}} </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
-		"question": "Are you ready to explore the features of wwWallet through a guided tour?",
+		"title": "Welcome to $t(common.walletName)!",
+		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
+		"question": "Are you ready to explore the features of $t(common.walletName) through a guided tour?",
 		"dismissButton": "Dismiss",
 		"startTourButton": "Start Tour"
 	}

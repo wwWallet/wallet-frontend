@@ -1,6 +1,4 @@
 import React, { useEffect, createContext, useState } from 'react';
-
-
 /**
  * Type polyfill for https://wicg.github.io/netinfo/#networkinformation-interface
  * but defining only the properties we use here.
@@ -16,13 +14,15 @@ declare global {
 	}
 }
 
-interface OnlineStatusContextValue {
+interface StatusContextValue {
 	isOnline: boolean;
+	updateAvailable: boolean;
 }
 
 
-const OnlineStatusContext: React.Context<OnlineStatusContextValue> = createContext({
+const StatusContext: React.Context<StatusContextValue> = createContext({
 	isOnline: null,
+	updateAvailable: false,
 });
 
 function getOnlineStatus(): boolean {
@@ -34,9 +34,9 @@ function getOnlineStatus(): boolean {
 	return navigator.onLine && rtt > 0;
 }
 
-export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }) => {
+export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState(getOnlineStatus);
-
+	const [updateAvailable, setUpdateAvailable] = useState(false);
 	const updateOnlineStatus = () => {
 		setIsOnline(getOnlineStatus());
 	};
@@ -57,11 +57,23 @@ export const OnlineStatusProvider = ({ children }: { children: React.ReactNode }
 		console.log("Online status changed to ", isOnline);
 	}, [isOnline]);
 
+	navigator.serviceWorker.addEventListener('message', (event) => {
+		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
+			const isWindowHidden = document.hidden;
+
+			if (isWindowHidden) {
+				window.location.reload();
+			} else {
+				setUpdateAvailable(true);
+			}
+		}
+	});
+
 	return (
-		<OnlineStatusContext.Provider value={{ isOnline }}>
+		<StatusContext.Provider value={{ isOnline, updateAvailable }}>
 			{children}
-		</OnlineStatusContext.Provider>
+		</StatusContext.Provider>
 	);
 };
 
-export default OnlineStatusContext;
+export default StatusContext;
