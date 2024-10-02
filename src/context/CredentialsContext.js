@@ -1,5 +1,4 @@
 import React, { createContext, useState, useCallback, useContext } from 'react';
-import React, { createContext, useState, useContext, useCallback } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
