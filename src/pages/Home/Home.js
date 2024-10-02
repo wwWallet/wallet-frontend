@@ -129,7 +129,7 @@ const Home = () => {
 							) : (
 								<>
 									<Slider ref={sliderRef} {...settings}>
-										{vcEntityList.map((vcEntity, index) => (
+										{vcEntityList.sort((a, b) => b.id - a.id).map((vcEntity, index) => (
 											<div key={vcEntity.id}>
 												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 													onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
@@ -173,7 +173,7 @@ const Home = () => {
 						</>
 					) : (
 						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
-							{vcEntityList.map((vcEntity) => (
+							{vcEntityList.sort((a, b) => b.id - a.id).map((vcEntity) => (
 								<button
 									key={vcEntity.id}
 									className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
