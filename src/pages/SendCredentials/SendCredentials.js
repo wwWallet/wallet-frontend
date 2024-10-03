@@ -77,8 +77,8 @@ const Verifiers = () => {
 		setFilteredVerifiers(filtered);
 	}, [searchQuery, verifiers]);
 
-	const handleVerifierClick = async (did) => {
-		const clickedVerifier = verifiers.find((verifier) => verifier.did === did);
+	const handleVerifierClick = async (id) => {
+		const clickedVerifier = verifiers.find((verifier) => verifier.id === id);
 		if (clickedVerifier) {
 			setSelectedVerifier(clickedVerifier);
 			setShowRedirectPopup(true);
@@ -145,7 +145,7 @@ const Verifiers = () => {
 								variant="outline"
 								additionalClassName="break-words w-full text-left"
 								style={{ wordBreak: 'break-all' }}
-								onClick={() => handleVerifierClick(verifier.did)}
+								onClick={() => handleVerifierClick(verifier.id)}
 								disabled={!isOnline}
 								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
