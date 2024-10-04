@@ -5,8 +5,7 @@ WORKDIR /home/node/app
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY package.json yarn.lock .
 COPY .env.template .env
-RUN --mount=type=secret,id=npmrc,required=true,target=./.npmrc,uid=1000 \
-	yarn cache clean -f && yarn install
+RUN yarn cache clean -f && yarn install
 
 
 FROM builder-base AS test
