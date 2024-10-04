@@ -299,7 +299,9 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		const formData = new URLSearchParams();
 		formData.append('vp_token', generatedVPs[0]);
 		formData.append('presentation_submission', JSON.stringify(presentationSubmission));
-		formData.append('state', S.state);
+		if (S.state) {
+			formData.append('state', S.state);
+		}
 
 		const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
