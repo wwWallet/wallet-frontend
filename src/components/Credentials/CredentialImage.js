@@ -24,7 +24,7 @@ export const CredentialImage = ({ credential, className, onClick, showRibbon = t
 		<>
 			{parsedCredential && (
 				<>
-					<img src={parsedCredential.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
+					<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
 					{showRibbon &&
 						<StatusRibbon credential={credential} />
 					}

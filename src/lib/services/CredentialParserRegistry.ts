@@ -10,13 +10,13 @@ export class CredentialParserRegistry implements ICredentialParserRegistry {
 	/**
 	 * optimize parsing time by caching alread parsed objects because parse() can be called multiple times in a single view
 	 */
-	private parsedObjectsCache = new Map<string, { credentialFriendlyName: string; credentialImageURL: string; beautifiedForm: any; }>();
+	private parsedObjectsCache = new Map<string, { credentialFriendlyName: string; credentialImage: { credentialImageURL: string; } | { credentialImageSvgTemplateURL: string; }; beautifiedForm: any; }>();
 
 	addParser(parser: ICredentialParser): void {
 		this.parserList.push(parser);
 	}
 
-	async parse(rawCredential: object | string, presentationDefinitionFilter?: PresentationDefinitionType): Promise<{ credentialFriendlyName: string; credentialImageURL: string; beautifiedForm: any; } | { error: string }> {
+	async parse(rawCredential: object | string, presentationDefinitionFilter?: PresentationDefinitionType) {
 		const hash = await calculateHash(JSON.stringify(rawCredential));
 		const cacheResult = this.parsedObjectsCache.get(hash);
 		if (cacheResult) {
