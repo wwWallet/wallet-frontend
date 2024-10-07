@@ -1,4 +1,3 @@
-import { CredentialConfigurationSupported } from "../schemas/CredentialConfigurationSupportedSchema";
 import { PresentationDefinitionType } from "./presentationDefinition.type";
 
 /**

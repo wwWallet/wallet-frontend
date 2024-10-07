@@ -41,7 +41,7 @@ function useCheckURL(urlToCheck: string): {
 			throw new Error("User handle could not be extracted from keystore");
 		}
 		const u = new URL(urlToCheck);
-		if ((u.protocol == 'openid-credential-offer' || u.searchParams.get('credential_offer'))) {
+		if ((u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer'))) {
 			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
 				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString())
 					.then(({ credentialIssuer, selectedCredentialConfigurationSupported }) => {
@@ -71,12 +71,12 @@ function useCheckURL(urlToCheck: string): {
 		else {
 			await container.openID4VPRelyingParty.handleAuthorizationRequest(urlToCheck).then((result) => {
 				if ('err' in result) {
-					if (result.err == HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
+					if (result.err === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
 						setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
 						setTypeMessagePopup('error');
 						setMessagePopup(true);
 					}
-					else if (result.err == HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED) {
+					else if (result.err === HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED) {
 						setTextMessagePopup({ title: `${t('messagePopup.onlyOneInputDescriptor.title')}`, description: `${t('messagePopup.onlyOneInputDescriptor.description')}` });
 						setTypeMessagePopup('error');
 						setMessagePopup(true);

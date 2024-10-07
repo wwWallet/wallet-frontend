@@ -70,8 +70,8 @@ const Issuers = () => {
 					}
 
 				}));
-				fetchedIssuers = fetchedIssuers.filter((issuer) => issuer != null);
-				fetchedIssuers = fetchedIssuers.filter((issuer) => issuer.visible == true); // show only visible issuers
+				fetchedIssuers = fetchedIssuers.filter((issuer) => issuer !== null);
+				fetchedIssuers = fetchedIssuers.filter((issuer) => issuer.visible === 1); // show only visible issuers
 				setIssuers(fetchedIssuers);
 				setFilteredIssuers(fetchedIssuers);
 			} catch (error) {
