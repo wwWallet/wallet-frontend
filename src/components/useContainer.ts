@@ -79,18 +79,30 @@ export function useContainer() {
 
 				
 				const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
-				console.log("Header = ", credentialHeader)
 
-				console.log("Credential header vctm display = ",  credentialHeader.vctm.display[0])
 				const credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
+					: null;
+
+				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
+					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates?.uri
 					: null;
 				
 				const credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 					credentialHeader.vctm.display[0][defaultLocale]?.name
 					: null;
 
-				try {
+
+				if (credentialImageSvgTemplateURL) {
+					return {
+						beautifiedForm: result.beautifiedForm,
+						credentialImage: {
+							credentialImageSvgTemplateURL: credentialImageSvgTemplateURL
+						},
+						credentialFriendlyName,
+					}
+				}
+				else {
 					return {
 						beautifiedForm: result.beautifiedForm,
 						credentialImage: {
@@ -99,17 +111,6 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
-				catch (err) {
-					return {
-						beautifiedForm: result.beautifiedForm,
-						credentialFriendlyName: "Credential",
-						credentialImage: {
-							credentialImageURL: "/public/cred.png",
-						}
-						// provide fallback credential metadata
-					};
-				}
-
 			},
 		});
 
