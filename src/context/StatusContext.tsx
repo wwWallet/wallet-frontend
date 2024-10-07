@@ -54,7 +54,7 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	}, []);
 
 	useEffect(() => {
-		console.log("Online status changed to ", isOnline);
+		console.log("Online status changed to:", isOnline);
 	}, [isOnline]);
 
 	navigator.serviceWorker.addEventListener('message', (event) => {
