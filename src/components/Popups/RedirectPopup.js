@@ -13,6 +13,8 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose
 
 	const [selectedConfiguration, setSelectedConfiguration] = useState(null);
 
+	const configurationsCount = availableCredentialConfigurations ? Object.keys(availableCredentialConfigurations).length : 0;
+
 	useEffect(() => {
 		if (availableCredentialConfigurations) {
 			setSelectedConfiguration(Object.values(availableCredentialConfigurations)[0])
@@ -53,7 +55,7 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose
 				{popupMessage}
 			</p>
 
-			{availableCredentialConfigurations != undefined && Object.keys(availableCredentialConfigurations).map((credentialConfigurationId, index) => {
+			{configurationsCount > 1 && Object.keys(availableCredentialConfigurations).map((credentialConfigurationId, index) => {
 				return (
 					<div class="flex items-center mb-4">
 						<input

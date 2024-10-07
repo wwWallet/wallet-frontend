@@ -165,7 +165,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			await get('/storage/vp', userUuid, { appToken });
 			await get('/user/session/account-info', userUuid, { appToken });
 			await getExternalEntity('/legal_person/issuers/all', { appToken });
-			await getExternalEntity('/verifiers/all', { appToken });
+			await getExternalEntity('/verifier/all', { appToken });
 
 		} catch (error) {
 			console.error('Failed to perform get requests', error);
@@ -336,8 +336,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 	async function getAllVerifiers(): Promise<Verifier[]> {
 		try {
-			const result = await getExternalEntity('/verifiers/all');
-			const { verifiers } = result.data;
+			const result = await getExternalEntity('/verifier/all');
+			const verifiers = result.data;
 			console.log("verifiers = ", verifiers)
 			return verifiers;
 		}

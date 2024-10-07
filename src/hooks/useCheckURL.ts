@@ -81,6 +81,11 @@ function useCheckURL(urlToCheck: string): {
 						setTypeMessagePopup('error');
 						setMessagePopup(true);
 					}
+					else if (result.err == HandleAuthorizationRequestError.NONTRUSTED_VERIFIER) {
+						setTextMessagePopup({ title: `${t('messagePopup.nonTrustedVerifier.title')}`, description: `${t('messagePopup.nonTrustedVerifier.description')}` });
+						setTypeMessagePopup('error');
+						setMessagePopup(true);
+					}
 					return;
 				}
 				const { conformantCredentialsMap, verifierDomainName } = result;
