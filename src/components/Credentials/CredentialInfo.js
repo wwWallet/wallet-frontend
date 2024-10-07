@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
 import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
 import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
 import { formatDate } from '../../functions/DateFormat';
-import { parseCredential } from '../../functions/parseCredential';
+import ContainerContext from '../../context/ContainerContext';
 
 const getFieldIcon = (fieldName) => {
 	switch (fieldName) {
@@ -53,17 +53,19 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 
 	const [parsedCredential, setParsedCredential] = useState(null);
 
-	useEffect(() => {
-		parseCredential(credential).then((c) => {
-			setParsedCredential(c);
-		});
-	}, [credential]);
+	const container = useContext(ContainerContext);
 
 	useEffect(() => {
-		parseCredential(credential).then((c) => {
-			setParsedCredential(c);
-		});
-	}, [credential]);
+		if (container) {
+			container.credentialParserRegistry.parse(credential).then((c) => {
+				if ('error' in c) {
+					return;
+				}
+				setParsedCredential(c.beautifiedForm);
+			});
+		}
+
+	}, [credential, container]);
 
 	return (
 		<div className={mainClassName}>
@@ -71,15 +73,18 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
 						<>
-							{renderRow('expdate', 'Expiration', formatDate(parsedCredential.expirationDate))}
-							{renderRow('familyName', 'Family Name', parsedCredential.credentialSubject.familyName)}
-							{renderRow('firstName', 'First Name', parsedCredential.credentialSubject.firstName)}
-							{renderRow('id', 'Personal ID', parsedCredential.credentialSubject.personalIdentifier)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.dateOfBirth)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential.credentialSubject.birthdate)}
-							{renderRow('diplomaTitle', 'Title', parsedCredential.credentialSubject.diplomaTitle)}
-							{renderRow('eqfLevel', 'EQF', parsedCredential.credentialSubject.eqfLevel)}
-							{renderRow('grade', 'Grade', parsedCredential.credentialSubject.grade)}
+							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential?.exp * 1000).toISOString()))}
+							{renderRow('familyName', 'Family Name', parsedCredential?.family_name)}
+							{renderRow('firstName', 'Given Name', parsedCredential?.given_name)}
+							{renderRow('id', 'Personal ID', parsedCredential?.personal_identifier)}
+							{renderRow('dateOfBirth', 'Birthday', parsedCredential?.dateOfBirth)}
+							{renderRow('dateOfBirth', 'Birthday', parsedCredential?.birth_date)}
+							{renderRow('diplomaTitle', 'Title', parsedCredential?.title)}
+							{renderRow('eqfLevel', 'EQF', parsedCredential?.eqf_level)}
+							{renderRow('grade', 'Grade', parsedCredential?.grade)}
+							{renderRow('id', 'Social Security Number', parsedCredential?.ssn)}
+							{renderRow('id', 'Document Number', parsedCredential?.document_number)}
+
 						</>
 					)}
 				</tbody>

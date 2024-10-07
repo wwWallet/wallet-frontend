@@ -46,11 +46,7 @@ const History = () => {
 
 	const handleHistoryItemClick = async (item) => {
 		// Export all credentials from the presentation
-		const vpTokenPayload = JSON.parse(new TextDecoder().decode(
-			base64url.decode(item.presentation.split('.')[1])
-		));
-
-		const verifiableCredentials = vpTokenPayload.vp.verifiableCredential; // in raw format
+		const verifiableCredentials = [ item.presentation ];
 
 		// Set matching credentials and show the popup
 		setMatchingCredentials(verifiableCredentials);
@@ -105,7 +101,7 @@ const History = () => {
 								onClick={() => handleHistoryItemClick(item)}
 							>
 								<div className="font-bold">{item.audience}</div>
-								<div>{formatDate(new Date(item.issuanceDate * 1000).toISOString())}</div>
+								<div>{formatDate(item.issuanceDate)}</div>
 							</button>
 						))}
 					</div>
@@ -135,14 +131,14 @@ const History = () => {
 					{/* Display presented credentials */}
 					<div className=" py-2">
 						<Slider ref={sliderRef} {...settings}>
-							{matchingCredentials.map((vcEntity, index) => {
+							{matchingCredentials.map((credential, index) => {
 								const Tag = currentSlide === index + 1 ? 'button' : 'div';
 								return (
-									<React.Fragment key={vcEntity}>
+									<React.Fragment key={credential}>
 										<div
 											className="relative rounded-xl xl:w-full md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg w-full mb-2"
 										>
-											<CredentialImage credential={vcEntity} className={"w-full h-full object-cover rounded-xl"} />
+											<CredentialImage credential={credential} className={"w-full h-full object-cover rounded-xl"} />
 										</div>
 										<div className="flex items-center justify-end">
 											<span className="mr-4 dark:text-white">{currentSlide} of {matchingCredentials.length}</span>
@@ -169,7 +165,7 @@ const History = () => {
 										<div className='h-[30vh]'>
 
 											<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-[30vh] overflow-y-auto rounded-md custom-scrollbar my-2 bg-gray-800" opacity-100' : 'max-h-0 opacity-0'}`}>
-												<CredentialInfo credential={vcEntity} />
+												<CredentialInfo credential={credential} />
 											</div>
 										</div>
 

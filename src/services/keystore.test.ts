@@ -263,13 +263,14 @@ describe("The keystore", () => {
 				didKeyVersion,
 				"test-nonce",
 				"test-audience",
+				"test-issuer",
 			);
 			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
 			const [newPrivateDataContents,] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
 			const { kid, publicKey: publicKeyJwk } = Object.values(newPrivateDataContents.keypairs)[0];
 			const publicKey = await jose.importJWK(publicKeyJwk)
-			const { protectedHeader } = await jose.jwtVerify(proof_jwt, publicKey, { audience: "test-audience" });
-			assert.equal(protectedHeader.kid, kid);
+			const { protectedHeader } = await jose.jwtVerify(proof_jwt, publicKey, { audience: "test-audience", issuer: "test-issuer" });
+			assert.equal(await jose.calculateJwkThumbprint(protectedHeader.jwk), kid);
 		};
 		it("p256-pub.", async () => test("p256-pub"));
 		it("jwk_jcs-pub.", async () => test("jwk_jcs-pub"));

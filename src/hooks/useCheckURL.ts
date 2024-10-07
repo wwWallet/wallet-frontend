@@ -2,21 +2,15 @@ import { useEffect, useState, Dispatch, SetStateAction, useContext } from 'react
 import { useTranslation } from 'react-i18next';
 
 import SessionContext from '../context/SessionContext';
-
-
-export enum HandleOutboundRequestError {
-	INSUFFICIENT_CREDENTIALS = "INSUFFICIENT_CREDENTIALS",
-}
-
-export enum SendResponseError {
-	SEND_RESPONSE_ERROR = "SEND_RESPONSE_ERROR",
-}
+import { BackgroundTasksContext } from '../context/BackgroundTasksContext';
+import { useContainer } from '../components/useContainer';
+import { HandleAuthorizationRequestError } from '../lib/interfaces/IOpenID4VPRelyingParty';
 
 
 function useCheckURL(urlToCheck: string): {
 	showSelectCredentialsPopup: boolean,
 	setShowSelectCredentialsPopup: Dispatch<SetStateAction<boolean>>,
-	setSelectionMap: Dispatch<SetStateAction<string | null>>,
+	setSelectionMap: Dispatch<SetStateAction<{ [x: string]: string } | null>>,
 	conformantCredentialsMap: any,
 	showPinInputPopup: boolean,
 	setShowPinInputPopup: Dispatch<SetStateAction<boolean>>,
@@ -27,9 +21,12 @@ function useCheckURL(urlToCheck: string): {
 	typeMessagePopup: string;
 } {
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { container } = useContainer();
+	const { addLoader, removeLoader } = useContext(BackgroundTasksContext);
+
 	const [showSelectCredentialsPopup, setShowSelectCredentialsPopup] = useState<boolean>(false);
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
-	const [selectionMap, setSelectionMap] = useState<string | null>(null);
+	const [selectionMap, setSelectionMap] = useState<{ [x: string]: string } | null>(null);
 	const [conformantCredentialsMap, setConformantCredentialsMap] = useState(null);
 	const [verifierDomainName, setVerifierDomainName] = useState("");
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
@@ -37,108 +34,103 @@ function useCheckURL(urlToCheck: string): {
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const { t } = useTranslation();
 
-	useEffect(() => {
 
-		async function communicationHandler(url: string): Promise<boolean> {
-			try {
-				const wwwallet_camera_was_used = new URL(url).searchParams.get('wwwallet_camera_was_used');
-
-				const res = await api.post('/communication/handle', { url, camera_was_used: (wwwallet_camera_was_used != null && wwwallet_camera_was_used === 'true') });
-				const { redirect_to, conformantCredentialsMap, verifierDomainName, preauth, ask_for_pin, error } = res.data;
-				if (error && error === HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS) {
-					console.error(`${HandleOutboundRequestError.INSUFFICIENT_CREDENTIALS}`);
-					setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
-					setTypeMessagePopup('error');
-					setMessagePopup(true);
-					return false;
-				}
-
-				if (preauth && preauth === true) {
-					if (ask_for_pin) {
-						setShowPinInputPopup(true);
-						return true;
-					}
-					else {
-						await api.post('/communication/handle', { user_pin: "" });
-						return true;
-					}
-				}
-
-				if (redirect_to) {
-					window.location.href = redirect_to;
-					return true;
-				} else if (conformantCredentialsMap) {
-					console.log('need action');
-					setVerifierDomainName(verifierDomainName);
-					setConformantCredentialsMap(conformantCredentialsMap);
-					setShowSelectCredentialsPopup(true);
-					console.log("called setShowSelectCredentialsPopup")
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
-			catch (err) {
-				console.log("Failed to handle");
-				return false;
+	async function handle(urlToCheck: string) {
+		const userHandleB64u = keystore.getUserHandleB64u();
+		if (!userHandleB64u) {
+			throw new Error("User handle could not be extracted from keystore");
+		}
+		const u = new URL(urlToCheck);
+		if ((u.protocol == 'openid-credential-offer' || u.searchParams.get('credential_offer'))) {
+			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
+				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString())
+					.then(({ credentialIssuer, selectedCredentialConfigurationSupported }) => {
+						return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationSupported, userHandleB64u);
+					})
+					.then(({ url, client_id, request_uri }) => {
+						window.location.href = url;
+					})
+					.catch((err) => console.error(err));
 			}
 		}
-
-		if (urlToCheck && isLoggedIn && window.location.pathname === "/cb") {
-			(async () => {
-				await communicationHandler(urlToCheck);
-			})();
+		else if (u.searchParams.get('code')) {
+			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
+				addLoader();
+				await container.openID4VCIClients[credentialIssuerIdentifier].handleAuthorizationResponse(urlToCheck)
+					.then(() => {
+						removeLoader();
+					})
+					.catch(err => {
+						console.log("Error during the handling of authorization response")
+						window.history.replaceState({}, '', `${window.location.pathname}`);
+						console.error(err)
+						removeLoader();
+					});
+			}
+		}
+		else {
+			await container.openID4VPRelyingParty.handleAuthorizationRequest(urlToCheck).then((result) => {
+				if ('err' in result) {
+					if (result.err == HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
+						setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
+						setTypeMessagePopup('error');
+						setMessagePopup(true);
+					}
+					else if (result.err == HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED) {
+						setTextMessagePopup({ title: `${t('messagePopup.onlyOneInputDescriptor.title')}`, description: `${t('messagePopup.onlyOneInputDescriptor.description')}` });
+						setTypeMessagePopup('error');
+						setMessagePopup(true);
+					}
+					else if (result.err == HandleAuthorizationRequestError.NONTRUSTED_VERIFIER) {
+						setTextMessagePopup({ title: `${t('messagePopup.nonTrustedVerifier.title')}`, description: `${t('messagePopup.nonTrustedVerifier.description')}` });
+						setTypeMessagePopup('error');
+						setMessagePopup(true);
+					}
+					return;
+				}
+				const { conformantCredentialsMap, verifierDomainName } = result;
+				const jsonedMap = Object.fromEntries(conformantCredentialsMap);
+				window.history.replaceState({}, '', `${window.location.pathname}`);
+				setVerifierDomainName(verifierDomainName);
+				setConformantCredentialsMap(jsonedMap);
+				setShowSelectCredentialsPopup(true);
+			}).catch(err => {
+				console.log("Failed to handle authorization req");
+				console.error(err)
+			})
 		}
 
-		if (urlToCheck && isLoggedIn) {
-			const urlParams = new URLSearchParams(window.location.search);
-			const state = urlParams.get('state');
-			const error = urlParams.get('error');
+		const urlParams = new URLSearchParams(window.location.search);
+		const state = urlParams.get('state');
+		const error = urlParams.get('error');
+		if (urlToCheck && isLoggedIn && state && error) {
+			window.history.replaceState({}, '', `${window.location.pathname}`);
 			const errorDescription = urlParams.get('error_description');
-
-			if (state && error) {
-				setTextMessagePopup({ title: error, description: errorDescription });
-				setTypeMessagePopup('error');
-				setMessagePopup(true);
-			}
+			setTextMessagePopup({ title: error, description: errorDescription });
+			setTypeMessagePopup('error');
+			setMessagePopup(true);
 		}
+	}
 
-	}, [api, keystore, t, urlToCheck, isLoggedIn]);
+	useEffect(() => {
+		if (!isLoggedIn || !container || !urlToCheck || !keystore || !api || !t) {
+			return;
+		}
+		handle(urlToCheck);
+	}, [api, keystore, t, urlToCheck, isLoggedIn, container]);
 
 	useEffect(() => {
 		if (selectionMap) {
-			console.log("Selected value = ", selectionMap);
-
-			api.post("/communication/handle",
-				{ verifiable_credentials_map: selectionMap },
-			).then(success => {
-				console.log(success);
-				const { redirect_to, error } = success.data;
-
-				if (error && error === SendResponseError.SEND_RESPONSE_ERROR) {
-					setTextMessagePopup({ title: `${t('messagePopup.sendResponseError.title')}`, description: `${t('messagePopup.sendResponseError.description')}` });
-					setTypeMessagePopup('error');
-					setMessagePopup(true);
-					return;
+			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then(({ url }) => {
+				if (url) {
+					window.location.href = url;
 				}
-				if (redirect_to) {
-					window.location.href = redirect_to; // Navigate to the redirect URL
-				}
-				else {
-					setTextMessagePopup({ title: `${t('messagePopup.sendResponseSuccess.title')}`, description: `${t('messagePopup.sendResponseSuccess.description')}` });
-					setTypeMessagePopup('success');
-					setMessagePopup(true);
-					return;
-				}
-			}).catch(err => {
-				console.error("Error");
-				console.error(err);
-			});
+			}).catch((err) => console.error(err));
 		}
-	}, [api, keystore, selectionMap, t]);
+	}, [api, keystore, selectionMap, t, container]);
 
 	return { showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup, verifierDomainName, showMessagePopup, setMessagePopup, textMessagePopup, typeMessagePopup };
 }
+
 
 export default useCheckURL;

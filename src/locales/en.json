@@ -115,6 +115,14 @@
 			"title": "Insufficient Credentials",
 			"description": "One or more of the credentials you want to present do not exist for selection."
 		},
+		"onlyOneInputDescriptor": {
+			"title": "Unsupported protocol version",
+			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time."
+		},
+		"nonTrustedVerifier": {
+			"title": "Verifier is not Trusted",
+			"description": "Verifier did not provide valid data for verification"
+		},
 		"sendResponseError": {
 			"title": "Send Response Error",
 			"description": "An error occured during the presentation of the credentials."

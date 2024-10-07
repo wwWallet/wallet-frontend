@@ -1,22 +1,30 @@
-import { useState, useEffect } from "react";
-import { parseCredential } from "../../functions/parseCredential";
+import { useState, useEffect, useContext } from "react";
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
+import ContainerContext from '../../context/ContainerContext';
 
 
 export const CredentialImage = ({ credential, className, onClick, showRibbon = true }) => {
 	const [parsedCredential, setParsedCredential] = useState(null);
 
+	const container = useContext(ContainerContext);
+
 	useEffect(() => {
-		parseCredential(credential).then((c) => {
-			setParsedCredential(c);
-		});
-	}, [credential]);
+		if (container) {
+			container.credentialParserRegistry.parse(credential).then((c) => {
+				if ('error' in c) {
+					return;
+				}
+				setParsedCredential(c);
+			});
+		}
+
+	}, [credential, container]);
 
 	return (
 		<>
 			{parsedCredential && (
 				<>
-					<img src={parsedCredential.credentialBranding.image.url} alt={"Credential"} className={className} onClick={onClick} />
+					<img src={parsedCredential.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
 					{showRibbon &&
 						<StatusRibbon credential={credential} />
 					}

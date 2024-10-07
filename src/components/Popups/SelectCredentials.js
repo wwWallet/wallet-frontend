@@ -6,8 +6,8 @@ import { useTranslation, Trans } from 'react-i18next';
 import { CredentialImage } from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
-import { extractCredentialFriendlyName } from "../../functions/extractCredentialFriendlyName";
 import SessionContext from '../../context/SessionContext';
+import ContainerContext from '../../context/ContainerContext';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -68,6 +68,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	const [showAllFields, setShowAllFields] = useState(false);
 	const [credentialDisplay, setCredentialDisplay] = useState({});
 	const [selectedCredential, setSelectedCredential] = useState(null);
+	const container = useContext(ContainerContext);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -81,8 +82,12 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				const response = await api.get('/storage/vc');
 				const vcEntities = await Promise.all(
 					response.data.vc_list.map(async vcEntity => {
-						const name = await extractCredentialFriendlyName(vcEntity.credential);
-						return { ...vcEntity, friendlyName: name };
+						return container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
+							if ('error' in c) {
+								return;
+							}
+							return { ...vcEntity, friendlyName: c.credentialFriendlyName}
+						});
 					})
 				);
 

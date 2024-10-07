@@ -22,7 +22,7 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
-
+import * as util from '../../util';;
 
 const Home = () => {
 	const { api } = useContext(SessionContext);

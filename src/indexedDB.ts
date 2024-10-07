@@ -36,8 +36,8 @@ const storeNameMapping: { [key: string]: string } = {
 	'/storage/vc': 'vc',
 	'vp': 'vp',
 	'/storage/vp': 'vp',
-	'/legal_person/issuers/all': 'externalEntities',
-	'/verifiers/all': 'externalEntities',
+	'/issuer/all': 'externalEntities',
+	'/verifier/all': 'externalEntities',
 	'/user/session/account-info': 'accountInfo'
 };
 

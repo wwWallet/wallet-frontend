@@ -5,7 +5,7 @@ import { LocalStorageKeystore } from "./LocalStorageKeystore";
 
 interface SigningRequestHandlers {
 	handleSignJwtPresentation(socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce, verifiableCredentials }: { message_id: string; audience: string; nonce: string; verifiableCredentials: any[]; }): Promise<void>;
-	handleGenerateOpenid4vciProofSigningRequest(api: BackendApi, socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce }: { message_id: string; audience: string; nonce: string; }): Promise<void>;
+	handleGenerateOpenid4vciProofSigningRequest(api: BackendApi, socket: WebSocket, keystore: LocalStorageKeystore, { message_id, audience, nonce, issuer }: { message_id: string; audience: string; nonce: string; issuer: string }): Promise<void>;
 }
 
 
@@ -24,8 +24,8 @@ export function SigningRequestHandlerService(): SigningRequestHandlers {
 			socket.send(JSON.stringify(outgoingMessage));
 		},
 
-		handleGenerateOpenid4vciProofSigningRequest: async (api: BackendApi, socket, keystore, { message_id, audience, nonce }) => {
-			const [{ proof_jwt }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProof(nonce, audience)
+		handleGenerateOpenid4vciProofSigningRequest: async (api: BackendApi, socket, keystore, { message_id, audience, nonce, issuer }) => {
+			const [{ proof_jwt }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProof(nonce, audience, issuer)
 			await api.updatePrivateData(newPrivateData);
 			await keystoreCommit();
 			console.log("proof jwt = ", proof_jwt);
