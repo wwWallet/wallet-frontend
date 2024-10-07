@@ -28,7 +28,7 @@ export class Verify {
 			throw new Error("Failed to generate presentation submission");
 		}
 		const { conformingCredentials, descriptorMapElements } = result
-		if (!descriptorMapElements || descriptorMapElements.length == 0) {
+		if (!descriptorMapElements || descriptorMapElements.length === 0) {
 			throw new Error("Failed to generate presentation submission");
 		}
 		const presentationSubmission: PresentationSubmission = {
@@ -73,7 +73,7 @@ export class Verify {
 
 			}
 			// if the current descriptor is not satisfied by any VC, then result is failure
-			if (counter == 0 && strict) {
+			if (counter === 0 && strict) {
 				const conformingCredentials: string[] = [];
 				const descriptorMapElements: any[] = [];
 				return { conformingCredentials, descriptorMapElements };
