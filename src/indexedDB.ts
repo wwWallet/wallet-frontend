@@ -118,7 +118,6 @@ export async function addItem(storeName: string, key: any, value: any): Promise<
 	try {
 		const mappedStoreName = getMappedStoreName(storeName);
 		await stores[mappedStoreName].setItem(key, value);
-		console.log('Item added successfully');
 	} catch (err) {
 		console.error('Error adding item', err);
 	}
@@ -129,7 +128,6 @@ export async function getItem(storeName: string, key: any): Promise<any> {
 		const mappedStoreName = getMappedStoreName(storeName);
 		console.log(mappedStoreName, storeName);
 		const value = await stores[mappedStoreName].getItem(key);
-		console.log('Item retrieved successfully');
 		return value;
 	} catch (err) {
 		console.error('Error retrieving item', err);

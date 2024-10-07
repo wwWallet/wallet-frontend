@@ -154,7 +154,6 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 
 			try {
-				console.log(Notification.permission);
 				if (Notification.permission !== 'granted') {
 					setTokenSentInSession(false);
 					setIsPermissionGranted(false);
@@ -177,10 +176,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 
 	useEffect(() => {
 		const sendFcmTokenToBackend = async () => {
-			console.log('isPermissionGranted:', isPermissionGranted);
 			if (isPermissionGranted) {
-				console.log('tokenSentInSession:', tokenSentInSession);
-
 				if (!tokenSentInSession) {
 					setLoading(true);
 					try {
@@ -202,7 +198,6 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		console.log("is online = ", isOnline);
 		if (isOnline) {
 			sendFcmTokenToBackend();
 		} else {

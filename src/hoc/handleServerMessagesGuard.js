@@ -80,11 +80,9 @@ export default function handleServerMessagesGuard(Component) {
 		}, [appToken, isOnline, api, keystore, signingRequestHandlerService]);
 
 		if (isOnline === false || handshakeEstablished === true || !appToken) {
-			console.log('Rendering component');
 			return (<Component {...props} />);
 		} else {
-			console.log('Rendering spinner');
-			return (<Spinner />); // loading component
+			return (<Spinner />);
 		}
 	};
 }
