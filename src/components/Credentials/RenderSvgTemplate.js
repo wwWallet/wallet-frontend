@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import jsonpointer from 'jsonpointer';
+import { formatDate } from '../../functions/DateFormat';
 
 const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
 	const [svgContent, setSvgContent] = useState(null);
@@ -29,13 +30,14 @@ const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
 			const regex = /{{([^}]+)}}/g;
 
 			const replacedSvgText = svgContent.replace(regex, (match, content) => {
-				const res = jsonpointer.get(credential.beautifiedForm, content.trim());
+				let res = jsonpointer.get(credential.beautifiedForm, content.trim());
+				res = formatDate(res, 'date');
 				return res !== undefined ? res : match;
 			});
 			const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;
 			onSvgGenerated(dataUri);
 		}
-	}, [svgContent, credential, onSvgGenerated]);
+	}, [svgContent, credential.beautifiedForm, onSvgGenerated]);
 
 	return null;
 };
