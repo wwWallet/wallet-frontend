@@ -42,7 +42,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				{navItems.map(item => (
 					<button
 						key={item.path}
-						className={`${item.isQR ? 'bg-primary dark:bg-primary-light text-white dark:text-white rounded-full p-3 shadow-lg' : `${item.stepClass} cursor-pointer flex flex-col items-center w-[20%]`} ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+						className={`${item.isQR ? 'bg-primary dark:bg-primary-light text-white dark:text-white rounded-full p-3 shadow-lg step-2' : `${item.stepClass} cursor-pointer flex flex-col items-center w-[20%]`} ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
 						onClick={() => item.isQR ? setQRScannerOpen(true) : handleNavigate(item.path)}
 						title={item.label}
 					>

@@ -31,7 +31,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				content: t("tourGuide.tourStep1"),
 				disableInteraction: true,
 			},
-			...(window.innerWidth < 768 ? [{
+			...(window.innerWidth < 768 && window.innerWidth > 480 ? [{
 				selector: '.step-2',
 				content: t("tourGuide.tourStep2"),
 			}] : []),
@@ -43,12 +43,16 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				selector: getStepSelectorMobile('.step-4'),
 				content: t("tourGuide.tourStep4"),
 			},
+			...(window.innerWidth <= 480 ? [{
+				selector: '.step-2',
+				content: t("tourGuide.tourStep2"),
+			}] : []),
 			{
 				selector: getStepSelectorMobile('.step-5'),
 				content: t("tourGuide.tourStep5"),
 			},
 			{
-				selector: getStepSelectorMobile('.step-6'),
+				selector: '.step-6',
 				content: t("tourGuide.tourStep6"),
 			},
 			{
@@ -74,16 +78,16 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 			return {
 				...step,
 				action: () => {
-					if (window.innerWidth < 700 && window.innerWidth > 480) {
+					if (window.innerWidth < 640 && window.innerWidth > 480) {
 						if (index >= 2 && index <= 6 && !isOpen) {
 							toggleMenu();
 						} else if ((index < 2 || index > 6) && isOpen) {
 							toggleMenu();
 						}
 					} else if (window.innerWidth <= 480) {
-						if (index === 6 && !isOpen) {
+						if (index >= 5 && index <= 6 && !isOpen) {
 							toggleMenu();
-						} else if ((index !== 6) && isOpen) {
+						} else if ((index < 5 || index > 6) && isOpen) {
 							toggleMenu();
 						}
 					}
@@ -108,11 +112,11 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	const renderModal = () => {
 
 		if (authenticationType === 'signup' && showWelcome) {
-		return (
-			<div>
-				<WelcomeModal isOpen={isModalOpen} onStartTour={startTour} onClose={closeModalAndDisable} />
-			</div>
-		);
+			return (
+				<div>
+					<WelcomeModal isOpen={isModalOpen} onStartTour={startTour} onClose={closeModalAndDisable} />
+				</div>
+			);
 		} else {
 			return null;
 		}
