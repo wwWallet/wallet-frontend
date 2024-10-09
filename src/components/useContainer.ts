@@ -20,6 +20,7 @@ import { CredentialParserRegistry } from "../lib/services/CredentialParserRegist
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
+import { fromBase64 } from "../util";
 
 
 export type ContainerContextValue = {
@@ -31,6 +32,8 @@ export type ContainerContextValue = {
 }
 
 
+const defaultLocale = 'en-US';
+
 export function useContainer() {
 	const { isLoggedIn, api, keystore } = useContext(SessionContext);
 
@@ -41,12 +44,14 @@ export function useContainer() {
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 
 	useEffect(() => {
-		api.getExternalEntity('/issuer/all').then((response) => {
-			setTrustedCredentialIssuers(response.data)
-		}).catch(err => {
-			setTrustedCredentialIssuers([]);
-		});
-	}, []);
+		if (isLoggedIn) {
+			api.getExternalEntity('/issuer/all').then((response) => {
+				setTrustedCredentialIssuers(response.data)
+			}).catch(err => {
+				setTrustedCredentialIssuers([]);
+			});
+		}
+	}, [isLoggedIn]);
 
 	async function initialize() {
 
@@ -61,34 +66,64 @@ export function useContainer() {
 
 		credentialParserRegistry.addParser({
 			async parse(rawCredential) {
+
+				if (typeof rawCredential != 'string') {
+					return { error: "rawCredential not of type 'string'" };
+
+				}
 				const result = await parseSdJwtCredential(rawCredential);
 				if ('error' in result) {
 					return { error: "Failed to parse sdjwt" };
 				}
 
-				try {
-					const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
-					const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
-						.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
-					[0];
 
-					const credentialImageURL = credentialConfigurationSupportedObj.display[0] ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : undefined;
-					const credentialFriendlyName = credentialConfigurationSupportedObj.display[0]?.name;
+
+				const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
+
+
+
+				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
+					credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
+					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates.length > 0 ?
+					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
+					: null;
+
+				const credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
+					credentialHeader.vctm.display[0][defaultLocale]?.name
+					: null;
+
+
+				if (credentialImageSvgTemplateURL) {
 					return {
 						beautifiedForm: result.beautifiedForm,
-						credentialImageURL,
+						credentialImage: {
+							credentialImageSvgTemplateURL: credentialImageSvgTemplateURL
+						},
 						credentialFriendlyName,
 					}
 				}
-				catch (err) {
+				else {
+					let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
+						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
+						: null;
+
+					if (!credentialImageURL) { // prrovide fallback method through the OpenID credential issuer metadata
+						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
+						const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
+							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
+						[0];
+
+						credentialImageURL = credentialConfigurationSupportedObj.display.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
+					}
+
 					return {
 						beautifiedForm: result.beautifiedForm,
-						credentialFriendlyName: "Credential",
-						credentialImageURL: "/public/cred.png",
-						// provide fallback credential metadata
-					};
+						credentialImage: {
+							credentialImageURL: credentialImageURL,
+						},
+						credentialFriendlyName,
+					}
 				}
-
 			},
 		});
 

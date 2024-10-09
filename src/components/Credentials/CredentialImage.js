@@ -1,11 +1,11 @@
 import { useState, useEffect, useContext } from "react";
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import ContainerContext from '../../context/ContainerContext';
-
+import RenderSvgTemplate from "./RenderSvgTemplate";
 
 export const CredentialImage = ({ credential, className, onClick, showRibbon = true }) => {
 	const [parsedCredential, setParsedCredential] = useState(null);
-
+	const [svgImage, setSvgImage] = useState(null);
 	const container = useContext(ContainerContext);
 
 	useEffect(() => {
@@ -14,22 +14,33 @@ export const CredentialImage = ({ credential, className, onClick, showRibbon = t
 				if ('error' in c) {
 					return;
 				}
+				console.log('->',c)
 				setParsedCredential(c);
 			});
 		}
 
 	}, [credential, container]);
 
+	const handleSvgGenerated = (svgUri) => {
+		setSvgImage(svgUri);
+	};
+
 	return (
 		<>
-			{parsedCredential && (
+			{parsedCredential && parsedCredential.credentialImage.credentialImageSvgTemplateURL ? (
 				<>
-					<img src={parsedCredential.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
-					{showRibbon &&
-						<StatusRibbon credential={credential} />
-					}
+					<RenderSvgTemplate credential={parsedCredential} onSvgGenerated={handleSvgGenerated} />
+					{parsedCredential && svgImage && (
+						<img src={svgImage} alt={"Credential"} className={className} onClick={onClick} />
+					)}
 				</>
+			) : parsedCredential && parsedCredential.credentialImage.credentialImageURL && (
+				<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
 			)}
+
+			{parsedCredential && showRibbon &&
+				<StatusRibbon credential={credential} />
+			}
 		</>
 	);
 };

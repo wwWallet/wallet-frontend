@@ -17,6 +17,7 @@
     "jose": "^4.14.4",
     "js-cookie": "^3.0.5",
     "jsonpath-plus": "^9.0.0",
+    "jsonpointer": "^5.0.1",
     "key-did-resolver": "^3.0.0",
     "localforage": "^1.10.0",
     "multiformats": "^12.1.3",
