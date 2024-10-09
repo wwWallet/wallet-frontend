@@ -5,13 +5,13 @@ import Button from './Button';
 const QRButton = ({ openQRScanner, isSmallScreen }) => {
 	const isMobile = window.innerWidth <= 480;
 
-	if (isSmallScreen) {
+	if (isSmallScreen && !isMobile) {
 		return (
 			<div className="mb-2">
 				<Button
 					onClick={openQRScanner}
 					variant="primary"
-					additionalClassName={`${isMobile ? "fixed z-20 bottom-[85px] right-5" : ""} step-2`}
+					additionalClassName={`step-2`}
 				>
 					<BsQrCodeScan size={20} className="text-white" />
 				</Button>

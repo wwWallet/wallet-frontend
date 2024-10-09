@@ -144,7 +144,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 								<span>{t("common.navItemSendCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='step-6 max480:hidden'>
+						<div className='step-6'>
 							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
 								<IoIosTime size={30} />
 								<span>{t("common.navItemHistory")}</span>
