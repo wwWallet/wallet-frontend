@@ -8,6 +8,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import CredentialsContext from '../../context/CredentialsContext';
+import { useQRScanner } from '../../hooks/useQRScanner';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
@@ -16,6 +17,8 @@ import { H1 } from '../../components/Heading';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
+	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
+
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);
 
@@ -60,17 +63,6 @@ const Home = () => {
 
 	const handleImageClick = (vcEntity) => {
 		navigate(`/credential/${vcEntity.credentialIdentifier}`);
-	};
-
-	// QR Code part
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
-
-	const openQRScanner = () => {
-		setQRScannerOpen(true);
-	};
-
-	const closeQRScanner = () => {
-		setQRScannerOpen(false);
 	};
 
 	return (
@@ -149,16 +141,12 @@ const Home = () => {
 				</div>
 			</div>
 
-			{/* QR Code Scanner Modal */}
+			{/* QR Code Scanner */}
 			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={(closeQRScanner)}
-				/>
+				<QRCodeScanner onClose={closeQRScanner} />
 			)}
 		</>
-
 	);
 }
-
 
 export default Home;

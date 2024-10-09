@@ -3,13 +3,12 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
+import { useQRScanner } from '../../hooks/useQRScanner';
+import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
 import Button from '../../components/Buttons/Button';
-
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {
@@ -25,6 +24,7 @@ function highlightBestSequence(verifier, search) {
 const Verifiers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
+	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [verifiers, setVerifiers] = useState([]);
 	const [filteredVerifiers, setFilteredVerifiers] = useState([]);
@@ -103,17 +103,6 @@ const Verifiers = () => {
 		setShowRedirectPopup(false);
 	};
 
-	// QR Code part
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
-
-	const openQRScanner = () => {
-		setQRScannerOpen(true);
-	};
-
-	const closeQRScanner = () => {
-		setQRScannerOpen(false);
-	};
-
 	return (
 		<>
 			<div className="sm:px-6 w-full">
@@ -166,11 +155,9 @@ const Verifiers = () => {
 				/>
 			)}
 
-			{/* QR Code Scanner Modal */}
+			{/* QR Code Scanner */}
 			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={closeQRScanner}
-				/>
+				<QRCodeScanner onClose={closeQRScanner} />
 			)}
 		</>
 	);

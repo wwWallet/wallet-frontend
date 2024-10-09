@@ -6,11 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { MdNotifications } from "react-icons/md";
 import StatusContext from '../context/StatusContext';
 import { BsQrCodeScan } from 'react-icons/bs';
+import { useQRScanner } from '../hooks/useQRScanner';
 import QRCodeScanner from './QRCodeScanner/QRCodeScanner';
 
 const BottomNav = ({ isOpen, toggle }) => {
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
 	const { updateAvailable } = useContext(StatusContext);
+	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -43,7 +44,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 					<button
 						key={item.path}
 						className={`${item.isQR ? 'bg-primary dark:bg-primary-light text-white dark:text-white rounded-full p-3 shadow-lg step-2' : `${item.stepClass} cursor-pointer flex flex-col items-center w-[20%]`} ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
-						onClick={() => item.isQR ? setQRScannerOpen(true) : handleNavigate(item.path)}
+						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>
 						{item.icon}
@@ -69,7 +70,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<QRCodeScanner
-					onClose={()=>setQRScannerOpen(false)}
+					onClose={closeQRScanner}
 				/>
 			)}
 		</>

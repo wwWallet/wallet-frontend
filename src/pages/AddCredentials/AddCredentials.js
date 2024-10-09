@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-
+import { useQRScanner } from '../../hooks/useQRScanner';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
@@ -26,6 +26,7 @@ function highlightBestSequence(issuer, search) {
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
@@ -64,7 +65,7 @@ const Issuers = () => {
 							credentialIssuerMetadata: metadata,
 						}
 					}
-					catch(err) {
+					catch (err) {
 						console.error(err);
 						return null;
 					}
@@ -140,17 +141,6 @@ const Issuers = () => {
 		setShowRedirectPopup(false);
 	};
 
-	// QR Code part
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
-
-	const openQRScanner = () => {
-		setQRScannerOpen(true);
-	};
-
-	const closeQRScanner = () => {
-		setQRScannerOpen(false);
-	};
-
 	return (
 		<>
 			<div className="sm:px-6 w-full">
@@ -203,13 +193,10 @@ const Issuers = () => {
 				/>
 			)}
 
-			{/* QR Code Scanner Modal */}
+			{/* QR Code Scanner */}
 			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={closeQRScanner}
-				/>
+				<QRCodeScanner onClose={closeQRScanner} />
 			)}
-
 		</>
 	);
 };
