@@ -3,17 +3,12 @@ export function formatDate(value, format = 'datetime') {
 	const iso8601Regex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
 	// Regex for simple YYYY-MM-DD format
 	const simpleDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-	// Check if it's a Unix timestamp (numeric string with 10 digits or more)
-	const unixTimestampRegex = /^\d{10,}$/;
 
 	let date;
 	if (iso8601Regex.test(value)) {
 		date = new Date(value);
 	} else if (simpleDateRegex.test(value)) {
 		date = new Date(value);
-	} else if (unixTimestampRegex.test(value)) {
-		const timestamp = parseInt(value, 10);
-		date = new Date(timestamp * 1000);
 	} else {
 		return value;
 	}
