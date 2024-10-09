@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
@@ -10,33 +10,21 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import CredentialsContext from '../../context/CredentialsContext';
-import SessionContext from '../../context/SessionContext';
 
 import addImage from '../../assets/images/cred.png';
-import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import CredentialJson from '../../components/Credentials/CredentialJson';
-import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
-import FullscreenPopup from '../../components/Popups/FullscreenImg';
-import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
-import * as util from '../../util';;
 
 const Home = () => {
-	const { api } = useContext(SessionContext);
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);
-	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
-	const [selectedVcEntity, setSelectedVcEntity] = useState(null);
-	const [showDeletePopup, setShowDeletePopup] = useState(false);
-	const [loading, setLoading] = useState(false);
 
 	const navigate = useNavigate();
 	const sliderRef = useRef();
-	const { t } = useTranslation();
+	const { t } = useTranslation(); 
 
 	const settings = {
 		dots: false,
@@ -88,18 +76,6 @@ const Home = () => {
 		setQRScannerOpen(false);
 	};
 
-	const handleSureDelete = async () => {
-		setLoading(true);
-		try {
-			await api.del(`/storage/vc/${selectedVcEntity.credentialIdentifier}`);
-			await getData();
-		} catch (error) {
-			console.error('Failed to delete data', error);
-		}
-		setLoading(false);
-		setShowDeletePopup(false);
-	};
-
 	return (
 		<>
 			<div className="sm:px-6 w-full">
@@ -110,7 +86,6 @@ const Home = () => {
 				<div className='my-4'>
 					{isSmallScreen ? (
 						<>
-
 							{vcEntityList.length === 0 ? (
 								<button
 									className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
@@ -132,7 +107,7 @@ const Home = () => {
 										{vcEntityList.map((vcEntity, index) => (
 											<div key={vcEntity.id}>
 												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
-													onClick={() => { setShowFullscreenImgPopup(true); setSelectedVcEntity(vcEntity); }}
+													onClick={() => {}}
 													aria-label={`${vcEntity.friendlyName}`}
 													tabIndex={currentSlide !== index + 1 ? -1 : 0}
 													title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
@@ -161,9 +136,6 @@ const Home = () => {
 															<BiRightArrow size={22} />
 														</button>
 													</div>
-													<CredentialInfo credential={vcEntity.credential} />
-													<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); setSelectedVcEntity(vcEntity); }} />
-													<CredentialJson credential={vcEntity.credential} />
 												</div>
 											</div>
 										))}
@@ -202,38 +174,11 @@ const Home = () => {
 					)}
 				</div>
 			</div>
-			{/* Modal for Fullscreen credential */}
-			{showFullscreenImgPopup && (
-				<FullscreenPopup
-					isOpen={showFullscreenImgPopup}
-					onClose={() => setShowFullscreenImgPopup(false)}
-					content={
-						<CredentialImage credential={selectedVcEntity.credential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
-					}
-				/>
-			)}
 
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<QRCodeScanner
 					onClose={closeQRScanner}
-				/>
-			)}
-
-			{/* Delete Credential Modal */}
-			{showDeletePopup && selectedVcEntity && (
-				<DeletePopup
-					isOpen={showDeletePopup}
-					onConfirm={handleSureDelete}
-					onCancel={() => setShowDeletePopup(false)}
-					message={
-						<Trans
-							i18nKey="pageCredentials.deletePopupMessage"
-							values={{ credentialName: selectedVcEntity.friendlyName }}
-							components={{ strong: <strong />, br: <br /> }}
-						/>
-					}
-					loading={loading}
 				/>
 			)}
 		</>
