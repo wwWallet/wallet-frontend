@@ -84,8 +84,10 @@ export function useContainer() {
 					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
 					: null;
 
-				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
-					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates?.uri
+				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
+						credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
+						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates.length > 0 ?
+					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
 					: null;
 
 				const credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
