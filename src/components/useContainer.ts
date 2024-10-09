@@ -83,8 +83,8 @@ export function useContainer() {
 
 
 				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
-						credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
-						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates.length > 0 ?
+					credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
+					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates.length > 0 ?
 					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
 					: null;
 
@@ -106,12 +106,12 @@ export function useContainer() {
 					let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
 						: null;
-				
+
 					if (!credentialImageURL) { // prrovide fallback method through the OpenID credential issuer metadata
 						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
 						const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
 							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
-							[0];
+						[0];
 
 						credentialImageURL = credentialConfigurationSupportedObj.display.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
 					}
