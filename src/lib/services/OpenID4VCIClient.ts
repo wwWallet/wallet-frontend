@@ -5,7 +5,6 @@ import pkce from 'pkce-challenge';
 import { IOpenID4VCIClientStateRepository } from '../interfaces/IOpenID4VCIClientStateRepository';
 import { CredentialConfigurationSupported } from '../schemas/CredentialConfigurationSupportedSchema';
 import { OpenID4VCIClientState } from '../types/OpenID4VCIClientState';
-import { VerifiableCredentialFormat } from '../schemas/vc';
 import { generateDPoP } from '../utils/dpop';
 import { CredentialOfferSchema } from '../schemas/CredentialOfferSchema';
 import { StorableCredential } from '../types/StorableCredential';
@@ -73,7 +72,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("Pushed authorization request failed ", err.response.data)
 		}
 
-		const { request_uri, expires_in } = res.data;
+		const { request_uri } = res.data;
 		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
 
 		await this.openID4VCIClientStateRepository.store(new OpenID4VCIClientState(code_verifier, "", selectedCredentialConfigurationSupported));
@@ -147,7 +146,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 	private async credentialRequest(response: any, privateKey: jose.KeyLike, publicKey: jose.KeyLike, flowState: OpenID4VCIClientState) {
 		const {
-			data: { access_token, c_nonce, c_nonce_expires_in, expires_in, token_type },
+			data: { access_token, c_nonce },
 		} = response;
 		const newDPoPNonce = response.headers['dpop-nonce'];
 		const credentialEndpoint = this.config.credentialIssuerMetadata.credential_endpoint;
@@ -177,7 +176,6 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 				"dpop": credentialEndpointDPoP,
 			});
 			const { credential } = credentialResponse.data;
-			const { c_nonce, c_nonce_expires_in } = credentialResponse.data;
 			await this.storeCredential({
 				credentialIdentifier: generateRandomIdentifier(32),
 				credential: credential,

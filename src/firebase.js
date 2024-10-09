@@ -122,7 +122,6 @@ export const onMessageListener = () =>
 const initializeFirebaseAndMessaging = async () => {
 	if (notificationApiIsSupported) {
 		let supported = await isSupported();
-		console.log("Supported", supported);
 		if (supported) {
 			initializeApp(config.FIREBASE);
 			messaging = getMessaging();

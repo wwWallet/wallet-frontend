@@ -11,7 +11,6 @@ import SessionContext from '../../context/SessionContext';
 
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import { formatDate } from '../../functions/DateFormat';
-import { base64url } from 'jose';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import { H1 } from '../../components/Heading';
 import { compareBy, reverse } from '../../util';

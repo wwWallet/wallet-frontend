@@ -130,7 +130,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	}
 
 	async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-		console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
+		// console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 		// Offline case
 		if (!isOnline) {

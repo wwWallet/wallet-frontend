@@ -4,7 +4,6 @@ import { base58btc } from 'multiformats/bases/base58';
 import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
-import { v4 as uuidv4 } from "uuid";
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
 
 import * as config from '../config';
@@ -1109,7 +1108,7 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
-	const { alg, did, wrappedPrivateKey } = keypair;
+	const { alg, wrappedPrivateKey } = keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
 	const sdJwt = verifiableCredentials[0];
 	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
@@ -1135,13 +1134,12 @@ export async function generateOpenid4vciProof(
 	audience: string,
 	issuer: string
 ): Promise<[{ proof_jwt: string }, OpenedContainer]> {
-	const deriveKid = async (publicKey: CryptoKey, did: string) => {
+	const deriveKid = async (publicKey: CryptoKey) => {
 		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
 		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
 		return jwkThumbprint;
 	};
 	const { privateKey, keypair, newPrivateData } = await addNewCredentialKeypair(container, didKeyVersion, deriveKid);
-	const { kid, did } = keypair;
 
 	const jws = await new SignJWT({
 		nonce: nonce,
