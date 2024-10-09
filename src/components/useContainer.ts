@@ -77,7 +77,7 @@ export function useContainer() {
 				}
 
 
-				
+
 				const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
 
 				const credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
@@ -87,7 +87,7 @@ export function useContainer() {
 				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates?.uri
 					: null;
-				
+
 				const credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 					credentialHeader.vctm.display[0][defaultLocale]?.name
 					: null;
