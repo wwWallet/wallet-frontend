@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-
-import { BsPlusCircle } from 'react-icons/bs';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 
 import Slider from 'react-slick';
@@ -10,11 +8,10 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 import CredentialsContext from '../../context/CredentialsContext';
-
-import addImage from '../../assets/images/cred.png';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
+import AddCredentialCard from './AddCredentialCard';
 import { H1 } from '../../components/Heading';
 
 const Home = () => {
@@ -24,7 +21,7 @@ const Home = () => {
 
 	const navigate = useNavigate();
 	const sliderRef = useRef();
-	const { t } = useTranslation(); 
+	const { t } = useTranslation();
 
 	const settings = {
 		dots: false,
@@ -84,30 +81,20 @@ const Home = () => {
 				</H1>
 				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				<div className='my-4'>
-					{isSmallScreen ? (
+					{vcEntityList.length === 0 ? (
+						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+							<AddCredentialCard onClick={handleAddCredential} />
+						</div>
+
+					) : (
 						<>
-							{vcEntityList.length === 0 ? (
-								<button
-									className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-									onClick={handleAddCredential}
-								>
-									<img
-										src={addImage}
-										className="w-full h-auto object-cover rounded-xl opacity-100 hover:opacity-120"
-										alt=""
-									/>
-									<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-										<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-										<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
-									</div>
-								</button>
-							) : (
+							{isSmallScreen ? (
 								<>
 									<Slider ref={sliderRef} {...settings}>
 										{vcEntityList.map((vcEntity, index) => (
 											<div key={vcEntity.id}>
 												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
-													onClick={() => {}}
+													onClick={() => { handleImageClick(vcEntity) }}
 													aria-label={`${vcEntity.friendlyName}`}
 													tabIndex={currentSlide !== index + 1 ? -1 : 0}
 													title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
@@ -141,36 +128,23 @@ const Home = () => {
 										))}
 									</Slider>
 								</>
+							) : (
+								<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+									{vcEntityList.map((vcEntity) => (
+										<button
+											key={vcEntity.id}
+											className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
+											onClick={() => handleImageClick(vcEntity)}
+											aria-label={`${vcEntity.friendlyName}`}
+											title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
+										>
+											<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
+										</button>
+									))}
+									<AddCredentialCard onClick={handleAddCredential} />
+								</div>
 							)}
 						</>
-					) : (
-						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
-							{vcEntityList.map((vcEntity) => (
-								<button
-									key={vcEntity.id}
-									className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
-									onClick={() => handleImageClick(vcEntity)}
-									aria-label={`${vcEntity.friendlyName}`}
-									title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
-								>
-									<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
-								</button>
-							))}
-							<button
-								className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-								onClick={handleAddCredential}
-							>
-								<img
-									src={addImage}
-									className="w-full h-auto rounded-xl opacity-100 hover:opacity-120"
-									alt=""
-								/>
-								<div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-									<BsPlusCircle size={60} className="text-white mb-2 mt-4" />
-									<span className="text-white font-semibold">{t('pageCredentials.addCardTitle')}</span>
-								</div>
-							</button>
-						</div>
 					)}
 				</div>
 			</div>
@@ -178,11 +152,13 @@ const Home = () => {
 			{/* QR Code Scanner Modal */}
 			{isQRScannerOpen && (
 				<QRCodeScanner
-					onClose={closeQRScanner}
+					onClose={(closeQRScanner)}
 				/>
 			)}
 		</>
+
 	);
-};
+}
+
 
 export default Home;
