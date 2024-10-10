@@ -14,7 +14,6 @@ export const CredentialImage = ({ credential, className, onClick, showRibbon = t
 				if ('error' in c) {
 					return;
 				}
-				console.log('->',c)
 				setParsedCredential(c);
 			});
 		}
