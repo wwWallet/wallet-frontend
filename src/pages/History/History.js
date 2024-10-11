@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import Modal from 'react-modal';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import { useTranslation } from 'react-i18next';
@@ -13,12 +13,11 @@ import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import { formatDate } from '../../functions/DateFormat';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import { H1 } from '../../components/Heading';
-import { compareBy, reverse } from '../../util';
-
+import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 const History = () => {
 	const { api } = useContext(SessionContext);
-	const [history, setHistory] = useState([]);
+	const history = useFetchPresentations(api);
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 
@@ -27,6 +26,7 @@ const History = () => {
 	const { t } = useTranslation();
 
 	const sliderRef = useRef();
+
 
 	const settings = {
 		dots: false,
@@ -45,37 +45,12 @@ const History = () => {
 
 	const handleHistoryItemClick = async (item) => {
 		// Export all credentials from the presentation
-		const verifiableCredentials = [ item.presentation ];
-
+		const verifiableCredentials = [item.presentation];
+		console.log('verifiableCredentials', verifiableCredentials)
 		// Set matching credentials and show the popup
 		setMatchingCredentials(verifiableCredentials);
 		setImageModalOpen(true);
 	};
-
-	useEffect(() => {
-		const fetchedPresentations = async () => {
-			try {
-				const fetchedPresentations = await api.getAllPresentations();
-				console.log(fetchedPresentations.vp_list);
-				// Extract and map the vp_list from fetchedPresentations.
-				const vpListFromApi = fetchedPresentations.vp_list
-					.sort(reverse(compareBy(vp => vp.issuanceDate)))
-					.map((item) => ({
-						id: item.id,
-						presentation: item.presentation,
-						// ivci: item.includedVerifiableCredentialIdentifiers,
-						audience: item.audience,
-						issuanceDate: item.issuanceDate,
-					}));
-
-				setHistory(vpListFromApi);
-			} catch (error) {
-				console.error('Error fetching verifiers:', error);
-			}
-		};
-
-		fetchedPresentations();
-	}, [api]);
 
 	return (
 		<>
