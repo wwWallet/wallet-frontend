@@ -32,16 +32,18 @@ const getFieldIcon = (fieldName) => {
 };
 
 const renderRow = (fieldName, label, fieldValue) => {
+	const isMobileScreen = window.innerWidth < 480;
+
 	if (fieldValue) {
 		return (
 			<tr className="text-left">
-				<td className="font-bold text-primary dark:text-primary-light py-2 px-2 rounded-l-xl">
+				<td className="font-bold text-primary dark:text-primary-light py-2 max480:py-1 px-2 rounded-l-xl">
 					<div className="flex md:flex-row flex-col items-left">
-						{getFieldIcon(fieldName)}
+						{!isMobileScreen && getFieldIcon(fieldName)}
 						<span className="md:ml-1 flex items-center">{label}:</span>
 					</div>
 				</td>
-				<td className="text-gray-700 dark:text-white py-2 px-2 rounded-r-xl">{fieldValue}</td>
+				<td className="text-gray-700 dark:text-white py-2 max480:py-1 px-2 rounded-r-xl">{fieldValue}</td>
 			</tr>
 		);
 	} else {
@@ -49,10 +51,9 @@ const renderRow = (fieldName, label, fieldValue) => {
 	}
 };
 
-const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:text-base pt-5 pr-2 w-full" }) => {
+const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:text-base pt-5 w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
-
 	const container = useContext(ContainerContext);
 
 	useEffect(() => {
@@ -77,8 +78,8 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 							{renderRow('familyName', 'Family Name', parsedCredential?.family_name)}
 							{renderRow('firstName', 'Given Name', parsedCredential?.given_name)}
 							{renderRow('id', 'Personal ID', parsedCredential?.personal_identifier)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential?.dateOfBirth)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential?.birth_date)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential?.dateOfBirth, 'date'))}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential?.birth_date, 'date'))}
 							{renderRow('diplomaTitle', 'Title', parsedCredential?.title)}
 							{renderRow('eqfLevel', 'EQF', parsedCredential?.eqf_level)}
 							{renderRow('grade', 'Grade', parsedCredential?.grade)}

@@ -1,22 +1,23 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { BiRightArrowAlt } from 'react-icons/bi';
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 import SessionContext from '../../context/SessionContext';
-
+import ContainerContext from '../../context/ContainerContext';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
+import CredentialHistory from '../../components/Credentials/CredentialHistory';
 import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
 import FullscreenPopup from '../../components/Popups/FullscreenImg';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import { H1 } from '../../components/Heading';
-import ContainerContext from '../../context/ContainerContext';
-
+import Tabs from '../../components/Tabs';
 
 const CredentialDetail = () => {
 	const { api } = useContext(SessionContext);
+	const container = useContext(ContainerContext);
 	const { id } = useParams();
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -24,8 +25,8 @@ const CredentialDetail = () => {
 	const [loading, setLoading] = useState(false);
 	const { t } = useTranslation();
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
-
-	const container = useContext(ContainerContext);
+	const isMobileScreen = window.innerWidth < 480;
+	const [activeTab, setActiveTab] = useState(0);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -65,52 +66,71 @@ const CredentialDetail = () => {
 		window.location.href = '/';
 	};
 
+	const tabs = [
+		{ label: 'Details', component: <CredentialJson credential={vcEntity?.credential} /> },
+		{ label: 'History', component: <CredentialHistory credentialIdentifier={vcEntity?.credentialIdentifier} /> },
+	];
+
 	return (
 		<>
 			<div className=" sm:px-6">
-				<H1
-					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
-					flexJustifyContent="start"
-					textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
-				>
-					<BiRightArrowAlt className="text-2xl mb-2 text-primary dark:text-primary-light" />
-					{vcEntity && (
-						<H1 heading={credentialFiendlyName} hr={false} />
-					)}
-				</H1>
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
+				{!isMobileScreen ? (
+					<H1
+						heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
+						flexJustifyContent="start"
+						textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
+					>
+						<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-primary dark:text-primary-light" />
 
+						{vcEntity && (
+							<H1 heading={credentialFiendlyName} hr={false} />
+						)}
+					</H1>
+				) : (
+					<FaArrowLeft className="mr-2 text-2xl mb-2 text-primary dark:text-primary-light" />
+				)}
+
+				{!isMobileScreen && (
+					<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
+				)}
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					{/* Block 1: credential */}
-					<div className='lg:w-1/2'>
-						{vcEntity ? (
-							// Open the modal when the credential is clicked
-							<button className="relative rounded-xl xl:w-4/5 mt-5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
-								onClick={() => setShowFullscreenImgPopup(true)}
-								aria-label={`${credentialFiendlyName}`}
-								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
-							>
-								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover rounded-xl"} />
-							</button>
-						) : (
-							<></>
-						)}
+					<div className='flex flex-row'>
+						<div className='flex flex-row items-center gap-5 mt-2 px-2'>
+							{vcEntity && (
+								// Open the modal when the credential is clicked
+								<button className="relative rounded-xl max480:rounded-lg w-1/2 lg:w-4/5 max480:w-4/12 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+									onClick={() => setShowFullscreenImgPopup(true)}
+									aria-label={`${credentialFiendlyName}`}
+									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+								>
+									<CredentialImage credential={vcEntity.credential} className={"w-full object-cover"} />
+								</button>
+							)}
+							<div>
+								{isMobileScreen && (
+									<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
+								)}
+							</div>
+						</div>
 					</div>
 
 					{/* Block 2: Information List */}
 					{vcEntity && <CredentialInfo credential={vcEntity.credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
-
-				<div className="flex flex-col lg:flex-row mt-4">
-					<div className="lg:w-1/2">
-						{vcEntity && <CredentialJson credential={vcEntity.credential} />}
+					<div className="my-4 p-2">
+						<Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+						<div className='pt-2'>
+							{tabs[activeTab].component}
+						</div>
 					</div>
+				<div className='pl-2'>
+					<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
 				</div>
 			</div>
 
-			{/* Modal for Fullscreen credential */}
+			{/* Fullscreen credential Popup*/}
 			{showFullscreenImgPopup && vcEntity && (
 				<FullscreenPopup
 					isOpen={showFullscreenImgPopup}
@@ -121,9 +141,8 @@ const CredentialDetail = () => {
 				/>
 			)}
 
-			{/* Delete Credential Modal */}
+			{/* Delete Credential Popup */}
 			{showDeletePopup && vcEntity && (
-
 				<DeletePopup
 					isOpen={showDeletePopup}
 					onConfirm={handleSureDelete}
