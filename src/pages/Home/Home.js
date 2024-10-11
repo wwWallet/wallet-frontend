@@ -1,51 +1,29 @@
-import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
+// External libraries
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
-
 import Slider from 'react-slick';
+
+// Styles
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
+// Contexts
 import SessionContext from '../../context/SessionContext';
 import CredentialsContext from '../../context/CredentialsContext';
+
+// Hooks
+import useFetchPresentations from '../../hooks/useFetchPresentations';
 import { useQRScanner } from '../../hooks/useQRScanner';
+
+// Components
+import { H1 } from '../../components/Heading';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import { CredentialImage } from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import AddCredentialCard from './AddCredentialCard';
-import useFetchPresentations from '../../hooks/useFetchPresentations';
-import { H1, H3 } from '../../components/Heading';
-import { formatDate } from '../../functions/DateFormat';
-
-const CredentialHistory = ({ vcEntity, history }) => {
-	// Memoize the filtered history for the current credential
-	const credentialHistory = useMemo(() => {
-		return history
-			.filter(histItem => histItem.ivci.includes(vcEntity.credentialIdentifier))
-			.slice(0, 3);
-	}, [history, vcEntity.credentialIdentifier]);
-
-	if (credentialHistory.length === 0) return null;
-
-	return (
-		<div className="mt-2 pb-1">
-			<H3 heading='Recent History' />
-			<ul>
-				{credentialHistory.map(item => (
-					<button
-						key={item.id}
-						className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
-						style={{ wordBreak: 'break-all' }}
-					>
-						<div className="font-bold">{item.audience}</div>
-						<div>{formatDate(item.issuanceDate)}</div>
-					</button>
-				))}
-			</ul>
-		</div>
-	);
-};
+import CredentialHistory from '../../components/Credentials/History/CredentialHistory';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
@@ -148,7 +126,7 @@ const Home = () => {
 															<BiRightArrow size={22} />
 														</button>
 													</div>
-													<CredentialHistory vcEntity={vcEntity} history={history} />
+													<CredentialHistory credentialIdentifier={vcEntity.credentialIdentifier} history={history} title='Recent History' limit={3} />
 												</div>
 											</div>
 
@@ -177,11 +155,9 @@ const Home = () => {
 			</div >
 
 			{/* QR Code Scanner */}
-			{
-				isQRScannerOpen && (
-					<QRCodeScanner onClose={closeQRScanner} />
-				)
-			}
+			{isQRScannerOpen && (
+				<QRCodeScanner onClose={closeQRScanner} />
+			)}
 		</>
 	);
 }

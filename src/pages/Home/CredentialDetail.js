@@ -1,30 +1,38 @@
+// External libraries
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
+// Contexts
 import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
-import CredentialInfo from '../../components/Credentials/CredentialInfo';
-import CredentialJson from '../../components/Credentials/CredentialJson';
-import CredentialHistory from '../../components/Credentials/CredentialHistory';
-import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
-import FullscreenPopup from '../../components/Popups/FullscreenImg';
-import DeletePopup from '../../components/Popups/DeletePopup';
-import { CredentialImage } from '../../components/Credentials/CredentialImage';
+
+// Hooks
+import useFetchPresentations from '../../hooks/useFetchPresentations';
+
+// Components
 import { H1 } from '../../components/Heading';
 import Tabs from '../../components/Tabs';
+import CredentialInfo from '../../components/Credentials/CredentialInfo';
+import CredentialJson from '../../components/Credentials/CredentialJson';
+import CredentialHistory from '../../components/Credentials/History/CredentialHistory';
+import CredentialDeleteButton from '../../components/Credentials/CredentialDeleteButton';
+import CredentialImage from '../../components/Credentials/CredentialImage';
+import FullscreenPopup from '../../components/Popups/FullscreenImg';
+import DeletePopup from '../../components/Popups/DeletePopup';
 
 const CredentialDetail = () => {
+	const { id } = useParams();
 	const { api } = useContext(SessionContext);
 	const container = useContext(ContainerContext);
-	const { id } = useParams();
+	const history = useFetchPresentations(api, id);
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const { t } = useTranslation();
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
+	const { t } = useTranslation();
 	const isMobileScreen = window.innerWidth < 480;
 	const [activeTab, setActiveTab] = useState(0);
 
@@ -68,7 +76,7 @@ const CredentialDetail = () => {
 
 	const tabs = [
 		{ label: 'Details', component: <CredentialJson credential={vcEntity?.credential} /> },
-		{ label: 'History', component: <CredentialHistory credentialIdentifier={vcEntity?.credentialIdentifier} /> },
+		{ label: 'History', component: <CredentialHistory history={history} /> },
 	];
 
 	return (
@@ -119,12 +127,12 @@ const CredentialDetail = () => {
 					{vcEntity && <CredentialInfo credential={vcEntity.credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-					<div className="my-4 p-2">
-						<Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-						<div className='pt-2'>
-							{tabs[activeTab].component}
-						</div>
+				<div className="my-4 p-2">
+					<Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+					<div className='pt-2'>
+						{tabs[activeTab].component}
 					</div>
+				</div>
 				<div className='pl-2'>
 					<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
 				</div>
