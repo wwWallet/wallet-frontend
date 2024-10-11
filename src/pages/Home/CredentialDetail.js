@@ -13,7 +13,7 @@ import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
 import { H1 } from '../../components/Heading';
-import Tabs from '../../components/Tabs';
+import CredentialTabs from '../../components/Credentials/CredentialTabs';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import CredentialHistory from '../../components/Credentials/History/CredentialHistory';
@@ -74,7 +74,7 @@ const CredentialDetail = () => {
 		window.location.href = '/';
 	};
 
-	const tabs = [
+	const infoTabs = [
 		{ label: 'Details', component: <CredentialJson credential={vcEntity?.credential} /> },
 		{ label: 'History', component: <CredentialHistory history={history} /> },
 	];
@@ -128,9 +128,9 @@ const CredentialDetail = () => {
 				</div>
 
 				<div className="my-4 p-2">
-					<Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+					<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
 					<div className='pt-2'>
-						{tabs[activeTab].component}
+						{infoTabs[activeTab].component}
 					</div>
 				</div>
 				<div className='pl-2'>
