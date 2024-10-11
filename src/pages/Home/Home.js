@@ -20,7 +20,7 @@ import { useQRScanner } from '../../hooks/useQRScanner';
 // Components
 import { H1 } from '../../components/Heading';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
-import { CredentialImage } from '../../components/Credentials/CredentialImage';
+import CredentialImage from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
 import AddCredentialCard from './AddCredentialCard';
 import CredentialHistory from '../../components/Credentials/History/CredentialHistory';

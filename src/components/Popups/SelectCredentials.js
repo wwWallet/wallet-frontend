@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
-import { CredentialImage } from '../Credentials/CredentialImage';
+import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';

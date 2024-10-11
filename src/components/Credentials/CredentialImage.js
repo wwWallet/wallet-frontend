@@ -3,7 +3,7 @@ import StatusRibbon from '../../components/Credentials/StatusRibbon';
 import ContainerContext from '../../context/ContainerContext';
 import RenderSvgTemplate from "./RenderSvgTemplate";
 
-export const CredentialImage = ({ credential, className, onClick, showRibbon = true }) => {
+const CredentialImage = ({ credential, className, onClick, showRibbon = true }) => {
 	const [parsedCredential, setParsedCredential] = useState(null);
 	const [svgImage, setSvgImage] = useState(null);
 	const container = useContext(ContainerContext);
@@ -43,3 +43,5 @@ export const CredentialImage = ({ credential, className, onClick, showRibbon = t
 		</>
 	);
 };
+
+export default CredentialImage;

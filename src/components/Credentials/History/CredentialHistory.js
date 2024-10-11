@@ -15,7 +15,7 @@ import { formatDate } from '../../../functions/DateFormat';
 // Components
 import { H3 } from '../../Heading';
 import CredentialInfo from '../CredentialInfo';
-import { CredentialImage } from '../CredentialImage';
+import CredentialImage from '../CredentialImage';
 
 const CredentialHistory = ({ credentialIdentifier = '', history, title = '', limit = null }) => {
 
