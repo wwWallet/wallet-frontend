@@ -9,6 +9,7 @@ import ContainerContext from '../../context/ContainerContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
+import useScreenType from '../../hooks/useScreenType';
 
 // Components
 import CredentialTabs from '../../components/Credentials/CredentialTabs';
@@ -30,7 +31,7 @@ const Credential = () => {
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
-	const isMobileScreen = window.innerWidth < 480;
+	const screenType = useScreenType();
 	const [activeTab, setActiveTab] = useState(0);
 	const navigate = useNavigate();
 
@@ -88,7 +89,7 @@ const Credential = () => {
 
 				<div className="w-full mt-2 px-2">
 
-					{!isMobileScreen ? (
+					{screenType !=='mobile' ? (
 						<>
 							<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
 							<div className='pt-2'>

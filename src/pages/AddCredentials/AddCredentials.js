@@ -33,23 +33,9 @@ const Issuers = () => {
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
-
 	const container = useContext(ContainerContext);
 	const { t } = useTranslation();
-
-	useEffect(() => {
-		const handleResize = () => {
-			setIsSmallScreen(window.innerWidth < 768);
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -145,7 +131,7 @@ const Issuers = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<H1 heading={t('common.navItemAddCredentials')}>
-					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
+					<QRButton openQRScanner={openQRScanner}/>
 				</H1>
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageAddCredentials.description')}</p>
 

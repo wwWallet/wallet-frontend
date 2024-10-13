@@ -3,7 +3,7 @@ import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import useScreenType from '../hooks/useScreenType';
 import logo from '../assets/images/wallet_white.png';
 import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '../context/StatusContext';
@@ -36,6 +36,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const screenType = useScreenType();
 
 	const handleLogout = async () => {
 		await logout();
@@ -46,7 +47,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			window.location.reload();
 		} else {
 			navigate(path);
-			if (window.innerWidth <= 639) {
+			if (screenType !=='desktop') {
 				toggle();
 			}
 		}
@@ -55,14 +56,14 @@ const Sidebar = ({ isOpen, toggle }) => {
 	return (
 		<div
 			className={`${isOpen
-				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-primary dark:bg-primary-hover text-white p-4 max480:pb-20 overflow-y-auto'
-				: 'hidden sm:flex sm:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover w-auto text-white h-screen py-10 px-10 overflow-y-auto'
+				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-primary dark:bg-primary-hover text-white p-4 xm:pb-20 overflow-y-auto'
+				: 'hidden md:flex md:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover w-auto text-white h-screen py-10 px-10 overflow-y-auto'
 
 				}`}
 		>
 			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
-				<div className="sm:hidden flex items-center justify-between mb-4">
+				<div className="md:hidden flex items-center justify-between mb-4">
 					<div className='flex items-center'>
 						<button className='mr-2' onClick={() => handleNavigate('/')}>
 							<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" />
@@ -78,7 +79,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 					</button>
 				</div>
 				<div>
-					<div className="hidden sm:flex justify-between items-center">
+					<div className="hidden md:flex justify-between items-center">
 						<button className='mb-2 mr-2' onClick={() => handleNavigate('/')}>
 							<img
 								src={logo}
@@ -91,7 +92,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						>
 							{t('common.walletName')}
 						</a>
-						<button className="sm:hidden" onClick={toggle}>
+						<button className="md:hidden" onClick={toggle}>
 							<AiOutlineClose size={30} />
 						</button>
 					</div>
@@ -126,19 +127,19 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-2 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<div className='step-3 max480:hidden'>
+						<div className='step-3 xm:hidden'>
 							<NavItem path="/" alias="/cb" location={location} handleNavigate={handleNavigate}>
 								<FaWallet size={30} />
 								<span>{t("common.navItemCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='step-4 max480:hidden'>
+						<div className='step-4 xm:hidden'>
 							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 								<IoIosAddCircle size={30} />
 								<span>{t("common.navItemAddCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='step-5 max480:hidden'>
+						<div className='step-5 xm:hidden'>
 							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 								<IoIosSend size={30} />
 								<span>{t("common.navItemSendCredentials")}</span>

@@ -33,7 +33,7 @@ const Layout = ({ children }) => {
 
 			{/* Header */}
 			<header
-				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md sm:hidden rounded-b-lg'}`}
+				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md md:hidden rounded-b-lg'}`}
 			>
 				{isOnline ? (
 					<PiWifiHighBold size={25} title={t('common.online')} />
@@ -54,14 +54,14 @@ const Layout = ({ children }) => {
 						{t('common.walletName')}
 					</a>
 				</div>
-				<button className="text-white max480:hidden" onClick={toggleSidebar}>
+				<button className="text-white xm:hidden" onClick={toggleSidebar}>
 					<AiOutlineMenu size={24} />
 				</button>
 			</header>
 
 			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
-				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 sm:mt-0 sm:pt-6 max480:pb-20 overflow-y-auto">
+				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 md:mt-0 md:pt-6 xm:pb-20 overflow-y-auto">
 					{children}
 				</div>
 			</div>

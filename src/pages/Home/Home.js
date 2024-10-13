@@ -16,6 +16,7 @@ import CredentialsContext from '../../context/CredentialsContext';
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 import { useQRScanner } from '../../hooks/useQRScanner';
+import useScreenType from '../../hooks/useScreenType';
 
 // Components
 import { H1 } from '../../components/Heading';
@@ -30,8 +31,8 @@ const Home = () => {
 	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const { api } = useContext(SessionContext);
 	const history = useFetchPresentations(api);
-	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [currentSlide, setCurrentSlide] = useState(1);
+	const screenType = useScreenType();
 
 	const navigate = useNavigate();
 	const sliderRef = useRef();
@@ -56,18 +57,6 @@ const Home = () => {
 		getData();
 	}, [getData]);
 
-	useEffect(() => {
-		const handleResize = () => {
-			setIsSmallScreen(window.innerWidth < 768);
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
-
 	const handleAddCredential = () => {
 		navigate('/add');
 	};
@@ -80,7 +69,7 @@ const Home = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<H1 heading={t('common.navItemCredentials')}>
-					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
+					<QRButton openQRScanner={openQRScanner} />
 				</H1>
 				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				<div className='my-4'>
@@ -91,7 +80,7 @@ const Home = () => {
 
 					) : (
 						<>
-							{isSmallScreen ? (
+							{screenType !== 'desktop' ? (
 								<>
 									<Slider ref={sliderRef} {...settings}>
 										{vcEntityList.map((vcEntity, index) => (

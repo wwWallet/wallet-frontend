@@ -4,6 +4,9 @@ import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+//Hooks
+import useScreenType from '../../hooks/useScreenType';
+
 // Utility functions
 import { formatDate } from '../../functions/DateFormat';
 
@@ -15,33 +18,32 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
-	const isMobileScreen = window.innerWidth < 480;
+	const screenType = useScreenType();
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 
 	const credentialHistory = useMemo(() => {
-    if (!credentialId) {
-        // If no identifier is provided, return the whole history or up to the limit if specified
-        return limit !== null ? history.slice(0, limit) : history;
-    }
-    // When an identifier is provided, filter based on it
-    let filteredHistory = history.filter(histItem => histItem.ivci.includes(credentialId));
-    
-    // Apply limit if not null
-    if (limit !== null) {
-        return filteredHistory.slice(0, limit);
-    }
-    // Return the filtered list if no limit is set
-    return filteredHistory;
-}, [history, credentialId, limit]);
+		if (!credentialId) {
+			// If no identifier is provided, return the whole history or up to the limit if specified
+			return limit !== null ? history.slice(0, limit) : history;
+		}
+		// When an identifier is provided, filter based on it
+		let filteredHistory = history.filter(histItem => histItem.ivci.includes(credentialId));
+
+		// Apply limit if not null
+		if (limit !== null) {
+			return filteredHistory.slice(0, limit);
+		}
+		// Return the filtered list if no limit is set
+		return filteredHistory;
+	}, [history, credentialId, limit]);
 
 
 
 	const handleHistoryItemClick = async (item) => {
 		setMatchingCredentials([item.presentation]);
-		console.log('click history list', isMobileScreen, credentialId);
-		if (isMobileScreen) {
-				navigate(`/history/${item.id}`);
+		if (screenType === 'mobile') {
+			navigate(`/history/${item.id}`);
 		}
 		setImageModalOpen(true);
 	};

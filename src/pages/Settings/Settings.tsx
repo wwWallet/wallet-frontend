@@ -7,6 +7,8 @@ import { MdNotifications } from "react-icons/md";
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
+import useScreenType from '../../hooks/useScreenType';
+
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
@@ -99,6 +101,7 @@ const WebauthnRegistation = ({
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
+	const screenType = useScreenType();
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
@@ -208,8 +211,8 @@ const WebauthnRegistation = ({
 				disabled={registrationInProgress || !unlocked || !isOnline}
 				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
 
-				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !=='desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !=='desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 			>
 				<div className="flex items-center">
 					<BsPlusCircle size={20} />
@@ -331,6 +334,7 @@ const UnlockMainKey = ({
 	const [error, setError] = useState('');
 	const { t } = useTranslation();
 	const isPromptingForPassword = Boolean(resolvePasswordPromise);
+	const screenType = useScreenType();
 
 	useEffect(
 		() => {
@@ -402,8 +406,8 @@ const UnlockMainKey = ({
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
+				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !=='desktop' && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
+				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !=='desktop' && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
 			>
 				<div className="flex items-center">
 					{unlocked

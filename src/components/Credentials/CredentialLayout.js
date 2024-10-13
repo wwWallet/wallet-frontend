@@ -4,6 +4,9 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
+// Hooks
+import useScreenType from '../../hooks/useScreenType';
+
 // Contexts
 import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
@@ -18,11 +21,11 @@ const CredentialLayout = ({ children }) => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
 	const container = useContext(ContainerContext);
+	const screenType = useScreenType();
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const { t } = useTranslation();
-	const isMobileScreen = window.innerWidth < 480;
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -53,7 +56,7 @@ const CredentialLayout = ({ children }) => {
 
 	return (
 		<div className=" sm:px-6">
-			{!isMobileScreen ? (
+			{screenType !== 'mobile' ? (
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
@@ -71,7 +74,7 @@ const CredentialLayout = ({ children }) => {
 				</button>
 			)}
 
-			{!isMobileScreen && (
+			{screenType !== 'mobile' && (
 				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
 			)}
 			<div className="flex flex-wrap mt-0 lg:mt-5">
@@ -80,7 +83,7 @@ const CredentialLayout = ({ children }) => {
 					<div className='flex flex-row items-center gap-5 mt-2 mb-4 px-2'>
 						{vcEntity && (
 							// Open the modal when the credential is clicked
-							<button className="relative rounded-xl max480:rounded-lg w-4/5 max480:w-4/12 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+							<button className="relative rounded-xl xm:rounded-lg w-4/5 xm:w-4/12 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
 								onClick={() => setShowFullscreenImgPopup(true)}
 								aria-label={`${credentialFiendlyName}`}
 								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
@@ -89,7 +92,7 @@ const CredentialLayout = ({ children }) => {
 							</button>
 						)}
 						<div>
-							{isMobileScreen && (
+							{screenType === 'mobile' && (
 								<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
 							)}
 						</div>

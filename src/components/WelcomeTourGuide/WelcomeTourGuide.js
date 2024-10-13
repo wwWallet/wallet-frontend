@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import Tour from 'reactour';
 import { useTranslation } from 'react-i18next';
 
+import useScreenType from '../../hooks/useScreenType';
 import SessionContext from '../../context/SessionContext';
 
 import WelcomeModal from './WecomeModal';
@@ -15,11 +16,12 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	const { api } = useContext(SessionContext);
 	const { authenticationType, showWelcome } = api.getSession();
 	const { t } = useTranslation();
+	const screenType = useScreenType();
 
 	useEffect(() => {
 
 		const getStepSelectorMobile = (stepName) => {
-			if (window.innerWidth <= 480) {
+			if (screenType === 'mobile') {
 				return stepName + '-mobile';
 			} else {
 				return stepName;
@@ -31,7 +33,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				content: t("tourGuide.tourStep1"),
 				disableInteraction: true,
 			},
-			...(window.innerWidth < 768 && window.innerWidth > 480 ? [{
+			...(screenType === 'tablet' ? [{
 				selector: '.step-2',
 				content: t("tourGuide.tourStep2"),
 			}] : []),
@@ -43,7 +45,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				selector: getStepSelectorMobile('.step-4'),
 				content: t("tourGuide.tourStep4"),
 			},
-			...(window.innerWidth <= 480 ? [{
+			...(screenType === 'mobile' ? [{
 				selector: '.step-2',
 				content: t("tourGuide.tourStep2"),
 			}] : []),
@@ -78,13 +80,13 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 			return {
 				...step,
 				action: () => {
-					if (window.innerWidth < 640 && window.innerWidth > 480) {
+					if (screenType === 'tablet') {
 						if (index >= 2 && index <= 6 && !isOpen) {
 							toggleMenu();
 						} else if ((index < 2 || index > 6) && isOpen) {
 							toggleMenu();
 						}
-					} else if (window.innerWidth <= 480) {
+					} else if (screenType === 'mobile') {
 						if (index >= 5 && index <= 6 && !isOpen) {
 							toggleMenu();
 						} else if ((index < 5 || index > 6) && isOpen) {

@@ -1,11 +1,12 @@
 import React from 'react';
 import { BsQrCodeScan } from 'react-icons/bs';
 import Button from './Button';
+import useScreenType from '../../hooks/useScreenType';
 
 const QRButton = ({ openQRScanner, isSmallScreen }) => {
-	const isMobile = window.innerWidth <= 480;
+	const screenType = useScreenType();
 
-	if (isSmallScreen && !isMobile) {
+	if (screenType === 'tablet') {
 		return (
 			<div className="mb-2">
 				<Button
