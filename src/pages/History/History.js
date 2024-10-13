@@ -10,7 +10,7 @@ import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
 import { H1 } from '../../components/Heading';
-import CredentialHistory from '../../components/Credentials/History/CredentialHistory';
+import HistoryList from '../../components/History/HistoryList';
 
 const History = () => {
 	const { api } = useContext(SessionContext);
@@ -30,7 +30,7 @@ const History = () => {
 					{t('pageHistory.noFound')}
 				</p>
 			) : (
-				<CredentialHistory history={history} />
+				<HistoryList history={history} />
 			)}
 		</div>
 	);

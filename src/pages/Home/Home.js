@@ -22,8 +22,8 @@ import { H1 } from '../../components/Heading';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import CredentialImage from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';
-import AddCredentialCard from './AddCredentialCard';
-import CredentialHistory from '../../components/Credentials/History/CredentialHistory';
+import AddCredentialCard from '../../components/Credentials/AddCredentialCard';
+import HistoryList from '../../components/History/HistoryList';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
@@ -126,7 +126,7 @@ const Home = () => {
 															<BiRightArrow size={22} />
 														</button>
 													</div>
-													<CredentialHistory credentialIdentifier={vcEntity.credentialIdentifier} history={history} title='Recent History' limit={3} />
+													<HistoryList credentialIdentifier={vcEntity.credentialIdentifier} history={history} title='Recent History' limit={3} />
 												</div>
 											</div>
 

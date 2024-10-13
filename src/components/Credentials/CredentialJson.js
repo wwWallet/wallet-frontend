@@ -20,7 +20,7 @@ const CredentialJson = ({ credential }) => {
 	}, [credential, container]);
 
 	return (
-		<div>
+		<div className='w-full'>
 			{parsedCredential && (
 				<div>
 					<textarea

@@ -17,6 +17,7 @@ import Spinner from './components/Spinner';
 import { ContainerContextProvider } from './context/ContainerContext';
 
 import UpdateNotification from './components/UpdateNotification';
+import CredentialDetails from './pages/Home/CredentialDetails';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -66,8 +67,10 @@ const PrivateRoute = reactLazyWithNonDefaultExports(
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
 
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
-const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
+const Credential = React.lazy(() => import('./pages/Home/Credential'));
+const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
 const History = React.lazy(() => import('./pages/History/History'));
+const HistoryDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
@@ -142,8 +145,11 @@ function App() {
 							}>
 								<Route path="/settings" element={<Settings />} />
 								<Route path="/" element={<Home />} />
-								<Route path="/credential/:id" element={<CredentialDetail />} />
+								<Route path="/credential/:credentialIdentifier" element={<Credential />} />
+								<Route path="/credential/:credentialIdentifier/history" element={<CredentialHistory />} />
+								<Route path="/credential/:credentialIdentifier/details" element={<CredentialDetails />} />
 								<Route path="/history" element={<History />} />
+								<Route path="/history/:historyId" element={<HistoryDetail />} />
 								<Route path="/add" element={<AddCredentials />} />
 								<Route path="/send" element={<SendCredentials />} />
 								<Route path="/verification/result" element={<VerificationResult />} />

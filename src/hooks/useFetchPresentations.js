@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { compareBy, reverse } from '../util';
 
-const useFetchPresentations = (api, credentialIdentifiers = "") => {
+const useFetchPresentations = (api, credentialId = "", historyId = "") => {
 	const [history, setHistory] = useState([]);
 
 	useEffect(() => {
 		const fetchPresentations = async () => {
-			console.log('call fetchPresentations');
+			console.log('FetchPresentations');
 			try {
 				const fetchedPresentations = await api.getAllPresentations();
 				let vpListFromApi = fetchedPresentations.vp_list
@@ -19,20 +19,24 @@ const useFetchPresentations = (api, credentialIdentifiers = "") => {
 						issuanceDate: item.issuanceDate,
 					}));
 
-				if (credentialIdentifiers) {
+				if (credentialId) {
 					vpListFromApi = vpListFromApi.filter(item =>
-						item.ivci && item.ivci.includes(credentialIdentifiers)
+						item.ivci && item.ivci.includes(credentialId)
 					);
 				}
 
-				setHistory(vpListFromApi);
+				if (historyId) {
+					vpListFromApi = vpListFromApi.filter(item => item.id == historyId);
+				}
+
+				setHistory(Array.isArray(vpListFromApi) ? vpListFromApi : [vpListFromApi]);
 			} catch (error) {
 				console.error('Error fetching presentations:', error);
 			}
 		};
 
 		fetchPresentations();
-	}, [api, credentialIdentifiers]);
+	}, [api, credentialId, historyId]);
 
 	return history;
 };
