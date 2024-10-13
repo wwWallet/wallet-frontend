@@ -38,8 +38,6 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 		return filteredHistory;
 	}, [history, credentialId, limit]);
 
-
-
 	const handleHistoryItemClick = async (item) => {
 		setMatchingCredentials([item.presentation]);
 		if (screenType === 'mobile') {
@@ -48,9 +46,13 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 		setImageModalOpen(true);
 	};
 
+	if (credentialHistory.length === 0) {
+		return null;
+	}
+
 	return (
 		<>
-			<div className="mt-2 pb-1">
+			<div className="py-2">
 				{title && <H3 heading={title} />}
 				<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
 					{credentialHistory.map(item => (

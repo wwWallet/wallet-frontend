@@ -1,7 +1,7 @@
 // External libraries
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Trans } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
@@ -34,6 +34,7 @@ const Credential = () => {
 	const screenType = useScreenType();
 	const [activeTab, setActiveTab] = useState(0);
 	const navigate = useNavigate();
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const getData = async () => {
@@ -75,7 +76,18 @@ const Credential = () => {
 
 	const infoTabs = [
 		{ label: 'Details', component: <CredentialJson credential={vcEntity?.credential} /> },
-		{ label: 'History', component: <HistoryList history={history} /> },
+		{
+			label: 'History', component:
+				<>
+					{history.length === 0 ? (
+						<p className="text-gray-700 dark:text-white">
+							{t('pageHistory.noFound')}
+						</p>
+					) : (
+						<HistoryList history={history} />
+					)}
+				</>
+		}
 	];
 
 	return (
@@ -87,9 +99,9 @@ const Credential = () => {
 					{vcEntity && <CredentialInfo credential={vcEntity.credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<div className="w-full mt-2 px-2">
+				<div className="w-full pt-2 pb-4 px-2">
 
-					{screenType !=='mobile' ? (
+					{screenType !== 'mobile' ? (
 						<>
 							<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
 							<div className='pt-2'>
