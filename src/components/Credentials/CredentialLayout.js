@@ -70,7 +70,7 @@ const CredentialLayout = ({ children }) => {
 				</H1>
 			) : (
 				<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
-					<FaArrowLeft size={20} className="text-2xl text-primary dark:text-primary-light" />
+					<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 				</button>
 			)}
 			<PageDescription description={t('pageCredentials.details.description')} />
