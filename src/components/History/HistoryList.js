@@ -11,7 +11,7 @@ import useScreenType from '../../hooks/useScreenType';
 import { formatDate } from '../../functions/DateFormat';
 
 // Components
-import { H3 } from '../Heading';
+import { H3 } from '../Shared/Heading';
 import HistoryDetailContent from './HistoryDetailContent';
 
 const HistoryList = ({ credentialId = null, history, title = '', limit = null }) => {

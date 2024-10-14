@@ -16,9 +16,9 @@ import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
-import SeparatorLine from '../../components/SeparatorLine';
-import PasswordStrength from '../../components/PasswordStrength';
-import LoginPageLayout from './LoginPageLayout';
+import SeparatorLine from '../../components/Shared/SeparatorLine';
+import PasswordStrength from '../../components/Auth/PasswordStrength';
+import LoginLayout from '../../components/Auth/LoginLayout';
 import { checkForUpdates } from '../../offlineRegistrationSW';
 
 const FormInputRow = ({
@@ -556,7 +556,7 @@ const WebauthnSignupLogin = ({
 	);
 };
 
-const Login = () => {
+const Auth = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
@@ -651,7 +651,7 @@ const Login = () => {
 	}
 
 	return (
-		<LoginPageLayout heading={
+		<LoginLayout heading={
 			<Trans
 				i18nKey="loginSignup.welcomeMessage"
 				components={{
@@ -755,8 +755,8 @@ const Login = () => {
 				)}
 
 			</div>
-		</LoginPageLayout>
+		</LoginLayout>
 	);
 };
 
-export default Login;
+export default Auth;

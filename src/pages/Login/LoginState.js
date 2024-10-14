@@ -9,7 +9,7 @@ import SessionContext from '../../context/SessionContext';
 
 import Button from '../../components/Buttons/Button';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
-import LoginPageLayout from './LoginPageLayout';
+import LoginPageLayout from '../../components/Auth/LoginLayout';
 import { checkForUpdates } from '../../offlineRegistrationSW';
 
 const WebauthnLogin = ({

@@ -17,8 +17,8 @@ import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
-import { H1, H2, H3 } from '../../components/Heading';
-import PageDescription from '../../components/PageDescription';
+import { H1, H2, H3 } from '../../components/Shared/Heading';
+import PageDescription from '../../components/Shared/PageDescription';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();

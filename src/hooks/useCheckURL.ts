@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import SessionContext from '../context/SessionContext';
 import { BackgroundTasksContext } from '../context/BackgroundTasksContext';
-import { useContainer } from '../components/useContainer';
+import { useContainer } from './useContainer';
 import { HandleAuthorizationRequestError } from '../lib/interfaces/IOpenID4VPRelyingParty';
 
 

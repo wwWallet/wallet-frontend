@@ -3,13 +3,12 @@ import { AiOutlineMenu } from "react-icons/ai";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import Sidebar from './Sidebar';
-import logo from '../assets/images/wallet_white.png';
-import WelcomeTourGuide from './WelcomeTourGuide/WelcomeTourGuide';
-import BottomNav from './BottomNav';
-import StatusContext from '../context/StatusContext';
+import Sidebar from '../Layout/Navigation/Sidebar';
+import logo from '../../assets/images/wallet_white.png';
+import WelcomeTourGuide from '../WelcomeTourGuide/WelcomeTourGuide';
+import BottomNav from './Navigation/BottomNav';
+import StatusContext from '../../context/StatusContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
-
 
 const Layout = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);

@@ -10,13 +10,13 @@ import { CredentialsProvider } from './context/CredentialsContext';
 import { withSessionContext } from './context/SessionContext';
 import { checkForUpdates } from './offlineRegistrationSW';
 
-import FadeInContentTransition from './components/FadeInContentTransition';
-import HandlerNotification from './components/HandlerNotification';
+import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
+import HandlerNotification from './components/Notifications/HandlerNotification';
 import Snowfalling from './components/ChistmasAnimation/Snowfalling';
-import Spinner from './components/Spinner';
+import Spinner from './components/Shared/Spinner';
 import { ContainerContextProvider } from './context/ContainerContext';
 
-import UpdateNotification from './components/UpdateNotification';
+import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
@@ -57,11 +57,11 @@ const reactLazyWithNonDefaultExports = (load, ...names) => {
 	return defaultExport;
 };
 
-const Layout = React.lazy(() => import('./components/Layout'));
+const Layout = React.lazy(() => import('./components/Layout/Layout'));
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
-	() => import('./components/PrivateRoute'),
+	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));

@@ -3,7 +3,7 @@ import Modal from 'react-modal';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import Spinner from '../../components/Spinner';
+import Spinner from '../Shared/Spinner';
 
 
 const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose, handleContinue, popupTitle, popupMessage }) => {

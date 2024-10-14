@@ -3,11 +3,11 @@ import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
-import useScreenType from '../hooks/useScreenType';
-import logo from '../assets/images/wallet_white.png';
+import useScreenType from '../../../hooks/useScreenType';
+import logo from '../../../assets/images/wallet_white.png';
 import { Trans, useTranslation } from 'react-i18next';
-import StatusContext from '../context/StatusContext';
-import SessionContext from '../context/SessionContext';
+import StatusContext from '../../../context/StatusContext';
+import SessionContext from '../../../context/SessionContext';
 import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import { MdNotifications } from "react-icons/md";
 

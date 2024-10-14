@@ -19,7 +19,7 @@ import { useQRScanner } from '../../hooks/useQRScanner';
 import useScreenType from '../../hooks/useScreenType';
 
 // Components
-import { H1 } from '../../components/Heading';
+import { H1 } from '../../components/Shared/Heading';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import CredentialImage from '../../components/Credentials/CredentialImage';
 import QRButton from '../../components/Buttons/QRButton';

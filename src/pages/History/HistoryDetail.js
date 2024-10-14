@@ -14,7 +14,7 @@ import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
 import HistoryDetailContent from '../../components/History/HistoryDetailContent';
-import { H2, H3 } from '../../components/Heading';
+import { H2, H3 } from '../../components/Shared/Heading';
 
 const HistoryDetail = () => {
 	const { historyId } = useParams();

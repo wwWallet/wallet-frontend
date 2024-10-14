@@ -9,9 +9,9 @@ import SessionContext from '../../context/SessionContext';
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
-import { H1 } from '../../components/Heading';
+import { H1 } from '../../components/Shared/Heading';
 import HistoryList from '../../components/History/HistoryList';
-import PageDescription from '../../components/PageDescription';
+import PageDescription from '../../components/Shared/PageDescription';
 
 const History = () => {
 	const { api } = useContext(SessionContext);

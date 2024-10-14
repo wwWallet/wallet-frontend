@@ -7,9 +7,9 @@ import { useQRScanner } from '../../hooks/useQRScanner';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
-import { H1 } from '../../components/Heading';
+import { H1 } from '../../components/Shared/Heading';
 import Button from '../../components/Buttons/Button';
-import PageDescription from '../../components/PageDescription';
+import PageDescription from '../../components/Shared/PageDescription';
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {

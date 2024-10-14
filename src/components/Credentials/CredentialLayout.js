@@ -12,10 +12,10 @@ import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
 
 // Components
-import { H1 } from '../Heading';
+import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
-import PageDescription from '../PageDescription';
+import PageDescription from '../Shared/PageDescription';
 
 const CredentialLayout = ({ children }) => {
 	const { credentialId } = useParams();

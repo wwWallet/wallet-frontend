@@ -1,7 +1,7 @@
 import Modal from 'react-modal';
 import { useTranslation } from 'react-i18next';
 import { FaTrash } from 'react-icons/fa';
-import Spinner from '../Spinner';
+import Spinner from '../Shared/Spinner';
 import Button from '../Buttons/Button';
 
 const DeletePopup = ({ isOpen, onConfirm, onCancel, message, loading }) => {
