@@ -13,13 +13,13 @@ import SessionContext from '../../context/SessionContext';
 
 import * as config from '../../config';
 import Button from '../../components/Buttons/Button';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 
 // import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
 import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import { checkForUpdates } from '../../offlineRegistrationSW';
+import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 const FormInputRow = ({
 	IconComponent,
@@ -695,11 +695,7 @@ const Auth = () => {
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-					{isOnline ? (
-						<PiWifiHighBold size={25} title={t('common.online')} />
-					) : (
-						<PiWifiSlashBold size={25} title={t('common.offline')} />
-					)}
+					<ConnectionStatusIcon size={25} />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">

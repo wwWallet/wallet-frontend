@@ -8,8 +8,8 @@ import logo from '../../../assets/images/wallet_white.png';
 import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '../../../context/StatusContext';
 import SessionContext from '../../../context/SessionContext';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
 import { MdNotifications } from "react-icons/md";
+import ConnectionStatusIcon from './ConnectionStatusIcon';
 
 const NavItem = ({
 	children,
@@ -47,7 +47,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			window.location.reload();
 		} else {
 			navigate(path);
-			if (screenType !=='desktop') {
+			if (screenType !== 'desktop') {
 				toggle();
 			}
 		}
@@ -101,23 +101,14 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 					{/* User */}
 					<ul>
-						<div className='flex items-center space-x-2 p-2 rounded-r-xl'>
-							{isOnline ? (
-								<>
-									<PiWifiHighBold size={20} />
-									<span className='text-sm'>{t('common.online')}</span>
-								</>
-							) : (
-								<>
-									<PiWifiSlashBold size={20} />
-									<span className='text-sm'>{t('common.offline')}</span>
-								</>
-							)}
-						</div>
 						<div className='flex items-center space-x-2 mb-2 p-2 rounded-r-xl'>
+							<div className='pr-2 border-r border-white/20'>
+								<ConnectionStatusIcon size={22} />
+							</div>
+
 							<FaUserCircle size={20} title={displayName || username} />
 							<span
-								className="text-overflow-ellipsis text-sm overflow-hidden whitespace-nowrap md:max-w-[130px]"
+								className="text-overflow-ellipsis text-sm overflow-hidden whitespace-nowrap md:max-w-[95px]"
 								title={displayName || username}
 							>
 								{displayName || username}

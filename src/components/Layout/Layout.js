@@ -8,7 +8,7 @@ import logo from '../../assets/images/wallet_white.png';
 import WelcomeTourGuide from '../WelcomeTourGuide/WelcomeTourGuide';
 import BottomNav from './Navigation/BottomNav';
 import StatusContext from '../../context/StatusContext';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
+import ConnectionStatusIcon from './Navigation/ConnectionStatusIcon';
 
 const Layout = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
@@ -34,11 +34,7 @@ const Layout = ({ children }) => {
 			<header
 				className={`${isOpen ? 'hidden' : 'z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md md:hidden rounded-b-lg'}`}
 			>
-				{isOnline ? (
-					<PiWifiHighBold size={25} title={t('common.online')} />
-				) : (
-					<PiWifiSlashBold size={25} title={t('common.offline')} />
-				)}
+				<ConnectionStatusIcon size={25} />
 				<div className="flex items-center">
 					<button className='mr-2' onClick={() => handleNavigate('/')}>
 						<img
