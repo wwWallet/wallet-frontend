@@ -148,14 +148,14 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		try {
 			// Credential Request
-			await this.credentialRequest(response, privateKey, publicKey, flowState);
+			await this.credentialRequest(response, flowState, privateKey, publicKey);
 		}
 		catch (err) {
 			console.error("Error handling authrozation response ", err);
 		}
 	}
 
-	private async credentialRequest(response: any, privateKey: jose.KeyLike, publicKey: jose.KeyLike, flowState: OpenID4VCIClientState) {
+	private async credentialRequest(response: any, flowState: OpenID4VCIClientState, privateKey?: jose.KeyLike, publicKey?: jose.KeyLike) {
 		const {
 			data: { access_token, c_nonce },
 		} = response;
