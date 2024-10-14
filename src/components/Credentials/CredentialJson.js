@@ -4,7 +4,7 @@ import React, { useEffect, useState, useContext } from 'react';
 
 import ContainerContext from '../../context/ContainerContext';
 
-const CredentialJson = ({ credential }) => {
+const CredentialJson = ({ credential, textAreaRows='10' }) => {
 	const container = useContext(ContainerContext);
 	const [parsedCredential, setParsedCredential] = useState(null);
 
@@ -24,7 +24,7 @@ const CredentialJson = ({ credential }) => {
 			{parsedCredential && (
 				<div>
 					<textarea
-						rows="10"
+						rows={textAreaRows}
 						readOnly
 						className="dark:bg-gray-900 dark:text-white border rounded p-2 text-sm w-full rounded-xl"
 						value={JSON.stringify(parsedCredential, null, 2)}

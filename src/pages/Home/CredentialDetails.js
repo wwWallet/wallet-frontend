@@ -33,7 +33,7 @@ const CredentialDetails = () => {
 		<>
 			<CredentialLayout>
 				{vcEntity && (
-					<CredentialJson credential={vcEntity?.credential} />
+					<CredentialJson credential={vcEntity?.credential} textAreaRows='18'/>
 				)}
 			</CredentialLayout>
 
