@@ -126,7 +126,7 @@ const Credential = () => {
 						</>
 					)}
 				</div>
-				<div className='pl-2'>
+				<div className='px-2 w-full'>
 					<CredentialDeleteButton onDelete={() => { setShowDeletePopup(true); }} />
 				</div>
 

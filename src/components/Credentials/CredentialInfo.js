@@ -38,7 +38,7 @@ const renderRow = (fieldName, label, fieldValue, screenType) => {
 		return (
 			<tr className="text-left">
 				<td className="font-bold text-primary dark:text-primary-light py-2 xm:py-1 px-2 rounded-l-xl">
-					<div className="flex md:flex-row flex-col items-left">
+					<div className="flex flex-row items-left">
 						{screenType !== 'mobile' && getFieldIcon(fieldName)}
 						<span className="md:ml-1 flex items-center">{label}:</span>
 					</div>
@@ -51,7 +51,7 @@ const renderRow = (fieldName, label, fieldValue, screenType) => {
 	}
 };
 
-const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:text-base pt-5 w-full" }) => {
+const CredentialInfo = ({ credential, mainClassName = "text-xs md:text-sm lg:text-base pt-5 w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
 	const container = useContext(ContainerContext);

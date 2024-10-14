@@ -18,8 +18,9 @@ const CredentialDeleteButton = ({ onDelete }) => {
 			variant="delete"
 			disabled={!isOnline}
 			title={!isOnline && t('common.offlineTitle')}
+			additionalClassName='xm:w-full'
 		>
-			<MdDelete size={20} /> {t('common.delete')}
+			<MdDelete size={20} /> {t('pageCredentials.delete')}
 		</Button>
 	);
 };

@@ -149,10 +149,11 @@
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
-		"description": "View all of your credentials, and use the 'Add new credentials' card to add more",
+		"description": "View all of your credentials",
 		"details": {
 			"description": "View all the information about the chosen credential"
 		},
+		"delete": "Delete Credential",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"slideNext": "next",
