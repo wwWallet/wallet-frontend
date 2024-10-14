@@ -116,7 +116,7 @@ const Home = () => {
 															<BiRightArrow size={22} />
 														</button>
 													</div>
-													<HistoryList credentialIdentifier={vcEntity.credentialIdentifier} history={history} title='Recent History' limit={3} />
+													<HistoryList credentialId={vcEntity.credentialIdentifier} history={history} title='Recent History' limit={3} />
 												</div>
 											</div>
 

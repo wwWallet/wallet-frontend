@@ -23,13 +23,13 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 	const navigate = useNavigate();
 
 	const credentialHistory = useMemo(() => {
-		if (!credentialId) {
+		if (credentialId === null) {
 			// If no identifier is provided, return the whole history or up to the limit if specified
 			return limit !== null ? history.slice(0, limit) : history;
 		}
 		// When an identifier is provided, filter based on it
 		let filteredHistory = history.filter(histItem => histItem.ivci.includes(credentialId));
-
+		
 		// Apply limit if not null
 		if (limit !== null) {
 			return filteredHistory.slice(0, limit);
