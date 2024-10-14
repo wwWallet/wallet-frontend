@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from "react-icons/fa";
+import { ReactComponent as VerifierIcon } from '../../assets/images/verifier_icon.svg';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
@@ -41,8 +42,16 @@ const HistoryDetail = () => {
 						<div className='flex flex-col items-left gap mt-2 px-2'>
 							{history.length > 0 && (
 								<>
-									<H2 heading={history[0].audience} hr={false} />
-									<H3 heading={formatDate(history[0].issuanceDate)} hr={false} />
+									<div className='flex items-center gap-2 mx-2'>
+										<div className='my-2'>
+											<VerifierIcon className="fill-white bg-primary p-2 w-12 rounded-md" />
+
+										</div>
+										<div>
+											<p className='text-lg font-bold text-primary'>{history[0].audience} </p>
+											<p className='text-sm'>{formatDate(history[0].issuanceDate)}</p>
+										</div>
+									</div>
 								</>
 							)}
 						</div>
