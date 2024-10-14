@@ -9,6 +9,7 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
 import Button from '../../components/Buttons/Button';
+import PageDescription from '../../components/PageDescription';
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {
@@ -93,9 +94,9 @@ const Verifiers = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<H1 heading={t('common.navItemSendCredentials')}>
-					<QRButton openQRScanner={openQRScanner}/>
+					<QRButton openQRScanner={openQRScanner} />
 				</H1>
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageSendCredentials.description')}</p>
+				<PageDescription description={t('pageSendCredentials.description')} />
 
 				<div className="my-4">
 					<input

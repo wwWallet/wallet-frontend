@@ -15,7 +15,7 @@ import ContainerContext from '../../context/ContainerContext';
 import { H1 } from '../Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
-
+import PageDescription from '../PageDescription';
 
 const CredentialLayout = ({ children }) => {
 	const { credentialId } = useParams();
@@ -73,10 +73,8 @@ const CredentialLayout = ({ children }) => {
 					<FaArrowLeft size={20} className="text-2xl text-primary dark:text-primary-light" />
 				</button>
 			)}
+			<PageDescription description={t('pageCredentials.details.description')} />
 
-			{screenType !== 'mobile' && (
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageCredentials.details.description')}</p>
-			)}
 			<div className="flex flex-wrap mt-0 lg:mt-5">
 				{/* Block 1: credential */}
 				<div className='flex flex-row w-full md:w-1/2'>

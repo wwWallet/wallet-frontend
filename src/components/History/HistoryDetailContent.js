@@ -16,7 +16,6 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import CredentialImage from '../Credentials/CredentialImage';
 
 const HistoryDetailContent = ({ credentialIdentifier, historyItem }) => {
-	console.log('historyItem', historyItem)
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const { t } = useTranslation();
 	const sliderRef = useRef();
@@ -56,7 +55,7 @@ const HistoryDetailContent = ({ credentialIdentifier, historyItem }) => {
 
 	return (
 		<>
-			<div className=" py-2">
+			<div className=" py-2 w-full">
 				<Slider ref={sliderRef} {...settings}>
 					{historyItem && historyItem.map((credential, index) => {
 						const Tag = currentSlide === index + 1 ? 'button' : 'div';

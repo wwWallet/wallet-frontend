@@ -18,7 +18,7 @@ import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Heading';
-
+import PageDescription from '../../components/PageDescription';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -838,7 +838,7 @@ const Settings = () => {
 				{userData && (
 					<>
 						<H1 heading={t('common.navItemSettings')} />
-						<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageSettings.description')}</p>
+						<PageDescription description={t('pageSettings.description')}/>
 
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.title.loggedInPasskey')} />

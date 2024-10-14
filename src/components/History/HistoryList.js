@@ -52,9 +52,9 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 
 	return (
 		<>
-			<div className="py-2">
+			<div className="py-2 w-full">
 				{title && <H3 heading={title} />}
-				<div className="my-4 overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
+				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
 					{credentialHistory.map(item => (
 						<button
 							key={item.id}

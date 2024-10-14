@@ -10,7 +10,7 @@ import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
 import ContainerContext from '../../context/ContainerContext';
 import Button from '../../components/Buttons/Button';
-
+import PageDescription from '../../components/PageDescription';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -131,9 +131,9 @@ const Issuers = () => {
 		<>
 			<div className="sm:px-6 w-full">
 				<H1 heading={t('common.navItemAddCredentials')}>
-					<QRButton openQRScanner={openQRScanner}/>
+					<QRButton openQRScanner={openQRScanner} />
 				</H1>
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageAddCredentials.description')}</p>
+				<PageDescription description={t('pageAddCredentials.description')} />
 
 				<div className="my-4">
 					<input

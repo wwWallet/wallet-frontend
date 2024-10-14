@@ -99,12 +99,11 @@ const Credential = () => {
 					{vcEntity && <CredentialInfo credential={vcEntity.credential} />} {/* Use the CredentialInfo component */}
 				</div>
 
-				<div className="w-full pt-2 pb-4 px-2">
-
+				<div className="w-full pt-2 px-2">
 					{screenType !== 'mobile' ? (
 						<>
 							<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
-							<div className='pt-2'>
+							<div className='py-2'>
 								{infoTabs[activeTab].component}
 							</div>
 						</>

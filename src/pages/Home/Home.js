@@ -71,13 +71,14 @@ const Home = () => {
 				<H1 heading={t('common.navItemCredentials')}>
 					<QRButton openQRScanner={openQRScanner} />
 				</H1>
-				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
+				{screenType !== 'mobile' && (
+					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
+				)}
 				<div className='my-4'>
 					{vcEntityList.length === 0 ? (
 						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
 							<AddCredentialCard onClick={handleAddCredential} />
 						</div>
-
 					) : (
 						<>
 							{screenType !== 'desktop' ? (
