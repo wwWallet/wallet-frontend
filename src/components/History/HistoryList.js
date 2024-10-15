@@ -29,7 +29,7 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 		}
 		// When an identifier is provided, filter based on it
 		let filteredHistory = history.filter(histItem => histItem.ivci.includes(credentialId));
-		
+
 		// Apply limit if not null
 		if (limit !== null) {
 			return filteredHistory.slice(0, limit);

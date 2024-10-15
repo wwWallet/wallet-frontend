@@ -3,11 +3,12 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
-import Slider from 'react-slick';
+import { Swiper, SwiperSlide } from 'swiper/react';
 
 // Styles
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import { EffectCards } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/effect-cards';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
@@ -35,23 +36,8 @@ const Home = () => {
 	const screenType = useScreenType();
 
 	const navigate = useNavigate();
-	const sliderRef = useRef();
+	const sliderRef = useRef(null);
 	const { t } = useTranslation();
-
-	const settings = {
-		dots: false,
-		arrows: false,
-		infinite: false,
-		speed: 500,
-		slidesToShow: 1,
-		slidesToScroll: 1,
-		afterChange: (current) => {
-			setCurrentSlide(current + 1);
-		},
-		centerMode: true,
-		centerPadding: '10px',
-		style: { margin: '0 10px' },
-	};
 
 	useEffect(() => {
 		getData();
@@ -74,7 +60,7 @@ const Home = () => {
 				{screenType !== 'mobile' && (
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				)}
-				<div className='my-4'>
+				<div className='my-4 p-2'>
 					{vcEntityList.length === 0 ? (
 						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
 							<AddCredentialCard onClick={handleAddCredential} />
@@ -83,45 +69,66 @@ const Home = () => {
 						<>
 							{screenType !== 'desktop' ? (
 								<>
-									<Slider ref={sliderRef} {...settings}>
+									<Swiper
+										effect={'cards'}
+										grabCursor={true}
+										modules={[EffectCards]}
+										slidesPerView={1}
+										className="mySwiper"
+										onSlideChange={(swiper) => setCurrentSlide(swiper.activeIndex + 1)}
+										onSwiper={(swiper) => (sliderRef.current = swiper)}
+									>
 										{vcEntityList.map((vcEntity, index) => (
-											<div key={vcEntity.credentialIdentifier}>
-												<button key={vcEntity.id} className={`relative rounded-xl xl:w-4/5 md:w-full sm:w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full mb-2 ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
+											<SwiperSlide
+												key={vcEntity.credentialIdentifier}
+												className={`swiper-slide ${Math.abs(currentSlide - (index + 1)) > 1 ? 'hidden-slide' : ''}`}  // Add class to hide far slides
+											>
+												<button
+													key={vcEntity.id}
+													className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 													onClick={() => { handleImageClick(vcEntity) }}
 													aria-label={`${vcEntity.friendlyName}`}
 													tabIndex={currentSlide !== index + 1 ? -1 : 0}
 													title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
 												>
-													<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
+													<CredentialImage credential={vcEntity.credential} className={`w-full h-full rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
 												</button>
-												<div className={`transition-all ease-in-out duration-500 ${(currentSlide === index + 1) ? 'max-h-auto opacity-100' : 'hidden max-h-0 opacity-0'}`}>
-													<div className="flex items-center justify-end">
-														<span className="mr-4 dark:text-white">{currentSlide} of {vcEntityList.length}</span>
-														<button
-															onClick={() => sliderRef.current.slickPrev()}
-															aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
-															title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
-															disabled={currentSlide === 1}
-															className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
-														>
-															<BiLeftArrow size={22} />
-														</button>
-														<button
-															onClick={() => sliderRef.current.slickNext()}
-															aria-label={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
-															title={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
-															disabled={currentSlide === vcEntityList.length}
-															className={`${currentSlide === vcEntityList.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
-														>
-															<BiRightArrow size={22} />
-														</button>
-													</div>
-													<HistoryList credentialId={vcEntity.credentialIdentifier} history={history} title='Recent History' limit={3} />
-												</div>
-											</div>
-
+											</SwiperSlide>
 										))}
-									</Slider>
+									</Swiper>
+
+									{/* Display Slides numbers and Arrows */}
+									<div className="flex items-center justify-end">
+										<span className="mr-4 dark:text-white">{currentSlide} of {vcEntityList.length}</span>
+										<button
+											onClick={() => sliderRef.current.slidePrev()}
+											aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
+											title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
+											disabled={currentSlide === 1}
+											className={` ${currentSlide === 1 ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+										>
+											<BiLeftArrow size={22} />
+										</button>
+										<button
+											onClick={() => sliderRef.current.slideNext()}
+											aria-label={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
+											title={currentSlide === vcEntityList.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
+											disabled={currentSlide === vcEntityList.length}
+											className={`${currentSlide === vcEntityList.length ? 'opacity-50 cursor-not-allowed dark:text-gray-400' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+										>
+											<BiRightArrow size={22} />
+										</button>
+									</div>
+
+									{/* Update HistoryList based on current slide */}
+									{vcEntityList[currentSlide - 1] && (
+										<HistoryList
+											credentialId={vcEntityList[currentSlide - 1].credentialIdentifier}
+											history={history}
+											title="Recent History"
+											limit={3}
+										/>
+									)}
 								</>
 							) : (
 								<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
@@ -142,8 +149,7 @@ const Home = () => {
 						</>
 					)}
 				</div>
-			</div >
-
+			</div>
 			{/* QR Code Scanner */}
 			{isQRScannerOpen && (
 				<QRCodeScanner onClose={closeQRScanner} />

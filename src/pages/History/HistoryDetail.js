@@ -41,10 +41,9 @@ const HistoryDetail = () => {
 						<div className='flex flex-col items-left gap mt-2 px-2'>
 							{history.length > 0 && (
 								<>
-									<div className='flex items-center gap-2 mx-2'>
+									<div className='flex items-center gap-2'>
 										<div className='my-2'>
 											<VerifierIcon className="fill-white bg-primary dark:bg-primary-light p-2 w-12 rounded-md" />
-
 										</div>
 										<div>
 											<p className='text-lg font-bold text-primary dark:text-white'>{history[0].audience} </p>
