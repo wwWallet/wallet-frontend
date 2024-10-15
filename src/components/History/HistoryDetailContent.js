@@ -1,5 +1,5 @@
 // External libraries
-import React, { useState, useRef, useContext, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { BiLeftArrow, BiRightArrow } from 'react-icons/bi';
 import { useTranslation } from 'react-i18next';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -9,40 +9,18 @@ import { EffectCards } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-cards';
 
-// Contexts
-import SessionContext from '../../context/SessionContext';
-
 // Components
 import CredentialInfo from '../Credentials/CredentialInfo';
 import CredentialImage from '../Credentials/CredentialImage';
 
-const HistoryDetailContent = ({ credentialIdentifier, historyItem }) => {
+const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const { t } = useTranslation();
 	const sliderRef = useRef();
-	const { api } = useContext(SessionContext);
-	const [vcEntity, setVcEntity] = useState(null);
 
-	const settings = {
-		dots: false,
-		arrows: false,
-		infinite: false,
-		speed: 500,
-		slidesToShow: 1,
-		slidesToScroll: 1,
-		afterChange: (current) => {
-			setCurrentSlide(current + 1);
-		},
-		centerMode: true,
-		centerPadding: '10px',
-		style: { margin: '0 10px' },
-	};
-
-	console.log(historyItem);
 	return (
 		<>
 			<div className="py-2 w-full">
-
 				<div className='px-2'>
 					<Swiper
 						effect={'cards'}
