@@ -32,7 +32,7 @@ const CredentialLayout = ({ children }) => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
 			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialId === credentialId)[0];
+				.filter((vcEntity) => vcEntity.credentialIdentifier == credentialId)[0];
 			if (!vcEntity) {
 				throw new Error("Credential not found");
 			}

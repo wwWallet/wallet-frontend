@@ -22,10 +22,10 @@ import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 
 const Credential = () => {
-	const { credentialIdentifier } = useParams();
+	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
 	const container = useContext(ContainerContext);
-	const history = useFetchPresentations(api, credentialIdentifier, null);
+	const history = useFetchPresentations(api, credentialId, null);
 
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
@@ -40,7 +40,7 @@ const Credential = () => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
 			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialIdentifier)[0];
+				.filter((vcEntity) => vcEntity.credentialIdentifier == credentialId)[0];
 			if (!vcEntity) {
 				throw new Error("Credential not found");
 			}
@@ -48,7 +48,7 @@ const Credential = () => {
 		};
 
 		getData();
-	}, [api, credentialIdentifier]);
+	}, [api, credentialId]);
 
 	useEffect(() => {
 		if (!vcEntity) {
@@ -111,14 +111,14 @@ const Credential = () => {
 						<>
 							<Button
 								variant="primary"
-								onClick={() => navigate(`/credential/${credentialIdentifier}/history`)}
+								onClick={() => navigate(`/credential/${credentialId}/history`)}
 								additionalClassName='w-full my-2'
 							>
 								History
 							</Button>
 							<Button
 								variant="primary"
-								onClick={() => navigate(`/credential/${credentialIdentifier}/details`)}
+								onClick={() => navigate(`/credential/${credentialId}/details`)}
 								additionalClassName='w-full my-2'
 							>
 								Details
