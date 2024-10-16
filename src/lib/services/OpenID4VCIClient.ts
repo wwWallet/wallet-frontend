@@ -23,7 +23,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	) { }
 
 
-	async handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationSupported: CredentialConfigurationSupported; }> {
+	async handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationSupported: CredentialConfigurationSupported; issuer_state?: string }> {
 		const parsedUrl = new URL(credentialOfferURL);
 		const offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
 
@@ -40,7 +40,13 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		if (!selectedConfiguration) {
 			throw new Error("Credential configuration not found");
 		}
-		return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationSupported: selectedConfiguration };
+
+		let issuer_state = undefined;
+		if (offer.grants?.authorization_code?.issuer_state) {
+			issuer_state = offer.credential_issuer, offer.grants.authorization_code.issuer_state;
+		}
+
+		return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationSupported: selectedConfiguration, issuer_state };
 	}
 
 	async getAvailableCredentialConfigurations(): Promise<Record<string, CredentialConfigurationSupported>> {
@@ -50,7 +56,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		return this.config.credentialIssuerMetadata.credential_configurations_supported
 	}
 
-	async generateAuthorizationRequest(selectedCredentialConfigurationSupported: CredentialConfigurationSupported, userHandleB64u: string): Promise<{ url: string; client_id: string; request_uri: string; }> {
+	async generateAuthorizationRequest(selectedCredentialConfigurationSupported: CredentialConfigurationSupported, userHandleB64u: string, issuer_state?: string): Promise<{ url: string; client_id: string; request_uri: string; }> {
 		const { code_challenge, code_verifier } = await pkce();
 
 		const formData = new URLSearchParams();
@@ -66,6 +72,10 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		formData.append("state", btoa(JSON.stringify({ userHandleB64u: userHandleB64u })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, ""));
 
+		if (issuer_state) {
+			formData.append("issuer_state", issuer_state);
+		}
+
 		formData.append("redirect_uri", redirectUri);
 		let res;
 		try {
@@ -80,7 +90,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const { request_uri } = res.data;
 		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
 
-		await this.openID4VCIClientStateRepository.store(new OpenID4VCIClientState(code_verifier, "", selectedCredentialConfigurationSupported));
+		await this.openID4VCIClientStateRepository.store(new OpenID4VCIClientState(undefined, code_verifier, "", selectedCredentialConfigurationSupported));
 
 		return {
 			url: authorizationRequestURL,
