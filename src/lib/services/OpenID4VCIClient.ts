@@ -90,7 +90,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const { request_uri } = res.data;
 		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
 
-		await this.openID4VCIClientStateRepository.store(new OpenID4VCIClientState(undefined, code_verifier, "", selectedCredentialConfigurationSupported));
+		await this.openID4VCIClientStateRepository.store(new OpenID4VCIClientState(code_verifier, "", selectedCredentialConfigurationSupported));
 
 		return {
 			url: authorizationRequestURL,
