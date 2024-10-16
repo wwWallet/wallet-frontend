@@ -51,7 +51,7 @@ const renderRow = (fieldName, label, fieldValue, screenType) => {
 	}
 };
 
-const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base pt-5 w-full" }) => {
+const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
 	const container = useContext(ContainerContext);

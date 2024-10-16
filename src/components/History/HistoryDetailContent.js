@@ -34,7 +34,9 @@ const HistoryDetailContent = ({ historyItem }) => {
 
 			{/* Render details of the currently selected credential */}
 			{historyItem[currentSlide - 1] && (
-				<CredentialInfo credential={historyItem[currentSlide - 1]} />
+				<div className="pt-5">
+					<CredentialInfo credential={historyItem[currentSlide - 1]} />
+				</div>
 			)}
 		</div>
 	);
