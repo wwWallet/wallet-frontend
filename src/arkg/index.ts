@@ -363,7 +363,7 @@ export function tests() {
 			describe(`instance ${instanceName}`, async () => {
 				it("is correct.", async () => {
 					const [pub_seed, pri_seed] = await arkgInstance.generateSeed();
-					const info = new TextEncoder().encode("arkg test");
+					const info = new TextEncoder().encode(instanceName + "test vectors");
 					const [derived_pubk, kh] = await arkgInstance.derivePublicKey(pub_seed, info);
 					const derived_prik = await arkgInstance.derivePrivateKey(pri_seed, kh, info);
 					const publicKey = await ec.publicKeyFromPoint(signAlgorithm.name, namedCurve, derived_pubk);
@@ -385,7 +385,7 @@ export function tests() {
 				describe("derivePublicKey", () => {
 					it("generates different results on repeat calls.", async () => {
 						const [pub_seed,] = await arkgInstance.generateSeed();
-						const info = new TextEncoder().encode("arkg test");
+						const info = new TextEncoder().encode(instanceName + "test vectors");
 						const [derived_pubk_1, kh_1] = await arkgInstance.derivePublicKey(pub_seed, info);
 						const [derived_pubk_2, kh_2] = await arkgInstance.derivePublicKey(pub_seed, info);
 						assert.notDeepEqual(derived_pubk_1, derived_pubk_2);
@@ -396,7 +396,7 @@ export function tests() {
 				describe("derivePrivateKey", () => {
 					it("generates the same result on repeat calls.", async () => {
 						const [pub_seed, pri_seed] = await arkgInstance.generateSeed();
-						const info = new TextEncoder().encode("arkg test");
+						const info = new TextEncoder().encode(instanceName + "test vectors");
 						const [, kh] = await arkgInstance.derivePublicKey(pub_seed, info);
 						const derived_prik_1 = await arkgInstance.derivePrivateKey(pri_seed, kh, info);
 						const derived_prik_2 = await arkgInstance.derivePrivateKey(pri_seed, kh, info);
@@ -405,7 +405,7 @@ export function tests() {
 
 					it("fails if any bit of the key handle is modified.", async () => {
 						const [pub_seed, pri_seed] = await arkgInstance.generateSeed();
-						const info = new TextEncoder().encode("arkg test");
+						const info = new TextEncoder().encode(instanceName + "test vectors");
 						const [, kh] = await arkgInstance.derivePublicKey(pub_seed, info);
 						const kh_u8 = new Uint8Array(kh);
 						for (let i = 0; i < kh.byteLength * 8; ++i) {
@@ -422,7 +422,7 @@ export function tests() {
 
 					it("derives the wrong private key if any bit of the key handle is modified.", async () => {
 						const [pub_seed, pri_seed] = await arkgInstance.generateSeed();
-						const info = new TextEncoder().encode("arkg test");
+						const info = new TextEncoder().encode(instanceName + "test vectors");
 						const [derived_pubk, kh] = await arkgInstance.derivePublicKey(pub_seed, info);
 						const kh_u8 = new Uint8Array(kh);
 						for (let i = 0; i < kh.byteLength * 8; ++i) {
