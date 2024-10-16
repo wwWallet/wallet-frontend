@@ -4,7 +4,7 @@ import { Verify } from "../utils/Verify";
 import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../schemas/vc";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
-import { base64url, importX509, jwtVerify } from "jose";
+import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState } from "../types/OpenID4VPRelyingPartyState";
 import { OpenID4VPRelyingPartyStateRepository } from "./OpenID4VPRelyingPartyStateRepository";
 import { IHttpProxy } from "../interfaces/IHttpProxy";
@@ -34,7 +34,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		let state = authorizationRequest.searchParams.get('state') as string;
 		let presentation_definition = authorizationRequest.searchParams.get('presentation_definition') ? JSON.parse(authorizationRequest.searchParams.get('presentation_definition')) : null;
 		let presentation_definition_uri = authorizationRequest.searchParams.get('presentation_definition_uri');
-
+		let client_metadata = authorizationRequest.searchParams.get('client_metadata') ? JSON.parse(authorizationRequest.searchParams.get('client_metadata')) : null;
 
 		if (presentation_definition_uri) {
 			const presentationDefinitionFetch = await this.httpProxy.get(presentation_definition_uri, {});
@@ -61,6 +61,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			client_id = p.client_id;
 			presentation_definition = p.presentation_definition;
 			response_uri = p.response_uri ?? p.redirect_uri;
+			client_metadata = p.client_metadata;
 
 			state = p.state;
 			nonce = p.nonce;
@@ -119,7 +120,8 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			nonce,
 			response_uri,
 			client_id,
-			state
+			state,
+			client_metadata
 		));
 
 		const mapping = new Map<string, { credentials: string[], requestedFields: string[] }>();
@@ -285,11 +287,29 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		};
 
 		const formData = new URLSearchParams();
-		formData.append('vp_token', generatedVPs[0]);
-		formData.append('presentation_submission', JSON.stringify(presentationSubmission));
-		if (S.state) {
-			formData.append('state', S.state);
+
+		if (S.client_metadata.authorization_encrypted_response_alg && S.client_metadata.jwks.keys.length > 0) {
+			const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
+			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
+			const jwe = await new EncryptJWT({
+					vp_token: generatedVPs[0],
+					presentation_submission: presentationSubmission,
+					state: S.state ?? undefined
+				})
+				.setProtectedHeader({ alg: S.client_metadata.authorization_encrypted_response_alg, enc: S.client_metadata.authorization_encrypted_response_enc, kid: rp_eph_pub_jwk.kid })
+				.encrypt(rp_eph_pub);
+
+			formData.append('response', jwe);
+			console.log("JWE = ", jwe)
 		}
+		else {
+			formData.append('vp_token', generatedVPs[0]);
+			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
+			if (S.state) {
+				formData.append('state', S.state);
+			}
+		}
+
 
 		const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
