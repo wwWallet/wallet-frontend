@@ -54,7 +54,7 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 			{/* History Detail Popup */}
 			<HistoryDetailPopup
 				isOpen={isImageModalOpen}
-				onRequestClose={() => setImageModalOpen(false)}
+				onClose={() => setImageModalOpen(false)}
 				matchingCredentials={matchingCredentials}
 			/>
 		</>

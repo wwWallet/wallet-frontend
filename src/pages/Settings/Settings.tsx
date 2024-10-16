@@ -667,7 +667,7 @@ const WebauthnCredentialItem = ({
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
-					onCancel={closeDeleteConfirmation}
+					onClose={closeDeleteConfirmation}
 					message={
 						<Trans
 							i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
@@ -948,7 +948,7 @@ const Settings = () => {
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
-					onCancel={closeDeleteConfirmation}
+					onClose={closeDeleteConfirmation}
 					message={
 						<Trans
 							i18nKey="pageSettings.deleteAccount.message"

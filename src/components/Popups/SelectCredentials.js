@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useContext } from 'react';
-import Modal from 'react-modal';
+import PopupLayout from './PopupLayout';
 import { useNavigate } from 'react-router-dom';
 import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -55,7 +55,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
+function SelectCredentials({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
 	const navigate = useNavigate();
@@ -74,7 +74,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		const getData = async () => {
 			if (currentIndex === Object.keys(conformantCredentialsMap).length) {
 				setSelectionMap(currentSelectionMap);
-				setShowPopup(false);
+				setIsOpen(false);
 				return;
 			}
 
@@ -86,7 +86,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 							if ('error' in c) {
 								return;
 							}
-							return { ...vcEntity, friendlyName: c.credentialFriendlyName}
+							return { ...vcEntity, friendlyName: c.credentialFriendlyName }
 						});
 					})
 				);
@@ -110,7 +110,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		currentSelectionMap,
 		keys,
 		setSelectionMap,
-		setShowPopup,
+		setIsOpen,
 	]);
 
 	useEffect(() => {
@@ -118,7 +118,6 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		const selectedId = currentSelectionMap[currentKey];
 		setSelectedCredential(selectedId);
 	}, [currentIndex, currentSelectionMap, keys]);
-
 
 	const goToNextSelection = () => {
 		setShowAllFields(false);
@@ -144,12 +143,12 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 		}
 	};
 
-	const handleCancel = () => {
-		setShowPopup(false);
+	const onClose = () => {
+		setIsOpen(false);
 		navigate('/');
 	}
 
-	if (!showPopup) {
+	if (!isOpen) {
 		return null;
 	};
 
@@ -175,12 +174,8 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 	})();
 
 	return (
-		<Modal
-			isOpen={true}
-			onRequestClose={handleCancel}
-			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
-			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-		>
+		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false}>
+
 			{stepTitles && (
 				<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 					<FaShare size={20} className="inline mr-1 mb-1" />
@@ -266,7 +261,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 			</div>
 			<div className="flex justify-between mt-4">
 				<Button
-					onClick={handleCancel}
+					onClick={onClose}
 					variant="cancel"
 					className="mr-2"
 				>
@@ -293,7 +288,7 @@ function SelectCredentials({ showPopup, setShowPopup, setSelectionMap, conforman
 				</div>
 			</div>
 
-		</Modal >
+		</PopupLayout >
 	);
 }
 

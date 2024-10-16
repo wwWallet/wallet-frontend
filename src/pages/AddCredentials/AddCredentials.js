@@ -171,7 +171,7 @@ const Issuers = () => {
 			{showRedirectPopup && (
 				<RedirectPopup
 					loading={loading}
-					handleClose={handleCancel}
+					onClose={handleCancel}
 					handleContinue={handleContinue}
 					availableCredentialConfigurations={availableCredentialConfigurations}
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Uknown"}`}

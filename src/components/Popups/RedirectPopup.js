@@ -4,9 +4,9 @@ import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import Spinner from '../Shared/Spinner';
+import PopupLayout from './PopupLayout';
 
-
-const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose, handleContinue, popupTitle, popupMessage }) => {
+const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, handleContinue, popupTitle, popupMessage }) => {
 	const { t } = useTranslation();
 
 	const locale = 'en-US';
@@ -27,25 +27,8 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose
 		}
 	};
 
-	if (loading) {
-		return (
-			<Modal
-				isOpen={true}
-				onRequestClose={handleClose}
-				className="absolute inset-0 flex items-center justify-center"
-				overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-			>
-				<Spinner />
-			</Modal>
-		);
-	}
 	return (
-		<Modal
-			isOpen={true}
-			onRequestClose={handleClose}
-			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
-			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-		>
+		<PopupLayout isOpen={true} onClose={onClose} loading={loading}>
 			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 				<FaShare size={20} className="inline mr-1 mb-1" />
 				{popupTitle}
@@ -75,16 +58,15 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose
 				)
 			})}
 
-
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button variant="cancel" onClick={handleClose}>
+				<Button variant="cancel" onClick={onClose}>
 					{t('common.cancel')}
 				</Button>
 				<Button variant="primary" onClick={() => handleContinue(selectedConfiguration)}>
 					{t('common.continue')}
 				</Button>
 			</div>
-		</Modal>
+		</PopupLayout>
 	);
 };
 

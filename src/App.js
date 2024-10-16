@@ -129,7 +129,7 @@ function App() {
 					<Snowfalling />
 					<Suspense fallback={<Spinner />}>
 						<HandlerNotification />
-						<UpdateNotification/>
+						<UpdateNotification />
 						<Routes>
 							<Route element={
 								<PrivateRoute>
@@ -166,10 +166,10 @@ function App() {
 							</Route>
 						</Routes>
 						{showSelectCredentialsPopup &&
-							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
+							<SelectCredentialsPopup isOpen={showSelectCredentialsPopup} setIsOpen={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
 						}
 						{showPinInputPopup &&
-							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+							<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
 						}
 						{showMessagePopup &&
 							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />

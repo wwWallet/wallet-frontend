@@ -135,7 +135,7 @@ const Credential = () => {
 					<DeletePopup
 						isOpen={showDeletePopup}
 						onConfirm={handleSureDelete}
-						onCancel={() => setShowDeletePopup(false)}
+						onClose={() => setShowDeletePopup(false)}
 						message={
 							<Trans
 								i18nKey="pageCredentials.deletePopupMessage"

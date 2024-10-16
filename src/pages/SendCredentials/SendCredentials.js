@@ -135,7 +135,7 @@ const Verifiers = () => {
 			{showRedirectPopup && (
 				<RedirectPopup
 					loading={loading}
-					handleClose={handleCancel}
+					onClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
 					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
