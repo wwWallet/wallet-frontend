@@ -182,7 +182,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 					info: concat(new TextEncoder().encode('ARKG-KEM-HMAC-mac.'), dst_ext, info),
 				},
 				ikm,
-				{ name: "HMAC", hash },
+				{ name: "HMAC", hash, length: 32*8 },
 				false,
 				["sign"],
 			);
@@ -196,7 +196,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 					info: concat(new TextEncoder().encode('ARKG-KEM-HMAC-shared.'), dst_ext, info),
 				},
 				ikm,
-				k_prime.byteLength,
+				k_prime.byteLength * 8,
 			);
 			const c = concat(t, c_prime);
 
@@ -220,7 +220,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 					info: concat(new TextEncoder().encode('ARKG-KEM-HMAC-mac.'), dst_ext, info),
 				},
 				ikm,
-				{ name: "HMAC", hash },
+				{ name: "HMAC", hash, length: 32*8 },
 				false,
 				["sign"],
 			);
@@ -235,7 +235,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 						info: concat(new TextEncoder().encode('ARKG-KEM-HMAC-shared.'), dst_ext, info),
 					},
 					ikm,
-					k_prime.byteLength,
+					k_prime.byteLength * 8,
 				);
 				return k;
 
