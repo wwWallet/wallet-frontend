@@ -30,6 +30,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		if (!offer.grants.authorization_code) {
 			throw new Error("Only authorization_code grant is supported");
 		}
+
+		if (offer.credential_issuer != this.config.credentialIssuerIdentifier) {
+			throw new Error("Unable to handle this credential offer");
+		}
+
 		const selectedConfigurationId = offer.credential_configuration_ids[0];
 		const selectedConfiguration = this.config.credentialIssuerMetadata.credential_configurations_supported[selectedConfigurationId];
 		if (!selectedConfiguration) {
@@ -92,73 +97,110 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("Could not handle authorization response");
 		}
 
+		await this.requestCredentials({
+			dpopNonceHeader: dpopNonceHeader,
+			authorizationCodeGrant: {
+				authorizationResponseUrl: url,
+				code: code,
+			}
+		});
+	}
 
+	private async requestCredentials(requestCredentialsParams: {
+		dpopNonceHeader?: string,
+		preAuthorizedCodeGrant?: {
+			pre_authorized_code: string
+		},
+		authorizationCodeGrant?: {
+			authorizationResponseUrl: string
+			code: string;
+		}
+	}) {
 		const jti = generateRandomIdentifier(8);
 		// Token Request
 		const tokenEndpoint = this.config.authorizationServerMetadata.token_endpoint;
 
-		const { privateKey, publicKey } = await jose.generateKeyPair('ES256'); // keypair for dpop
-		const dpop = await generateDPoP(
-			privateKey,
-			publicKey,
-			jti,
-			"POST",
-			tokenEndpoint,
-			dpopNonceHeader
-		);
+		const { privateKey, publicKey } = await jose.generateKeyPair('ES256'); // keypair for dpop if used
 
 		const flowState = await this.openID4VCIClientStateRepository.retrieve();
 
-		flowState.dpopJti = jti;
+		let tokenRequestHeaders = {
+			'Content-Type': 'application/x-www-form-urlencoded',
+		};
+
+		if (this.config.authorizationServerMetadata.dpop_signing_alg_values_supported) {
+			const dpop = await generateDPoP(
+				privateKey,
+				publicKey,
+				jti,
+				"POST",
+				tokenEndpoint,
+				requestCredentialsParams.dpopNonceHeader
+			);
+			flowState.dpopJti = jti;
+
+			tokenRequestHeaders['DPoP'] = dpop;
+		}
+
 		await this.openID4VCIClientStateRepository.store(flowState);
 		const formData = new URLSearchParams();
-		formData.append('grant_type', 'authorization_code');
-		formData.append('code', code);
-		formData.append('code_verifier', flowState.code_verifier);
+		if (requestCredentialsParams.authorizationCodeGrant) {
+			formData.append('grant_type', 'authorization_code');
+			formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
+			formData.append('code_verifier', flowState.code_verifier);
+		}
 		formData.append('redirect_uri', redirectUri);
 
 		let response;
 		try {
-			response = await this.httpProxy.post(tokenEndpoint, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded',
-				'DPoP': dpop
-			});
+			response = await this.httpProxy.post(tokenEndpoint, formData.toString(), tokenRequestHeaders);
 		}
 		catch (err) {
 			console.log("failed token request")
 			console.error(err);
-			dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
-			if (dpopNonceHeader) {
-				this.handleAuthorizationResponse(url, dpopNonceHeader);
-				return;
+			if (err.response.data.err.headers['dpop-nonce']) {
+				requestCredentialsParams.dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
+				if (requestCredentialsParams.dpopNonceHeader) {
+					this.handleAuthorizationResponse(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl, requestCredentialsParams.dpopNonceHeader);
+					return;
+				}
 			}
-			return;
 		}
 
 		try {
 			// Credential Request
-			await this.credentialRequest(response, privateKey, publicKey, flowState);
+			await this.credentialRequest(response, flowState, privateKey, publicKey);
 		}
 		catch (err) {
 			console.error("Error handling authrozation response ", err);
 		}
 	}
 
-	private async credentialRequest(response: any, privateKey: jose.KeyLike, publicKey: jose.KeyLike, flowState: OpenID4VCIClientState) {
+	private async credentialRequest(response: any, flowState: OpenID4VCIClientState, privateKey?: jose.KeyLike, publicKey?: jose.KeyLike) {
 		const {
 			data: { access_token, c_nonce },
 		} = response;
-		const newDPoPNonce = response.headers['dpop-nonce'];
 		const credentialEndpoint = this.config.credentialIssuerMetadata.credential_endpoint;
-		const credentialEndpointDPoP = await generateDPoP(
-			privateKey,
-			publicKey,
-			flowState.dpopJti,
-			"POST",
-			credentialEndpoint,
-			newDPoPNonce,
-			access_token
-		);
+
+		let credentialRequestHeaders = {
+			"Authorization": `Bearer ${access_token}`,
+		};
+
+		if (this.config.authorizationServerMetadata.dpop_signing_alg_values_supported) {
+			const newDPoPNonce = response.headers['dpop-nonce'];
+			const credentialEndpointDPoP = await generateDPoP(
+				privateKey,
+				publicKey,
+				flowState.dpopJti,
+				"POST",
+				credentialEndpoint,
+				newDPoPNonce,
+				access_token
+			);
+
+			credentialRequestHeaders['Authorization'] = `DPoP ${access_token}`;
+			credentialRequestHeaders['dpop'] = credentialEndpointDPoP;
+		}
 
 		const { jws } = await this.generateNonceProof(c_nonce, this.config.credentialIssuerIdentifier, this.config.clientId);
 		const credentialEndpointBody = {
@@ -171,10 +213,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		};
 
 		try {
-			const credentialResponse = await this.httpProxy.post(credentialEndpoint, credentialEndpointBody, {
-				"Authorization": `DPoP ${access_token}`,
-				"dpop": credentialEndpointDPoP,
-			});
+			const credentialResponse = await this.httpProxy.post(credentialEndpoint, credentialEndpointBody, credentialRequestHeaders);
 			const { credential } = credentialResponse.data;
 			await this.storeCredential({
 				credentialIdentifier: generateRandomIdentifier(32),

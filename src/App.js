@@ -12,8 +12,9 @@ import { checkForUpdates } from './offlineRegistrationSW';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import HandlerNotification from './components/Notifications/HandlerNotification';
-import Snowfalling from './components/ChistmasAnimation/Snowfalling';
+import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
+
 import { ContainerContextProvider } from './context/ContainerContext';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
