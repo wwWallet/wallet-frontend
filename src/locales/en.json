@@ -27,20 +27,6 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
-	"browserSupportWarningPortal": {
-		"continueAnyway": "Continue anyway",
-		"heading": "Unsupported platform",
-		"intro": "It seems like you are using a browser or operating system that does not support the features used in this application.",
-		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
-		"outro": "You can proceed and try anyway, but please note that some or all application features might not work.",
-		"supportedList": {
-			"android": "Chrome, Edge, Opera or Brave on Android",
-			"intro": "The application is known to work with the following:",
-			"linux": "Chrome or Brave on GNU/Linux",
-			"macos": "Chrome, Edge, Opera or Brave on MacOS",
-			"windows": "Chrome, Edge, Opera or Brave on Windows"
-		}
-	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
@@ -267,8 +253,6 @@
 		"descriptionFieldsSingle": "The <strong> {{verifierDomainName}} </strong> requests the field:",
 		"descriptionFieldsMultiple": "The <strong> {{verifierDomainName}} </strong> requests the fields:",
 		"descriptionSelect": "Select the one Credential you want to present.",
-		"detailsHide": "Hide Details",
-		"detailsShow": "Show Details",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
