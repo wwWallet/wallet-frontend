@@ -1,13 +1,13 @@
 // PinInput.js
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import Modal from 'react-modal';
 import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
+import PopupLayout from './PopupLayout';
 
-function PinInput({ showPopup, setShowPopup }) {
+function PinInput({ isOpen, setIsOpen }) {
 	const { api } = useContext(SessionContext);
 	const navigate = useNavigate();
 	const [errMessage, setErrMessage] = useState('');
@@ -29,7 +29,7 @@ function PinInput({ showPopup, setShowPopup }) {
 	}, [firstInputRef]);
 
 	const handleCancel = () => {
-		setShowPopup(false);
+		setIsOpen(false);
 		navigate('/');
 	};
 
@@ -37,7 +37,7 @@ function PinInput({ showPopup, setShowPopup }) {
 		try {
 			const userPin = pin.join('');
 			await api.post('/communication/handle', { user_pin: userPin });
-			setShowPopup(false);
+			setIsOpen(false);
 		} catch (err) {
 			setErrMessage(`${t('PinInputPopup.errMessage')}`);
 		}
@@ -105,7 +105,7 @@ function PinInput({ showPopup, setShowPopup }) {
 		}
 	};
 
-	if (!showPopup) {
+	if (!isOpen) {
 		return null;
 	}
 
@@ -116,12 +116,7 @@ function PinInput({ showPopup, setShowPopup }) {
 	};
 
 	return (
-		<Modal
-			isOpen={true}
-			onRequestClose={handleCancel}
-			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
-			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-		>
+		<PopupLayout isOpen={isOpen} onClose={false}>
 			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 				<FaLock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
@@ -159,7 +154,7 @@ function PinInput({ showPopup, setShowPopup }) {
 					{t('common.submit')}
 				</Button>
 			</div>
-		</Modal>
+		</PopupLayout>
 	);
 }
 

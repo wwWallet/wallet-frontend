@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Modal from 'react-modal';
 import Webcam from 'react-webcam';
+import { FaArrowLeft } from "react-icons/fa";
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
-import Spinner from '../Spinner';
 import { useTranslation } from 'react-i18next';
 import { FaCheckCircle } from "react-icons/fa";
 import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 import QrScanner from 'qr-scanner';
+import PopupLayout from '../Popups/PopupLayout';
+import useScreenType from '../../hooks/useScreenType';
 
 const QRScanner = ({ onClose }) => {
-
 	const [devices, setDevices] = useState([]);
 	const [bestCameraResolutions, setBestCameraResolutions] = useState({ front: null, back: null });
 	const webcamRef = useRef(null);
@@ -21,6 +21,7 @@ const QRScanner = ({ onClose }) => {
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
+	const screenType = useScreenType();
 
 	const handleZoomChange = (event) => {
 		const newZoomLevel = Number(event.target.value);
@@ -50,7 +51,6 @@ const QRScanner = ({ onClose }) => {
 				setHasCameraPermission(false);
 			});
 	}, []);
-
 
 	useEffect(() => {
 		if (hasCameraPermission) {
@@ -127,7 +127,6 @@ const QRScanner = ({ onClose }) => {
 		}
 	};
 
-
 	const onUserMedia = () => {
 
 		if (webcamRef.current && webcamRef.current.video) {
@@ -180,14 +179,9 @@ const QRScanner = ({ onClose }) => {
 	}
 
 	return (
-		<Modal
-			isOpen={true}
-			onRequestClose={handleClose}
-			className="absolute inset-0 flex items-center justify-center"
-			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-		>
+		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || !cameraReady} fullScreen={screenType === 'mobile'}>
 			{hasCameraPermission === false ? (
-				<div className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4 max-h-[80%] overflow-auto">
+				<>
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
@@ -208,33 +202,42 @@ const QRScanner = ({ onClose }) => {
 					<p className='text-red-600 dark:text-red-500'>
 						{t('qrCodeScanner.cameraPermissionAllow')}
 					</p>
-				</div>
-			) : (!cameraReady || loading) ? (
-				<div className="flex items-center justify-center h-24">
-					<Spinner />
-				</div>
-			) : (
-				<div className="bg-white max-h-[80%] dark:bg-gray-700 p-4 rounded-lg shadow-lg w-full lg:w-[33.33%] sm:w-[66.67%] z-10 relative m-4">
-					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
-							{t('qrCodeScanner.title')}
-						</h2>
+				</>
+			) : cameraReady && !loading && (
+				<>
+					<div>
+						{screenType === 'mobile' && (
+							<button onClick={handleClose} className="mr-2 mb-2" aria-label="Go back to the previous page">
+								<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+							</button>
+						)}
+						<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+								<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
+								{t('qrCodeScanner.title')}
+							</h2>
 
-						<button
-							type="button"
-							className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-							onClick={handleClose}
-						>
-							<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-								<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-							</svg>
-						</button>
+							{screenType !== 'mobile' && (
+
+								<button
+									type="button"
+									className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+									onClick={handleClose}
+								>
+									<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+										<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+									</svg>
+								</button>
+							)}
+						</div>
+						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+
+						{screenType !== 'mobile' && (
+							<p className="italic pd-2 text-gray-700 dark:text-gray-300">
+								{t('qrCodeScanner.description')}
+							</p>
+						)}
 					</div>
-					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
-					<p className="italic pd-2 text-gray-700 dark:text-gray-300">
-						{t('qrCodeScanner.description')}
-					</p>
 					<div className="webcam-container mt-4 relative flex items-center justify-center">
 						<div className="relative w-full max-h-[50vh] flex justify-center items-center overflow-hidden">
 							<Webcam
@@ -263,8 +266,15 @@ const QRScanner = ({ onClose }) => {
 						</div>
 					</div>
 					<div className='flex justify-between align-center'>
-						<div className="flex items-center my-4 pr-4 w-full">
-							<RiZoomOutFill className="text-gray-400 dark:text-gray-200 mr-2 mt-2" onClick={handleZoomOut} size={35} />
+						<div className="flex items-center my-4 w-full">
+
+							<button
+								type="button"
+								className="text-gray-500 dark:text-gray-200 mr-2 mt-2 cursor-pointer"
+								onClick={handleZoomOut}
+							>
+								<RiZoomOutFill size={30} />
+							</button>
 							<input
 								type="range"
 								min="1"
@@ -274,21 +284,27 @@ const QRScanner = ({ onClose }) => {
 								onChange={handleZoomChange}
 								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
 							/>
-							<RiZoomInFill className="text-gray-400 dark:text-gray-200 ml-2 mt-2" onClick={handleZoomIn} size={35} />
-						</div>
-						{devices.length > 0 && (
 							<button
 								type="button"
-								className="text-gray-400 dark:text-gray-200 bg-transparent rounded-lg text-sm ml-4 p-2 my-4"
-								onClick={switchCamera}
+								className="text-gray-500 dark:text-gray-200 ml-2 mt-2 cursor-pointer"
+								onClick={handleZoomIn}
 							>
-								<PiCameraRotateFill size={25} />
+								<RiZoomInFill size={30} />
 							</button>
-						)}
+							{devices.length > 1 && (
+								<button
+									type="button"
+									className="text-gray-500 dark:text-gray-200 text-sm ml-4 mt-2"
+									onClick={switchCamera}
+								>
+									<PiCameraRotateFill size={30} />
+								</button>
+							)}
+						</div>
 					</div>
-				</div>
+				</>
 			)}
-		</Modal>
+		</PopupLayout>
 	);
 };
 

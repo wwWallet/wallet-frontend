@@ -29,10 +29,13 @@ const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
 		if (svgContent) {
 			const regex = /{{([^}]+)}}/g;
 
-			const replacedSvgText = svgContent.replace(regex, (match, content) => {
+			const replacedSvgText = svgContent.replace(regex, (_match, content) => {
 				let res = jsonpointer.get(credential.beautifiedForm, content.trim());
-				res = formatDate(res, 'date');
-				return res !== undefined ? res : match;
+				if (res !== undefined) {
+					res = formatDate(res, 'date');
+					return res;
+				}
+				return '';
 			});
 			const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;
 			onSvgGenerated(dataUri);

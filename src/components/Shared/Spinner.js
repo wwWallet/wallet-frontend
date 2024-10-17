@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import logo from '../assets/images/logo.png';
+import logo from '../../assets/images/logo.png';
 
 function Spinner() {
 	const [imageLoaded, setImageLoaded] = useState(false);
