@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -10,6 +10,9 @@ import useScreenType from '../../hooks/useScreenType';
 // Contexts
 import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
+
+//Functions
+import { CheckExpired } from '../../functions/CheckExpired';
 
 // Components
 import { H1 } from '../Shared/Heading';
@@ -27,6 +30,8 @@ const CredentialLayout = ({ children }) => {
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const [isExpired, setIsExpired] = useState(null);
+
 
 	useEffect(() => {
 		const getData = async () => {
@@ -50,6 +55,7 @@ const CredentialLayout = ({ children }) => {
 			if ('error' in c) {
 				return;
 			}
+			setIsExpired(CheckExpired(c.beautifiedForm.expiry_date))
 			setCredentialFriendlyName(c.credentialFriendlyName);
 		});
 	}, [vcEntity, container]);
@@ -86,7 +92,7 @@ const CredentialLayout = ({ children }) => {
 								aria-label={`${credentialFiendlyName}`}
 								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
 							>
-								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover"} />
+								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
 							</button>
 						)}
 						<div>
@@ -96,6 +102,19 @@ const CredentialLayout = ({ children }) => {
 						</div>
 					</div>
 				</div>
+
+				{screenType === 'mobile' && (
+					<>
+						{isExpired && (
+							<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
+								<div className="mr-2 text-orange-500">
+									<FaExclamationTriangle size={18} />
+								</div>
+								<p>{t('pageCredentials.details.expired')}</p>
+							</div>
+						)}
+					</>
+				)}
 
 				{children}
 			</div>

@@ -216,7 +216,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 					<>
 						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
 							<button
-								className={`relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer`}
+								className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer`}
 								onClick={() => handleClick(vcEntity.credentialIdentifier)}
 								aria-label={`${vcEntity.friendlyName}`}
 								title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}

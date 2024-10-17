@@ -47,7 +47,7 @@ const Home = () => {
 	const renderSlideContent = (vcEntity) => (
 		<button
 			key={vcEntity.id}
-			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
+			className={`relative rounded-xl w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 			onClick={() => handleImageClick(vcEntity)}
 			aria-label={`${vcEntity.friendlyName}`}
 			tabIndex={currentSlide !== vcEntityList.indexOf(vcEntity) + 1 ? -1 : 0}

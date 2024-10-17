@@ -151,7 +151,8 @@
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials",
 		"details": {
-			"description": "View all the information about the chosen credential"
+			"description": "View all the information about the chosen credential",
+			"expired": "This Credential has been expired"
 		},
 		"delete": "Delete Credential",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
@@ -220,7 +221,7 @@
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys",
-			"appVersion":"App Version"
+			"appVersion": "App Version"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
