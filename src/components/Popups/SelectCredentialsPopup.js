@@ -211,7 +211,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 				)
 				}
 			</div>
-			<div className={`flex flex-wrap justify-center flex flex-row justify-center overflow-y-auto bg-gray-50 dark:bg-gray-800 shadow-md rounded-md custom-scrollbar mb-2 ${screenType === 'mobile' ? 'h-full' : 'max-h-[40vh]'}`}>
+			<div className={`flex flex-wrap justify-center flex flex-row justify-center overflow-y-auto bg-gray-50 items-center dark:bg-gray-800 shadow-md rounded-md custom-scrollbar mb-2 ${screenType === 'mobile' ? 'h-full' : 'max-h-[40vh]'}`}>
 				{vcEntities.map(vcEntity => (
 					<>
 						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
