@@ -8,6 +8,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
+import useScreenType from '../../hooks/useScreenType';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -55,7 +56,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentials({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
+function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
 	const navigate = useNavigate();
@@ -66,9 +67,9 @@ function SelectCredentials({ isOpen, setIsOpen, setSelectionMap, conformantCrede
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showAllFields, setShowAllFields] = useState(false);
-	const [credentialDisplay, setCredentialDisplay] = useState({});
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const container = useContext(ContainerContext);
+	const screenType = useScreenType();
 
 	useEffect(() => {
 		const getData = async () => {
@@ -152,13 +153,6 @@ function SelectCredentials({ isOpen, setIsOpen, setSelectionMap, conformantCrede
 		return null;
 	};
 
-	const toggleCredentialDisplay = (identifier) => {
-		setCredentialDisplay(prev => ({
-			...prev,
-			[identifier]: !prev[identifier]
-		}));
-	};
-
 	const handleToggleFields = () => {
 		setShowAllFields(!showAllFields);
 	};
@@ -174,87 +168,70 @@ function SelectCredentials({ isOpen, setIsOpen, setSelectionMap, conformantCrede
 	})();
 
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false}>
+		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false} fullScreen={screenType === 'mobile'}>
+			<div>
+				{stepTitles && (
+					<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+						<FaShare size={20} className="inline mr-1 mb-1" />
+						{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
+					</h2>
+				)}
+				{keys.length > 1 && (
+					<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
+				)}
+				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-			{stepTitles && (
-				<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-					<FaShare size={20} className="inline mr-1 mb-1" />
-					{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
-				</h2>
-			)}
-			{keys.length > 1 && (
-				<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
-			)}
-			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
-
-			{requestedFieldsText && requestedFields.length > 0 && verifierDomainName && (
-				<>
-					<p className="pd-2 text-gray-700 text-sm dark:text-white">
-						<span>
-							<Trans
-								i18nKey={requestedFields.length === 1 ? "selectCredentialPopup.descriptionFieldsSingle" : "selectCredentialPopup.descriptionFieldsMultiple"}
-								values={{ verifierDomainName }}
-								components={{ strong: <strong /> }}
-							/>
-						</span>
-						&nbsp;
-						<strong>
-							{requestedFieldsText}
-						</strong>
-						{requestedFields.length > 2 && (
-							<>
-								{' '}
-								< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
-									{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')}`}
-								</button>
-							</>
-						)}.
-					</p>
-					<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
-						{t('selectCredentialPopup.descriptionSelect')}
-					</p>
-				</>
-			)
-			}
-
-			<div className='flex flex-wrap justify-center flex overflow-y-auto max-h-[40vh] custom-scrollbar bg-gray-50 dark:bg-gray-800 shadow-md rounded-xl mb-2'>
+				{requestedFieldsText && requestedFields.length > 0 && verifierDomainName && (
+					<>
+						<p className="pd-2 text-gray-700 text-sm dark:text-white">
+							<span>
+								<Trans
+									i18nKey={requestedFields.length === 1 ? "selectCredentialPopup.descriptionFieldsSingle" : "selectCredentialPopup.descriptionFieldsMultiple"}
+									values={{ verifierDomainName }}
+									components={{ strong: <strong /> }}
+								/>
+							</span>
+							&nbsp;
+							<strong>
+								{requestedFieldsText}
+							</strong>
+							{requestedFields.length > 2 && (
+								<>
+									{' '}
+									< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
+										{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')}`}
+									</button>
+								</>
+							)}.
+						</p>
+						<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+							{t('selectCredentialPopup.descriptionSelect')}
+						</p>
+					</>
+				)
+				}
+			</div>
+			<div className={`flex flex-wrap justify-center flex flex-row justify-center overflow-y-auto bg-gray-50 dark:bg-gray-800 shadow-md rounded-md custom-scrollbar mb-2 ${screenType === 'mobile' ? 'h-full' : 'max-h-[40vh]'}`}>
 				{vcEntities.map(vcEntity => (
 					<>
 						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
 							<button
-								className={`relative rounded-xl w-2/3 transition-shadow shadow-md hover:shadow-xl cursor-pointer ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-100' : 'opacity-50'}`}
+								className={`relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer`}
 								onClick={() => handleClick(vcEntity.credentialIdentifier)}
 								aria-label={`${vcEntity.friendlyName}`}
 								title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
 							>
 								<CredentialImage key={vcEntity.credentialIdentifier} credential={vcEntity.credential}
-									className={"w-full object-cover rounded-xl"}
+									className={`w-full object-cover rounded-xl ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-100' : 'opacity-50'}`}
 								/>
-								<div className="absolute top-[-5px] right-[-5px]" style={{ zIndex: "3000" }}>
+								<div className="z-60 absolute bottom-4 right-4" style={{ zIndex: "3000" }}>
 									{selectedCredential === vcEntity.credentialIdentifier ? (
-										<FaCheckCircle size={20} className="rounded-full bg-gray-50 dark:bg-white text-primary dark:text-primary-light" />
+										<FaCheckCircle size={30} className="z-50 rounded-full bg-white text-primary dark:text-primary-light" />
 									) : (
-										<FaRegCircle size={20} className="rounded-full bg-gray-50 dark:bg-gray-800 text-primary dark:text-white" />
+										<FaRegCircle size={30} className="z-50 rounded-full bg-white/50 text-primary dark:text-primary-light" />
 									)}
 								</div>
 							</button>
-							<div className='w-2/3 mt-2'>
-								<Button
-									onClick={() => toggleCredentialDisplay(vcEntity.credentialIdentifier)}
-									variant="primary"
-									additionalClassName='text-xs w-full'
-								>
-									{credentialDisplay[vcEntity.credentialIdentifier]
-										? t('selectCredentialPopup.detailsHide')
-										: t('selectCredentialPopup.detailsShow')
-									}
-								</Button>
-								<div
-									className={`transition-all ease-in-out duration-1000 overflow-hidden shadow-md rounded-lg dark:bg-gray-700 ${credentialDisplay[vcEntity.credentialIdentifier] ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}
-								>
-									<CredentialInfo credential={vcEntity.credential} mainClassName={"text-xs w-full"} />
-								</div>
-							</div>
 						</div>
 					</>
 				))}
@@ -287,9 +264,8 @@ function SelectCredentials({ isOpen, setIsOpen, setSelectionMap, conformantCrede
 					</Button>
 				</div>
 			</div>
-
 		</PopupLayout >
 	);
 }
 
-export default SelectCredentials;
+export default SelectCredentialsPopup;
