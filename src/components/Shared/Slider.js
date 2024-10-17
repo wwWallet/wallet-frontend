@@ -42,7 +42,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange }) => {
 				{items.map((item, index) => (
 					<SwiperSlide
 						key={item.id || index}
-						className={`swiper-slide ${Math.abs(currentSlide - (index + 1)) > 1 ? 'hidden-slide' : ''}`}
+						className={`rounded-xl ${Math.abs(currentSlide - (index + 1)) > 1 && 'invisible pointer-events-none'}`}
 					>
 						{renderSlideContent(item, index)}
 					</SwiperSlide>

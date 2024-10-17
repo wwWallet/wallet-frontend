@@ -140,15 +140,6 @@ input:-webkit-autofill {
 }
 
 /* Swiper style */
-.hidden-slide {
-	visibility: hidden;
-	pointer-events: none;
-}
-
-.swiper-slide {
-	border-radius: 12px;
-}
-
 .swiper-slide-prev,
 .swiper-slide-next {
 	display: inline-flex !important;
