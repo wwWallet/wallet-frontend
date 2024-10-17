@@ -97,7 +97,25 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("Could not handle authorization response");
 		}
 
+		await this.requestCredentials({
+			dpopNonceHeader: dpopNonceHeader,
+			authorizationCodeGrant: {
+				authorizationResponseUrl: url,
+				code: code,
+			}
+		});
+	}
 
+	private async requestCredentials(requestCredentialsParams: {
+		dpopNonceHeader?: string,
+		preAuthorizedCodeGrant?: {
+			pre_authorized_code: string
+		},
+		authorizationCodeGrant?: {
+			authorizationResponseUrl: string
+			code: string;
+		}
+	}) {
 		const jti = generateRandomIdentifier(8);
 		// Token Request
 		const tokenEndpoint = this.config.authorizationServerMetadata.token_endpoint;
@@ -117,7 +135,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 				jti,
 				"POST",
 				tokenEndpoint,
-				dpopNonceHeader
+				requestCredentialsParams.dpopNonceHeader
 			);
 			flowState.dpopJti = jti;
 
@@ -126,9 +144,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		await this.openID4VCIClientStateRepository.store(flowState);
 		const formData = new URLSearchParams();
-		formData.append('grant_type', 'authorization_code');
-		formData.append('code', code);
-		formData.append('code_verifier', flowState.code_verifier);
+		if (requestCredentialsParams.authorizationCodeGrant) {
+			formData.append('grant_type', 'authorization_code');
+			formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
+			formData.append('code_verifier', flowState.code_verifier);
+		}
 		formData.append('redirect_uri', redirectUri);
 
 		let response;
@@ -138,12 +158,13 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		catch (err) {
 			console.log("failed token request")
 			console.error(err);
-			dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
-			if (dpopNonceHeader) {
-				this.handleAuthorizationResponse(url, dpopNonceHeader);
-				return;
+			if (err.response.data.err.headers['dpop-nonce']) {
+				requestCredentialsParams.dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
+				if (requestCredentialsParams.dpopNonceHeader) {
+					this.handleAuthorizationResponse(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl, requestCredentialsParams.dpopNonceHeader);
+					return;
+				}
 			}
-			return;
 		}
 
 		try {
