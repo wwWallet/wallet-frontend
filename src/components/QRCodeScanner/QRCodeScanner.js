@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
-import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from "react-icons/fa";
 import { BsQrCodeScan } from 'react-icons/bs';
 import { PiCameraRotateFill } from 'react-icons/pi';
@@ -23,7 +22,6 @@ const QRScanner = ({ onClose }) => {
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
 	const screenType = useScreenType();
-	const navigate = useNavigate();
 
 	const handleZoomChange = (event) => {
 		const newZoomLevel = Number(event.target.value);
@@ -209,7 +207,7 @@ const QRScanner = ({ onClose }) => {
 				<>
 					<div>
 						{screenType === 'mobile' && (
-							<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
+							<button onClick={handleClose} className="mr-2 mb-2" aria-label="Go back to the previous page">
 								<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 							</button>
 						)}
@@ -268,8 +266,15 @@ const QRScanner = ({ onClose }) => {
 						</div>
 					</div>
 					<div className='flex justify-between align-center'>
-						<div className="flex items-center my-4 pr-4 w-full">
-							<RiZoomOutFill className="text-gray-500 dark:text-gray-200 mr-2 mt-2 cursor-pointer" onClick={handleZoomOut} size={35} />
+						<div className="flex items-center my-4 w-full">
+
+							<button
+								type="button"
+								className="text-gray-500 dark:text-gray-200 mr-2 mt-2 cursor-pointer"
+								onClick={handleZoomOut}
+							>
+								<RiZoomOutFill size={30} />
+							</button>
 							<input
 								type="range"
 								min="1"
@@ -279,17 +284,23 @@ const QRScanner = ({ onClose }) => {
 								onChange={handleZoomChange}
 								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
 							/>
-							<RiZoomInFill className="text-gray-500 dark:text-gray-200 ml-2 mt-2 cursor-pointer" onClick={handleZoomIn} size={35} />
-						</div>
-						{devices.length > 0 && (
 							<button
 								type="button"
-								className="text-gray-500 dark:text-gray-200 bg-transparent rounded-lg text-sm ml-4 mt-2"
-								onClick={switchCamera}
+								className="text-gray-500 dark:text-gray-200 ml-2 mt-2 cursor-pointer"
+								onClick={handleZoomIn}
 							>
-								<PiCameraRotateFill size={30} />
+								<RiZoomInFill size={30} />
 							</button>
-						)}
+							{devices.length > 1 && (
+								<button
+									type="button"
+									className="text-gray-500 dark:text-gray-200 text-sm ml-4 mt-2"
+									onClick={switchCamera}
+								>
+									<PiCameraRotateFill size={30} />
+								</button>
+							)}
+						</div>
 					</div>
 				</>
 			)}
