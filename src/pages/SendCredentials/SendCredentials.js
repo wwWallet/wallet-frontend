@@ -48,7 +48,6 @@ const Verifiers = () => {
 	}, []);
 
 	useEffect(() => {
-
 		const fetchVerifiers = async () => {
 			try {
 				const fetchedVerifiers = await api.getAllVerifiers();
@@ -70,7 +69,7 @@ const Verifiers = () => {
 	useEffect(() => {
 		const filtered = verifiers.filter((verifier) => {
 			const name = verifier.name.toLowerCase();
-			const query = searchQuery.toLowerCase();
+			const query = searchQuery.toLowerCase().trimStart();
 			return name.includes(query);
 		});
 
@@ -149,7 +148,7 @@ const Verifiers = () => {
 								disabled={!isOnline}
 								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
-								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery) }} />
+								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(verifier.name, searchQuery.trimStart()) }} />
 							</Button>
 						))}
 					</div>
