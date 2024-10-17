@@ -22,10 +22,21 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		private storeCredential: (c: StorableCredential) => Promise<void>
 	) { }
 
-
 	async handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationSupported: CredentialConfigurationSupported; issuer_state?: string }> {
 		const parsedUrl = new URL(credentialOfferURL);
-		const offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
+		let offer;
+		if (parsedUrl.searchParams.get("credential_offer")) {
+			offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
+		} else {
+			try {
+				let response = await this.httpProxy.get(parsedUrl.searchParams.get("credential_offer_uri"), {})
+				offer = response.data;
+			}
+			catch (err) {
+				console.error(err);
+				return;
+			}
+		}
 
 		if (!offer.grants.authorization_code) {
 			throw new Error("Only authorization_code grant is supported");
@@ -43,7 +54,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		let issuer_state = undefined;
 		if (offer.grants?.authorization_code?.issuer_state) {
-			issuer_state = offer.credential_issuer, offer.grants.authorization_code.issuer_state;
+			issuer_state = offer.grants.authorization_code.issuer_state;
 		}
 
 		return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationSupported: selectedConfiguration, issuer_state };
