@@ -6,6 +6,7 @@ import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
 import { formatDate } from '../../functions/DateFormat';
 import ContainerContext from '../../context/ContainerContext';
+import useScreenType from '../../hooks/useScreenType';
 
 const getFieldIcon = (fieldName) => {
 	switch (fieldName) {
@@ -31,17 +32,18 @@ const getFieldIcon = (fieldName) => {
 	}
 };
 
-const renderRow = (fieldName, label, fieldValue) => {
+const renderRow = (fieldName, label, fieldValue, screenType) => {
+
 	if (fieldValue) {
 		return (
 			<tr className="text-left">
-				<td className="font-bold text-primary dark:text-primary-light py-2 px-2 rounded-l-xl">
-					<div className="flex md:flex-row flex-col items-left">
-						{getFieldIcon(fieldName)}
+				<td className="font-bold text-primary dark:text-primary-light py-2 xm:py-1 px-2 rounded-l-xl">
+					<div className="flex flex-row items-left">
+						{screenType !== 'mobile' && getFieldIcon(fieldName)}
 						<span className="md:ml-1 flex items-center">{label}:</span>
 					</div>
 				</td>
-				<td className="text-gray-700 dark:text-white py-2 px-2 rounded-r-xl">{fieldValue}</td>
+				<td className="text-gray-700 dark:text-white py-2 xm:py-1 px-2 rounded-r-xl">{fieldValue}</td>
 			</tr>
 		);
 	} else {
@@ -49,11 +51,11 @@ const renderRow = (fieldName, label, fieldValue) => {
 	}
 };
 
-const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:text-base pt-5 pr-2 w-full" }) => {
+const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
-
 	const container = useContext(ContainerContext);
+	const screenType = useScreenType();
 
 	useEffect(() => {
 		if (container) {
@@ -73,18 +75,17 @@ const CredentialInfo = ({ credential, mainClassName = "text-xs sm:text-sm md:tex
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential && (
 						<>
-							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential?.exp * 1000).toISOString()))}
-							{renderRow('familyName', 'Family Name', parsedCredential?.family_name)}
-							{renderRow('firstName', 'Given Name', parsedCredential?.given_name)}
-							{renderRow('id', 'Personal ID', parsedCredential?.personal_identifier)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential?.dateOfBirth)}
-							{renderRow('dateOfBirth', 'Birthday', parsedCredential?.birth_date)}
-							{renderRow('diplomaTitle', 'Title', parsedCredential?.title)}
-							{renderRow('eqfLevel', 'EQF', parsedCredential?.eqf_level)}
-							{renderRow('grade', 'Grade', parsedCredential?.grade)}
-							{renderRow('id', 'Social Security Number', parsedCredential?.ssn)}
-							{renderRow('id', 'Document Number', parsedCredential?.document_number)}
-
+							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential?.exp * 1000).toISOString()), screenType)}
+							{renderRow('familyName', 'Family Name', parsedCredential?.family_name, screenType)}
+							{renderRow('firstName', 'Given Name', parsedCredential?.given_name, screenType)}
+							{renderRow('id', 'Personal ID', parsedCredential?.personal_identifier, screenType)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential?.dateOfBirth, 'date'), screenType)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential?.birth_date, 'date'), screenType)}
+							{renderRow('diplomaTitle', 'Title', parsedCredential?.title, screenType)}
+							{renderRow('eqfLevel', 'EQF', parsedCredential?.eqf_level, screenType)}
+							{renderRow('grade', 'Grade', parsedCredential?.grade, screenType)}
+							{renderRow('id', 'Social Security Number', parsedCredential?.ssn, screenType)}
+							{renderRow('id', 'Document Number', parsedCredential?.document_number, screenType)}
 						</>
 					)}
 				</tbody>

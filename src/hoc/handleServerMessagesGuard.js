@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useContext } from "react";
 
 import * as config from '../config';
 import { SignatureAction } from "../types/shared.types";
-import Spinner from '../components/Spinner';
+import Spinner from '../components/Shared/Spinner';
 import { SigningRequestHandlerService } from '../services/SigningRequestHandlers';
 import StatusContext from '../context/StatusContext';
 import SessionContext from "../context/SessionContext";

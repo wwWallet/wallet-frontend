@@ -18,7 +18,7 @@ module.exports = {
 				'extra-light-hover': '#5DB5D8',
 			},
 			screens: {
-				'max480': { 'max': '480px' },
+				'xm': { 'max': '479px' },
 			},
 			keyframes: {
 				'slide-in-up': {

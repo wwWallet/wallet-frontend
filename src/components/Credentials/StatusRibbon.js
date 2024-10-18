@@ -2,19 +2,13 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import ContainerContext from '../../context/ContainerContext';
+import {CheckExpired} from '../../functions/CheckExpired';
 
 const StatusRibbon = ({ credential }) => {
 	const { t } = useTranslation();
 
 	const [parsedCredential, setParsedCredential] = useState(null);
-
 	const container = useContext(ContainerContext);
-
-	const CheckExpired = (expDate) => {
-		const today = new Date();
-		const expirationDate = new Date(expDate);
-		return expirationDate < today;
-	};
 
 	useEffect(() => {
 		if (container) {
@@ -30,9 +24,9 @@ const StatusRibbon = ({ credential }) => {
 
 	return (
 		<>
-			{parsedCredential && CheckExpired(parsedCredential.expirationDate) &&
-				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t border-l border-white ${CheckExpired(parsedCredential.expirationDate) ? 'bg-red-500' : 'bg-green-500'}`}>
-					{ t('statusRibbon.expired') }
+			{parsedCredential && CheckExpired(parsedCredential.expiry_date) &&
+				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg border-t-2 border-l-2 border-gray-200 dark:border-gray-800 ${CheckExpired(parsedCredential.expiry_date) && 'bg-red-600'}`}>
+					{t('statusRibbon.expired')}
 				</div>
 			}
 		</>

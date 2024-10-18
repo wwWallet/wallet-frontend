@@ -8,9 +8,9 @@ import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
 import Button from '../../components/Buttons/Button';
-import { PiWifiHighBold, PiWifiSlashBold } from "react-icons/pi";
-import LoginPageLayout from './LoginPageLayout';
+import LoginPageLayout from '../../components/Auth/LoginLayout';
 import { checkForUpdates } from '../../offlineRegistrationSW';
+import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -142,11 +142,7 @@ const LoginState = () => {
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-					{isOnline ? (
-						<PiWifiHighBold size={25} title={t('common.online')} />
-					) : (
-						<PiWifiSlashBold size={25} title={t('common.offline')} />
-					)}
+					<ConnectionStatusIcon size={25} />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">

@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-
+import { useQRScanner } from '../../hooks/useQRScanner';
 import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
-import { H1 } from '../../components/Heading';
+import { H1 } from '../../components/Shared/Heading';
 import ContainerContext from '../../context/ContainerContext';
 import Button from '../../components/Buttons/Button';
-
+import PageDescription from '../../components/Shared/PageDescription';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -26,29 +26,16 @@ function highlightBestSequence(issuer, search) {
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
-
 	const container = useContext(ContainerContext);
 	const { t } = useTranslation();
-
-	useEffect(() => {
-		const handleResize = () => {
-			setIsSmallScreen(window.innerWidth < 768);
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -64,7 +51,7 @@ const Issuers = () => {
 							credentialIssuerMetadata: metadata,
 						}
 					}
-					catch(err) {
+					catch (err) {
 						console.error(err);
 						return null;
 					}
@@ -140,24 +127,13 @@ const Issuers = () => {
 		setShowRedirectPopup(false);
 	};
 
-	// QR Code part
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
-
-	const openQRScanner = () => {
-		setQRScannerOpen(true);
-	};
-
-	const closeQRScanner = () => {
-		setQRScannerOpen(false);
-	};
-
 	return (
 		<>
 			<div className="sm:px-6 w-full">
 				<H1 heading={t('common.navItemAddCredentials')}>
-					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
+					<QRButton openQRScanner={openQRScanner} />
 				</H1>
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageAddCredentials.description')}</p>
+				<PageDescription description={t('pageAddCredentials.description')} />
 
 				<div className="my-4">
 					<input
@@ -195,7 +171,7 @@ const Issuers = () => {
 			{showRedirectPopup && (
 				<RedirectPopup
 					loading={loading}
-					handleClose={handleCancel}
+					onClose={handleCancel}
 					handleContinue={handleContinue}
 					availableCredentialConfigurations={availableCredentialConfigurations}
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Uknown"}`}
@@ -203,13 +179,10 @@ const Issuers = () => {
 				/>
 			)}
 
-			{/* QR Code Scanner Modal */}
+			{/* QR Code Scanner */}
 			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={closeQRScanner}
-				/>
+				<QRCodeScanner onClose={closeQRScanner} />
 			)}
-
 		</>
 	);
 };

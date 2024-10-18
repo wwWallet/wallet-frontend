@@ -2,16 +2,10 @@
 
 import React, { useEffect, useState, useContext } from 'react';
 
-import { AiOutlineDown, AiOutlineUp } from 'react-icons/ai';
 import ContainerContext from '../../context/ContainerContext';
-import Button from '../Buttons/Button';
 
-const CredentialJson = ({ credential }) => {
-	const [showJsonCredentials, setShowJsonCredentials] = useState(false);
-
-
+const CredentialJson = ({ credential, textAreaRows='10' }) => {
 	const container = useContext(ContainerContext);
-
 	const [parsedCredential, setParsedCredential] = useState(null);
 
 	useEffect(() => {
@@ -26,34 +20,16 @@ const CredentialJson = ({ credential }) => {
 	}, [credential, container]);
 
 	return (
-		<div className=" lg:p-0 p-2 w-full">
-			<div className="mb-4 flex items-center">
-				<Button
-					onClick={() => setShowJsonCredentials(!showJsonCredentials)}
-					variant="primary"
-				>
-					{showJsonCredentials ? 'Hide Credentials Details' : 'Show Credentials Details'}
-					{showJsonCredentials ? (
-						<AiOutlineUp className="ml-1" />
-					) : (
-						<AiOutlineDown className="ml-1" />
-					)}
-				</Button>
-			</div>
-
-			<hr className="my-2 border-t border-primary dark:border-primary-light py-2" />
-
-			{showJsonCredentials && parsedCredential ? (
+		<div className='w-full'>
+			{parsedCredential && (
 				<div>
 					<textarea
-						rows="10"
+						rows={textAreaRows}
 						readOnly
-						className="w-full dark:bg-gray-900 dark:text-white border rounded p-2 rounded-xl"
+						className="dark:bg-gray-900 dark:text-white border rounded p-2 text-sm w-full rounded-xl"
 						value={JSON.stringify(parsedCredential, null, 2)}
 					/>
 				</div>
-			) : (
-				<p></p>
 			)}
 		</div>
 	);
