@@ -81,7 +81,9 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		formData.append("code_challenge_method", "S256");
 
-		formData.append("state", btoa(JSON.stringify({ userHandleB64u: userHandleB64u })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, ""));
+		// the purpose of the "id" is to provide the "state" a random factor for unlinkability and to make OpenID4VCIClientState instances unique
+		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+		formData.append("state", state);
 
 		if (issuer_state) {
 			formData.append("issuer_state", issuer_state);
@@ -101,8 +103,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const { request_uri } = res.data;
 		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
 
-		await this.openID4VCIClientStateRepository.store(new OpenID4VCIClientState(code_verifier, "", selectedCredentialConfigurationSupported));
-
+		console.log("State to be stored = ", state)
+		await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(state, code_verifier, "", selectedCredentialConfigurationSupported))
 		return {
 			url: authorizationRequestURL,
 			request_uri,
@@ -114,11 +116,14 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const parsedUrl = new URL(url);
 
 		const code = parsedUrl.searchParams.get('code');
+		const state = parsedUrl.searchParams.get('state');
+
 		if (!code) {
 			throw new Error("Could not handle authorization response");
 		}
 
 		await this.requestCredentials({
+			state: state,
 			dpopNonceHeader: dpopNonceHeader,
 			authorizationCodeGrant: {
 				authorizationResponseUrl: url,
@@ -128,6 +133,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	}
 
 	private async requestCredentials(requestCredentialsParams: {
+		state?: string,
 		dpopNonceHeader?: string,
 		preAuthorizedCodeGrant?: {
 			pre_authorized_code: string
@@ -137,14 +143,19 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			code: string;
 		}
 	}) {
+
+		console.log("State = ", requestCredentialsParams.state)
 		const jti = generateRandomIdentifier(8);
 		// Token Request
 		const tokenEndpoint = this.config.authorizationServerMetadata.token_endpoint;
 
 		const { privateKey, publicKey } = await jose.generateKeyPair('ES256'); // keypair for dpop if used
 
-		const flowState = await this.openID4VCIClientStateRepository.retrieve();
-
+		const flowState = await this.openID4VCIClientStateRepository.getByState(requestCredentialsParams.state)
+		console.log("Flow state = ", flowState)
+		if (!flowState) {
+			return;
+		}
 		let tokenRequestHeaders = {
 			'Content-Type': 'application/x-www-form-urlencoded',
 		};
@@ -163,7 +174,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			tokenRequestHeaders['DPoP'] = dpop;
 		}
 
-		await this.openID4VCIClientStateRepository.store(flowState);
+		await this.openID4VCIClientStateRepository.updateState(flowState);
+
 		const formData = new URLSearchParams();
 		if (requestCredentialsParams.authorizationCodeGrant) {
 			formData.append('grant_type', 'authorization_code');
