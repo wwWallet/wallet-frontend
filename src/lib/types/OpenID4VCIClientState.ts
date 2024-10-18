@@ -13,6 +13,7 @@ export class OpenID4VCIClientState {
 	public serialize(): string {
 		return JSON.stringify({
 			code_verifier: this.code_verifier,
+			dpopJti: this.dpopJti,
 			selectedCredentialConfiguration: this.selectedCredentialConfiguration
 		});
 	}
