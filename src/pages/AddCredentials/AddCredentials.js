@@ -91,9 +91,9 @@ const Issuers = () => {
 
 	useEffect(() => {
 		const filtered = issuers.filter((issuer) => {
-			const friendlyName = issuer?.selectedDisplay.name ?? "Uknown"
-			const query = searchQuery.toLowerCase();
-			return friendlyName.includes(query);
+			const friendlyName = issuer?.selectedDisplay.name ?? 'Unknown';
+			const query = searchQuery.toLowerCase().trimStart();
+			return friendlyName.toLowerCase().includes(query);
 		});
 
 		setFilteredIssuers(filtered);
@@ -185,7 +185,7 @@ const Issuers = () => {
 								disabled={!isOnline}
 								title={!isOnline ? t('common.offlineTitle') : ''}
 							>
-								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.credentialIssuerMetadata.display[0]?.name ?? "Uknown", searchQuery) }} />
+								<div dangerouslySetInnerHTML={{ __html: highlightBestSequence(issuer.credentialIssuerMetadata.display[0]?.name ?? "Unknown", searchQuery.trimStart()) }} />
 							</Button>
 						))}
 					</div>
@@ -198,8 +198,8 @@ const Issuers = () => {
 					handleClose={handleCancel}
 					handleContinue={handleContinue}
 					availableCredentialConfigurations={availableCredentialConfigurations}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Uknown"}`}
-					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.selectedDisplay?.name ?? "Uknown" })}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Unknown"}`}
+					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.selectedDisplay?.name ?? "Unknown" })}
 				/>
 			)}
 
