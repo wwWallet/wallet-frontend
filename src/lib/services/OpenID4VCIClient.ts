@@ -10,8 +10,9 @@ import { CredentialOfferSchema } from '../schemas/CredentialOfferSchema';
 import { StorableCredential } from '../types/StorableCredential';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../utils/generateRandomIdentifier';
+import * as config from '../../config';
 
-const redirectUri = process.env.REACT_APP_OPENID4VCI_REDIRECT_URI as string;
+const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
 export class OpenID4VCIClient implements IOpenID4VCIClient {
 
