@@ -1,5 +1,13 @@
+import { JWK } from "jose";
 import { PresentationDefinitionType } from "./presentationDefinition.type";
 
+
+type ClientMetadata = {
+	jwks?: { keys: JWK[] },
+	authorization_encrypted_response_alg?: string;
+	authorization_encrypted_response_enc?: string;
+	vp_formats: any;
+}
 /**
  * serializable
  */
@@ -11,6 +19,7 @@ export class OpenID4VPRelyingPartyState {
 		public response_uri: string,
 		public client_id: string,
 		public state: string,
+		public client_metadata: ClientMetadata
 	) { }
 
 	public serialize(): string {
@@ -20,11 +29,12 @@ export class OpenID4VPRelyingPartyState {
 			response_uri: this.response_uri,
 			client_id: this.client_id,
 			state: this.state,
+			client_metadata: this.client_metadata,
 		});
 	}
 
 	public static deserialize(storedValue: string): OpenID4VPRelyingPartyState {
-		const { presentation_definition, nonce, response_uri, client_id, state } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
-		return new OpenID4VPRelyingPartyState(presentation_definition, nonce, response_uri, client_id, state);
+		const { presentation_definition, nonce, response_uri, client_id, state, client_metadata } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
+		return new OpenID4VPRelyingPartyState(presentation_definition, nonce, response_uri, client_id, state, client_metadata);
 	}
 }

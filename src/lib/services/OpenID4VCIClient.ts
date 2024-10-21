@@ -22,10 +22,21 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		private storeCredential: (c: StorableCredential) => Promise<void>
 	) { }
 
-
-	async handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationSupported: CredentialConfigurationSupported; }> {
+	async handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationSupported: CredentialConfigurationSupported; issuer_state?: string }> {
 		const parsedUrl = new URL(credentialOfferURL);
-		const offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
+		let offer;
+		if (parsedUrl.searchParams.get("credential_offer")) {
+			offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
+		} else {
+			try {
+				let response = await this.httpProxy.get(parsedUrl.searchParams.get("credential_offer_uri"), {})
+				offer = response.data;
+			}
+			catch (err) {
+				console.error(err);
+				return;
+			}
+		}
 
 		if (!offer.grants.authorization_code) {
 			throw new Error("Only authorization_code grant is supported");
@@ -40,7 +51,13 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		if (!selectedConfiguration) {
 			throw new Error("Credential configuration not found");
 		}
-		return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationSupported: selectedConfiguration };
+
+		let issuer_state = undefined;
+		if (offer.grants?.authorization_code?.issuer_state) {
+			issuer_state = offer.grants.authorization_code.issuer_state;
+		}
+
+		return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationSupported: selectedConfiguration, issuer_state };
 	}
 
 	async getAvailableCredentialConfigurations(): Promise<Record<string, CredentialConfigurationSupported>> {
@@ -50,7 +67,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		return this.config.credentialIssuerMetadata.credential_configurations_supported
 	}
 
-	async generateAuthorizationRequest(selectedCredentialConfigurationSupported: CredentialConfigurationSupported, userHandleB64u: string): Promise<{ url: string; client_id: string; request_uri: string; }> {
+	async generateAuthorizationRequest(selectedCredentialConfigurationSupported: CredentialConfigurationSupported, userHandleB64u: string, issuer_state?: string): Promise<{ url: string; client_id: string; request_uri: string; }> {
 		const { code_challenge, code_verifier } = await pkce();
 
 		const formData = new URLSearchParams();
@@ -65,6 +82,10 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		formData.append("code_challenge_method", "S256");
 
 		formData.append("state", btoa(JSON.stringify({ userHandleB64u: userHandleB64u })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, ""));
+
+		if (issuer_state) {
+			formData.append("issuer_state", issuer_state);
+		}
 
 		formData.append("redirect_uri", redirectUri);
 		let res;
@@ -97,7 +118,25 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("Could not handle authorization response");
 		}
 
+		await this.requestCredentials({
+			dpopNonceHeader: dpopNonceHeader,
+			authorizationCodeGrant: {
+				authorizationResponseUrl: url,
+				code: code,
+			}
+		});
+	}
 
+	private async requestCredentials(requestCredentialsParams: {
+		dpopNonceHeader?: string,
+		preAuthorizedCodeGrant?: {
+			pre_authorized_code: string
+		},
+		authorizationCodeGrant?: {
+			authorizationResponseUrl: string
+			code: string;
+		}
+	}) {
 		const jti = generateRandomIdentifier(8);
 		// Token Request
 		const tokenEndpoint = this.config.authorizationServerMetadata.token_endpoint;
@@ -117,7 +156,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 				jti,
 				"POST",
 				tokenEndpoint,
-				dpopNonceHeader
+				requestCredentialsParams.dpopNonceHeader
 			);
 			flowState.dpopJti = jti;
 
@@ -126,9 +165,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		await this.openID4VCIClientStateRepository.store(flowState);
 		const formData = new URLSearchParams();
-		formData.append('grant_type', 'authorization_code');
-		formData.append('code', code);
-		formData.append('code_verifier', flowState.code_verifier);
+		if (requestCredentialsParams.authorizationCodeGrant) {
+			formData.append('grant_type', 'authorization_code');
+			formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
+			formData.append('code_verifier', flowState.code_verifier);
+		}
 		formData.append('redirect_uri', redirectUri);
 
 		let response;
@@ -138,12 +179,13 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		catch (err) {
 			console.log("failed token request")
 			console.error(err);
-			dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
-			if (dpopNonceHeader) {
-				this.handleAuthorizationResponse(url, dpopNonceHeader);
-				return;
+			if (err.response.data.err.headers['dpop-nonce']) {
+				requestCredentialsParams.dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
+				if (requestCredentialsParams.dpopNonceHeader) {
+					this.handleAuthorizationResponse(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl, requestCredentialsParams.dpopNonceHeader);
+					return;
+				}
 			}
-			return;
 		}
 
 		try {

@@ -41,11 +41,11 @@ function useCheckURL(urlToCheck: string): {
 			throw new Error("User handle could not be extracted from keystore");
 		}
 		const u = new URL(urlToCheck);
-		if ((u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer'))) {
+		if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri') ) {
 			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
 				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString())
-					.then(({ credentialIssuer, selectedCredentialConfigurationSupported }) => {
-						return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationSupported, userHandleB64u);
+					.then(({ credentialIssuer, selectedCredentialConfigurationSupported, issuer_state }) => {
+						return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationSupported, userHandleB64u, issuer_state);
 					})
 					.then(({ url, client_id, request_uri }) => {
 						window.location.href = url;
