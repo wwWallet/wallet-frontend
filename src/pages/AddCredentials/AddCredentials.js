@@ -8,8 +8,8 @@ import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Heading';
-import ContainerContext from '../../context/ContainerContext';
 import Button from '../../components/Buttons/Button';
+import { useContainer } from '../../components/useContainer';
 
 
 function highlightBestSequence(issuer, search) {
@@ -35,7 +35,7 @@ const Issuers = () => {
 	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
-	const container = useContext(ContainerContext);
+	const { container } = useContainer();
 	const { t } = useTranslation();
 
 	useEffect(() => {
@@ -118,7 +118,7 @@ const Issuers = () => {
 		setSelectedIssuer(null);
 	};
 
-	const handleContinue = (selectedConfiguration) => {
+	const handleContinue = (selectedConfigurationId) => {
 		setLoading(true);
 
 		if (selectedIssuer && selectedIssuer.credentialIssuerIdentifier) {
@@ -128,8 +128,8 @@ const Issuers = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			cl.generateAuthorizationRequest(selectedConfiguration, userHandleB64u).then(({ url, client_id, request_uri }) => {
-				window.location.href = url;
+			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then(({ url, client_id, request_uri }) => {
+					window.location.href = url;
 			}).catch((err) => {
 				console.error(err)
 				console.error("Couldn't generate authz req")

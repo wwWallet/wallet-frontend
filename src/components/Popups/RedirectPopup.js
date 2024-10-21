@@ -17,7 +17,7 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, handleClose
 
 	useEffect(() => {
 		if (availableCredentialConfigurations) {
-			setSelectedConfiguration(Object.values(availableCredentialConfigurations)[0])
+			setSelectedConfiguration(Object.keys(availableCredentialConfigurations)[0])
 		}
 	}, [])
 
