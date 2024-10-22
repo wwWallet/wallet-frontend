@@ -3,13 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner'; // Replace with the actual import path
 import RedirectPopup from '../../components/Popups/RedirectPopup';
-import QRButton from '../../components/Buttons/QRButton';
-import { H1 } from '../../components/Heading';
+import { H1 } from '../../components/Shared/Heading';
 import Button from '../../components/Buttons/Button';
-
+import PageDescription from '../../components/Shared/PageDescription';
 
 function highlightBestSequence(verifier, search) {
 	if (typeof verifier !== 'string' || typeof search !== 'string') {
@@ -31,21 +28,7 @@ const Verifiers = () => {
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedVerifier, setSelectedVerifier] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
-
 	const { t } = useTranslation();
-
-	useEffect(() => {
-		const handleResize = () => {
-			setIsSmallScreen(window.innerWidth < 768);
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
 
 	useEffect(() => {
 
@@ -103,24 +86,11 @@ const Verifiers = () => {
 		setShowRedirectPopup(false);
 	};
 
-	// QR Code part
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
-
-	const openQRScanner = () => {
-		setQRScannerOpen(true);
-	};
-
-	const closeQRScanner = () => {
-		setQRScannerOpen(false);
-	};
-
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemSendCredentials')}>
-					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</H1>
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageSendCredentials.description')}</p>
+				<H1 heading={t('common.navItemSendCredentials')} />
+				<PageDescription description={t('pageSendCredentials.description')} />
 
 				<div className="my-4">
 					<input
@@ -159,17 +129,10 @@ const Verifiers = () => {
 			{showRedirectPopup && (
 				<RedirectPopup
 					loading={loading}
-					handleClose={handleCancel}
+					onClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
 					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
-				/>
-			)}
-
-			{/* QR Code Scanner Modal */}
-			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={closeQRScanner}
 				/>
 			)}
 		</>

@@ -5,7 +5,7 @@ import * as config from '../../config';
 import logo from '../../assets/images/logo.png';
 
 
-export default function LoginPageLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
+export default function LoginLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
 	const { t } = useTranslation();
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 h-full">
