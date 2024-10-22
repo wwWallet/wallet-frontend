@@ -92,7 +92,7 @@ const Home = () => {
 									)}
 								</>
 							) : (
-								<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
 									{vcEntityList.map((vcEntity) => (
 										<button
 											key={vcEntity.id}
