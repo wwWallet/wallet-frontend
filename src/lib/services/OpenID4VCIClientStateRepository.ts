@@ -8,7 +8,8 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 	private key = "openid4vci_client_state";
 
 	constructor() {
-		if (!localStorage.getItem(this.key)) {
+		const data = localStorage.getItem(this.key);
+		if (!data || !(JSON.parse(data) instanceof Array)) {
 			localStorage.setItem(this.key, JSON.stringify([]));
 		}
 	}

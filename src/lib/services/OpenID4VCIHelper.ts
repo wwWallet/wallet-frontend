@@ -22,7 +22,6 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 			return { authzServeMetadata };
 		}
 		catch(err) {
-			console.error(err);
 		}
 
 		if (response == null) {

@@ -60,7 +60,7 @@ const Issuers = () => {
 						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
 						return {
 							...issuer,
-							selectedDisplay: metadata.display.filter((display) => display.locale === 'en-US')[0],
+							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
 							credentialIssuerMetadata: metadata,
 						}
 					}
