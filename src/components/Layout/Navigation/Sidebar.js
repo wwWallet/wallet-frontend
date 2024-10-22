@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { AiOutlineLogout, AiOutlineClose, AiOutlineMenu } from "react-icons/ai";
+import { AiOutlineLogout } from "react-icons/ai";
 import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -74,9 +74,6 @@ const Sidebar = ({ isOpen, toggle }) => {
 							{t('common.walletName')}
 						</a>
 					</div>
-					<button onClick={toggle}>
-						{isOpen ? <AiOutlineClose size={24} /> : <AiOutlineMenu size={24} />}
-					</button>
 				</div>
 				<div>
 					<div className="hidden md:flex justify-between items-center">
@@ -92,9 +89,6 @@ const Sidebar = ({ isOpen, toggle }) => {
 						>
 							{t('common.walletName')}
 						</a>
-						<button className="md:hidden" onClick={toggle}>
-							<AiOutlineClose size={30} />
-						</button>
 					</div>
 
 					<hr className="my-2 border-t border-white/20" />

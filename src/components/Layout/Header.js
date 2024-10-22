@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import ConnectionStatusIcon from './Navigation/ConnectionStatusIcon';
 import logo from '../../assets/images/wallet_white.png';
 
-const Header = ({ toggleSidebar }) => {
+const Header = () => {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { t } = useTranslation();
@@ -33,9 +33,6 @@ const Header = ({ toggleSidebar }) => {
 					{t('common.walletName')}
 				</a>
 			</div>
-			<button className="text-white xm:hidden" onClick={toggleSidebar}>
-				<AiOutlineMenu size={24} />
-			</button>
 		</header>
 	);
 };

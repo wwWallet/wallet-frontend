@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
 			<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
 			{/* Header */}
-			{!isOpen && <Header toggleSidebar={toggleSidebar} />}
+			{!isOpen && <Header />}
 
 			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
