@@ -282,6 +282,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					return;
 				}
 			}
+			return;
 		}
 
 		try { // try to extract the response and update the OpenID4VCIClientStateRepository
@@ -321,13 +322,13 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		const credentialEndpoint = this.config.credentialIssuerMetadata.credential_endpoint;
 
-		const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg);
-
 		let credentialRequestHeaders = {
 			"Authorization": `Bearer ${access_token}`,
 		};
 
 		if (this.config.authorizationServerMetadata.dpop_signing_alg_values_supported) {
+			const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg);
+
 			const newDPoPNonce = response.headers['dpop-nonce'];
 			const credentialEndpointDPoP = await generateDPoP(
 				privateKey as jose.KeyLike,
