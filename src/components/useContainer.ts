@@ -101,7 +101,7 @@ export function useContainer() {
 				if (!credentialFriendlyName) { // fallback value
 					credentialFriendlyName = "Credential";
 				}
-				
+
 				if (credentialImageSvgTemplateURL) {
 					return {
 						beautifiedForm: result.beautifiedForm,
@@ -111,7 +111,7 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
-				else if (credentialHeader?.vctm || credentialConfigurationSupportedObj){
+				else if (credentialHeader?.vctm || credentialConfigurationSupportedObj) {
 					let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
 						: null;
