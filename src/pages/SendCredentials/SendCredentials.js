@@ -3,10 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-import { useQRScanner } from '../../hooks/useQRScanner';
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
-import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Shared/Heading';
 import Button from '../../components/Buttons/Button';
 import PageDescription from '../../components/Shared/PageDescription';
@@ -25,7 +22,6 @@ function highlightBestSequence(verifier, search) {
 const Verifiers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
-	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [verifiers, setVerifiers] = useState([]);
 	const [filteredVerifiers, setFilteredVerifiers] = useState([]);
@@ -93,9 +89,7 @@ const Verifiers = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemSendCredentials')}>
-					<QRButton openQRScanner={openQRScanner} />
-				</H1>
+				<H1 heading={t('common.navItemSendCredentials')} />
 				<PageDescription description={t('pageSendCredentials.description')} />
 
 				<div className="my-4">
@@ -140,11 +134,6 @@ const Verifiers = () => {
 					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
 					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
 				/>
-			)}
-
-			{/* QR Code Scanner */}
-			{isQRScannerOpen && (
-				<QRCodeScanner onClose={closeQRScanner} />
 			)}
 		</>
 	);

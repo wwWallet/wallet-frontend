@@ -9,21 +9,17 @@ import CredentialsContext from '../../context/CredentialsContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
-import { useQRScanner } from '../../hooks/useQRScanner';
 import useScreenType from '../../hooks/useScreenType';
 
 // Components
 import { H1 } from '../../components/Shared/Heading';
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import CredentialImage from '../../components/Credentials/CredentialImage';
-import QRButton from '../../components/Buttons/QRButton';
 import AddCredentialCard from '../../components/Credentials/AddCredentialCard';
 import HistoryList from '../../components/History/HistoryList';
 import Slider from '../../components/Shared/Slider';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
-	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const { api } = useContext(SessionContext);
 	const history = useFetchPresentations(api);
 	const [currentSlide, setCurrentSlide] = useState(1);
@@ -60,9 +56,7 @@ const Home = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemCredentials')}>
-					<QRButton openQRScanner={openQRScanner} />
-				</H1>
+				<H1 heading={t('common.navItemCredentials')} />
 				{screenType !== 'mobile' && (
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				)}
@@ -92,7 +86,7 @@ const Home = () => {
 									)}
 								</>
 							) : (
-									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
+								<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
 									{vcEntityList.map((vcEntity) => (
 										<button
 											key={vcEntity.id}
@@ -111,10 +105,6 @@ const Home = () => {
 					)}
 				</div>
 			</div>
-			{/* QR Code Scanner */}
-			{isQRScannerOpen && (
-				<QRCodeScanner onClose={closeQRScanner} />
-			)}
 		</>
 	);
 }

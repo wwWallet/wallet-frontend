@@ -3,10 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-import { useQRScanner } from '../../hooks/useQRScanner';
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
-import QRButton from '../../components/Buttons/QRButton';
 import { H1 } from '../../components/Shared/Heading';
 import ContainerContext from '../../context/ContainerContext';
 import Button from '../../components/Buttons/Button';
@@ -26,7 +23,6 @@ function highlightBestSequence(issuer, search) {
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
-	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const [searchQuery, setSearchQuery] = useState('');
 	const [issuers, setIssuers] = useState([]);
 	const [filteredIssuers, setFilteredIssuers] = useState([]);
@@ -130,9 +126,7 @@ const Issuers = () => {
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemAddCredentials')}>
-					<QRButton openQRScanner={openQRScanner} />
-				</H1>
+				<H1 heading={t('common.navItemAddCredentials')} />
 				<PageDescription description={t('pageAddCredentials.description')} />
 
 				<div className="my-4">
@@ -177,11 +171,6 @@ const Issuers = () => {
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Uknown"}`}
 					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.selectedDisplay?.name ?? "Uknown" })}
 				/>
-			)}
-
-			{/* QR Code Scanner */}
-			{isQRScannerOpen && (
-				<QRCodeScanner onClose={closeQRScanner} />
 			)}
 		</>
 	);
