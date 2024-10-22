@@ -44,7 +44,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 
 		if (offer.credential_issuer != this.config.credentialIssuerIdentifier) {
-			throw new Error("Unable to handle this credential offer");
+			return;
 		}
 
 		const selectedConfigurationId = offer.credential_configuration_ids[0];
@@ -256,6 +256,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 
 		const formData = new URLSearchParams();
+		formData.append('client_id', this.config.clientId);
 		if (requestCredentialsParams.authorizationCodeGrant) {
 			formData.append('grant_type', 'authorization_code');
 			formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
