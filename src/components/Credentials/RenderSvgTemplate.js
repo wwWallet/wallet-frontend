@@ -35,7 +35,7 @@ const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
 					res = formatDate(res, 'date');
 					return res;
 				}
-				return '';
+				return '-';
 			});
 			const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;
 			onSvgGenerated(dataUri);
