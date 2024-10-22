@@ -17,10 +17,10 @@ const BottomNav = ({ isOpen, toggle }) => {
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <FaWallet size={26} />, path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-3-mobile' },
-		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-4-mobile' },
-		{ icon: <BsQrCodeScan size={19} />, path: '/qr', label: ``, stepClass: 'step-qr-mobile', isQR: true }, // QR button
-		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-mobile' },
+		{ icon: <FaWallet size={26} />, path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen' },
+		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
+		{ icon: <BsQrCodeScan size={19} />, path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
+		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
 	];
 
 	const handleNavigate = (path) => {
@@ -43,7 +43,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				{navItems.map(item => (
 					<button
 						key={item.path}
-						className={`${item.isQR ? 'bg-primary dark:bg-primary-light text-white dark:text-white rounded-full p-3 shadow-lg step-2' : `${item.stepClass} cursor-pointer flex flex-col items-center w-[20%]`} ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+						className={`${item.stepClass} ${item.isQR ? 'bg-primary dark:bg-primary-light text-white dark:text-white rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center w-[20%]`} ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
 						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>

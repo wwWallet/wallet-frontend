@@ -20,9 +20,9 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 
 	useEffect(() => {
 
-		const getStepSelectorMobile = (stepName) => {
-			if (screenType === 'mobile') {
-				return stepName + '-mobile';
+		const getStepSelectorSmallScreen = (stepName) => {
+			if (screenType != 'desktop') {
+				return stepName + '-small-screen';
 			} else {
 				return stepName;
 			}
@@ -33,24 +33,20 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				content: t("tourGuide.tourStep1"),
 				disableInteraction: true,
 			},
-			...(screenType === 'tablet' ? [{
-				selector: '.step-2',
-				content: t("tourGuide.tourStep2"),
-			}] : []),
 			{
-				selector: getStepSelectorMobile('.step-3'),
+				selector: getStepSelectorSmallScreen('.step-2'),
+				content: t("tourGuide.tourStep2"),
+			},
+			{
+				selector: getStepSelectorSmallScreen('.step-3'),
 				content: t("tourGuide.tourStep3"),
 			},
-			{
-				selector: getStepSelectorMobile('.step-4'),
+			...(screenType !== 'desktop' ? [{
+				selector: '.step-4',
 				content: t("tourGuide.tourStep4"),
-			},
-			...(screenType === 'mobile' ? [{
-				selector: '.step-2',
-				content: t("tourGuide.tourStep2"),
 			}] : []),
 			{
-				selector: getStepSelectorMobile('.step-5'),
+				selector: getStepSelectorSmallScreen('.step-5'),
 				content: t("tourGuide.tourStep5"),
 			},
 			{
@@ -80,13 +76,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 			return {
 				...step,
 				action: () => {
-					if (screenType === 'tablet') {
-						if (index >= 2 && index <= 6 && !isOpen) {
-							toggleMenu();
-						} else if ((index < 2 || index > 6) && isOpen) {
-							toggleMenu();
-						}
-					} else if (screenType === 'mobile') {
+					if (screenType != 'desktop') {
 						if (index >= 5 && index <= 6 && !isOpen) {
 							toggleMenu();
 						} else if ((index < 5 || index > 6) && isOpen) {
