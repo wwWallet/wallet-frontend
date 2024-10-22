@@ -86,6 +86,11 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 							{renderRow('grade', 'Grade', parsedCredential?.grade, screenType)}
 							{renderRow('id', 'Social Security Number', parsedCredential?.ssn, screenType)}
 							{renderRow('id', 'Document Number', parsedCredential?.document_number, screenType)}
+
+							{renderRow('id', 'ID', parsedCredential?.vc?.credentialSubject?.sub)}
+							{renderRow('familyName', 'Family Name', parsedCredential?.vc?.credentialSubject?.family_name)}
+							{renderRow('firstName', 'Given Name', parsedCredential?.vc?.credentialSubject?.given_name)}
+							{renderRow('diplomaTitle', 'Affiliation', parsedCredential?.vc?.credentialSubject?.eduperson_affiliation)}
 						</>
 					)}
 				</tbody>

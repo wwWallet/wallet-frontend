@@ -1049,6 +1049,7 @@ async function addNewCredentialKeypair(
 	privateKey: CryptoKey,
 	keypair: CredentialKeyPair,
 	newPrivateData: OpenedContainer,
+	did: string,
 }> {
 	const { publicKey, privateKey } = await crypto.subtle.generateKey(
 		{ name: "ECDSA", namedCurve: "P-256" },
@@ -1069,6 +1070,7 @@ async function addNewCredentialKeypair(
 	};
 
 	return {
+		did,
 		privateKey,
 		keypair,
 		newPrivateData: await updatePrivateData(
@@ -1139,17 +1141,19 @@ export async function generateOpenid4vciProof(
 		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
 		return jwkThumbprint;
 	};
-	const { privateKey, keypair, newPrivateData } = await addNewCredentialKeypair(container, didKeyVersion, deriveKid);
+	const { privateKey, keypair, newPrivateData, did } = await addNewCredentialKeypair(container, didKeyVersion, deriveKid);
 
 	const jws = await new SignJWT({
 		nonce: nonce,
 		aud: audience,
 		iss: issuer,
+		client_id: issuer,
 	})
 		.setProtectedHeader({
 			alg: keypair.alg,
 			typ: "openid4vci-proof+jwt",
-			jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+			// jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+			kid: did,
 		})
 		.setIssuedAt()
 		.sign(privateKey);

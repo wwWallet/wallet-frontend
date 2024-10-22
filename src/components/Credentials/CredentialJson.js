@@ -10,7 +10,7 @@ const CredentialJson = ({ credential, textAreaRows='10' }) => {
 
 	useEffect(() => {
 		if (container) {
-			container.credentialParserRegistry.parse(credential).then((c) => {
+			container.credentialParserRegistry.parse(credential.vc || credential).then((c) => {
 				if ('error' in c) {
 					return;
 				}

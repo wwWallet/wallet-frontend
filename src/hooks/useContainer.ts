@@ -105,9 +105,9 @@ export function useContainer() {
 				else {
 					let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
-						: null;
+						: 'https://picsum.photos/300/200';
 
-					if (!credentialImageURL) { // prrovide fallback method through the OpenID credential issuer metadata
+					if (!credentialImageURL) { // provide fallback method through the OpenID credential issuer metadata
 						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
 						const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
 							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)

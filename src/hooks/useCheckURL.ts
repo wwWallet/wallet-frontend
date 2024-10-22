@@ -5,6 +5,9 @@ import SessionContext from '../context/SessionContext';
 import { BackgroundTasksContext } from '../context/BackgroundTasksContext';
 import { useContainer } from './useContainer';
 import { HandleAuthorizationRequestError } from '../lib/interfaces/IOpenID4VPRelyingParty';
+import { generateRandomIdentifier } from '../lib/utils/generateRandomIdentifier';
+import { StorableCredential } from '../lib/types/StorableCredential';
+import { VerifiableCredentialFormat } from '../lib/schemas/vc';
 
 
 function useCheckURL(urlToCheck: string): {
@@ -41,7 +44,88 @@ function useCheckURL(urlToCheck: string): {
 			throw new Error("User handle could not be extracted from keystore");
 		}
 		const u = new URL(urlToCheck);
-		if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri') ) {
+		if (u.searchParams.get('credential_offer_uri') ) {
+			const credentailOfferResponse = await fetch(u.searchParams.get('credential_offer_uri'));
+			const credentialOffer = await credentailOfferResponse.json();
+
+			if (!credentialOffer.grants['urn:ietf:params:oauth:grant-type:pre-authorized_code'] || !credentialOffer.credential_issuer) {
+				return;
+			}
+
+			const body = {
+				grant_type: 'urn:ietf:params:oauth:grant-type:pre-authorized_code',
+				'pre-authorized_code': credentialOffer.grants['urn:ietf:params:oauth:grant-type:pre-authorized_code']['pre-authorized_code'],
+			};
+
+			const tokenResponse = await fetch(`${credentialOffer.credential_issuer}/token`, {
+				method: 'POST',
+				body: JSON.stringify(body),
+				headers: {
+					'Content-Type': 'application/json',
+				}
+			});
+			const { access_token: accesToken, c_nonce: cNonce } = await tokenResponse.json();
+
+			const openIdCredentialIssuerResponse = await fetch(`${credentialOffer.credential_issuer}/.well-known/openid-credential-issuer`, {
+				headers: {
+					'Cache-Control': 'no-cache',
+				},
+			});
+			const openIdCredentialIssuer = await openIdCredentialIssuerResponse.json();
+			// const metadata = OpenidCredentialIssuerMetadataSchema.parse(openIdCredentialIssuer);
+			const metadata = openIdCredentialIssuer; // @todo: investigate schema errors
+
+			const generateNonceProof = async (cNonce: string, audience: string, clientId: string): Promise<{ jws: string }> => {
+				const [{ proof_jwt }] = await keystore.generateOpenid4vciProof(cNonce, audience, clientId);
+				return { jws: proof_jwt };
+			};
+
+			const storeCredential = async (c: StorableCredential) => {
+				await api.post('/storage/vc', {
+					...c
+				});
+			};
+
+			const credentialEndpoint = metadata.credential_endpoint;
+			const credentialRequestHeaders = {
+				'Authorization': `Bearer ${accesToken}`,
+				'Content-Type': 'application/json',
+			};
+
+			const { jws } = await generateNonceProof(cNonce, metadata.credential_issuer, 'wwwallet');
+
+			const credentialEndpointBody = {
+				'proof': {
+					'proof_type': 'jwt',
+					'jwt': jws,
+				},
+				format: VerifiableCredentialFormat.JWT_VC_JSON, // @todo: retrieve from credential_configurations_supported
+				...(metadata.credential_configurations_supported.AcademicBaseCredential), // @todo: retrieve from credential_configurations_supported
+			};
+
+			const didResponse = await fetch(`${credentialOffer.credential_issuer}/.well-known/did.json`, {
+				headers: {
+					'Cache-Control': 'no-cache',
+				},
+			});
+			const did = await didResponse.json();
+
+			const credentialResponse = await fetch(credentialEndpoint, {
+				method: 'POST',
+				body: JSON.stringify(credentialEndpointBody),
+				headers: credentialRequestHeaders
+			});
+			const credential = await credentialResponse.json();
+
+			await storeCredential({
+				credentialConfigurationId: did.id,
+				credentialIssuerIdentifier: credentialOffer.credential_issuer,
+				credentialIdentifier: generateRandomIdentifier(32),
+				credential: credential.credential,
+				format: VerifiableCredentialFormat.JWT_VC_JSON, // @todo: retrieve from credential_configurations_supported
+			});
+		}
+		else if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri') ) {
 			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
 				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString())
 					.then(({ credentialIssuer, selectedCredentialConfigurationSupported, issuer_state }) => {
