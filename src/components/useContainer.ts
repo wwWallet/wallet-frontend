@@ -77,13 +77,11 @@ export function useContainer() {
 				}
 
 				const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
-				const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
+				const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
 					.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
 				[0];
 
 				const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
-
-
 
 				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
 					credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
@@ -96,8 +94,12 @@ export function useContainer() {
 					: null;
 
 				// get credential friendly name from openid credential issuer metadata
-				if (!credentialFriendlyName && credentialConfigurationSupportedObj?.display && credentialConfigurationSupportedObj?.display.length > 0) {
+				if (!credentialFriendlyName && credentialConfigurationSupportedObj && credentialConfigurationSupportedObj?.display && credentialConfigurationSupportedObj?.display.length > 0) {
 					credentialFriendlyName = credentialConfigurationSupportedObj?.display[0]?.name;
+				}
+
+				if (!credentialFriendlyName) { // fallback value
+					credentialFriendlyName = "Credential";
 				}
 				
 				if (credentialImageSvgTemplateURL) {
@@ -109,18 +111,16 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
-				else {
+				else if (credentialHeader?.vctm || credentialConfigurationSupportedObj){
 					let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
 						: null;
 
 					if (!credentialImageURL) { // provide fallback method through the OpenID credential issuer metadata
-
-
 						credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
-						if (!credentialImageURL) {
-							credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.logo?.url : null;
-						}
+					}
+					if (!credentialImageURL) {
+						credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.logo?.url : null;
 					}
 
 					return {
@@ -128,6 +128,13 @@ export function useContainer() {
 						credentialImage: {
 							credentialImageURL: credentialImageURL,
 						},
+						credentialFriendlyName,
+					}
+				}
+				else {
+					return {
+						beautifiedForm: result.beautifiedForm,
+						credentialImage: null,
 						credentialFriendlyName,
 					}
 				}
