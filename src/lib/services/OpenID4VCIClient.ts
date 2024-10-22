@@ -69,7 +69,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	}
 
 	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url: string; client_id: string; request_uri: string; }> {
-		
+
 		try { // attempt to get credentials using active session
 			await this.requestCredentials({
 				userHandleB64u,
@@ -80,7 +80,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			window.location.href = '/';
 			return;
 		}
-		catch(err) { console.error(err) }
+		catch (err) { console.error(err) }
 
 		const { code_challenge, code_verifier } = await pkce();
 
@@ -211,7 +211,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 
 		let flowState: OpenID4VCIClientState | null = null;
-		
+
 		if (requestCredentialsParams?.authorizationCodeGrant) {
 			flowState = await this.openID4VCIClientStateRepository.getByState(requestCredentialsParams.authorizationCodeGrant.state)
 		}
@@ -288,17 +288,17 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			const {
 				data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token },
 			} = response;
-			
-			flowState.tokenResponse =  {
+
+			flowState.tokenResponse = {
 				data: {
 					access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
 				},
 				headers: { ...response.headers }
 			}
-			
+
 			await this.openID4VCIClientStateRepository.updateState(flowState);
 		}
-		catch(err) {
+		catch (err) {
 			console.error(err);
 			throw new Error("Failed to extract the response and update the OpenID4VCIClientStateRepository");
 		}
@@ -322,7 +322,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const credentialEndpoint = this.config.credentialIssuerMetadata.credential_endpoint;
 
 		const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg);
-		
+
 		let credentialRequestHeaders = {
 			"Authorization": `Bearer ${access_token}`,
 		};
@@ -349,7 +349,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			jws = generateProofResult.jws;
 			console.log("proof = ", jws)
 		}
-		catch(err) {
+		catch (err) {
 			console.error(err);
 			throw new Error("Failed to generate proof");
 		}
