@@ -19,6 +19,16 @@ const hasherAndAlgorithm: HasherAndAlgorithm = {
 	algorithm: HasherAlgorithm.Sha256
 }
 
+const parseJwt = (token: string) => {
+	var base64Url = token.split('.')[1];
+	var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+	var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+			return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+	}).join(''));
+
+	return JSON.parse(jsonPayload);
+}
+
 export const parseSdJwtCredential = async (credential: string | object): Promise<{ beautifiedForm: any; } | { error: string }> => {
 	try {
 		if (typeof credential == 'string') { // is JWT
@@ -31,6 +41,10 @@ export const parseSdJwtCredential = async (credential: string | object): Promise
 					beautifiedForm: parsed
 				}
 
+			}
+
+			return {
+				beautifiedForm: parseJwt(credential),
 			}
 		}
 		return { error: "Could not parse SDJWT credential" };

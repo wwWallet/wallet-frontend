@@ -33,8 +33,8 @@ const CredentialImage = ({ credential, className, onClick, showRibbon = true }) 
 						<img src={svgImage} alt={"Credential"} className={className} onClick={onClick} />
 					)}
 				</>
-			) : parsedCredential && parsedCredential.credentialImage.credentialImageURL && (
-				<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
+			) : (
+				<img src={parsedCredential?.credentialImage?.credentialImageURL || 'https://picsum.photos/300/200' } alt={"Credential"} className={className} onClick={onClick} />
 			)}
 
 			{parsedCredential && showRibbon &&

@@ -37,7 +37,7 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 		}
 		catch(err) {
 			console.error(err);
-			throw new Error("Couldn't get Credential Issuer Metadata");
+			// throw new Error("Couldn't get Credential Issuer Metadata");
 		}
 
 	}
