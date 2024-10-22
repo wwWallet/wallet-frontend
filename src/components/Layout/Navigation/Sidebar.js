@@ -112,19 +112,19 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-2 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<div className='step-3 xm:hidden'>
+						<div className='step-3 hidden md:block'>
 							<NavItem path="/" alias="/cb" location={location} handleNavigate={handleNavigate}>
 								<FaWallet size={30} />
 								<span>{t("common.navItemCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='step-4 xm:hidden'>
+						<div className='step-4 hidden md:block'>
 							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
 								<IoIosAddCircle size={30} />
 								<span>{t("common.navItemAddCredentials")}</span>
 							</NavItem>
 						</div>
-						<div className='step-5 xm:hidden'>
+						<div className='step-5 hidden md:block'>
 							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
 								<IoIosSend size={30} />
 								<span>{t("common.navItemSendCredentials")}</span>
