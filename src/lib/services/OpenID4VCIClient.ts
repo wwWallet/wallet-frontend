@@ -23,7 +23,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		private storeCredential: (c: StorableCredential) => Promise<void>
 	) { }
 
-	async handleCredentialOffer(credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> {
+	async handleCredentialOffer(credentialOfferURL: string, userHandleB64u: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> {
 		const parsedUrl = new URL(credentialOfferURL);
 		let offer;
 		if (parsedUrl.searchParams.get("credential_offer")) {
@@ -127,7 +127,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 	}
 
-	async handleAuthorizationResponse(url: string, dpopNonceHeader?: string) {
+	async handleAuthorizationResponse(url: string, userHandleB64U: string, dpopNonceHeader?: string) {
 		const parsedUrl = new URL(url);
 
 		const code = parsedUrl.searchParams.get('code');
@@ -136,12 +136,12 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		if (!code) {
 			throw new Error("Could not handle authorization response");
 		}
-		const s = await this.openID4VCIClientStateRepository.getByState(state);
+		const s = await this.openID4VCIClientStateRepository.getByStateAndUserHandle(state, userHandleB64U);
 		if (!s) {
 			return;
 		}
 		await this.requestCredentials({
-			userHandleB64u: s.userHandleB64U,
+			userHandleB64u: userHandleB64U,
 			dpopNonceHeader: dpopNonceHeader,
 			authorizationCodeGrant: {
 				authorizationResponseUrl: url,
@@ -173,7 +173,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		if (requestCredentialsParams.usingActiveAccessToken) {
 			console.log("Attempting with active access token")
-			const flowState = await this.openID4VCIClientStateRepository.getByCredentialConfigurationId(requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId)
+			const flowState = await this.openID4VCIClientStateRepository.getByCredentialConfigurationIdAndUserHandle(requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId, requestCredentialsParams.userHandleB64u)
 			if (!flowState) {
 				throw new Error("Using active access token: No flowstate");
 			}
@@ -213,10 +213,10 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		let flowState: OpenID4VCIClientState | null = null;
 
 		if (requestCredentialsParams?.authorizationCodeGrant) {
-			flowState = await this.openID4VCIClientStateRepository.getByState(requestCredentialsParams.authorizationCodeGrant.state)
+			flowState = await this.openID4VCIClientStateRepository.getByStateAndUserHandle(requestCredentialsParams.authorizationCodeGrant.state, requestCredentialsParams.userHandleB64u)
 		}
 		else if (requestCredentialsParams?.refreshTokenGrant) {
-			flowState = await this.openID4VCIClientStateRepository.getByCredentialConfigurationId(requestCredentialsParams.refreshTokenGrant.credentialConfigurationId)
+			flowState = await this.openID4VCIClientStateRepository.getByCredentialConfigurationIdAndUserHandle(requestCredentialsParams.refreshTokenGrant.credentialConfigurationId, requestCredentialsParams.userHandleB64u)
 		}
 
 		if (!flowState) {
@@ -297,7 +297,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 				headers: { ...response.headers }
 			}
 
-			await this.openID4VCIClientStateRepository.updateState(flowState);
+			await this.openID4VCIClientStateRepository.updateState(flowState, requestCredentialsParams.userHandleB64u);
 		}
 		catch (err) {
 			console.error(err);
@@ -372,7 +372,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			if (c_nonce && c_nonce_expires_in) {
 				flowState.tokenResponse.data.c_nonce = c_nonce;
 				flowState.tokenResponse.data.c_nonce_expiration_timestamp = Math.floor(Date.now() / 1000) + c_nonce_expires_in;
-				await this.openID4VCIClientStateRepository.updateState(flowState);
+				await this.openID4VCIClientStateRepository.updateState(flowState, flowState.userHandleB64U);
 			}
 
 			await this.storeCredential({

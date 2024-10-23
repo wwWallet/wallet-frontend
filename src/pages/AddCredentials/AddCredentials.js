@@ -7,6 +7,7 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
 import Button from '../../components/Buttons/Button';
 import PageDescription from '../../components/Shared/PageDescription';
+import ContainerContext from '../../context/ContainerContext';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -30,7 +31,7 @@ const Issuers = () => {
 	const [loading, setLoading] = useState(false);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
-	const { container } = useContainer();
+	const container = useContext(ContainerContext);
 	const { t } = useTranslation();
 
 	useEffect(() => {

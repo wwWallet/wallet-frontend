@@ -13,20 +13,20 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 			localStorage.setItem(this.key, JSON.stringify([]));
 		}
 	}
-	async getByState(state: string): Promise<OpenID4VCIClientState | null> {
+	async getByStateAndUserHandle(state: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.state == state)[0];
+		const res = array.filter((s) => s.state == state && s.userHandleB64U == userHandleB64U)[0];
 		return res ? res : null;
 	}
 
-	async getByCredentialConfigurationId(credentialConfigurationId: string): Promise<OpenID4VCIClientState | null> {
+	async getByCredentialConfigurationIdAndUserHandle(credentialConfigurationId: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.credentialConfigurationId == credentialConfigurationId)[0]
+		const res = array.filter((s) => s.credentialConfigurationId == credentialConfigurationId && s.userHandleB64U == userHandleB64U)[0];
 		return res ? res : null;
 	}
 
 	async create(s: OpenID4VCIClientState): Promise<void> {
-		const existingState = await this.getByCredentialConfigurationId(s.credentialConfigurationId);
+		const existingState = await this.getByCredentialConfigurationIdAndUserHandle(s.credentialConfigurationId, s.userHandleB64U);
 		if (existingState) { // remove the existing state for this configuration id
 			const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
 			const updatedArray = array.filter((x) => x.credentialConfigurationId != s.credentialConfigurationId);
@@ -51,8 +51,8 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 		localStorage.setItem(this.key, JSON.stringify(array));
 	}
 
-	async updateState(newState: OpenID4VCIClientState): Promise<void> {
-		const fetched = await this.getByState(newState.state);
+	async updateState(newState: OpenID4VCIClientState, userHandleB64U: string): Promise<void> {
+		const fetched = await this.getByStateAndUserHandle(newState.state, userHandleB64U);
 		if (!fetched) {
 			return;
 		}
