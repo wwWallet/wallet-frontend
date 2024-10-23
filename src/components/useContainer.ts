@@ -21,7 +21,7 @@ import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
-
+import defaulCredentialImage from "../assets/images/cred.png";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -122,6 +122,9 @@ export function useContainer() {
 					if (!credentialImageURL) {
 						credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.logo?.url : null;
 					}
+					if (!credentialImageURL) {
+						credentialImageURL = defaulCredentialImage;
+					}
 
 					return {
 						beautifiedForm: result.beautifiedForm,
@@ -131,13 +134,15 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
-				else {
-					return {
-						beautifiedForm: result.beautifiedForm,
-						credentialImage: null,
-						credentialFriendlyName,
-					}
+
+				return {
+					beautifiedForm: result.beautifiedForm,
+					credentialImage: {
+						credentialImageURL: defaulCredentialImage,
+					},
+					credentialFriendlyName,
 				}
+				
 			},
 		});
 
