@@ -27,20 +27,6 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
-	"browserSupportWarningPortal": {
-		"continueAnyway": "Continue anyway",
-		"heading": "Unsupported platform",
-		"intro": "It seems like you are using a browser or operating system that does not support the features used in this application.",
-		"moreDetails": "For more details, please see <docLink>this compatibility table</docLink>.",
-		"outro": "You can proceed and try anyway, but please note that some or all application features might not work.",
-		"supportedList": {
-			"android": "Chrome, Edge, Opera or Brave on Android",
-			"intro": "The application is known to work with the following:",
-			"linux": "Chrome or Brave on GNU/Linux",
-			"macos": "Chrome, Edge, Opera or Brave on MacOS",
-			"windows": "Chrome, Edge, Opera or Brave on Windows"
-		}
-	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
@@ -149,10 +135,12 @@
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
-		"description": "View all of your credentials, and use the 'Add new credentials' card to add more",
+		"description": "View all of your credentials",
 		"details": {
-			"description": "View all the information about the chosen credential"
+			"description": "View all the information about the chosen credential",
+			"expired": "This Credential has been expired"
 		},
+		"delete": "Delete Credential",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"slideNext": "next",
@@ -223,7 +211,7 @@
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys",
-			"appVersion":"App Version"
+			"appVersion": "App Version"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
@@ -269,8 +257,6 @@
 		"descriptionFieldsSingle": "The <strong> {{verifierDomainName}} </strong> requests the field:",
 		"descriptionFieldsMultiple": "The <strong> {{verifierDomainName}} </strong> requests the fields:",
 		"descriptionSelect": "Select the one Credential you want to present.",
-		"detailsHide": "Hide Details",
-		"detailsShow": "Show Details",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
@@ -286,9 +272,9 @@
 	},
 	"tourGuide": {
 		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",
-		"tourStep2": "Click this button to scan a QR code for sending or receiving credentials.",
-		"tourStep3": "The 'Credentials' page is your Home page, where you can manage your credentials.",
-		"tourStep4": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
+		"tourStep2": "The 'Credentials' page is your Home page, where you can manage your credentials.",
+		"tourStep3": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
+		"tourStep4": "Click this button to scan a QR code for sending or receiving credentials.",
 		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
 		"tourStep6": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
 		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings.",
