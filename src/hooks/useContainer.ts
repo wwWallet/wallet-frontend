@@ -225,7 +225,7 @@ export function useContainer() {
 	}
 
 	useEffect(() => {
-		if (isLoggedIn && trustedCredentialIssuers) {
+		if (isLoggedIn && trustedCredentialIssuers && keystore) {
 			console.log("container instance created...");
 			initialize().then(({ openID4VCIClientsJson, openID4VPRelyingParty, httpProxy, openID4VCIHelper, credentialParserRegistry }) => {
 				setContainer({
@@ -237,9 +237,9 @@ export function useContainer() {
 				});
 			});
 		}
-	}, [isLoggedIn, trustedCredentialIssuers])
+	}, [isLoggedIn, trustedCredentialIssuers, keystore])
 
 	return useMemo(() => {
 		return { container }
-	}, [isLoggedIn, trustedCredentialIssuers, container])
+	}, [isLoggedIn, trustedCredentialIssuers, container, keystore])
 }
