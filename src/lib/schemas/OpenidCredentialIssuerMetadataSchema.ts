@@ -7,7 +7,7 @@ export const OpenidCredentialIssuerMetadataSchema = z.object({
 	display: z.array(z.object({
 		name: z.string(),
 		locale: z.string(),
-	})),
+	})).optional(),
 	credential_configurations_supported: z.record(CredentialConfigurationSupportedSchema)
 })
 

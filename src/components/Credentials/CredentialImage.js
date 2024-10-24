@@ -26,14 +26,14 @@ const CredentialImage = ({ credential, className, onClick, showRibbon = true }) 
 
 	return (
 		<>
-			{parsedCredential && parsedCredential.credentialImage.credentialImageSvgTemplateURL ? (
+			{parsedCredential && parsedCredential.credentialImage && parsedCredential.credentialImage.credentialImageSvgTemplateURL ? (
 				<>
 					<RenderSvgTemplate credential={parsedCredential} onSvgGenerated={handleSvgGenerated} />
 					{parsedCredential && svgImage && (
 						<img src={svgImage} alt={"Credential"} className={className} onClick={onClick} />
 					)}
 				</>
-			) : parsedCredential && parsedCredential.credentialImage.credentialImageURL && (
+			) : parsedCredential && parsedCredential.credentialImage && parsedCredential.credentialImage.credentialImageURL && (
 				<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
 			)}
 

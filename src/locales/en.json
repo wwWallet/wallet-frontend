@@ -202,7 +202,18 @@
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
+		"rememberIssuer": {
+			"description": "Select the maximum time you want every issuer to remember you",
+			"options": {
+				"hour": "1 hour",
+				"day": "1 day",
+				"week": "1 week",
+				"month": "1 month"
+			},
+			"successMessage": "Saved"
+		},
 		"title": {
+			"rememberIssuer": "Remember Issuer",
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",

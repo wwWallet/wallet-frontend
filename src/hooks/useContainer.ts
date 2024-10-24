@@ -21,7 +21,7 @@ import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
-
+import defaulCredentialImage from "../assets/images/cred.png";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -76,11 +76,12 @@ export function useContainer() {
 					return { error: "Failed to parse sdjwt" };
 				}
 
-
+				const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
+				const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
+					.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
+				[0];
 
 				const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
-
-
 
 				const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
 					credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
@@ -88,10 +89,18 @@ export function useContainer() {
 					credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
 					: null;
 
-				const credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
+				let credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 					credentialHeader.vctm.display[0][defaultLocale]?.name
 					: null;
 
+				// get credential friendly name from openid credential issuer metadata
+				if (!credentialFriendlyName && credentialConfigurationSupportedObj && credentialConfigurationSupportedObj?.display && credentialConfigurationSupportedObj?.display.length > 0) {
+					credentialFriendlyName = credentialConfigurationSupportedObj?.display[0]?.name;
+				}
+
+				if (!credentialFriendlyName) { // fallback value
+					credentialFriendlyName = "Credential";
+				}
 
 				if (credentialImageSvgTemplateURL) {
 					return {
@@ -102,18 +111,19 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
-				else {
+				else if (credentialHeader?.vctm || credentialConfigurationSupportedObj) {
 					let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
 						credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
 						: null;
 
-					if (!credentialImageURL) { // prrovide fallback method through the OpenID credential issuer metadata
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
-						const credentialConfigurationSupportedObj: CredentialConfigurationSupported = Object.values(metadata.credential_configurations_supported)
-							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
-						[0];
-
-						credentialImageURL = credentialConfigurationSupportedObj.display.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
+					if (!credentialImageURL) { // provide fallback method through the OpenID credential issuer metadata
+						credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
+					}
+					if (!credentialImageURL) {
+						credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.logo?.url : null;
+					}
+					if (!credentialImageURL) {
+						credentialImageURL = defaulCredentialImage;
 					}
 
 					return {
@@ -124,6 +134,15 @@ export function useContainer() {
 						credentialFriendlyName,
 					}
 				}
+
+				return {
+					beautifiedForm: result.beautifiedForm,
+					credentialImage: {
+						credentialImageURL: defaulCredentialImage,
+					},
+					credentialFriendlyName,
+				}
+
 			},
 		});
 
@@ -206,7 +225,7 @@ export function useContainer() {
 	}
 
 	useEffect(() => {
-		if (isLoggedIn && trustedCredentialIssuers) {
+		if (isLoggedIn && trustedCredentialIssuers && keystore) {
 			console.log("container instance created...");
 			initialize().then(({ openID4VCIClientsJson, openID4VPRelyingParty, httpProxy, openID4VCIHelper, credentialParserRegistry }) => {
 				setContainer({
@@ -218,9 +237,9 @@ export function useContainer() {
 				});
 			});
 		}
-	}, [isLoggedIn, trustedCredentialIssuers])
+	}, [isLoggedIn, trustedCredentialIssuers, keystore])
 
 	return useMemo(() => {
 		return { container }
-	}, [isLoggedIn, trustedCredentialIssuers, container])
+	}, [isLoggedIn, trustedCredentialIssuers, container, keystore])
 }

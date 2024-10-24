@@ -17,7 +17,7 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, ha
 
 	useEffect(() => {
 		if (availableCredentialConfigurations) {
-			setSelectedConfiguration(Object.values(availableCredentialConfigurations)[0])
+			setSelectedConfiguration(Object.keys(availableCredentialConfigurations)[0])
 		}
 	}, [])
 

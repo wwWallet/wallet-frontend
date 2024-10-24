@@ -154,7 +154,7 @@ function App() {
 								<Route path="/add" element={<AddCredentials />} />
 								<Route path="/send" element={<SendCredentials />} />
 								<Route path="/verification/result" element={<VerificationResult />} />
-								<Route path="/cb" element={<Home />} />
+								<Route path="/cb/*" element={<Home />} />
 							</Route>
 							<Route element={
 								<FadeInContentTransition reanimateKey={location.pathname}>

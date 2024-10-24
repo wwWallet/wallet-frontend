@@ -33,6 +33,7 @@ export type UserData = {
 	displayName: string;
 	webauthnCredentials: WebauthnCredential[];
 	privateData: Uint8Array;
+	settings: UserSettings;
 }
 
 export type WebauthnCredential = {
@@ -42,4 +43,8 @@ export type WebauthnCredential = {
 	lastUseTime: string,
 	nickname?: string,
 	prfCapable: boolean,
+}
+
+export type UserSettings = {
+	openidRefreshTokenMaxAgeInSeconds: number;
 }

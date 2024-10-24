@@ -14,7 +14,11 @@ const commonSchema = z.object({
 		background_image: z.object({
 			uri: z.string()
 		}).optional(),
-		locale: z.string().optional()
+		locale: z.string().optional(),
+		logo: z.object({
+			url: z.string(),
+			alt_text: z.string(),
+		}).optional(),
 	})).optional(),
 	scope: z.string(),
 	cryptographic_binding_methods_supported: z.array(z.string().nonempty()),

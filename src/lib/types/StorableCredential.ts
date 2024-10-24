@@ -4,4 +4,6 @@ export type StorableCredential = {
 	credentialIdentifier: string;
 	format: VerifiableCredentialFormat;
 	credential: string;
+	credentialConfigurationId: string;
+	credentialIssuerIdentifier: string;
 };
