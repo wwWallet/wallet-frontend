@@ -119,6 +119,33 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 	}, []);
 
+	// Polling logic when offline
+	useEffect(() => {
+		let pollingInterval: NodeJS.Timeout | null = null;
+		const startPolling = () => {
+			pollingInterval = setInterval(async () => {
+				console.log('Polling backend connection...');
+				const internetConnection = await checkInternetConnection();
+				if (internetConnection) {
+					// Stop polling when backend connection is restored
+					clearInterval(pollingInterval!);
+					updateOnlineStatus({ internetConnection }); // Recheck online status
+				}
+			}, 10000); // Poll every 10 seconds
+		};
+		if (!isOnline) {
+			startPolling();
+		} else if (pollingInterval) {
+			clearInterval(pollingInterval);
+		}
+		// Clean up the interval on unmount or if connection is restored
+		return () => {
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+			}
+		};
+	}, [isOnline]);
+
 	useEffect(() => {
 		console.log('Online status:', isOnline);
 		console.log('Internet connection status:', Connectivity);
