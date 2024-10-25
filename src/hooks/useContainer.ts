@@ -22,6 +22,7 @@ import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfi
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
 import defaulCredentialImage from "../assets/images/cred.png";
+import { UserData } from "../api/types";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -42,16 +43,23 @@ export function useContainer() {
 	const cont = new DIContainer();
 
 	const [container, setContainer] = useState<ContainerContextValue>(null);
+	const [userData, setUserData] = useState<UserData>(null);
 
 	useEffect(() => {
-		if (isLoggedIn) {
+		if (isLoggedIn && api) {
 			api.getExternalEntity('/issuer/all').then((response) => {
 				setTrustedCredentialIssuers(response.data)
 			}).catch(err => {
 				setTrustedCredentialIssuers([]);
 			});
+
+			api.get('/user/session/account-info').then((response) => {
+				setUserData(response.data);
+			}).catch(() => console.log("Failed to load account info"));
+
 		}
-	}, [isLoggedIn]);
+	}, [isLoggedIn, api]);
+	
 
 	async function initialize() {
 
@@ -60,7 +68,7 @@ export function useContainer() {
 
 		cont.register<ICredentialParserRegistry>('CredentialParserRegistry', CredentialParserRegistry);
 
-		cont.register<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository', OpenID4VCIClientStateRepository);
+		cont.register<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository', OpenID4VCIClientStateRepository, userData.settings.openidRefreshTokenMaxAgeInSeconds);
 		cont.register<IOpenID4VCIHelper>('OpenID4VCIHelper', OpenID4VCIHelper, cont.resolve<IHttpProxy>('HttpProxy'));
 		const credentialParserRegistry = cont.resolve<ICredentialParserRegistry>('CredentialParserRegistry');
 
@@ -225,7 +233,7 @@ export function useContainer() {
 	}
 
 	useEffect(() => {
-		if (isLoggedIn && trustedCredentialIssuers && keystore) {
+		if (isLoggedIn && trustedCredentialIssuers && keystore && userData) {
 			console.log("container instance created...");
 			initialize().then(({ openID4VCIClientsJson, openID4VPRelyingParty, httpProxy, openID4VCIHelper, credentialParserRegistry }) => {
 				setContainer({
@@ -237,9 +245,9 @@ export function useContainer() {
 				});
 			});
 		}
-	}, [isLoggedIn, trustedCredentialIssuers, keystore])
+	}, [isLoggedIn, trustedCredentialIssuers, keystore, userData])
 
 	return useMemo(() => {
 		return { container }
-	}, [isLoggedIn, trustedCredentialIssuers, container, keystore])
+	}, [isLoggedIn, trustedCredentialIssuers, container, keystore, userData])
 }

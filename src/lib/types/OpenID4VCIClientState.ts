@@ -27,7 +27,8 @@ export class OpenID4VCIClientState {
 			dpopPrivateKeyJwk: JWK,
 			dpopPublicKeyJwk?: JWK,
 			dpopAlg: string,
-		}
+		},
+		public created: number = Math.floor(Date.now() / 1000),
 	) { }
 
 	public serialize(): string {
@@ -38,11 +39,12 @@ export class OpenID4VCIClientState {
 			tokenResponse: this.tokenResponse,
 			credentialConfigurationId: this.credentialConfigurationId,
 			dpop: this.dpop,
+			created: this.created,
 		});
 	}
 
 	public static deserialize(storedValue: string): OpenID4VCIClientState {
-		const { userHandleB64U, state, code_verifier, credentialConfigurationId, tokenResponse, dpop } = JSON.parse(storedValue);
-		return new OpenID4VCIClientState(userHandleB64U, state, code_verifier, credentialConfigurationId, tokenResponse, dpop );
+		const { userHandleB64U, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created } = JSON.parse(storedValue);
+		return new OpenID4VCIClientState(userHandleB64U, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created);
 	}
 }
