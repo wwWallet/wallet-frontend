@@ -171,6 +171,10 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 	async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string }> {
 		const S = await this.openID4VPRelyingPartyStateRepository.retrieve();
+		if (S?.nonce == "") {
+			console.info("OID4VP: Non existent flow");
+			return {};
+		}
 		async function hashSHA256(input) {
 			// Step 1: Encode the input string as a Uint8Array
 			const encoder = new TextEncoder();
@@ -314,6 +318,9 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
 		await this.storeVerifiablePresentation(generatedVPs[0], presentationSubmission.descriptor_map[0].format, credentialIdentifiers, presentationSubmission, client_id);
+
+		S.nonce = ""; // invalidate OpeniD4VPRelyingPartyState to avoid reusage
+		await this.openID4VPRelyingPartyStateRepository.store(S);
 
 		const res = await this.httpProxy.post(response_uri, formData.toString(), {
 			'Content-Type': 'application/x-www-form-urlencoded',
