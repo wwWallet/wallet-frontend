@@ -73,7 +73,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - REACT_APP_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
 	 - REACT_APP_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
 	 - REACT_APP_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
-
+   - REACT_APP_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri
 4. Install dependencies:
 	```bash
 	yarn install

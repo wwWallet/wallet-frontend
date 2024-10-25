@@ -11,7 +11,7 @@ import { IHttpProxy } from "../interfaces/IHttpProxy";
 import { ICredentialParserRegistry } from "../interfaces/ICredentialParser";
 import { extractSAN, getPublicKeyFromB64Cert } from "../utils/pki";
 import axios from "axios";
-import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS } from "../../config";
+import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../config";
 
 export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
@@ -75,12 +75,12 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			}
 			const altNames = await extractSAN('-----BEGIN CERTIFICATE-----\n' + parsedHeader.x5c[0] + '\n-----END CERTIFICATE-----');
 
-			if (!altNames || altNames.length === 0) {
+			if (OPENID4VP_SAN_DNS_CHECK && !altNames || altNames.length === 0) {
 				console.log("No SAN found");
 				return { err: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 			}
 
-			if (!altNames.includes(new URL(response_uri).hostname)) {
+			if (OPENID4VP_SAN_DNS_CHECK && !altNames.includes(new URL(response_uri).hostname)) {
 				console.log("altnames = ", altNames)
 				console.log("request_uri uri hostname = ", new URL(request_uri).hostname)
 				console.log("Hostname of request_uri is not included in the SAN list")
@@ -292,10 +292,10 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 			const jwe = await new EncryptJWT({
-					vp_token: generatedVPs[0],
-					presentation_submission: presentationSubmission,
-					state: S.state ?? undefined
-				})
+				vp_token: generatedVPs[0],
+				presentation_submission: presentationSubmission,
+				state: S.state ?? undefined
+			})
 				.setProtectedHeader({ alg: S.client_metadata.authorization_encrypted_response_alg, enc: S.client_metadata.authorization_encrypted_response_enc, kid: rp_eph_pub_jwk.kid })
 				.encrypt(rp_eph_pub);
 
