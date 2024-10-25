@@ -5,9 +5,9 @@ import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
-import ContainerContext from '../../context/ContainerContext';
 import Button from '../../components/Buttons/Button';
 import PageDescription from '../../components/Shared/PageDescription';
+import ContainerContext from '../../context/ContainerContext';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -30,6 +30,7 @@ const Issuers = () => {
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
+
 	const container = useContext(ContainerContext);
 	const { t } = useTranslation();
 
@@ -43,7 +44,7 @@ const Issuers = () => {
 						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
 						return {
 							...issuer,
-							selectedDisplay: metadata.display.filter((display) => display.locale === 'en-US')[0],
+							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
 							credentialIssuerMetadata: metadata,
 						}
 					}
@@ -101,7 +102,7 @@ const Issuers = () => {
 		setSelectedIssuer(null);
 	};
 
-	const handleContinue = (selectedConfiguration) => {
+	const handleContinue = (selectedConfigurationId) => {
 		setLoading(true);
 
 		if (selectedIssuer && selectedIssuer.credentialIssuerIdentifier) {
@@ -111,8 +112,8 @@ const Issuers = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			cl.generateAuthorizationRequest(selectedConfiguration, userHandleB64u).then(({ url, client_id, request_uri }) => {
-				window.location.href = url;
+			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then(({ url, client_id, request_uri }) => {
+					window.location.href = url;
 			}).catch((err) => {
 				console.error(err)
 				console.error("Couldn't generate authz req")

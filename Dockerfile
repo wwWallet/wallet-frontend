@@ -4,13 +4,14 @@ WORKDIR /home/node/app
 
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY package.json yarn.lock .
-COPY .env .
+COPY .env.prod .env
 RUN yarn cache clean -f && yarn install
 
 
 FROM builder-base AS test
 
 COPY . .
+COPY .env.prod .env
 RUN npm run vitest
 
 
@@ -20,6 +21,7 @@ FROM builder-base AS builder
 COPY --from=test /home/node/app/package.json /dev/null
 
 COPY . .
+COPY .env.prod .env
 RUN yarn build
 
 
