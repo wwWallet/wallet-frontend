@@ -68,7 +68,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		return this.config.credentialIssuerMetadata.credential_configurations_supported
 	}
 
-	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url: string; client_id: string; request_uri: string; }> {
+	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url?: string; client_id?: string; request_uri?: string; }> {
 
 		try { // attempt to get credentials using active session
 			await this.requestCredentials({
@@ -77,8 +77,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					credentialConfigurationId
 				}
 			});
-			window.location.href = '/';
-			return;
+			return { url: "/" };
 		}
 		catch (err) { console.error(err) }
 
