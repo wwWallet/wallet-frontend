@@ -106,6 +106,11 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			}
 		}
 
+		const lastUsedNonce = sessionStorage.getItem('last_used_nonce');
+		if (lastUsedNonce && nonce == lastUsedNonce) {
+			throw new Error("last used nonce");
+		}
+
 		const vcList = await this.getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials);
 
 		if (!presentation_definition) {
@@ -171,9 +176,14 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 	async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string }> {
 		const S = await this.openID4VPRelyingPartyStateRepository.retrieve();
-		if (S?.nonce == "") {
+		console.log("send AuthorizationResponse: S = ", S)
+		console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
+		if (S?.nonce == "" || (sessionStorage.getItem('last_used_nonce') && S.nonce == sessionStorage.getItem('last_used_nonce'))) {
 			console.info("OID4VP: Non existent flow");
 			return {};
+		}
+		else {
+			sessionStorage.setItem('last_used_nonce', S.nonce);
 		}
 		async function hashSHA256(input) {
 			// Step 1: Encode the input string as a Uint8Array
@@ -319,7 +329,6 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		await this.storeVerifiablePresentation(generatedVPs[0], presentationSubmission.descriptor_map[0].format, credentialIdentifiers, presentationSubmission, client_id);
 
-		S.nonce = ""; // invalidate OpeniD4VPRelyingPartyState to avoid reusage
 		await this.openID4VPRelyingPartyStateRepository.store(S);
 
 		const res = await this.httpProxy.post(response_uri, formData.toString(), {
