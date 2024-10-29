@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
-import StatusContext from '../context/StatusContext';
+import StatusContext from '../../context/StatusContext';
 import { useTranslation } from 'react-i18next';
-import Button from './Buttons/Button';
+import Button from '../Buttons/Button';
 import { FaTimes } from 'react-icons/fa';
 import { MdNotifications } from "react-icons/md";
 

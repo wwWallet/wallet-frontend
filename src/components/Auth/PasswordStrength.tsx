@@ -1,6 +1,5 @@
 import React from "react";
 
-
 function passwordStrength(password: string): number {
 	const lengthScore = password.length >= 8 ? 25 : 0;
 	const capitalScore = /[A-Z]/.test(password) ? 25 : 0;

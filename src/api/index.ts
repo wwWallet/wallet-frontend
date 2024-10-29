@@ -164,7 +164,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			await get('/storage/vc', userUuid, { appToken });
 			await get('/storage/vp', userUuid, { appToken });
 			await get('/user/session/account-info', userUuid, { appToken });
-			await getExternalEntity('/legal_person/issuers/all', { appToken });
+			await getExternalEntity('/issuer/all', { appToken });
 			await getExternalEntity('/verifier/all', { appToken });
 
 		} catch (error) {

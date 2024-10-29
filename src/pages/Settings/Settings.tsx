@@ -7,6 +7,8 @@ import { MdNotifications } from "react-icons/md";
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
+import useScreenType from '../../hooks/useScreenType';
+
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
@@ -15,8 +17,8 @@ import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
-import { H1, H2, H3 } from '../../components/Heading';
-
+import { H1, H2, H3 } from '../../components/Shared/Heading';
+import PageDescription from '../../components/Shared/PageDescription';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -99,6 +101,7 @@ const WebauthnRegistation = ({
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
+	const screenType = useScreenType();
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
@@ -208,8 +211,8 @@ const WebauthnRegistation = ({
 				disabled={registrationInProgress || !unlocked || !isOnline}
 				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
 
-				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (window.innerWidth < 768 ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 			>
 				<div className="flex items-center">
 					<BsPlusCircle size={20} />
@@ -331,6 +334,7 @@ const UnlockMainKey = ({
 	const [error, setError] = useState('');
 	const { t } = useTranslation();
 	const isPromptingForPassword = Boolean(resolvePasswordPromise);
+	const screenType = useScreenType();
 
 	useEffect(
 		() => {
@@ -402,8 +406,8 @@ const UnlockMainKey = ({
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : window.innerWidth < 768 && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
+				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
+				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
 			>
 				<div className="flex items-center">
 					{unlocked
@@ -663,7 +667,7 @@ const WebauthnCredentialItem = ({
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
-					onCancel={closeDeleteConfirmation}
+					onClose={closeDeleteConfirmation}
 					message={
 						<Trans
 							i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
@@ -695,6 +699,7 @@ const Settings = () => {
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
+	const [successMessage, setSuccessMessage] = useState('');
 
 	const deleteAccount = async () => {
 		try {
@@ -828,13 +833,29 @@ const Settings = () => {
 	const loggedInPasskey = userData?.webauthnCredentials.find(
 		cred => toBase64Url(cred.credentialId) === loggedInPasskeyCredentialId);
 
+	const handleTokenMaxAgeChange = async (newMaxAge: string) => {
+		try {
+			await api.post('/user/session/settings', {
+				openidRefreshTokenMaxAgeInSeconds: parseInt(newMaxAge),
+			});
+			console.log('Settings updated successfully');
+			setSuccessMessage(t('pageSettings.rememberIssuer.successMessage'));
+			setTimeout(() => {
+				setSuccessMessage('');
+			}, 3000);
+			refreshData();
+		} catch (error) {
+			console.error('Failed to update settings', error);
+		}
+	};
+
 	return (
 		<>
 			<div className="sm:px-6 w-full">
 				{userData && (
 					<>
 						<H1 heading={t('common.navItemSettings')} />
-						<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageSettings.description')}</p>
+						<PageDescription description={t('pageSettings.description')} />
 
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.title.loggedInPasskey')} />
@@ -848,6 +869,35 @@ const Settings = () => {
 									unlocked={unlocked}
 								/>
 							)}
+						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.title.rememberIssuer')} />
+							<p className='mb-2 dark:text-white'>
+								{t('pageSettings.rememberIssuer.description')}
+							</p>
+							<div className='flex gap-2 items-center'>
+								<div className="relative inline-block min-w-36 text-gray-700">
+									<select
+										className={`w-full h-10 pl-3 pr-6 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36`}
+										defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
+										onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
+										disabled={!isOnline}
+										title={!isOnline && t("common.offlineTitle")}
+
+									>
+										<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
+										<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
+										<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
+										<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
+										<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
+									</select>
+								</div>
+								{successMessage && (
+									<div className="text-md text-green-500">
+										{successMessage}
+									</div>
+								)}
+							</div>
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<H2 heading={t('pageSettings.title.manageAcount')}>
@@ -944,7 +994,7 @@ const Settings = () => {
 				<DeletePopup
 					isOpen={isDeleteConfirmationOpen}
 					onConfirm={handleDelete}
-					onCancel={closeDeleteConfirmation}
+					onClose={closeDeleteConfirmation}
 					message={
 						<Trans
 							i18nKey="pageSettings.deleteAccount.message"

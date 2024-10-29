@@ -10,13 +10,15 @@ import { CredentialsProvider } from './context/CredentialsContext';
 import { withSessionContext } from './context/SessionContext';
 import { checkForUpdates } from './offlineRegistrationSW';
 
-import FadeInContentTransition from './components/FadeInContentTransition';
-import HandlerNotification from './components/HandlerNotification';
+import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
+import HandlerNotification from './components/Notifications/HandlerNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
-import Spinner from './components/Spinner';
+import Spinner from './components/Shared/Spinner';
+
 import { ContainerContextProvider } from './context/ContainerContext';
 
-import UpdateNotification from './components/UpdateNotification';
+import UpdateNotification from './components/Notifications/UpdateNotification';
+import CredentialDetails from './pages/Home/CredentialDetails';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -56,18 +58,20 @@ const reactLazyWithNonDefaultExports = (load, ...names) => {
 	return defaultExport;
 };
 
-const Layout = React.lazy(() => import('./components/Layout'));
+const Layout = React.lazy(() => import('./components/Layout/Layout'));
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
-	() => import('./components/PrivateRoute'),
+	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
-const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentials'));
+const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentialsPopup'));
 
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
-const CredentialDetail = React.lazy(() => import('./pages/Home/CredentialDetail'));
+const Credential = React.lazy(() => import('./pages/Home/Credential'));
+const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
 const History = React.lazy(() => import('./pages/History/History'));
+const HistoryDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const Login = React.lazy(() => import('./pages/Login/Login'));
 const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
@@ -126,7 +130,7 @@ function App() {
 					<Snowfalling />
 					<Suspense fallback={<Spinner />}>
 						<HandlerNotification />
-						<UpdateNotification/>
+						<UpdateNotification />
 						<Routes>
 							<Route element={
 								<PrivateRoute>
@@ -142,12 +146,15 @@ function App() {
 							}>
 								<Route path="/settings" element={<Settings />} />
 								<Route path="/" element={<Home />} />
-								<Route path="/credential/:id" element={<CredentialDetail />} />
+								<Route path="/credential/:credentialId" element={<Credential />} />
+								<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
+								<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
 								<Route path="/history" element={<History />} />
+								<Route path="/history/:historyId" element={<HistoryDetail />} />
 								<Route path="/add" element={<AddCredentials />} />
 								<Route path="/send" element={<SendCredentials />} />
 								<Route path="/verification/result" element={<VerificationResult />} />
-								<Route path="/cb" element={<Home />} />
+								<Route path="/cb/*" element={<Home />} />
 							</Route>
 							<Route element={
 								<FadeInContentTransition reanimateKey={location.pathname}>
@@ -160,10 +167,10 @@ function App() {
 							</Route>
 						</Routes>
 						{showSelectCredentialsPopup &&
-							<SelectCredentialsPopup showPopup={showSelectCredentialsPopup} setShowPopup={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
+							<SelectCredentialsPopup isOpen={showSelectCredentialsPopup} setIsOpen={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
 						}
 						{showPinInputPopup &&
-							<PinInputPopup showPopup={showPinInputPopup} setShowPopup={setShowPinInputPopup} />
+							<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
 						}
 						{showMessagePopup &&
 							<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />

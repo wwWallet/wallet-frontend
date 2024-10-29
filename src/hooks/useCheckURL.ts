@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import SessionContext from '../context/SessionContext';
 import { BackgroundTasksContext } from '../context/BackgroundTasksContext';
-import { useContainer } from '../components/useContainer';
+import { useContainer } from './useContainer';
 import { HandleAuthorizationRequestError } from '../lib/interfaces/IOpenID4VPRelyingParty';
 
 
@@ -43,12 +43,14 @@ function useCheckURL(urlToCheck: string): {
 		const u = new URL(urlToCheck);
 		if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri') ) {
 			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
-				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString())
-					.then(({ credentialIssuer, selectedCredentialConfigurationSupported, issuer_state }) => {
-						return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationSupported, userHandleB64u, issuer_state);
+				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString(), userHandleB64u)
+					.then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
+						return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationId, userHandleB64u, issuer_state);
 					})
 					.then(({ url, client_id, request_uri }) => {
-						window.location.href = url;
+						if (url) {
+							window.location.href = url;
+						}
 					})
 					.catch((err) => console.error(err));
 			}
@@ -56,7 +58,7 @@ function useCheckURL(urlToCheck: string): {
 		else if (u.searchParams.get('code')) {
 			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
 				addLoader();
-				await container.openID4VCIClients[credentialIssuerIdentifier].handleAuthorizationResponse(urlToCheck)
+				await container.openID4VCIClients[credentialIssuerIdentifier].handleAuthorizationResponse(urlToCheck, userHandleB64u)
 					.then(() => {
 						removeLoader();
 					})
@@ -121,6 +123,7 @@ function useCheckURL(urlToCheck: string): {
 
 	useEffect(() => {
 		if (selectionMap) {
+			console.log("Selection map was mutated...");
 			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then(({ url }) => {
 				if (url) {
 					window.location.href = url;

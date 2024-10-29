@@ -3,14 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
-
-import QRCodeScanner from '../../components/QRCodeScanner/QRCodeScanner';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
-import QRButton from '../../components/Buttons/QRButton';
-import { H1 } from '../../components/Heading';
-import ContainerContext from '../../context/ContainerContext';
+import { H1 } from '../../components/Shared/Heading';
 import Button from '../../components/Buttons/Button';
-
+import PageDescription from '../../components/Shared/PageDescription';
+import ContainerContext from '../../context/ContainerContext';
 
 function highlightBestSequence(issuer, search) {
 	if (typeof issuer !== 'string' || typeof search !== 'string') {
@@ -32,23 +29,10 @@ const Issuers = () => {
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
 	const container = useContext(ContainerContext);
 	const { t } = useTranslation();
-
-	useEffect(() => {
-		const handleResize = () => {
-			setIsSmallScreen(window.innerWidth < 768);
-		};
-
-		window.addEventListener('resize', handleResize);
-
-		return () => {
-			window.removeEventListener('resize', handleResize);
-		};
-	}, []);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -60,11 +44,11 @@ const Issuers = () => {
 						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
 						return {
 							...issuer,
-							selectedDisplay: metadata.display.filter((display) => display.locale === 'en-US')[0],
+							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
 							credentialIssuerMetadata: metadata,
 						}
 					}
-					catch(err) {
+					catch (err) {
 						console.error(err);
 						return null;
 					}
@@ -118,7 +102,7 @@ const Issuers = () => {
 		setSelectedIssuer(null);
 	};
 
-	const handleContinue = (selectedConfiguration) => {
+	const handleContinue = (selectedConfigurationId) => {
 		setLoading(true);
 
 		if (selectedIssuer && selectedIssuer.credentialIssuerIdentifier) {
@@ -128,8 +112,8 @@ const Issuers = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			cl.generateAuthorizationRequest(selectedConfiguration, userHandleB64u).then(({ url, client_id, request_uri }) => {
-				window.location.href = url;
+			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then(({ url, client_id, request_uri }) => {
+					window.location.href = url;
 			}).catch((err) => {
 				console.error(err)
 				console.error("Couldn't generate authz req")
@@ -140,24 +124,11 @@ const Issuers = () => {
 		setShowRedirectPopup(false);
 	};
 
-	// QR Code part
-	const [isQRScannerOpen, setQRScannerOpen] = useState(false);
-
-	const openQRScanner = () => {
-		setQRScannerOpen(true);
-	};
-
-	const closeQRScanner = () => {
-		setQRScannerOpen(false);
-	};
-
 	return (
 		<>
 			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemAddCredentials')}>
-					<QRButton openQRScanner={openQRScanner} isSmallScreen={isSmallScreen} />
-				</H1>
-				<p className="italic text-gray-700 dark:text-gray-300">{t('pageAddCredentials.description')}</p>
+				<H1 heading={t('common.navItemAddCredentials')} />
+				<PageDescription description={t('pageAddCredentials.description')} />
 
 				<div className="my-4">
 					<input
@@ -195,21 +166,13 @@ const Issuers = () => {
 			{showRedirectPopup && (
 				<RedirectPopup
 					loading={loading}
-					handleClose={handleCancel}
+					onClose={handleCancel}
 					handleContinue={handleContinue}
 					availableCredentialConfigurations={availableCredentialConfigurations}
 					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Unknown"}`}
 					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.selectedDisplay?.name ?? "Unknown" })}
 				/>
 			)}
-
-			{/* QR Code Scanner Modal */}
-			{isQRScannerOpen && (
-				<QRCodeScanner
-					onClose={closeQRScanner}
-				/>
-			)}
-
 		</>
 	);
 };

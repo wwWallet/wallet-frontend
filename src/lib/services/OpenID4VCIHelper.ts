@@ -12,8 +12,9 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 
 
 	async getAuthorizationServerMetadata(credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata }> {
+		let response = null;
 		try {
-			const response = await this.httpProxy.get(`${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`, {});
+			response = await this.httpProxy.get(`${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`, {});
 			if (!response) {
 				throw new Error("Couldn't get response");
 			}
@@ -21,8 +22,21 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 			return { authzServeMetadata };
 		}
 		catch(err) {
-			console.error(err);
-			throw new Error("Couldn't get Authorization Server Metadata");
+		}
+
+		if (response == null) {
+			try {
+				response = await this.httpProxy.get(`${credentialIssuerIdentifier}/.well-known/openid-configuration`, {});
+				if (!response) {
+					throw new Error("Couldn't get response");
+				}
+				const authzServeMetadata = OpenidAuthorizationServerMetadataSchema.parse(response.data);
+				return { authzServeMetadata };
+			}
+			catch(err) {
+				console.error(err);
+				throw new Error("Couldn't get authorization server metadata");
+			}
 		}
 	}
 

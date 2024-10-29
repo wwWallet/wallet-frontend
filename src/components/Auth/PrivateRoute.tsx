@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { fetchToken, notificationApiIsSupported } from '../firebase';
+import { fetchToken, notificationApiIsSupported } from '../../firebase';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { Trans } from 'react-i18next';
 
-import Spinner from './Spinner'; // Import your spinner component
-import { useSessionStorage } from '../hooks/useStorage';
-import StatusContext from '../context/StatusContext';
-import SessionContext from '../context/SessionContext';
+import Spinner from '../Shared/Spinner'; // Import your spinner component
+import { useSessionStorage } from '../../hooks/useStorage';
+import StatusContext from '../../context/StatusContext';
+import SessionContext from '../../context/SessionContext';
 
 
 type PrivateRouteContextValue = {
