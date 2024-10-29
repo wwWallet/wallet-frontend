@@ -6,7 +6,6 @@ import Header from '../Layout/Header';
 
 const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, children }) => {
 
-	console.log('PopupLayout loading',loading)
 	if (!isOpen) return null;
 
 	if (loading) {
