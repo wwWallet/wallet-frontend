@@ -48,7 +48,9 @@ function useCheckURL(urlToCheck: string): {
 						return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationId, userHandleB64u, issuer_state);
 					})
 					.then(({ url, client_id, request_uri }) => {
-						window.location.href = url;
+						if (url) {
+							window.location.href = url;
+						}
 					})
 					.catch((err) => console.error(err));
 			}
@@ -121,6 +123,7 @@ function useCheckURL(urlToCheck: string): {
 
 	useEffect(() => {
 		if (selectionMap) {
+			console.log("Selection map was mutated...");
 			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then(({ url }) => {
 				if (url) {
 					window.location.href = url;
