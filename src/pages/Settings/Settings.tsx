@@ -885,6 +885,7 @@ const Settings = () => {
 										title={!isOnline && t("common.offlineTitle")}
 
 									>
+										<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
 										<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
 										<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
 										<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
