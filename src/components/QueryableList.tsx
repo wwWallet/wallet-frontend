@@ -68,34 +68,40 @@ const QueryableList = <T,>({
 					searchCallback={handleSearch}
 				/>
 			</div>
-			<div
-				className="max-h-screen-80 overflow-y-auto space-y-2"
-				style={{ maxHeight: "80vh" }}
-			>
-				{filteredList.map((el) => (
-					<Button
-						variant="outline"
-						additionalClassName="break-words w-full text-left"
-						key={el["id"]}
-						{...(onClick &&
-							identifierField && {
-								onClick: () =>
-									onClick(getElementPropValue(el, identifierField as string)),
-							})}
-						disabled={!isOnline}
-						title={!isOnline ? t("common.offlineTitle") : ""}
-					>
-						<div
-							dangerouslySetInnerHTML={{
-								__html: highlightBestSequence(
-									getElementPropValue(el, queryField) ?? "Unknown",
-									searchQuery.trimStart()
-								),
-							}}
-						/>
-					</Button>
-				))}
-			</div>
+			{filteredList.length === 0 ? (
+				<p className="text-gray-700 dark:text-gray-300 mt-4">
+					{t(translationPrefix + ".noFound")}
+				</p>
+			) : (
+				<div
+					className="max-h-screen-80 overflow-y-auto space-y-2"
+					style={{ maxHeight: "80vh" }}
+				>
+					{filteredList.map((el) => (
+						<Button
+							variant="outline"
+							additionalClassName="break-words w-full text-left"
+							key={el["id"]}
+							{...(onClick &&
+								identifierField && {
+									onClick: () =>
+										onClick(getElementPropValue(el, identifierField as string)),
+								})}
+							disabled={!isOnline}
+							title={!isOnline ? t("common.offlineTitle") : ""}
+						>
+							<div
+								dangerouslySetInnerHTML={{
+									__html: highlightBestSequence(
+										getElementPropValue(el, queryField) ?? "Unknown",
+										searchQuery.trimStart()
+									),
+								}}
+							/>
+						</Button>
+					))}
+				</div>
+			)}
 		</>
 	);
 };
