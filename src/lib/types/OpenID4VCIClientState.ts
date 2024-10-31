@@ -7,6 +7,7 @@ export class OpenID4VCIClientState {
 
 	constructor(
 		public userHandleB64U: string,
+		public credentialIssuerIdentifier: string,
 		public state: string,
 		public code_verifier: string,
 		public credentialConfigurationId: string,
@@ -34,6 +35,7 @@ export class OpenID4VCIClientState {
 	public serialize(): string {
 		return JSON.stringify({
 			userHandleB64U: this.userHandleB64U,
+			credentialIssuerIdentifier: this.credentialIssuerIdentifier,
 			state: this.state,
 			code_verifier: this.code_verifier,
 			tokenResponse: this.tokenResponse,
@@ -44,7 +46,7 @@ export class OpenID4VCIClientState {
 	}
 
 	public static deserialize(storedValue: string): OpenID4VCIClientState {
-		const { userHandleB64U, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created } = JSON.parse(storedValue);
-		return new OpenID4VCIClientState(userHandleB64U, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created);
+		const { userHandleB64U, credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created } = JSON.parse(storedValue);
+		return new OpenID4VCIClientState(userHandleB64U, credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, tokenResponse, dpop, created);
 	}
 }
