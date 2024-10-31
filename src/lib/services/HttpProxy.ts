@@ -41,7 +41,13 @@ export class HttpProxy implements IHttpProxy {
 			return response.data;
 		}
 		catch(err) {
-			return null;
+			return {
+				err: {
+					data: err.response.data.err.data,
+					headers: err.response.data.err.headers,
+					status: err.response.status
+				}
+			}
 		}
 	}
 }
