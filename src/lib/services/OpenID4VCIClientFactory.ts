@@ -9,10 +9,11 @@ export class OpenID4VCIClientFactory {
 	constructor(private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
 		private generateNonceProof: (cNonce: string, audience: string, clientId: string) => Promise<{ jws: string }>,
-		private storeCredential: (c: StorableCredential) => Promise<void>
+		private storeCredential: (c: StorableCredential) => Promise<void>,
+		private authorizationRequestModifier: (credentialIssuerIdentifier: string, url: string, request_uri?: string, client_id?: string) => Promise<{ url: string }>,
 	) { }
 
 	createClient(config: ClientConfig): OpenID4VCIClient {
-		return new OpenID4VCIClient(config, this.httpProxy, this.openID4VCIClientStateRepository, this.generateNonceProof, this.storeCredential);
+		return new OpenID4VCIClient(config, this.httpProxy, this.openID4VCIClientStateRepository, this.generateNonceProof, this.storeCredential, this.authorizationRequestModifier);
 	}
 }

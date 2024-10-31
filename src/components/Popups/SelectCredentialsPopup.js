@@ -9,6 +9,7 @@ import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
+import Slider from '../Shared/Slider';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -70,6 +71,8 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
+	const [credentialDisplay, setCredentialDisplay] = useState({});
+	const [currentSlide, setCurrentSlide] = useState(1);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -123,7 +126,6 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	const goToNextSelection = () => {
 		setShowAllFields(false);
 		setCurrentIndex((i) => i + 1);
-
 	}
 
 	const goToPreviousSelection = () => {
@@ -152,6 +154,32 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	if (!isOpen) {
 		return null;
 	};
+
+	const renderSlideContent = (vcEntity) => (
+		<button
+			key={vcEntity.id}
+			className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer"
+			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
+			onClick={() => handleClick(vcEntity.credentialIdentifier)}
+			aria-label={`${vcEntity.friendlyName}`}
+			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
+		>
+			<CredentialImage
+				key={vcEntity.credentialIdentifier}
+				credential={vcEntity.credential}
+				className="w-full object-cover rounded-xl"
+			/>
+
+			<div className={`absolute inset-0 rounded-xl transition-opacity bg-white/50 ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-0' : 'opacity-50'}`} />
+			<div className="absolute bottom-4 right-4 z-60">
+				{selectedCredential === vcEntity.credentialIdentifier ? (
+					<FaCheckCircle size={30} className="z-50 rounded-full bg-white text-primary dark:text-primary-light" />
+				) : (
+					<FaRegCircle size={30} className="z-50 rounded-full bg-white/50 text-primary dark:text-primary-light" />
+				)}
+			</div>
+		</button>
+	);
 
 	const handleToggleFields = () => {
 		setShowAllFields(!showAllFields);
@@ -208,34 +236,20 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 							{t('selectCredentialPopup.descriptionSelect')}
 						</p>
 					</>
-				)
-				}
+				)}
 			</div>
-			<div className={`flex flex-wrap justify-center flex flex-row justify-center overflow-y-auto bg-gray-50 items-center dark:bg-gray-800 shadow-md rounded-md custom-scrollbar mb-2 ${screenType === 'mobile' ? 'h-full' : 'max-h-[40vh]'}`}>
-				{vcEntities.map(vcEntity => (
-					<>
-						<div key={vcEntity.credentialIdentifier} className="m-3 flex flex-col items-center">
-							<button
-								className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer`}
-								onClick={() => handleClick(vcEntity.credentialIdentifier)}
-								aria-label={`${vcEntity.friendlyName}`}
-								title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
-							>
-								<CredentialImage key={vcEntity.credentialIdentifier} credential={vcEntity.credential}
-									className={`w-full object-cover rounded-xl ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-100' : 'opacity-50'}`}
-								/>
-								<div className="z-60 absolute bottom-4 right-4" style={{ zIndex: "3000" }}>
-									{selectedCredential === vcEntity.credentialIdentifier ? (
-										<FaCheckCircle size={30} className="z-50 rounded-full bg-white text-primary dark:text-primary-light" />
-									) : (
-										<FaRegCircle size={30} className="z-50 rounded-full bg-white/50 text-primary dark:text-primary-light" />
-									)}
-								</div>
-							</button>
-						</div>
-					</>
-				))}
+			<div className='px-4'>
+				<Slider
+					items={vcEntities}
+					renderSlideContent={renderSlideContent}
+					onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+				/>
 			</div>
+			{vcEntities[currentSlide - 1] && (
+				<div className={`flex flex-wrap justify-center flex flex-row justify-center overflow-y-auto items-center custom-scrollbar mb-2 ${screenType === 'mobile' ? 'h-full' : 'max-h-[25vh]'}`}>
+					<CredentialInfo credential={vcEntities[currentSlide - 1].credential} mainClassName={"text-xs w-full"} />
+				</div>
+			)}
 			<div className="flex justify-between mt-4">
 				<Button
 					onClick={onClose}

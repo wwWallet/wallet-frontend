@@ -126,7 +126,6 @@ export async function addItem(storeName: string, key: any, value: any): Promise<
 export async function getItem(storeName: string, key: any): Promise<any> {
 	try {
 		const mappedStoreName = getMappedStoreName(storeName);
-		console.log(mappedStoreName, storeName);
 		const value = await stores[mappedStoreName].getItem(key);
 		return value;
 	} catch (err) {

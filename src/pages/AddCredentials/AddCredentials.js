@@ -83,8 +83,10 @@ const Issuers = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then(({ url, client_id, request_uri }) => {
+			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then(({ url }) => {
+				if (url) {
 					window.location.href = url;
+				}
 			}).catch((err) => {
 				console.error(err)
 				console.error("Couldn't generate authz req")

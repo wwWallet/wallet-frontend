@@ -11,6 +11,7 @@ import { StorableCredential } from '../types/StorableCredential';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../utils/generateRandomIdentifier';
 import * as config from '../../config';
+import { VerifiableCredentialFormat } from '../schemas/vc';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
@@ -20,7 +21,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
 		private generateNonceProof: (cNonce: string, audience: string, clientId: string) => Promise<{ jws: string }>,
-		private storeCredential: (c: StorableCredential) => Promise<void>
+		private storeCredential: (c: StorableCredential) => Promise<void>,
+		private authorizationRequestModifier: (credentialIssuerIdentifier: string, url: string, request_uri?: string, client_id?: string) => Promise<{ url: string }> = async (_credentialIssuerIdentifier: string, url: string) => ({ url }),
 	) { }
 
 	async handleCredentialOffer(credentialOfferURL: string, userHandleB64u: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> {
@@ -117,10 +119,12 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const { request_uri } = res.data;
 		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
 
-		console.log("State to be stored = ", state)
-		await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, state, code_verifier, credentialConfigurationId))
+		await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, this.config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
+
+		const modifiedAuthorizationRequest = await this.authorizationRequestModifier(this.config.credentialIssuerIdentifier, authorizationRequestURL, request_uri, this.config.clientId);
+
 		return {
-			url: authorizationRequestURL,
+			url: modifiedAuthorizationRequest.url,
 			request_uri,
 			client_id: this.config.clientId,
 		}
@@ -133,10 +137,10 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const state = parsedUrl.searchParams.get('state');
 
 		if (!code) {
-			throw new Error("Could not handle authorization response");
+			return;
 		}
 		const s = await this.openID4VCIClientStateRepository.getByStateAndUserHandle(state, userHandleB64U);
-		if (!s) {
+		if (!s || !s.credentialIssuerIdentifier || s.credentialIssuerIdentifier != this.config.credentialIssuerIdentifier) {
 			return;
 		}
 		await this.requestCredentials({
@@ -267,27 +271,34 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 		formData.append('redirect_uri', redirectUri);
 
-		let response;
-		try {
-			response = await this.httpProxy.post(tokenEndpoint, formData.toString(), tokenRequestHeaders);
-		}
-		catch (err) {
+		const response = await this.httpProxy.post(tokenEndpoint, formData.toString(), tokenRequestHeaders);
+
+		if (response.err) {
+			const { err } = response;
 			console.log("failed token request")
-			console.error(err);
-			if (err.response.data.err.headers['dpop-nonce']) {
-				requestCredentialsParams.dpopNonceHeader = err.response.data.err.headers['dpop-nonce'];
+			console.log(err);
+			console.log("Dpop nonce found = ", err.headers['dpop-nonce'])
+			if (err.headers['dpop-nonce']) {
+				requestCredentialsParams.dpopNonceHeader = err.headers['dpop-nonce'];
 				if (requestCredentialsParams.dpopNonceHeader) {
-					this.handleAuthorizationResponse(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl, requestCredentialsParams.dpopNonceHeader);
+					await this.requestCredentials(requestCredentialsParams);
+					// this.handleAuthorizationResponse(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl, requestCredentialsParams.userHandleB64u, requestCredentialsParams.dpopNonceHeader);
 					return;
 				}
 			}
 			return;
 		}
 
+		console.log("== response = ", response)
 		try { // try to extract the response and update the OpenID4VCIClientStateRepository
 			const {
-				data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token },
+				data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token, token_type },
 			} = response;
+
+			if (!access_token) {
+				console.log("Missing access_token from response");
+				return;
+			}
 
 			flowState.tokenResponse = {
 				data: {
@@ -354,39 +365,48 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("Failed to generate proof");
 		}
 
+		const credentialConfigurationSupported = this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId];
 		const credentialEndpointBody = {
 			"proof": {
 				"proof_type": "jwt",
 				"jwt": jws,
 			},
 			"format": this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
-			...this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId], // include credential_definition, vct, doctype etc.
-		};
+		} as any;
 
-		try {
-			const credentialResponse = await this.httpProxy.post(credentialEndpoint, credentialEndpointBody, credentialRequestHeaders);
-			console.log("Credential response = ", credentialResponse)
-			const { credential, c_nonce, c_nonce_expires_in } = credentialResponse.data;
-
-			if (c_nonce && c_nonce_expires_in) {
-				flowState.tokenResponse.data.c_nonce = c_nonce;
-				flowState.tokenResponse.data.c_nonce_expiration_timestamp = Math.floor(Date.now() / 1000) + c_nonce_expires_in;
-				await this.openID4VCIClientStateRepository.updateState(flowState, flowState.userHandleB64U);
-			}
-
-			await this.storeCredential({
-				credentialIdentifier: generateRandomIdentifier(32),
-				credential: credential,
-				format: this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
-				credentialConfigurationId: flowState.credentialConfigurationId,
-				credentialIssuerIdentifier: this.config.credentialIssuerIdentifier,
-			});
-			return;
+		if (credentialConfigurationSupported.format == VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
+			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
 		}
-		catch (err) {
-			console.error("Failed to recieve credential during issuance protocol");
-			console.error(err);
-			throw new Error("Credential Request failed")
+		else if (credentialConfigurationSupported.format == VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
+			credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
 		}
+
+		const credentialResponse = await this.httpProxy.post(credentialEndpoint, credentialEndpointBody, credentialRequestHeaders);
+
+		if (credentialResponse.err) {
+			console.log("Error: Credential response = ", credentialResponse.err);
+			throw new Error("Credential Request failed");
+		}
+		console.log("Credential response = ", credentialResponse)
+
+		const { credential } = credentialResponse.data;
+		const new_c_nonce = credentialResponse.data.c_nonce;
+		const new_c_nonce_expires_in = credentialResponse.data.c_nonce_expires_in;
+
+		if (new_c_nonce && new_c_nonce_expires_in) {
+			flowState.tokenResponse.data.c_nonce = new_c_nonce;
+			flowState.tokenResponse.data.c_nonce_expiration_timestamp = Math.floor(Date.now() / 1000) + new_c_nonce_expires_in;
+			await this.openID4VCIClientStateRepository.updateState(flowState, flowState.userHandleB64U);
+		}
+
+		await this.storeCredential({
+			credentialIdentifier: generateRandomIdentifier(32),
+			credential: credential,
+			format: this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
+			credentialConfigurationId: flowState.credentialConfigurationId,
+			credentialIssuerIdentifier: this.config.credentialIssuerIdentifier,
+		});
+		return;
+
 	}
 }
