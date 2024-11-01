@@ -52,7 +52,7 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, ha
 							aria-label={`Option ${credentialConfigurationId}`}
 						/>
 						<label for={"radio-" + index} class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-							{(availableCredentialConfigurations[credentialConfigurationId]?.display ? availableCredentialConfigurations[credentialConfigurationId]?.display.filter((d) => d.locale === locale)[0].name : null) ?? credentialConfigurationId}
+							{(availableCredentialConfigurations[credentialConfigurationId]?.display ? availableCredentialConfigurations[credentialConfigurationId]?.display.filter((d) => d.locale === locale)[0]?.name : null) ?? credentialConfigurationId}
 						</label>
 					</div>
 				)
