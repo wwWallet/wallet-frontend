@@ -75,9 +75,9 @@ const Credential = () => {
 	};
 
 	const infoTabs = [
-		{ label: 'Details', component: <CredentialJson credential={vcEntity?.credential} /> },
+		{ label: 'Dataset', component: <CredentialJson credential={vcEntity?.credential} /> },
 		{
-			label: 'History', component:
+			label: 'Presentations', component:
 				<>
 					{history.length === 0 ? (
 						<p className="text-gray-700 dark:text-white">
@@ -114,14 +114,14 @@ const Credential = () => {
 								onClick={() => navigate(`/credential/${credentialId}/history`)}
 								additionalClassName='w-full my-2'
 							>
-								History
+								Presentations
 							</Button>
 							<Button
 								variant="primary"
 								onClick={() => navigate(`/credential/${credentialId}/details`)}
 								additionalClassName='w-full my-2'
 							>
-								Details
+								Dataset
 							</Button>
 						</>
 					)}

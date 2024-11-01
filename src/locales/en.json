@@ -152,7 +152,7 @@
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No history presentations found",
+		"noFound": "No presentations found",
 		"popupTitle": "Presented Credentials"
 	},
 	"pageSendCredentials": {
