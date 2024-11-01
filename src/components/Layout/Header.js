@@ -19,7 +19,7 @@ const Header = () => {
 	};
 
 	return (
-		<header className="z-50 fixed top-0 left-0 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md md:hidden rounded-b-lg">
+		<header className="sticky top-0 z-50 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between p-4 shadow-md md:hidden rounded-b-lg">
 			<ConnectionStatusIcon size={25} />
 			<div className="flex items-center">
 				<button className='mr-2' onClick={() => handleNavigate('/')}>

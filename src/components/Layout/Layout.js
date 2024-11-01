@@ -9,15 +9,15 @@ const Layout = ({ children }) => {
 	const toggleSidebar = () => setIsOpen(!isOpen);
 
 	return (
-		<div className="flex min-h-screen">
+		<div className="flex min-h-screen flex-col md:flex-row bg-gray-100 dark:bg-gray-900">
 			<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
 			{/* Header */}
 			{!isOpen && <Header />}
 
-			<div className={`w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
+			<div className={`w-full md:w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
-				<div className="flex-grow bg-gray-100 dark:bg-gray-900 p-6 mt-10 pt-10 md:mt-0 md:pt-6 xm:pb-20 overflow-y-auto">
+				<div className="w-full flex-grow bg-gray-100 dark:bg-gray-900 p-6 md:mt-0 md:pt-6 xm:pb-20 overflow-y-auto">
 					{children}
 				</div>
 			</div>
