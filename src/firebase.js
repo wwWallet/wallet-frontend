@@ -9,8 +9,12 @@ export const notificationApiIsSupported =
 	'serviceWorker' in navigator &&
 	'PushManager' in window;
 
+export async function isEnabledAndIsSupported() {
+	return config.FIREBASE_ENABLED && await isSupported();
+}
+
 export async function register() {
-	if (await isSupported() && 'serviceWorker' in navigator) {
+	if (await isEnabledAndIsSupported() && 'serviceWorker' in navigator) {
 		try {
 			const existingRegistration = await navigator.serviceWorker.getRegistration('/notifications/');
 			if (existingRegistration) {
@@ -28,7 +32,7 @@ export async function register() {
 };
 
 const requestForToken = async () => {
-	if (!await isSupported()) {
+	if (!await isEnabledAndIsSupported()) {
 		return null;
 	}
 	if (messaging) {
@@ -61,7 +65,7 @@ const requestForToken = async () => {
 };
 
 const reRegisterServiceWorkerAndGetToken = async () => {
-	if (!await isSupported()) {
+	if (!await isEnabledAndIsSupported()) {
 		return null;
 	}
 	if ('serviceWorker' in navigator) {
@@ -90,7 +94,7 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 };
 
 export const fetchToken = async () => {
-	if (await isSupported() && messaging) {
+	if (await isEnabledAndIsSupported() && messaging) {
 		const token = await requestForToken();
 		console.log('token:', token);
 		if (token) {
@@ -112,7 +116,7 @@ export const fetchToken = async () => {
 
 export const onMessageListener = () =>
 	new Promise(async (resolve) => {
-		if (await isSupported()) {
+		if (await isEnabledAndIsSupported()) {
 			onMessage(messaging, (payload) => {
 				resolve(payload);
 			});
@@ -121,7 +125,7 @@ export const onMessageListener = () =>
 
 const initializeFirebaseAndMessaging = async () => {
 	if (notificationApiIsSupported) {
-		let supported = await isSupported();
+		let supported = await isEnabledAndIsSupported();
 		if (supported) {
 			initializeApp(config.FIREBASE);
 			messaging = getMessaging();
