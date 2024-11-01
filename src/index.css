@@ -10,10 +10,6 @@
 }
 
 /* Custom scrollbar */
-.custom-scrollbar {
-	padding-right: 10px;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
 	width: 10px;
 }
@@ -147,5 +143,5 @@ input:-webkit-autofill {
 
 /* React Modal style */
 .ReactModal__Content:focus {
-  outline: none;
+	outline: none;
 }
