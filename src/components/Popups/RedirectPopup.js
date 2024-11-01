@@ -40,18 +40,18 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, ha
 
 			{configurationsCount > 1 && Object.keys(availableCredentialConfigurations).map((credentialConfigurationId, index) => {
 				return (
-					<div class="flex items-center mb-4">
+					<div key={credentialConfigurationId} className="flex items-center mb-4">
 						<input
 							id={"radio-" + index}
 							onChange={handleOptionChange}
 							type="radio"
 							value={credentialConfigurationId}
 							name="default-radio"
-							class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+							className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
 							checked={selectedConfiguration === credentialConfigurationId}
 							aria-label={`Option ${credentialConfigurationId}`}
 						/>
-						<label for={"radio-" + index} class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+						<label htmlFor={"radio-" + index} className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
 							{(availableCredentialConfigurations[credentialConfigurationId]?.display ? availableCredentialConfigurations[credentialConfigurationId]?.display.filter((d) => d.locale === locale)[0].name : null) ?? credentialConfigurationId}
 						</label>
 					</div>
