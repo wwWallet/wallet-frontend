@@ -144,3 +144,8 @@ input:-webkit-autofill {
 .swiper-slide-next {
 	display: inline-flex !important;
 }
+
+/* React Modal style */
+.ReactModal__Content:focus {
+  outline: none;
+}
