@@ -205,7 +205,7 @@
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
 			"options": {
-				"none": "none",
+				"none": "Always Authenticate",
 				"hour": "1 hour",
 				"day": "1 day",
 				"week": "1 week",
