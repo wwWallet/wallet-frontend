@@ -882,7 +882,7 @@ const Settings = () => {
 										defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 										onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 										disabled={!isOnline}
-										title={!isOnline && t("common.offlineTitle")}
+										title={!isOnline ? t("common.offlineTitle") : undefined}
 
 									>
 										<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
