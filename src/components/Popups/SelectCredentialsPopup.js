@@ -196,7 +196,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	})();
 
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false} fullScreen={screenType === 'mobile'}>
+		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
 			<div>
 				{stepTitles && (
 					<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
@@ -238,7 +238,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 					</>
 				)}
 			</div>
-			<div className='px-4'>
+			<div className={`${screenType === 'tablet' ? 'px-28' : 'px-4 xl:px-16'}`}>
 				<Slider
 					items={vcEntities}
 					renderSlideContent={renderSlideContent}
@@ -246,11 +246,11 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 				/>
 			</div>
 			{vcEntities[currentSlide - 1] && (
-				<div className={`flex flex-wrap justify-center flex flex-row justify-center overflow-y-auto items-center custom-scrollbar mb-2 ${screenType === 'mobile' ? 'h-full' : 'max-h-[25vh]'}`}>
+				<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
 					<CredentialInfo credential={vcEntities[currentSlide - 1].credential} mainClassName={"text-xs w-full"} />
 				</div>
 			)}
-			<div className="flex justify-between mt-4">
+			<div className={`flex justify-between pt-4 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
 				<Button
 					onClick={onClose}
 					variant="cancel"
