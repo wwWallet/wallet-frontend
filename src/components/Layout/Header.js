@@ -13,9 +13,9 @@ const Header = () => {
 
 	useEffect(() => {
 		const handleScroll = () => {
-			if (window.scrollY > 1) {
+			if (window.scrollY > 30 && !isScrolled) {
 				setIsScrolled(true);
-			} else {
+			} else if (window.scrollY < 20 && isScrolled) {
 				setIsScrolled(false);
 			}
 		};
@@ -25,7 +25,7 @@ const Header = () => {
 		return () => {
 			window.removeEventListener('scroll', handleScroll);
 		};
-	}, []);
+	}, [isScrolled]);
 
 	const handleNavigate = (path) => {
 		if (location.pathname === path) {
