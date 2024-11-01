@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import SessionContext from '../context/SessionContext';
 import { BackgroundTasksContext } from '../context/BackgroundTasksContext';
-import { useContainer } from './useContainer';
+import ContainerContext from '../context/ContainerContext';
 import { HandleAuthorizationRequestError } from '../lib/interfaces/IOpenID4VPRelyingParty';
-
 
 function useCheckURL(urlToCheck: string): {
 	showSelectCredentialsPopup: boolean,
@@ -21,8 +20,8 @@ function useCheckURL(urlToCheck: string): {
 	typeMessagePopup: string;
 } {
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
-	const { container } = useContainer();
 	const { addLoader, removeLoader } = useContext(BackgroundTasksContext);
+	const container = useContext(ContainerContext);
 
 	const [showSelectCredentialsPopup, setShowSelectCredentialsPopup] = useState<boolean>(false);
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
@@ -34,14 +33,13 @@ function useCheckURL(urlToCheck: string): {
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const { t } = useTranslation();
 
-
 	async function handle(urlToCheck: string) {
 		const userHandleB64u = keystore.getUserHandleB64u();
 		if (!userHandleB64u) {
 			throw new Error("User handle could not be extracted from keystore");
 		}
 		const u = new URL(urlToCheck);
-		if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri') ) {
+		if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 			for (const credentialIssuerIdentifier of Object.keys(container.openID4VCIClients)) {
 				await container.openID4VCIClients[credentialIssuerIdentifier].handleCredentialOffer(u.toString(), userHandleB64u)
 					.then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
@@ -130,10 +128,9 @@ function useCheckURL(urlToCheck: string): {
 				}
 			}).catch((err) => console.error(err));
 		}
-	}, [api, keystore, selectionMap, t, container]);
+	}, [selectionMap, container]);
 
 	return { showSelectCredentialsPopup, setShowSelectCredentialsPopup, setSelectionMap, conformantCredentialsMap, showPinInputPopup, setShowPinInputPopup, verifierDomainName, showMessagePopup, setMessagePopup, textMessagePopup, typeMessagePopup };
 }
-
 
 export default useCheckURL;

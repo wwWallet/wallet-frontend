@@ -884,7 +884,7 @@ const Settings = () => {
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 											disabled={!isOnline}
-											title={!isOnline && t("common.offlineTitle")}
+											title={!isOnline ? t("common.offlineTitle") : undefined}
 										>
 											<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
 											<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
@@ -893,7 +893,7 @@ const Settings = () => {
 											<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
 										</select>
 										<span className="absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none">
-											<IoIosArrowDown size={20} />
+											<IoIosArrowDown />
 										</span>
 									</div>
 								</div>
