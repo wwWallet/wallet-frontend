@@ -45,7 +45,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("Only authorization_code grant is supported");
 		}
 
-		if (offer.credential_issuer != this.config.credentialIssuerIdentifier) {
+		if (offer.credential_issuer !== this.config.credentialIssuerIdentifier) {
 			return;
 		}
 
@@ -140,7 +140,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			return;
 		}
 		const s = await this.openID4VCIClientStateRepository.getByStateAndUserHandle(state, userHandleB64U);
-		if (!s || !s.credentialIssuerIdentifier || s.credentialIssuerIdentifier != this.config.credentialIssuerIdentifier) {
+		if (!s || !s.credentialIssuerIdentifier || s.credentialIssuerIdentifier !== this.config.credentialIssuerIdentifier) {
 			return;
 		}
 		await this.requestCredentials({
@@ -292,7 +292,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		console.log("== response = ", response)
 		try { // try to extract the response and update the OpenID4VCIClientStateRepository
 			const {
-				data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token, token_type },
+				data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token },
 			} = response;
 
 			if (!access_token) {
@@ -326,7 +326,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 	private async credentialRequest(response: any, flowState: OpenID4VCIClientState) {
 		const {
-			data: { access_token, c_nonce, expires_in, c_nonce_expires_in },
+			data: { access_token, c_nonce },
 		} = response;
 
 
@@ -374,10 +374,10 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			"format": this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
 		} as any;
 
-		if (credentialConfigurationSupported.format == VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
+		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
 			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
 		}
-		else if (credentialConfigurationSupported.format == VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
+		else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
 			credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
 		}
 

@@ -15,9 +15,18 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 	}
 	async getByStateAndUserHandle(state: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.state == state && s.userHandleB64U == userHandleB64U)[0];
-		if (res && (!res.created || typeof res.created != 'number' || res.tokenResponse?.data?.refresh_token && Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds)) {
-			const updatedArray = array.filter((x) => x.state != res.state); // remove the state
+		const res = array.filter((s) => s.state === state && s.userHandleB64U === userHandleB64U)[0];
+		if (res &&
+			(
+				!res.created ||
+				typeof res.created !== 'number' ||
+				(
+					res.tokenResponse?.data?.refresh_token &&
+					Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds
+				)
+			)
+		) {
+			const updatedArray = array.filter((x) => x.state !== res.state); // remove the state
 			localStorage.setItem(this.key, JSON.stringify(updatedArray));
 			return null;
 		}
@@ -26,9 +35,18 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 
 	async getByCredentialConfigurationIdAndUserHandle(credentialConfigurationId: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.credentialConfigurationId == credentialConfigurationId && s.userHandleB64U == userHandleB64U)[0];
-		if (res && (!res.created || typeof res.created != 'number' || res.tokenResponse?.data?.refresh_token && Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds)) {
-			const updatedArray = array.filter((x) => x.state != res.state); // remove the state
+		const res = array.filter((s) => s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === userHandleB64U)[0];
+		if (res &&
+			(
+				!res.created ||
+				typeof res.created != 'number' ||
+				(
+					res.tokenResponse?.data?.refresh_token &&
+					Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds
+				)
+			)
+		) {
+			const updatedArray = array.filter((x) => x.state !== res.state); // remove the state
 			localStorage.setItem(this.key, JSON.stringify(updatedArray));
 			return null;
 		}
@@ -39,7 +57,7 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 		const existingState = await this.getByCredentialConfigurationIdAndUserHandle(s.credentialConfigurationId, s.userHandleB64U);
 		if (existingState) { // remove the existing state for this configuration id
 			const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-			const updatedArray = array.filter((x) => x.credentialConfigurationId != s.credentialConfigurationId);
+			const updatedArray = array.filter((x) => x.credentialConfigurationId !== s.credentialConfigurationId);
 			localStorage.setItem(this.key, JSON.stringify(updatedArray));
 		}
 		let data = localStorage.getItem(this.key);
@@ -67,7 +85,7 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 			return;
 		}
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-		const updatedArray = array.filter((x) => x.state != newState.state); // remove the state that is going to be changed
+		const updatedArray = array.filter((x) => x.state !== newState.state); // remove the state that is going to be changed
 		updatedArray.push(newState);
 		// commit changes
 		localStorage.setItem(this.key, JSON.stringify(updatedArray));
