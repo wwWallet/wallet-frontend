@@ -104,7 +104,7 @@ function useCheckURL(urlToCheck: string): {
 					console.error(err)
 				})
 			}
-	
+
 			const urlParams = new URLSearchParams(window.location.search);
 			const state = urlParams.get('state');
 			const error = urlParams.get('error');
