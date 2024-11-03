@@ -9,7 +9,7 @@ const useFetchPresentations = (api, credentialId = "", historyId = "") => {
 			console.log('FetchPresentations');
 			try {
 				const fetchedPresentations = await api.getAllPresentations();
-				let vpListFromApi = fetchedPresentations.vp_list
+				let vpListFromApi = (fetchedPresentations?.vp_list || [])
 					.sort(reverse(compareBy(vp => vp.issuanceDate)))
 					.map((item) => ({
 						id: item.id,

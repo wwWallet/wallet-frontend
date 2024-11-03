@@ -212,7 +212,7 @@ const WebauthnSignupLogin = ({
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 }) => {
-	const { isOnline } = useContext(StatusContext);
+	const { isOnline, isStandAlone } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 
 	const [inProgress, setInProgress] = useState(false);
@@ -557,7 +557,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Auth = () => {
-	const { isOnline } = useContext(StatusContext);
+	const { isOnline, isStandAlone } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -636,7 +636,7 @@ const Auth = () => {
 	};
 
 	const toggleForm = () => {
-		if (isOnline || !isLogin) {
+		if (isOnline || isStandAlone || !isLogin) {
 			setIsLogin(!isLogin);
 			setError('');
 			checkForUpdates();
@@ -736,7 +736,7 @@ const Auth = () => {
 						<Button
 							variant="link"
 							onClick={toggleForm}
-							disabled={!isOnline}
+							disabled={!isOnline && !isStandAlone}
 							title={!isOnline && t('common.offlineTitle')}
 						>
 							{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}

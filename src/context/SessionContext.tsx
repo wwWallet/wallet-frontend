@@ -9,6 +9,7 @@ import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 type SessionContextValue = {
 	api: BackendApi,
 	isLoggedIn: boolean,
+	isStandAlone: boolean,
 	keystore: LocalStorageKeystore,
 	logout: () => Promise<void>,
 };
@@ -16,18 +17,20 @@ type SessionContextValue = {
 const SessionContext: React.Context<SessionContextValue> = createContext({
 	api: undefined,
 	isLoggedIn: false,
+	isStandAlone: false,
 	keystore: undefined,
 	logout: async () => {},
 });
 
 export const SessionContextProvider = ({ children }) => {
-	const { isOnline } = useContext(StatusContext);
-	const api = useApi(isOnline);
+	const { isOnline, isStandAlone } = useContext(StatusContext);
+	const api = useApi(isOnline, isStandAlone);
 	const keystore = useLocalStorageKeystore();
 
 	const value: SessionContextValue = {
 		api,
-		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
+		isLoggedIn: api.isLoggedIn() && (isStandAlone || keystore.isOpen()),
+		isStandAlone,
 		keystore,
 		logout: async () => {
 

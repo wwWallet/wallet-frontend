@@ -12,7 +12,7 @@ export const CredentialsProvider = ({ children }) => {
 
 	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
-		const fetchedVcList = response.data.vc_list;
+		const fetchedVcList = response.data?.vc_list || [];
 
 		const vcEntityList = await Promise.all(fetchedVcList.map(async vcEntity => {
 			return { ...vcEntity };
@@ -45,7 +45,7 @@ export const CredentialsProvider = ({ children }) => {
 			attempts += 1;
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
-			const previousSize = previousVcList.vc_list.length;
+			const previousSize = previousVcList?.vc_list.length || 0;
 
 			const vcEntityList = await fetchVcData();
 
@@ -68,7 +68,7 @@ export const CredentialsProvider = ({ children }) => {
 		try {
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
-			const previousSize = previousVcList.vc_list.length;
+			const previousSize = previousVcList?.vc_list.length || 0;
 			const vcEntityList = await fetchVcData();
 			setVcEntityList(vcEntityList);
 

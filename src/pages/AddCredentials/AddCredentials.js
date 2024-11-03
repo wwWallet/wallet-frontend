@@ -25,7 +25,7 @@ const Issuers = () => {
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all');
-				let fetchedIssuers = response.data;
+				let fetchedIssuers = response.data || [];
 				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;

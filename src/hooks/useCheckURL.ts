@@ -19,7 +19,7 @@ function useCheckURL(urlToCheck: string): {
 	textMessagePopup: { title: string, description: string };
 	typeMessagePopup: string;
 } {
-	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { api, isLoggedIn, keystore, isStandAlone } = useContext(SessionContext);
 	const { addLoader, removeLoader } = useContext(BackgroundTasksContext);
 	const container = useContext(ContainerContext);
 
@@ -35,7 +35,7 @@ function useCheckURL(urlToCheck: string): {
 
 	async function handle(urlToCheck: string) {
 		const userHandleB64u = keystore.getUserHandleB64u();
-		if (!userHandleB64u) {
+		if (!userHandleB64u && !isStandAlone) {
 			throw new Error("User handle could not be extracted from keystore");
 		}
 		const u = new URL(urlToCheck);

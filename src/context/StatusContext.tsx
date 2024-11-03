@@ -3,12 +3,14 @@ import React, { useEffect, createContext, useState } from 'react';
 interface StatusContextValue {
 	isOnline: boolean;
 	updateAvailable: boolean;
+	isStandAlone: boolean;
 }
 
 
 const StatusContext: React.Context<StatusContextValue> = createContext({
 	isOnline: null,
 	updateAvailable: false,
+	isStandAlone: false,
 });
 
 function getOnlineStatus(): boolean {
@@ -17,6 +19,7 @@ function getOnlineStatus(): boolean {
 
 export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState(getOnlineStatus);
+	const [isStandAlone] = useState(!process.env.REACT_APP_WALLET_BACKEND_URL || !process.env.REACT_APP_WS_URL);
 	const [updateAvailable, setUpdateAvailable] = useState(false);
 	const updateOnlineStatus = () => {
 		setIsOnline(getOnlineStatus());
@@ -49,7 +52,7 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	});
 
 	return (
-		<StatusContext.Provider value={{ isOnline, updateAvailable }}>
+		<StatusContext.Provider value={{ isOnline, updateAvailable, isStandAlone }}>
 			{children}
 		</StatusContext.Provider>
 	);
