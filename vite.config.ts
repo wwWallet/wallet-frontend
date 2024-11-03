@@ -4,16 +4,16 @@ import svgr from 'vite-plugin-svgr';
 
 export default defineConfig({
 	base: '/',
-  plugins: [
+	plugins: [
 		react(),
 		svgr(),
 	],
-  resolve: {
-    alias: {
-      '@': '/src',
-    },
-  },
-  server: {
-    port: 3000,
-  },
+	resolve: {
+		alias: {
+			'@': '/src',
+		},
+	},
+	server: {
+		port: 3000,
+	},
 });
