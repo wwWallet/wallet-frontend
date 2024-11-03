@@ -976,7 +976,7 @@ const Settings = () => {
 								<p className='mb-2 dark:text-white'>
 									<Trans
 										i18nKey="pageSettings.appVersion.descriptionOldVersion"
-										values={{ react_app_version: process.env.REACT_APP_VERSION }}
+										values={{ react_app_version: import.meta.env.VITE_VERSION }}
 										components={{
 											reloadButton: <button className='text-primary dark:text-extra-light underline' onClick={() => window.location.reload()} />, strong: <strong />, br: <br />,
 										}}
@@ -984,7 +984,7 @@ const Settings = () => {
 								</p>
 							) : (
 								<p className='mb-2 dark:text-white'>
-									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: process.env.REACT_APP_VERSION })}
+									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: import.meta.env.VITE_VERSION })}
 								</p>
 							)}
 

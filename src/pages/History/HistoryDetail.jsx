@@ -2,19 +2,19 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from "react-icons/fa";
-import { ReactComponent as VerifierIcon } from '../../assets/images/verifier_icon.svg';
+import { VerifierIcon } from '@/assets/images/verifier_icon';
 
 // Contexts
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 
 // Utility functions
-import { formatDate } from '../../functions/DateFormat';
+import { formatDate } from '@/functions/DateFormat';
 
 // Hooks
-import useFetchPresentations from '../../hooks/useFetchPresentations';
+import useFetchPresentations from '@/hooks/useFetchPresentations';
 
 // Components
-import HistoryDetailContent from '../../components/History/HistoryDetailContent';
+import HistoryDetailContent from '@/components/History/HistoryDetailContent';
 
 const HistoryDetail = () => {
 	const { historyId } = useParams();
