@@ -207,7 +207,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 				})
 				return;
 			}
-			throw new Error("Couldn't hande using active access token");
+			throw new Error("Couldn't handle using active access token");
 		}
 		// Token Request
 		const tokenEndpoint = this.config.authorizationServerMetadata.token_endpoint;

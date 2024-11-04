@@ -116,6 +116,14 @@
 		"sendResponseSuccess": {
 			"title": "Presentation was successful",
 			"description": "Credentials were successfully sent."
+		},
+		"credentialOfferFailure": {
+			"title": "Credential offer error",
+			"description": "Failed to process credential offer."
+		},
+		"codeFailure": {
+			"title": "Authorization code error",
+			"description": "Failed to process authorization code."
 		}
 	},
 	"notFound": {

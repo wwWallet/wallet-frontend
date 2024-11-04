@@ -1,10 +1,9 @@
-import React, { useEffect, Suspense, useState } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
 
 import i18n from './i18n';
-import useCheckURL from './hooks/useCheckURL';
 import { CredentialsProvider } from './context/CredentialsContext';
 import { withSessionContext } from './context/SessionContext';
 import { checkForUpdates } from './offlineRegistrationSW';
@@ -18,6 +17,11 @@ import { withContainerContext } from './context/ContainerContext';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
+
+import { CredentialOfferHandler } from './components/CredentialOfferHandler';
+import { CodeHandler } from './components/CodeHandler';
+import { AuthorizationRequestHandler } from './components/AuthorizationRequestHandler';
+import { ErrorHandler } from './components/ErrorHandler';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -81,23 +85,8 @@ const VerificationResult = React.lazy(() => import('./pages/VerificationResult/V
 
 function App() {
 	const location = useLocation();
-	const [url, setUrl] = useState(window.location.href);
-	const {
-		showSelectCredentialsPopup,
-		setShowSelectCredentialsPopup,
-		setSelectionMap,
-		conformantCredentialsMap,
-		showPinInputPopup,
-		setShowPinInputPopup,
-		verifierDomainName,
-		showMessagePopup,
-		setMessagePopup,
-		textMessagePopup,
-		typeMessagePopup,
-	} = useCheckURL(url);
 
 	useEffect(() => {
-		setUrl(window.location.href);
 		checkForUpdates();
 	}, [location])
 
@@ -111,6 +100,21 @@ function App() {
 		}
 
 	}, []);
+
+	const parsedUrl = new URL(`${window.location.origin}${location.pathname}${location.search}${location.hash}`);
+	const queryParams = new URLSearchParams(location.search);
+
+	const hasCredentialOffer = parsedUrl.protocol === 'openid-credential-offer' ||
+		queryParams.get('credential_offer') ||
+		queryParams.get('credential_offer_uri');
+	
+	const hasCode = !hasCredentialOffer && queryParams.get('code');
+	
+	const hasAuthorizationRequest = !hasCredentialOffer && !hasCode;
+
+	const error = queryParams.get('error');
+	const errorDescription = queryParams.get('error_description') || '';
+	const hasError = error && queryParams.get('state');
 
 	// Handle messages received from the service worker
 	const handleMessage = (event) => {
@@ -164,14 +168,17 @@ function App() {
 							<Route path="*" element={<NotFound />} />
 						</Route>
 					</Routes>
-					{showSelectCredentialsPopup &&
-						<SelectCredentialsPopup isOpen={showSelectCredentialsPopup} setIsOpen={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
+					{hasCredentialOffer &&
+						<CredentialOfferHandler url={location} />
 					}
-					{showPinInputPopup &&
-						<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
+					{hasCode &&
+						<CodeHandler url={location} />
 					}
-					{showMessagePopup &&
-						<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+					{hasAuthorizationRequest &&
+						<AuthorizationRequestHandler url={location} />
+					}
+					{hasError &&
+						<ErrorHandler title={error} description={errorDescription} />
 					}
 				</Suspense>
 			</CredentialsProvider>
