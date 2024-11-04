@@ -107,9 +107,9 @@ function App() {
 	const hasCredentialOffer = parsedUrl.protocol === 'openid-credential-offer' ||
 		queryParams.get('credential_offer') ||
 		queryParams.get('credential_offer_uri');
-	
+
 	const hasCode = !hasCredentialOffer && queryParams.get('code');
-	
+
 	const hasAuthorizationRequest = !hasCredentialOffer && !hasCode;
 
 	const error = queryParams.get('error');

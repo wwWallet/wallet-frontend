@@ -17,11 +17,11 @@ export const CodeHandler = ({
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { addLoader, removeLoader } = useContext(BackgroundTasksContext);
 	const [showMessage, setShowMessage] = useState(false);
-	
+
 	if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
 		return null;
 	}
-	
+
 	const userHandleB64u = keystore.getUserHandleB64u();
 
 	if (!userHandleB64u) {

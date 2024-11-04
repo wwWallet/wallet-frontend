@@ -29,7 +29,7 @@ export const AuthorizationRequestHandler = ({
 			try {
 				const { url: redirectUrl } = await container.openID4VPRelyingParty
 					.sendAuthorizationResponse(new Map(Object.entries(selectionMap)));
-				
+
 				if (redirectUrl) {
 					window.location.href = redirectUrl;
 				}
@@ -47,7 +47,7 @@ export const AuthorizationRequestHandler = ({
 	if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
 		return null;
 	}
-	
+
 	const userHandleB64u = keystore.getUserHandleB64u();
 
 	if (!userHandleB64u) {
@@ -59,7 +59,7 @@ export const AuthorizationRequestHandler = ({
 			const result = await container.openID4VPRelyingParty.handleAuthorizationRequest(url);
 
 			const { err } = result as unknown as { err: HandleAuthorizationRequestError };
-			
+
 			if (err !== undefined) {
 				switch(err) {
 					case HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS:
