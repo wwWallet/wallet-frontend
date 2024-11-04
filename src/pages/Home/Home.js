@@ -60,7 +60,7 @@ const Home = () => {
 				{screenType !== 'mobile' && (
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				)}
-				<div className='my-4 p-2'>
+				<div className='my-4 p-2 overflow-x-hidden'>
 					{vcEntityList.length === 0 ? (
 						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
 							<AddCredentialCard onClick={handleAddCredential} />
@@ -69,21 +69,23 @@ const Home = () => {
 						<>
 							{screenType !== 'desktop' ? (
 								<>
-									<Slider
-										items={vcEntityList}
-										renderSlideContent={renderSlideContent}
-										onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
-									/>
-
-									{/* Update HistoryList based on current slide */}
-									{vcEntityList[currentSlide - 1] && (
-										<HistoryList
-											credentialId={vcEntityList[currentSlide - 1].credentialIdentifier}
-											history={history}
-											title="Recent History"
-											limit={3}
+									<div className='xm:px-4 px-12 sm:px-20'>
+										<Slider
+											items={vcEntityList}
+											renderSlideContent={renderSlideContent}
+											onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
 										/>
-									)}
+
+										{/* Update HistoryList based on current slide */}
+										{vcEntityList[currentSlide - 1] && (
+											<HistoryList
+												credentialId={vcEntityList[currentSlide - 1].credentialIdentifier}
+												history={history}
+												title="Recent History"
+												limit={3}
+											/>
+										)}
+									</div>
 								</>
 							) : (
 								<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
