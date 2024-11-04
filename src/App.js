@@ -62,13 +62,10 @@ const reactLazyWithNonDefaultExports = (load, ...names) => {
 };
 
 const Layout = React.lazy(() => import('./components/Layout/Layout'));
-const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
-const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
 	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
-const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentialsPopup'));
 
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
@@ -101,7 +98,8 @@ function App() {
 
 	}, []);
 
-	const parsedUrl = new URL(`${window.location.origin}${location.pathname}${location.search}${location.hash}`);
+	const fullUrl = `${window.location.origin}${location.pathname}${location.search}${location.hash}`;
+	const parsedUrl = new URL(fullUrl);
 	const queryParams = new URLSearchParams(location.search);
 
 	const hasCredentialOffer = parsedUrl.protocol === 'openid-credential-offer' ||
@@ -169,13 +167,13 @@ function App() {
 						</Route>
 					</Routes>
 					{hasCredentialOffer &&
-						<CredentialOfferHandler url={location} />
+						<CredentialOfferHandler url={fullUrl} />
 					}
 					{hasCode &&
-						<CodeHandler url={location} />
+						<CodeHandler url={fullUrl} />
 					}
 					{hasAuthorizationRequest &&
-						<AuthorizationRequestHandler url={location} />
+						<AuthorizationRequestHandler url={fullUrl} />
 					}
 					{hasError &&
 						<ErrorHandler title={error} description={errorDescription} />
