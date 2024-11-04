@@ -1,7 +1,8 @@
 import { HandleAuthorizationRequestError, IOpenID4VPRelyingParty } from "../interfaces/IOpenID4VPRelyingParty";
 import { StorableCredential } from "../types/StorableCredential";
 import { Verify } from "../utils/Verify";
-import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
+// TODO: Fix
+// import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../schemas/vc";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
@@ -195,10 +196,10 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			return new Uint8Array(hashBuffer);
 		}
 
-		const hasherAndAlgorithm: HasherAndAlgorithm = {
-			hasher: async (input: string) => hashSHA256(input),
-			algorithm: HasherAlgorithm.Sha256
-		}
+		// const hasherAndAlgorithm: HasherAndAlgorithm = {
+		// 	hasher: async (input: string) => hashSHA256(input),
+		// 	algorithm: HasherAlgorithm.Sha256
+		// }
 
 		/**
 		*
@@ -278,10 +279,12 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 					.map((field) => field.path)
 					.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
 				let presentationFrame = generatePresentationFrameForPaths(allPaths);
-				const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
-					vcEntity.credential
-				).withHasher(hasherAndAlgorithm);
-				const presentation = await sdJwt.present(presentationFrame);
+				// TODO: Fix
+				// const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
+				// 	vcEntity.credential
+				// ).withHasher(hasherAndAlgorithm);
+				// const presentation = await sdJwt.present(presentationFrame);
+				const presentation = undefined;
 				const { vpjwt } = await this.signJwtPresentationKeystoreFn(nonce, client_id, [presentation]);
 				selectedVCs.push(presentation);
 				generatedVPs.push(vpjwt);
