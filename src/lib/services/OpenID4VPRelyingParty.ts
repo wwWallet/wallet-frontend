@@ -50,7 +50,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			const [header, payload] = requestObject.split('.');
 			const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
 
-			const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), 'RS256');
+			const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
 			const verificationResult = await jwtVerify(requestObject, publicKey).catch(() => null);
 			if (verificationResult == null) {
 				console.log("Signature verification of request_uri failed");
