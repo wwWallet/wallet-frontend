@@ -28,9 +28,11 @@ const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, chi
 			bodyOpenClassName="overflow-hidden"
 		>
 
-			{fullScreen && <Header toggleSidebar={() => { }} />}
-			<div className={`${fullScreen && 'px-6 py-6 pb-24 flex flex-col justify-between min-h-full'}`}>
-				{children}
+			<div className={`${fullScreen && 'h-full'}`}>
+				{fullScreen && <Header toggleSidebar={() => { }} />}
+				<div className={`${fullScreen && 'px-6 py-6 flex flex-col justify-between'}`}>
+					{children}
+				</div>
 			</div>
 		</Modal>
 	);
