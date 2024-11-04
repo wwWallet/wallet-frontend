@@ -59,10 +59,11 @@ The project uses environment variables to manage different configurations. A `.e
 
 	 - HOST: The IP address where your app will be running (default is '0.0.0.0').
 	 - PORT: The port on which your app will run (default is 3000).
-	 - VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
 	 - REACT_APP_WS_URL: The URL of the websocket service.
 	 - REACT_APP_WALLET_BACKEND_URL: The URL of your backend service.
 	 - REACT_APP_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
+	 - REACT_APP_FIREBASE_ENABLED: Enable of disable Firebase (`true` or `false`) for push notifications. If left empty, it will be handled as `false`.
+	 - REACT_APP_FIREBASE_VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
 	 - REACT_APP_FIREBASE_API_KEY: Your API key for Firebase.
 	 - REACT_APP_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
 	 - REACT_APP_FIREBASE_PROJECT_ID: Your Firebase project ID.
@@ -74,6 +75,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - REACT_APP_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
 	 - REACT_APP_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
    - REACT_APP_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri
+	 - REACT_APP_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
 4. Install dependencies:
 	```bash
 	yarn install
