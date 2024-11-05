@@ -5,7 +5,7 @@ import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../schemas/vc";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
-import { OpenID4VPRelyingPartyState } from "../types/OpenID4VPRelyingPartyState";
+import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../types/OpenID4VPRelyingPartyState";
 import { OpenID4VPRelyingPartyStateRepository } from "./OpenID4VPRelyingPartyStateRepository";
 import { IHttpProxy } from "../interfaces/IHttpProxy";
 import { ICredentialParserRegistry } from "../interfaces/ICredentialParser";
@@ -35,7 +35,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		let presentation_definition = authorizationRequest.searchParams.get('presentation_definition') ? JSON.parse(authorizationRequest.searchParams.get('presentation_definition')) : null;
 		let presentation_definition_uri = authorizationRequest.searchParams.get('presentation_definition_uri');
 		let client_metadata = authorizationRequest.searchParams.get('client_metadata') ? JSON.parse(authorizationRequest.searchParams.get('client_metadata')) : null;
-
+		let response_mode = authorizationRequest.searchParams.get('response_mode') ? JSON.parse(authorizationRequest.searchParams.get('response_mode')) : null;
 		if (presentation_definition_uri) {
 			const presentationDefinitionFetch = await this.httpProxy.get(presentation_definition_uri, {});
 			presentation_definition = presentationDefinitionFetch.data;
@@ -62,6 +62,9 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			presentation_definition = p.presentation_definition;
 			response_uri = p.response_uri ?? p.redirect_uri;
 			client_metadata = p.client_metadata;
+			if (p.response_mode) {
+				response_mode = p.response_mode;
+			}
 
 			state = p.state;
 			nonce = p.nonce;
@@ -106,6 +109,8 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			}
 		}
 
+		ResponseModeSchema.parse(response_mode);
+
 		const lastUsedNonce = sessionStorage.getItem('last_used_nonce');
 		if (lastUsedNonce && nonce == lastUsedNonce) {
 			throw new Error("last used nonce");
@@ -126,7 +131,8 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			response_uri,
 			client_id,
 			state,
-			client_metadata
+			client_metadata,
+			response_mode,
 		));
 
 		const mapping = new Map<string, { credentials: string[], requestedFields: string[] }>();
@@ -302,7 +308,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		const formData = new URLSearchParams();
 
-		if (S.client_metadata.authorization_encrypted_response_alg && S.client_metadata.jwks.keys.length > 0) {
+		if (S.response_mode == ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg && S.client_metadata.jwks.keys.length > 0) {
 			const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 			const jwe = await new EncryptJWT({
