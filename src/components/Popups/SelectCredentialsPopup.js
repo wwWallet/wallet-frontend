@@ -197,7 +197,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 
 	return (
 		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
-			<div className='pb-16'>
+			<div className={`${screenType !== 'desktop' && 'pb-16'}`}>
 				<div>
 					{stepTitles && (
 						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
