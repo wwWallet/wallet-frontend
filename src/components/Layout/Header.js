@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { AiOutlineMenu } from "react-icons/ai";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import ConnectionStatusIcon from './Navigation/ConnectionStatusIcon';

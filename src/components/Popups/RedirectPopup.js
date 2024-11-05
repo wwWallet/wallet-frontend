@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Modal from 'react-modal';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import Spinner from '../Shared/Spinner';
 import PopupLayout from './PopupLayout';
 
 const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, handleContinue, popupTitle, popupMessage }) => {
@@ -19,7 +17,7 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, ha
 		if (availableCredentialConfigurations) {
 			setSelectedConfiguration(Object.keys(availableCredentialConfigurations)[0])
 		}
-	}, [])
+	}, [availableCredentialConfigurations, setSelectedConfiguration])
 
 	const handleOptionChange = (event) => {
 		if (availableCredentialConfigurations) {

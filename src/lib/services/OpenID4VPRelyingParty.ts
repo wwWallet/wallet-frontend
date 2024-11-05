@@ -78,7 +78,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			}
 			const altNames = await extractSAN('-----BEGIN CERTIFICATE-----\n' + parsedHeader.x5c[0] + '\n-----END CERTIFICATE-----');
 
-			if (OPENID4VP_SAN_DNS_CHECK && !altNames || altNames.length === 0) {
+			if (OPENID4VP_SAN_DNS_CHECK && (!altNames || altNames.length === 0)) {
 				console.log("No SAN found");
 				return { err: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 			}
@@ -112,7 +112,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		ResponseModeSchema.parse(response_mode);
 
 		const lastUsedNonce = sessionStorage.getItem('last_used_nonce');
-		if (lastUsedNonce && nonce == lastUsedNonce) {
+		if (lastUsedNonce && nonce === lastUsedNonce) {
 			throw new Error("last used nonce");
 		}
 
@@ -184,7 +184,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		const S = await this.openID4VPRelyingPartyStateRepository.retrieve();
 		console.log("send AuthorizationResponse: S = ", S)
 		console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
-		if (S?.nonce == "" || (sessionStorage.getItem('last_used_nonce') && S.nonce == sessionStorage.getItem('last_used_nonce'))) {
+		if (S?.nonce === "" || (sessionStorage.getItem('last_used_nonce') && S.nonce === sessionStorage.getItem('last_used_nonce'))) {
 			console.info("OID4VP: Non existent flow");
 			return {};
 		}
@@ -308,7 +308,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		const formData = new URLSearchParams();
 
-		if (S.response_mode == ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg && S.client_metadata.jwks.keys.length > 0) {
+		if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg && S.client_metadata.jwks.keys.length > 0) {
 			const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 			const jwe = await new EncryptJWT({

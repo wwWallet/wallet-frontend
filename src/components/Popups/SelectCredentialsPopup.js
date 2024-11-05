@@ -71,7 +71,6 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
-	const [credentialDisplay, setCredentialDisplay] = useState({});
 	const [currentSlide, setCurrentSlide] = useState(1);
 
 	useEffect(() => {
@@ -115,6 +114,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 		keys,
 		setSelectionMap,
 		setIsOpen,
+		container.credentialParserRegistry,
 	]);
 
 	useEffect(() => {
