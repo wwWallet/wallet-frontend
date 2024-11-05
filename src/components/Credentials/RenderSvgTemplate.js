@@ -1,16 +1,16 @@
+import axios from 'axios';
 import jsonpointer from 'jsonpointer';
 import { formatDate } from '../../functions/DateFormat';
 
 const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL }) => {
 	let svgContent = null;
 	try {
-		const response = await fetch(credentialImageSvgTemplateURL);
-		if (!response.ok) {
-			throw new Error(`Failed to fetch SVG from ${credentialImageSvgTemplateURL}`);
+		const response = await axios.get(credentialImageSvgTemplateURL);
+		if (response.status !== 200) {
+			throw new Error(`Failed to fetch SVG`);
 		}
-		svgContent = await response.text();
+		svgContent = response.data;
 	} catch (error) {
-		console.error(error);
 		return null; // Return null if fetching fails
 	}
 
