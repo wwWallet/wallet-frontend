@@ -111,14 +111,14 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			throw new Error("last used nonce");
 		}
 
-		const vcList = await this.getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials);
-
 		if (!presentation_definition) {
 			return { err: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
 		}
 		if (presentation_definition.input_descriptors.length > 1) {
 			return { err: HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED };
 		}
+
+		const vcList = await this.getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials);
 
 		await this.openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
 			presentation_definition,
