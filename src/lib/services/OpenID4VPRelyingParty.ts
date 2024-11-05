@@ -63,7 +63,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			response_uri = p.response_uri ?? p.redirect_uri;
 			client_metadata = p.client_metadata;
 			if (p.response_mode) {
-				response_mode = p.response_mode;	
+				response_mode = p.response_mode;
 			}
 
 			state = p.state;
