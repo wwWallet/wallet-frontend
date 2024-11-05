@@ -1,48 +1,34 @@
-import { useState, useEffect } from 'react';
 import jsonpointer from 'jsonpointer';
 import { formatDate } from '../../functions/DateFormat';
 
-const RenderSvgTemplate = ({ credential, onSvgGenerated }) => {
-	const [svgContent, setSvgContent] = useState(null);
+const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL }) => {
+	let svgContent = null;
+	try {
+		const response = await fetch(credentialImageSvgTemplateURL);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch SVG from ${credentialImageSvgTemplateURL}`);
+		}
+		svgContent = await response.text();
+	} catch (error) {
+		console.error(error);
+		return null; // Return null if fetching fails
+	}
 
-	useEffect(() => {
-		const fetchSvgContent = async () => {
-			try {
-				const response = await fetch(credential.credentialImage.credentialImageSvgTemplateURL);
-				if (!response.ok) {
-					throw new Error(`Failed to fetch SVG from ${credential.credentialImage.credentialImageSvgTemplateURL}`);
-				}
-
-				const svgText = await response.text();
-				setSvgContent(svgText);
-			} catch (error) {
-				console.error(error);
+	if (svgContent) {
+		const regex = /{{([^}]+)}}/g;
+		const replacedSvgText = svgContent.replace(regex, (_match, content) => {
+			let res = jsonpointer.get(beautifiedForm, content.trim());
+			if (res !== undefined) {
+				res = formatDate(res, 'date');
+				return res;
 			}
-		};
+			return '-';
+		});
+		const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;
+		return dataUri; // Return the data URI for the SVG
+	}
 
-		if (credential.credentialImage.credentialImageSvgTemplateURL) {
-			fetchSvgContent();
-		}
-	}, [credential.credentialImage.credentialImageSvgTemplateURL]);
-
-	useEffect(() => {
-		if (svgContent) {
-			const regex = /{{([^}]+)}}/g;
-
-			const replacedSvgText = svgContent.replace(regex, (_match, content) => {
-				let res = jsonpointer.get(credential.beautifiedForm, content.trim());
-				if (res !== undefined) {
-					res = formatDate(res, 'date');
-					return res;
-				}
-				return '-';
-			});
-			const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;
-			onSvgGenerated(dataUri);
-		}
-	}, [svgContent, credential.beautifiedForm, onSvgGenerated]);
-
-	return null;
+	return null; // Return null if no SVG content is available
 };
 
-export default RenderSvgTemplate;
+export default renderSvgTemplate;

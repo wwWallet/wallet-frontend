@@ -23,6 +23,7 @@ import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier"
 import { fromBase64 } from "../util";
 import defaulCredentialImage from "../assets/images/cred.png";
 import { UserData } from "../api/types";
+import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -111,11 +112,12 @@ export const ContainerContextProvider = ({ children }) => {
 							credentialFriendlyName = "Credential";
 						}
 
+						const svgContent = await renderSvgTemplate({beautifiedForm:result.beautifiedForm,credentialImageSvgTemplateURL:credentialImageSvgTemplateURL});
 						if (credentialImageSvgTemplateURL) {
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageSvgTemplateURL: credentialImageSvgTemplateURL
+									credentialImageURL: svgContent
 								},
 								credentialFriendlyName,
 							}
