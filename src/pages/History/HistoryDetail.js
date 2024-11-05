@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from "react-icons/fa";
 import { ReactComponent as VerifierIcon } from '../../assets/images/verifier_icon.svg';
+import { useTranslation } from 'react-i18next';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
@@ -15,6 +16,7 @@ import useFetchPresentations from '../../hooks/useFetchPresentations';
 
 // Components
 import HistoryDetailContent from '../../components/History/HistoryDetailContent';
+import { H1 } from '../../components/Shared/Heading';
 
 const HistoryDetail = () => {
 	const { historyId } = useParams();
@@ -22,6 +24,7 @@ const HistoryDetail = () => {
 	const history = useFetchPresentations(api, '', historyId);
 	const navigate = useNavigate();
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		if (history.length > 0) {
@@ -33,9 +36,12 @@ const HistoryDetail = () => {
 	return (
 		<>
 			<div className=" sm:px-6">
-				<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
-					<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
-				</button>
+				<div className='flex'>
+					<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
+						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+					</button>
+					<H1 heading={t('pageHistory.presentationDetails.title')} hr={false} />
+				</div>
 				<div className="flex flex-col lg:flex-row lg:mt-5 mt-0">
 					<div className='flex flex-row'>
 						<div className='flex flex-col items-left gap mt-2 px-2'>

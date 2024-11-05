@@ -75,9 +75,9 @@ const Credential = () => {
 	};
 
 	const infoTabs = [
-		{ label: 'Details', component: <CredentialJson credential={vcEntity?.credential} /> },
+		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson credential={vcEntity?.credential} /> },
 		{
-			label: 'History', component:
+			label: t('pageCredentials.presentationsTitle'), component:
 				<>
 					{history.length === 0 ? (
 						<p className="text-gray-700 dark:text-white">
@@ -91,7 +91,7 @@ const Credential = () => {
 	];
 
 	return (
-		<CredentialLayout>
+		<CredentialLayout title={t('pageCredentials.credentialTitle')}>
 			<>
 				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
 
@@ -114,14 +114,14 @@ const Credential = () => {
 								onClick={() => navigate(`/credential/${credentialId}/history`)}
 								additionalClassName='w-full my-2'
 							>
-								History
+								{t('pageCredentials.presentationsTitle')}
 							</Button>
 							<Button
 								variant="primary"
 								onClick={() => navigate(`/credential/${credentialId}/details`)}
 								additionalClassName='w-full my-2'
 							>
-								Details
+								{t('pageCredentials.datasetTitle')}
 							</Button>
 						</>
 					)}
