@@ -25,7 +25,7 @@ export function SigningRequestHandlerService(): SigningRequestHandlers {
 		},
 
 		handleGenerateOpenid4vciProofSigningRequest: async (api: BackendApi, socket, keystore, { message_id, audience, nonce, issuer }) => {
-			const [{ proof_jwt }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProof(nonce, audience, issuer)
+			const [{ proof_jwts: [proof_jwt] }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs([{ nonce, audience, issuer }])
 			await api.updatePrivateData(newPrivateData);
 			await keystoreCommit();
 			console.log("proof jwt = ", proof_jwt);
