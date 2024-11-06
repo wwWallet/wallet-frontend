@@ -1,6 +1,7 @@
 // External libraries
 import React, { useContext, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
@@ -13,6 +14,7 @@ const CredentialDetails = () => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
 	const [vcEntity, setVcEntity] = useState(null);
+	const { t } = useTranslation();
 
 	useEffect(() => {
 		const getData = async () => {
@@ -31,7 +33,7 @@ const CredentialDetails = () => {
 
 	return (
 		<>
-			<CredentialLayout>
+			<CredentialLayout title={t('pageCredentials.datasetTitle')}>
 				{vcEntity && (
 					<CredentialJson credential={vcEntity?.credential} textAreaRows='18'/>
 				)}

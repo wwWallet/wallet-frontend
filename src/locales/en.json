@@ -142,6 +142,9 @@
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
+		"credentialTitle": "Credential",
+		"datasetTitle": "Dataset",
+		"presentationsTitle": "Presentations",
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials",
 		"details": {
@@ -160,7 +163,10 @@
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No history presentations found",
+		"presentationDetails": {
+			"title": "Presentation Details"
+		},
+		"noFound": "No presentations found",
 		"popupTitle": "Presented Credentials"
 	},
 	"pageSendCredentials": {
@@ -213,7 +219,7 @@
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
 			"options": {
-				"none": "none",
+				"none": "Always Authenticate",
 				"hour": "1 hour",
 				"day": "1 day",
 				"week": "1 week",
