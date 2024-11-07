@@ -21,7 +21,9 @@ import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
-import defaulCredentialImage from "../assets/images/cred.png";
+import defaultCredentialImage from "../assets/images/cred.png";
+import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
+import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -103,47 +105,59 @@ export const ContainerContextProvider = ({ children }) => {
 							credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
 							: null;
 
-						let credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
-							credentialHeader.vctm.display[0][defaultLocale]?.name
-							: null;
+						let credentialFriendlyName = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.name
+							|| credentialConfigurationSupportedObj?.display?.[0]?.name
+							|| "Credential";
 
-						// get credential friendly name from openid credential issuer metadata
-						if (!credentialFriendlyName && credentialConfigurationSupportedObj && credentialConfigurationSupportedObj?.display && credentialConfigurationSupportedObj?.display.length > 0) {
-							credentialFriendlyName = credentialConfigurationSupportedObj?.display[0]?.name;
-						}
+						let credentialDescription = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.description
+							|| credentialConfigurationSupportedObj?.display?.[0]?.description
+							|| "Credential";
 
-						if (!credentialFriendlyName) { // fallback value
-							credentialFriendlyName = "Credential";
-						}
+						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL });
 
-						if (credentialImageSvgTemplateURL) {
+						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
+						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
+
+						if (svgContent) {
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageSvgTemplateURL: credentialImageSvgTemplateURL
+									credentialImageURL: svgContent
 								},
 								credentialFriendlyName,
 							}
 						}
-						else if (credentialHeader?.vctm || credentialConfigurationSupportedObj) {
-							let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
-								credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
-								: null;
+						else if (simple) {
+							// Simple style
+							let logoURL = simple?.logo?.uri || null;
+							let logoAltText = simple?.logo?.alt_text || 'Credential logo';
+							let backgroundColor = simple?.background_color || '#808080';
+							let textColor = simple?.text_color || '#000000';
 
-							if (!credentialImageURL) { // provide fallback method through the OpenID credential issuer metadata
-								credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
-							}
-							if (!credentialImageURL) {
-								credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.logo?.url : null;
-							}
-							if (!credentialImageURL) {
-								credentialImageURL = defaulCredentialImage;
-							}
-
+							const svgCustomContent = await renderCustomSvgTemplate({ beautifiedForm: result.beautifiedForm, name: credentialFriendlyName, description: credentialDescription, logoURL, logoAltText, backgroundColor, textColor, backgroundImageURL: null });
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageURL: credentialImageURL,
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
+								},
+								credentialFriendlyName,
+							}
+						}
+						else if (issuerMetadata) {
+							// Issuer Metadata style
+							let name = issuerMetadata?.name || 'Credential';
+							let description = issuerMetadata?.description || '';
+							let logoURL = issuerMetadata?.logo?.uri || null;
+							let logoAltText = issuerMetadata?.logo?.alt_text || 'Credential logo';
+							let backgroundColor = issuerMetadata?.background_color || '#808080';
+							let textColor = issuerMetadata?.text_color || '#000000';
+							let backgroundImageURL = issuerMetadata?.background_image?.uri || null;
+
+							const svgCustomContent = await renderCustomSvgTemplate({ beautifiedForm: result.beautifiedForm, name, description, logoURL, logoAltText, backgroundColor, textColor, backgroundImageURL });
+							return {
+								beautifiedForm: result.beautifiedForm,
+								credentialImage: {
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
 								},
 								credentialFriendlyName,
 							}
@@ -152,7 +166,7 @@ export const ContainerContextProvider = ({ children }) => {
 						return {
 							beautifiedForm: result.beautifiedForm,
 							credentialImage: {
-								credentialImageURL: defaulCredentialImage,
+								credentialImageURL: defaultCredentialImage,
 							},
 							credentialFriendlyName,
 						}

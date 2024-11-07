@@ -2,25 +2,10 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import ContainerContext from '../../context/ContainerContext';
-import {CheckExpired} from '../../functions/CheckExpired';
+import { CheckExpired } from '../../functions/CheckExpired';
 
-const StatusRibbon = ({ credential }) => {
+const StatusRibbon = ({ parsedCredential }) => {
 	const { t } = useTranslation();
-
-	const [parsedCredential, setParsedCredential] = useState(null);
-	const container = useContext(ContainerContext);
-
-	useEffect(() => {
-		if (container) {
-			container.credentialParserRegistry.parse(credential).then((c) => {
-				if ('error' in c) {
-					return;
-				}
-				setParsedCredential(c.beautifiedForm);
-			});
-		}
-
-	}, [credential, container]);
 
 	return (
 		<>
