@@ -11,6 +11,7 @@ indent_style = tab
 [{package.json,tsconfig.json,.vscode/settings.json}]
 indent_style = space
 
-[*.{yml,yaml}] # YAML does not allow tab indentation
+# YAML does not allow tab indentation
+[*.{yml,yaml}]
 indent_style = space
 indent_size = 2
