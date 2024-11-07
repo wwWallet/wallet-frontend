@@ -183,7 +183,7 @@ export const ContainerContextProvider = ({ children }) => {
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository'),
 					async (cNonce: string, audience: string, clientId: string): Promise<{ jws: string }> => {
-						const [{ proof_jwt }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProof(cNonce, audience, clientId);
+						const [{ proof_jwts: [proof_jwt] }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs([{ nonce: cNonce, audience, issuer: clientId }]);
 						await api.updatePrivateData(newPrivateData);
 						await keystoreCommit();
 						return { jws: proof_jwt };
