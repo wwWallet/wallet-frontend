@@ -21,7 +21,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	useEffect(() => {
 
 		const getStepSelectorSmallScreen = (stepName) => {
-			if (screenType != 'desktop') {
+			if (screenType !== 'desktop') {
 				return stepName + '-small-screen';
 			} else {
 				return stepName;
@@ -76,7 +76,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 			return {
 				...step,
 				action: () => {
-					if (screenType != 'desktop') {
+					if (screenType !== 'desktop') {
 						if (index >= 5 && index <= 6 && !isOpen) {
 							toggleMenu();
 						} else if ((index < 5 || index > 6) && isOpen) {
@@ -88,7 +88,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 		});
 
 		setSteps(updatedSteps);
-	}, [t, toggleMenu, isOpen]);
+	}, [t, toggleMenu, isOpen, screenType]);
 
 	const startTour = () => {
 		setIsModalOpen(false);

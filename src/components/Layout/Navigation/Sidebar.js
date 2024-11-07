@@ -30,7 +30,7 @@ const NavItem = ({
 };
 
 const Sidebar = ({ isOpen, toggle }) => {
-	const { isOnline, updateAvailable } = useContext(StatusContext);
+	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();

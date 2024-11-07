@@ -1,5 +1,5 @@
 // External libraries
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +10,7 @@ import CredentialsContext from '../../context/CredentialsContext';
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 import useScreenType from '../../hooks/useScreenType';
+import { useSessionStorage } from '../../hooks/useStorage';
 
 // Components
 import { H1 } from '../../components/Shared/Heading';
@@ -22,7 +23,7 @@ const Home = () => {
 	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
 	const { api } = useContext(SessionContext);
 	const history = useFetchPresentations(api);
-	const [currentSlide, setCurrentSlide] = useState(1);
+	const [currentSlide, setCurrentSlide,] = api.useClearOnClearSession(useSessionStorage('currentSlide', 1));
 	const screenType = useScreenType();
 
 	const navigate = useNavigate();
@@ -73,6 +74,7 @@ const Home = () => {
 										<Slider
 											items={vcEntityList}
 											renderSlideContent={renderSlideContent}
+											initialSlide={currentSlide}
 											onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
 										/>
 

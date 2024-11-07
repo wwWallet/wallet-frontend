@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, useMemo, createContext } from "react";
+import { useEffect, useState, useContext, createContext } from "react";
 import { DIContainer } from "../lib/DIContainer";
 import { IHttpProxy } from "../lib/interfaces/IHttpProxy";
 import { IOpenID4VCIClient } from "../lib/interfaces/IOpenID4VCIClient";
@@ -22,7 +22,6 @@ import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfi
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
 import defaultCredentialImage from "../assets/images/cred.png";
-import { UserData } from "../api/types";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 
@@ -259,7 +258,7 @@ export const ContainerContextProvider = ({ children }) => {
 		};
 
 		initialize();
-	}, [isLoggedIn, api, container, isInitialized]);
+	}, [isLoggedIn, api, container, isInitialized, keystore]);
 
 	return (
 		<ContainerContext.Provider value={container}>
