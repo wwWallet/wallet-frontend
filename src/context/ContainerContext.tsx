@@ -21,7 +21,7 @@ import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
-import defaulCredentialImage from "../assets/images/cred.png";
+import defaultCredentialImage from "../assets/images/cred.png";
 import { UserData } from "../api/types";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
@@ -133,7 +133,7 @@ export const ContainerContextProvider = ({ children }) => {
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageURL: svgCustomContent,
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
 								},
 								credentialFriendlyName,
 							}
@@ -152,7 +152,7 @@ export const ContainerContextProvider = ({ children }) => {
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageURL: svgCustomContent,
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
 								},
 								credentialFriendlyName,
 							}
@@ -161,7 +161,7 @@ export const ContainerContextProvider = ({ children }) => {
 						return {
 							beautifiedForm: result.beautifiedForm,
 							credentialImage: {
-								credentialImageURL: defaulCredentialImage,
+								credentialImageURL: defaultCredentialImage,
 							},
 							credentialFriendlyName,
 						}
