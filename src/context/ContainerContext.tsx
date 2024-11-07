@@ -49,8 +49,14 @@ export const ContainerContextProvider = ({ children }) => {
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
 
 	useEffect(() => {
+		window.addEventListener('generatedProof', (e) => {
+			setIsInitialized(false);
+		});
+	}, []);
+
+	useEffect(() => {
 		const initialize = async () => {
-			if (isInitialized || !isLoggedIn || !api || container !== null) return;
+			if (isInitialized || !isLoggedIn || !api) return;
 
 			console.log('Initializing container...');
 			setIsInitialized(true);

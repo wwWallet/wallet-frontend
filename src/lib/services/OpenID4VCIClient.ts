@@ -359,6 +359,9 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			const generateProofResult = await this.generateNonceProof(c_nonce, this.config.credentialIssuerIdentifier, this.config.clientId);
 			jws = generateProofResult.jws;
 			console.log("proof = ", jws)
+			if (jws) {
+				dispatchEvent(new CustomEvent("generatedProof"));
+			}
 		}
 		catch (err) {
 			console.error(err);
