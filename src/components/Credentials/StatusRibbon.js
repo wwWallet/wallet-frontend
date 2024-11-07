@@ -1,7 +1,6 @@
 // StatusRibbon.js
-import React, { useEffect, useState, useContext } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import ContainerContext from '../../context/ContainerContext';
 import { CheckExpired } from '../../functions/CheckExpired';
 
 const StatusRibbon = ({ parsedCredential }) => {
