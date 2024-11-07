@@ -4,6 +4,8 @@
 import * as ec from './ec';
 import * as hash_to_curve from './hash_to_curve';
 import { byteArrayEquals, concat, fromBase64Url, OS2IP, toBase64, toHex, toU8 } from '../util';
+import { COSE_ALG_ARKG_P256ADD_ECDH } from '../coseConstants';
+import { ParsedCOSEKeyArkgPubSeed, ParsedCOSEKeyEc2Public } from '../webauthn';
 
 
 type GenerateKeypairFunction<PublicKey, PrivateKey> = (
@@ -308,9 +310,37 @@ export function getEcInstance(id: EcInstanceId): ArkgInstance<ec.Point, bigint, 
 	return ecInstances[id]();
 }
 
+export function coseToInstanceId(coseId: COSEAlgorithmIdentifier): EcInstanceId | null {
+	switch (coseId) {
+		case COSE_ALG_ARKG_P256ADD_ECDH:
+			return 'ARKG-P256ADD-ECDH';
+		default:
+			return null;
+	}
+}
 
-import { assert, describe, it } from "vitest";
-import { asyncAssertThrows } from '../testutil';
+export function getCoseEcInstance(coseId: COSEAlgorithmIdentifier): ArkgInstance<ec.Point, bigint, CryptoKey, CryptoKey, ec.Point, bigint> | null {
+	const id = coseToInstanceId(coseId);
+	return id ? getEcInstance(id) : null;
+}
+
+export async function ecPublicKeyFromCose(pk: ParsedCOSEKeyArkgPubSeed): Promise<ArkgPublicSeed<ec.Point, CryptoKey>> {
+	switch (pk.alg) {
+		case COSE_ALG_ARKG_P256ADD_ECDH:
+			const crv = ec.curveSecp256r1();
+			return {
+				pubk_bl: await ec.pointFromCosePublicKey(crv, pk.pkBl as ParsedCOSEKeyEc2Public),
+				pubk_kem: await ec.publicKeyFromPoint("ECDH", "P-256", await ec.pointFromCosePublicKey(crv, pk.pkKem as ParsedCOSEKeyEc2Public)),
+			};
+
+		default:
+			throw new Error("Unsupported ARKG algorithm for COSE identifier: " + pk.alg);
+	}
+}
+
+
+import { assert, describe, it } from "vitest"; // eslint-disable-line import/first
+import { asyncAssertThrows } from '../testutil'; // eslint-disable-line import/first
 
 export function tests() {
 
