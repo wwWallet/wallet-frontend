@@ -24,11 +24,11 @@ export interface AuthenticationExtensionsSignInputs {
 
 export interface AuthenticationExtensionsSignGenerateKeyInputs {
 	algorithms: COSEAlgorithmIdentifier[];
-	data?: BufferSource;
+	phData?: BufferSource;
 }
 
 export interface AuthenticationExtensionsSignSignInputs {
-	data: BufferSource;
+	phData: BufferSource;
 	keyHandleByCredential: { [credentialId: string]: COSEKeyRef };
 }
 

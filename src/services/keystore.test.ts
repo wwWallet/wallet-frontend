@@ -54,11 +54,11 @@ describe("The keystore", () => {
 			id: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 			prfOutput: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 		});
-		const { mainKey, keyInfo } = await keystore.initPrf(
+		const { mainKey, keyInfo } = await keystore.initWebauthn(
 			{ credential: mockCredential, prfSalt: null },
 			async () => false,
 		);
-		const { privateData } = await keystore.init(mainKey, keyInfo);
+		const { privateData } = await keystore.init(mainKey, keyInfo, mockCredential);
 		const [unlocked, ] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		assert.isNotNull(unlocked);
 		assert.isNotNull(unlocked.privateData.prfKeys[0]);
@@ -67,7 +67,7 @@ describe("The keystore", () => {
 	it("can initialize the key store with a password key.", async () => {
 		// 1000 iterations is artificially low to keep the test fast
 		const { mainKey, keyInfo } = await keystore.initPassword("Asdf123!", { pbkdfIterations: 1000 });
-		const { privateData } = await keystore.init(mainKey, keyInfo);
+		const { privateData } = await keystore.init(mainKey, keyInfo, null);
 		const [unlocked, ] = await keystore.unlockPassword(privateData, "Asdf123!");
 		assert.isNotNull(unlocked);
 		assert.isNotNull(unlocked.privateData.passwordKey);
@@ -1018,7 +1018,7 @@ describe("The keystore", () => {
 					const did = util.createDid(publicKeyJwk);
 					const kid = did;
 					const wrappedPrivateKey = await updateWrappedPrivateKey(
-						Object.values(privateData.keypairs)[0].wrappedPrivateKey,
+						(Object.values(privateData.keypairs)[0] as keystore.CredentialKeyPairWithWrappedPrivateKey).wrappedPrivateKey,
 						async () => privateKey,
 					);
 

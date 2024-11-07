@@ -572,7 +572,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 			try {
 				try {
-					const [credential, privateData] = await keystore.initPrf(
+					const [credential, privateData] = await keystore.initWebauthn(
 						retryFrom?.credential ?? {
 							...beginData.createOptions,
 							publicKey: {
@@ -627,6 +627,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 							return Err('passkeySignupPrfNotSupported');
 
 						default:
+							console.error("Signup failed", e);
 							return Err('passkeySignupKeystoreFailed');
 					}
 				}
