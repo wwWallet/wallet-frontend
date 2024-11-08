@@ -403,6 +403,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			await this.openID4VCIClientStateRepository.updateState(flowState, flowState.userHandleB64U);
 		}
 
+		await this.openID4VCIClientStateRepository.cleanupExpired(flowState.userHandleB64U);
+
 		await this.storeCredential({
 			credentialIdentifier: generateRandomIdentifier(32),
 			credential: credential,
