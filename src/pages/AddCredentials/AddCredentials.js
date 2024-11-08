@@ -28,7 +28,7 @@ const Issuers = () => {
 				let fetchedIssuers = response.data;
 				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
 					try {
-						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
+						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline,issuer.credentialIssuerIdentifier)).metadata;
 						return {
 							...issuer,
 							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
@@ -52,7 +52,7 @@ const Issuers = () => {
 		if (container) {
 			fetchIssuers();
 		}
-	}, [api, container]);
+	}, [api, container, isOnline]);
 
 	const handleIssuerClick = async (credentialIssuerIdentifier) => {
 		const clickedIssuer = issuers.find((issuer) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier);
