@@ -71,6 +71,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	}
 
 	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url?: string; client_id?: string; request_uri?: string; }> {
+		await this.openID4VCIClientStateRepository.cleanupExpired(userHandleB64u);
 
 		try { // attempt to get credentials using active session
 			await this.requestCredentials({
@@ -401,6 +402,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			flowState.tokenResponse.data.c_nonce_expiration_timestamp = Math.floor(Date.now() / 1000) + new_c_nonce_expires_in;
 			await this.openID4VCIClientStateRepository.updateState(flowState, flowState.userHandleB64U);
 		}
+
+		await this.openID4VCIClientStateRepository.cleanupExpired(flowState.userHandleB64U);
 
 		await this.storeCredential({
 			credentialIdentifier: generateRandomIdentifier(32),

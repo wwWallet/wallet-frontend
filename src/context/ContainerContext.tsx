@@ -54,6 +54,10 @@ export const ContainerContextProvider = ({ children }) => {
 		window.addEventListener('generatedProof', (e) => {
 			setIsInitialized(false);
 		});
+
+		window.addEventListener('settingsChanged', (e) => {
+			setIsInitialized(false);
+		});
 	}, []);
 
 	useEffect(() => {
