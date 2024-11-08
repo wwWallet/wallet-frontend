@@ -68,7 +68,7 @@ export const ContainerContextProvider = ({ children }) => {
 				const issuerResponse = await api.getExternalEntity('/issuer/all',undefined,true);
 				const trustedCredentialIssuers = issuerResponse.data;
 
-				const userResponse = await api.getExternalEntity('/user/session/account-info')
+				const userResponse = await api.get('/user/session/account-info')
 				const userData = userResponse.data;
 
 				cont.register<IHttpProxy>('HttpProxy', HttpProxy);
