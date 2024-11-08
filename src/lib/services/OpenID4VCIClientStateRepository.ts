@@ -13,43 +13,35 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 			localStorage.setItem(this.key, JSON.stringify([]));
 		}
 	}
+
+
+	async cleanupExpired(userHandleB64U: string) {
+		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
+		const results = array.filter((s) => s.userHandleB64U === userHandleB64U);
+		const statesToBeRemoved: string[] = [];
+		for (const res of results) {
+			if (!res.created ||
+				typeof res.created !== 'number' ||
+				Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds) {
+
+				statesToBeRemoved.push(res.state);
+			}
+		}
+
+		console.log("Cleanup states = ", statesToBeRemoved)
+		const filteredArray = array.filter((s) => !statesToBeRemoved.includes(s.state));
+		localStorage.setItem(this.key, JSON.stringify(filteredArray));
+	}
+
 	async getByStateAndUserHandle(state: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
 		const res = array.filter((s) => s.state === state && s.userHandleB64U === userHandleB64U)[0];
-		if (res &&
-			(
-				!res.created ||
-				typeof res.created !== 'number' ||
-				(
-					res.tokenResponse?.data?.refresh_token &&
-					Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds
-				)
-			)
-		) {
-			const updatedArray = array.filter((x) => x.state !== res.state); // remove the state
-			localStorage.setItem(this.key, JSON.stringify(updatedArray));
-			return null;
-		}
 		return res ? res : null;
 	}
 
 	async getByCredentialConfigurationIdAndUserHandle(credentialConfigurationId: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
 		const res = array.filter((s) => s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === userHandleB64U)[0];
-		if (res &&
-			(
-				!res.created ||
-				typeof res.created != 'number' ||
-				(
-					res.tokenResponse?.data?.refresh_token &&
-					Math.floor(Date.now() / 1000) - res.created > this.refreshTokenMaxAgeInSeconds
-				)
-			)
-		) {
-			const updatedArray = array.filter((x) => x.state !== res.state); // remove the state
-			localStorage.setItem(this.key, JSON.stringify(updatedArray));
-			return null;
-		}
 		return res ? res : null;
 	}
 
@@ -72,7 +64,7 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 				throw new Error("Unable to parse as array")
 			}
 		}
-		catch(err) { // if parsing failed
+		catch (err) { // if parsing failed
 			array = []; // then clean up the array with no elements
 		}
 		array.push(s);

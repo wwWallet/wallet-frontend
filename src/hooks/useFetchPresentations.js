@@ -26,7 +26,7 @@ const useFetchPresentations = (api, credentialId = "", historyId = "") => {
 				}
 
 				if (historyId) {
-					vpListFromApi = vpListFromApi.filter(item => item.id === historyId);
+					vpListFromApi = vpListFromApi.filter(item => item.id.toString() === historyId);
 				}
 
 				setHistory(Array.isArray(vpListFromApi) ? vpListFromApi : [vpListFromApi]);
