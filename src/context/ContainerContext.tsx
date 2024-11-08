@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, createContext } from "react";
+import { useEffect, useState, useContext, createContext, useRef } from "react";
 import { DIContainer } from "../lib/DIContainer";
 import { IHttpProxy } from "../lib/interfaces/IHttpProxy";
 import { IOpenID4VCIClient } from "../lib/interfaces/IOpenID4VCIClient";
@@ -51,6 +51,9 @@ export const ContainerContextProvider = ({ children }) => {
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
 
+	  // Track previous `isLoggedIn` value
+		const prevIsLoggedIn = useRef(isLoggedIn);
+
 	useEffect(() => {
 		window.addEventListener('generatedProof', (e) => {
 			setIsInitialized(false);
@@ -62,6 +65,9 @@ export const ContainerContextProvider = ({ children }) => {
 			if (isInitialized || !isLoggedIn || !api) return;
 
 			console.log('Initializing container...');
+			const shouldUseCache = prevIsLoggedIn.current === false && isLoggedIn ? false : true;
+      prevIsLoggedIn.current = isLoggedIn;
+      
 			setIsInitialized(true);
 
 			try {
@@ -93,7 +99,7 @@ export const ContainerContextProvider = ({ children }) => {
 							return { error: "Failed to parse sdjwt" };
 						}
 
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline,result.beautifiedForm.iss, true);
+						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline,result.beautifiedForm.iss, shouldUseCache);
 						const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
 							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
 						[0];
@@ -225,8 +231,8 @@ export const ContainerContextProvider = ({ children }) => {
 
 				let clientConfigs: ClientConfig[] = await Promise.all(trustedCredentialIssuers.map(async (credentialIssuer) => {
 					const [authorizationServerMetadata, credentialIssuerMetadata] = await Promise.all([
-						openID4VCIHelper.getAuthorizationServerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, true).catch((err) => null),
-						openID4VCIHelper.getCredentialIssuerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, true).catch((err) => null),
+						openID4VCIHelper.getAuthorizationServerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
+						openID4VCIHelper.getCredentialIssuerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
 					]);
 					if (!authorizationServerMetadata || !credentialIssuerMetadata) {
 						console.error("Either authorizationServerMetadata or credentialIssuerMetadata could not be loaded");
