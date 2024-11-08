@@ -11,15 +11,15 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 		private httpProxy: IHttpProxy
 	) { }
 
-	async getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata }> {
+	async getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean = false): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata }> {
 
 		let pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
 		let response = null;
 		// Online case
-		if (!isOnline) {
+		if (!isOnline || forceIndexDB) {
 			const authzServeMetadata = await getItem(pathAuthorizationServer, pathAuthorizationServer);
 			if (authzServeMetadata) {
-				return { authzServeMetadata };
+				return authzServeMetadata;
 			}
 		}
 
@@ -39,10 +39,10 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 
 			let pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 			// Online case
-			if (!isOnline) {
+			if (!isOnline || forceIndexDB) {
 				const authzServeMetadata = await getItem(pathConfiguration, pathConfiguration);
 				if (authzServeMetadata) {
-					return { authzServeMetadata };
+					return authzServeMetadata;
 				}
 			}
 
@@ -61,14 +61,14 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 		}
 	}
 
-	async getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string): Promise<{ metadata: OpenidCredentialIssuerMetadata }> {
+	async getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean = false): Promise<{ metadata: OpenidCredentialIssuerMetadata }> {
 
 		let pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
 		// Online case
-		if (!isOnline) {
+		if (!isOnline || forceIndexDB) {
 			const metadata = await getItem(pathCredentialIssuer, pathCredentialIssuer);
 			if (metadata) {
-				return { metadata };
+				return metadata;
 			}
 		}
 

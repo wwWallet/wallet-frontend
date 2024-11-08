@@ -6,11 +6,11 @@ import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
-
+import ContainerContext from '../context/ContainerContext';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -87,6 +87,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
+	const { openID4VCIHelper } = useContext(ContainerContext);
 
 	/**
 	 * Synchronization tag for the encrypted private data. To prevent data loss,
@@ -170,9 +171,22 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			await get('/storage/vc', userUuid, { appToken });
 			await get('/storage/vp', userUuid, { appToken });
 			await get('/user/session/account-info', userUuid, { appToken });
-			await getExternalEntity('/issuer/all', { appToken }, false);  // forceIndexDB = true for these calls
 			await getExternalEntity('/verifier/all', { appToken }, false);
+			const issuerResponse = await getExternalEntity('/issuer/all', { appToken }, false);
 
+			const trustedCredentialIssuers = issuerResponse.data;
+			await Promise.all(
+				trustedCredentialIssuers.map(async (credentialIssuer) => {
+					await Promise.all([
+						openID4VCIHelper
+							.getAuthorizationServerMetadata(isOnline, credentialIssuer.credentialIssuerIdentifier, true)
+							.catch((err) => null), // Catch errors and return null for failed requests
+						openID4VCIHelper
+							.getCredentialIssuerMetadata(isOnline, credentialIssuer.credentialIssuerIdentifier, true)
+							.catch((err) => null),
+					]);
+				})
+			);
 		} catch (error) {
 			console.error('Failed to perform get requests', error);
 		}

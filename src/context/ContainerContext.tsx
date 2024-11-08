@@ -93,7 +93,7 @@ export const ContainerContextProvider = ({ children }) => {
 							return { error: "Failed to parse sdjwt" };
 						}
 
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline,result.beautifiedForm.iss);
+						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline,result.beautifiedForm.iss, true);
 						const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
 							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
 						[0];
@@ -225,8 +225,8 @@ export const ContainerContextProvider = ({ children }) => {
 
 				let clientConfigs: ClientConfig[] = await Promise.all(trustedCredentialIssuers.map(async (credentialIssuer) => {
 					const [authorizationServerMetadata, credentialIssuerMetadata] = await Promise.all([
-						openID4VCIHelper.getAuthorizationServerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier).catch((err) => null),
-						openID4VCIHelper.getCredentialIssuerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier).catch((err) => null),
+						openID4VCIHelper.getAuthorizationServerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, true).catch((err) => null),
+						openID4VCIHelper.getCredentialIssuerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, true).catch((err) => null),
 					]);
 					if (!authorizationServerMetadata || !credentialIssuerMetadata) {
 						console.error("Either authorizationServerMetadata or credentialIssuerMetadata could not be loaded");
