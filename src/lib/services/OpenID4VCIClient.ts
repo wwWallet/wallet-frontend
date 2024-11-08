@@ -71,6 +71,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	}
 
 	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url?: string; client_id?: string; request_uri?: string; }> {
+		await this.openID4VCIClientStateRepository.cleanupExpired(userHandleB64u);
 
 		try { // attempt to get credentials using active session
 			await this.requestCredentials({

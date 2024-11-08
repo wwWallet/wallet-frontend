@@ -5,4 +5,5 @@ export interface IOpenID4VCIClientStateRepository {
 	getByCredentialConfigurationIdAndUserHandle(credentialConfigurationId: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null>;
 	create(s: OpenID4VCIClientState): Promise<void>;
 	updateState(s: OpenID4VCIClientState, userHandleB64U: string): Promise<void>;
+	cleanupExpired(userHandleB64U: string): Promise<void>;
 }
