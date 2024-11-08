@@ -10,7 +10,6 @@ import CredentialsContext from '../../context/CredentialsContext';
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 import useScreenType from '../../hooks/useScreenType';
-import { useSessionStorage } from '../../hooks/useStorage';
 
 // Components
 import { H1 } from '../../components/Shared/Heading';
@@ -20,10 +19,9 @@ import HistoryList from '../../components/History/HistoryList';
 import Slider from '../../components/Shared/Slider';
 
 const Home = () => {
-	const { vcEntityList, latestCredentials, getData } = useContext(CredentialsContext);
+	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
 	const { api } = useContext(SessionContext);
 	const history = useFetchPresentations(api);
-	const [currentSlide, setCurrentSlide,] = api.useClearOnClearSession(useSessionStorage('currentSlide', 1));
 	const screenType = useScreenType();
 
 	const navigate = useNavigate();

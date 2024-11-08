@@ -9,6 +9,7 @@ export const CredentialsProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState([]);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
+	const [currentSlide, setCurrentSlide] = useState(1);
 
 	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
@@ -93,7 +94,7 @@ export const CredentialsProvider = ({ children }) => {
 	}, [api, fetchVcData, pollForCredentials]);
 
 	return (
-		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData }}>
+		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide }}>
 			{children}
 		</CredentialsContext.Provider>
 	);
