@@ -734,6 +734,7 @@ const Settings = () => {
 				const response = await api.get('/user/session/account-info');
 				console.log(response.data);
 				setUserData(response.data);
+				dispatchEvent(new CustomEvent("settingsChanged"));
 			} catch (error) {
 				console.error('Failed to fetch data', error);
 			}
