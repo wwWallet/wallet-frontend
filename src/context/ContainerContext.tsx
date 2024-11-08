@@ -65,7 +65,7 @@ export const ContainerContextProvider = ({ children }) => {
 
 			try {
 				const cont = new DIContainer();
-				const issuerResponse = await api.getExternalEntity('/issuer/all')
+				const issuerResponse = await api.getExternalEntity('/issuer/all',undefined,true);
 				const trustedCredentialIssuers = issuerResponse.data;
 
 				const userResponse = await api.getExternalEntity('/user/session/account-info')

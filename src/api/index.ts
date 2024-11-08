@@ -44,7 +44,7 @@ const events: EventTarget = new EventTarget();
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>,
 	get(path: string): Promise<AxiosResponse>,
-	getExternalEntity(path: string): Promise<AxiosResponse>,
+	getExternalEntity(path: string, options?: { appToken?: string }, forceIndexDB?: boolean): Promise<AxiosResponse>,
 	post(path: string, body: object): Promise<AxiosResponse>,
 
 	getSession(): SessionState,
@@ -129,7 +129,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		};
 	}
 
-	async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }): Promise<AxiosResponse> {
+	async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }, forceIndexDB: boolean = false): Promise<AxiosResponse> {
 		// console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 		// Offline case
@@ -139,6 +139,12 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			} as AxiosResponse;
 		}
 
+		if (forceIndexDB) {
+			const data = await getItem(path, dbKey);
+			if (data) {
+				return { data } as AxiosResponse;
+			}
+		}
 		// Online case
 		const respBackend = await axios.get(
 			`${walletBackendUrl}${path}`,
@@ -155,8 +161,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		return getWithLocalDbKey(path, sessionState?.uuid || userUuid, options);
 	}
 
-	async function getExternalEntity(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-		return getWithLocalDbKey(path, path, options);
+	async function getExternalEntity(path: string, options?: { appToken?: string }, force: boolean = false): Promise<AxiosResponse> {
+		return getWithLocalDbKey(path, path, options, force);
 	}
 
 	async function fetchInitialData(appToken: string, userUuid: string): Promise<void> {
@@ -164,8 +170,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			await get('/storage/vc', userUuid, { appToken });
 			await get('/storage/vp', userUuid, { appToken });
 			await get('/user/session/account-info', userUuid, { appToken });
-			await getExternalEntity('/issuer/all', { appToken });
-			await getExternalEntity('/verifier/all', { appToken });
+			await getExternalEntity('/issuer/all', { appToken }, false);  // forceIndexDB = true for these calls
+			await getExternalEntity('/verifier/all', { appToken }, false);
 
 		} catch (error) {
 			console.error('Failed to perform get requests', error);
@@ -336,7 +342,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 	async function getAllVerifiers(): Promise<Verifier[]> {
 		try {
-			const result = await getExternalEntity('/verifier/all');
+			const result = await getExternalEntity('/verifier/all', undefined, true);
 			const verifiers = result.data;
 			console.log("verifiers = ", verifiers)
 			return verifiers;

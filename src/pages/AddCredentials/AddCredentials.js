@@ -24,7 +24,7 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.getExternalEntity('/issuer/all');
+				const response = await api.getExternalEntity('/issuer/all',undefined, true);
 				let fetchedIssuers = response.data;
 				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
 					try {
