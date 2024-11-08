@@ -256,6 +256,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
+		dispatchEvent(new CustomEvent("login"));
 	}
 
 	async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {

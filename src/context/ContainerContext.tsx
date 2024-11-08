@@ -45,14 +45,12 @@ const ContainerContext: React.Context<ContainerContextValue> = createContext({
 const defaultLocale = 'en-US';
 
 export const ContainerContextProvider = ({ children }) => {
-	const {isOnline} = useContext(StatusContext);
+	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, api, keystore } = useContext(SessionContext);
 
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
-
-	  // Track previous `isLoggedIn` value
-		const prevIsLoggedIn = useRef(isLoggedIn);
+	const [shouldUseCache, setShouldUseCache] = useState(true)
 
 	useEffect(() => {
 		window.addEventListener('generatedProof', (e) => {
@@ -62,6 +60,12 @@ export const ContainerContextProvider = ({ children }) => {
 		window.addEventListener('settingsChanged', (e) => {
 			setIsInitialized(false);
 		});
+
+		window.addEventListener('login', (e) => {
+			setIsInitialized(false);
+			setShouldUseCache(false)
+		});
+
 	}, []);
 
 	useEffect(() => {
@@ -69,14 +73,11 @@ export const ContainerContextProvider = ({ children }) => {
 			if (isInitialized || !isLoggedIn || !api) return;
 
 			console.log('Initializing container...');
-			const shouldUseCache = prevIsLoggedIn.current === false && isLoggedIn ? false : true;
-      prevIsLoggedIn.current = isLoggedIn;
-      
 			setIsInitialized(true);
 
 			try {
 				const cont = new DIContainer();
-				const issuerResponse = await api.getExternalEntity('/issuer/all',undefined,true);
+				const issuerResponse = await api.getExternalEntity('/issuer/all', undefined, true);
 				const trustedCredentialIssuers = issuerResponse.data;
 
 				const userResponse = await api.get('/user/session/account-info')
@@ -103,7 +104,7 @@ export const ContainerContextProvider = ({ children }) => {
 							return { error: "Failed to parse sdjwt" };
 						}
 
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline,result.beautifiedForm.iss, shouldUseCache);
+						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, result.beautifiedForm.iss, shouldUseCache);
 						const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
 							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
 						[0];
@@ -235,8 +236,8 @@ export const ContainerContextProvider = ({ children }) => {
 
 				let clientConfigs: ClientConfig[] = await Promise.all(trustedCredentialIssuers.map(async (credentialIssuer) => {
 					const [authorizationServerMetadata, credentialIssuerMetadata] = await Promise.all([
-						openID4VCIHelper.getAuthorizationServerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
-						openID4VCIHelper.getCredentialIssuerMetadata(isOnline,credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
+						openID4VCIHelper.getAuthorizationServerMetadata(isOnline, credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
+						openID4VCIHelper.getCredentialIssuerMetadata(isOnline, credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
 					]);
 					if (!authorizationServerMetadata || !credentialIssuerMetadata) {
 						console.error("Either authorizationServerMetadata or credentialIssuerMetadata could not be loaded");
@@ -266,6 +267,8 @@ export const ContainerContextProvider = ({ children }) => {
 					openID4VCIHelper,
 					credentialParserRegistry,
 				});
+
+				setShouldUseCache(true);
 
 			} catch (error) {
 				console.error("Initialization failed:", error);
