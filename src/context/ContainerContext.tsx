@@ -125,7 +125,7 @@ export const ContainerContextProvider = ({ children }) => {
 							|| credentialConfigurationSupportedObj?.display?.[0]?.description
 							|| "Credential";
 
-						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL });
+						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL,claims:credentialHeader.vctm.claims });
 
 						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
 						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
