@@ -20,7 +20,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	constructor(private config: ClientConfig,
 		private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
-		private generateNonceProof: (cNonce: string, audience: string, clientId: string) => Promise<{ jws: string }>,
+		private generateNonceProofs: (requests: { nonce: string, audience: string, issuer: string }[]) => Promise<{ proof_jwts: string[] }>,
 		private storeCredential: (c: StorableCredential) => Promise<void>,
 		private authorizationRequestModifier: (credentialIssuerIdentifier: string, url: string, request_uri?: string, client_id?: string) => Promise<{ url: string }> = async (_credentialIssuerIdentifier: string, url: string) => ({ url }),
 	) { }
@@ -357,9 +357,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		let jws;
 		try {
-			const generateProofResult = await this.generateNonceProof(c_nonce, this.config.credentialIssuerIdentifier, this.config.clientId);
-			jws = generateProofResult.jws;
-			console.log("proof = ", jws)
+			const generateProofsResult = await this.generateNonceProofs([
+				{ nonce: c_nonce, issuer: this.config.clientId, audience: this.config.credentialIssuerIdentifier }
+			]);
+
+			jws = generateProofsResult.proof_jwts[0];
 			if (jws) {
 				dispatchEvent(new CustomEvent("generatedProof"));
 			}

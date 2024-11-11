@@ -214,11 +214,11 @@ export const ContainerContextProvider = ({ children }) => {
 				cont.register<OpenID4VCIClientFactory>('OpenID4VCIClientFactory', OpenID4VCIClientFactory,
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository'),
-					async (cNonce: string, audience: string, clientId: string): Promise<{ jws: string }> => {
-						const [{ proof_jwts: [proof_jwt] }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs([{ nonce: cNonce, audience, issuer: clientId }]);
+					async (requests: { nonce: string, audience: string, issuer: string }[]): Promise<{ proof_jwts: string[] }> => {
+						const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(requests);
 						await api.updatePrivateData(newPrivateData);
 						await keystoreCommit();
-						return { jws: proof_jwt };
+						return { proof_jwts };
 					},
 					async function storeCredential(c: StorableCredential) {
 						await api.post('/storage/vc', {
