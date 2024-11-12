@@ -2,7 +2,8 @@ import axios from 'axios';
 import jsonpointer from 'jsonpointer';
 import { formatDate } from '../../functions/DateFormat';
 
-const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL }) => {
+const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL, claims }) => {
+
 	let svgContent = null;
 	try {
 		const response = await axios.get(credentialImageSvgTemplateURL);
@@ -15,12 +16,31 @@ const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL
 	}
 
 	if (svgContent) {
+		// Build pathMap from credentialHeader.vctm.claims
+		const pathMap = claims.reduce((acc, claim) => {
+			if (claim.svg_id && claim.path) {
+				acc[claim.svg_id] = claim.path;
+			}
+			return acc;
+		}, {});
+
+		// Regular expression to match {{svg_id}} placeholders
 		const regex = /{{([^}]+)}}/g;
-		const replacedSvgText = svgContent.replace(regex, (_match, content) => {
-			let res = jsonpointer.get(beautifiedForm, content.trim());
-			if (res !== undefined) {
-				res = formatDate(res, 'date');
-				return res;
+		const replacedSvgText = svgContent.replace(regex, (_match, svgId) => {
+			// Retrieve the path array for the current svgId from pathMap
+			const pathArray = pathMap[svgId];
+
+			// If pathArray exists, convert it to a JSON pointer path
+			if (Array.isArray(pathArray)) {
+				const jsonPointerPath = `/${pathArray.join('/')}`;
+
+				// Retrieve the value from beautifiedForm using jsonpointer
+				let value = jsonpointer.get(beautifiedForm, jsonPointerPath);
+
+				if (value !== undefined) {
+					value = formatDate(value, 'date');
+					return value;
+				}
 			}
 			return '-';
 		});
@@ -28,7 +48,7 @@ const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL
 		return dataUri; // Return the data URI for the SVG
 	}
 
-	return null; // Return null if no SVG content is available
+	return null;
 };
 
 export default renderSvgTemplate;
