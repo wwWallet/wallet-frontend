@@ -41,7 +41,7 @@ function useCheckURL(urlToCheck: string): {
 		async function handle(urlToCheck: string) {
 			const userHandleB64u = keystore.getUserHandleB64u();
 			if (!userHandleB64u) {
-				throw new Error("User handle could not be extracted from keystore");
+				return;
 			}
 			const u = new URL(urlToCheck);
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
