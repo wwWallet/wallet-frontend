@@ -41,8 +41,7 @@ export type ParsedCOSEKeyRefArkgDerived = ParsedCOSEKeyRefArkgDerivedBase & {
 	info: Uint8Array,
 }
 
-
-export function parseAuthenticatorData(bytes: Uint8Array): {
+export type AuthenticatorData = {
 	rpIdHash: Uint8Array,
 	flags: {
 		UP: boolean,
@@ -55,7 +54,26 @@ export function parseAuthenticatorData(bytes: Uint8Array): {
 	signCount: number,
 	attestedCredentialData?: { aaguid: Uint8Array, credentialId: Uint8Array, credentialPublicKey: { [key: number]: any } },
 	extensions?: { [extensionId: string]: any },
-} {
+}
+
+export type WebauthnInteractionEvent = (
+	{ id: 'intro', chosenCredentialId: BufferSource }
+	| { id: 'webauthn-begin', webauthnArgs: CredentialRequestOptions }
+	| { id: 'err', err: unknown, credential?: PublicKeyCredential, authData?: AuthenticatorData }
+	| { id: 'err:ext:sign:signature-not-found', credential: PublicKeyCredential, authData: AuthenticatorData }
+	| { id: 'success' }
+	| { id: 'success:dismiss' }
+);
+export type WebauthnInteractionEventResponse = (
+	{ id: 'intro:ok' }
+	| { id: 'webauthn-begin:ok', credential: PublicKeyCredential }
+	| { id: 'cancel', cause?: unknown }
+	| { id: 'retry' }
+	| { id: 'success:ok' }
+);
+
+
+export function parseAuthenticatorData(bytes: Uint8Array): AuthenticatorData {
 	const rpIdHash = bytes.slice(0, 32);
 	const flagsByte = bytes[32]; // eslint-disable-line prefer-destructuring
 	const signCount = new DataView(bytes.buffer).getUint32(32 + 1, false);

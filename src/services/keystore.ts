@@ -9,7 +9,7 @@ import * as cbor from 'cbor-web';
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url, toHex } from "../util";
+import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, sequentialAll, toBase64Url } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
@@ -23,6 +23,7 @@ import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
 import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED } from "../coseConstants";
+import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -269,43 +270,82 @@ export type PrivateData = {
 function makeWebauthnSignFunction(
 	rpId: string,
 	{ publicKey, externalPrivateKey }: CredentialKeyPairWithExternalPrivateKey,
+	uiStateMachine: UiStateMachineFunction,
 ): (alg: any, key: any, data: Uint8Array) => Promise<Uint8Array> {
 	return async (alg, _key, data) => {
-		const pkc = await navigator.credentials.get({
-			publicKey: {
-				rpId: rpId,
-				challenge: crypto.getRandomValues(new Uint8Array(32)),
-				allowCredentials: [{ type: "public-key", id: externalPrivateKey.credentialId }],
-				extensions: {
-					sign: {
-						sign: {
-							keyHandleByCredential: {
-								[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
+		let uiStatePromise = uiStateMachine({ id: 'intro', chosenCredentialId: externalPrivateKey.credentialId });
+		let signature = null;
+
+		while (true) {
+			const eventResponse = await uiStatePromise;
+			switch (eventResponse?.id) {
+				case 'intro:ok':
+				case 'retry':
+					try {
+						const webauthnArgs = {
+							publicKey: {
+								rpId: rpId,
+								challenge: crypto.getRandomValues(new Uint8Array(32)),
+								allowCredentials: [{ type: "public-key" as "public-key", id: externalPrivateKey.credentialId }],
+								extensions: {
+									sign: {
+										sign: {
+											keyHandleByCredential: {
+												[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
+											},
+											tbs: await crypto.subtle.digest("SHA-256", data),
+										},
+									},
+								} as AuthenticationExtensionsClientInputs,
 							},
-							tbs: await crypto.subtle.digest("SHA-256", data),
-						},
-					},
-				} as AuthenticationExtensionsClientInputs,
-			},
-		}) as PublicKeyCredential;
-		const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
-		const sig = authData?.extensions?.sign?.get(6);
-		if (sig) {
-			switch (alg) {
-				case "ES256":
-					switch (publicKey.crv) {
-						case "P-256":
-							return derSignatureToRaw(sig);
+						};
+						uiStatePromise = uiStateMachine({ id: 'webauthn-begin', webauthnArgs });
+					} catch (e) {
+						console.error("Failed to create WebAuthn arguments:", e);
+						uiStatePromise = uiStateMachine({ id: 'err', err: e });
 					}
+					break;
+
+				case 'webauthn-begin:ok':
+					const pkc = eventResponse.credential;
+					try {
+						const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
+						const sig = authData?.extensions?.sign?.get(6);
+						if (sig) {
+							switch (alg) {
+								case "ES256":
+									switch (publicKey.crv) {
+										case "P-256":
+											console.log("Reformatting signature for signature algorithm:", alg, "and public key:", publicKey);
+											signature = derSignatureToRaw(sig);
+											break;
+									}
+									break;
+							}
+							if (signature === null) {
+								console.log("Will not reformat signature for signature algorithm:", alg, "and public key:", publicKey);
+								signature = sig;
+							}
+							uiStatePromise = uiStateMachine({ id: 'success' });
+						} else {
+							uiStatePromise = uiStateMachine({ id: 'err:ext:sign:signature-not-found', credential: pkc, authData });
+						}
+					} catch (e) {
+						console.error("Failed to extract signature from WebAuthn response:", e);
+						uiStatePromise = uiStateMachine({ id: 'err', err: e, credential: pkc });
+					}
+					break;
+
+				case 'cancel':
+					throw new Error("Canceled by user", { cause: eventResponse.cause ?? 'canceled_by_user' });
+
+				case 'success:ok':
+					return signature;
+
+				default:
+					console.log("Unknown state:", eventResponse);
+					throw new Error("Unknown state", { cause: eventResponse });
 			}
-			console.log("Will not reformat signature for signature algorithm:", alg, "and public key:", publicKey);
-			return sig;
-		} else {
-			console.error(
-				"Failed to sign data. authData:",
-				toHex(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData)),
-			);
-			throw new Error("Failed to sign data");
 		}
 	};
 }
@@ -1335,7 +1375,14 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 	}
 }
 
-export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
+export async function signJwtPresentation(
+	[privateData, mainKey]: [PrivateData, CryptoKey],
+	nonce: string,
+	audience: string,
+	verifiableCredentials: any[],
+	transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] },
+	uiStateMachine: UiStateMachineFunction,
+): Promise<{ vpjwt: string }> {
 	const hasher = (data: string | ArrayBuffer, alg: string) => {
 		const encoded =
 			typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
@@ -1370,7 +1417,7 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 		} else {
 			return signJwt.sign(
 				null as jose.KeyLike,
-				{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair) },
+				{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair, uiStateMachine) },
 			);
 		}
 	}
@@ -1397,7 +1444,8 @@ export async function generateOpenid4vciProofs(
 	nonce: string,
 	audience: string,
 	issuer: string,
-	numberOfKeyPairs: number = 1
+	setupUiStateMachine: (i: number) => UiStateMachineFunction,
+	numberOfKeyPairs: number = 1,
 ): Promise<[{ proof_jwts: string[] }, OpenedContainer]> {
 	const deriveKid = async (publicKey: CryptoKey) => {
 		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
@@ -1406,37 +1454,42 @@ export async function generateOpenid4vciProofs(
 	};
 	const { privateKeys, newPrivateData, keypairs } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
 
-	const proof_jwts = await Promise.all(keypairs.map(async (keypair, index) => {
-		const privateKey = privateKeys[index];
-		const performSignature = async (signJwt: SignJWT, privateKey: CryptoKey, keypair: CredentialKeyPair) => {
-			if (privateKey) {
-				return signJwt.sign(privateKey);
+	const proof_jwts = await sequentialAll(keypairs.map((keypair, index) => {
+		return async () => {
+			const privateKey = privateKeys[index];
+			const moveUiStateMachine = setupUiStateMachine(index);
+			const performSignature = async (signJwt: SignJWT, privateKey: CryptoKey, keypair: CredentialKeyPair) => {
+				if (privateKey) {
+					return signJwt.sign(privateKey);
 
-			} else if ("externalPrivateKey" in keypair) {
-				return signJwt.sign(
-					null as jose.KeyLike,
-					{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair) },
-				);
+				} else if ("externalPrivateKey" in keypair) {
+					return signJwt.sign(
+						null as jose.KeyLike,
+						{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair, moveUiStateMachine) },
+					);
 
-			} else {
-				throw new Error("Failed to determine private signing key for new credential keypair");
+				} else {
+					throw new Error("Failed to determine private signing key for new credential keypair");
+				}
 			}
+
+			const signJwt = new SignJWT({
+				nonce: nonce,
+				aud: audience,
+				iss: issuer,
+			})
+				.setIssuedAt()
+				.setProtectedHeader({
+					alg: keypair.alg,
+					typ: "openid4vci-proof+jwt",
+					jwk: { ...keypair.publicKey, kid: keypair.kid, key_ops: ['verify'] } as JWK,
+				});
+
+			const jws = await performSignature(signJwt, privateKey, keypair);
+			moveUiStateMachine({ id: 'success:dismiss' });
+
+			return jws;
 		}
-
-		const signJwt = new SignJWT({
-			nonce: nonce,
-			aud: audience,
-			iss: issuer,
-		})
-			.setIssuedAt()
-			.setProtectedHeader({
-				alg: keypair.alg,
-				typ: "openid4vci-proof+jwt",
-				jwk: { ...keypair.publicKey, kid: keypair.kid, key_ops: ['verify'] } as JWK,
-			});
-
-		const jws = await performSignature(signJwt, privateKey, keypair);
-		return jws;
 	}));
 
 	return [{ proof_jwts: proof_jwts }, newPrivateData];

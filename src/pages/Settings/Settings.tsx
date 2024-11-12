@@ -1,4 +1,4 @@
-import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, useCallback, useContext, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -16,8 +16,9 @@ import { formatDate } from '../../functions/DateFormat';
 import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
-import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
+import DeletePopup from '../../components/Popups/DeletePopup';
+import Dialog from '../../components/Dialog';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
@@ -47,42 +48,6 @@ type UpgradePrfState = (
 		webauthnCredential: WebauthnCredential,
 	}
 );
-
-const Dialog = ({
-	children,
-	open,
-	onCancel,
-}: {
-	children: ReactNode,
-	open: boolean,
-	onCancel: () => void,
-}) => {
-	const dialog = useRef<HTMLDialogElement>();
-
-	useEffect(
-		() => {
-			if (dialog.current) {
-				if (open) {
-					dialog.current.showModal();
-				} else {
-					dialog.current.close();
-				}
-			}
-		},
-		[dialog, open],
-	);
-
-	return (
-		<dialog
-			ref={dialog}
-			className="p-4 pt-8 text-center rounded md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700"
-			style={{ minWidth: '30%' }}
-			onCancel={onCancel}
-		>
-			{children}
-		</dialog>
-	);
-};
 
 const WebauthnRegistation = ({
 	unwrappingKey,
