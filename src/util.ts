@@ -204,3 +204,15 @@ export function sanitizeId(value: string | number): string {
 	const str = String(value);
 	return str.replace(/[^a-zA-Z0-9-_]/g, "");
 }
+
+/**
+ * Evaluate the given promises sequentially, rather than in parallel, and return
+ * a list of their results in order.
+ */
+export async function sequentialAll<T>(beginPromises: (() => Promise<T>)[]): Promise<T[]> {
+	const results: T[] = [];
+	for (const beginPromise of beginPromises) {
+		results.push(await beginPromise());
+	}
+	return results;
+}
