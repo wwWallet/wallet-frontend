@@ -39,14 +39,14 @@ export class OpenID4VCIClientStateRepository implements IOpenID4VCIClientStateRe
 		return res ? res : null;
 	}
 
-	async getByCredentialConfigurationIdAndUserHandle(credentialConfigurationId: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
+	async getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(credentialIssuer: string, credentialConfigurationId: string, userHandleB64U: string): Promise<OpenID4VCIClientState | null> {
 		const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === userHandleB64U)[0];
+		const res = array.filter((s) => s.credentialIssuerIdentifier === credentialIssuer && s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === userHandleB64U)[0];
 		return res ? res : null;
 	}
 
 	async create(s: OpenID4VCIClientState): Promise<void> {
-		const existingState = await this.getByCredentialConfigurationIdAndUserHandle(s.credentialConfigurationId, s.userHandleB64U);
+		const existingState = await this.getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(s.credentialIssuerIdentifier, s.credentialConfigurationId, s.userHandleB64U);
 		if (existingState) { // remove the existing state for this configuration id
 			const array = JSON.parse(localStorage.getItem(this.key)) as Array<OpenID4VCIClientState>;
 			const updatedArray = array.filter((x) => x.credentialConfigurationId !== s.credentialConfigurationId);
