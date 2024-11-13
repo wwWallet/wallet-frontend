@@ -331,11 +331,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	}
 
 	/**
-	 * 
-	 * @param response 
-	 * @param flowState 
-	 * @param cachedProof used in case a failure due to invalid dpop-nonce is caused and the last proof can be re-used.
-	 * @returns 
+	 *
+	 * @param response
+	 * @param flowState
+	 * @param cachedProof cachedProof is used in case a failure due to invalid dpop-nonce is caused and the last proof can be re-used.
+	 * @returns
 	 */
 	private async credentialRequest(response: any, flowState: OpenID4VCIClientState, cachedProof?: string) {
 		const {
