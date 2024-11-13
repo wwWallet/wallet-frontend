@@ -13,7 +13,6 @@ import { H1 } from '../Shared/Heading';
 
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
-	const [bestCameraResolutions, setBestCameraResolutions] = useState({ front: null, back: null });
 	const webcamRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -66,16 +65,19 @@ const QRScanner = ({ onClose }) => {
 						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
-						const isBackCamera = device.label.toLowerCase().includes('back');
+						// const isBackCamera = device.label.toLowerCase().includes('back');
+						const isBackCamera = capabilities.facingMode.includes('environment');
+
 						const resolution = {
 							width: capabilities.width?.max || 0,
-							height: capabilities.height?.max || 0
+							height: capabilities.height?.max || 0,
+							idealHeight: Math.min(capabilities.height?.max, capabilities.width.max, 1080)
 						};
 
 						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
-							bestBackCamera = { device, resolution };
+							bestBackCamera = { device, resolution: resolution, facingMode: 'environment' };
 						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
-							bestFrontCamera = { device, resolution };
+							bestFrontCamera = { device, resolution: resolution, facingMode: 'user' };
 						}
 
 						track.stop();
@@ -83,21 +85,16 @@ const QRScanner = ({ onClose }) => {
 
 					const filteredDevices = [];
 					if (bestFrontCamera) {
-						filteredDevices.push(bestFrontCamera.device);
+						filteredDevices.push(bestFrontCamera);
 					}
 					if (bestBackCamera) {
-						filteredDevices.push(bestBackCamera.device);
+						filteredDevices.push(bestBackCamera);
 					}
-
-					setBestCameraResolutions({
-						front: bestFrontCamera ? bestFrontCamera.resolution : null,
-						back: bestBackCamera ? bestBackCamera.resolution : null,
-					});
 
 					setDevices(filteredDevices);
 
-					const backCameraIndex = filteredDevices.findIndex(device =>
-						device.label.toLowerCase().includes('back'));
+					filteredDevices.findIndex(devices =>
+						devices.device.deviceId === bestBackCamera.device.deviceId);
 
 					if (backCameraIndex !== -1) {
 						setCurrentDeviceIndex(backCameraIndex);
@@ -147,7 +144,7 @@ const QRScanner = ({ onClose }) => {
 					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
 					window.location.href = cvUrl;
 				}, 1000);
-			}, { highlightScanRegion: true, highlightCodeOutline: true });
+			}, { highlightScanRegion: true, highlightCodeOutline: false });
 
 			qrScanner.start().catch(err => {
 				console.error('Error starting QR Scanner: ', err);
@@ -160,24 +157,6 @@ const QRScanner = ({ onClose }) => {
 			};
 		}
 	};
-
-	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
-	const maxResolution = bestCameraResolutions[currentCameraType];
-
-	let idealHeight;
-	if (maxResolution) {
-		console.log(maxResolution);
-
-		// Determine the smaller dimension to be the basis for square dimensions
-		let smallerDimension = Math.min(maxResolution.width, maxResolution.height);
-
-		// Cap the dimension at 1920 if it exceeds this value
-		if (smallerDimension > 1920) {
-			idealHeight = 1080;
-		} else {
-			idealHeight = maxResolution.height;
-		}
-	}
 
 	return (
 		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || !cameraReady} fullScreen={screenType !== 'desktop'}>
@@ -244,13 +223,13 @@ const QRScanner = ({ onClose }) => {
 					<div className="webcam-container mt-4 relative flex items-center justify-center">
 						<div className="relative w-full max-h-[60vh] flex justify-center items-center overflow-hidden">
 							<Webcam
-								key={devices[currentDeviceIndex]?.deviceId}
+								key={devices[currentDeviceIndex]?.device.deviceId}
 								audio={false}
 								ref={webcamRef}
 								screenshotFormat="image/jpeg"
 								videoConstraints={{
-									deviceId: devices[currentDeviceIndex]?.deviceId,
-									height: { ideal: idealHeight, max: maxResolution.height }
+									deviceId: devices[currentDeviceIndex]?.device.deviceId,
+									height: { ideal: devices[currentDeviceIndex]?.resolution.idealHeight, max: devices[currentDeviceIndex]?.resolution.height }
 								}}
 								style={{
 									transform: `scale(${zoomLevel})`,
