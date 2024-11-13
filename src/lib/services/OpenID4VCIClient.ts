@@ -144,6 +144,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		if (!s || !s.credentialIssuerIdentifier || s.credentialIssuerIdentifier !== this.config.credentialIssuerIdentifier) {
 			return;
 		}
+		if (sessionStorage.getItem('oid4vci_last_used_state') === state) {
+			return;
+		}
+		sessionStorage.setItem('oid4vci_last_used_state', state);
+		console.log("Handling authorization response...");
 		await this.requestCredentials({
 			userHandleB64u: userHandleB64U,
 			dpopNonceHeader: dpopNonceHeader,
@@ -177,7 +182,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		if (requestCredentialsParams.usingActiveAccessToken) {
 			console.log("Attempting with active access token")
-			const flowState = await this.openID4VCIClientStateRepository.getByCredentialConfigurationIdAndUserHandle(requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId, requestCredentialsParams.userHandleB64u)
+			const flowState = await this.openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(this.config.credentialIssuerIdentifier, requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId, requestCredentialsParams.userHandleB64u)
 			if (!flowState) {
 				throw new Error("Using active access token: No flowstate");
 			}
@@ -220,7 +225,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			flowState = await this.openID4VCIClientStateRepository.getByStateAndUserHandle(requestCredentialsParams.authorizationCodeGrant.state, requestCredentialsParams.userHandleB64u)
 		}
 		else if (requestCredentialsParams?.refreshTokenGrant) {
-			flowState = await this.openID4VCIClientStateRepository.getByCredentialConfigurationIdAndUserHandle(requestCredentialsParams.refreshTokenGrant.credentialConfigurationId, requestCredentialsParams.userHandleB64u)
+			flowState = await this.openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(this.config.credentialIssuerIdentifier, requestCredentialsParams.refreshTokenGrant.credentialConfigurationId, requestCredentialsParams.userHandleB64u)
 		}
 
 		if (!flowState) {
@@ -325,7 +330,14 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 	}
 
-	private async credentialRequest(response: any, flowState: OpenID4VCIClientState) {
+	/**
+	 * 
+	 * @param response 
+	 * @param flowState 
+	 * @param cachedProof used in case a failure due to invalid dpop-nonce is caused and the last proof can be re-used.
+	 * @returns 
+	 */
+	private async credentialRequest(response: any, flowState: OpenID4VCIClientState, cachedProof?: string) {
 		const {
 			data: { access_token, c_nonce },
 		} = response;
@@ -357,11 +369,16 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		let jws;
 		try {
-			const generateProofResult = await this.generateNonceProof(c_nonce, this.config.credentialIssuerIdentifier, this.config.clientId);
-			jws = generateProofResult.jws;
-			console.log("proof = ", jws)
-			if (jws) {
-				dispatchEvent(new CustomEvent("generatedProof"));
+			if (cachedProof) {
+				jws = cachedProof;
+			}
+			else {
+				const generateProofResult = await this.generateNonceProof(c_nonce, this.config.credentialIssuerIdentifier, this.config.clientId);
+				jws = generateProofResult.jws;
+				console.log("proof = ", jws)
+				if (jws) {
+					dispatchEvent(new CustomEvent("generatedProof"));
+				}
 			}
 		}
 		catch (err) {
@@ -388,7 +405,14 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const credentialResponse = await this.httpProxy.post(credentialEndpoint, credentialEndpointBody, credentialRequestHeaders);
 
 		if (credentialResponse.err) {
-			console.log("Error: Credential response = ", credentialResponse.err);
+			console.log("Error: Credential response = ", JSON.stringify(credentialResponse.err));
+			if (credentialResponse.err.headers["www-authenticate"].includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.err.headers) {
+				console.log("Calling credentialRequest with new dpop-nonce....")
+
+				response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
+				await this.credentialRequest(response, flowState, jws);
+				return;
+			}
 			throw new Error("Credential Request failed");
 		}
 		console.log("Credential response = ", credentialResponse)
