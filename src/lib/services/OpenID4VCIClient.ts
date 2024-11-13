@@ -49,7 +49,25 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			return;
 		}
 
-		const selectedConfigurationId = offer.credential_configuration_ids[0];
+		let selectedConfigurationId;
+		if (offer?.credentials && offer?.credentials.length > 0) { // derive credential configuration ids using the 'credential[].types and format
+			const supportedCredentialConfigurationIds = Object.keys(this.config.credentialIssuerMetadata.credential_configurations_supported).filter((credentialConfigurationId) => {
+				const supportedCred = this.config.credentialIssuerMetadata.credential_configurations_supported[credentialConfigurationId];
+				return supportedCred.types && JSON.stringify(supportedCred.types) == JSON.stringify(offer?.credentials[0].types) && supportedCred.format == offer?.credentials[0].format;
+			});
+
+			if (supportedCredentialConfigurationIds.length == 0) {
+				throw new Error("Couldn't handle credential offer based on types");
+			}
+			let firstSupportedCredentialBasedOnTypes = supportedCredentialConfigurationIds[0];
+			selectedConfigurationId = firstSupportedCredentialBasedOnTypes;
+		}
+		else if (offer.credential_configuration_ids && offer.credential_configuration_ids.length > 0) { // get credential_configuration_ids directly
+			selectedConfigurationId = offer.credential_configuration_ids[0];
+		}
+		else {
+			throw new Error("Credential offer is missing either 'credential[].types' or 'credential_configuration_ids'");
+		}
 		const selectedConfiguration = this.config.credentialIssuerMetadata.credential_configurations_supported[selectedConfigurationId];
 		if (!selectedConfiguration) {
 			throw new Error("Credential configuration not found");
