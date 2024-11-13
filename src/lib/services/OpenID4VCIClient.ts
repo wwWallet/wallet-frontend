@@ -232,14 +232,31 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			throw new Error("No flowstate");
 		}
 
-		const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
+		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
+		let dpopPrivateKeyJwk: jose.JWK | null = null;
+		let dpopPublicKey: jose.KeyLike | Uint8Array | null = null;
+		let dpopPublicKeyJwk: jose.JWK | null = null;
+
+		if (!flowState.dpop) { // if DPoP keys have not been generated, then generate them
+			const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
+			[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
+				jose.exportJWK(privateKey),
+				jose.exportJWK(publicKey)
+			]);
+
+			dpopPrivateKey = privateKey;
+			dpopPublicKey = publicKey;
+		}
+		else { // if already generated, then reuse them
+			dpopPrivateKeyJwk = flowState.dpop.dpopPrivateKeyJwk;
+			dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk;
+
+			[dpopPrivateKey, dpopPublicKey] = await Promise.all([
+				jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg),
+				jose.importJWK(flowState.dpop.dpopPublicKeyJwk, flowState.dpop.dpopAlg)
+			])
+		}
 		const jti = generateRandomIdentifier(8);
-
-		const [privateKeyJwk, publicKeyJwk] = await Promise.all([
-			jose.exportJWK(privateKey),
-			jose.exportJWK(publicKey)
-		]);
-
 
 		let tokenRequestHeaders = {
 			'Content-Type': 'application/x-www-form-urlencoded',
@@ -247,8 +264,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		if (this.config.authorizationServerMetadata.dpop_signing_alg_values_supported) {
 			const dpop = await generateDPoP(
-				privateKey,
-				publicKeyJwk,
+				dpopPrivateKey as jose.KeyLike,
+				dpopPublicKeyJwk,
 				jti,
 				"POST",
 				tokenEndpoint,
@@ -257,8 +274,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			flowState.dpop = {
 				dpopAlg: 'ES256',
 				dpopJti: jti,
-				dpopPrivateKeyJwk: privateKeyJwk,
-				dpopPublicKeyJwk: publicKeyJwk,
+				dpopPrivateKeyJwk: dpopPrivateKeyJwk,
+				dpopPublicKeyJwk: dpopPublicKeyJwk,
 			}
 			tokenRequestHeaders['DPoP'] = dpop;
 		}
@@ -271,9 +288,16 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
 			formData.append('code_verifier', flowState.code_verifier);
 		}
-		else if (requestCredentialsParams.refreshTokenGrant && flowState?.tokenResponse?.data.refresh_token) {
+		else if (requestCredentialsParams.refreshTokenGrant) {
+			if (!flowState?.tokenResponse?.data.refresh_token) {
+				console.info("Found no refresh_token to execute refesh_token grant")
+				throw new Error("Found no refresh_token to execute refesh_token grant");
+			}
 			formData.append('grant_type', 'refresh_token');
 			formData.append('refresh_token', flowState.tokenResponse.data.refresh_token);
+		}
+		else {
+			throw new Error("No grant type selected in requestCredentials()");
 		}
 		formData.append('redirect_uri', redirectUri);
 
@@ -282,7 +306,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		if (response.err) {
 			const { err } = response;
 			console.log("failed token request")
-			console.log(err);
+			console.log(JSON.stringify(err));
 			console.log("Dpop nonce found = ", err.headers['dpop-nonce'])
 			if (err.headers['dpop-nonce']) {
 				requestCredentialsParams.dpopNonceHeader = err.headers['dpop-nonce'];
@@ -291,6 +315,9 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					// this.handleAuthorizationResponse(requestCredentialsParams.authorizationCodeGrant.authorizationResponseUrl, requestCredentialsParams.userHandleB64u, requestCredentialsParams.dpopNonceHeader);
 					return;
 				}
+			}
+			else if (err.data.error) {
+				console.error("OID4VCI Token Response Error: ", JSON.stringify(err.data))
 			}
 			return;
 		}
