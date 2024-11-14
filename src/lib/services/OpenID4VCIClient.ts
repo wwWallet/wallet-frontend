@@ -463,6 +463,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			credentialConfigurationId: flowState.credentialConfigurationId,
 			credentialIssuerIdentifier: this.config.credentialIssuerIdentifier,
 		});
+		dispatchEvent(new CustomEvent('newCredential'));
 		return;
 
 	}
