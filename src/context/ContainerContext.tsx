@@ -45,8 +45,9 @@ const ContainerContext: React.Context<ContainerContextValue> = createContext({
 const defaultLocale = 'en-US';
 
 export const ContainerContextProvider = ({ children }) => {
+
 	const { isOnline } = useContext(StatusContext);
-	const { isLoggedIn, api, keystore } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore, isStandAlone } = useContext(SessionContext);
 
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
@@ -77,10 +78,11 @@ export const ContainerContextProvider = ({ children }) => {
 
 			try {
 				const cont = new DIContainer();
-				const issuerResponse = await api.getExternalEntity('/issuer/all', undefined, true);
+
+				const issuerResponse = isStandAlone ? { data: [] } : await api.getExternalEntity('/issuer/all', undefined, true);
 				const trustedCredentialIssuers = issuerResponse.data;
 
-				const userResponse = await api.get('/user/session/account-info')
+				const userResponse = isStandAlone ? { data: { settings: {} } } : await api.get('/user/session/account-info');
 				const userData = userResponse.data;
 
 				cont.register<IHttpProxy>('HttpProxy', HttpProxy);
@@ -192,7 +194,7 @@ export const ContainerContextProvider = ({ children }) => {
 					cont.resolve<ICredentialParserRegistry>('CredentialParserRegistry'),
 					async function getAllStoredVerifiableCredentials() {
 						const fetchAllCredentials = await api.get('/storage/vc');
-						return { verifiableCredentials: fetchAllCredentials.data.vc_list };
+						return { verifiableCredentials: fetchAllCredentials.data?.vc_list || [] };
 					},
 
 					async function signJwtPresentationKeystoreFn(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {

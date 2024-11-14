@@ -10,9 +10,10 @@ import { useEffect } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
+import { makeCreateOptions } from '../functions/webauthn';
+import * as uuid from 'uuid';
 
 const walletBackendUrl = config.BACKEND_URL;
-
 
 type SessionState = {
 	uuid: string;
@@ -33,12 +34,17 @@ type SignupWebauthnError = (
 );
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
 
+interface User {
+	appToken: string;
+	uuid: string;
+	displayName: string;
+	username: string;
+}
 
 export type ClearSessionEvent = {};
 export const CLEAR_SESSION_EVENT = 'clearSession';
 export type ApiEventType = typeof CLEAR_SESSION_EVENT;
 const events: EventTarget = new EventTarget();
-
 
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>,
@@ -82,7 +88,7 @@ export interface BackendApi {
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 }
 
-export function useApi(isOnline: boolean = true): BackendApi {
+export function useApi(isOnline: boolean = true, isStandAlone: boolean = false): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
@@ -132,7 +138,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		// console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 		// Offline case
-		if (!isOnline) {
+		if (!isOnline || isStandAlone) {
 			return {
 				data: await getItem(path, dbKey),
 			} as AxiosResponse;
@@ -238,23 +244,23 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	}
 
 	async function setSession(
-		response: AxiosResponse,
+		user: User,
 		credential: PublicKeyCredential | null,
 		authenticationType: 'signup' | 'login',
 	): Promise<void> {
-		setAppToken(response.data.appToken);
+		setAppToken(user.appToken);
 		setSessionState({
-			uuid: response.data.uuid,
-			displayName: response.data.displayName,
-			username: response.data.username,
+			uuid: user.uuid,
+			displayName: user.displayName,
+			username: user.username,
 			webauthnCredentialCredentialId: credential?.id,
 			authenticationType,
 			showWelcome: authenticationType === 'signup',
 		});
 
-		await addItem('users', response.data.uuid, response.data);
-		if (isOnline) {
-			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
+		await addItem('users', user.uuid, user);
+		if (isOnline && !isStandAlone) {
+			await fetchInitialData(user.appToken, user.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
 		dispatchEvent(new CustomEvent("login"));
 	}
@@ -279,7 +285,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						return Err('loginKeystoreFailed');
 					}
 				}
-				await setSession(response, null, 'login');
+				await setSession(response.data, null, 'login');
 				return Ok.EMPTY;
 			} catch (e) {
 				console.error("Failed to unlock local keystore", e);
@@ -306,7 +312,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				}));
 				const userData = response.data as UserData;
 				setUserHandleB64u(toBase64Url(UserId.fromId(userData.uuid).asUserHandle()));
-				await setSession(response, null, 'signup');
+				await setSession(response.data, null, 'signup');
 				return Ok.EMPTY;
 
 			} catch (e) {
@@ -388,7 +394,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
-				if (isOnline) {
+				if (isOnline && !isStandAlone) {
 					const beginResp = await post('/user/login-webauthn-begin', {});
 					console.log("begin", beginResp);
 					return beginResp.data;
@@ -418,7 +424,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 				try {
 					const finishResp = await (async () => {
-						if (isOnline) {
+						if (isOnline && !isStandAlone) {
 							return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
 								challengeId: beginData.challengeId,
 								credential: {
@@ -446,11 +452,16 @@ export function useApi(isOnline: boolean = true): BackendApi {
 									did: user.did,
 									displayName: user.displayName,
 									privateData: user.privateData,
-									username: null,
+									username: user.username,
 								},
 							};
 						}
 					})() as any;
+
+					if (isStandAlone) {
+						await setSession(finishResp.data, credential, 'login');
+						return Ok.EMPTY;
+					}
 
 					try {
 						const userData = finishResp.data as UserData;
@@ -479,7 +490,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								return Err('loginKeystoreFailed');
 							}
 						}
-						await setSession(finishResp, credential, 'login');
+						await setSession(finishResp.data, credential, 'login');
 						return Ok.EMPTY;
 					} catch (e) {
 						console.error("Failed to open keystore", e);
@@ -499,6 +510,23 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		}
 	};
 
+	const fetchWebAuthnBeginData = async () => {
+		if (isStandAlone) {
+			return {
+				createOptions: makeCreateOptions({
+					challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+					user: {
+						uuid: UserId.fromId(uuid.v4()),
+						name: '',
+						displayName: '',
+					}
+				})
+			};
+		}
+
+		return (await post('/user/register-webauthn-begin', {})).data
+	}
+
 	async function signupWebauthn(
 		name: string,
 		keystore: LocalStorageKeystore,
@@ -506,7 +534,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>> {
 		try {
-			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', {})).data;
+			const beginData = retryFrom?.beginData || await fetchWebAuthnBeginData();
 			console.log("begin", beginData);
 
 			try {
@@ -541,26 +569,31 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					);
 
 					try {
-
-
-						const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
-							challengeId: beginData.challengeId,
-							displayName: name,
-							privateData: serializePrivateData(privateData),
-							credential: {
-								type: credential.type,
-								id: credential.id,
-								rawId: credential.rawId,
-								response: {
-									attestationObject: response.attestationObject,
-									clientDataJSON: response.clientDataJSON,
-									transports: response.getTransports(),
+						const finishResp = isStandAlone
+							? undefined
+							: updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
+								challengeId: beginData.challengeId,
+								displayName: name,
+								privateData: serializePrivateData(privateData),
+								credential: {
+									type: credential.type,
+									id: credential.id,
+									rawId: credential.rawId,
+									response: {
+										attestationObject: response.attestationObject,
+										clientDataJSON: response.clientDataJSON,
+										transports: response.getTransports(),
+									},
+									authenticatorAttachment: credential.authenticatorAttachment,
+									clientExtensionResults: credential.getClientExtensionResults(),
 								},
-								authenticatorAttachment: credential.authenticatorAttachment,
-								clientExtensionResults: credential.getClientExtensionResults(),
-							},
-						}));
-						await setSession(finishResp, credential, 'signup');
+							}));
+						await setSession(finishResp?.data || {
+							appToken: '',
+							uuid: String.fromCodePoint(...beginData.createOptions.publicKey.user.id),
+							displayName: name,
+							username: name
+						}, credential, 'signup');
 						return Ok.EMPTY;
 
 					} catch (e) {

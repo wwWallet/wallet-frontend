@@ -24,8 +24,8 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.getExternalEntity('/issuer/all',undefined, true);
-				let fetchedIssuers = response.data;
+				const response = await api.getExternalEntity('/issuer/all', undefined, true);
+				let fetchedIssuers = response.data || [];
 				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline,issuer.credentialIssuerIdentifier,true)).metadata;
