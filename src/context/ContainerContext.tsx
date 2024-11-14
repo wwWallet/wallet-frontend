@@ -78,7 +78,7 @@ export const ContainerContextProvider = ({ children }) => {
 
 			try {
 				const cont = new DIContainer();
-				
+
 				const issuerResponse = isStandAlone ? { data: [] } : await api.getExternalEntity('/issuer/all', undefined, true);
 				const trustedCredentialIssuers = issuerResponse.data;
 
