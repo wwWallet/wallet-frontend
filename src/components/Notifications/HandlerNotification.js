@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { onMessageListener } from '../../firebase';
 import { AiOutlineClose } from 'react-icons/ai';
 import logo from '../../assets/images/logo.png';
-import CredentialsContext from '../../context/CredentialsContext';
 
 const ToastDisplay = ({ id, notification }) => {
 	return (
