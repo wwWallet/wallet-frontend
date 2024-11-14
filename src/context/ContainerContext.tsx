@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, createContext, useRef } from "react";
+import { useEffect, useState, useContext, createContext } from "react";
 import { DIContainer } from "../lib/DIContainer";
 import { IHttpProxy } from "../lib/interfaces/IHttpProxy";
 import { IOpenID4VCIClient } from "../lib/interfaces/IOpenID4VCIClient";
@@ -125,7 +125,7 @@ export const ContainerContextProvider = ({ children }) => {
 							|| credentialConfigurationSupportedObj?.display?.[0]?.description
 							|| "Credential";
 
-						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL });
+						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL,claims:credentialHeader?.vctm?.claims });
 
 						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
 						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
@@ -277,7 +277,7 @@ export const ContainerContextProvider = ({ children }) => {
 		};
 
 		initialize();
-	}, [isLoggedIn, api, container, isInitialized, keystore]);
+	}, [isLoggedIn, api, container, isInitialized, keystore, isOnline, shouldUseCache]);
 
 	return (
 		<ContainerContext.Provider value={container}>
