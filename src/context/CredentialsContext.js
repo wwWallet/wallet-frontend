@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useContext } from 'react';
+import React, { createContext, useState, useCallback, useContext, useEffect } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -10,6 +10,12 @@ export const CredentialsProvider = ({ children }) => {
 	const [vcEntityList, setVcEntityList] = useState([]);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
+
+	useEffect(() => {
+		window.addEventListener('newCredential', (e) => {
+			getData(true);
+		});
+	}, []);
 
 	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
@@ -65,7 +71,7 @@ export const CredentialsProvider = ({ children }) => {
 		}, 1000);
 	}, [api, fetchVcData]);
 
-	const getData = useCallback(async () => {
+	const getData = useCallback(async (shouldPoll=false) => {
 		try {
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
@@ -73,16 +79,13 @@ export const CredentialsProvider = ({ children }) => {
 			const vcEntityList = await fetchVcData();
 			setVcEntityList(vcEntityList);
 
-			const queryParams = window.location.search;
-			const tokenSent = sessionStorage.getItem('tokenSentInSession') === 'false';
-			const shouldPoll = (queryParams.includes('code') || queryParams.includes('credential_offer')) && tokenSent;
-
 			const newCredentialsFound = previousSize < vcEntityList.length;
-			window.history.replaceState({}, '', `/`);
 			if (shouldPoll && !newCredentialsFound) {
+				window.history.replaceState({}, '', `/`);
 				console.log("No new credentials, starting polling");
 				pollForCredentials();
 			} else if (newCredentialsFound) {
+				window.history.replaceState({}, '', `/`);
 				console.log("Found new credentials, no need to poll");
 				updateVcListAndLatestCredentials(vcEntityList);
 			} else {
@@ -93,6 +96,8 @@ export const CredentialsProvider = ({ children }) => {
 		}
 	}, [api, fetchVcData, pollForCredentials]);
 
+
+	
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide }}>
 			{children}
