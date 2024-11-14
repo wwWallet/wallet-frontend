@@ -93,7 +93,7 @@ const QRScanner = ({ onClose }) => {
 
 					setDevices(filteredDevices);
 
-					filteredDevices.findIndex(devices =>
+					const backCameraIndex = filteredDevices.findIndex(devices =>
 						devices.device.deviceId === bestBackCamera.device.deviceId);
 
 					if (backCameraIndex !== -1) {
