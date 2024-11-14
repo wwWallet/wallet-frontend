@@ -32,7 +32,6 @@ const ToastDisplay = ({ id, notification }) => {
 
 const HandlerNotification = () => {
 	const [notification, setNotification] = useState({ title: '', body: '' });
-	const { getData } = useContext(CredentialsContext);
 
 	const showToast = useCallback(
 		() => toast((t) => <ToastDisplay id={t.id} notification={notification} />),
@@ -52,7 +51,6 @@ const HandlerNotification = () => {
 					title: payload?.notification?.title,
 					body: payload?.notification?.body,
 				});
-				getData();
 			})
 			.catch((err) => {
 				console.log('Failed to receive message:', err);
@@ -63,7 +61,7 @@ const HandlerNotification = () => {
 				messageListener();
 			}
 		};
-	}, [getData]);
+	}, []);
 
 	return (
 			<Toaster />
