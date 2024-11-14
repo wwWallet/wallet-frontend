@@ -11,12 +11,6 @@ export const CredentialsProvider = ({ children }) => {
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
 
-	useEffect(() => {
-		window.addEventListener('newCredential', (e) => {
-			getData(true);
-		});
-	}, []);
-
 	const fetchVcData = useCallback(async () => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
@@ -71,7 +65,7 @@ export const CredentialsProvider = ({ children }) => {
 		}, 1000);
 	}, [api, fetchVcData]);
 
-	const getData = useCallback(async (shouldPoll=false) => {
+	const getData = useCallback(async (shouldPoll = false) => {
 		try {
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
@@ -96,8 +90,12 @@ export const CredentialsProvider = ({ children }) => {
 		}
 	}, [api, fetchVcData, pollForCredentials]);
 
+	useEffect(() => {
+		window.addEventListener('newCredential', (e) => {
+			getData(true);
+		});
+	}, [getData]);
 
-	
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide }}>
 			{children}
