@@ -42,6 +42,9 @@ const storeNameMapping: { [key: string]: string } = {
 };
 
 function getMappedStoreName(storeName: string): string {
+	if (storeName.includes('well-known')) {
+		return 'externalEntities';
+	}
 	const mappedStoreName = storeNameMapping[storeName];
 	if (!mappedStoreName) {
 		throw new Error(`Store name ${storeName} does not exist in the mapping.`);

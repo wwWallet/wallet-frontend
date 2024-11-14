@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 
 export type ResetHandle = () => void;
@@ -8,20 +8,37 @@ export type ResetHandle = () => void;
  * Returns a callback that will reset the timer.
  */
 export function useResettableTimeout(action: () => void, delayMillis: number): ResetHandle {
-	const getTime = useCallback(() => new Date().getTime(), []);
-	const [startTime, setStartTime] = useState(getTime);
+	const startTimeRef = useRef<number | null>(null);
+	const timerRef = useRef<NodeJS.Timeout>();
 
-	useEffect(
+	const start = useCallback(
 		() => {
-			const timeElapsed = getTime() - startTime;
-			const clearTimeoutHandle = setTimeout(action, delayMillis - timeElapsed);
-			return () => { clearTimeout(clearTimeoutHandle); };
+			const getTime = () => new Date().getTime();
+
+			if (timerRef.current) {
+				clearTimeout(timerRef.current);
+			}
+			if (!startTimeRef.current) {
+				startTimeRef.current = getTime();
+			}
+
+			// If the timer was already started, then the action or the delay has changed.
+			// "Resume" the timer from the time already elapsed instead of starting over.
+			const timeElapsed = getTime() - startTimeRef.current;
+			timerRef.current = setTimeout(action, delayMillis - timeElapsed);
 		},
-		[action, delayMillis, getTime, startTime],
+		[action, delayMillis, startTimeRef, timerRef],
 	);
 
-	return useCallback(
-		() => { setStartTime(getTime); },
-		[getTime, setStartTime],
+	const reset = useCallback(
+		() => {
+			startTimeRef.current = null;
+			start();
+		},
+		[start, startTimeRef],
 	);
+
+	useEffect(start, [start]);
+
+	return reset;
 }

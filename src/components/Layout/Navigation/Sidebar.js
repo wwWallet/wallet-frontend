@@ -30,7 +30,7 @@ const NavItem = ({
 };
 
 const Sidebar = ({ isOpen, toggle }) => {
-	const { isOnline, updateAvailable } = useContext(StatusContext);
+	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout } = useContext(SessionContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
@@ -55,9 +55,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 	return (
 		<div
-			className={`${isOpen
-				? 'w-full flex flex-col justify-between fixed h-screen z-30 bg-primary dark:bg-primary-hover text-white p-4 xm:pb-20 overflow-y-auto'
-				: 'hidden md:flex md:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover w-auto text-white h-screen py-10 px-10 overflow-y-auto'
+			className={`${isOpen && screenType !== 'desktop'
+				? 'w-full flex flex-col justify-between fixed h-dvh z-30 bg-primary dark:bg-primary-hover text-white p-4 pb-24 md:pb-0 overflow-y-auto'
+				: 'hidden w-auto md:flex md:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover w-auto text-white h-dvh py-10 px-10 overflow-y-auto'
 
 				}`}
 		>

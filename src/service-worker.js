@@ -32,14 +32,22 @@ registerRoute(
 );
 
 registerRoute(
-	({ url }) => url.pathname.endsWith(".png"),
+	({ url }) =>
+		url.pathname.endsWith(".png") ||
+		url.pathname.endsWith(".jpg") ||
+		url.pathname.endsWith(".jpeg") ||
+		url.pathname.endsWith(".svg") ||
+		url.pathname.endsWith(".webp"),
 	new StaleWhileRevalidate({
 		cacheName: "images",
 		plugins: [
-			new ExpirationPlugin({ maxEntries: 50 }),
+			new ExpirationPlugin({
+				maxEntries: 200,
+			}),
 		],
 	})
 );
+
 
 self.addEventListener('install', (event) => {
 	self.skipWaiting();

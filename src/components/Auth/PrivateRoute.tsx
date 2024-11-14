@@ -242,6 +242,12 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	};
 
 	if (!isLoggedIn) {
+		const freshLogin = sessionStorage.getItem('freshLogin');
+		if (freshLogin) {
+			sessionStorage.removeItem('freshLogin');
+			window.history.replaceState(null, '', '/');
+			return <Navigate to="/login" replace />;
+		}
 		if (state && userExistsInCache(state)) {
 			return <Navigate to="/login-state" state={{ from: location }} replace />;
 		} else {

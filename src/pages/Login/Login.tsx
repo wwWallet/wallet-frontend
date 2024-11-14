@@ -659,37 +659,6 @@ const Auth = () => {
 				}}
 			/>
 		}>
-
-			<div className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-				<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-				<Trans
-					i18nKey="loginSignup.learnMoreAboutPrfCompatibilityLaunchpadAndScenarios"
-					components={{
-						docLinkPrf: <a
-							href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-							className="font-medium text-primary dark:text-primary-light hover:underline"
-							aria-label={t('loginSignup.learnMoreAboutPrfCompatibilityAriaLabel')}
-						/>,
-						docLinkLaunchpad: <a
-							href="https://launchpad.wwwallet.org" target='blank_'
-							className="font-medium text-primary dark:text-primary-light hover:underline"
-							aria-label={t('loginSignup.learnMoreAboutLaunchpadAriaLabel')}
-						/>,
-						docLinkScenarios: <a
-							href="https://wwwallet.github.io/wallet-docs/docs/showcase/sample-scenarios" target='blank_'
-							className="font-medium text-primary dark:text-primary-light hover:underline"
-							aria-label={t('loginSignup.learnMoreAboutScenariosAriaLabel')}
-						/>
-					}}
-				/>
-				<div className='mt-1'>
-					<FaInfoCircle className="text-md inline-block text-gray-500 mr-2" />
-					<Trans
-						i18nKey="loginSignup.infoAboutTimeAndLocation"
-					/>
-				</div>
-			</div>
-
 			<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
 				<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}

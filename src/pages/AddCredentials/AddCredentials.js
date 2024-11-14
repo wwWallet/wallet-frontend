@@ -24,11 +24,11 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.getExternalEntity('/issuer/all');
+				const response = await api.getExternalEntity('/issuer/all', undefined, true);
 				let fetchedIssuers = response.data || [];
 				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
 					try {
-						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
+						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline,issuer.credentialIssuerIdentifier,true)).metadata;
 						return {
 							...issuer,
 							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
@@ -52,7 +52,7 @@ const Issuers = () => {
 		if (container) {
 			fetchIssuers();
 		}
-	}, [api, container]);
+	}, [api, container, isOnline]);
 
 	const handleIssuerClick = async (credentialIssuerIdentifier) => {
 		const clickedIssuer = issuers.find((issuer) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier);

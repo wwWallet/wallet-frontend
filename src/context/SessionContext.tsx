@@ -19,7 +19,7 @@ const SessionContext: React.Context<SessionContextValue> = createContext({
 	isLoggedIn: false,
 	isStandAlone: false,
 	keystore: undefined,
-	logout: async () => {},
+	logout: async () => { },
 });
 
 export const SessionContextProvider = ({ children }) => {
@@ -35,8 +35,7 @@ export const SessionContextProvider = ({ children }) => {
 		logout: async () => {
 
 			// Clear URL parameters
-			window.history.replaceState(null, '', '/');
-
+			sessionStorage.setItem('freshLogin', 'true');
 			api.clearSession();
 			await keystore.close();
 

@@ -9,10 +9,10 @@ import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 import QrScanner from 'qr-scanner';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
+import { H1 } from '../Shared/Heading';
 
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
-	const [bestCameraResolutions, setBestCameraResolutions] = useState({ front: null, back: null });
 	const webcamRef = useRef(null);
 	const [cameraReady, setCameraReady] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -65,16 +65,19 @@ const QRScanner = ({ onClose }) => {
 						const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: device.deviceId } });
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
-						const isBackCamera = device.label.toLowerCase().includes('back');
+						// const isBackCamera = device.label.toLowerCase().includes('back');
+						const isBackCamera = capabilities.facingMode.includes('environment');
+
 						const resolution = {
 							width: capabilities.width?.max || 0,
-							height: capabilities.height?.max || 0
+							height: capabilities.height?.max || 0,
+							idealHeight: Math.min(capabilities.height?.max, capabilities.width.max, 1080)
 						};
 
 						if (isBackCamera && (!bestBackCamera || bestBackCamera.resolution.width * bestBackCamera.resolution.height < resolution.width * resolution.height)) {
-							bestBackCamera = { device, resolution };
+							bestBackCamera = { device, resolution: resolution, facingMode: 'environment' };
 						} else if (!isBackCamera && (!bestFrontCamera || bestFrontCamera.resolution.width * bestFrontCamera.resolution.height < resolution.width * resolution.height)) {
-							bestFrontCamera = { device, resolution };
+							bestFrontCamera = { device, resolution: resolution, facingMode: 'user' };
 						}
 
 						track.stop();
@@ -82,21 +85,16 @@ const QRScanner = ({ onClose }) => {
 
 					const filteredDevices = [];
 					if (bestFrontCamera) {
-						filteredDevices.push(bestFrontCamera.device);
+						filteredDevices.push(bestFrontCamera);
 					}
 					if (bestBackCamera) {
-						filteredDevices.push(bestBackCamera.device);
+						filteredDevices.push(bestBackCamera);
 					}
-
-					setBestCameraResolutions({
-						front: bestFrontCamera ? bestFrontCamera.resolution : null,
-						back: bestBackCamera ? bestBackCamera.resolution : null,
-					});
 
 					setDevices(filteredDevices);
 
-					const backCameraIndex = filteredDevices.findIndex(device =>
-						device.label.toLowerCase().includes('back'));
+					const backCameraIndex = filteredDevices.findIndex(devices =>
+						devices.device.deviceId === bestBackCamera.device.deviceId);
 
 					if (backCameraIndex !== -1) {
 						setCurrentDeviceIndex(backCameraIndex);
@@ -146,7 +144,7 @@ const QRScanner = ({ onClose }) => {
 					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
 					window.location.href = cvUrl;
 				}, 1000);
-			}, { highlightScanRegion: true, highlightCodeOutline: true });
+			}, { highlightScanRegion: true, highlightCodeOutline: false });
 
 			qrScanner.start().catch(err => {
 				console.error('Error starting QR Scanner: ', err);
@@ -160,26 +158,8 @@ const QRScanner = ({ onClose }) => {
 		}
 	};
 
-	const currentCameraType = devices[currentDeviceIndex]?.label.toLowerCase().includes('back') ? 'back' : 'front';
-	const maxResolution = bestCameraResolutions[currentCameraType];
-
-	let idealHeight;
-	if (maxResolution) {
-		console.log(maxResolution);
-
-		// Determine the smaller dimension to be the basis for square dimensions
-		let smallerDimension = Math.min(maxResolution.width, maxResolution.height);
-
-		// Cap the dimension at 1920 if it exceeds this value
-		if (smallerDimension > 1920) {
-			idealHeight = 1080;
-		} else {
-			idealHeight = maxResolution.height;
-		}
-	}
-
 	return (
-		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || !cameraReady} fullScreen={screenType === 'mobile'}>
+		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || !cameraReady} fullScreen={screenType !== 'desktop'}>
 			{hasCameraPermission === false ? (
 				<>
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
@@ -206,19 +186,20 @@ const QRScanner = ({ onClose }) => {
 			) : cameraReady && !loading && (
 				<>
 					<div>
-						{screenType === 'mobile' && (
-							<button onClick={handleClose} className="mr-2 mb-2" aria-label="Go back to the previous page">
-								<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
-							</button>
-						)}
-						<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-								<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
-								{t('qrCodeScanner.title')}
-							</h2>
+						{screenType === 'mobile' ? (
+							<div className='flex'>
+								<button onClick={handleClose} className="mr-2 mb-2" aria-label="Go back to the previous page">
+									<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+								</button>
+								<H1 heading={t('qrCodeScanner.title')} hr={false} />
+							</div>
+						) : (
+							<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 
-							{screenType !== 'mobile' && (
-
+								<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+									<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
+									{t('qrCodeScanner.title')}
+								</h2>
 								<button
 									type="button"
 									className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -228,9 +209,10 @@ const QRScanner = ({ onClose }) => {
 										<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
 									</svg>
 								</button>
-							)}
-						</div>
-						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+								<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+							</div>
+						)}
+
 
 						{screenType !== 'mobile' && (
 							<p className="italic pd-2 text-gray-700 dark:text-gray-300">
@@ -239,15 +221,15 @@ const QRScanner = ({ onClose }) => {
 						)}
 					</div>
 					<div className="webcam-container mt-4 relative flex items-center justify-center">
-						<div className="relative w-full max-h-[50vh] flex justify-center items-center overflow-hidden">
+						<div className="relative w-full max-h-[60vh] flex justify-center items-center overflow-hidden">
 							<Webcam
-								key={devices[currentDeviceIndex]?.deviceId}
+								key={devices[currentDeviceIndex]?.device.deviceId}
 								audio={false}
 								ref={webcamRef}
 								screenshotFormat="image/jpeg"
 								videoConstraints={{
-									deviceId: devices[currentDeviceIndex]?.deviceId,
-									height: { ideal: idealHeight, max: maxResolution.height }
+									deviceId: devices[currentDeviceIndex]?.device.deviceId,
+									height: { ideal: devices[currentDeviceIndex]?.resolution.idealHeight, max: devices[currentDeviceIndex]?.resolution.height }
 								}}
 								style={{
 									transform: `scale(${zoomLevel})`,
