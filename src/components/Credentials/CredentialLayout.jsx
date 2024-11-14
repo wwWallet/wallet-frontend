@@ -20,7 +20,7 @@ import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
 
-const CredentialLayout = ({ children }) => {
+const CredentialLayout = ({ children, title = null }) => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
 	const container = useContext(ContainerContext);
@@ -75,9 +75,12 @@ const CredentialLayout = ({ children }) => {
 					)}
 				</H1>
 			) : (
-				<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
-					<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
-				</button>
+				<div className='flex'>
+					<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
+						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+					</button>
+					{title &&<H1 heading={title} hr={false} />}
+				</div>
 			)}
 			<PageDescription description={t('pageCredentials.details.description')} />
 

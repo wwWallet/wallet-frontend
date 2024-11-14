@@ -9,8 +9,8 @@ import { EffectCards } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-cards';
 
-const Slider = ({ items, renderSlideContent, onSlideChange }) => {
-	const [currentSlide, setCurrentSlide] = useState(1);
+const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) => {
+	const [currentSlide, setCurrentSlide] = useState(initialSlide);
 	const sliderRef = useRef(null);
 	const { t } = useTranslation();
 
@@ -33,6 +33,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange }) => {
 				grabCursor={true}
 				modules={[EffectCards]}
 				slidesPerView={1}
+				initialSlide={currentSlide -1}
 				onSlideChange={(swiper) => {
 					setCurrentSlide(swiper.activeIndex + 1);
 					if (onSlideChange) onSlideChange(swiper.activeIndex);

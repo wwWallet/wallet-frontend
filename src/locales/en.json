@@ -52,11 +52,6 @@
 		"forgetCachedUserAriaLabel": "Forget Cached User {{name}}",
 		"forgetCachedUserTitle": "Click to Forget Cached User",
 		"incorrectCredentialsError": "Incorrect username or password",
-		"infoAboutTimeAndLocation": "Make sure that your date/time settings and timezone are correctly set and accurate.",
-		"learnMoreAboutPrfCompatibilityLaunchpadAndScenarios": "Learn about <docLinkPrf>PRF Compatibility regarding browser/OS support</docLinkPrf> and discover $t(common.walletName) via our <docLinkLaunchpad>Launchpad</docLinkLaunchpad> and <docLinkScenarios>Sample Scenarios</docLinkScenarios> ",
-		"learnMoreAboutPrfCompatibilityAriaLabel": "Learn more about PRF Compatibility regarding browser/OS support",
-		"learnMoreAboutLaunchpadAriaLabel": "Discover our Launchpad",
-		"learnMoreAboutScenariosAriaLabel": "Learn more about sample scenarios",
 		"login": "Login",
 		"loginCache": "Choose your account",
 		"loginAsUser": "Log in as {{name}}",
@@ -134,6 +129,9 @@
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
+		"credentialTitle": "Credential",
+		"datasetTitle": "Dataset",
+		"presentationsTitle": "Presentations",
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials",
 		"details": {
@@ -152,7 +150,10 @@
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No history presentations found",
+		"presentationDetails": {
+			"title": "Presentation Details"
+		},
+		"noFound": "No presentations found",
 		"popupTitle": "Presented Credentials"
 	},
 	"pageSendCredentials": {
@@ -205,7 +206,7 @@
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
 			"options": {
-				"none": "none",
+				"none": "Always Authenticate",
 				"hour": "1 hour",
 				"day": "1 day",
 				"week": "1 week",

@@ -3,6 +3,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 import { MdNotifications } from "react-icons/md";
+import { IoIosArrowDown } from "react-icons/io";
 
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
@@ -733,6 +734,7 @@ const Settings = () => {
 				const response = await api.get('/user/session/account-info');
 				console.log(response.data);
 				setUserData(response.data);
+				dispatchEvent(new CustomEvent("settingsChanged"));
 			} catch (error) {
 				console.error('Failed to fetch data', error);
 			}
@@ -877,20 +879,24 @@ const Settings = () => {
 							</p>
 							<div className='flex gap-2 items-center'>
 								<div className="relative inline-block min-w-36 text-gray-700">
-									<select
-										className={`w-full h-10 pl-3 pr-6 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36`}
-										defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
-										onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
-										disabled={!isOnline}
-										title={!isOnline ? t("common.offlineTitle") : undefined}
-
-									>
-										<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
-										<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
-										<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
-										<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
-										<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
-									</select>
+									<div className="relative w-full h-10">
+										<select
+											className={`w-full h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36 appearance-none`}
+											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
+											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
+											disabled={!isOnline}
+											title={!isOnline ? t("common.offlineTitle") : undefined}
+										>
+											<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
+											<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
+											<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
+											<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
+											<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
+										</select>
+										<span className="absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none">
+											<IoIosArrowDown />
+										</span>
+									</div>
 								</div>
 								{successMessage && (
 									<div className="text-md text-green-500">

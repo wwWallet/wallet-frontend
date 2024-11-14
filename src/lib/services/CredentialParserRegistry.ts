@@ -10,7 +10,7 @@ export class CredentialParserRegistry implements ICredentialParserRegistry {
 	/**
 	 * optimize parsing time by caching alread parsed objects because parse() can be called multiple times in a single view
 	 */
-	private parsedObjectsCache = new Map<string, { credentialFriendlyName: string; credentialImage: { credentialImageURL: string; } | { credentialImageSvgTemplateURL: string; }; beautifiedForm: any; }>();
+	private parsedObjectsCache = new Map<string, { credentialFriendlyName: string; credentialImage: { credentialImageURL: string; }; beautifiedForm: any; }>();
 
 	addParser(parser: ICredentialParser): void {
 		this.parserList.push(parser);

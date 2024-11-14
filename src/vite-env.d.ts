@@ -17,6 +17,7 @@ interface ImportMetaEnv {
 	readonly VITE_DID_KEY_VERSION: string;
 	readonly VITE_APP_VERSION: string;
 	readonly VITE_DISPLAY_CONSOLE: string;
+	readonly VITE_INACTIVE_LOGOUT_SECONDS: string;
 	readonly VITE_WEBAUTHN_RPID: string;
 	readonly VITE_OPENID4VCI_REDIRECT_URI: string;
 	readonly VITE_OPENID4VP_SAN_DNS_CHECK: string;

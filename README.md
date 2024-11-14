@@ -63,10 +63,11 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
 
   - HOST: The IP address where your app will be running (default is '0.0.0.0').
   - PORT: The port on which your app will run (default is 3000).
-  - VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
   - VITE_WS_URL: The URL of the websocket service.
   - VITE_WALLET_BACKEND_URL: The URL of your backend service.
   - VITE_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
+  - VITE_FIREBASE_ENABLED: Enable of disable Firebase (`true` or `false`) for push notifications. If left empty, it will be handled as `false`.
+  - VITE_FIREBASE_VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
   - VITE_FIREBASE_API_KEY: Your API key for Firebase.
   - VITE_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
   - VITE_FIREBASE_PROJECT_ID: Your Firebase project ID.
@@ -78,6 +79,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
   - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
   - VITE_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri
+  - VITE_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
 
 4. Install dependencies:
    ```bash

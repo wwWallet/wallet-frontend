@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, useMemo, createContext } from "react";
+import { useEffect, useState, useContext, createContext } from "react";
 import { DIContainer } from "../lib/DIContainer";
 import { IHttpProxy } from "../lib/interfaces/IHttpProxy";
 import { IOpenID4VCIClient } from "../lib/interfaces/IOpenID4VCIClient";
@@ -21,8 +21,10 @@ import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
 import { fromBase64 } from "../util";
-import defaulCredentialImage from "../assets/images/cred.png";
-import { UserData } from "../api/types";
+import defaultCredentialImage from "../assets/images/cred.png";
+import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
+import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
+import StatusContext from "./StatusContext";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -43,25 +45,42 @@ const ContainerContext: React.Context<ContainerContextValue> = createContext({
 const defaultLocale = 'en-US';
 
 export const ContainerContextProvider = ({ children }) => {
-
+	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, api, keystore } = useContext(SessionContext);
 
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
+	const [shouldUseCache, setShouldUseCache] = useState(true)
+
+	useEffect(() => {
+		window.addEventListener('generatedProof', (e) => {
+			setIsInitialized(false);
+		});
+
+		window.addEventListener('settingsChanged', (e) => {
+			setIsInitialized(false);
+		});
+
+		window.addEventListener('login', (e) => {
+			setIsInitialized(false);
+			setShouldUseCache(false)
+		});
+
+	}, []);
 
 	useEffect(() => {
 		const initialize = async () => {
-			if (isInitialized || !isLoggedIn || !api || container !== null) return;
+			if (isInitialized || !isLoggedIn || !api) return;
 
 			console.log('Initializing container...');
 			setIsInitialized(true);
 
 			try {
 				const cont = new DIContainer();
-				const issuerResponse = await api.getExternalEntity('/issuer/all')
+				const issuerResponse = await api.getExternalEntity('/issuer/all', undefined, true);
 				const trustedCredentialIssuers = issuerResponse.data;
 
-				const userResponse = await api.getExternalEntity('/user/session/account-info')
+				const userResponse = await api.get('/user/session/account-info')
 				const userData = userResponse.data;
 
 				cont.register<IHttpProxy>('HttpProxy', HttpProxy);
@@ -85,7 +104,7 @@ export const ContainerContextProvider = ({ children }) => {
 							return { error: "Failed to parse sdjwt" };
 						}
 
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(result.beautifiedForm.iss);
+						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, result.beautifiedForm.iss, shouldUseCache);
 						const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
 							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
 						[0];
@@ -98,47 +117,59 @@ export const ContainerContextProvider = ({ children }) => {
 							credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
 							: null;
 
-						let credentialFriendlyName = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
-							credentialHeader.vctm.display[0][defaultLocale]?.name
-							: null;
+						let credentialFriendlyName = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.name
+							|| credentialConfigurationSupportedObj?.display?.[0]?.name
+							|| "Credential";
 
-						// get credential friendly name from openid credential issuer metadata
-						if (!credentialFriendlyName && credentialConfigurationSupportedObj && credentialConfigurationSupportedObj?.display && credentialConfigurationSupportedObj?.display.length > 0) {
-							credentialFriendlyName = credentialConfigurationSupportedObj?.display[0]?.name;
-						}
+						let credentialDescription = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.description
+							|| credentialConfigurationSupportedObj?.display?.[0]?.description
+							|| "Credential";
 
-						if (!credentialFriendlyName) { // fallback value
-							credentialFriendlyName = "Credential";
-						}
+						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL,claims:credentialHeader?.vctm?.claims });
 
-						if (credentialImageSvgTemplateURL) {
+						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
+						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
+
+						if (svgContent) {
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageSvgTemplateURL: credentialImageSvgTemplateURL
+									credentialImageURL: svgContent
 								},
 								credentialFriendlyName,
 							}
 						}
-						else if (credentialHeader?.vctm || credentialConfigurationSupportedObj) {
-							let credentialImageURL = credentialHeader?.vctm?.display && credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] ?
-								credentialHeader.vctm.display[0][defaultLocale]?.rendering?.simple?.logo?.uri
-								: null;
+						else if (simple) {
+							// Simple style
+							let logoURL = simple?.logo?.uri || null;
+							let logoAltText = simple?.logo?.alt_text || 'Credential logo';
+							let backgroundColor = simple?.background_color || '#808080';
+							let textColor = simple?.text_color || '#000000';
 
-							if (!credentialImageURL) { // provide fallback method through the OpenID credential issuer metadata
-								credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.background_image?.uri : null;
-							}
-							if (!credentialImageURL) {
-								credentialImageURL = credentialConfigurationSupportedObj?.display?.length > 0 ? credentialConfigurationSupportedObj.display[0]?.logo?.url : null;
-							}
-							if (!credentialImageURL) {
-								credentialImageURL = defaulCredentialImage;
-							}
-
+							const svgCustomContent = await renderCustomSvgTemplate({ beautifiedForm: result.beautifiedForm, name: credentialFriendlyName, description: credentialDescription, logoURL, logoAltText, backgroundColor, textColor, backgroundImageURL: null });
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {
-									credentialImageURL: credentialImageURL,
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
+								},
+								credentialFriendlyName,
+							}
+						}
+						else if (issuerMetadata) {
+							// Issuer Metadata style
+							let name = issuerMetadata?.name || 'Credential';
+							let description = issuerMetadata?.description || '';
+							let logoURL = issuerMetadata?.logo?.uri || null;
+							let logoAltText = issuerMetadata?.logo?.alt_text || 'Credential logo';
+							let backgroundColor = issuerMetadata?.background_color || '#808080';
+							let textColor = issuerMetadata?.text_color || '#000000';
+							let backgroundImageURL = issuerMetadata?.background_image?.uri || null;
+
+							const svgCustomContent = await renderCustomSvgTemplate({ beautifiedForm: result.beautifiedForm, name, description, logoURL, logoAltText, backgroundColor, textColor, backgroundImageURL });
+							return {
+								beautifiedForm: result.beautifiedForm,
+								credentialImage: {
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
 								},
 								credentialFriendlyName,
 							}
@@ -147,7 +178,7 @@ export const ContainerContextProvider = ({ children }) => {
 						return {
 							beautifiedForm: result.beautifiedForm,
 							credentialImage: {
-								credentialImageURL: defaulCredentialImage,
+								credentialImageURL: defaultCredentialImage,
 							},
 							credentialFriendlyName,
 						}
@@ -184,7 +215,7 @@ export const ContainerContextProvider = ({ children }) => {
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository'),
 					async (cNonce: string, audience: string, clientId: string): Promise<{ jws: string }> => {
-						const [{ proof_jwt }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProof(cNonce, audience, clientId);
+						const [{ proof_jwts: [proof_jwt] }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs([{ nonce: cNonce, audience, issuer: clientId }]);
 						await api.updatePrivateData(newPrivateData);
 						await keystoreCommit();
 						return { jws: proof_jwt };
@@ -205,8 +236,8 @@ export const ContainerContextProvider = ({ children }) => {
 
 				let clientConfigs: ClientConfig[] = await Promise.all(trustedCredentialIssuers.map(async (credentialIssuer) => {
 					const [authorizationServerMetadata, credentialIssuerMetadata] = await Promise.all([
-						openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer.credentialIssuerIdentifier).catch((err) => null),
-						openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer.credentialIssuerIdentifier).catch((err) => null),
+						openID4VCIHelper.getAuthorizationServerMetadata(isOnline, credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
+						openID4VCIHelper.getCredentialIssuerMetadata(isOnline, credentialIssuer.credentialIssuerIdentifier, shouldUseCache).catch((err) => null),
 					]);
 					if (!authorizationServerMetadata || !credentialIssuerMetadata) {
 						console.error("Either authorizationServerMetadata or credentialIssuerMetadata could not be loaded");
@@ -221,7 +252,6 @@ export const ContainerContextProvider = ({ children }) => {
 				}));
 
 				clientConfigs = clientConfigs.filter((conf) => conf != null);
-
 
 				const openID4VCIClientFactory = cont.resolve<OpenID4VCIClientFactory>('OpenID4VCIClientFactory');
 
@@ -238,6 +268,8 @@ export const ContainerContextProvider = ({ children }) => {
 					credentialParserRegistry,
 				});
 
+				setShouldUseCache(true);
+
 			} catch (error) {
 				console.error("Initialization failed:", error);
 				setIsInitialized(false);
@@ -245,7 +277,7 @@ export const ContainerContextProvider = ({ children }) => {
 		};
 
 		initialize();
-	}, [isLoggedIn, api, container, isInitialized]);
+	}, [isLoggedIn, api, container, isInitialized, keystore, isOnline, shouldUseCache]);
 
 	return (
 		<ContainerContext.Provider value={container}>
