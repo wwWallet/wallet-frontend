@@ -51,7 +51,7 @@ export const AuthorizationRequestHandler = ({
 	const userHandleB64u = keystore.getUserHandleB64u();
 
 	if (!userHandleB64u) {
-		throw new Error("User handle could not be extracted from keystore");
+		return;
 	}
 
 	const handleAuthorizationRequest = async () => {

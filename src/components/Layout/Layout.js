@@ -9,7 +9,7 @@ const Layout = ({ children }) => {
 	const toggleSidebar = () => setIsOpen(!isOpen);
 
 	return (
-		<div className="flex justify-end min-h-screen flex-col md:flex-row bg-gray-100 dark:bg-gray-900">
+		<div className="flex justify-end min-h-dvh flex-col md:flex-row bg-gray-100 dark:bg-gray-900">
 			<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
 			{/* Header */}

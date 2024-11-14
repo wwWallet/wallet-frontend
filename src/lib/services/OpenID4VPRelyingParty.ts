@@ -109,7 +109,6 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			}
 		}
 
-		ResponseModeSchema.parse(response_mode);
 
 		const lastUsedNonce = sessionStorage.getItem('last_used_nonce');
 		if (lastUsedNonce && nonce === lastUsedNonce) {
@@ -121,6 +120,11 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		}
 		if (presentation_definition.input_descriptors.length > 1) {
 			return { err: HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED };
+		}
+
+		const { error } = ResponseModeSchema.safeParse(response_mode);
+		if (error) {
+			return { err: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
 		}
 
 		const vcList = await this.getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials);

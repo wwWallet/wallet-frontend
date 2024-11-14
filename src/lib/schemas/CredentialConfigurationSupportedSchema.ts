@@ -11,13 +11,16 @@ const commonSchema = z.object({
 	display: z.array(z.object({
 		name: z.string(),
 		description: z.string().optional(),
+		background_color: z.string().optional(),
+		text_color: z.string().optional(),
+		alt_text: z.string().optional(),
 		background_image: z.object({
 			uri: z.string()
 		}).optional(),
 		locale: z.string().optional(),
 		logo: z.object({
-			url: z.string(),
-			alt_text: z.string(),
+			uri: z.string(),
+			alt_text: z.string().optional(),
 		}).optional(),
 	})).optional(),
 	scope: z.string(),
