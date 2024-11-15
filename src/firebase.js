@@ -39,7 +39,6 @@ const requestForToken = async () => {
 		try {
 			const currentToken = await getToken(messaging, { vapidKey: config.FIREBASE_VAPIDKEY });
 			if (currentToken) {
-				console.log('Current token for client:', currentToken);
 				return currentToken;
 			} else {
 				console.log('No registration token available. Request permission to generate one.');
@@ -96,7 +95,6 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 export const fetchToken = async () => {
 	if (await isEnabledAndIsSupported() && messaging) {
 		const token = await requestForToken();
-		console.log('token:', token);
 		if (token) {
 			return token;
 		} else {
