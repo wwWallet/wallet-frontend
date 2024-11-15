@@ -198,9 +198,9 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		if (isOnline) {
+		if (isOnline === true) {
 			sendFcmTokenToBackend();
-		} else {
+		} else if (isOnline === false) {
 			setTokenSentInSession(false);
 		}
 	}, [
