@@ -1,18 +1,66 @@
-import axios, { AxiosResponse } from 'axios';
+import { AxiosHeaders, AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
-import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import { fromBase64Url, toBase64Url } from '../util';
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
-import { UserData, UserId, Verifier } from './types';
 import { useEffect } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
-import { loginWebAuthnBeginOffline } from './LocalAuthentication';
+import ApiClient from '../lib/http/api-client';
+import LocalApiClient from '../lib/http/local-api-client';
 
-const walletBackendUrl = config.BACKEND_URL;
+export type Verifier = {
+	id: number;
+	name: string;
+	url: string;
+}
 
+// Duplicated in wallet-backend-server
+export class UserId {
+	public readonly id: string;
+	private constructor(id: string) {
+		this.id = id;
+	}
+
+	public toString(): string {
+		return `UserId(this.id)`;
+	}
+
+	static fromId(id: string): UserId {
+		return new UserId(id);
+	}
+
+	static fromUserHandle(userHandle: BufferSource): UserId {
+		return new UserId(new TextDecoder().decode(userHandle));
+	}
+
+	public asUserHandle(): Uint8Array {
+		return new TextEncoder().encode(this.id);
+	}
+}
+
+export type UserData = {
+	uuid: string;
+	displayName: string;
+	webauthnCredentials: WebauthnCredential[];
+	privateData: Uint8Array;
+	settings: UserSettings;
+}
+
+export type WebauthnCredential = {
+	createTime: string,
+	credentialId: Uint8Array,
+	id: string,
+	lastUseTime: string,
+	nickname?: string,
+	prfCapable: boolean,
+}
+
+export type UserSettings = {
+	openidRefreshTokenMaxAgeInSeconds: number;
+}
 
 type SessionState = {
 	uuid: string;
@@ -39,6 +87,19 @@ export const CLEAR_SESSION_EVENT = 'clearSession';
 export type ApiEventType = typeof CLEAR_SESSION_EVENT;
 const events: EventTarget = new EventTarget();
 
+const loginWebAuthnBeginOffline = (): { getOptions: { publicKey: PublicKeyCredentialRequestOptions } } => {
+	return {
+		getOptions: {
+			publicKey: {
+				rpId: config.WEBAUTHN_RPID,
+				// Throwaway challenge, we won't actually verify this for offline login
+				challenge: window.crypto.getRandomValues(new Uint8Array(32)),
+				allowCredentials: [],
+				userVerification: "required",
+			},
+		},
+	};
+}
 
 export interface BackendApi {
 	del(path: string): Promise<AxiosResponse>,
@@ -98,11 +159,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		return appToken;
 	}
 
-	function transformResponse(data: any): any {
-		if (!data) return data;
-		return jsonParseTaggedBinary(data);
-	}
-
 	function updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse {
 		const newValue = resp.headers['x-private-data-etag']
 		if (newValue) {
@@ -111,54 +167,53 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		return resp;
 	}
 
-	function buildGetHeaders(headers: { appToken?: string }): { [header: string]: string } {
+	function buildGetHeaders(headers: { appToken?: string }): AxiosHeaders {
 		const authz = headers?.appToken || appToken;
-		return {
-			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
-		};
+		return authz
+			? new AxiosHeaders({ Authorization: `Bearer ${authz}` })
+			: new AxiosHeaders();
 	}
 
-	function buildMutationHeaders(headers: { appToken?: string }): { [header: string]: string } {
-		return {
-			...buildGetHeaders(headers),
-			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
-		};
-	}
+	function buildMutationHeaders(headers: { appToken?: string }): AxiosHeaders {
+		const axiosHeaders = buildGetHeaders(headers);
 
-	async function getWithLocalDbKey(path: string, dbKey: string, options?: { appToken?: string }, forceIndexDB: boolean = false): Promise<AxiosResponse> {
-		// console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
-
-		// Offline case
-		if (!isOnline) {
-			return {
-				data: await getItem(path, dbKey),
-			} as AxiosResponse;
+		if (privateDataEtag) {
+			axiosHeaders.set('X-Private-Data-If-Match', privateDataEtag);
 		}
-
-		if (forceIndexDB) {
-			const data = await getItem(path, dbKey);
-			if (data) {
-				return { data } as AxiosResponse;
-			}
-		}
-		// Online case
-		const respBackend = await axios.get(
-			`${walletBackendUrl}${path}`,
-			{
-				headers: buildGetHeaders({ appToken: options?.appToken }),
-				transformResponse,
-			},
-		);
-		await addItem(path, dbKey, respBackend.data);
-		return respBackend;
+		
+		return axiosHeaders;
 	}
 
 	async function get(path: string, userUuid?: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-		return getWithLocalDbKey(path, sessionState?.uuid || userUuid, options);
+		const dbKey = sessionState?.uuid || userUuid;
+
+		if (!isOnline) {
+			return await LocalApiClient.get(path, dbKey);
+		}
+
+		const response = await ApiClient.get(path, buildGetHeaders(options));
+
+		LocalApiClient.post(path, dbKey, response.data);
+
+		return response;
 	}
 
 	async function getExternalEntity(path: string, options?: { appToken?: string }, force: boolean = false): Promise<AxiosResponse> {
-		return getWithLocalDbKey(path, path, options, force);
+		let localResponse;
+
+		if (!isOnline || force) {
+			localResponse = await LocalApiClient.get(path, path);
+		}
+
+		if (!isOnline || (force && localResponse)) {
+			return { data: localResponse } as AxiosResponse;
+		}
+
+		const response = await ApiClient.get(path, buildGetHeaders(options));
+
+		await LocalApiClient.post(path, path, response.data);
+		
+		return response;
 	}
 
 	async function fetchInitialData(appToken: string, userUuid: string): Promise<void> {
@@ -175,41 +230,14 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	}
 
 	async function post(path: string, body: object, options?: { appToken?: string }): Promise<AxiosResponse> {
-		try {
-			return await axios.post(
-				`${walletBackendUrl}${path}`,
-				body,
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						...buildMutationHeaders({ appToken: options?.appToken }),
-					},
-					transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
-					transformResponse,
-				},
-			);
-		} catch (e) {
-			if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
-				return Promise.reject({ cause: 'x-private-data-etag' });
-			}
-			throw e;
-		}
+		const headers = buildMutationHeaders(options);
+		headers.set('Content-Type', 'application/json');
+
+		return await ApiClient.post(path, body, headers);
 	}
 
 	async function del(path: string, options?: { appToken?: string }): Promise<AxiosResponse> {
-		try {
-			return await axios.delete(
-				`${walletBackendUrl}${path}`,
-				{
-					headers: buildMutationHeaders({ appToken: options?.appToken }),
-					transformResponse,
-				});
-		} catch (e) {
-			if (e?.response?.status === 412 && (e?.response?.headers ?? {})['x-private-data-etag']) {
-				return Promise.reject({ cause: 'x-private-data-etag' });
-			}
-			throw e;
-		}
+		return await ApiClient.del(path, buildMutationHeaders(options));
 	}
 
 	function updateShowWelcome(showWelcome: boolean): void {

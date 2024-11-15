@@ -6,12 +6,12 @@ import { IOpenID4VCIClientStateRepository } from '../interfaces/IOpenID4VCIClien
 import { CredentialConfigurationSupported } from '../schemas/CredentialConfigurationSupportedSchema';
 import { OpenID4VCIClientState } from '../types/OpenID4VCIClientState';
 import { generateDPoP } from '../utils/dpop';
-import { CredentialOfferSchema } from '../schemas/CredentialOfferSchema';
 import { StorableCredential } from '../types/StorableCredential';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../utils/generateRandomIdentifier';
 import * as config from '../../config';
 import { VerifiableCredentialFormat } from '../schemas/vc';
+import { credentialOfferFromUrl } from './credential-offer.service';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
@@ -26,19 +26,10 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	) { }
 
 	async handleCredentialOffer(credentialOfferURL: string, userHandleB64u: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> {
-		const parsedUrl = new URL(credentialOfferURL);
-		let offer;
-		if (parsedUrl.searchParams.get("credential_offer")) {
-			offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
-		} else {
-			try {
-				let response = await this.httpProxy.get(parsedUrl.searchParams.get("credential_offer_uri"), {})
-				offer = response.data;
-			}
-			catch (err) {
-				console.error(err);
-				return;
-			}
+		const offer = await credentialOfferFromUrl(credentialOfferURL);
+
+		if (!offer) {
+			return;
 		}
 
 		if (!offer.grants.authorization_code) {
