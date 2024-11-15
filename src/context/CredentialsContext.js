@@ -69,7 +69,7 @@ export const CredentialsProvider = ({ children }) => {
 		try {
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
-			const previousSize = previousVcList.vc_list.length;
+			const previousSize = previousVcList?.vc_list.length;
 			const vcEntityList = await fetchVcData();
 			setVcEntityList(vcEntityList);
 
