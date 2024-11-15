@@ -91,9 +91,13 @@ export const CredentialsProvider = ({ children }) => {
 	}, [api, fetchVcData, pollForCredentials]);
 
 	useEffect(() => {
-		window.addEventListener('newCredential', (e) => {
+		const handleNewCredentialEvent = () => {
 			getData(true);
-		});
+		};
+		window.addEventListener('newCredential', handleNewCredentialEvent);
+		return () => {
+			window.removeEventListener('newCredential', handleNewCredentialEvent);
+		};
 	}, [getData]);
 
 	return (
