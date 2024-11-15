@@ -198,7 +198,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		if (isOnline === true) {
+		if (isOnline === true && isLoggedIn) {
 			sendFcmTokenToBackend();
 		} else if (isOnline === false) {
 			setTokenSentInSession(false);
@@ -209,6 +209,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		isPermissionGranted,
 		setTokenSentInSession,
 		tokenSentInSession,
+		isLoggedIn,
 	]);
 
 	useEffect(() => {
