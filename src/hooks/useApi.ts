@@ -180,7 +180,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		if (privateDataEtag) {
 			axiosHeaders.set('X-Private-Data-If-Match', privateDataEtag);
 		}
-		
+
 		return axiosHeaders;
 	}
 
@@ -212,7 +212,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		const response = await ApiClient.get(path, buildGetHeaders(options));
 
 		await LocalApiClient.post(path, path, response.data);
-		
+
 		return response;
 	}
 
@@ -467,7 +467,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 							return {
 								data: {
 									uuid: user.uuid,
-									appToken: "",
+									appToken: '',
 									did: user.did,
 									displayName: user.displayName,
 									privateData: user.privateData,

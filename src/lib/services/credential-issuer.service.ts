@@ -31,7 +31,7 @@ export const getIssuerConfiguration = async (
 
 		const parsedData = OpenidCredentialIssuerMetadataSchema.parse(data);
 		await LocalApiClient.post(path, path, parsedData);
-			
+
 		return { metadata: parsedData };
 	} catch (err) {
 		console.error(err);
@@ -70,7 +70,7 @@ export const getAuthorizationServerOAuthMetadata = async (
 
 		const parsedData = OpenidAuthorizationServerMetadataSchema.parse(data);
 		await LocalApiClient.post(path, path, parsedData);
-			
+
 		return { authzServeMetadata: parsedData };
 	} catch (err) {
 		console.error(err);
@@ -97,7 +97,7 @@ export const getAuthorizationServerOpenIDMetadata = async (
 
 		const parsedData = OpenidAuthorizationServerMetadataSchema.parse(data);
 		await LocalApiClient.post(path, path, parsedData);
-			
+
 		return { authzServeMetadata: parsedData };
 	} catch (err) {
 		console.error(err);
@@ -112,7 +112,7 @@ export const getDid = async (credentialIssuer: string): Promise<Did> => {
 		const { data } = await ProxyClient.get(path, {
 			'Cache-Control': 'no-cache',
 		});
-			
+
 		return data;
 	} catch (err) {
 		console.error(err);

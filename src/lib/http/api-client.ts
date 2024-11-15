@@ -1,6 +1,6 @@
-import axios, { AxiosResponse, AxiosHeaders } from "axios";
-import { BACKEND_URL } from "../../config";
-import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from "../../util";
+import axios, { AxiosResponse, AxiosHeaders } from 'axios';
+import { BACKEND_URL } from '../../config';
+import { jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../../util';
 
 export const get = async (path: string, headers?: AxiosHeaders): Promise<AxiosResponse> => {
 	return await axios.get(

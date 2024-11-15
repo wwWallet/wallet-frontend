@@ -1,4 +1,4 @@
-import { CredentialOfferSchema } from "../schemas/CredentialOfferSchema";
+import { CredentialOfferSchema } from '../schemas/CredentialOfferSchema';
 import ProxyClient from '../http/proxy-client';
 
 const PARAM_CREDENTIAL_OFFER = 'credential_offer';

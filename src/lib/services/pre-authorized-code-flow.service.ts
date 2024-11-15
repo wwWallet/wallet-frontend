@@ -1,8 +1,6 @@
-import { LocalStorageKeystore } from "../../services/LocalStorageKeystore";
-import type { ProxyResponseData } from "../http/proxy-client";
-import ProxyClient from "../http/proxy-client";
-import { VerifiableCredentialFormat } from "../schemas/vc";
-import { StorableCredential } from "../types/StorableCredential";
+import { LocalStorageKeystore } from '../../services/LocalStorageKeystore';
+import type { ProxyResponseData } from '../http/proxy-client';
+import ProxyClient from '../http/proxy-client';
 
 export const FIELD_PRE_AUTHORIZED_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:pre-authorized_code';
 export const FIELD_PRE_AUTHORIZED_CODE = 'pre-authorized_code';
@@ -56,7 +54,7 @@ export const getCredential = async (
 	jws: string,
 	format: string,
 	credentialConfiguration: object,
-): Promise<StorableCredential> => {
+): Promise<any> => {
 	const response = await ProxyClient.post(
 		credentialEndpoint,
 		{

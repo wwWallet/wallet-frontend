@@ -83,7 +83,7 @@ export const CredentialOfferHandler = ({
 				if (!trustedCredentialIssuer) {
 					throw new Error('Issuing a credential with authorization code flow only works with trusted issuers.');
 				}
-				
+
 				// Get issuer state
 				const issuer_state = grants.authorization_code?.issuer_state;
 
@@ -103,7 +103,7 @@ export const CredentialOfferHandler = ({
 			if (FIELD_PRE_AUTHORIZED_CODE_GRANT_TYPE in grants) {
 				const preAuthorizedCodeGrant = grants[FIELD_PRE_AUTHORIZED_CODE_GRANT_TYPE];
 				const preAuthorizedCode = preAuthorizedCodeGrant[FIELD_PRE_AUTHORIZED_CODE];
-				
+
 				if (preAuthorizedCodeGrant[FIELD_USER_PIN_REQUIRED]) {
 					// @todo: Prompt for PIN
 				}

@@ -1,4 +1,4 @@
-import { addItem, getItem } from "../../indexedDB";
+import { addItem, getItem } from '../../indexedDB';
 
 export const get = async (path: string, dbKey?: string): Promise<any> => {
 	return await getItem(path, dbKey);

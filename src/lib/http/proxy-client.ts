@@ -28,7 +28,7 @@ export const get = async (url: string, headers: any): Promise<ProxyResponseData>
 			},
 			signal: AbortSignal.timeout(2500),
 		});
-		
+
 		const { data } = await response.json();
 
 		return data;
