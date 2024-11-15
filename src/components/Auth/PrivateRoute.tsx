@@ -184,7 +184,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 						if (fcmToken !== null) {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
 							setTokenSentInSession(true);
-							console.log('FCM Token send:', fcmToken);
+							console.log('FCM Token success:', fcmToken);
 						} else {
 							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
 							setTokenSentInSession(false);
@@ -198,9 +198,9 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		if (isOnline === true && isLoggedIn) {
+		if (isOnline) {
 			sendFcmTokenToBackend();
-		} else if (isOnline === false) {
+		} else {
 			setTokenSentInSession(false);
 		}
 	}, [
@@ -209,7 +209,6 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		isPermissionGranted,
 		setTokenSentInSession,
 		tokenSentInSession,
-		isLoggedIn,
 	]);
 
 	useEffect(() => {
