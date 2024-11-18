@@ -27,6 +27,16 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"ConnectionStatusIcon": {
+		"status": "Connection status:",
+		"qualityLabels": {
+			"excellent": "Excellent",
+			"good": "Good",
+			"fair": "Fair",
+			"poor": "Poor",
+			"veryPoor": "Very Poor"
+		}
+	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",

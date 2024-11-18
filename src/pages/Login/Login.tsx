@@ -668,7 +668,7 @@ const Auth = () => {
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-					<ConnectionStatusIcon size={25} />
+					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
