@@ -25,6 +25,7 @@ import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 import StatusContext from "./StatusContext";
+import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -90,6 +91,14 @@ export const ContainerContextProvider = ({ children }) => {
 
 				cont.register<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository', OpenID4VCIClientStateRepository, userData.settings.openidRefreshTokenMaxAgeInSeconds);
 				cont.register<IOpenID4VCIHelper>('OpenID4VCIHelper', OpenID4VCIHelper, cont.resolve<IHttpProxy>('HttpProxy'));
+
+				cont.register<CredentialBatchHelper>('CredentialBatchHelper', CredentialBatchHelper,
+					async function updateCredential(storableCredential: StorableCredential) {
+						await api.post('/storage/vc/update', {
+							credential: storableCredential
+						});
+					}
+				)
 				const credentialParserRegistry = cont.resolve<ICredentialParserRegistry>('CredentialParserRegistry');
 
 				credentialParserRegistry.addParser({
@@ -190,6 +199,7 @@ export const ContainerContextProvider = ({ children }) => {
 					cont.resolve<IOpenID4VPRelyingPartyStateRepository>('OpenID4VPRelyingPartyStateRepository'),
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<ICredentialParserRegistry>('CredentialParserRegistry'),
+					cont.resolve<CredentialBatchHelper>('CredentialBatchHelper'),
 					async function getAllStoredVerifiableCredentials() {
 						const fetchAllCredentials = await api.get('/storage/vc');
 						return { verifiableCredentials: fetchAllCredentials.data.vc_list };
@@ -220,9 +230,9 @@ export const ContainerContextProvider = ({ children }) => {
 						await keystoreCommit();
 						return { proof_jwts };
 					},
-					async function storeCredential(c: StorableCredential) {
+					async function storeCredentials(cList: StorableCredential[]) {
 						await api.post('/storage/vc', {
-							...c
+							credentials: cList
 						});
 					},
 				);
