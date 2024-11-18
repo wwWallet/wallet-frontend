@@ -101,7 +101,7 @@ function App() {
 	useEffect(() => {
 		setUrl(window.location.href);
 		checkForUpdates();
-		updateOnlineStatus();
+		updateOnlineStatus(false);
 	}, [location])
 
 	useEffect(() => {

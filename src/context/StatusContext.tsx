@@ -12,7 +12,7 @@ interface StatusContextValue {
 	isOnline: boolean;
 	updateAvailable: boolean;
 	connectivity: Connectivity;
-	updateOnlineStatus: () => Promise<void>;
+	updateOnlineStatus: (forceCheck?: boolean) => Promise<void>;
 }
 
 const StatusContext = createContext<StatusContextValue>({
@@ -63,10 +63,26 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		Internet: null,
 		speed: 0,
 	});
+	const lastUpdateCallTime = React.useRef<number>(0);
 
-	const updateOnlineStatus = async () => {
+	const updateOnlineStatus = async (forceCheck = true) => {
 
 		const navigatorOnline = getNavigatorOnlineStatus();
+
+		console.log('updateOnlineStatus with force:', forceCheck)
+		// Get the current time
+		const now = Date.now();
+
+		// If not a forced check and last call was within the last 5 seconds, skip the update
+		if (!forceCheck && now - lastUpdateCallTime.current < 5000) {
+			console.log('Skipping updateOnlineStatus: Called too recently');
+			return;
+		}
+
+		// Update the last call time
+		lastUpdateCallTime.current = now;
+		console.log('lastUpdateCallTime', Date.now())
+
 		const internetConnection = await checkInternetConnection();
 
 		setConnectivity((prev) => {
@@ -94,12 +110,14 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	};
 
 	useEffect(() => {
-		window.addEventListener('online', updateOnlineStatus);
-		window.addEventListener('offline', updateOnlineStatus);
+		// Add event listeners for online/offline status
+		window.addEventListener('online', () => updateOnlineStatus());
+		window.addEventListener('offline', () => updateOnlineStatus());
 
+		// Cleanup event listeners on unmount
 		return () => {
-			window.removeEventListener('online', updateOnlineStatus);
-			window.removeEventListener('offline', updateOnlineStatus);
+			window.removeEventListener('online', () => updateOnlineStatus());
+			window.removeEventListener('offline', () => updateOnlineStatus());
 		};
 	}, []);
 
