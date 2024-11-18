@@ -111,6 +111,29 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		console.log('Internet connection status:', connectivity);
 	}, [isOnline, connectivity]);
 
+	// Polling logic when offline
+	useEffect(() => {
+		let pollingInterval: NodeJS.Timeout | null = null;
+		const startPolling = () => {
+			pollingInterval = setInterval(async () => {
+				console.log('Polling backend connection...');
+				updateOnlineStatus();
+			}, 7000); // Poll every 7 seconds
+		};
+
+		if (!isOnline) {
+			startPolling();
+		} else if (pollingInterval) {
+			clearInterval(pollingInterval);
+		}
+
+		return () => {
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+			}
+		};
+	}, [isOnline]);
+
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
 			const isWindowHidden = document.hidden;
