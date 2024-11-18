@@ -10,6 +10,7 @@ import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
+import CredentialsContext from '../../context/CredentialsContext';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -60,6 +61,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
+	const { vcEntityList } = useContext(CredentialsContext);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keys = useMemo(() => Object.keys(conformantCredentialsMap), [conformantCredentialsMap]);
@@ -82,9 +84,8 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 			}
 
 			try {
-				const response = await api.get('/storage/vc');
 				const vcEntities = await Promise.all(
-					response.data.vc_list.map(async vcEntity => {
+					vcEntityList.map(async vcEntity => {
 						return container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
 							if ('error' in c) {
 								return;
