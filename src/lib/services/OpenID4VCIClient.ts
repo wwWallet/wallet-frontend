@@ -21,7 +21,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
 		private generateNonceProofs: (requests: { nonce: string, audience: string, issuer: string }[]) => Promise<{ proof_jwts: string[] }>,
-		private storeCredential: (c: StorableCredential) => Promise<void>,
+		private storeCredentials: (cList: StorableCredential[]) => Promise<void>,
 		private authorizationRequestModifier: (credentialIssuerIdentifier: string, url: string, request_uri?: string, client_id?: string) => Promise<{ url: string }> = async (_credentialIssuerIdentifier: string, url: string) => ({ url }),
 	) { }
 
@@ -395,13 +395,17 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 
 		let proofsArray: string[] = [];
+		const numberOfProofs = this.config.credentialIssuerMetadata.batch_credential_issuance?.batch_size ?? 1;
 		try {
-			
-			const numberOfProofs = this.config.credentialIssuerMetadata.batch_credential_issuance?.batch_size ?? 1;
-			const generateProofsResult = await this.generateNonceProofs(new Array(numberOfProofs).map(() => 
-				({ nonce: c_nonce, issuer: this.config.clientId, audience: this.config.credentialIssuerIdentifier })
-			));
-
+			const inputs = [];
+			for (let i = 0; i < numberOfProofs; i++) {
+				inputs.push({
+					nonce: c_nonce,
+					issuer: this.config.clientId,
+					audience: this.config.credentialIssuerIdentifier
+				})
+			}
+			const generateProofsResult = await this.generateNonceProofs(inputs);
 			proofsArray = generateProofsResult.proof_jwts;
 			if (proofsArray) {
 				dispatchEvent(new CustomEvent("generatedProof"));
@@ -413,12 +417,12 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 
 		const credentialConfigurationSupported = this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId];
-		
+
 		const credentialEndpointBody = {
 			"format": this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
 		} as any;
 
-		if (this.config.credentialIssuerMetadata.batch_credential_issuance?.batch_size) {
+		if (this.config.credentialIssuerMetadata?.batch_credential_issuance?.batch_size) {
 			credentialEndpointBody.proofs = {
 				jwt: proofsArray
 			}
@@ -452,7 +456,15 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 		console.log("Credential response = ", credentialResponse)
 
-		const { credential } = credentialResponse.data;
+
+		const credentialArray = [];
+		if (numberOfProofs == 1) {
+			const { credential } = credentialResponse.data;
+			credentialArray.push(credential);
+		}
+		else {
+			credentialArray.push(...credentialResponse.data.credentials);
+		}
 		const new_c_nonce = credentialResponse.data.c_nonce;
 		const new_c_nonce_expires_in = credentialResponse.data.c_nonce_expires_in;
 
@@ -464,14 +476,21 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		await this.openID4VCIClientStateRepository.cleanupExpired(flowState.userHandleB64U);
 
-		await this.storeCredential({
-			credentialIdentifier: generateRandomIdentifier(32),
+		const identifier = generateRandomIdentifier(32);
+		const storableCredentials: StorableCredential[] = credentialArray.map((credential, index) => ({
+			credentialIdentifier: identifier,
 			credential: credential,
 			format: this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
 			credentialConfigurationId: flowState.credentialConfigurationId,
 			credentialIssuerIdentifier: this.config.credentialIssuerIdentifier,
+			sigCount: 0,
+			instanceId: index,
+		}));
+
+		this.storeCredentials(storableCredentials).then(() => {
+			dispatchEvent(new CustomEvent('newCredential'));
 		});
-		dispatchEvent(new CustomEvent('newCredential'));
+
 		return;
 
 	}
