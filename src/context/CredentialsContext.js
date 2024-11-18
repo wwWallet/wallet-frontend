@@ -15,9 +15,9 @@ export const CredentialsProvider = ({ children }) => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
-		const vcEntityList = await Promise.all(fetchedVcList.map(async vcEntity => {
+		const vcEntityList = (await Promise.all(fetchedVcList.map(async (vcEntity) => {
 			return { ...vcEntity };
-		}));
+		}))).filter((vcEntity) => vcEntity.instanceId == 0); // show only the first instance
 
 		vcEntityList.sort(reverse(compareBy(vc => vc.id)));
 
