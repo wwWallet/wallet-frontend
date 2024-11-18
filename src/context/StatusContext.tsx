@@ -97,9 +97,6 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		window.addEventListener('online', updateOnlineStatus);
 		window.addEventListener('offline', updateOnlineStatus);
 
-		// Initial check for online and backend connection status
-		updateOnlineStatus();
-
 		return () => {
 			window.removeEventListener('online', updateOnlineStatus);
 			window.removeEventListener('offline', updateOnlineStatus);
