@@ -149,6 +149,38 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		};
 	}, [isOnline]);
 
+	// Polling logic when online
+
+	useEffect(() => {
+		let pollingInterval: NodeJS.Timeout | null = null;
+
+		const startOnlinePolling = () => {
+			pollingInterval = setInterval(() => {
+				const now = Date.now();
+
+				// Check if it's been more than 20 seconds since the last update call
+				if (now - lastUpdateCallTime.current > 20000) {
+					console.log('Polling updateOnlineStatus while online...');
+					updateOnlineStatus(false); // Pass `false` to indicate this is a periodic check
+				} else {
+					console.log('Skipping online polling: Called too recently');
+				}
+			}, 20000); // Poll every 20 seconds
+		};
+
+		if (isOnline) {
+			startOnlinePolling();
+		} else if (pollingInterval) {
+			clearInterval(pollingInterval);
+		}
+
+		return () => {
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+			}
+		};
+	}, [isOnline]);
+
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
 			const isWindowHidden = document.hidden;
