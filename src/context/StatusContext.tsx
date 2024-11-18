@@ -44,7 +44,6 @@ async function checkInternetConnection(): Promise<{ isConnected: boolean; speed:
 		const rtt = endTime - startTime; // Calculate RTT
 
 		const speed = calculateNetworkSpeed(rtt);
-		console.log('Internet:', true, '- Speed:', speed);
 		return { isConnected: true, speed };
 	} catch (error) {
 		return { isConnected: false, speed: 0 };
@@ -68,20 +67,15 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	const updateOnlineStatus = async (forceCheck = true) => {
 
 		const navigatorOnline = getNavigatorOnlineStatus();
-
-		console.log('updateOnlineStatus with force:', forceCheck)
-		// Get the current time
 		const now = Date.now();
 
 		// If not a forced check and last call was within the last 5 seconds, skip the update
 		if (!forceCheck && now - lastUpdateCallTime.current < 5000) {
-			console.log('Skipping updateOnlineStatus: Called too recently');
 			return;
 		}
 
 		// Update the last call time
 		lastUpdateCallTime.current = now;
-		console.log('lastUpdateCallTime', Date.now())
 
 		const internetConnection = await checkInternetConnection();
 
@@ -131,7 +125,6 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		let pollingInterval: NodeJS.Timeout | null = null;
 		const startPolling = () => {
 			pollingInterval = setInterval(async () => {
-				console.log('Polling backend connection...');
 				updateOnlineStatus();
 			}, 7000); // Poll every 7 seconds
 		};
@@ -150,7 +143,6 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 	}, [isOnline]);
 
 	// Polling logic when online
-
 	useEffect(() => {
 		let pollingInterval: NodeJS.Timeout | null = null;
 
@@ -160,10 +152,7 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 
 				// Check if it's been more than 20 seconds since the last update call
 				if (now - lastUpdateCallTime.current > 20000) {
-					console.log('Polling updateOnlineStatus while online...');
 					updateOnlineStatus(false); // Pass `false` to indicate this is a periodic check
-				} else {
-					console.log('Skipping online polling: Called too recently');
 				}
 			}, 20000); // Poll every 20 seconds
 		};
