@@ -39,7 +39,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 						}}
 					/>
 				</p>
-				<p className="text-gray-500 text-center dark:text-gray-400">{config.APP_VERSION}</p>
+				<p className="hidden">v{config.APP_VERSION}</p>
 			</footer>
 		</section>
 	);
