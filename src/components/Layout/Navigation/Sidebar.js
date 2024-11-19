@@ -10,6 +10,7 @@ import StatusContext from '../../../context/StatusContext';
 import SessionContext from '../../../context/SessionContext';
 import { MdNotifications } from "react-icons/md";
 import ConnectionStatusIcon from './ConnectionStatusIcon';
+import LanguageSelector from '../../LanguageSelector/LanguageSelector';
 
 const NavItem = ({
 	children,
@@ -153,6 +154,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<hr className="my-2 border-t border-white/20" />
 
+						<LanguageSelector className="cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover w-full" />
 						<button
 							onClick={handleLogout}
 							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover w-full`}
