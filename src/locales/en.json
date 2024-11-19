@@ -135,6 +135,7 @@
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials",
 		"details": {
+			"availableUsages": "Available Usages",
 			"description": "View all the information about the chosen credential",
 			"expired": "This Credential has been expired"
 		},

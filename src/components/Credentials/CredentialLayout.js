@@ -66,7 +66,22 @@ const CredentialLayout = ({ children, title = null }) => {
 		});
 	}, [vcEntity, container]);
 
-	console.log('vcEntity', vcEntity)
+	const UsageStats = ({ zeroSigCount, sigTotal }) => {
+		if (zeroSigCount === null || sigTotal === null) return null;
+
+		const usageClass = zeroSigCount === 0 ? 'text-orange-600' : 'text-green-600';
+
+		return (
+			<div className={`flex items-center ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
+				<PiCardsBold size={18} className='text-gray-800 mr-1' />
+				<p className='text-gray-800 font-base'>
+					<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
+					<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
+				</p>
+			</div>
+		);
+	};
+
 	return (
 		<div className=" sm:px-6">
 			{screenType !== 'mobile' ? (
@@ -106,10 +121,7 @@ const CredentialLayout = ({ children, title = null }) => {
 									<CredentialImage vcEntity={vcEntity} credential={vcEntity.credential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
 								</button>
 								{screenType !== 'mobile' && zeroSigCount !== null && sigTotal &&
-									<div className='flex items-center text-md'>
-										<PiCardsBold size={18} className='text-gray-800 mr-1' />
-										<p className='text-gray-800 font-base'><span className={`${zeroSigCount === 0 ? 'text-orange-600' : 'text-green-600'} font-semibold`}>{zeroSigCount}</span><span>/{sigTotal}</span> Available Usages</p>
-									</div>
+									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
 								}
 							</div>
 						)}
@@ -118,12 +130,7 @@ const CredentialLayout = ({ children, title = null }) => {
 							{screenType === 'mobile' && (
 								<div className='flex flex-start flex-col gap-1'>
 									<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
-									{zeroSigCount !== null && sigTotal &&
-										<div className='flex items-center text-sm'>
-											<PiCardsBold size={18} className='text-gray-800 mr-1' />
-											<p className='text-gray-800 font-base'><span className={`${zeroSigCount === 0 ? 'text-orange-600' : 'text-green-600'} font-semibold`}>{zeroSigCount}</span><span>/{sigTotal}</span> Available Usages</p>
-										</div>
-									}
+									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
 								</div>
 							)}
 						</div>
