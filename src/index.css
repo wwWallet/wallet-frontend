@@ -145,3 +145,7 @@ input:-webkit-autofill {
 .ReactModal__Content:focus {
 	outline: none;
 }
+
+.overflow-visible-force {
+	overflow: visible !important;
+}

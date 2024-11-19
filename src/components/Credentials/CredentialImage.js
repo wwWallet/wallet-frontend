@@ -1,8 +1,9 @@
 import { useState, useEffect, useContext } from "react";
 import StatusRibbon from '../../components/Credentials/StatusRibbon';
+import UsagesRibbon from "../../components/Credentials/UsagesRibbon";
 import ContainerContext from '../../context/ContainerContext';
 
-const CredentialImage = ({ credential, className, onClick, showRibbon = true }) => {
+const CredentialImage = ({ credential, className, onClick, showRibbon = true, vcEntityInstances = null }) => {
 	const [parsedCredential, setParsedCredential] = useState(null);
 	const container = useContext(ContainerContext);
 
@@ -25,6 +26,9 @@ const CredentialImage = ({ credential, className, onClick, showRibbon = true }) 
 			)}
 			{parsedCredential && showRibbon &&
 				<StatusRibbon parsedCredential={parsedCredential} />
+			}
+			{vcEntityInstances && showRibbon &&
+				<UsagesRibbon vcEntityInstances={vcEntityInstances} />
 			}
 		</>
 	);

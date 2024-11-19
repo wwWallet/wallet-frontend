@@ -61,7 +61,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
 	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
-	const { vcEntityList } = useContext(CredentialsContext);
+	const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 	const keys = useMemo(() => Object.keys(conformantCredentialsMap), [conformantCredentialsMap]);
@@ -159,16 +159,18 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	const renderSlideContent = (vcEntity) => (
 		<button
 			key={vcEntity.id}
-			className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer"
+			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
 			onClick={() => handleClick(vcEntity.credentialIdentifier)}
 			aria-label={`${vcEntity.friendlyName}`}
 			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
 		>
 			<CredentialImage
+				vcEntityInstances={vcEntityListInstances.filter((vc) => vc.credentialIdentifier === vcEntity.credentialIdentifier)}
 				key={vcEntity.credentialIdentifier}
 				credential={vcEntity.credential}
 				className="w-full object-cover rounded-xl"
+				showRibbon={currentSlide === vcEntities.indexOf(vcEntity) + 1}
 			/>
 
 			<div className={`absolute inset-0 rounded-xl transition-opacity bg-white/50 ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-0' : 'opacity-50'}`} />
