@@ -93,7 +93,7 @@ const CredentialLayout = ({ children, title = null }) => {
 
 			<div className="flex flex-wrap mt-0 lg:mt-5">
 				{/* Block 1: credential */}
-				<div className='flex flex-row w-full md:w-1/2'>
+				<div className='flex flex-row w-full lg:w-1/2'>
 					<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
 						{vcEntity && (
 							// Open the modal when the credential is clicked
