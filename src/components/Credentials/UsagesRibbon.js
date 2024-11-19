@@ -1,4 +1,4 @@
-// StatusRibbon.js
+// UsagesRibbon.js
 import React from 'react';
 import { PiCardsBold } from "react-icons/pi";
 
