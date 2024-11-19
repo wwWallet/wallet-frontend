@@ -156,8 +156,8 @@ type WebauthnPrfEncryptionKeyInfoV1 = WebauthnPrfSaltInfo & WebauthnPrfEncryptio
 }
 export type WebauthnPrfEncryptionKeyInfoV2 = (
 	WebauthnPrfSaltInfo
-		& WebauthnPrfEncryptionKeyDeriveKeyParams
-		& StaticEncapsulationInfo
+	& WebauthnPrfEncryptionKeyDeriveKeyParams
+	& StaticEncapsulationInfo
 );
 export function isPrfKeyV2(prfKeyInfo: WebauthnPrfEncryptionKeyInfo): prfKeyInfo is WebauthnPrfEncryptionKeyInfoV2 {
 	return (
@@ -794,7 +794,7 @@ export async function upgradePrfKey(
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfoV1,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
-	const [prfKey,, prfCredential] = await getPrfKey(
+	const [prfKey, , prfCredential] = await getPrfKey(
 		{
 			...privateData,
 			prfKeys: privateData.prfKeys.filter((keyInfo) => (
@@ -1062,7 +1062,7 @@ async function addNewCredentialKeypairs(
 		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
 		const did = await createDid(publicKey, didKeyVersion);
 		const kid = await deriveKid(publicKey, did);
-	
+
 		const keypair: CredentialKeyPair = {
 			kid,
 			did,
