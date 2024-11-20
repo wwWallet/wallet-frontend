@@ -118,9 +118,6 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		if (!presentation_definition) {
 			return { err: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
 		}
-		if (presentation_definition.input_descriptors.length > 1) {
-			return { err: HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED };
-		}
 
 		const { error } = ResponseModeSchema.safeParse(response_mode);
 		if (error) {
@@ -280,6 +277,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		let generatedVPs = [];
 		let originalVCs = [];
 		const descriptorMap = [];
+		let i = 0;
 		for (const [descriptor_id, credentialIdentifier] of selectionMap) {
 			const vcEntity = filteredVCEntities.filter((vc) => vc.credentialIdentifier === credentialIdentifier)[0];
 			if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC) {
@@ -295,11 +293,21 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 				const { vpjwt } = await this.signJwtPresentationKeystoreFn(nonce, client_id, [presentation]);
 				selectedVCs.push(presentation);
 				generatedVPs.push(vpjwt);
-				descriptorMap.push({
-					id: descriptor_id,
-					format: VerifiableCredentialFormat.SD_JWT_VC,
-					path: `$`
-				});
+				if (selectionMap.size > 1) {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: VerifiableCredentialFormat.SD_JWT_VC,
+						path: `$[${i++}]`
+					});
+				}
+				else {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: VerifiableCredentialFormat.SD_JWT_VC,
+						path: `$`
+					});
+				}
+
 				originalVCs.push(vcEntity);
 			}
 		}
@@ -316,7 +324,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 			const jwe = await new EncryptJWT({
-				vp_token: generatedVPs[0],
+				vp_token: generatedVPs.length == 1 ? generatedVPs[0] : generatedVPs,
 				presentation_submission: presentationSubmission,
 				state: S.state ?? undefined
 			})
@@ -327,7 +335,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			console.log("JWE = ", jwe)
 		}
 		else {
-			formData.append('vp_token', generatedVPs[0]);
+			formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs) );
 			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 			if (S.state) {
 				formData.append('state', S.state);
