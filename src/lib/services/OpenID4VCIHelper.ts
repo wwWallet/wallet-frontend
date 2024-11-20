@@ -28,7 +28,7 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 	}
 
 	// Fetches authorization server metadata with fallback
-	async getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean = false): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata }> {
+	async getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean = false): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null> {
 		const pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
 		const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 
@@ -47,21 +47,32 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 				OpenidAuthorizationServerMetadataSchema,
 				isOnline,
 				forceIndexDB
-			);
+			).catch(() => null);
+
+			if (!authzServeMetadata) {
+				return null;
+			}
 			return { authzServeMetadata };
 		}
 	}
 
 	// Fetches credential issuer metadata
-	async getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean = false): Promise<{ metadata: OpenidCredentialIssuerMetadata }> {
+	async getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean = false): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> {
 		const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
 
-		const metadata = await this.fetchAndCache<OpenidCredentialIssuerMetadata>(
-			pathCredentialIssuer,
-			OpenidCredentialIssuerMetadataSchema,
-			isOnline,
-			forceIndexDB
-		);
-		return { metadata };
+		try {
+			const metadata = await this.fetchAndCache<OpenidCredentialIssuerMetadata>(
+				pathCredentialIssuer,
+				OpenidCredentialIssuerMetadataSchema,
+				isOnline,
+				forceIndexDB
+			);
+			return { metadata };
+		}
+		catch(err) {
+			console.error(err);
+			return null;
+		}
+
 	}
 }

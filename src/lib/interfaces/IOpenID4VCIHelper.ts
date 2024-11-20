@@ -7,7 +7,7 @@ export interface IOpenID4VCIHelper {
 	 * @param credentialIssuerIdentifier
 	 * @throws
 	 */
-	getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata }>;
+	getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null>;
 
 
 	/**
@@ -15,5 +15,5 @@ export interface IOpenID4VCIHelper {
 	 * @param credentialIssuerIdentifier
 	 * @throws
 	 */
-	getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata }>;
+	getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null>;
 }
