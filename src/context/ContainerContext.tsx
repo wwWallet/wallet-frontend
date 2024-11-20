@@ -103,12 +103,14 @@ export const ContainerContextProvider = ({ children }) => {
 						if ('error' in result) {
 							return { error: "Failed to parse sdjwt" };
 						}
-
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, result.beautifiedForm.iss, shouldUseCache);
-						const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
-							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
-						[0];
-
+						let credentialConfigurationSupportedObj = null;
+						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, result.beautifiedForm.iss, shouldUseCache);
+						if (metadataResponse) {
+							const { metadata } = metadataResponse;
+							credentialConfigurationSupportedObj = Object.values(metadata.credential_configurations_supported)
+								.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
+							[0];
+						}
 						const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
 
 						const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
