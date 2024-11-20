@@ -69,12 +69,12 @@ const CredentialLayout = ({ children, title = null }) => {
 	const UsageStats = ({ zeroSigCount, sigTotal }) => {
 		if (zeroSigCount === null || sigTotal === null) return null;
 
-		const usageClass = zeroSigCount === 0 ? 'text-orange-600' : 'text-green-600';
+		const usageClass = zeroSigCount === 0 ? 'text-orange-600 dark:text-orange-500' : 'text-green-600 dark:text-green-500';
 
 		return (
-			<div className={`flex items-center ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
-				<PiCardsBold size={18} className='text-gray-800 mr-1' />
-				<p className='text-gray-800 font-base'>
+			<div className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
+				<PiCardsBold size={18} className=' mr-1' />
+				<p className=' font-base'>
 					<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
 					<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
 				</p>
