@@ -18,13 +18,12 @@ import SessionContext from "../context/SessionContext";
 import { ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
 import { CredentialParserRegistry } from "../lib/services/CredentialParserRegistry";
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
-import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
-import { fromBase64 } from "../util";
 import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 import StatusContext from "./StatusContext";
+import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -111,12 +110,16 @@ export const ContainerContextProvider = ({ children }) => {
 								.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
 							[0];
 						}
-						const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
 
-						const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
-							credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
-							credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates.length > 0 ?
-							credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
+						const getSdJwtVcMetadataResult = await getSdJwtVcMetadata(rawCredential);
+
+
+						const credentialImageSvgTemplateURL = !('error' in getSdJwtVcMetadataResult) &&
+							getSdJwtVcMetadataResult.credentialMetadata?.display &&
+							getSdJwtVcMetadataResult.credentialMetadata?.display?.length != 0 &&
+							getSdJwtVcMetadataResult.credentialMetadata.display.filter((d) => d.lang === defaultLocale)[0] &&
+							getSdJwtVcMetadataResult.credentialMetadata.display.filter((d) => d.lang === defaultLocale)[0]?.rendering?.svg_templates.length > 0 ?
+							getSdJwtVcMetadataResult.credentialMetadata.display.filter((d) => d.lang === defaultLocale)[0].rendering?.svg_templates[0]?.uri
 							: null;
 
 						let credentialFriendlyName = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.name
@@ -127,9 +130,9 @@ export const ContainerContextProvider = ({ children }) => {
 							|| credentialConfigurationSupportedObj?.display?.[0]?.description
 							|| "Credential";
 
-						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL,claims:credentialHeader?.vctm?.claims });
+						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL, claims: getSdJwtVcMetadataResult?.metadata?.claims });
 
-						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
+						const simple = sdjwtvcMetadataDocument.display?.[0]?.[defaultLocale]?.rendering?.simple;
 						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
 
 						if (svgContent) {
