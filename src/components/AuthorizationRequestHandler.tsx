@@ -66,12 +66,8 @@ export const AuthorizationRequestHandler = ({
 						setMessageTitle('messagePopup.insufficientCredentials.title');
 						setMessageDescription('messagePopup.insufficientCredentials.description');
 						break;
-					case HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED:
-						setMessageTitle('messagePopup.onlyOneInputDescriptor.title');
-						setMessageDescription('messagePopup.onlyOneInputDescriptor.description');
-						break;
 					case HandleAuthorizationRequestError.NONTRUSTED_VERIFIER:
-						setMessageTitle('messagePopup.insufficientCredentials.title');
+						setMessageTitle('messagePopup.nonTrustedVerifier.title');
 						setMessageDescription('messagePopup.nonTrustedVerifier.description');
 						break;
 					default:
