@@ -1,25 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import logo from '../../assets/images/logo.png';
+import React from 'react';
 
-function Spinner() {
-	const [imageLoaded, setImageLoaded] = useState(false);
-
-	useEffect(() => {
-		const img = new Image();
-		img.src = logo;
-		img.onload = () => setImageLoaded(true);
-	}, []);
-
+const Spinner = () => {
 	return (
-		<div className="flex justify-center items-center h-dvh" role="status" aria-live="polite">
+		<div className="flex justify-center items-center h-[100dvh]" role="status" aria-live="polite">
 			<div className="relative h-40 w-40">
-				<div className={`absolute rounded-full h-40 w-40 border-t-4 border-b-4 border-main-blue ${imageLoaded ? 'animate-spin' : ''}`}></div>
-				<div className={`absolute inset-0 flex items-center justify-center ${!imageLoaded && 'opacity-0'}`}>
-					<img src={logo} className="object-contain w-24" alt="Loading..." onLoad={() => setImageLoaded(true)} />
+				<div className="absolute rounded-full h-40 w-40 border-t-4 border-b-4 border-main-blue animate-spin"></div>
+				<div className="absolute inset-0 flex items-center justify-center">
+					<img src="/wallet_192.png" alt="Loading..." className="object-contain w-24" />
 				</div>
 			</div>
 		</div>
 	);
-}
+};
 
 export default Spinner;
