@@ -9,7 +9,8 @@ import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
-import { SdJwt } from "@sd-jwt/core";
+// import { SdJwt } from "@sd-jwt/core";
+// TODO: Fix...
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -1095,7 +1096,9 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 }
 
 export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
-	const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
+	// const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
+	// TODO: Fix
+	const inputJwt = undefined;
 	const { cnf } = inputJwt.payload as { cnf?: { jwk?: JWK } };
 
 	if (!cnf?.jwk) {
