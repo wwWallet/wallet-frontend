@@ -113,26 +113,29 @@ export const ContainerContextProvider = ({ children }) => {
 
 						const getSdJwtVcMetadataResult = await getSdJwtVcMetadata(rawCredential);
 
+						// Validate the metadata object
+						const isValidMetadata = !('error' in getSdJwtVcMetadataResult) && getSdJwtVcMetadataResult.credentialMetadata;
 
-						const credentialImageSvgTemplateURL = !('error' in getSdJwtVcMetadataResult) &&
-							getSdJwtVcMetadataResult.credentialMetadata?.display &&
-							getSdJwtVcMetadataResult.credentialMetadata?.display?.length != 0 &&
-							getSdJwtVcMetadataResult.credentialMetadata.display.filter((d) => d.lang === defaultLocale)[0] &&
-							getSdJwtVcMetadataResult.credentialMetadata.display.filter((d) => d.lang === defaultLocale)[0]?.rendering?.svg_templates.length > 0 ?
-							getSdJwtVcMetadataResult.credentialMetadata.display.filter((d) => d.lang === defaultLocale)[0].rendering?.svg_templates[0]?.uri
+						// Extract metadata and claims
+						const metadata = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.display?.find((d) => d.lang === defaultLocale) || null;
+						const claims = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.claims?.length
+							? getSdJwtVcMetadataResult.credentialMetadata.claims
 							: null;
 
-						let credentialFriendlyName = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.name
-							|| credentialConfigurationSupportedObj?.display?.[0]?.name
-							|| "Credential";
+						// Extract key values
+						const credentialImageSvgTemplateURL = metadata?.rendering?.svg_templates?.[0]?.uri || null;
+						const credentialFriendlyName = metadata?.name || "Credential";
+						const credentialDescription = metadata?.description || "Verifiable Credential";
+						const simple = metadata?.rendering?.simple || null;
 
-						let credentialDescription = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.description
-							|| credentialConfigurationSupportedObj?.display?.[0]?.description
-							|| "Credential";
+						// Render SVG content
+						const svgContent = await renderSvgTemplate({
+							beautifiedForm: result.beautifiedForm,
+							credentialImageSvgTemplateURL,
+							claims
+						});
 
-						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL, claims: getSdJwtVcMetadataResult?.metadata?.claims });
-
-						const simple = sdjwtvcMetadataDocument.display?.[0]?.[defaultLocale]?.rendering?.simple;
+						// Extract issuer metadata
 						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
 
 						if (svgContent) {
