@@ -7,7 +7,7 @@ const CredentialsContext = createContext();
 
 export const CredentialsProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
-	const [vcEntityList, setVcEntityList] = useState([]);
+	const [vcEntityList, setVcEntityList] = useState(null);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
 

@@ -59,53 +59,55 @@ const Home = () => {
 				{screenType !== 'mobile' && (
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				)}
-				<div className='my-4 p-2 overflow-x-hidden'>
-					{vcEntityList.length === 0 ? (
-						<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
-							<AddCredentialCard onClick={handleAddCredential} />
-						</div>
-					) : (
-						<>
-							{screenType !== 'desktop' ? (
-								<>
-									<div className='xm:px-4 px-12 sm:px-20'>
-										<Slider
-											items={vcEntityList}
-											renderSlideContent={renderSlideContent}
-											initialSlide={currentSlide}
-											onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
-										/>
-
-										{/* Update HistoryList based on current slide */}
-										{vcEntityList[currentSlide - 1] && (
-											<HistoryList
-												credentialId={vcEntityList[currentSlide - 1].credentialIdentifier}
-												history={history}
-												title="Recent History"
-												limit={3}
+				{vcEntityList && (
+					<div className='my-4 p-2 overflow-x-hidden'>
+						{vcEntityList.length === 0 ? (
+							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+								<AddCredentialCard onClick={handleAddCredential} />
+							</div>
+						) : (
+							<>
+								{screenType !== 'desktop' ? (
+									<>
+										<div className='xm:px-4 px-12 sm:px-20'>
+											<Slider
+												items={vcEntityList}
+												renderSlideContent={renderSlideContent}
+												initialSlide={currentSlide}
+												onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
 											/>
-										)}
+
+											{/* Update HistoryList based on current slide */}
+											{vcEntityList[currentSlide - 1] && (
+												<HistoryList
+													credentialId={vcEntityList[currentSlide - 1].credentialIdentifier}
+													history={history}
+													title="Recent History"
+													limit={3}
+												/>
+											)}
+										</div>
+									</>
+								) : (
+									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
+										{vcEntityList.map((vcEntity) => (
+											<button
+												key={vcEntity.id}
+												className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
+												onClick={() => handleImageClick(vcEntity)}
+												aria-label={`${vcEntity.friendlyName}`}
+												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
+											>
+												<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
+											</button>
+										))}
+										<AddCredentialCard onClick={handleAddCredential} />
 									</div>
-								</>
-							) : (
-								<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
-									{vcEntityList.map((vcEntity) => (
-										<button
-											key={vcEntity.id}
-											className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
-											onClick={() => handleImageClick(vcEntity)}
-											aria-label={`${vcEntity.friendlyName}`}
-											title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
-										>
-											<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
-										</button>
-									))}
-									<AddCredentialCard onClick={handleAddCredential} />
-								</div>
-							)}
-						</>
-					)}
-				</div>
+								)}
+							</>
+						)}
+					</div>
+				)}
 			</div>
 		</>
 	);
