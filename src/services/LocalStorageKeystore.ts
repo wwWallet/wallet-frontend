@@ -375,20 +375,16 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			CommitCallback,
 		]> => (
 			await editPrivateData(async (originalContainer) => {
-				let container = originalContainer;
-				let proof_jwts = [];
-				for (const { nonce, audience, issuer } of requests) {
-					const [{ proof_jwt }, newContainer] = await keystore.generateOpenid4vciProof(
-						container,
-						config.DID_KEY_VERSION,
-						nonce,
-						audience,
-						issuer
-					);
-					proof_jwts.push(proof_jwt);
-					container = newContainer;
-				}
-				return [{ proof_jwts }, container];
+				const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
+				const [{ proof_jwts }, newContainer] = await keystore.generateOpenid4vciProofs(
+					originalContainer,
+					config.DID_KEY_VERSION,
+					nonce,
+					audience,
+					issuer,
+					requests.length
+				);
+				return [{ proof_jwts }, newContainer];
 			})
 		),
 	};
