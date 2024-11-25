@@ -458,7 +458,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 
 		const credentialArray = [];
-		if (numberOfProofs == 1) {
+		if (numberOfProofs == 1 && credentialResponse.data.credential) {
 			const { credential } = credentialResponse.data;
 			credentialArray.push(credential);
 		}
