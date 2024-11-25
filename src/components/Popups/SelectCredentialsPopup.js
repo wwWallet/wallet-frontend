@@ -113,6 +113,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 		currentIndex,
 		currentSelectionMap,
 		keys,
+		vcEntityList,
 		setSelectionMap,
 		setIsOpen,
 		container.credentialParserRegistry,
