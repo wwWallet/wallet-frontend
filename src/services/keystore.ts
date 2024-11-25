@@ -1606,8 +1606,8 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	return { deviceResponseMDoc };
 }
 
-function parseArkgSeedKeypair(credential: PublicKeyCredential): WebauthnSignArkgPublicSeed | null {
-	const generatedKey = credential.getClientExtensionResults()?.sign?.generatedKey;
+function parseArkgSeedKeypair(credential: PublicKeyCredential | null): WebauthnSignArkgPublicSeed | null {
+	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		return {
 			credentialId: new Uint8Array(credential.rawId),
