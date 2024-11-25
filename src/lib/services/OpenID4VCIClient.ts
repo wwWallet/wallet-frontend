@@ -1,7 +1,6 @@
 import { IOpenID4VCIClient } from '../interfaces/IOpenID4VCIClient';
 import { IHttpProxy } from '../interfaces/IHttpProxy';
 import { ClientConfig } from '../types/ClientConfig';
-import pkce from 'pkce-challenge';
 import { IOpenID4VCIClientStateRepository } from '../interfaces/IOpenID4VCIClientStateRepository';
 import { CredentialConfigurationSupported } from '../schemas/CredentialConfigurationSupportedSchema';
 import { OpenID4VCIClientState } from '../types/OpenID4VCIClientState';
@@ -12,18 +11,28 @@ import * as jose from 'jose';
 import { generateRandomIdentifier } from '../utils/generateRandomIdentifier';
 import * as config from '../../config';
 import { VerifiableCredentialFormat } from '../schemas/vc';
+import { IOpenID4VCIAuthorizationRequest } from '../interfaces/IOpenID4VCIAuthorizationRequest';
+import { OpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
+import { OpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
+import { IOpenID4VPRelyingParty } from '../interfaces/IOpenID4VPRelyingParty';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
 export class OpenID4VCIClient implements IOpenID4VCIClient {
 
+	private openID4VCIPushedAuthorizationRequest: IOpenID4VCIAuthorizationRequest;
+	private openID4VCIAuthorizationRequestForFirstPartyApplications: IOpenID4VCIAuthorizationRequest;
+
 	constructor(private config: ClientConfig,
 		private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
+		private openID4VPRelyingParty: IOpenID4VPRelyingParty,
 		private generateNonceProof: (cNonce: string, audience: string, clientId: string) => Promise<{ jws: string }>,
 		private storeCredential: (c: StorableCredential) => Promise<void>,
-		private authorizationRequestModifier: (credentialIssuerIdentifier: string, url: string, request_uri?: string, client_id?: string) => Promise<{ url: string }> = async (_credentialIssuerIdentifier: string, url: string) => ({ url }),
-	) { }
+	) {
+		this.openID4VCIPushedAuthorizationRequest = new OpenID4VCIPushedAuthorizationRequest(this.httpProxy, this.openID4VCIClientStateRepository);
+		this.openID4VCIAuthorizationRequestForFirstPartyApplications = new OpenID4VCIAuthorizationRequestForFirstPartyApplications(this.httpProxy, this.openID4VCIClientStateRepository, this.openID4VPRelyingParty);
+	}
 
 	async handleCredentialOffer(credentialOfferURL: string, userHandleB64u: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> {
 		const parsedUrl = new URL(credentialOfferURL);
@@ -70,7 +79,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		return this.config.credentialIssuerMetadata.credential_configurations_supported
 	}
 
-	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url?: string; client_id?: string; request_uri?: string; }> {
+	async generateAuthorizationRequest(credentialConfigurationId: string, userHandleB64u: string, issuer_state?: string): Promise<{ url?: string; }> {
 		await this.openID4VCIClientStateRepository.cleanupExpired(userHandleB64u);
 
 		try { // attempt to get credentials using active session
@@ -84,51 +93,30 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 		catch (err) { console.error(err) }
 
-		const { code_challenge, code_verifier } = await pkce();
-
-		const formData = new URLSearchParams();
-
-		const selectedCredentialConfigurationSupported = this.config.credentialIssuerMetadata.credential_configurations_supported[credentialConfigurationId];
-		formData.append("scope", selectedCredentialConfigurationSupported.scope);
-
-		formData.append("response_type", "code");
-
-		formData.append("client_id", this.config.clientId);
-		formData.append("code_challenge", code_challenge);
-
-		formData.append("code_challenge_method", "S256");
-
-		// the purpose of the "id" is to provide the "state" a random factor for unlinkability and to make OpenID4VCIClientState instances unique
-		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-		formData.append("state", state);
-
-		if (issuer_state) {
-			formData.append("issuer_state", issuer_state);
+		let url = null;
+		if (this.config.authorizationServerMetadata.require_pushed_authorization_requests && this.config.authorizationServerMetadata.pushed_authorization_request_endpoint) {
+			url = await this.openID4VCIPushedAuthorizationRequest.generate(
+				credentialConfigurationId,
+				userHandleB64u,
+				issuer_state,
+				{
+					...this.config,
+					redirectUri: redirectUri
+				}
+			);
 		}
-
-		formData.append("redirect_uri", redirectUri);
-		let res;
-		try {
-			res = await this.httpProxy.post(this.config.authorizationServerMetadata.pushed_authorization_request_endpoint, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			});
+		else if (this.config.authorizationServerMetadata.authorization_challenge_endpoint) {
+			url = await this.openID4VCIAuthorizationRequestForFirstPartyApplications.generate(
+				credentialConfigurationId,
+				userHandleB64u,
+				issuer_state,
+				{
+					...this.config,
+					redirectUri: redirectUri
+				}
+			);
 		}
-		catch (err) {
-			throw new Error("Pushed authorization request failed ", err.response.data)
-		}
-
-		const { request_uri } = res.data;
-		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
-
-		await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, this.config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
-
-		const modifiedAuthorizationRequest = await this.authorizationRequestModifier(this.config.credentialIssuerIdentifier, authorizationRequestURL, request_uri, this.config.clientId);
-
-		return {
-			url: modifiedAuthorizationRequest.url,
-			request_uri,
-			client_id: this.config.clientId,
-		}
+		return { url: url }
 	}
 
 	async handleAuthorizationResponse(url: string, userHandleB64U: string, dpopNonceHeader?: string) {

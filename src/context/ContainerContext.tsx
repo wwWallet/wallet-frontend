@@ -25,6 +25,7 @@ import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 import StatusContext from "./StatusContext";
+import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -47,10 +48,34 @@ const defaultLocale = 'en-US';
 export const ContainerContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, api, keystore } = useContext(SessionContext);
-
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
 	const [shouldUseCache, setShouldUseCache] = useState(true)
+
+
+	const [popupState, setPopupState] = useState({
+		isOpen: false,
+		options: null,
+		resolve: (value: unknown) => { },
+		reject: () => { },
+	});
+
+	const showPopup = (options): Promise<Map<string, string>> =>
+		new Promise((resolve, reject) => {
+			setPopupState({
+				isOpen: true,
+				options,
+				resolve,
+				reject,
+			});
+		});
+
+	const hidePopup = () => {
+		setPopupState((prevState) => ({
+			...prevState,
+			isOpen: false,
+		}));
+	};
 
 	useEffect(() => {
 		window.addEventListener('generatedProof', (e) => {
@@ -127,7 +152,7 @@ export const ContainerContextProvider = ({ children }) => {
 							|| credentialConfigurationSupportedObj?.display?.[0]?.description
 							|| "Credential";
 
-						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL,claims:credentialHeader?.vctm?.claims });
+						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL, claims: credentialHeader?.vctm?.claims });
 
 						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
 						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
@@ -210,12 +235,17 @@ export const ContainerContextProvider = ({ children }) => {
 							audience,
 							issuanceDate: new Date().toISOString(),
 						});
+					},
+
+					async function showCredentialSelectionPopup(conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string): Promise<Map<string, string>> {
+						return showPopup({ conformantCredentialsMap, verifierDomainName });
 					}
 				);
 
 				cont.register<OpenID4VCIClientFactory>('OpenID4VCIClientFactory', OpenID4VCIClientFactory,
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository'),
+					cont.resolve<IOpenID4VPRelyingParty>('OpenID4VPRelyingParty'),
 					async (cNonce: string, audience: string, clientId: string): Promise<{ jws: string }> => {
 						const [{ proof_jwts: [proof_jwt] }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs([{ nonce: cNonce, audience, issuer: clientId }]);
 						await api.updatePrivateData(newPrivateData);
@@ -284,6 +314,7 @@ export const ContainerContextProvider = ({ children }) => {
 	return (
 		<ContainerContext.Provider value={container}>
 			{children}
+			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} />
 		</ContainerContext.Provider>
 	);
 }
