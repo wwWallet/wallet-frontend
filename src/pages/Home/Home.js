@@ -90,15 +90,19 @@ const Home = () => {
 									</>
 								) : (
 									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
-										{vcEntityList.map((vcEntity) => (
+										{vcEntityListInstances && vcEntityList.map((vcEntity) => (
 											<button
 												key={vcEntity.id}
-												className={`relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
+												className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 												onClick={() => handleImageClick(vcEntity)}
 												aria-label={`${vcEntity.friendlyName}`}
 												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
 											>
-												<CredentialImage credential={vcEntity.credential} className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`} />
+												<CredentialImage
+													vcEntityInstances={vcEntityListInstances?.filter((vc) => vc.credentialIdentifier === vcEntity.credentialIdentifier)}
+													credential={vcEntity.credential}
+													className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`}
+												/>
 											</button>
 										))}
 										<AddCredentialCard onClick={handleAddCredential} />
