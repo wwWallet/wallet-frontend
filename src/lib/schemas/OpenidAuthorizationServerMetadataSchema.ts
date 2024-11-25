@@ -5,6 +5,7 @@ export const OpenidAuthorizationServerMetadataSchema = z.object({
 	authorization_endpoint: z.string(),
 	token_endpoint: z.string(),
 	pushed_authorization_request_endpoint: z.string(),
+	authorization_challenge_endpoint: z.string().optional(),
 	require_pushed_authorization_requests: z.boolean().optional(),
 	token_endpoint_auth_methods_supported: z.array(z.string()),
 	response_types_supported: z.array(z.string()),
