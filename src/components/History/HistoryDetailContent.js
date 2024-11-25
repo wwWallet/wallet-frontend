@@ -18,7 +18,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 			aria-label={credential.friendlyName}
 			title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credential.friendlyName })}
 		>
-			<CredentialImage credential={credential} className="w-full h-full rounded-xl" />
+			<CredentialImage credential={credential} showRibbon={false} className="w-full h-full rounded-xl" />
 		</div>
 	);
 
