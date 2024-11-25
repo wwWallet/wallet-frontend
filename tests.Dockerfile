@@ -8,6 +8,7 @@ RUN yarn install && yarn build
 
 WORKDIR /home/node/app
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
+COPY lib/jose/ ./lib/jose/
 COPY package.json yarn.lock .
 COPY .env.template .env
 
