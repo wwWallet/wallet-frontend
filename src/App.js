@@ -164,9 +164,6 @@ function App() {
 							<Route path="*" element={<NotFound />} />
 						</Route>
 					</Routes>
-					{showSelectCredentialsPopup &&
-						<SelectCredentialsPopup isOpen={showSelectCredentialsPopup} setIsOpen={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
-					}
 					{showPinInputPopup &&
 						<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
 					}
