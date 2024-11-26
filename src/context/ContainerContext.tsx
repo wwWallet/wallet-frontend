@@ -23,6 +23,7 @@ import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 import StatusContext from "./StatusContext";
+import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
 
@@ -47,10 +48,33 @@ const defaultLocale = 'en-US';
 export const ContainerContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, api, keystore } = useContext(SessionContext);
-
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
 	const [shouldUseCache, setShouldUseCache] = useState(true)
+
+	const [popupState, setPopupState] = useState({
+		isOpen: false,
+		options: null,
+		resolve: (value: unknown) => { },
+		reject: () => { },
+	});
+
+	const showPopup = (options): Promise<Map<string, string>> =>
+		new Promise((resolve, reject) => {
+			setPopupState({
+				isOpen: true,
+				options,
+				resolve,
+				reject,
+			});
+		});
+
+	const hidePopup = () => {
+		setPopupState((prevState) => ({
+			...prevState,
+			isOpen: false,
+		}));
+	};
 
 	useEffect(() => {
 		window.addEventListener('generatedProof', (e) => {
@@ -226,12 +250,17 @@ export const ContainerContextProvider = ({ children }) => {
 							audience,
 							issuanceDate: new Date().toISOString(),
 						});
+					},
+
+					async function showCredentialSelectionPopup(conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string): Promise<Map<string, string>> {
+						return showPopup({ conformantCredentialsMap, verifierDomainName });
 					}
 				);
 
 				cont.register<OpenID4VCIClientFactory>('OpenID4VCIClientFactory', OpenID4VCIClientFactory,
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository'),
+					cont.resolve<IOpenID4VPRelyingParty>('OpenID4VPRelyingParty'),
 					async (requests: { nonce: string, audience: string, issuer: string }[]): Promise<{ proof_jwts: string[] }> => {
 						const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(requests);
 						await api.updatePrivateData(newPrivateData);
@@ -300,6 +329,7 @@ export const ContainerContextProvider = ({ children }) => {
 	return (
 		<ContainerContext.Provider value={container}>
 			{children}
+			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} container={container} />
 		</ContainerContext.Provider>
 	);
 }

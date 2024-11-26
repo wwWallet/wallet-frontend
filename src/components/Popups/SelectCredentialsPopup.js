@@ -58,28 +58,27 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, container }) {
+
 	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
 	const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
-	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const keys = useMemo(() => Object.keys(conformantCredentialsMap), [conformantCredentialsMap]);
-	const stepTitles = useMemo(() => Object.keys(conformantCredentialsMap).map(key => key), [conformantCredentialsMap]);
+	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
+	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showAllFields, setShowAllFields] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
-	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
 
 	useEffect(() => {
 		const getData = async () => {
-			if (currentIndex === Object.keys(conformantCredentialsMap).length) {
-				setSelectionMap(currentSelectionMap);
-				setIsOpen(false);
+			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length) {
+				setPopupState({ isOpen: false });
+				popupState.resolve(new Map(Object.entries(currentSelectionMap)));
 				return;
 			}
 
@@ -96,34 +95,50 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 				);
 
 				const filteredVcEntities = vcEntities.filter(vcEntity =>
-					conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
+					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 				);
 
-				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
+				console.log("VC entities = ", vcEntities);
+				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
 			}
 		};
 
-		getData();
+		if (popupState?.options) {
+			console.log("opts = ", popupState.options)
+			console.log("Vc entity list = ", vcEntityList)
+			getData();
+		}
 	}, [
 		api,
-		conformantCredentialsMap,
 		currentIndex,
 		currentSelectionMap,
 		keys,
+		container,
+		popupState,
 		vcEntityList,
-		setSelectionMap,
-		setIsOpen,
-		container.credentialParserRegistry,
 	]);
 
 	useEffect(() => {
-		const currentKey = keys[currentIndex];
-		const selectedId = currentSelectionMap[currentKey];
-		setSelectedCredential(selectedId);
-	}, [currentIndex, currentSelectionMap, keys]);
+		if (vcEntityList) {
+			console.log("VC entity list mutated...", vcEntityList)
+		}
+	}, [vcEntityList])
+
+	useEffect(() => {
+		console.log("Detected change of popup state inside the SelectCredentialsPopup")
+		console.log(popupState)
+	}, [popupState])
+
+	useEffect(() => {
+		if (popupState?.options) {
+			const currentKey = keys[currentIndex];
+			const selectedId = currentSelectionMap[currentKey];
+			setSelectedCredential(selectedId);
+		}
+	}, [currentIndex, currentSelectionMap, keys, popupState]);
 
 	const goToNextSelection = () => {
 		setShowAllFields(false);
@@ -149,11 +164,13 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	};
 
 	const onClose = () => {
-		setIsOpen(false);
-		navigate('/');
+		// setIsOpen(false);
+		setPopupState({ isOpen: false });
+		popupState.reject();
+		// navigate('/');
 	}
 
-	if (!isOpen) {
+	if (!popupState?.isOpen) {
 		return null;
 	};
 
@@ -200,7 +217,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	})();
 
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
+		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
 			<div className={`${screenType !== 'desktop' && 'pb-16'}`}>
 				<div>
 					{stepTitles && (
@@ -214,13 +231,13 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 					)}
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					{requestedFieldsText && requestedFields.length > 0 && verifierDomainName && (
+					{requestedFieldsText && requestedFields.length > 0 && popupState.options.verifierDomainName && (
 						<>
 							<p className="pd-2 text-gray-700 text-sm dark:text-white">
 								<span>
 									<Trans
 										i18nKey={requestedFields.length === 1 ? "selectCredentialPopup.descriptionFieldsSingle" : "selectCredentialPopup.descriptionFieldsMultiple"}
-										values={{ verifierDomainName }}
+										values={{ verifierDomainName: popupState.options.verifierDomainName }}
 										components={{ strong: <strong /> }}
 									/>
 								</span>

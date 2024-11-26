@@ -16,7 +16,6 @@ import { CredentialBatchHelper } from "./CredentialBatchHelper";
 
 export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
-
 	constructor(
 		private openID4VPRelyingPartyStateRepository: OpenID4VPRelyingPartyStateRepository,
 		private httpProxy: IHttpProxy,
@@ -24,9 +23,13 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		private credentialBatchHelper: CredentialBatchHelper,
 		private getAllStoredVerifiableCredentials: () => Promise<{ verifiableCredentials: StorableCredential[] }>,
 		private signJwtPresentationKeystoreFn: (nonce: string, audience: string, verifiableCredentials: any[]) => Promise<{ vpjwt: string }>,
-		private storeVerifiablePresentation: (presentation: string, format: string, identifiersOfIncludedCredentials: string[], presentationSubmission: any, audience: string) => Promise<void>
+		private storeVerifiablePresentation: (presentation: string, format: string, identifiersOfIncludedCredentials: string[], presentationSubmission: any, audience: string) => Promise<void>,
+		private showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>>,
 	) { }
 
+	async promptForCredentialSelection(conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> {
+		return this.showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName);
+	}
 
 	async handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, any>, verifierDomainName: string; } | { err: HandleAuthorizationRequestError }> {
 		const authorizationRequest = new URL(url);
@@ -344,7 +347,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			console.log("JWE = ", jwe)
 		}
 		else {
-			formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs) );
+			formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
 			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 			if (S.state) {
 				formData.append('state', S.state);
