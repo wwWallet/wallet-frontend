@@ -58,10 +58,9 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, container }) {
 
 	const { api } = useContext(SessionContext);
-	const container = useContext(ContainerContext);
 	const [vcEntities, setVcEntities] = useState([]);
 	const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
 	const { t } = useTranslation();
@@ -99,6 +98,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 				);
 
+				console.log("VC entities = ", vcEntities);
 				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
@@ -108,6 +108,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 		if (popupState?.options) {
 			console.log("opts = ", popupState.options)
+			console.log("Vc entity list = ", vcEntityList)
 			getData();
 		}
 	}, [
@@ -118,9 +119,13 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		container,
 		popupState,
 		vcEntityList,
-		setIsOpen,
-		container.credentialParserRegistry,
 	]);
+
+	useEffect(() => {
+		if (vcEntityList) {
+			console.log("VC entity list mutated...", vcEntityList)
+		}
+	}, [vcEntityList])
 
 	useEffect(() => {
 		console.log("Detected change of popup state inside the SelectCredentialsPopup")

@@ -114,4 +114,10 @@ export const CredentialsProvider = ({ children }) => {
 	);
 };
 
+export const withCredentialsContext = (Component) =>
+	(props) => (
+		<CredentialsProvider>
+			<Component {...props} />
+		</CredentialsProvider>
+	);
 export default CredentialsContext;
