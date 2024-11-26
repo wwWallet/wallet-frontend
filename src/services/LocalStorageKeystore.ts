@@ -558,8 +558,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				nonce,
 				audience,
 				issuer,
-				() => webauthnInteractionCtx.setup(
-					t("Sign credential issuance"),
+				(index: number) => webauthnInteractionCtx.setup(
+					t("Sign credential issuance ({{currentNumber}} of {{totalNumber}})", { currentNumber: index + 1, totalNumber: requests.length }),
 					state => {
 						switch (state.id) {
 							case 'intro':
