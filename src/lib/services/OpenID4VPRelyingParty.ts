@@ -12,6 +12,7 @@ import { ICredentialParserRegistry } from "../interfaces/ICredentialParser";
 import { extractSAN, getPublicKeyFromB64Cert } from "../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../config";
+import { CredentialBatchHelper } from "./CredentialBatchHelper";
 
 export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
@@ -19,6 +20,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		private openID4VPRelyingPartyStateRepository: OpenID4VPRelyingPartyStateRepository,
 		private httpProxy: IHttpProxy,
 		private credentialParserRegistry: ICredentialParserRegistry,
+		private credentialBatchHelper: CredentialBatchHelper,
 		private getAllStoredVerifiableCredentials: () => Promise<{ verifiableCredentials: StorableCredential[] }>,
 		private signJwtPresentationKeystoreFn: (nonce: string, audience: string, verifiableCredentials: any[]) => Promise<{ vpjwt: string }>,
 		private storeVerifiablePresentation: (presentation: string, format: string, identifiersOfIncludedCredentials: string[], presentationSubmission: any, audience: string) => Promise<void>,
@@ -271,7 +273,14 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		let { verifiableCredentials } = await this.getAllStoredVerifiableCredentials();
 		const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
-		const filteredVCEntities = verifiableCredentials
+
+		// returns the credentials with the minimum usages for each credential identifier
+		const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (credentialIdentifier) => {
+			const result = await this.credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials)
+			return result.credential;
+		}));
+
+		const filteredVCEntities = credentialsFilteredByUsage
 			.filter((vc) =>
 				allSelectedCredentialIdentifiers.includes(vc.credentialIdentifier),
 			);
@@ -348,9 +357,12 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
-		await this.storeVerifiablePresentation(generatedVPs[0], presentationSubmission.descriptor_map[0].format, credentialIdentifiers, presentationSubmission, client_id);
+		const storePresentationPromise = this.storeVerifiablePresentation(generatedVPs[0], presentationSubmission.descriptor_map[0].format, credentialIdentifiers, presentationSubmission, client_id);
+		const updateCredentialPromise = filteredVCEntities.map(async (cred) => this.credentialBatchHelper.useCredential(cred))
 
-		await this.openID4VPRelyingPartyStateRepository.store(S);
+		const updateRepositoryPromise = this.openID4VPRelyingPartyStateRepository.store(S);
+
+		await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
 		const res = await this.httpProxy.post(response_uri, formData.toString(), {
 			'Content-Type': 'application/x-www-form-urlencoded',

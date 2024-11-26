@@ -10,6 +10,7 @@ import SessionContext from '../../context/SessionContext';
 import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
+import CredentialsContext from '../../context/CredentialsContext';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -62,6 +63,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const { api } = useContext(SessionContext);
 	const container = useContext(ContainerContext);
 	const [vcEntities, setVcEntities] = useState([]);
+	const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
 	const { t } = useTranslation();
 	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
 	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
@@ -82,9 +84,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 
 			try {
-				const response = await api.get('/storage/vc');
 				const vcEntities = await Promise.all(
-					response.data.vc_list.map(async vcEntity => {
+					vcEntityList.map(async vcEntity => {
 						return container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
 							if ('error' in c) {
 								return;
@@ -115,7 +116,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		currentSelectionMap,
 		keys,
 		container,
-		popupState
+		popupState,
+		vcEntityList,
+		setIsOpen,
+		container.credentialParserRegistry,
 	]);
 
 	useEffect(() => {
@@ -168,16 +172,18 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const renderSlideContent = (vcEntity) => (
 		<button
 			key={vcEntity.id}
-			className="relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-xl cursor-pointer"
+			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
 			onClick={() => handleClick(vcEntity.credentialIdentifier)}
 			aria-label={`${vcEntity.friendlyName}`}
 			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
 		>
 			<CredentialImage
+				vcEntityInstances={vcEntityListInstances.filter((vc) => vc.credentialIdentifier === vcEntity.credentialIdentifier)}
 				key={vcEntity.credentialIdentifier}
 				credential={vcEntity.credential}
 				className="w-full object-cover rounded-xl"
+				showRibbon={currentSlide === vcEntities.indexOf(vcEntity) + 1}
 			/>
 
 			<div className={`absolute inset-0 rounded-xl transition-opacity bg-white/50 ${selectedCredential === vcEntity.credentialIdentifier ? 'opacity-0' : 'opacity-50'}`} />

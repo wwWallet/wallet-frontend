@@ -9,6 +9,22 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+/* Global Background */
+html,
+body {
+	background-color: rgb(243 244 246);
+	/* Light mode background */
+}
+
+@media (prefers-color-scheme: dark) {
+
+	html,
+	body {
+		background-color: rgb(17 24 39);
+		/* Dark mode background */
+	}
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
 	width: 10px;
@@ -144,4 +160,8 @@ input:-webkit-autofill {
 /* React Modal style */
 .ReactModal__Content:focus {
 	outline: none;
+}
+
+.overflow-visible-force {
+	overflow: visible !important;
 }
