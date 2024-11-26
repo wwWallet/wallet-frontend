@@ -11,7 +11,8 @@ export const OpenidCredentialIssuerMetadataSchema = z.object({
 	batch_credential_issuance: z.object({
 		batch_size: z.number(),
 	}).optional(),
-	credential_configurations_supported: z.record(CredentialConfigurationSupportedSchema)
+	credential_configurations_supported: z.record(CredentialConfigurationSupportedSchema),
+	signed_metadata: z.string().optional(),
 })
 
 
