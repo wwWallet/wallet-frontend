@@ -17,3 +17,4 @@ jobs:
       image-tag: ghcr.io/wwwallet/wallet-frontend:latest
       docker-push: false
       dockerfile-path: ./tests.Dockerfile
+      checkout-submodules: true
