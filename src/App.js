@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useState } from 'react';
+import React, { useEffect, Suspense, useState, useContext } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
@@ -15,6 +15,8 @@ import Spinner from './components/Shared/Spinner';
 
 import { withContainerContext } from './context/ContainerContext';
 import { withCredentialsContext } from './context/CredentialsContext';
+import StatusContext from './context/StatusContext';
+
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 
@@ -88,6 +90,7 @@ const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
+	const { updateOnlineStatus } = useContext(StatusContext);
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 	const {
@@ -107,6 +110,7 @@ function App() {
 	useEffect(() => {
 		setUrl(window.location.href);
 		checkForUpdates();
+		updateOnlineStatus(false);
 	}, [location])
 
 	useEffect(() => {

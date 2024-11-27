@@ -393,8 +393,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					audience: this.config.credentialIssuerIdentifier
 				})
 			}
-			const generateProofsResult = await this.generateNonceProofs(inputs);
-			console.log("generate proofs result = ", generateProofsResult);
+			const generateProofsResult = cachedProofs ? { proof_jwts: cachedProofs } : await this.generateNonceProofs(inputs);
 			proofsArray = generateProofsResult.proof_jwts;
 			if (proofsArray) {
 				dispatchEvent(new CustomEvent("generatedProof"));
