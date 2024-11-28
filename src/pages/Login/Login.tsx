@@ -212,7 +212,7 @@ const WebauthnSignupLogin = ({
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 }) => {
-	const { isOnline } = useContext(StatusContext);
+	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 
 	const [inProgress, setInProgress] = useState(false);
@@ -356,6 +356,7 @@ const WebauthnSignupLogin = ({
 		setInProgress(false);
 		setIsSubmitting(false);
 		checkForUpdates();
+		updateOnlineStatus();
 	};
 
 	const onLoginCachedUser = async (cachedUser: CachedUser) => {
@@ -366,6 +367,7 @@ const WebauthnSignupLogin = ({
 		setInProgress(false);
 		setIsSubmitting(false);
 		checkForUpdates();
+		updateOnlineStatus();
 	};
 
 	const onForgetCachedUser = (cachedUser: CachedUser) => {
@@ -557,7 +559,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Auth = () => {
-	const { isOnline } = useContext(StatusContext);
+	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -640,6 +642,7 @@ const Auth = () => {
 			setIsLogin(!isLogin);
 			setError('');
 			checkForUpdates();
+			updateOnlineStatus();
 		};
 	}
 
@@ -648,6 +651,7 @@ const Auth = () => {
 		setError('');
 		setWebauthnError('');
 		checkForUpdates();
+		updateOnlineStatus();
 	}
 
 	return (
@@ -664,7 +668,7 @@ const Auth = () => {
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-					<ConnectionStatusIcon size={25} />
+					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">

@@ -20,8 +20,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	constructor(private config: ClientConfig,
 		private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
-		private generateNonceProof: (cNonce: string, audience: string, clientId: string) => Promise<{ jws: string }>,
-		private storeCredential: (c: StorableCredential) => Promise<void>,
+		private generateNonceProofs: (requests: { nonce: string, audience: string, issuer: string }[]) => Promise<{ proof_jwts: string[] }>,
+		private storeCredentials: (cList: StorableCredential[]) => Promise<void>,
 		private authorizationRequestModifier: (credentialIssuerIdentifier: string, url: string, request_uri?: string, client_id?: string) => Promise<{ url: string }> = async (_credentialIssuerIdentifier: string, url: string) => ({ url }),
 	) { }
 
@@ -355,7 +355,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 	 * @param cachedProof cachedProof is used in case a failure due to invalid dpop-nonce is caused and the last proof can be re-used.
 	 * @returns
 	 */
-	private async credentialRequest(response: any, flowState: OpenID4VCIClientState, cachedProof?: string) {
+	private async credentialRequest(response: any, flowState: OpenID4VCIClientState, cachedProofs?: string[]) {
 		const {
 			data: { access_token, c_nonce },
 		} = response;
@@ -385,18 +385,21 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			credentialRequestHeaders['dpop'] = credentialEndpointDPoP;
 		}
 
-		let jws;
+		let proofsArray: string[] = [];
+		const numberOfProofs = this.config.credentialIssuerMetadata.batch_credential_issuance?.batch_size ?? 1;
 		try {
-			if (cachedProof) {
-				jws = cachedProof;
+			const inputs = [];
+			for (let i = 0; i < numberOfProofs; i++) {
+				inputs.push({
+					nonce: c_nonce,
+					issuer: this.config.clientId,
+					audience: this.config.credentialIssuerIdentifier
+				})
 			}
-			else {
-				const generateProofResult = await this.generateNonceProof(c_nonce, this.config.credentialIssuerIdentifier, this.config.clientId);
-				jws = generateProofResult.jws;
-				console.log("proof = ", jws)
-				if (jws) {
-					dispatchEvent(new CustomEvent("generatedProof"));
-				}
+			const generateProofsResult = cachedProofs ? { proof_jwts: cachedProofs } : await this.generateNonceProofs(inputs);
+			proofsArray = generateProofsResult.proof_jwts;
+			if (proofsArray) {
+				dispatchEvent(new CustomEvent("generatedProof"));
 			}
 		}
 		catch (err) {
@@ -405,13 +408,22 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 
 		const credentialConfigurationSupported = this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId];
+
 		const credentialEndpointBody = {
-			"proof": {
-				"proof_type": "jwt",
-				"jwt": jws,
-			},
 			"format": this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
 		} as any;
+
+		if (this.config.credentialIssuerMetadata?.batch_credential_issuance?.batch_size) {
+			credentialEndpointBody.proofs = {
+				jwt: proofsArray
+			}
+		}
+		else {
+			credentialEndpointBody.proof = {
+				proof_type: "jwt",
+				jwt: proofsArray[0],
+			}
+		}
 
 		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
 			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
@@ -428,14 +440,22 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 				console.log("Calling credentialRequest with new dpop-nonce....")
 
 				response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-				await this.credentialRequest(response, flowState, jws);
+				await this.credentialRequest(response, flowState, proofsArray);
 				return;
 			}
 			throw new Error("Credential Request failed");
 		}
 		console.log("Credential response = ", credentialResponse)
 
-		const { credential } = credentialResponse.data;
+
+		const credentialArray = [];
+		if (numberOfProofs == 1 && credentialResponse.data.credential) {
+			const { credential } = credentialResponse.data;
+			credentialArray.push(credential);
+		}
+		else {
+			credentialArray.push(...credentialResponse.data.credentials);
+		}
 		const new_c_nonce = credentialResponse.data.c_nonce;
 		const new_c_nonce_expires_in = credentialResponse.data.c_nonce_expires_in;
 
@@ -447,14 +467,21 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		await this.openID4VCIClientStateRepository.cleanupExpired(flowState.userHandleB64U);
 
-		await this.storeCredential({
-			credentialIdentifier: generateRandomIdentifier(32),
+		const identifier = generateRandomIdentifier(32);
+		const storableCredentials: StorableCredential[] = credentialArray.map((credential, index) => ({
+			credentialIdentifier: identifier,
 			credential: credential,
 			format: this.config.credentialIssuerMetadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
 			credentialConfigurationId: flowState.credentialConfigurationId,
 			credentialIssuerIdentifier: this.config.credentialIssuerIdentifier,
+			sigCount: 0,
+			instanceId: index,
+		}));
+
+		this.storeCredentials(storableCredentials).then(() => {
+			dispatchEvent(new CustomEvent('newCredential'));
 		});
-		dispatchEvent(new CustomEvent('newCredential'));
+
 		return;
 
 	}
