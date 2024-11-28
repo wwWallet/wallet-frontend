@@ -22,14 +22,13 @@ export class CredentialParserRegistry implements ICredentialParserRegistry {
 		if (cacheResult) {
 			return cacheResult;
 		}
-		const promises = this.parserList.map((parser) => {
-			return parser.parse(rawCredential, presentationDefinitionFilter);
-		});
-
-		const results = await Promise.all(promises);
-		const first = results.filter((res) => ('beautifiedForm' in res))[0]; // get first successful parsing
-		this.parsedObjectsCache.set(hash, first);
-		return first ?? { error: "All parsings failed" };
+		for (const p of this.parserList) {
+			const result = await p.parse(rawCredential, presentationDefinitionFilter).catch(() => null);
+			if (result && 'beautifiedForm' in result) {
+				return result
+			}
+		}
+		return { error: "All parsings failed" };
 	}
 
 }

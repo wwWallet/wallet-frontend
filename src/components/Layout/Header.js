@@ -36,7 +36,7 @@ const Header = () => {
 
 	return (
 		<header className={`sticky top-0 z-50 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between shadow-md md:hidden rounded-b-lg transition-all duration-300 ${isScrolled ? 'p-3' : 'p-4'}`}>
-			<ConnectionStatusIcon size={isScrolled ? 20 : 25} className="transition-all duration-300" />
+			<ConnectionStatusIcon size={isScrolled ? 'small' : 'normal'} className="transition-all duration-300" />
 			<div className="flex items-center">
 				<button className='mr-2' onClick={() => handleNavigate('/')}>
 					<img
