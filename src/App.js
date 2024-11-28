@@ -75,7 +75,6 @@ const PrivateRoute = reactLazyWithNonDefaultExports(
 	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
-
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
