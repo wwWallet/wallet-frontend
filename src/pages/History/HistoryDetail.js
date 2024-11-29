@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from "react-icons/fa";
 import { ReactComponent as VerifierIcon } from '../../assets/images/verifier_icon.svg';
 import { useTranslation } from 'react-i18next';
+import { fromBase64 } from '../../util';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
@@ -28,8 +29,7 @@ const HistoryDetail = () => {
 
 	useEffect(() => {
 		if (history.length > 0) {
-			const verifiableCredentials = [history[0].presentation];
-			setMatchingCredentials(verifiableCredentials);
+			setMatchingCredentials([...JSON.parse(new TextDecoder().decode(fromBase64(history[0].presentation.replace("b64:", ""))))]);
 		}
 	}, [history]);
 

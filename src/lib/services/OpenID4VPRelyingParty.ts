@@ -13,6 +13,7 @@ import { extractSAN, getPublicKeyFromB64Cert } from "../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../config";
 import { CredentialBatchHelper } from "./CredentialBatchHelper";
+import { toBase64 } from "../../util";
 
 export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
@@ -354,7 +355,10 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
-		const storePresentationPromise = this.storeVerifiablePresentation(generatedVPs[0], presentationSubmission.descriptor_map[0].format, credentialIdentifiers, presentationSubmission, client_id);
+		const presentations = "b64:" + toBase64(new TextEncoder().encode(JSON.stringify([
+			...generatedVPs
+		])));
+		const storePresentationPromise = this.storeVerifiablePresentation(presentations, "", credentialIdentifiers, presentationSubmission, client_id);
 		const updateCredentialPromise = filteredVCEntities.map(async (cred) => this.credentialBatchHelper.useCredential(cred))
 
 		const updateRepositoryPromise = this.openID4VPRelyingPartyStateRepository.store(S);
