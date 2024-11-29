@@ -22,7 +22,7 @@ export class OpenID4VCIAuthorizationRequestForFirstPartyApplications implements 
 		clientId: string,
 		authorizationServerMetadata: OpenidAuthorizationServerMetadata,
 		credentialIssuerMetadata: OpenidCredentialIssuerMetadata,
-	}): Promise<string> {
+	}): Promise<{ authorizationRequestURL: string } | { authorization_code: string }> {
 		const { code_challenge, code_verifier } = await pkce();
 
 		const formData = new URLSearchParams();
@@ -55,18 +55,34 @@ export class OpenID4VCIAuthorizationRequestForFirstPartyApplications implements 
 				const { error, auth_session, presentation } = err?.response?.data;
 				
 				// this function should prompt the user for presentation selection
-				const generatedPresentation = await this.openID4VPRelyingParty.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
+				const result = await this.openID4VPRelyingParty.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
 					if ('err' in res) {
 						return;
 					}
 
 					const jsonedMap = Object.fromEntries(res.conformantCredentialsMap);
-					return this.openID4VPRelyingParty.promptForCredentialSelection(jsonedMap, "");
+					return this.openID4VPRelyingParty.promptForCredentialSelection(jsonedMap, config.credentialIssuerMetadata.credential_issuer);
 				}).then((selectionMap) => {
-					return this.openID4VPRelyingParty.sendAuthorizationResponse(selectionMap); // returns presentation
-				})
+					return this.openID4VPRelyingParty.sendAuthorizationResponse(selectionMap);
+				});
 				
+				if (!('presentation_during_issuance_session' in result)) {
+					throw new Error("presentation_during_issuance_session is not present in the result of the presentation sending phase");
+				}
+				const presentation_during_issuance_session = result.presentation_during_issuance_session;
+				// add auth_session and presentation_during_issuance_session params on authorization_challenge_endpoint POST request
+				formData.append("auth_session", auth_session);
+				formData.append("presentation_during_issuance_session", presentation_during_issuance_session);
+				res = await this.httpProxy.post(config.authorizationServerMetadata.authorization_challenge_endpoint, formData.toString(), {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				});
 
+				if (!res.data.authorization_code) {
+					throw new Error("authorization_code not present on the authorization response");
+				}
+				await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, undefined, undefined, { auth_session: auth_session }));
+
+				return { authorization_code: res.data.authorization_code };
 			}
 			else {
 				console.error(err);
@@ -74,10 +90,5 @@ export class OpenID4VCIAuthorizationRequestForFirstPartyApplications implements 
 			}
 		}
 
-		const { request_uri } = res.data;
-		const authorizationRequestURL = `${config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${config.clientId}`
-
-		await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
-		return authorizationRequestURL;
 	}
 }

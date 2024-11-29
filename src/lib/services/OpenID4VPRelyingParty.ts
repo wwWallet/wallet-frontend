@@ -186,7 +186,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 	}
 
 
-	async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string }> {
+	async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> {
 		const S = await this.openID4VPRelyingPartyStateRepository.retrieve();
 		console.log("send AuthorizationResponse: S = ", S)
 		console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
@@ -370,6 +370,9 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		console.log("Direct post response = ", JSON.stringify(res.data));
 
+		if (res.data.presentation_during_issuance_session) {
+			return { presentation_during_issuance_session: res.data.presentation_during_issuance_session }
+		}
 		if (res.data.redirect_uri) {
 			return { url: res.data.redirect_uri };
 		}

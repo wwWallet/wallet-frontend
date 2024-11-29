@@ -95,7 +95,7 @@ function useCheckURL(urlToCheck: string): {
 					console.log("Selection = ", selection);
 					return container.openID4VPRelyingParty.sendAuthorizationResponse(selection);
 				}).then((res) => {
-					if (res.url) {
+					if ('url' in res && res.url) {
 						window.location.href = res.url;
 					}
 				}).catch(err => {
@@ -122,9 +122,9 @@ function useCheckURL(urlToCheck: string): {
 	useEffect(() => {
 		if (selectionMap) {
 			console.log("Selection map was mutated...");
-			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then(({ url }) => {
-				if (url) {
-					window.location.href = url;
+			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then((result) => {
+				if ('url' in result && result.url) {
+					window.location.href = result.url;
 				}
 			}).catch((err) => console.error(err));
 		}

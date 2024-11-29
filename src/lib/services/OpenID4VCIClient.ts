@@ -93,9 +93,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		}
 		catch (err) { console.error(err) }
 
-		let url = null;
-		if (this.config.authorizationServerMetadata.require_pushed_authorization_requests && this.config.authorizationServerMetadata.pushed_authorization_request_endpoint) {
-			url = await this.openID4VCIPushedAuthorizationRequest.generate(
+		if (this.config.authorizationServerMetadata.pushed_authorization_request_endpoint) {
+			const res = await this.openID4VCIPushedAuthorizationRequest.generate(
 				credentialConfigurationId,
 				userHandleB64u,
 				issuer_state,
@@ -104,9 +103,12 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					redirectUri: redirectUri
 				}
 			);
+			if ('authorizationRequestURL' in res) {
+				return { url: res.authorizationRequestURL };
+			}
 		}
 		else if (this.config.authorizationServerMetadata.authorization_challenge_endpoint) {
-			url = await this.openID4VCIAuthorizationRequestForFirstPartyApplications.generate(
+			await this.openID4VCIAuthorizationRequestForFirstPartyApplications.generate(
 				credentialConfigurationId,
 				userHandleB64u,
 				issuer_state,
@@ -114,9 +116,14 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					...this.config,
 					redirectUri: redirectUri
 				}
-			);
+			).then((result) => {
+				if (!('authorization_code' in result)) {
+					console.error("authorization_code was not found in the result");
+					return;
+				}
+				return this.handleAuthorizationResponse(`openid://?code=${result.authorization_code}`, userHandleB64u);
+			});
 		}
-		return { url: url }
 	}
 
 	async handleAuthorizationResponse(url: string, userHandleB64U: string, dpopNonceHeader?: string) {
