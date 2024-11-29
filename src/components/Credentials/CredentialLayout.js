@@ -61,7 +61,7 @@ const CredentialLayout = ({ children, title = null }) => {
 			if ('error' in c) {
 				return;
 			}
-			setIsExpired(CheckExpired(c.beautifiedForm.expiry_date))
+			setIsExpired(CheckExpired(c.beautifiedForm.expiry_date ?? c.beautifiedForm.exp))
 			setCredentialFriendlyName(c.credentialFriendlyName);
 		});
 	}, [vcEntity, container]);
