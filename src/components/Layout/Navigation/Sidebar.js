@@ -4,7 +4,7 @@ import { FaWallet, FaUserCircle } from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useScreenType from '../../../hooks/useScreenType';
-import logo from '../../../assets/images/wallet_white.png';
+import Logo from '../../Logo/Logo';
 import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '../../../context/StatusContext';
 import SessionContext from '../../../context/SessionContext';
@@ -65,9 +65,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div className="md:hidden flex items-center justify-between mb-4">
 					<div className='flex items-center'>
-						<button className='mr-2' onClick={() => handleNavigate('/')}>
-							<img src={logo} alt="Logo" className="w-10 h-auto cursor-pointer" />
-						</button>
+						<Logo type='white' aClassName='mr-2' imglassName='w-10 h-auto' />
 						<a href={('/')}
 							className="text-white text-xl font-bold cursor-pointer"
 						>
@@ -77,13 +75,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				</div>
 				<div>
 					<div className="hidden md:flex justify-between items-center">
-						<button className='mb-2 mr-2' onClick={() => handleNavigate('/')}>
-							<img
-								src={logo}
-								alt="Logo"
-								className="w-20 h-22 cursor-pointer"
-							/>
-						</button>
+						<Logo type='white' aClassName='mb-2 mr-2' imglassName='w-20 h-22' />
 						<a href={('/')}
 							className="text-white text-xl font-bold cursor-pointer"
 						>

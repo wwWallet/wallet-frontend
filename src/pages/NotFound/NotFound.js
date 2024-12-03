@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../../assets/images/logo.png';
+import Logo from '../../components/Logo/Logo';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Buttons/Button';
@@ -16,9 +16,7 @@ const NotFound = () => {
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-dvh">
-				<a href="/" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-					<img className="w-20" src={logo} alt="logo" />
-				</a>
+				<Logo aClassName='mb-6' imglassName='w-40' alt='Logo' />
 				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{t('common.walletName')}
 				</h1>
