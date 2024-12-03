@@ -8,5 +8,5 @@ export interface IOpenID4VCIAuthorizationRequest {
 		clientId: string,
 		authorizationServerMetadata: OpenidAuthorizationServerMetadata,
 		credentialIssuerMetadata: OpenidCredentialIssuerMetadata,
-	}): Promise<{ authorizationRequestURL: string } | { authorization_code: string }>
+	}): Promise<{ authorizationRequestURL: string } | { authorization_code: string; state: string; }>
 }
