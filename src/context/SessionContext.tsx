@@ -2,7 +2,7 @@ import React, { createContext, useContext } from 'react';
 
 import StatusContext from './StatusContext';
 import { BackendApi, useApi } from '../api';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 
 
@@ -23,7 +23,8 @@ const SessionContext: React.Context<SessionContextValue> = createContext({
 export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
-	const keystore = useLocalStorageKeystore();
+	const keystoreEvents = new EventTarget();
+	const keystore = useLocalStorageKeystore(keystoreEvents);
 
 	const logout = async () => {
 		// Clear URL parameters
@@ -31,6 +32,8 @@ export const SessionContextProvider = ({ children }) => {
 		api.clearSession();
 		await keystore.close();
 	};
+
+	keystoreEvents.addEventListener(KeystoreEvent.Close, logout, { once: true });
 
 	const value: SessionContextValue = {
 		api,
