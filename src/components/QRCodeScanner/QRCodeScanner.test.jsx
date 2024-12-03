@@ -46,7 +46,7 @@ describe('QR Code Scanner', () => {
 		global.navigator.mediaDevices = MEDIA_DEVICES;
 	});
 
-	it("show camera warning when no permission to access camera devices", () => {
+	it("should show camera warning when no permission to access camera devices", () => {
 		global.navigator.mediaDevices = { getUserMedia: mockGetUserMedia({ error: 'Rejected access' }) };
 		const renderResult = render(<QRCodeScanner></QRCodeScanner>);
 
@@ -55,7 +55,7 @@ describe('QR Code Scanner', () => {
 		renderResult.unmount();
 	});
 
-	it("needs to be possible to shoot QR Code when having at least one valid webcam", async () => {
+	it("should be possible to shoot QR Code when having at least one valid webcam", async () => {
 		global.navigator.mediaDevices = {
 			getUserMedia: mockGetUserMedia({}),
 			enumerateDevices: () =>  Promise.resolve([{
