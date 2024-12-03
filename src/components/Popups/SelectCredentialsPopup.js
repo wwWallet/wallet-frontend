@@ -58,11 +58,11 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, container }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList, vcEntityListInstances, container }) {
 
 	const { api } = useContext(SessionContext);
 	const [vcEntities, setVcEntities] = useState([]);
-	const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
+	// const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
 	const { t } = useTranslation();
 	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
 	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
@@ -77,7 +77,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	useEffect(() => {
 		const getData = async () => {
 			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length) {
-				setPopupState({ isOpen: false });
+				reinitialize();
 				popupState.resolve(new Map(Object.entries(currentSelectionMap)));
 				return;
 			}
@@ -98,7 +98,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 				);
 
-				console.log("VC entities = ", vcEntities);
 				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
@@ -106,9 +105,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 		};
 
-		if (popupState?.options) {
+		if (popupState?.options && container && vcEntityList) {
 			console.log("opts = ", popupState.options)
-			console.log("Vc entity list = ", vcEntityList)
 			getData();
 		}
 	}, [
@@ -121,16 +119,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		vcEntityList,
 	]);
 
-	useEffect(() => {
-		if (vcEntityList) {
-			console.log("VC entity list mutated...", vcEntityList)
-		}
-	}, [vcEntityList])
-
-	useEffect(() => {
-		console.log("Detected change of popup state inside the SelectCredentialsPopup")
-		console.log(popupState)
-	}, [popupState])
 
 	useEffect(() => {
 		if (popupState?.options) {
@@ -163,10 +151,19 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		}
 	};
 
+	const reinitialize = () => {
+		setCurrentIndex(0);
+		setCurrentSlide(1);
+		setCurrentSelectionMap({});
+		setRequestedFields([]);
+		setSelectedCredential(null);
+		setPopupState({ isOpen: false });
+	}
+
 	const onClose = () => {
 		// setIsOpen(false);
-		setPopupState({ isOpen: false });
 		popupState.reject();
+		reinitialize();
 		// navigate('/');
 	}
 
