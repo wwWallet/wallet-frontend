@@ -7,9 +7,12 @@ import Slider from '../Shared/Slider';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 
+import useScreenType from '../../hooks/useScreenType';
+
 const HistoryDetailContent = ({ historyItem }) => {
 	const { t } = useTranslation();
 	const [currentSlide, setCurrentSlide] = React.useState(1);
+	const screenType = useScreenType();
 
 	const renderSlideContent = (credential) => (
 		<div
@@ -34,7 +37,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 
 			{/* Render details of the currently selected credential */}
 			{historyItem[currentSlide - 1] && (
-				<div className="pt-5">
+				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
 					<CredentialInfo credential={historyItem[currentSlide - 1]} />
 				</div>
 			)}
