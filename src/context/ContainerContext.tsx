@@ -26,6 +26,7 @@ import StatusContext from "./StatusContext";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
+import CredentialsContext from '../context/CredentialsContext';
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -51,6 +52,11 @@ export const ContainerContextProvider = ({ children }) => {
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
 	const [shouldUseCache, setShouldUseCache] = useState(true)
+	const { vcEntityList, vcEntityListInstances, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext<any>(CredentialsContext);
+
+	useEffect(() => {
+		getData();
+	}, [getData]);
 
 	const [popupState, setPopupState] = useState({
 		isOpen: false,
@@ -324,12 +330,12 @@ export const ContainerContextProvider = ({ children }) => {
 		};
 
 		initialize();
-	}, [isLoggedIn, api, container, isInitialized, keystore, isOnline, shouldUseCache]);
+	}, [isLoggedIn, api, container, isInitialized, keystore, isOnline, shouldUseCache, vcEntityList]);
 
 	return (
 		<ContainerContext.Provider value={container}>
 			{children}
-			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} container={container} />
+			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} container={container} vcEntityList={vcEntityList} vcEntityListInstances={vcEntityListInstances} />
 		</ContainerContext.Provider>
 	);
 }
