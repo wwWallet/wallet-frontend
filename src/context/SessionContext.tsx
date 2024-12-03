@@ -25,18 +25,18 @@ export const SessionContextProvider = ({ children }) => {
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore();
 
+	const logout = async () => {
+		// Clear URL parameters
+		sessionStorage.setItem('freshLogin', 'true');
+		api.clearSession();
+		await keystore.close();
+	};
+
 	const value: SessionContextValue = {
 		api,
 		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
 		keystore,
-		logout: async () => {
-
-			// Clear URL parameters
-			sessionStorage.setItem('freshLogin', 'true');
-			api.clearSession();
-			await keystore.close();
-
-		},
+		logout,
 	};
 
 	return (
