@@ -181,9 +181,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		{ exportedMainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
-		setMainKey(exportedMainKey);
-		setPrivateData(privateData);
-
 		if (user) {
 			const userHandleB64u = ("prfKeys" in user
 				? user.userHandleB64u
@@ -199,13 +196,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			);
 
 			setUserHandleB64u(userHandleB64u);
+
+			// This must happen before setPrivateData in order to prevent the
+			// useEffect updating cachedUsers from corrupting cache entries for other
+			// users logged in in other tabs.
 			setGlobalUserHandleB64u(userHandleB64u);
+
 			setCachedUsers((cachedUsers) => {
 				// Move most recently used user to front of list
 				const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
 				return [newUser, ...otherUsers];
 			});
 		}
+
+		setMainKey(exportedMainKey);
+		setPrivateData(privateData);
 	};
 
 	const init = async (
