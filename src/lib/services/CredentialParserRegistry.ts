@@ -25,7 +25,8 @@ export class CredentialParserRegistry implements ICredentialParserRegistry {
 		for (const p of this.parserList) {
 			const result = await p.parse(rawCredential, presentationDefinitionFilter).catch(() => null);
 			if (result && 'beautifiedForm' in result) {
-				return result
+				this.parsedObjectsCache.set(hash, result);
+				return result;
 			}
 		}
 		return { error: "All parsings failed" };
