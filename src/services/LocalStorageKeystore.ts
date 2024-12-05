@@ -102,11 +102,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, []));
 
 	const closeTabLocal = useCallback(
-		() => {
-			clearSessionStorage();
+		async (): Promise<void> => {
 			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseTabLocal));
+			clearSessionStorage();
 		},
-		[clearSessionStorage],
+		[clearSessionStorage, eventTarget],
 	);
 
 	const close = useCallback(
@@ -115,7 +115,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			clearPrivateData();
 			clearGlobalUserHandleB64u();
 			closeTabLocal();
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.Close));
 		},
 		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
