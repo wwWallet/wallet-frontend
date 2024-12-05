@@ -54,19 +54,19 @@ export class OpenID4VCIAuthorizationRequestForFirstPartyApplications implements 
 			if (err) {
 				if (err?.data && err?.data?.error === "insufficient_authorization") { // Authorization Error Response
 					const { error, auth_session, presentation } = err?.data;
-					
+
 					// this function should prompt the user for presentation selection
 					const result = await this.openID4VPRelyingParty.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
 						if ('err' in res) {
 							return;
 						}
-	
+
 						const jsonedMap = Object.fromEntries(res.conformantCredentialsMap);
 						return this.openID4VPRelyingParty.promptForCredentialSelection(jsonedMap, config.credentialIssuerMetadata.credential_issuer);
 					}).then((selectionMap) => {
 						return this.openID4VPRelyingParty.sendAuthorizationResponse(selectionMap);
 					});
-					
+
 					if (!('presentation_during_issuance_session' in result)) {
 						throw new Error("presentation_during_issuance_session is not present in the result of the presentation sending phase");
 					}
@@ -77,12 +77,12 @@ export class OpenID4VCIAuthorizationRequestForFirstPartyApplications implements 
 					res = await this.httpProxy.post(config.authorizationServerMetadata.authorization_challenge_endpoint, formData.toString(), {
 						'Content-Type': 'application/x-www-form-urlencoded'
 					});
-	
+
 					if (!res.data.authorization_code) {
 						throw new Error("authorization_code not present on the authorization response");
 					}
 					await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, undefined, undefined, { auth_session: auth_session }));
-	
+
 					return { authorization_code: res.data.authorization_code, state: state };
 				}
 				else {
