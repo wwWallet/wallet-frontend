@@ -17,7 +17,6 @@ import { toBase64 } from "../../util";
 
 export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
-
 	constructor(
 		private openID4VPRelyingPartyStateRepository: OpenID4VPRelyingPartyStateRepository,
 		private httpProxy: IHttpProxy,
@@ -25,9 +24,13 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		private credentialBatchHelper: CredentialBatchHelper,
 		private getAllStoredVerifiableCredentials: () => Promise<{ verifiableCredentials: StorableCredential[] }>,
 		private signJwtPresentationKeystoreFn: (nonce: string, audience: string, verifiableCredentials: any[]) => Promise<{ vpjwt: string }>,
-		private storeVerifiablePresentation: (presentation: string, format: string, identifiersOfIncludedCredentials: string[], presentationSubmission: any, audience: string) => Promise<void>
+		private storeVerifiablePresentation: (presentation: string, format: string, identifiersOfIncludedCredentials: string[], presentationSubmission: any, audience: string) => Promise<void>,
+		private showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>>,
 	) { }
 
+	async promptForCredentialSelection(conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> {
+		return this.showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName);
+	}
 
 	async handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, any>, verifierDomainName: string; } | { err: HandleAuthorizationRequestError }> {
 		const authorizationRequest = new URL(url);
@@ -184,7 +187,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 	}
 
 
-	async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string }> {
+	async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> {
 		const S = await this.openID4VPRelyingPartyStateRepository.retrieve();
 		console.log("send AuthorizationResponse: S = ", S)
 		console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
@@ -345,7 +348,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			console.log("JWE = ", jwe)
 		}
 		else {
-			formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs) );
+			formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
 			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 			if (S.state) {
 				formData.append('state', S.state);
@@ -369,6 +372,9 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		console.log("Direct post response = ", JSON.stringify(res.data));
 
+		if (res.data.presentation_during_issuance_session) {
+			return { presentation_during_issuance_session: res.data.presentation_during_issuance_session }
+		}
 		if (res.data.redirect_uri) {
 			return { url: res.data.redirect_uri };
 		}

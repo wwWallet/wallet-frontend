@@ -83,8 +83,9 @@ const Issuers = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then(({ url }) => {
-				if (url) {
+			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then((result) => {
+				if ('url' in result) {
+					const { url } = result;
 					window.location.href = url;
 				}
 			}).catch((err) => {
