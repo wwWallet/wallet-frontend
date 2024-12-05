@@ -26,7 +26,6 @@ export const SessionContextProvider = ({ children }) => {
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 
 	const clearSession = async () => {
-		sessionStorage.setItem('freshLogin', 'true');
 		api.clearSession();
 	};
 

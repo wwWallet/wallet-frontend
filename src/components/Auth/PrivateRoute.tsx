@@ -139,11 +139,20 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	const [loading, setLoading] = useState(false);
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
-	const cachedUsers = keystore.getCachedUsers();
+	const changeIsLoggedIn = sessionStorage.getItem('changeIsLoggedIn') === 'false';
 
 	const location = useLocation();
 	const queryParams = new URLSearchParams(window.location.search);
 	const state = queryParams.get('state');
+
+	useEffect(() => {
+		// Detect if `latestIsLoggedIn` changes from true to false
+		if (changeIsLoggedIn === true && isLoggedIn === false) {
+			sessionStorage.setItem('changeIsLoggedIn', 'true');
+		} else if (isLoggedIn) {
+			sessionStorage.setItem('changeIsLoggedIn', 'false');
+		}
+	}, [isLoggedIn, changeIsLoggedIn]);
 
 	useEffect(() => {
 		const requestNotificationPermission = async () => {
@@ -230,25 +239,25 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		setLatestIsOnlineStatus,
 	]);
 
-
-	const userExistsInCache = (state: string) => {
-		if (!state) return false;
-		try {
-			const decodedState = JSON.parse(atob(state));
-			return cachedUsers.some(user => user.userHandleB64u === decodedState.userHandleB64u);
-		} catch (error) {
-			console.error('Error decoding state:', error);
-			return false;
-		}
-	};
-
 	if (!isLoggedIn) {
-		const freshLogin = sessionStorage.getItem('freshLogin');
-		if (freshLogin) {
-			sessionStorage.removeItem('freshLogin');
-			window.history.replaceState(null, '', '/');
+		// If latestIsLoggedIn was true and isLoggedIn is now false, navigate directly to /login
+		if (changeIsLoggedIn) {
 			return <Navigate to="/login" replace />;
 		}
+
+		// Existing behavior: check state and user cache
+		const cachedUsers = keystore.getCachedUsers();
+		const userExistsInCache = (state: string) => {
+			if (!state) return false;
+			try {
+				const decodedState = JSON.parse(atob(state));
+				return cachedUsers.some(user => user.userHandleB64u === decodedState.userHandleB64u);
+			} catch (error) {
+				console.error('Error decoding state:', error);
+				return false;
+			}
+		};
+
 		if (state && userExistsInCache(state)) {
 			return <Navigate to="/login-state" state={{ from: location }} replace />;
 		} else {
