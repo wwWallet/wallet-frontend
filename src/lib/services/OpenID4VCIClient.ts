@@ -401,11 +401,11 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 					audience: this.config.credentialIssuerIdentifier
 				})
 			}
-			const generateProofsResult = cachedProofs ? { proof_jwts: cachedProofs } : await this.generateNonceProofs(inputs);
-			proofsArray = generateProofsResult.proof_jwts;
-			if (proofsArray) {
+			const generateProofsResult = cachedProofs ? { proof_jwts: cachedProofs } : await this.generateNonceProofs(inputs).then((res) => {
 				dispatchEvent(new CustomEvent("generatedProof"));
-			}
+				return res;
+			});
+			proofsArray = generateProofsResult.proof_jwts;
 		}
 		catch (err) {
 			console.error(err);

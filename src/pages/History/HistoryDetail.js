@@ -10,6 +10,7 @@ import SessionContext from '../../context/SessionContext';
 
 // Utility functions
 import { formatDate } from '../../functions/DateFormat';
+import { fromBase64 } from '../../util';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
@@ -28,8 +29,7 @@ const HistoryDetail = () => {
 
 	useEffect(() => {
 		if (history.length > 0) {
-			const verifiableCredentials = [history[0].presentation];
-			setMatchingCredentials(verifiableCredentials);
+			setMatchingCredentials(history[0].startsWith("b64:") ? JSON.parse(new TextDecoder().decode(fromBase64(history[0].replace("b64:", "")))) : [ history[0] ] );
 		}
 	}, [history]);
 
