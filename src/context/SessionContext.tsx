@@ -34,6 +34,7 @@ export const SessionContextProvider = ({ children }) => {
 	};
 
 	keystoreEvents.addEventListener(KeystoreEvent.Close, logout, { once: true });
+	keystoreEvents.addEventListener(KeystoreEvent.CloseTabLocal, api.clearSession, { once: true });
 
 	const value: SessionContextValue = {
 		api,
