@@ -153,3 +153,35 @@ export function getElementPropValue(
 	}
 	return value;
 }
+
+/**
+	* Create an `AbortController` and call `effect` with its `AbortSignal` as the
+	* `signal` argument, and return a cleanup handler that calls `.abort()` on the
+	* `AbortController`. This removes all event listeners that `effect` added with
+	* the option `{ signal: signal }`. If `effect` returns a cleanup handler, the
+	* wrapped cleanup handler will call that too.
+	*
+	* Example usage:
+	* ```
+	* useEffect(
+	* 	setupEvents(signal => {
+	* 		window.addEventListener('foo', () => console.log('foo'), { signal });
+	* 		return () => console.log('cleanup');
+	* 	}),
+	* 	[],
+	* );
+	* ```
+	*
+	* @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#signal
+	*/
+export function cleanupEvents(effect: (signal: AbortSignal) => (void | (() => void))): () => void {
+	const abortController = new AbortController();
+	const signal = abortController.signal;
+	const cleanup = effect(signal);
+	return () => {
+		if (cleanup) {
+			cleanup();
+		}
+		abortController.abort();
+	};
+}

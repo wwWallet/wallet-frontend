@@ -106,7 +106,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			clearSessionStorage();
 			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseTabLocal));
 		},
-		[clearSessionStorage],
+		[clearSessionStorage, eventTarget],
 	);
 
 	const close = useCallback(
@@ -117,7 +117,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			closeTabLocal();
 			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.Close));
 		},
-		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
+		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData, eventTarget],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);

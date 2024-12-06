@@ -26,6 +26,7 @@ import StatusContext from "./StatusContext";
 import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
 import { ApiEvent } from "../api";
+import { cleanupEvents } from "../util";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -47,27 +48,24 @@ const defaultLocale = 'en-US';
 
 export const ContainerContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
-	const { isLoggedIn, api, keystore } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore, events: sessionEvents } = useContext(SessionContext);
 
 	const [container, setContainer] = useState<ContainerContextValue>(null);
 	const [isInitialized, setIsInitialized] = useState(false); // New flag
 	const [shouldUseCache, setShouldUseCache] = useState(true)
 
-	useEffect(() => {
-		window.addEventListener('generatedProof', (e) => {
-			setIsInitialized(false);
-		});
-
-		window.addEventListener('settingsChanged', (e) => {
-			setIsInitialized(false);
-		});
-
-		window.addEventListener(ApiEvent.Login, (e) => {
-			setIsInitialized(false);
-			setShouldUseCache(false)
-		});
-
-	}, []);
+	useEffect(
+		() => cleanupEvents(signal => {
+			const onLogin = () => {
+				setIsInitialized(false);
+				setShouldUseCache(false)
+			};
+			window.addEventListener('generatedProof', () => setIsInitialized(false), { signal });
+			window.addEventListener('settingsChanged', () => setIsInitialized(false), { signal });
+			sessionEvents.addEventListener(ApiEvent.Login, onLogin, { signal });
+		}),
+		[sessionEvents],
+	);
 
 	useEffect(() => {
 		const initialize = async () => {

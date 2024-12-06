@@ -8,6 +8,8 @@ import Spinner from '../Shared/Spinner'; // Import your spinner component
 import { useSessionStorage } from '../../hooks/useStorage';
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
+import { ApiEvent } from '../../api';
+import { cleanupEvents } from '../../util';
 
 
 type PrivateRouteContextValue = {
@@ -23,10 +25,19 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 
 export function NotificationPermissionWarning(): React.ReactNode {
 	const { isOnline } = useContext(StatusContext);
-	const { api } = useContext(SessionContext);
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
-	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
+	const { events: sessionEvents } = useContext(SessionContext);
+	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible, clearIsMessageNoGrantedVisible] = useSessionStorage('isMessageNoGrantedVisible', false);
+	const [isMessageGrantedVisible, setIsMessageGrantedVisible, clearIsMessageGrantedVisible] = useSessionStorage('isMessageGrantedVisible', false);
+	const [isMessageOfflineVisible, setIsMessageOfflineVisible, clearIsMessageOfflineVisible] = useSessionStorage('isMessageOfflineVisible', false);
+
+	useEffect(
+		() => cleanupEvents(signal => {
+			sessionEvents.addEventListener(ApiEvent.ClearSession, clearIsMessageNoGrantedVisible, { signal });
+			sessionEvents.addEventListener(ApiEvent.ClearSession, clearIsMessageGrantedVisible, { signal });
+			sessionEvents.addEventListener(ApiEvent.ClearSession, clearIsMessageOfflineVisible, { signal });
+		}),
+		[clearIsMessageNoGrantedVisible, clearIsMessageGrantedVisible, clearIsMessageOfflineVisible, sessionEvents],
+	);
 
 	const { isPermissionGranted, tokenSentInSession } = useContext(PrivateRouteContext);
 
@@ -134,11 +145,22 @@ export function NotificationPermissionWarning(): React.ReactNode {
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactNode => {
 	const { isOnline } = useContext(StatusContext);
-	const { api, isLoggedIn, keystore, logout } = useContext(SessionContext);
+	const { api, isLoggedIn, keystore, logout, events: sessionEvents } = useContext(SessionContext);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
-	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
+	const [tokenSentInSession, setTokenSentInSession, clearTokenSentInSession] = useSessionStorage('tokenSentInSession', null);
+	const [latestIsOnlineStatus, setLatestIsOnlineStatus, clearLatestIsOnlineStatus] = useSessionStorage('latestIsOnlineStatus', null);
+
+	useEffect(
+		() => cleanupEvents(signal => {
+			sessionEvents.addEventListener(ApiEvent.ClearSession, () => {
+				clearTokenSentInSession();
+				clearLatestIsOnlineStatus();
+			}, { signal });
+		}),
+		[clearTokenSentInSession, clearLatestIsOnlineStatus, sessionEvents]
+	);
+
 	const cachedUsers = keystore.getCachedUsers();
 
 	const location = useLocation();

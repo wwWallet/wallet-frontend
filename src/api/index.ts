@@ -6,8 +6,7 @@ import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
-import { useEffect } from 'react';
-import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
+import { useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 
@@ -34,11 +33,8 @@ type SignupWebauthnError = (
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
 
 
-export type ClearSessionEvent = {};
-export const CLEAR_SESSION_EVENT = 'clearSession';
-export type ApiEventType = typeof CLEAR_SESSION_EVENT;
-const events: EventTarget = new EventTarget();
 export enum ApiEvent {
+	ClearSession = 'api.clearSession',
 	Login = 'api.login',
 }
 
@@ -78,14 +74,9 @@ export interface BackendApi {
 	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
 
 	updateShowWelcome(showWelcome: boolean): void,
-
-	addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void,
-	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
-	/** Register a storage hook handle to be cleared when `useApi().clearSession()` is invoked. */
-	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 }
 
-export function useApi(isOnline: boolean = true): BackendApi {
+export function useApi(isOnline: boolean = true, eventTarget: EventTarget): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
@@ -237,7 +228,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 	function clearSession(): void {
 		clearSessionStorage();
-		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
+		eventTarget.dispatchEvent(new CustomEvent(ApiEvent.ClearSession));
 	}
 
 	async function setSession(
@@ -259,7 +250,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-		dispatchEvent(new CustomEvent(ApiEvent.Login));
+		eventTarget.dispatchEvent(new CustomEvent(ApiEvent.Login));
 	}
 
 	async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
@@ -589,29 +580,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		}
 	}
 
-	function addEventListener(type: ApiEventType, listener: EventListener, options?: boolean | AddEventListenerOptions): void {
-		events.addEventListener(type, listener, options);
-	}
-
-	function removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void {
-		events.removeEventListener(type, listener, options);
-	}
-
-	function useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T> {
-		const [, , clearHandle] = storageHandle;
-		useEffect(
-			() => {
-				const listener = () => { clearHandle(); };
-				addEventListener(CLEAR_SESSION_EVENT, listener);
-				return () => {
-					removeEventListener(CLEAR_SESSION_EVENT, listener);
-				};
-			},
-			[clearHandle]
-		);
-		return storageHandle;
-	}
-
 	return {
 		del,
 		get,
@@ -635,9 +603,5 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		signupWebauthn,
 		updatePrivateData,
 		updatePrivateDataEtag,
-
-		addEventListener,
-		removeEventListener,
-		useClearOnClearSession,
 	};
 }

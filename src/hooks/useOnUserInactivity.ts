@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useResettableTimeout } from './useResettableTimeout';
-import { throttle } from '../util';
+import { cleanupEvents, throttle } from '../util';
 
 
 /**
@@ -12,7 +12,7 @@ export function useOnUserInactivity(action: () => void, timeoutMillis: number) {
 	const resetTimeout = useResettableTimeout(action, timeoutMillis);
 
 	useEffect(
-		() => {
+		() => cleanupEvents(signal => {
 			// I would have liked to use the User Activation API
 			// (https://developer.mozilla.org/en-US/docs/Web/API/UserActivation/isActive)
 			// for this, but it doesn't appear to provide an event source and the
@@ -23,14 +23,9 @@ export function useOnUserInactivity(action: () => void, timeoutMillis: number) {
 			const throttledReset = throttle(resetTimeout, timeoutMillis / 4);
 			const eventTypes = ["keydown", "pointermove", "pointerdown"];
 			for (const eventType of eventTypes) {
-				window.document.addEventListener(eventType, throttledReset, { passive: true });
+				window.document.addEventListener(eventType, throttledReset, { passive: true, signal });
 			}
-			return () => {
-				for (const eventType of eventTypes) {
-					window.document.removeEventListener(eventType, throttledReset);
-				}
-			}
-		},
+		}),
 		[resetTimeout, timeoutMillis],
 	);
 }
