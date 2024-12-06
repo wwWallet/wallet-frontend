@@ -27,6 +27,13 @@ export type CachedUser = {
 	prfKeys: WebauthnPrfSaltInfo[];
 }
 
+export enum KeystoreEvent {
+	/** The keystore has been closed. This event should be propagated to all tabs. */
+	Close = 'keystore.close',
+	/** The keystore has been closed. This event should not be propagated to other tabs. */
+	CloseTabLocal = 'keystore.closeTabLocal',
+}
+
 export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
 	isOpen(): boolean,
@@ -75,7 +82,7 @@ export interface LocalStorageKeystore {
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
-export function useLocalStorageKeystore(): LocalStorageKeystore {
+export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [privateData, setPrivateData, clearPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
@@ -97,6 +104,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 	const closeTabLocal = useCallback(
 		() => {
 			clearSessionStorage();
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseTabLocal));
 		},
 		[clearSessionStorage],
 	);
@@ -107,6 +115,7 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			clearPrivateData();
 			clearGlobalUserHandleB64u();
 			closeTabLocal();
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.Close));
 		},
 		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
@@ -181,9 +190,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		{ exportedMainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
-		setMainKey(exportedMainKey);
-		setPrivateData(privateData);
-
 		if (user) {
 			const userHandleB64u = ("prfKeys" in user
 				? user.userHandleB64u
@@ -199,13 +205,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			);
 
 			setUserHandleB64u(userHandleB64u);
+
+			// This must happen before setPrivateData in order to prevent the
+			// useEffect updating cachedUsers from corrupting cache entries for other
+			// users logged in in other tabs.
 			setGlobalUserHandleB64u(userHandleB64u);
+
 			setCachedUsers((cachedUsers) => {
 				// Move most recently used user to front of list
 				const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
 				return [newUser, ...otherUsers];
 			});
 		}
+
+		setMainKey(exportedMainKey);
+		setPrivateData(privateData);
 	};
 
 	const init = async (
