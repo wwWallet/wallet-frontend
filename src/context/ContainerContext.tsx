@@ -25,6 +25,7 @@ import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTe
 import StatusContext from "./StatusContext";
 import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
+import { ApiEvent } from "../api";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -61,7 +62,7 @@ export const ContainerContextProvider = ({ children }) => {
 			setIsInitialized(false);
 		});
 
-		window.addEventListener('login', (e) => {
+		window.addEventListener(ApiEvent.Login, (e) => {
 			setIsInitialized(false);
 			setShouldUseCache(false)
 		});

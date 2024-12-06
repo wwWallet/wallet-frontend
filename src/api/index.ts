@@ -38,6 +38,9 @@ export type ClearSessionEvent = {};
 export const CLEAR_SESSION_EVENT = 'clearSession';
 export type ApiEventType = typeof CLEAR_SESSION_EVENT;
 const events: EventTarget = new EventTarget();
+export enum ApiEvent {
+	Login = 'api.login',
+}
 
 
 export interface BackendApi {
@@ -256,7 +259,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-		dispatchEvent(new CustomEvent("login"));
+		dispatchEvent(new CustomEvent(ApiEvent.Login));
 	}
 
 	async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {
