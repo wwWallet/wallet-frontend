@@ -26,15 +26,24 @@ export const SessionContextProvider = ({ children }) => {
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 
 	const clearSession = async () => {
+		console.log('Clear Session')
 		api.clearSession();
 	};
 
 	const logout = async () => {
-		clearSession();
+		console.log('Logout')
 		await keystore.close();
 	};
 
-		keystoreEvents.addEventListener(KeystoreEvent.CloseTabLocal, clearSession, {once: true});
+	useEffect(() => {
+		// Add event listener
+		keystoreEvents.addEventListener(KeystoreEvent.CloseTabLocal, clearSession);
+
+		// Cleanup event listener to prevent duplicates
+		return () => {
+			keystoreEvents.removeEventListener(KeystoreEvent.CloseTabLocal, clearSession);
+		};
+	}, []);
 
 	const value: SessionContextValue = {
 		api,
