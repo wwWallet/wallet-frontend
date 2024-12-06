@@ -174,7 +174,7 @@ export function getElementPropValue(
 	*
 	* @see https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#signal
 	*/
-export function cleanupEvents(effect: (signal: AbortSignal) => (void | (() => void))): () => void {
+export function cleanupListeners(effect: (signal: AbortSignal) => (void | (() => void))): () => void {
 	const abortController = new AbortController();
 	const signal = abortController.signal;
 	const cleanup = effect(signal);

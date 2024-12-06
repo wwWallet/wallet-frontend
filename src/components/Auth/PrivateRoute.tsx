@@ -9,7 +9,7 @@ import { useSessionStorage } from '../../hooks/useStorage';
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 import { ApiEvent } from '../../api';
-import { cleanupEvents } from '../../util';
+import { cleanupListeners } from '../../util';
 
 
 type PrivateRouteContextValue = {
@@ -31,7 +31,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible, clearIsMessageOfflineVisible] = useSessionStorage('isMessageOfflineVisible', false);
 
 	useEffect(
-		() => cleanupEvents(signal => {
+		() => cleanupListeners(signal => {
 			sessionEvents.addEventListener(ApiEvent.ClearSession, clearIsMessageNoGrantedVisible, { signal });
 			sessionEvents.addEventListener(ApiEvent.ClearSession, clearIsMessageGrantedVisible, { signal });
 			sessionEvents.addEventListener(ApiEvent.ClearSession, clearIsMessageOfflineVisible, { signal });
@@ -152,7 +152,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus, clearLatestIsOnlineStatus] = useSessionStorage('latestIsOnlineStatus', null);
 
 	useEffect(
-		() => cleanupEvents(signal => {
+		() => cleanupListeners(signal => {
 			sessionEvents.addEventListener(ApiEvent.ClearSession, () => {
 				clearTokenSentInSession();
 				clearLatestIsOnlineStatus();

@@ -4,7 +4,7 @@ import StatusContext from './StatusContext';
 import { BackendApi, useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
-import { cleanupEvents } from '../util';
+import { cleanupListeners } from '../util';
 
 
 type SessionContextValue = {
@@ -40,7 +40,7 @@ export const SessionContextProvider = ({ children }) => {
 	);
 
 	useEffect(
-		() => cleanupEvents(signal => {
+		() => cleanupListeners(signal => {
 			events.addEventListener(KeystoreEvent.Close, logout, { once: true, signal });
 			events.addEventListener(KeystoreEvent.CloseTabLocal, api.clearSession, { once: true, signal });
 		}),

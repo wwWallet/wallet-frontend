@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useResettableTimeout } from './useResettableTimeout';
-import { cleanupEvents, throttle } from '../util';
+import { cleanupListeners, throttle } from '../util';
 
 
 /**
@@ -12,7 +12,7 @@ export function useOnUserInactivity(action: () => void, timeoutMillis: number) {
 	const resetTimeout = useResettableTimeout(action, timeoutMillis);
 
 	useEffect(
-		() => cleanupEvents(signal => {
+		() => cleanupListeners(signal => {
 			// I would have liked to use the User Activation API
 			// (https://developer.mozilla.org/en-US/docs/Web/API/UserActivation/isActive)
 			// for this, but it doesn't appear to provide an event source and the

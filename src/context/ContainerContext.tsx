@@ -26,7 +26,7 @@ import StatusContext from "./StatusContext";
 import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
 import { ApiEvent } from "../api";
-import { cleanupEvents } from "../util";
+import { cleanupListeners } from "../util";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -55,7 +55,7 @@ export const ContainerContextProvider = ({ children }) => {
 	const [shouldUseCache, setShouldUseCache] = useState(true)
 
 	useEffect(
-		() => cleanupEvents(signal => {
+		() => cleanupListeners(signal => {
 			const onLogin = () => {
 				setIsInitialized(false);
 				setShouldUseCache(false)
