@@ -28,7 +28,10 @@ export const AuthorizationRequestHandler = ({
 		const sendAuthorizationResponse = async () => {
 			try {
 				const { url: redirectUrl } = await container.openID4VPRelyingParty
-					.sendAuthorizationResponse(new Map(Object.entries(selectionMap)));
+					.sendAuthorizationResponse(
+						new Map(Object.entries(selectionMap)),
+						keystore,
+					);
 
 				if (redirectUrl) {
 					window.location.href = redirectUrl;
@@ -42,61 +45,71 @@ export const AuthorizationRequestHandler = ({
 
 		console.log('Selection map was mutated...');
 		sendAuthorizationResponse();
-	}, [selectionMap, container]);
+	}, [selectionMap, container, keystore]);
 
-	if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
-		return null;
-	}
-
-	const userHandleB64u = keystore.getUserHandleB64u();
-
-	if (!userHandleB64u) {
-		return;
-	}
-
-	const handleAuthorizationRequest = async () => {
-		try {
-			const result = await container.openID4VPRelyingParty.handleAuthorizationRequest(url);
-
-			const { err } = result as unknown as { err: HandleAuthorizationRequestError };
-
-			if (err !== undefined) {
-				switch(err) {
-					case HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS:
-						setMessageTitle('messagePopup.insufficientCredentials.title');
-						setMessageDescription('messagePopup.insufficientCredentials.description');
-						break;
-					case HandleAuthorizationRequestError.NONTRUSTED_VERIFIER:
-						setMessageTitle('messagePopup.nonTrustedVerifier.title');
-						setMessageDescription('messagePopup.nonTrustedVerifier.description');
-						break;
-					default:
-				}
-				if (messageTitle) setShowMessage(true);
-				return;
-			}
-
-			const {
-				conformantCredentialsMap,
-				verifierDomainName,
-			} = result as unknown as {
-				conformantCredentialsMap: Map<string, string[]>;
-				verifierDomainName: string;
-			};
-
-			const jsonedMap = Object.fromEntries(conformantCredentialsMap);
-			window.history.replaceState({}, '', `${window.location.pathname}`);
-			setVerifierDomainName(verifierDomainName);
-			setConformantCredentialsMap(jsonedMap);
-			setShowSelectCredentialsPopup(true);
-
-		} catch (error) {
-			console.log("Failed to handle authorization req");
-			console.error(error)
+	useEffect(() => {
+		if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
+			return null;
 		}
-	};
+	
+		const userHandleB64u = keystore.getUserHandleB64u();
+	
+		if (!userHandleB64u) {
+			return;
+		}
 
-	handleAuthorizationRequest();
+		const handleAuthorizationRequest = async () => {
+			try {
+				const result = await container.openID4VPRelyingParty.handleAuthorizationRequest(url);
+
+				const { err } = result as unknown as { err: HandleAuthorizationRequestError };
+
+				if (err !== undefined) {
+					switch(err) {
+						case HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS:
+							setMessageTitle('messagePopup.insufficientCredentials.title');
+							setMessageDescription('messagePopup.insufficientCredentials.description');
+							break;
+						case HandleAuthorizationRequestError.NONTRUSTED_VERIFIER:
+							setMessageTitle('messagePopup.nonTrustedVerifier.title');
+							setMessageDescription('messagePopup.nonTrustedVerifier.description');
+							break;
+						default:
+					}
+					if (messageTitle) setShowMessage(true);
+					return;
+				}
+
+				const {
+					conformantCredentialsMap,
+					verifierDomainName,
+				} = result as unknown as {
+					conformantCredentialsMap: Map<string, string[]>;
+					verifierDomainName: string;
+				};
+
+				const jsonedMap = Object.fromEntries(conformantCredentialsMap);
+				window.history.replaceState({}, '', `${window.location.pathname}`);
+				setVerifierDomainName(verifierDomainName);
+				setConformantCredentialsMap(jsonedMap);
+				setShowSelectCredentialsPopup(true);
+
+			} catch (error) {
+				console.log("Failed to handle authorization req");
+				console.error(error)
+			}
+		};
+
+		handleAuthorizationRequest();
+	}, [
+		messageTitle,
+		url,
+		api,
+		container,
+		isLoggedIn,
+		keystore,
+		t,
+	]);
 
 	return (
 		<>

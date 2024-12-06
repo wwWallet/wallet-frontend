@@ -25,6 +25,8 @@ import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTe
 import StatusContext from "./StatusContext";
 import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
+import { parseJwtVcJsonCredential } from "../functions/parseJwtVcJsonCredential";
+import { VerifiableCredentialFormat } from "../lib/schemas/vc";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -183,6 +185,101 @@ export const ContainerContextProvider = ({ children }) => {
 							let backgroundImageURL = issuerMetadata?.background_image?.uri || null;
 
 							const svgCustomContent = await renderCustomSvgTemplate({ beautifiedForm: result.beautifiedForm, name, description, logoURL, logoAltText, backgroundColor, textColor, backgroundImageURL });
+							return {
+								beautifiedForm: result.beautifiedForm,
+								credentialImage: {
+									credentialImageURL: svgCustomContent || defaultCredentialImage,
+								},
+								credentialFriendlyName,
+							}
+						}
+
+						return {
+							beautifiedForm: result.beautifiedForm,
+							credentialImage: {
+								credentialImageURL: defaultCredentialImage,
+							},
+							credentialFriendlyName,
+						}
+
+					},
+				});
+				
+				credentialParserRegistry.addParser({
+					async parse(rawCredential) {
+
+						if (typeof rawCredential != 'string') {
+							return { error: "rawCredential not of type 'string'" };
+
+						}
+						
+						const result = await parseJwtVcJsonCredential(rawCredential);
+						
+						if ('error' in result) {
+							return { error: "Failed to parse jwt_vc_json" };
+						}
+						
+						let iss = result.beautifiedForm.iss;
+
+						// @todo: make less specific for SURF agent
+						if (iss.startsWith('did:web:')) {
+							const issDomain = iss.split(':').pop();
+							const domainParts = issDomain.split('.');
+							const subDomain = domainParts.shift();
+							const domain = domainParts.join('.');
+							iss = `https://agent.${domain}/${subDomain}`;
+						}
+
+						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, iss, shouldUseCache);
+						
+						if (!metadataResponse) {
+							return { error: 'No metadata response' };
+						}
+
+						const { metadata } = metadataResponse;
+
+						if (!metadata) {
+							return { error: 'No metadata' };
+						}
+
+						const supportedCredentialConfigurations = Object.values(metadata.credential_configurations_supported);
+
+						if (! supportedCredentialConfigurations.every(configuration => configuration.format === VerifiableCredentialFormat.JWT_VC_JSON.toString())) {
+							return { error: 'Credential parser can only parse jwt_vc_json format' };
+						}
+
+						// @todo: make more dynamic using schema from credential context
+						const isOpenBadgeCredential = result.beautifiedForm.type.includes('OpenBadgeCredential');
+
+						const firstCredentialConfiguration = Object.values(metadata.credential_configurations_supported)[0];
+						const credentialFriendlyName = isOpenBadgeCredential
+							? result.beautifiedForm.credentialSubject.achievement.name
+							: firstCredentialConfiguration?.display?.[0]?.name || 'Credential';
+
+						if (firstCredentialConfiguration) {
+							const display = firstCredentialConfiguration?.display?.[0] || {};
+							let description = isOpenBadgeCredential
+								? result.beautifiedForm.credentialSubject.achievement.description
+								: display?.description || '';
+							let logoURL = isOpenBadgeCredential
+								? result.beautifiedForm.credentialSubject.achievement.image.id
+								: display?.logo?.uri || null;
+							let logoAltText = display?.logo?.alt_text || 'Credential logo';
+							let backgroundColor = display?.background_color || '#808080';
+							let textColor = display?.text_color || '#000000';
+							let backgroundImageURL = display?.background_image?.uri || null;
+
+							const svgCustomContent = await renderCustomSvgTemplate({
+								beautifiedForm: result.beautifiedForm,
+								name: credentialFriendlyName,
+								description,
+								logoURL,
+								logoAltText,
+								backgroundColor,
+								textColor,
+								backgroundImageURL,
+							});
+
 							return {
 								beautifiedForm: result.beautifiedForm,
 								credentialImage: {

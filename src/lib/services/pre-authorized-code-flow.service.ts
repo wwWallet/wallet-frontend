@@ -1,10 +1,11 @@
 import { LocalStorageKeystore } from '../../services/LocalStorageKeystore';
 import type { ProxyResponseData } from '../http/proxy-client';
 import ProxyClient from '../http/proxy-client';
+import { VerifiableCredentialFormat } from '../schemas/vc';
 
 export const FIELD_PRE_AUTHORIZED_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:pre-authorized_code';
+export const FIELD_AUTHORIZATION_CODE_GRANT_TYPE = 'authorization_code';
 export const FIELD_PRE_AUTHORIZED_CODE = 'pre-authorized_code';
-export const FIELD_USER_PIN_REQUIRED = 'user_pin_required';
 const PATH_TOKEN = '/token';
 
 interface TokenResponse {
@@ -13,12 +14,17 @@ interface TokenResponse {
 }
 
 // @todo: Add PIN support
-export const getToken = async (credentialIssuer: string, preAuthorizedCode: string): Promise<TokenResponse> => {
+export const getToken = async (
+	credentialIssuer: string,
+	preAuthorizedCode: string,
+	pin: string = '',
+): Promise<TokenResponse> => {
 	const response = await ProxyClient.post(
 		`${credentialIssuer}${PATH_TOKEN}`,
 		{
 			grant_type: FIELD_PRE_AUTHORIZED_CODE_GRANT_TYPE,
 			'pre-authorized_code': preAuthorizedCode,
+			user_pin: pin || undefined,
 		},
 		{
 			'Content-Type': 'application/json',
@@ -43,8 +49,9 @@ export const generateNonceProof = async (
 	nonce: string,
 	audience: string,
 	issuer: string,
+	format?: VerifiableCredentialFormat
 ): Promise<{ jws: string }> => {
-	const [{ proof_jwts }] = await keystore.generateOpenid4vciProofs([{ nonce, audience, issuer }]);
+	const [{ proof_jwts }] = await keystore.generateOpenid4vciProofs([{ nonce, audience, issuer, format }]);
 	return { jws: proof_jwts[0] };
 };
 

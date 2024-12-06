@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { BACKEND_URL } from '../../config';
 import { appTokenAuthorizationHeader } from './authorization';
 
@@ -17,21 +18,17 @@ interface ProxyResponseError {
 
 export const get = async (url: string, headers: any): Promise<ProxyResponseData> => {
 	try {
-		const response = await fetch(API_BASE_URL, {
-			body: JSON.stringify({
-				headers: headers,
-				url: url,
-				method: 'get',
-			}),
+		const response = await axios.post(API_BASE_URL, {
+			headers: headers,
+			url: url,
+			method: 'get',
+		}, {
+			timeout: 2500,
 			headers: {
-				Authorization: appTokenAuthorizationHeader(),
-			},
-			signal: AbortSignal.timeout(2500),
+				Authorization: appTokenAuthorizationHeader()
+			}
 		});
-
-		const { data } = await response.json();
-
-		return data;
+		return response.data;
 	}
 	catch(err) {
 		return null;
@@ -40,22 +37,18 @@ export const get = async (url: string, headers: any): Promise<ProxyResponseData>
 
 export const post = async (url: string, body: any, headers: any): Promise<ProxyResponseData | ProxyResponseError> => {
 	try {
-		const response = await fetch(API_BASE_URL, {
-			body: JSON.stringify({
-				headers: headers,
-				url: url,
-				method: 'post',
-				data: body,
-			}),
+		const response = await axios.post(API_BASE_URL, {
+			headers: headers,
+			url: url,
+			method: 'post',
+			data: body,
+		}, {
+			timeout: 2500,
 			headers: {
 				Authorization: appTokenAuthorizationHeader(),
-			},
-			signal: AbortSignal.timeout(2500),
+			}
 		});
-
-		const { data } = await response.json();
-
-		return data;
+		return response.data;
 	}
 	catch(err) {
 		return {

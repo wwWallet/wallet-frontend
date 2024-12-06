@@ -1,7 +1,21 @@
 import axios from 'axios';
 import jsonpointer from 'jsonpointer';
 import { formatDate } from '../../functions/DateFormat';
-import customTemplate from '../../assets/images/custom_template.svg';
+
+const svgContent = `
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="829"
+	height="504" version="1.1">
+
+	<rect width="100%" height="100%" fill="{{backgroundColor}}" />
+
+	{{backgroundImageBase64}}
+	{{logoBase64}}
+
+	<text x="50" y="80" font-family="Arial, Helvetica, sans-serif" font-size="35" fill="{{textColor}}" font-weight="normal">{{name}}</text>
+	<text x="50" y="120" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="{{textColor}}" font-weight="normal">{{description}}</text>
+	<text x="790" y="431" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="25" fill="{{textColor}}" font-weight="normal">{{/expiry_date}}</text>
+</svg>
+`;
 
 async function getBase64Image(url) {
 	if (!url) return null;
@@ -23,15 +37,10 @@ async function getBase64Image(url) {
 
 const renderCustomSvgTemplate = async ({ beautifiedForm, name, description, logoURL, logoAltText, backgroundColor, textColor, backgroundImageURL }) => {
 	try {
-		const response = await fetch(customTemplate);
-		if (!response.ok) throw new Error("Failed to fetch SVG template");
-
-		let svgContent = await response.text();
-
 		const backgroundImageBase64 = await getBase64Image(backgroundImageURL);
 		const logoBase64 = await getBase64Image(logoURL);
 
-		svgContent = svgContent
+		let content = svgContent
 			.replace(/{{backgroundColor}}/g, backgroundColor)
 			.replace(
 				/{{backgroundImageBase64}}/g,
@@ -50,9 +59,9 @@ const renderCustomSvgTemplate = async ({ beautifiedForm, name, description, logo
 			.replace(/{{description}}/g, description);
 
 		const expiryDate = jsonpointer.get(beautifiedForm, "/expiry_date");
-		svgContent = svgContent.replace(/{{\/expiry_date}}/g, expiryDate ? `Expiry Date: ${formatDate(expiryDate, 'date')}` : '');
+		content = content.replace(/{{\/expiry_date}}/g, expiryDate ? `Expiry Date: ${formatDate(expiryDate, 'date')}` : '');
 
-		return `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;
+		return `data:image/svg+xml;utf8,${encodeURIComponent(content)}`;
 	} catch (error) {
 		console.error("Error rendering SVG template", error);
 		return null;

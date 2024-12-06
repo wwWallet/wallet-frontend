@@ -1,7 +1,10 @@
 import ProxyClient from '../http/proxy-client';
 import LocalApiClient from '../http/local-api-client';
 import { OpenidAuthorizationServerMetadata, OpenidAuthorizationServerMetadataSchema } from '../schemas/OpenidAuthorizationServerMetadataSchema';
-import { OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from '../schemas/OpenidCredentialIssuerMetadataSchema';
+import {
+	OpenidCredentialIssuerMetadata,
+	OpenidCredentialIssuerMetadataSchema,
+} from '../schemas/OpenidCredentialIssuerMetadataSchema';
 
 const PATH_OPEN_ID_CREDENTIAL_ISSUER = '/.well-known/openid-credential-issuer';
 const PATH_OAUTH_AUTHORIZATION_SERVER = '/.well-known/oauth-authorization-server';
@@ -16,7 +19,7 @@ export const getIssuerConfiguration = async (
 	credentialIssuer: string,
 	isOnline: boolean = true,
 	useCache: boolean = false,
-): Promise<{ metadata: OpenidCredentialIssuerMetadata }> => {
+): Promise<{ metadata: OpenidCredentialIssuerMetadata } | OpenidCredentialIssuerMetadata> => {
 	const path = `${credentialIssuer}${PATH_OPEN_ID_CREDENTIAL_ISSUER}`;
 
 	if (!isOnline || useCache) {
@@ -25,11 +28,13 @@ export const getIssuerConfiguration = async (
 	}
 
 	try {
-		const { data } = await ProxyClient.get(path, {
+		const response = await ProxyClient.get(path, {
 			'Cache-Control': 'no-cache',
 		});
 
-		const parsedData = OpenidCredentialIssuerMetadataSchema.parse(data);
+		const data = response.data || response;
+		// const parsedData = OpenidCredentialIssuerMetadataSchema.parse(data);
+		const parsedData = data;
 		await LocalApiClient.post(path, path, parsedData);
 
 		return { metadata: parsedData };
