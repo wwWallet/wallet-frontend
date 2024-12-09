@@ -1,40 +1,37 @@
-import React, { useState } from "react";
-import { useTranslation } from "react-i18next";
-import { FaLanguage } from "react-icons/fa";
+import React from "react";
 
-import PopupLayout from "../Popups/PopupLayout";
-import LanguageOption from "./LanguageOption";
+import { useTranslation } from "react-i18next";
+import { languageOptions } from "./languages";
 
 type LanguageSelectorProps = {
 	className: string;
-	iconSize?: number;
-	hasLabel: boolean;
+	showFullLabel: boolean;
 };
 
 const LanguageSelector = ({
 	className,
-	iconSize,
-	hasLabel = true,
+	showFullLabel = true,
 }: LanguageSelectorProps) => {
-	const { t } = useTranslation();
-	const [isOpenLanguageOptions, setIsOpenLanguageOptions] = useState(false);
+	const { i18n } = useTranslation();
+	const { language } = i18n;
+
+	const handleChangeLanguage = (event) => {
+		const selectedLanguage = event.target.value;
+		i18n.changeLanguage(selectedLanguage);
+	};
 
 	return (
-		<>
-			<button
-				onClick={() => setIsOpenLanguageOptions(true)}
-				className={className}
-			>
-				<FaLanguage size={iconSize ?? 30} />
-				{hasLabel && <span>{t("language.label")}</span>}
-			</button>
-			<PopupLayout
-				isOpen={isOpenLanguageOptions}
-				onClose={() => setIsOpenLanguageOptions(false)}
-			>
-				<LanguageOption onClose={() => setIsOpenLanguageOptions(false)} />
-			</PopupLayout>
-		</>
+		<select
+			className={className}
+			value={language}
+			onChange={handleChangeLanguage}
+		>
+			{languageOptions.map((option) => (
+				<option key={option.value} value={option.value}>
+					{showFullLabel ? option.label : option.label.split(" ")[0]}
+				</option>
+			))}
+		</select>
 	);
 };
 

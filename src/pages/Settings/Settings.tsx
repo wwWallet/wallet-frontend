@@ -20,6 +20,7 @@ import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
+import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -859,6 +860,17 @@ const Settings = () => {
 						<H1 heading={t('common.navItemSettings')} />
 						<PageDescription description={t('pageSettings.description')} />
 
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.title.language')} />
+							<div className="relative inline-block min-w-36 text-gray-700">	
+								<div className="relative w-full h-10">
+									<LanguageSelector className="w-full pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36 appearance-none" showFullLabel />
+									<span className="absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none">
+										<IoIosArrowDown />
+									</span>
+								</div>
+							</div>
+						</div>
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.title.loggedInPasskey')} />
 							{loggedInPasskey && (
