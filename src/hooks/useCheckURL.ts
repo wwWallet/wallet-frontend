@@ -81,11 +81,6 @@ function useCheckURL(urlToCheck: string): {
 							setTypeMessagePopup('error');
 							setMessagePopup(true);
 						}
-						else if (result.err === HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED) {
-							setTextMessagePopup({ title: `${t('messagePopup.onlyOneInputDescriptor.title')}`, description: `${t('messagePopup.onlyOneInputDescriptor.description')}` });
-							setTypeMessagePopup('error');
-							setMessagePopup(true);
-						}
 						else if (result.err === HandleAuthorizationRequestError.NONTRUSTED_VERIFIER) {
 							setTextMessagePopup({ title: `${t('messagePopup.nonTrustedVerifier.title')}`, description: `${t('messagePopup.nonTrustedVerifier.description')}` });
 							setTypeMessagePopup('error');

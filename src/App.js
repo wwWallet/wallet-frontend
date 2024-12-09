@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useState } from 'react';
+import React, { useEffect, Suspense, useState, useContext } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
@@ -15,6 +15,7 @@ import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
 import { withContainerContext } from './context/ContainerContext';
+import StatusContext from './context/StatusContext';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
@@ -57,7 +58,15 @@ const reactLazyWithNonDefaultExports = (load, ...names) => {
 	return defaultExport;
 };
 
-const Layout = React.lazy(() => import('./components/Layout/Layout'));
+const lazyWithDelay = (importFunction, delay = 1000) => {
+	return React.lazy(() =>
+		Promise.all([
+			importFunction(),
+			new Promise((resolve) => setTimeout(resolve, delay)),
+		]).then(([module]) => module)
+	);
+};
+
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
@@ -65,21 +74,23 @@ const PrivateRoute = reactLazyWithNonDefaultExports(
 	'NotificationPermissionWarning',
 );
 const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentialsPopup'));
-
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
 const History = React.lazy(() => import('./pages/History/History'));
 const HistoryDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
-const Login = React.lazy(() => import('./pages/Login/Login'));
-const LoginState = React.lazy(() => import('./pages/Login/LoginState'));
-const NotFound = React.lazy(() => import('./pages/NotFound/NotFound'));
 const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
 const Settings = React.lazy(() => import('./pages/Settings/Settings'));
 const VerificationResult = React.lazy(() => import('./pages/VerificationResult/VerificationResult'));
 
+const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
+const Login = lazyWithDelay(() => import('./pages/Login/Login'), 400);
+const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
+const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
+
 function App() {
+	const { updateOnlineStatus } = useContext(StatusContext);
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 	const {
@@ -99,6 +110,7 @@ function App() {
 	useEffect(() => {
 		setUrl(window.location.href);
 		checkForUpdates();
+		updateOnlineStatus(false);
 	}, [location])
 
 	useEffect(() => {
@@ -133,7 +145,7 @@ function App() {
 						<Route element={
 							<PrivateRoute>
 								<Layout>
-									<Suspense fallback={<Spinner />}>
+									<Suspense fallback={<Spinner size='small' />}>
 										<PrivateRoute.NotificationPermissionWarning />
 										<FadeInContentTransition appear reanimateKey={location.pathname}>
 											<Outlet />

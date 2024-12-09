@@ -12,6 +12,8 @@ import { ICredentialParserRegistry } from "../interfaces/ICredentialParser";
 import { extractSAN, getPublicKeyFromB64Cert } from "../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../config";
+import { CredentialBatchHelper } from "./CredentialBatchHelper";
+import { toBase64 } from "../../util";
 
 export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
@@ -20,6 +22,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		private openID4VPRelyingPartyStateRepository: OpenID4VPRelyingPartyStateRepository,
 		private httpProxy: IHttpProxy,
 		private credentialParserRegistry: ICredentialParserRegistry,
+		private credentialBatchHelper: CredentialBatchHelper,
 		private getAllStoredVerifiableCredentials: () => Promise<{ verifiableCredentials: StorableCredential[] }>,
 		private signJwtPresentationKeystoreFn: (nonce: string, audience: string, verifiableCredentials: any[]) => Promise<{ vpjwt: string }>,
 		private storeVerifiablePresentation: (presentation: string, format: string, identifiersOfIncludedCredentials: string[], presentationSubmission: any, audience: string) => Promise<void>
@@ -117,9 +120,6 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		if (!presentation_definition) {
 			return { err: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
-		}
-		if (presentation_definition.input_descriptors.length > 1) {
-			return { err: HandleAuthorizationRequestError.ONLY_ONE_INPUT_DESCRIPTOR_IS_SUPPORTED };
 		}
 
 		const { error } = ResponseModeSchema.safeParse(response_mode);
@@ -271,7 +271,14 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		let { verifiableCredentials } = await this.getAllStoredVerifiableCredentials();
 		const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
-		const filteredVCEntities = verifiableCredentials
+
+		// returns the credentials with the minimum usages for each credential identifier
+		const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (credentialIdentifier) => {
+			const result = await this.credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials)
+			return result.credential;
+		}));
+
+		const filteredVCEntities = credentialsFilteredByUsage
 			.filter((vc) =>
 				allSelectedCredentialIdentifiers.includes(vc.credentialIdentifier),
 			);
@@ -280,6 +287,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 		let generatedVPs = [];
 		let originalVCs = [];
 		const descriptorMap = [];
+		let i = 0;
 		for (const [descriptor_id, credentialIdentifier] of selectionMap) {
 			const vcEntity = filteredVCEntities.filter((vc) => vc.credentialIdentifier === credentialIdentifier)[0];
 			if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC) {
@@ -295,11 +303,21 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 				const { vpjwt } = await this.signJwtPresentationKeystoreFn(nonce, client_id, [presentation]);
 				selectedVCs.push(presentation);
 				generatedVPs.push(vpjwt);
-				descriptorMap.push({
-					id: descriptor_id,
-					format: VerifiableCredentialFormat.SD_JWT_VC,
-					path: `$`
-				});
+				if (selectionMap.size > 1) {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: VerifiableCredentialFormat.SD_JWT_VC,
+						path: `$[${i++}]`
+					});
+				}
+				else {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: VerifiableCredentialFormat.SD_JWT_VC,
+						path: `$`
+					});
+				}
+
 				originalVCs.push(vcEntity);
 			}
 		}
@@ -316,7 +334,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 			const jwe = await new EncryptJWT({
-				vp_token: generatedVPs[0],
+				vp_token: generatedVPs.length == 1 ? generatedVPs[0] : generatedVPs,
 				presentation_submission: presentationSubmission,
 				state: S.state ?? undefined
 			})
@@ -327,7 +345,7 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 			console.log("JWE = ", jwe)
 		}
 		else {
-			formData.append('vp_token', generatedVPs[0]);
+			formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs) );
 			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 			if (S.state) {
 				formData.append('state', S.state);
@@ -337,9 +355,13 @@ export class OpenID4VPRelyingParty implements IOpenID4VPRelyingParty {
 
 		const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
-		await this.storeVerifiablePresentation(generatedVPs[0], presentationSubmission.descriptor_map[0].format, credentialIdentifiers, presentationSubmission, client_id);
+		const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
+		const storePresentationPromise = this.storeVerifiablePresentation(presentations, "", credentialIdentifiers, presentationSubmission, client_id);
+		const updateCredentialPromise = filteredVCEntities.map(async (cred) => this.credentialBatchHelper.useCredential(cred))
 
-		await this.openID4VPRelyingPartyStateRepository.store(S);
+		const updateRepositoryPromise = this.openID4VPRelyingPartyStateRepository.store(S);
+
+		await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
 		const res = await this.httpProxy.post(response_uri, formData.toString(), {
 			'Content-Type': 'application/x-www-form-urlencoded',

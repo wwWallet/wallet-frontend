@@ -98,7 +98,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 					<ul>
 						<div className='flex items-center space-x-2 mb-2 p-2 rounded-r-xl'>
 							<div className='pr-2 border-r border-white/20'>
-								<ConnectionStatusIcon size={22} />
+								<ConnectionStatusIcon size='small' />
 							</div>
 
 							<FaUserCircle size={20} title={displayName || username} />

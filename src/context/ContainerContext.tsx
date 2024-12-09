@@ -18,13 +18,13 @@ import SessionContext from "../context/SessionContext";
 import { ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
 import { CredentialParserRegistry } from "../lib/services/CredentialParserRegistry";
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
-import { CredentialConfigurationSupported } from "../lib/schemas/CredentialConfigurationSupportedSchema";
 import { generateRandomIdentifier } from "../lib/utils/generateRandomIdentifier";
-import { fromBase64 } from "../util";
 import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
 import StatusContext from "./StatusContext";
+import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
+import { CredentialBatchHelper } from "../lib/services/CredentialBatchHelper";
 
 export type ContainerContextValue = {
 	httpProxy: IHttpProxy,
@@ -90,6 +90,14 @@ export const ContainerContextProvider = ({ children }) => {
 
 				cont.register<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository', OpenID4VCIClientStateRepository, userData.settings.openidRefreshTokenMaxAgeInSeconds);
 				cont.register<IOpenID4VCIHelper>('OpenID4VCIHelper', OpenID4VCIHelper, cont.resolve<IHttpProxy>('HttpProxy'));
+
+				cont.register<CredentialBatchHelper>('CredentialBatchHelper', CredentialBatchHelper,
+					async function updateCredential(storableCredential: StorableCredential) {
+						await api.post('/storage/vc/update', {
+							credential: storableCredential
+						});
+					}
+				)
 				const credentialParserRegistry = cont.resolve<ICredentialParserRegistry>('CredentialParserRegistry');
 
 				credentialParserRegistry.addParser({
@@ -103,31 +111,40 @@ export const ContainerContextProvider = ({ children }) => {
 						if ('error' in result) {
 							return { error: "Failed to parse sdjwt" };
 						}
+						let credentialConfigurationSupportedObj = null;
+						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, result.beautifiedForm.iss, shouldUseCache);
+						if (metadataResponse) {
+							const { metadata } = metadataResponse;
+							credentialConfigurationSupportedObj = Object.values(metadata.credential_configurations_supported)
+								.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
+							[0];
+						}
 
-						const { metadata } = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, result.beautifiedForm.iss, shouldUseCache);
-						const credentialConfigurationSupportedObj: CredentialConfigurationSupported | undefined = Object.values(metadata.credential_configurations_supported)
-							.filter((x: any) => x?.vct && result.beautifiedForm?.vct && x.vct === result.beautifiedForm?.vct)
-						[0];
+						const getSdJwtVcMetadataResult = await getSdJwtVcMetadata(rawCredential);
 
-						const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(rawCredential.split('.')[0] as string)));
+						// Validate the metadata object
+						const isValidMetadata = !('error' in getSdJwtVcMetadataResult) && getSdJwtVcMetadataResult.credentialMetadata;
 
-						const credentialImageSvgTemplateURL = credentialHeader?.vctm?.display &&
-							credentialHeader.vctm.display[0] && credentialHeader.vctm.display[0][defaultLocale] &&
-							credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates.length > 0 ?
-							credentialHeader.vctm.display[0][defaultLocale]?.rendering?.svg_templates[0]?.uri
+						// Extract metadata and claims
+						const metadata = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.display?.find((d) => d.lang === defaultLocale) || null;
+						const claims = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.claims?.length
+							? getSdJwtVcMetadataResult.credentialMetadata.claims
 							: null;
 
-						let credentialFriendlyName = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.name
-							|| credentialConfigurationSupportedObj?.display?.[0]?.name
-							|| "Credential";
+						// Extract key values
+						const credentialImageSvgTemplateURL = metadata?.rendering?.svg_templates?.[0]?.uri || null;
+						const credentialFriendlyName = metadata?.name || "Credential";
+						const credentialDescription = metadata?.description || "Verifiable Credential";
+						const simple = metadata?.rendering?.simple || null;
 
-						let credentialDescription = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.description
-							|| credentialConfigurationSupportedObj?.display?.[0]?.description
-							|| "Credential";
+						// Render SVG content
+						const svgContent = await renderSvgTemplate({
+							beautifiedForm: result.beautifiedForm,
+							credentialImageSvgTemplateURL,
+							claims
+						});
 
-						const svgContent = await renderSvgTemplate({ beautifiedForm: result.beautifiedForm, credentialImageSvgTemplateURL: credentialImageSvgTemplateURL,claims:credentialHeader?.vctm?.claims });
-
-						const simple = credentialHeader?.vctm?.display?.[0]?.[defaultLocale]?.rendering?.simple;
+						// Extract issuer metadata
 						const issuerMetadata = credentialConfigurationSupportedObj?.display?.[0];
 
 						if (svgContent) {
@@ -190,6 +207,7 @@ export const ContainerContextProvider = ({ children }) => {
 					cont.resolve<IOpenID4VPRelyingPartyStateRepository>('OpenID4VPRelyingPartyStateRepository'),
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<ICredentialParserRegistry>('CredentialParserRegistry'),
+					cont.resolve<CredentialBatchHelper>('CredentialBatchHelper'),
 					async function getAllStoredVerifiableCredentials() {
 						const fetchAllCredentials = await api.get('/storage/vc');
 						return { verifiableCredentials: fetchAllCredentials.data.vc_list };
@@ -214,15 +232,15 @@ export const ContainerContextProvider = ({ children }) => {
 				cont.register<OpenID4VCIClientFactory>('OpenID4VCIClientFactory', OpenID4VCIClientFactory,
 					cont.resolve<IHttpProxy>('HttpProxy'),
 					cont.resolve<IOpenID4VCIClientStateRepository>('OpenID4VCIClientStateRepository'),
-					async (cNonce: string, audience: string, clientId: string): Promise<{ jws: string }> => {
-						const [{ proof_jwts: [proof_jwt] }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs([{ nonce: cNonce, audience, issuer: clientId }]);
+					async (requests: { nonce: string, audience: string, issuer: string }[]): Promise<{ proof_jwts: string[] }> => {
+						const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(requests);
 						await api.updatePrivateData(newPrivateData);
 						await keystoreCommit();
-						return { jws: proof_jwt };
+						return { proof_jwts };
 					},
-					async function storeCredential(c: StorableCredential) {
+					async function storeCredentials(cList: StorableCredential[]) {
 						await api.post('/storage/vc', {
-							...c
+							credentials: cList
 						});
 					},
 				);

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
+import { PiCardsBold } from "react-icons/pi";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -31,13 +32,18 @@ const CredentialLayout = ({ children, title = null }) => {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [isExpired, setIsExpired] = useState(null);
-
+	const [zeroSigCount, setZeroSigCount] = useState(null)
+	const [sigTotal, setSigTotal] = useState(null);
 
 	useEffect(() => {
 		const getData = async () => {
 			const response = await api.get('/storage/vc');
 			const vcEntity = response.data.vc_list
 				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId)[0];
+			const vcEntityInstances = response.data.vc_list
+				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId);
+			setZeroSigCount(vcEntityInstances.filter(instance => instance.sigCount === 0).length || 0);
+			setSigTotal(vcEntityInstances.length);
 			if (!vcEntity) {
 				throw new Error("Credential not found");
 			}
@@ -60,6 +66,22 @@ const CredentialLayout = ({ children, title = null }) => {
 		});
 	}, [vcEntity, container]);
 
+	const UsageStats = ({ zeroSigCount, sigTotal }) => {
+		if (zeroSigCount === null || sigTotal === null) return null;
+
+		const usageClass = zeroSigCount === 0 ? 'text-orange-600 dark:text-orange-500' : 'text-green-600 dark:text-green-500';
+
+		return (
+			<div className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
+				<PiCardsBold size={18} className=' mr-1' />
+				<p className=' font-base'>
+					<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
+					<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
+				</p>
+			</div>
+		);
+	};
+
 	return (
 		<div className=" sm:px-6">
 			{screenType !== 'mobile' ? (
@@ -79,28 +101,37 @@ const CredentialLayout = ({ children, title = null }) => {
 					<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
 						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 					</button>
-					{title &&<H1 heading={title} hr={false} />}
+					{title && <H1 heading={title} hr={false} />}
 				</div>
 			)}
 			<PageDescription description={t('pageCredentials.details.description')} />
 
 			<div className="flex flex-wrap mt-0 lg:mt-5">
 				{/* Block 1: credential */}
-				<div className='flex flex-row w-full md:w-1/2'>
-					<div className='flex flex-row items-center gap-5 mt-2 mb-4 px-2'>
+				<div className='flex flex-row w-full lg:w-1/2'>
+					<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
 						{vcEntity && (
 							// Open the modal when the credential is clicked
-							<button className="relative rounded-xl xm:rounded-lg w-4/5 xm:w-4/12 overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
-								onClick={() => setShowFullscreenImgPopup(true)}
-								aria-label={`${credentialFiendlyName}`}
-								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
-							>
-								<CredentialImage credential={vcEntity.credential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
-							</button>
+							<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
+								<button className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+									onClick={() => setShowFullscreenImgPopup(true)}
+									aria-label={`${credentialFiendlyName}`}
+									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+								>
+									<CredentialImage vcEntity={vcEntity} credential={vcEntity.credential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
+								</button>
+								{screenType !== 'mobile' && zeroSigCount !== null && sigTotal &&
+									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
+								}
+							</div>
 						)}
+
 						<div>
 							{screenType === 'mobile' && (
-								<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
+								<div className='flex flex-start flex-col gap-1'>
+									<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
+									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
+								</div>
 							)}
 						</div>
 					</div>
