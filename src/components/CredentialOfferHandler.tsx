@@ -151,13 +151,13 @@ export const CredentialOfferHandler = ({
 		) {
 			return;
 		}
-	
+
 		const userHandleB64u = keystore.getUserHandleB64u();
-	
+
 		if (!userHandleB64u) {
 			return;
 		}
-	
+
 		// @todo: split into separate functions to accommodate interruptions by prompts
 		// for PIN and confirmation of adding issuer to trusted issuers.
 		const handleCredentialOffer = async () => {

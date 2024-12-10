@@ -89,7 +89,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 			}
 
 			const metadataResponse = await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline, iss, true);
-			
+
 			if (!metadataResponse) {
 				return { error: 'No metadata response' };
 			}

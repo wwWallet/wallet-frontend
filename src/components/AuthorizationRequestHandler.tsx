@@ -30,7 +30,6 @@ export const AuthorizationRequestHandler = ({
 				const { url: redirectUrl } = await container.openID4VPRelyingParty
 					.sendAuthorizationResponse(
 						new Map(Object.entries(selectionMap)),
-						keystore,
 					);
 
 				if (redirectUrl) {
@@ -51,9 +50,9 @@ export const AuthorizationRequestHandler = ({
 		if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
 			return null;
 		}
-	
+
 		const userHandleB64u = keystore.getUserHandleB64u();
-	
+
 		if (!userHandleB64u) {
 			return;
 		}

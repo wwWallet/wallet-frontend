@@ -204,21 +204,20 @@ export const ContainerContextProvider = ({ children }) => {
 
 					},
 				});
-				
+
 				credentialParserRegistry.addParser({
 					async parse(rawCredential) {
 
 						if (typeof rawCredential != 'string') {
 							return { error: "rawCredential not of type 'string'" };
-
 						}
-						
+
 						const result = await parseJwtVcJsonCredential(rawCredential);
-						
+
 						if ('error' in result) {
 							return { error: "Failed to parse jwt_vc_json" };
 						}
-						
+
 						let iss = result.beautifiedForm.iss;
 
 						// @todo: make less specific for SURF agent
@@ -231,7 +230,7 @@ export const ContainerContextProvider = ({ children }) => {
 						}
 
 						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, iss, shouldUseCache);
-						
+
 						if (!metadataResponse) {
 							return { error: 'No metadata response' };
 						}
