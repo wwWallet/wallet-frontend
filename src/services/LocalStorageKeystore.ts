@@ -8,6 +8,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
+import { VerifiableCredentialFormat } from "../lib/schemas/vc";
 
 
 type UserData = {
@@ -67,7 +68,7 @@ export interface LocalStorageKeystore {
 	getUserHandleB64u(): string | null,
 
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }>,
-	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
+	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string, format?: VerifiableCredentialFormat }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -369,20 +370,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials)
 		),
 
-		generateOpenid4vciProofs: async (requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
+		generateOpenid4vciProofs: async (requests: { nonce: string, audience: string, issuer: string, format?: VerifiableCredentialFormat }[]): Promise<[
 			{ proof_jwts: string[] },
 			AsymmetricEncryptedContainer,
 			CommitCallback,
 		]> => (
 			await editPrivateData(async (originalContainer) => {
-				const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
+				const { nonce, audience, issuer, format } = requests[0]; // the first row is enough since the nonce remains the same
 				const [{ proof_jwts }, newContainer] = await keystore.generateOpenid4vciProofs(
 					originalContainer,
 					config.DID_KEY_VERSION,
 					nonce,
 					audience,
 					issuer,
-					requests.length
+					requests.length,
+					format,
 				);
 				return [{ proof_jwts }, newContainer];
 			})

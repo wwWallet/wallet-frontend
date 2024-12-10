@@ -10,6 +10,7 @@ import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SdJwt } from "@sd-jwt/core";
+import { VerifiableCredentialFormat } from "../lib/schemas/vc";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -1050,6 +1051,7 @@ async function addNewCredentialKeypairs(
 	privateKeys: CryptoKey[],
 	keypairs: CredentialKeyPair[],
 	newPrivateData: OpenedContainer,
+	dids: string[],
 }> {
 
 	const keypairsWithPrivateKeys = await Promise.all(Array.from({ length: numberOfKeyPairs }).map(async () => {
@@ -1071,13 +1073,14 @@ async function addNewCredentialKeypairs(
 			wrappedPrivateKey,
 		};
 
-		return { kid, keypair, privateKey };
+		return { did, kid, keypair, privateKey };
 	}));
 
 
 
 	console.log("addNewredentialKeypair: Before update private data")
 	return {
+		dids: keypairsWithPrivateKeys.map((k) => k.did),
 		privateKeys: keypairsWithPrivateKeys.map((k) => k.privateKey),
 		keypairs: keypairsWithPrivateKeys.map((k) => k.keypair),
 		newPrivateData: await updatePrivateData(
@@ -1151,27 +1154,39 @@ export async function generateOpenid4vciProofs(
 	nonce: string,
 	audience: string,
 	issuer: string,
-	numberOfKeyPairs: number = 1
+	numberOfKeyPairs: number = 1,
+	format?: VerifiableCredentialFormat
 ): Promise<[{ proof_jwts: string[] }, OpenedContainer]> {
 	const deriveKid = async (publicKey: CryptoKey) => {
 		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
 		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
 		return jwkThumbprint;
 	};
-	const { privateKeys, newPrivateData, keypairs } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
+	const { privateKeys, newPrivateData, keypairs, dids } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
 
 	const proof_jwts = await Promise.all(keypairs.map(async (keypair, index) => {
 		const privateKey = privateKeys[index];
+		const did = dids[index];
+
+		const header = format === VerifiableCredentialFormat.JWT_VC_JSON
+		? {
+			alg: keypair.alg,
+			typ: "openid4vci-proof+jwt",
+			kid: did
+		}
+		: {
+			alg: keypair.alg,
+			typ: "openid4vci-proof+jwt",
+			jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+		};
+
 		const jws: string = await new SignJWT({
 			nonce: nonce,
 			aud: audience,
 			iss: issuer,
+			client_id: issuer,
 		})
-			.setProtectedHeader({
-				alg: keypair.alg,
-				typ: "openid4vci-proof+jwt",
-				jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
-			})
+			.setProtectedHeader(header)
 			.setIssuedAt()
 			.sign(privateKey);
 		return jws;
