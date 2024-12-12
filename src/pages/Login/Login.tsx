@@ -14,7 +14,7 @@ import SessionContext from '../../context/SessionContext';
 import * as config from '../../config';
 import Button from '../../components/Buttons/Button';
 
-// import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
@@ -670,6 +670,7 @@ const Auth = () => {
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
+				<LanguageSelector className='absolute text-gray-500 dark top-0 right-5 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white' showFullLabel={false} />
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
