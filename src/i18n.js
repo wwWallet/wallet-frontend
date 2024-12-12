@@ -10,7 +10,8 @@ i18n
 		resources: {
 			en: { translation: enTranslation },
 		},
-		lng: 'en',
+		fallbackLng: 'en',
+		lng: localStorage.getItem('locale') || navigator.language,
 		interpolation: {
 			escapeValue: false,
 		},

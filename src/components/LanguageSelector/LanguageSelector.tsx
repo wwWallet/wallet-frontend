@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { languageOptions } from "./languages";
 
 type LanguageSelectorProps = {
-	className: string;
+	className?: string;
 	showFullLabel: boolean;
 };
 
@@ -15,9 +15,12 @@ const LanguageSelector = ({
 	const { i18n } = useTranslation();
 	const { language } = i18n;
 
-	const handleChangeLanguage = (event) => {
+	const handleChangeLanguage = (
+		event: React.ChangeEvent<HTMLSelectElement>
+	) => {
 		const selectedLanguage = event.target.value;
 		i18n.changeLanguage(selectedLanguage);
+		localStorage.setItem("locale", selectedLanguage);
 	};
 
 	return (
