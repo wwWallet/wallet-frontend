@@ -1115,37 +1115,140 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 	}
 }
 
-export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
-	const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
-	const { cnf } = inputJwt.payload as { cnf?: { jwk?: JWK } };
+export async function signJwtPresentation(
+	[privateData, mainKey]: [PrivateData, CryptoKey],
+	nonce: string,
+	audience: string,
+	verifiableCredentials: any[]
+): Promise<{ vpjwt: string }> {
+	const credential = verifiableCredentials[0];
+  let signedPresentation: string;
 
-	if (!cnf?.jwk) {
-		throw new Error("Holder public key could not be resolved from cnf.jwk attribute");
-	}
+  if (isSdJwt(credential)) {
+    // Handle SD_JWT format
+		const inputJwt = SdJwt.fromCompact(credential);
 
-	const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
+    const { cnf } = inputJwt.payload as { cnf?: { jwk?: JWK } };
+    if (!cnf?.jwk) {
+      throw new Error("Holder public key could not be resolved from cnf.jwk attribute");
+    }
 
-	const keypair = privateData.keypairs[kid];
-	if (!keypair) {
-		throw new Error("Key pair not found for kid (key ID): " + kid);
-	}
-	const { alg, wrappedPrivateKey } = keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
-	const sdJwt = verifiableCredentials[0];
-	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
-	const kbJWT = await new SignJWT({
-		nonce,
-		aud: audience,
-		sd_hash,
-	}).setIssuedAt()
-		.setProtectedHeader({
-			typ: "kb+jwt",
-			alg: alg
+    const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
+    const keypair = privateData.keypairs[kid];
+    if (!keypair) {
+      throw new Error("Key pair not found for kid (key ID): " + kid);
+    }
+
+    const { alg, wrappedPrivateKey } = keypair;
+    const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
+    const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(credential)));
+
+    const kbJWT = await new SignJWT({
+      nonce,
+      aud: audience,
+      sd_hash,
+    })
+      .setIssuedAt()
+      .setProtectedHeader({ typ: "kb+jwt", alg })
+      .sign(privateKey);
+
+    signedPresentation = credential + kbJWT;
+  } else if (isJwtVcJson(credential)) {
+    // Handle JWT_VC_JSON format
+    const { publicKey, privateKey } = await crypto.subtle.generateKey(
+			{ name: "ECDSA", namedCurve: "P-256" },
+			true,
+			['sign']
+		);
+		const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
+		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
+		const did = await createDid(publicKey, 'jwk_jcs-pub');
+		const deriveKid = async (publicKey: CryptoKey) => {
+			const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
+			const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
+			return jwkThumbprint;
+		};
+		const kid = await deriveKid(publicKey);
+
+		const keypair: CredentialKeyPair = {
+			kid,
+			did,
+			alg: "ES256",
+			publicKey: publicKeyJwk,
+			wrappedPrivateKey,
+		};
+
+
+    const vpPayload = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      type: ["VerifiablePresentation"],
+      verifiableCredential: [credential],
+      holder: 'wwWallet',
+      nonce,
+    };
+
+		signedPresentation = await new SignJWT(vpPayload)
+			.setProtectedHeader({
+				alg: keypair.alg,
+				typ: "openid4vci-proof+jwt",
+				kid: did
+			})
+			.setIssuedAt()
+			.sign(privateKey);
+  } else {
+    throw new Error('Unsupported credential format.');
+  }
+
+  return { vpjwt: signedPresentation };
+}
+
+function isSdJwt(credential: any): boolean {
+  // Add logic to detect if the credential is in SD_JWT format
+  return typeof credential === 'string' && credential.split('.').length === 3 && credential.endsWith('~');
+}
+
+function isJwtVcJson(credential: any): boolean {
+  // Add logic to detect if the credential is in JWT_VC_JSON format
+  return !credential.endsWith('~') || (typeof credential === 'object' && credential["@context"]);
+}
+
+export async function generateOpenid4vciProofs2(
+	container: OpenedContainer,
+	didKeyVersion: DidKeyVersion,
+	nonce: string,
+	audience: string,
+	issuer: string,
+	numberOfKeyPairs: number = 1,
+	format?: VerifiableCredentialFormat
+): Promise<[{ proof_jwts: string[] }, OpenedContainer]> {
+	const deriveKid = async (publicKey: CryptoKey) => {
+		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
+		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
+		return jwkThumbprint;
+	};
+	const { privateKeys, newPrivateData, keypairs, dids } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
+
+	const proof_jwts = await Promise.all(keypairs.map(async (keypair, index) => {
+		const privateKey = privateKeys[index];
+		const did = dids[index];
+
+		const jws: string = await new SignJWT({
+			nonce: nonce,
+			aud: audience,
+			iss: issuer,
+			client_id: issuer,
 		})
-		.sign(privateKey);
+			.setProtectedHeader({
+				alg: keypair.alg,
+				typ: "openid4vci-proof+jwt",
+				kid: did
+			})
+			.setIssuedAt()
+			.sign(privateKey);
+		return jws;
+	}));
 
-	const jws = sdJwt + kbJWT;
-	return { vpjwt: jws };
+	return [{ proof_jwts: proof_jwts }, newPrivateData];
 }
 
 export async function generateOpenid4vciProofs(

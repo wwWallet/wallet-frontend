@@ -20,6 +20,7 @@ import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 
 import { CredentialOfferHandler } from './components/CredentialOfferHandler';
+import { VerifiablePresentationRequestHandler } from './components/VerifiablePresentationRequestHandler';
 import { CodeHandler } from './components/CodeHandler';
 import { AuthorizationRequestHandler } from './components/AuthorizationRequestHandler';
 import { ErrorHandler } from './components/ErrorHandler';
@@ -120,7 +121,10 @@ function App() {
 
 	const hasCode = !hasCredentialOffer && queryParams.get('code');
 
-	const hasAuthorizationRequest = !hasCredentialOffer && !hasCode;
+	// const hasVerifiablePresentationRequest = !hasCode && queryParams.get('request_uri');
+	const hasVerifiablePresentationRequest = true;
+
+	const hasAuthorizationRequest = !hasCredentialOffer && !hasCode && !hasVerifiablePresentationRequest;
 
 	const error = queryParams.get('error');
 	const errorDescription = queryParams.get('error_description') || '';
@@ -183,6 +187,9 @@ function App() {
 					}
 					{hasCode &&
 						<CodeHandler url={fullUrl} />
+					}
+					{hasVerifiablePresentationRequest &&
+						<VerifiablePresentationRequestHandler url={fullUrl} />
 					}
 					{hasAuthorizationRequest &&
 						<AuthorizationRequestHandler url={fullUrl} />

@@ -15,10 +15,10 @@ export const parseJwtVcJsonCredential = async (credential: string | object): Pro
 				beautifiedForm: parseJwt(credential),
 			}
 		}
-		return { error: "Could not parse SDJWT credential" };
+		return { error: "Could not parse JWT_VC_JSON credential" };
 	}
 	catch (err) {
 		console.error(err);
-		return { error: "Could not parse SDJWT credential" };
+		return { error: "Could not parse JWT_VC_JSON credential" };
 	}
 }
