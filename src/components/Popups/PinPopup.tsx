@@ -84,7 +84,7 @@ const PinInput = ({
 	};
 
 	if (!isOpen) {
-		return null;
+		return;
 	}
 
 	return (

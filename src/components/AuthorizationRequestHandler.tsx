@@ -48,7 +48,7 @@ export const AuthorizationRequestHandler = ({
 
 	useEffect(() => {
 		if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
-			return null;
+			return;
 		}
 
 		const userHandleB64u = keystore.getUserHandleB64u();

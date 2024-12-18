@@ -19,7 +19,7 @@ export const CodeHandler = ({
 	const [showMessage, setShowMessage] = useState(false);
 
 	if (!isLoggedIn || !container || !url || !keystore || !api || !t) {
-		return null;
+		return;
 	}
 
 	const userHandleB64u = keystore.getUserHandleB64u();
