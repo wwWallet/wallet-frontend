@@ -7,7 +7,7 @@ export async function getSdJwtVcMetadata(credential: string): Promise<{ credenti
 		const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[0] as string)));
 		const credentialPayload = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[1] as string)));
 
-		if (credentialHeader.vctm) {
+		if (Array.isArray(credentialHeader.vctm)) {
 			const sdjwtvcMetadataDocument = credentialHeader.vctm.map((encodedMetadataDocument: string) =>
 				JSON.parse(new TextDecoder().decode(fromBase64(encodedMetadataDocument)))
 			).filter(((metadataDocument) => metadataDocument.vct === credentialPayload.vct))[0];
