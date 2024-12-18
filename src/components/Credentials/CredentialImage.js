@@ -25,7 +25,7 @@ const CredentialImage = ({ credential, className, onClick, showRibbon = true, vc
 				<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
 			)}
 			{parsedCredential && showRibbon &&
-				<ExpiredRibbon parsedCredential={parsedCredential} />
+				<ExpiredRibbon parsedCredential={parsedCredential.beautifiedForm} />
 			}
 			{vcEntityInstances && showRibbon &&
 				<UsagesRibbon vcEntityInstances={vcEntityInstances} />
