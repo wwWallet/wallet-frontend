@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
@@ -7,7 +7,8 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
-import ContainerContext from '../../context/ContainerContext';
+import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
+import { useOpenID4VCI } from '../../lib/services/OpenID4VCI/OpenID4VCI';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -18,17 +19,19 @@ const Issuers = () => {
 	const [loading, setLoading] = useState(false);
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
-	const container = useContext(ContainerContext);
+	const openID4VCIHelper = useOpenID4VCIHelper();
+	const openID4VCI = useOpenID4VCI();
+
 	const { t } = useTranslation();
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
 			try {
-				const response = await api.getExternalEntity('/issuer/all',undefined, true);
+				const response = await api.getExternalEntity('/issuer/all', undefined, true);
 				let fetchedIssuers = response.data;
 				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
 					try {
-						const metadata = (await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline,issuer.credentialIssuerIdentifier,true)).metadata;
+						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
 						return {
 							...issuer,
 							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
@@ -49,19 +52,16 @@ const Issuers = () => {
 			}
 		};
 
-		if (container) {
+		if (openID4VCIHelper) {
+			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, container, isOnline]);
+	}, [api, isOnline]);
 
 	const handleIssuerClick = async (credentialIssuerIdentifier) => {
 		const clickedIssuer = issuers.find((issuer) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier);
 		if (clickedIssuer) {
-			const cl = container.openID4VCIClients[credentialIssuerIdentifier];
-			if (!cl) {
-				return;
-			}
-			const confs = await cl.getAvailableCredentialConfigurations();
+			const confs = await openID4VCI.getAvailableCredentialConfigurations(credentialIssuerIdentifier);
 			setAvailableCredentialConfigurations(confs);
 			setSelectedIssuer(clickedIssuer);
 			setShowRedirectPopup(true);
@@ -77,13 +77,12 @@ const Issuers = () => {
 		setLoading(true);
 
 		if (selectedIssuer && selectedIssuer.credentialIssuerIdentifier) {
-			const cl = container.openID4VCIClients[selectedIssuer.credentialIssuerIdentifier];
 			const userHandleB64u = keystore.getUserHandleB64u();
 			if (userHandleB64u == null) {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			cl.generateAuthorizationRequest(selectedConfigurationId, userHandleB64u).then((result) => {
+			openID4VCI.generateAuthorizationRequest(selectedIssuer.credentialIssuerIdentifier, selectedConfigurationId).then((result) => {
 				if ('url' in result) {
 					const { url } = result;
 					window.location.href = url;

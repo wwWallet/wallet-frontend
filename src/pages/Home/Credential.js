@@ -5,7 +5,6 @@ import { useTranslation, Trans } from 'react-i18next';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
-import ContainerContext from '../../context/ContainerContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
@@ -20,11 +19,11 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
+import CredentialParserContext from '../../context/CredentialParserContext';
 
 const Credential = () => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
-	const container = useContext(ContainerContext);
 	const history = useFetchPresentations(api, credentialId, null);
 
 	const [vcEntity, setVcEntity] = useState(null);
@@ -35,6 +34,8 @@ const Credential = () => {
 	const [activeTab, setActiveTab] = useState(0);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+
+	const { credentialParserRegistry } = useContext(CredentialParserContext);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -54,13 +55,13 @@ const Credential = () => {
 		if (!vcEntity) {
 			return;
 		}
-		container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
+		credentialParserRegistry.parse(vcEntity.credential).then((c) => {
 			if ('error' in c) {
 				return;
 			}
 			setCredentialFriendlyName(c.credentialFriendlyName);
 		});
-	}, [vcEntity, container]);
+	}, [vcEntity, credentialParserRegistry]);
 
 	const handleSureDelete = async () => {
 		setLoading(true);

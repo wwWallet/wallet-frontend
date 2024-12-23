@@ -5,8 +5,8 @@ import { RiPassExpiredFill } from 'react-icons/ri';
 import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
 import { formatDate } from '../../functions/DateFormat';
-import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
+import CredentialParserContext from '../../context/CredentialParserContext';
 
 const getFieldIcon = (fieldName) => {
 	switch (fieldName) {
@@ -54,12 +54,12 @@ const renderRow = (fieldName, label, fieldValue, screenType) => {
 const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-full" }) => {
 
 	const [parsedCredential, setParsedCredential] = useState(null);
-	const container = useContext(ContainerContext);
+	const { credentialParserRegistry } = useContext(CredentialParserContext);
 	const screenType = useScreenType();
 
 	useEffect(() => {
-		if (container) {
-			container.credentialParserRegistry.parse(credential).then((c) => {
+		if (credentialParserRegistry) {
+			credentialParserRegistry.parse(credential).then((c) => {
 				if ('error' in c) {
 					return;
 				}
@@ -67,7 +67,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 			});
 		}
 
-	}, [credential, container]);
+	}, [credential, credentialParserRegistry]);
 
 	return (
 		<div className={mainClassName}>

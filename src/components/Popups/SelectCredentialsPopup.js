@@ -1,16 +1,14 @@
 import React, { useEffect, useMemo, useState, useContext } from 'react';
 import PopupLayout from './PopupLayout';
-import { useNavigate } from 'react-router-dom';
 import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
-import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
-import CredentialsContext from '../../context/CredentialsContext';
+import CredentialParserContext from '../../context/CredentialParserContext';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -58,11 +56,11 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList, vcEntityListInstances, container }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList, vcEntityListInstances }) {
 
 	const { api } = useContext(SessionContext);
+	const credentialParserContext = useContext(CredentialParserContext);
 	const [vcEntities, setVcEntities] = useState([]);
-	// const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
 	const { t } = useTranslation();
 	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
 	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
@@ -85,7 +83,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			try {
 				const vcEntities = await Promise.all(
 					vcEntityList.map(async vcEntity => {
-						return container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
+						return credentialParserContext.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
 							if ('error' in c) {
 								return;
 							}
@@ -105,7 +103,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 		};
 
-		if (popupState?.options && container && vcEntityList) {
+		if (popupState?.options && vcEntityList) {
 			console.log("opts = ", popupState.options)
 			getData();
 		}
@@ -114,7 +112,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		currentIndex,
 		currentSelectionMap,
 		keys,
-		container,
 		popupState,
 		vcEntityList,
 	]);

@@ -2,12 +2,15 @@ import { OpenidAuthorizationServerMetadata } from "../schemas/OpenidAuthorizatio
 import { OpenidCredentialIssuerMetadata } from "../schemas/OpenidCredentialIssuerMetadataSchema";
 
 export interface IOpenID4VCIHelper {
+
+	getClientId(credentialIssuerIdentifier: string): Promise<{ client_id: string } | null>;
+
 	/**
 	 *
 	 * @param credentialIssuerIdentifier
 	 * @throws
 	 */
-	getAuthorizationServerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null>;
+	getAuthorizationServerMetadata(credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null>;
 
 
 	/**
@@ -15,5 +18,5 @@ export interface IOpenID4VCIHelper {
 	 * @param credentialIssuerIdentifier
 	 * @throws
 	 */
-	getCredentialIssuerMetadata(isOnline: boolean, credentialIssuerIdentifier: string, forceIndexDB: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null>;
+	getCredentialIssuerMetadata(credentialIssuerIdentifier: string): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null>;
 }

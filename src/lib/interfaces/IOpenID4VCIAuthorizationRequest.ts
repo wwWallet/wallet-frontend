@@ -2,7 +2,7 @@ import { OpenidAuthorizationServerMetadata } from "../schemas/OpenidAuthorizatio
 import { OpenidCredentialIssuerMetadata } from "../schemas/OpenidCredentialIssuerMetadataSchema";
 
 export interface IOpenID4VCIAuthorizationRequest {
-	generate(credentialConfigurationId: string, userHandleB64u: string, issuer_state: string | undefined, config: {
+	generate(credentialConfigurationId: string, issuer_state: string | undefined, config: {
 		credentialIssuerIdentifier: string,
 		redirectUri: string,
 		clientId: string,

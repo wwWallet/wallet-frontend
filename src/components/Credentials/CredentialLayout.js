@@ -10,7 +10,6 @@ import useScreenType from '../../hooks/useScreenType';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
-import ContainerContext from '../../context/ContainerContext';
 
 //Functions
 import { CheckExpired } from '../../functions/CheckExpired';
@@ -20,11 +19,11 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
+import CredentialParserContext from '../../context/CredentialParserContext';
 
 const CredentialLayout = ({ children, title = null }) => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
-	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
 	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -34,6 +33,8 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [isExpired, setIsExpired] = useState(null);
 	const [zeroSigCount, setZeroSigCount] = useState(null)
 	const [sigTotal, setSigTotal] = useState(null);
+
+	const { credentialParserRegistry } = useContext(CredentialParserContext);
 
 	useEffect(() => {
 		const getData = async () => {
@@ -57,14 +58,14 @@ const CredentialLayout = ({ children, title = null }) => {
 		if (!vcEntity) {
 			return;
 		}
-		container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
+		credentialParserRegistry.parse(vcEntity.credential).then((c) => {
 			if ('error' in c) {
 				return;
 			}
 			setIsExpired(CheckExpired(c.beautifiedForm.expiry_date))
 			setCredentialFriendlyName(c.credentialFriendlyName);
 		});
-	}, [vcEntity, container]);
+	}, [vcEntity, credentialParserRegistry]);
 
 	const UsageStats = ({ zeroSigCount, sigTotal }) => {
 		if (zeroSigCount === null || sigTotal === null) return null;

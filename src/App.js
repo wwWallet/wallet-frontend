@@ -4,9 +4,7 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 
 import i18n from './i18n';
-import useCheckURL from './hooks/useCheckURL';
 import { withSessionContext } from './context/SessionContext';
-import { checkForUpdates } from './offlineRegistrationSW';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import HandlerNotification from './components/Notifications/HandlerNotification';
@@ -15,10 +13,12 @@ import Spinner from './components/Shared/Spinner';
 
 import { withContainerContext } from './context/ContainerContext';
 import { withCredentialsContext } from './context/CredentialsContext';
-import StatusContext from './context/StatusContext';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
+import { withUriHandler } from './UriHandler';
+import { withCredentialParserContext } from './context/CredentialParserContext';
+import { withOpenID4VPContext } from './context/OpenID4VPContext';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -73,7 +73,6 @@ const PrivateRoute = reactLazyWithNonDefaultExports(
 	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
-const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentialsPopup'));
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
@@ -90,29 +89,7 @@ const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
-	const { updateOnlineStatus } = useContext(StatusContext);
 	const location = useLocation();
-	const [url, setUrl] = useState(window.location.href);
-	const {
-		showSelectCredentialsPopup,
-		setShowSelectCredentialsPopup,
-		setSelectionMap,
-		conformantCredentialsMap,
-		showPinInputPopup,
-		setShowPinInputPopup,
-		verifierDomainName,
-		showMessagePopup,
-		setMessagePopup,
-		textMessagePopup,
-		typeMessagePopup,
-	} = useCheckURL(url);
-
-	useEffect(() => {
-		setUrl(window.location.href);
-		checkForUpdates();
-		updateOnlineStatus(false);
-	}, [location])
-
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
 			navigator.serviceWorker.addEventListener('message', handleMessage);
@@ -175,15 +152,19 @@ function App() {
 						<Route path="*" element={<NotFound />} />
 					</Route>
 				</Routes>
-				{showPinInputPopup &&
-					<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
-				}
-				{showMessagePopup &&
-					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-				}
 			</Suspense>
 		</I18nextProvider>
 	);
 }
 
-export default withSessionContext(withCredentialsContext(withContainerContext(App)));
+export default withSessionContext(
+		withCredentialsContext(
+			withCredentialParserContext(
+				withOpenID4VPContext(
+					withUriHandler(
+						App
+					)
+				)
+			)
+		)
+	);
