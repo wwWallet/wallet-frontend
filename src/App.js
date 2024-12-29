@@ -122,7 +122,6 @@ function App() {
 	const hasCode = !hasCredentialOffer && queryParams.get('code');
 
 	const hasVerifiablePresentationRequest = !hasCode && queryParams.get('request_uri');
-
 	const hasAuthorizationRequest = !hasCredentialOffer && !hasCode && !hasVerifiablePresentationRequest;
 
 	const error = queryParams.get('error');
