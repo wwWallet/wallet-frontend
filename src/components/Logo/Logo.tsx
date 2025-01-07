@@ -21,14 +21,24 @@ const Logo: React.FC<LogoProps> = ({
 
 	useEffect(() => {
 		const checkSeason = () => {
-			const today = new Date();
+			const today = new Date(); // Use new Date() for real-time or new Date(new Date().getFullYear(), 0, 1) for testing January 1st
 			const currentYear = today.getFullYear();
-			const start = new Date(currentYear, 11, 1); // December 1
-			const end = new Date(currentYear + 1, 0, 2); // January 2
-			return today >= start && today <= end;
+
+			// Christmas season part 1: December 1st to December 31st of the current year
+			const christmasStart = new Date(currentYear, 11, 1); // December 1
+			const christmasEnd = new Date(currentYear, 11, 31); // December 31
+
+			// Christmas season part 2: January 1st to January 2nd of the next year
+			const newYearStart = new Date(currentYear, 0, 1); // January 1
+			const newYearEnd = new Date(currentYear, 0, 2); // January 2
+
+			// Check if today is within either part of the Christmas season
+			return (today >= christmasStart && today <= christmasEnd) ||
+				(today >= newYearStart && today <= newYearEnd);
 		};
 
-		setIsChristmasSeason(checkSeason());
+		const seasonActive = checkSeason();
+		setIsChristmasSeason(seasonActive);
 	}, []);
 
 	// Determine which logo to use
