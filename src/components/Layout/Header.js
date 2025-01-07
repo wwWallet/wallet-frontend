@@ -27,7 +27,7 @@ const Header = () => {
 		<header className={`sticky top-0 z-50 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between shadow-md md:hidden rounded-b-lg transition-all duration-300 ${isScrolled ? 'p-3' : 'p-4'}`}>
 			<ConnectionStatusIcon size={isScrolled ? 'small' : 'normal'} className="transition-all duration-300" />
 			<div className="flex items-center">
-				<Logo type='white' aClassName='mr-2' imglassName={`cursor-pointer transition-all duration-300 ${isScrolled ? 'w-7' : 'w-10'}`} />
+				<Logo type='white' aClassName='mr-2' imgClassName={`cursor-pointer transition-all duration-300 ${isScrolled ? 'w-7' : 'w-10'}`} />
 				<a href="/" className={`text-white font-bold cursor-pointer transition-all duration-300 ${isScrolled ? 'text-sm' : 'text-xl'}`}>
 					{t('common.walletName')}
 				</a>

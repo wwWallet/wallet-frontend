@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div className="md:hidden flex items-center justify-between mb-4">
 					<div className='flex items-center'>
-						<Logo type='white' aClassName='mr-2' imglassName='w-10 h-auto' />
+						<Logo type='white' aClassName='mr-2' imgClassName='w-10 h-auto' />
 						<a href={('/')}
 							className="text-white text-xl font-bold cursor-pointer"
 						>
@@ -75,7 +75,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				</div>
 				<div>
 					<div className="hidden md:flex justify-between items-center">
-						<Logo type='white' aClassName='mb-2 mr-2' imglassName='w-20 h-22' />
+						<Logo type='white' aClassName='mb-2 mr-2' imgClassName='w-20 h-22' />
 						<a href={('/')}
 							className="text-white text-xl font-bold cursor-pointer"
 						>

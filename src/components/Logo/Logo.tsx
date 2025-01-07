@@ -8,13 +8,13 @@ import { useTranslation } from 'react-i18next';
 interface LogoProps {
 	type?: string; // Determines the type of logo (classic or white)
 	aClassName?: string; // Class for the <a> element
-	imglassName?: string; // Class for the <img> element
+	imgClassName?: string; // Class for the <img> element
 }
 
 const Logo: React.FC<LogoProps> = ({
 	type = 'classic',
 	aClassName = '',
-	imglassName = '',
+	imgClassName = '',
 }) => {
 	const [isChristmasSeason, setIsChristmasSeason] = useState(false);
 	const { t } = useTranslation();
@@ -51,7 +51,7 @@ const Logo: React.FC<LogoProps> = ({
 
 	return (
 		<a href="/" className={aClassName} aria-label={t('common.walletName')}>
-			<img src={logoSrc} alt={t('common.walletName')} className={imglassName} />
+			<img src={logoSrc} alt={t('common.walletName')} className={imgClassName} />
 		</a>
 	);
 };
