@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { onMessageListener } from '../../firebase';
 import { AiOutlineClose } from 'react-icons/ai';
-import logo from '../../assets/images/logo.png';
+import Logo from '../Logo/Logo';
 import CredentialsContext from '../../context/CredentialsContext';
 
 const ToastDisplay = ({ id, notification }) => {
@@ -12,7 +12,7 @@ const ToastDisplay = ({ id, notification }) => {
 			onClick={() => window.location.href = '/'}
 		>
 			<div className="w-1/3 flex items-center justify-start mr-6">
-				<img src={logo} alt="Logo" className="" />
+				<Logo />
 			</div>
 			<div className="flex-grow text-center">
 				<p className="font-bold text-lg">{notification?.title}</p>
