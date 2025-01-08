@@ -12,7 +12,6 @@ import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK
 import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
-import { useCredentialParserRegistry } from "../CredentialParserRegistry";
 import { useContext } from "react";
 import SessionContext from "../../../context/SessionContext";
 import CredentialParserContext from "../../../context/CredentialParserContext";
@@ -348,7 +347,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 				const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 				const jwe = await new EncryptJWT({
-					vp_token: generatedVPs.length == 1 ? generatedVPs[0] : generatedVPs,
+					vp_token: generatedVPs.length === 1 ? generatedVPs[0] : generatedVPs,
 					presentation_submission: presentationSubmission,
 					state: S.state ?? undefined
 				})
@@ -359,7 +358,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				console.log("JWE = ", jwe)
 			}
 			else {
-				formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
+				formData.append('vp_token', generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
 				formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 				if (S.state) {
 					formData.append('state', S.state);
@@ -369,7 +368,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
-			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
+			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
 			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, credentialIdentifiers, client_id);
 			const updateCredentialPromise = filteredVCEntities.map(async (cred) => credentialBatchHelper.useCredential(cred))
 

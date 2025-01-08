@@ -1,4 +1,4 @@
-import React, { useEffect, createContext, useState, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { checkForUpdates } from './offlineRegistrationSW';
 import StatusContext from "./context/StatusContext";

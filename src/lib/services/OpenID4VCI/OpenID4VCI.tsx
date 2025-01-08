@@ -10,7 +10,7 @@ import * as config from '../../../config';
 import { VerifiableCredentialFormat } from '../../schemas/vc';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useContext, useEffect, useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
@@ -174,7 +174,7 @@ export function useOpenID4VCI(): IOpenID4VCI {
 
 
 		const credentialArray = [];
-		if (numberOfProofs == 1 && credentialResponse.data.credential) {
+		if (numberOfProofs === 1 && credentialResponse.data.credential) {
 			const { credential } = credentialResponse.data;
 			credentialArray.push(credential);
 		}
@@ -229,9 +229,8 @@ export function useOpenID4VCI(): IOpenID4VCI {
 		}
 	}) {
 
-		const [authzServerMetadata, credentialIssuerMetadata, clientId] = await Promise.all([
+		const [authzServerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
-			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 		]);
 		if (requestCredentialsParams.usingActiveAccessToken) {
@@ -291,7 +290,6 @@ export function useOpenID4VCI(): IOpenID4VCI {
 
 		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
 		let dpopPrivateKeyJwk: jose.JWK | null = null;
-		let dpopPublicKey: jose.KeyLike | Uint8Array | null = null;
 		let dpopPublicKeyJwk: jose.JWK | null = null;
 
 		if (!flowState.dpop) { // if DPoP keys have not been generated, then generate them
@@ -302,15 +300,13 @@ export function useOpenID4VCI(): IOpenID4VCI {
 			]);
 
 			dpopPrivateKey = privateKey;
-			dpopPublicKey = publicKey;
 		}
 		else { // if already generated, then reuse them
 			dpopPrivateKeyJwk = flowState.dpop.dpopPrivateKeyJwk;
 			dpopPublicKeyJwk = flowState.dpop.dpopPublicKeyJwk;
 
-			[dpopPrivateKey, dpopPublicKey] = await Promise.all([
-				jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg),
-				jose.importJWK(flowState.dpop.dpopPublicKeyJwk, flowState.dpop.dpopAlg)
+			[dpopPrivateKey] = await Promise.all([
+				jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
 			])
 		}
 		const jti = generateRandomIdentifier(8);
@@ -434,8 +430,7 @@ export function useOpenID4VCI(): IOpenID4VCI {
 			throw new Error("Only authorization_code grant is supported");
 		}
 
-		const [authzServerMetadata, credentialIssuerMetadata] = await Promise.all([
-			openID4VCIHelper.getAuthorizationServerMetadata(offer.credential_issuer),
+		const [credentialIssuerMetadata] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
 		]);
 
@@ -454,8 +449,7 @@ export function useOpenID4VCI(): IOpenID4VCI {
 	}
 
 	async function getAvailableCredentialConfigurations(credentialIssuerIdentifier: string): Promise<Record<string, CredentialConfigurationSupported>> {
-		const [authzServerMetadata, credentialIssuerMetadata] = await Promise.all([
-			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
+		const [credentialIssuerMetadata] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier)
 		]);
 		if (!credentialIssuerMetadata.metadata?.credential_configurations_supported) {

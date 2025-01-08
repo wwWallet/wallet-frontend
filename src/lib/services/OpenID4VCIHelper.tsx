@@ -1,4 +1,3 @@
-import { IHttpProxy } from "../interfaces/IHttpProxy";
 import { IOpenID4VCIHelper } from "../interfaces/IOpenID4VCIHelper";
 import { OpenidAuthorizationServerMetadata, OpenidAuthorizationServerMetadataSchema } from "../schemas/OpenidAuthorizationServerMetadataSchema";
 import { OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from "../schemas/OpenidCredentialIssuerMetadataSchema";
@@ -50,7 +49,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		try {
 			const issuerResponse = await api.getExternalEntity('/issuer/all', undefined, true);
 			const trustedCredentialIssuers = issuerResponse.data;
-			const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier == credentialIssuerIdentifier)[0];
+			const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
 			if (issuer) {
 				return { client_id: issuer.clientId };
 			}

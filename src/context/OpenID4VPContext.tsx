@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, createContext } from "react";
+import React, { useState, useContext, createContext } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import CredentialsContext from '../context/CredentialsContext';
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
@@ -13,7 +13,7 @@ const OpenID4VPContext: React.Context<OpenID4VPContextValue> = createContext({
 });
 
 export const OpenID4VPContextProvider = ({ children }) => {
-	const { vcEntityList, vcEntityListInstances, latestCredentials, currentSlide, setCurrentSlide } = useContext<any>(CredentialsContext);
+	const { vcEntityList, vcEntityListInstances } = useContext<any>(CredentialsContext);
 
 	const [popupState, setPopupState] = useState({
 		isOpen: false,

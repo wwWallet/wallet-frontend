@@ -51,7 +51,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 			const isValidMetadata = !('error' in getSdJwtVcMetadataResult) && getSdJwtVcMetadataResult.credentialMetadata;
 
 			// Extract metadata and claims
-			const metadata = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.display?.find((d) => d.lang === defaultLocale) || null;
+			const metadata = (isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.display?.find((d) => d.lang === defaultLocale)) || null;
 			const claims = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.claims?.length
 				? getSdJwtVcMetadataResult.credentialMetadata.claims
 				: null;

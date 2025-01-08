@@ -57,7 +57,7 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IO
 				const err = res.err;
 				if (err) {
 					if (err?.data && err?.data?.error === "insufficient_authorization") { // Authorization Error Response
-						const { error, auth_session, presentation } = err?.data;
+						const { auth_session, presentation } = err?.data;
 
 						// this function should prompt the user for presentation selection
 						const result = await openID4VP.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
