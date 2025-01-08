@@ -22,7 +22,18 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 	}, [history, credentialId, limit]);
 
 	const handleHistoryItemClick = async (item) => {
-		setMatchingCredentials(item.presentation.startsWith("b64:") ? JSON.parse(new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", "")))) : [ item.presentation ] );
+		const extractPresentations = (item) => {
+			if (item.presentation.startsWith("b64:") && (new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", "")))).includes("[")) {
+				return JSON.parse(new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", ""))));
+			}
+			else if (item.presentation.startsWith("b64:")) {
+				return [ new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", ""))) ];
+			}
+			else {
+				return [ item.presentation ];
+			}
+		}
+		setMatchingCredentials(extractPresentations(item));
 		if (screenType === 'mobile') {
 			navigate(`/history/${item.id}`);
 		}
