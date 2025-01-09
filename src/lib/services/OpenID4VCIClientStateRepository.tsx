@@ -3,11 +3,10 @@ import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClien
 import { OpenID4VCIClientState } from "../types/OpenID4VCIClientState";
 import SessionContext from "../../context/SessionContext";
 
-
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
 	const key = "openid4vci_client_state";
-	const [rememberIssuerForSeconds, setRememberIssuerForSeconds] = useState<number | null>(0);
+	const [rememberIssuerForSeconds, setRememberIssuerForSeconds] = useState<number | null>(null);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 
 	const data = localStorage.getItem(key);
@@ -22,7 +21,6 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (rememberIssuerForSeconds == null) {
 			api.get('/user/session/account-info').then((response) => {
 				const userData = response.data;
-				console.log('userdata = ', userData)
 				setRememberIssuerForSeconds(userData.settings.openidRefreshTokenMaxAgeInSeconds);
 			});
 		}
@@ -45,6 +43,9 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		getByStateAndUserHandle,
 
 		async cleanupExpired() {
+			if (rememberIssuerForSeconds == null) {
+				return;
+			}
 			const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
 			const results = array.filter((s) => s.userHandleB64U === keystore.getUserHandleB64u());
 			const statesToBeRemoved: string[] = [];

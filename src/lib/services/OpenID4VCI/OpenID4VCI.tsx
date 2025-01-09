@@ -15,10 +15,21 @@ import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
+import { GrantType, useTokenRequest } from './TokenRequest';
+import OpenID4VCIContext from '../../../context/OpenID4VCIContext';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
-export function useOpenID4VCI(): IOpenID4VCI {
+
+export function useOpenID4VCI() {
+	const openID4VCI = useContext(OpenID4VCIContext);
+	if (!openID4VCI.openID4VCI) {
+		throw new Error("OpenID4VCIContext is not defined in the context");
+	}
+	return openID4VCI.openID4VCI;
+}
+
+export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
@@ -29,6 +40,7 @@ export function useOpenID4VCI(): IOpenID4VCI {
 	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
 	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications();
 
+	const tokenRequestBuilder = useTokenRequest();
 
 	async function handleAuthorizationResponse(url: string, dpopNonceHeader?: string) {
 
@@ -315,74 +327,36 @@ export function useOpenID4VCI(): IOpenID4VCI {
 		}
 		const jti = generateRandomIdentifier(8);
 
-		let tokenRequestHeaders = {
-			'Content-Type': 'application/x-www-form-urlencoded',
-		};
+		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 
 		if (authzServerMetadata.authzServeMetadata.dpop_signing_alg_values_supported) {
-			const dpop = await generateDPoP(
-				dpopPrivateKey as jose.KeyLike,
-				dpopPublicKeyJwk,
-				jti,
-				"POST",
-				tokenEndpoint,
-				requestCredentialsParams.dpopNonceHeader
-			);
+			await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
 			flowState.dpop = {
 				dpopAlg: 'ES256',
 				dpopJti: jti,
 				dpopPrivateKeyJwk: dpopPrivateKeyJwk,
 				dpopPublicKeyJwk: dpopPublicKeyJwk,
 			}
-			tokenRequestHeaders['DPoP'] = dpop;
 		}
 
+		tokenRequestBuilder.setClientId(clientId.client_id);
+		tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
+		tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
+		tokenRequestBuilder.setCodeVerifier(flowState?.code_verifier);
 
-		const formData = new URLSearchParams();
-		formData.append('client_id', clientId.client_id);
-		if (requestCredentialsParams.authorizationCodeGrant) {
-			formData.append('grant_type', 'authorization_code');
-			formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
-			formData.append('code_verifier', flowState.code_verifier);
-		}
-		else if (requestCredentialsParams.refreshTokenGrant) {
-			if (!flowState?.tokenResponse?.data.refresh_token) {
-				console.info("Found no refresh_token to execute refesh_token grant")
-				throw new Error("Found no refresh_token to execute refesh_token grant");
-			}
-			formData.append('grant_type', 'refresh_token');
-			formData.append('refresh_token', flowState.tokenResponse.data.refresh_token);
-		}
-		else {
-			throw new Error("No grant type selected in requestCredentials()");
-		}
-		formData.append('redirect_uri', redirectUri);
+		tokenRequestBuilder.setRefreshToken(flowState?.tokenResponse?.data?.refresh_token);
 
-		const response = await httpProxy.post(tokenEndpoint, formData.toString(), tokenRequestHeaders);
+		tokenRequestBuilder.setRedirectUri(redirectUri);
 
-		if (response.err) {
-			const { err } = response;
-			console.log("failed token request")
-			console.log(JSON.stringify(err));
-			console.log("Dpop nonce found = ", err.headers['dpop-nonce'])
-			if (err.headers['dpop-nonce']) {
-				requestCredentialsParams.dpopNonceHeader = err.headers['dpop-nonce'];
-				if (requestCredentialsParams.dpopNonceHeader) {
-					await requestCredentials(credentialIssuerIdentifier, requestCredentialsParams);
-					return;
-				}
-			}
-			else if (err.data.error) {
-				console.error("OID4VCI Token Response Error: ", JSON.stringify(err.data))
-			}
-			return;
+
+		const result = await tokenRequestBuilder.execute();
+
+		if ('error' in result) {
+			throw new Error("Token request failed");
 		}
 
-		console.log("== response = ", response)
 		try { // try to extract the response and update the OpenID4VCIClientStateRepository
-			const {
-				data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token },
-			} = response;
+			const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
 
 			if (!access_token) {
 				console.log("Missing access_token from response");
@@ -393,7 +367,7 @@ export function useOpenID4VCI(): IOpenID4VCI {
 				data: {
 					access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
 				},
-				headers: { ...response.headers }
+				headers: { ...result.response.httpResponseHeaders }
 			}
 
 			await openID4VCIClientStateRepository.updateState(flowState);

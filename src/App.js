@@ -19,6 +19,7 @@ import CredentialDetails from './pages/Home/CredentialDetails';
 import { withUriHandler } from './UriHandler';
 import { withCredentialParserContext } from './context/CredentialParserContext';
 import { withOpenID4VPContext } from './context/OpenID4VPContext';
+import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -161,8 +162,10 @@ export default withSessionContext(
 		withCredentialsContext(
 			withCredentialParserContext(
 				withOpenID4VPContext(
-					withUriHandler(
-						App
+					withOpenID4VCIContext(
+						withUriHandler(
+							App
+						)
 					)
 				)
 			)
