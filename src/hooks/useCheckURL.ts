@@ -50,7 +50,7 @@ function useCheckURL(urlToCheck: string): {
 						.then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
 							return container.openID4VCIClients[credentialIssuerIdentifier].generateAuthorizationRequest(selectedCredentialConfigurationId, userHandleB64u, issuer_state);
 						})
-						.then(({ url, client_id, request_uri }) => {
+						.then(({ url }) => {
 							if (url) {
 								window.location.href = url;
 							}
@@ -90,10 +90,14 @@ function useCheckURL(urlToCheck: string): {
 					}
 					const { conformantCredentialsMap, verifierDomainName } = result;
 					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
-					window.history.replaceState({}, '', `${window.location.pathname}`);
-					setVerifierDomainName(verifierDomainName);
-					setConformantCredentialsMap(jsonedMap);
-					setShowSelectCredentialsPopup(true);
+					return container.openID4VPRelyingParty.promptForCredentialSelection(jsonedMap, verifierDomainName);
+				}).then((selection) => {
+					console.log("Selection = ", selection);
+					return container.openID4VPRelyingParty.sendAuthorizationResponse(selection);
+				}).then((res) => {
+					if ('url' in res && res.url) {
+						window.location.href = res.url;
+					}
 				}).catch(err => {
 					console.log("Failed to handle authorization req");
 					console.error(err)
@@ -118,9 +122,9 @@ function useCheckURL(urlToCheck: string): {
 	useEffect(() => {
 		if (selectionMap) {
 			console.log("Selection map was mutated...");
-			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then(({ url }) => {
-				if (url) {
-					window.location.href = url;
+			container.openID4VPRelyingParty.sendAuthorizationResponse(new Map(Object.entries(selectionMap))).then((result) => {
+				if ('url' in result && result.url) {
+					window.location.href = result.url;
 				}
 			}).catch((err) => console.error(err));
 		}
