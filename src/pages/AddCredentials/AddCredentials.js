@@ -25,6 +25,7 @@ const Issuers = () => {
 	const { t } = useTranslation();
 
 	useEffect(() => {
+		console.log("Starting to fetch issuers",openID4VCIHelper);
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
@@ -56,7 +57,7 @@ const Issuers = () => {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline]);
+	}, [api, isOnline, openID4VCIHelper]);
 
 	const handleIssuerClick = async (credentialIssuerIdentifier) => {
 		const clickedIssuer = issuers.find((issuer) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier);

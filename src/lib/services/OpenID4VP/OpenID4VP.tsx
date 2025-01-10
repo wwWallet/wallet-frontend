@@ -12,39 +12,49 @@ import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK
 import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
-import { useContext } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "../../../context/SessionContext";
 import CredentialParserContext from "../../../context/CredentialParserContext";
 
 export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
 
+	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { credentialParserRegistry } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 
-	async function storeVerifiablePresentation(presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) {
-		await api.post('/storage/vp', {
-			presentationIdentifier: generateRandomIdentifier(32),
-			presentation,
-			presentationSubmission,
-			includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
-			audience,
-			issuanceDate: new Date().toISOString(),
-		});
-	}
+	const storeVerifiablePresentation = useCallback(
+		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
+			await api.post('/storage/vp', {
+				presentationIdentifier: generateRandomIdentifier(32),
+				presentation,
+				presentationSubmission,
+				includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
+				audience,
+				issuanceDate: new Date().toISOString(),
+			});
+		},
+		[api]
+	);
 
-	async function getAllStoredVerifiableCredentials() {
-		const fetchAllCredentials = await api.get('/storage/vc');
+	const getAllStoredVerifiableCredentials = useCallback(async () => {
+		const fetchAllCredentials = await api.get("/storage/vc");
 		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
-	}
+	},
+		[api]
+	);
 
-	return {
-		async promptForCredentialSelection(conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> {
+	const promptForCredentialSelection = useCallback(
+		async (conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> => {
 			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName);
 		},
-		async handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, any>, verifierDomainName: string; } | { err: HandleAuthorizationRequestError }> {
+		[showCredentialSelectionPopup]
+	);
+
+	const handleAuthorizationRequest = useCallback(
+		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string } | { err: HandleAuthorizationRequestError }> => {
 			const authorizationRequest = new URL(url);
 			let client_id = authorizationRequest.searchParams.get('client_id');
 			let response_uri = authorizationRequest.searchParams.get('response_uri');
@@ -196,9 +206,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName };
 		},
+		[httpProxy, credentialParserRegistry, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
+	);
 
-
-		async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> {
+	const sendAuthorizationResponse = useCallback(
+		async (selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
 			const S = await openID4VPRelyingPartyStateRepository.retrieve();
 			console.log("send AuthorizationResponse: S = ", S)
 			console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
@@ -388,7 +400,19 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			if (res.data.redirect_uri) {
 				return { url: res.data.redirect_uri };
 			}
-		}
+		},
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation]
+	);
 
-	}
+	return useMemo(() => {
+		return {
+			promptForCredentialSelection,
+			handleAuthorizationRequest,
+			sendAuthorizationResponse,
+		}
+	}, [
+		promptForCredentialSelection,
+		handleAuthorizationRequest,
+		sendAuthorizationResponse,
+	]);
 }

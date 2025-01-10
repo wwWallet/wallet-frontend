@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useContext } from 'react';
+import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -72,6 +72,15 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
 
+	const reinitialize = useCallback(() => {
+		setCurrentIndex(0);
+		setCurrentSlide(1);
+		setCurrentSelectionMap({});
+		setRequestedFields([]);
+		setSelectedCredential(null);
+		setPopupState({ isOpen: false });
+	}, [setPopupState]);
+
 	useEffect(() => {
 		const getData = async () => {
 			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length) {
@@ -114,6 +123,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		keys,
 		popupState,
 		vcEntityList,
+		credentialParserContext.credentialParserRegistry,
+		reinitialize
 	]);
 
 
@@ -147,15 +158,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: credentialIdentifier }));
 		}
 	};
-
-	const reinitialize = () => {
-		setCurrentIndex(0);
-		setCurrentSlide(1);
-		setCurrentSelectionMap({});
-		setRequestedFields([]);
-		setSelectedCredential(null);
-		setPopupState({ isOpen: false });
-	}
 
 	const onClose = () => {
 		// setIsOpen(false);

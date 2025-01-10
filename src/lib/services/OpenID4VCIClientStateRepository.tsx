@@ -1,8 +1,7 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
 import { OpenID4VCIClientState } from "../types/OpenID4VCIClientState";
 import SessionContext from "../../context/SessionContext";
-
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
@@ -26,72 +25,73 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 				setRememberIssuerForSeconds(userData.settings.openidRefreshTokenMaxAgeInSeconds);
 			});
 		}
-	}, [api, isLoggedIn]);
+	}, [api, isLoggedIn, rememberIssuerForSeconds]);
 
-	async function getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(credentialIssuer: string, credentialConfigurationId: string): Promise<OpenID4VCIClientState | null> {
-		const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.credentialIssuerIdentifier === credentialIssuer && s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === keystore.getUserHandleB64u())[0];
-		return res ? res : null;
-	}
+	const getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle = useCallback(
+		async (
+			credentialIssuer: string,
+			credentialConfigurationId: string
+		): Promise<OpenID4VCIClientState | null> => {
 
-	async function getByStateAndUserHandle(state: string): Promise<OpenID4VCIClientState | null> {
-		const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.state === state && s.userHandleB64U === keystore.getUserHandleB64u())[0];
-		return res ? res : null;
-	}
-
-	return {
-		getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle,
-		getByStateAndUserHandle,
-
-		async cleanupExpired() {
 			const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-			const results = array.filter((s) => s.userHandleB64U === keystore.getUserHandleB64u());
-			const statesToBeRemoved: string[] = [];
-			for (const res of results) {
-				if (!res.created ||
-					typeof res.created !== 'number' ||
-					Math.floor(Date.now() / 1000) - res.created > rememberIssuerForSeconds) {
-
-					statesToBeRemoved.push(res.state);
-				}
-			}
-
-			console.log("Cleanup states = ", statesToBeRemoved)
-			const filteredArray = array.filter((s) => !statesToBeRemoved.includes(s.state));
-			localStorage.setItem(key, JSON.stringify(filteredArray));
+			const res = array.filter((s) => s.credentialIssuerIdentifier === credentialIssuer && s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === keystore.getUserHandleB64u())[0];
+			return res ? res : null;
 		},
+		[keystore]
+	);
 
+	const getByStateAndUserHandle = useCallback(
+		async (state: string): Promise<OpenID4VCIClientState | null> => {
+			const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
+			const res = array.filter((s) => s.state === state && s.userHandleB64U === keystore.getUserHandleB64u())[0];
+			return res ? res : null;
+		},
+		[keystore]
+	);
 
+	const cleanupExpired = useCallback(async (): Promise<void> => {
+		const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
+		const results = array.filter((s) => s.userHandleB64U === keystore.getUserHandleB64u());
+		const statesToBeRemoved: string[] = [];
+		for (const res of results) {
+			if (!res.created ||
+				typeof res.created !== 'number' ||
+				Math.floor(Date.now() / 1000) - res.created > rememberIssuerForSeconds) {
 
+				statesToBeRemoved.push(res.state);
+			}
+		}
 
-		async create(s: OpenID4VCIClientState): Promise<void> {
-			const existingState = await getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(s.credentialIssuerIdentifier, s.credentialConfigurationId);
-			if (existingState) { // remove the existing state for this configuration id
-				const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-				const updatedArray = array.filter((x) => x.credentialConfigurationId !== s.credentialConfigurationId);
+		console.log("Cleanup states = ", statesToBeRemoved)
+		const filteredArray = array.filter((s) => !statesToBeRemoved.includes(s.state));
+		localStorage.setItem(key, JSON.stringify(filteredArray));
+	}, [keystore, rememberIssuerForSeconds]);
+
+	const create = useCallback(
+		async (state: OpenID4VCIClientState): Promise<void> => {
+			const existingState = await getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(
+				state.credentialIssuerIdentifier,
+				state.credentialConfigurationId
+			);
+
+			const data = localStorage.getItem(key);
+			const array = data ? (JSON.parse(data) as OpenID4VCIClientState[]) : [];
+
+			if (existingState) {
+				const updatedArray = array.filter(
+					(x) => x.credentialConfigurationId !== state.credentialConfigurationId
+				);
 				localStorage.setItem(key, JSON.stringify(updatedArray));
 			}
-			let data = localStorage.getItem(key);
-			if (!data) {
-				data = JSON.stringify('[]');
-			}
 
-			let array;
-			try {
-				array = JSON.parse(data) as Array<OpenID4VCIClientState>;
-				if (!(array instanceof Array)) {
-					throw new Error("Unable to parse as array")
-				}
-			}
-			catch (err) { // if parsing failed
-				array = []; // then clean up the array with no elements
-			}
-			array.push(s);
+			array.push(state);
 			localStorage.setItem(key, JSON.stringify(array));
 		},
+		[getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle]
+	);
 
-		async updateState(newState: OpenID4VCIClientState): Promise<void> {
+	const updateState = useCallback(
+		async (newState: OpenID4VCIClientState): Promise<void> => {
 			const fetched = await getByStateAndUserHandle(newState.state);
 			if (!fetched) {
 				return;
@@ -101,6 +101,23 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			updatedArray.push(newState);
 			// commit changes
 			localStorage.setItem(key, JSON.stringify(updatedArray));
+		},
+		[getByStateAndUserHandle]
+	);
+
+	return useMemo(() => {
+		return {
+			getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle,
+			getByStateAndUserHandle,
+			cleanupExpired,
+			create,
+			updateState
 		}
-	}
+	}, [
+		getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle,
+		getByStateAndUserHandle,
+		cleanupExpired,
+		create,
+		updateState
+	]);
 }

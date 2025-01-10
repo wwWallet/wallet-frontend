@@ -36,9 +36,7 @@ export const UriHandler = ({ children }) => {
 		setUrl(window.location.href);
 		checkForUpdates();
 		updateOnlineStatus(false);
-	}, [location]);
-
-
+	}, [location, updateOnlineStatus]);
 
 	useEffect(() => {
 		if (!isLoggedIn || !url || !keystore || !t || !openID4VCI || !openID4VP) {
@@ -125,7 +123,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url]);
+	}, [url, addLoader, removeLoader, t, keystore, isLoggedIn, openID4VCI, openID4VP]);
 
 	return (
 		<>

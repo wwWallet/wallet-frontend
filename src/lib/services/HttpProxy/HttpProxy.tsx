@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import axios from 'axios';
 import { IHttpProxy } from '../../interfaces/IHttpProxy';
 
@@ -5,7 +6,7 @@ import { IHttpProxy } from '../../interfaces/IHttpProxy';
 const walletBackendServerUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 export function useHttpProxy(): IHttpProxy {
-	return {
+	const proxy = useMemo(() => ({
 		async get(url: string, headers: any): Promise<any> {
 			try {
 				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
@@ -51,6 +52,7 @@ export function useHttpProxy(): IHttpProxy {
 				}
 			}
 		}
-	}
+	}), []);
 
+	return proxy;
 }

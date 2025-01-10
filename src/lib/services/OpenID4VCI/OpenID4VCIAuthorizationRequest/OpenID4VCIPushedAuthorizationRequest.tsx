@@ -6,7 +6,7 @@ import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifie
 import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
-import { useContext } from "react";
+import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "../../../../context/SessionContext";
 
 export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizationRequest {
@@ -15,15 +15,18 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { keystore } = useContext(SessionContext);
 
-	return {
-		async generate(credentialConfigurationId: string, issuer_state: string | undefined, config: {
-			credentialIssuerIdentifier: string,
-			redirectUri: string,
-			clientId: string,
-			authorizationServerMetadata: OpenidAuthorizationServerMetadata,
-			credentialIssuerMetadata: OpenidCredentialIssuerMetadata,
-		}): Promise<{ authorizationRequestURL: string } | { authorization_code: string; state: string; }> {
-
+	const generate = useCallback(
+		async (
+			credentialConfigurationId: string,
+			issuer_state: string | undefined,
+			config: {
+				credentialIssuerIdentifier: string;
+				redirectUri: string;
+				clientId: string;
+				authorizationServerMetadata: OpenidAuthorizationServerMetadata;
+				credentialIssuerMetadata: OpenidCredentialIssuerMetadata;
+			}
+		): Promise<{ authorizationRequestURL: string }> => {
 			const userHandleB64u = keystore.getUserHandleB64u();
 
 			const { code_challenge, code_verifier } = await pkce();
@@ -70,7 +73,9 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 
 			await openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
 			return { authorizationRequestURL };
-		}
-	}
+		},
+		[httpProxy, openID4VCIClientStateRepository, keystore]
+	);
 
+	return useMemo(() => ({ generate }), [generate]);
 }
