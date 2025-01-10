@@ -10,12 +10,12 @@ import * as config from '../../../config';
 import { VerifiableCredentialFormat } from '../../schemas/vc';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useContext, useEffect, useMemo } from 'react';
+import { useContext } from 'react';
 import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
-import { GrantType, useTokenRequest } from './TokenRequest';
+import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import OpenID4VCIContext from '../../../context/OpenID4VCIContext';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
@@ -352,6 +352,9 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 		const result = await tokenRequestBuilder.execute();
 
 		if ('error' in result) {
+			if (result.error == TokenRequestError.AUTHORIZATION_REQUIRED) {
+				return generateAuthorizationRequest(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
+			}
 			throw new Error("Token request failed");
 		}
 
@@ -496,13 +499,11 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 	}
 
 
-	return useMemo(() => {
-		return {
-			generateAuthorizationRequest,
-			getAvailableCredentialConfigurations,
-			handleCredentialOffer,
-			handleAuthorizationResponse
-		}
-	}, [httpProxy, openID4VCIHelper, openID4VCIClientStateRepository, api, keystore])
+	return {
+		generateAuthorizationRequest,
+		getAvailableCredentialConfigurations,
+		handleCredentialOffer,
+		handleAuthorizationResponse
+	}
 
 }

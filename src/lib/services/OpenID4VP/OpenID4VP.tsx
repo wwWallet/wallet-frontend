@@ -12,7 +12,7 @@ import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK
 import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import SessionContext from "../../../context/SessionContext";
 import CredentialParserContext from "../../../context/CredentialParserContext";
 import OpenID4VPContext from "../../../context/OpenID4VPContext";
