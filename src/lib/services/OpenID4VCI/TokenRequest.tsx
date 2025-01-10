@@ -22,6 +22,7 @@ export enum GrantType {
 
 export enum TokenRequestError {
 	FAILED,
+	AUTHORIZATION_REQUIRED,
 }
 
 export function useTokenRequest() {
@@ -86,7 +87,7 @@ export function useTokenRequest() {
 	}
 
 
-	async function execute(): Promise<{ response: AccessToken} | { error: TokenRequestError }> {
+	async function execute(): Promise<{ response: AccessToken } | { error: TokenRequestError, response?: any }> {
 		const formData = new URLSearchParams();
 
 		formData.append('client_id', client_id);
@@ -123,6 +124,9 @@ export function useTokenRequest() {
 				if (httpHeaders['dpop-nonce']) {
 					return execute();
 				}
+			}
+			else if (err.data.error == "authorization_required") {
+				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: err.data };
 			}
 			else if (err.data.error) {
 				console.error("OID4VCI Token Response Error: ", JSON.stringify(err.data))
