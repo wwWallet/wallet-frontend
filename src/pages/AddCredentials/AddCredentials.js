@@ -41,7 +41,7 @@ const Issuers = () => {
 
 						if (issuerObject.visible) {
 							setIssuers((currentArray) => {
-								if (currentArray.filter((iss) => iss.credentialIssuerMetadata.credential_issuer == issuerObject.credentialIssuerMetadata.credential_issuer).length == 0) {
+								if (currentArray.filter((iss) => iss.credentialIssuerMetadata.credential_issuer === issuerObject.credentialIssuerMetadata.credential_issuer).length === 0) {
 									return [...currentArray, issuerObject];
 								}
 								return [...currentArray];
