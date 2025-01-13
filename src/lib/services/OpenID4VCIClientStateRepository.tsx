@@ -6,7 +6,7 @@ import SessionContext from "../../context/SessionContext";
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
 	const key = "openid4vci_client_state";
-	const [rememberIssuerForSeconds, setRememberIssuerForSeconds] = useState<number | null>(0);
+	const [rememberIssuerForSeconds, setRememberIssuerForSeconds] = useState<number | null>(null);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 
 	const data = localStorage.getItem(key);
@@ -21,7 +21,6 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (rememberIssuerForSeconds == null) {
 			api.get('/user/session/account-info').then((response) => {
 				const userData = response.data;
-				console.log('userdata = ', userData)
 				setRememberIssuerForSeconds(userData.settings.openidRefreshTokenMaxAgeInSeconds);
 			});
 		}

@@ -13,7 +13,7 @@ import { useOpenID4VCI } from '../../lib/services/OpenID4VCI/OpenID4VCI';
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
-	const [issuers, setIssuers] = useState(null);
+	const [issuers, setIssuers] = useState([]);
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
@@ -30,24 +30,29 @@ const Issuers = () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
 				let fetchedIssuers = response.data;
-				fetchedIssuers = await Promise.all(fetchedIssuers.map(async (issuer) => {
+				fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
-						return {
+						const issuerObject = {
 							...issuer,
 							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
 							credentialIssuerMetadata: metadata,
+						};
+
+						if (issuerObject.visible) {
+							setIssuers((currentArray) => {
+								if (currentArray.filter((iss) => iss.credentialIssuerMetadata.credential_issuer == issuerObject.credentialIssuerMetadata.credential_issuer).length == 0) {
+									return [...currentArray, issuerObject];
+								}
+								return [...currentArray];
+							});
 						}
 					}
 					catch (err) {
 						console.error(err);
 						return null;
 					}
-
-				}));
-				fetchedIssuers = fetchedIssuers.filter((issuer) => issuer !== null);
-				fetchedIssuers = fetchedIssuers.filter((issuer) => issuer.visible === 1); // show only visible issuers
-				setIssuers(fetchedIssuers);
+				})
 			} catch (error) {
 				console.error('Error fetching issuers:', error);
 			}

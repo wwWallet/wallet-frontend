@@ -7,14 +7,15 @@ import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useCallback, useMemo, useContext } from "react";
-import OpenID4VPContext from "../../../../context/OpenID4VPContext";
 import SessionContext from "../../../../context/SessionContext";
+import { useOpenID4VP } from "../../OpenID4VP/OpenID4VP";
 
 export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IOpenID4VCIAuthorizationRequest {
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 
-	const { openID4VP } = useContext(OpenID4VPContext);
+	const openID4VP = useOpenID4VP();
+
 	const { keystore } = useContext(SessionContext);
 
 	const generate = useCallback(

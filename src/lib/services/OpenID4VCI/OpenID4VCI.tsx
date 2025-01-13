@@ -10,16 +10,26 @@ import * as config from '../../../config';
 import { VerifiableCredentialFormat } from '../../schemas/vc';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useContext, useMemo, useCallback } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
+import OpenID4VCIContext from '../../../context/OpenID4VCIContext';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
-export function useOpenID4VCI(): IOpenID4VCI {
-	console.log('useOpenID4VCI');
+
+export function useOpenID4VCI() {
+	const openID4VCI = useContext(OpenID4VCIContext);
+	if (!openID4VCI.openID4VCI) {
+		throw new Error("OpenID4VCIContext is not defined in the context");
+	}
+	return openID4VCI.openID4VCI;
+}
+
+export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
+
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { keystore, api } = useContext(SessionContext);
