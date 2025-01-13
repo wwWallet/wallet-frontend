@@ -5,10 +5,12 @@ import { useTranslation, Trans } from 'react-i18next';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
+import CredentialsContext from '../../context/CredentialsContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 import useScreenType from '../../hooks/useScreenType';
+import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
 import CredentialTabs from '../../components/Credentials/CredentialTabs';
@@ -25,8 +27,6 @@ const Credential = () => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
 	const history = useFetchPresentations(api, credentialId, null);
-
-	const [vcEntity, setVcEntity] = useState(null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
@@ -36,21 +36,12 @@ const Credential = () => {
 	const { t } = useTranslation();
 
 	const { credentialParserRegistry } = useContext(CredentialParserContext);
+	const { vcEntityList, vcEntityListInstances, fetchVcData } = useContext(CredentialsContext);
 
-	useEffect(() => {
-		const getData = async () => {
-			const response = await api.get('/storage/vc');
-			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId)[0];
-			if (!vcEntity) {
-				throw new Error("Credential not found");
-			}
-			setVcEntity(vcEntity);
-		};
+	const {vcEntity, vcEntityInstances} = useVcEntity(fetchVcData, vcEntityList, vcEntityListInstances, credentialId);
 
-		getData();
-	}, [api, credentialId]);
-
+	console.log('-> vcEntity',vcEntity)
+	console.log('-> vcEntityInstances',vcEntityInstances)
 	useEffect(() => {
 		if (!vcEntity) {
 			return;

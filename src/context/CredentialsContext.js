@@ -12,16 +12,23 @@ export const CredentialsProvider = ({ children }) => {
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
 
-	const fetchVcData = useCallback(async () => {
+	const fetchVcData = useCallback(async (credentialId = null) => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
-		const vcEntityList = (await Promise.all(fetchedVcList.map(async (vcEntity) => {
-			return { ...vcEntity };
-		}))).filter((vcEntity) => vcEntity.instanceId === 0); // show only the first instance
+		const vcEntityList = (
+			await Promise.all(
+				fetchedVcList.map(async (vcEntity) => {
+					return { ...vcEntity };
+				})
+			)
+		).filter((vcEntity) =>
+			credentialId ? vcEntity.credentialIdentifier === credentialId : vcEntity.instanceId === 0
+		); // show only the first instance
 
 		vcEntityList.sort(reverse(compareBy(vc => vc.id)));
 
+		console.log('--->',vcEntityList, fetchedVcList)
 		return { vcEntityList, fetchedVcList };
 	}, [api]);
 
@@ -108,7 +115,7 @@ export const CredentialsProvider = ({ children }) => {
 	}, [getData]);
 
 	return (
-		<CredentialsContext.Provider value={{ vcEntityList, vcEntityListInstances, latestCredentials, getData, currentSlide, setCurrentSlide }}>
+		<CredentialsContext.Provider value={{ vcEntityList, vcEntityListInstances, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide }}>
 			{children}
 		</CredentialsContext.Provider>
 	);

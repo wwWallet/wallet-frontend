@@ -7,9 +7,10 @@ import { PiCardsBold } from "react-icons/pi";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
+import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Contexts
-import SessionContext from '../../context/SessionContext';
+import CredentialsContext from '../../context/CredentialsContext';
 
 //Functions
 import { CheckExpired } from '../../functions/CheckExpired';
@@ -23,9 +24,7 @@ import CredentialParserContext from '../../context/CredentialParserContext';
 
 const CredentialLayout = ({ children, title = null }) => {
 	const { credentialId } = useParams();
-	const { api } = useContext(SessionContext);
 	const screenType = useScreenType();
-	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const { t } = useTranslation();
@@ -35,24 +34,15 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [sigTotal, setSigTotal] = useState(null);
 
 	const { credentialParserRegistry } = useContext(CredentialParserContext);
+	const { vcEntityList, vcEntityListInstances, fetchVcData } = useContext(CredentialsContext);
+	const { vcEntity, vcEntityInstances } = useVcEntity(fetchVcData, vcEntityList, vcEntityListInstances, credentialId);
 
 	useEffect(() => {
-		const getData = async () => {
-			const response = await api.get('/storage/vc');
-			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId)[0];
-			const vcEntityInstances = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId);
+		if (vcEntity && vcEntityInstances) {
 			setZeroSigCount(vcEntityInstances.filter(instance => instance.sigCount === 0).length || 0);
 			setSigTotal(vcEntityInstances.length);
-			if (!vcEntity) {
-				throw new Error("Credential not found");
-			}
-			setVcEntity(vcEntity);
-		};
-
-		getData();
-	}, [api, credentialId]);
+		}
+	}, [vcEntity, vcEntityInstances]);
 
 	useEffect(() => {
 		if (!vcEntity) {
