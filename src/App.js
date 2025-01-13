@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense, useState, useContext } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
@@ -11,7 +11,6 @@ import HandlerNotification from './components/Notifications/HandlerNotification'
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
-import { withContainerContext } from './context/ContainerContext';
 import { withCredentialsContext } from './context/CredentialsContext';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
@@ -68,8 +67,6 @@ const lazyWithDelay = (importFunction, delay = 1000) => {
 	);
 };
 
-const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
-const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
 	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',

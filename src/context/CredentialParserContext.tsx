@@ -1,4 +1,4 @@
-import React, { useEffect, createContext } from "react";
+import React, { useEffect, createContext, useMemo } from "react";
 import { ICredentialParser, ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
 import { useCredentialParserRegistry } from "../lib/services/CredentialParserRegistry";
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
@@ -7,7 +7,6 @@ import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
-
 
 export type CredentialParserContextValue = {
 	credentialParserRegistry: ICredentialParserRegistry;
@@ -19,13 +18,12 @@ const CredentialParserContext: React.Context<CredentialParserContextValue> = cre
 
 const defaultLocale = 'en-US';
 
-
 export const CredentialParserContextProvider = ({ children }) => {
 
 	const credentialParserRegistry = useCredentialParserRegistry();
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
-	const parser1: ICredentialParser = {
+	const parser1: ICredentialParser = useMemo(() => ({
 		async parse(rawCredential) {
 
 			if (typeof rawCredential != 'string') {
@@ -51,7 +49,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 			const isValidMetadata = !('error' in getSdJwtVcMetadataResult) && getSdJwtVcMetadataResult.credentialMetadata;
 
 			// Extract metadata and claims
-			const metadata = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.display?.find((d) => d.lang === defaultLocale) || null;
+			const metadata = (isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.display?.find((d) => d.lang === defaultLocale)) || null;
 			const claims = isValidMetadata && getSdJwtVcMetadataResult.credentialMetadata?.claims?.length
 				? getSdJwtVcMetadataResult.credentialMetadata.claims
 				: null;
@@ -126,10 +124,11 @@ export const CredentialParserContextProvider = ({ children }) => {
 			}
 
 		},
-	}
+	}), [openID4VCIHelper]);
+
 	useEffect(() => {
-		credentialParserRegistry.setParsers([ parser1 ]);
-	}, [openID4VCIHelper])
+		credentialParserRegistry.setParsers([parser1]);
+	}, [credentialParserRegistry, parser1]);
 
 
 	return (
@@ -138,7 +137,6 @@ export const CredentialParserContextProvider = ({ children }) => {
 		</CredentialParserContext.Provider>
 	);
 }
-
 
 export const withCredentialParserContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
 	(props) => (

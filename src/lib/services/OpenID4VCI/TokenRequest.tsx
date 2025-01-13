@@ -8,7 +8,7 @@ export type AccessToken = {
 	expires_in: number;
 	c_nonce_expires_in: number;
 	refresh_token?: string;
-	
+
 	httpResponseHeaders: {
 		"dpop-nonce"?: string
 	}

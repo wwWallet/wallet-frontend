@@ -12,7 +12,7 @@ import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK
 import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
-import { useContext, useEffect } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "../../../context/SessionContext";
 import CredentialParserContext from "../../../context/CredentialParserContext";
 import OpenID4VPContext from "../../../context/OpenID4VPContext";
@@ -29,33 +29,43 @@ export function useOpenID4VP() {
 
 export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
 
+	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { credentialParserRegistry } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 
-	async function storeVerifiablePresentation(presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) {
-		await api.post('/storage/vp', {
-			presentationIdentifier: generateRandomIdentifier(32),
-			presentation,
-			presentationSubmission,
-			includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
-			audience,
-			issuanceDate: new Date().toISOString(),
-		});
-	}
+	const storeVerifiablePresentation = useCallback(
+		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
+			await api.post('/storage/vp', {
+				presentationIdentifier: generateRandomIdentifier(32),
+				presentation,
+				presentationSubmission,
+				includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
+				audience,
+				issuanceDate: new Date().toISOString(),
+			});
+		},
+		[api]
+	);
 
-	async function getAllStoredVerifiableCredentials() {
-		const fetchAllCredentials = await api.get('/storage/vc');
+	const getAllStoredVerifiableCredentials = useCallback(async () => {
+		const fetchAllCredentials = await api.get("/storage/vc");
 		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
-	}
+	},
+		[api]
+	);
 
-	return {
-		async promptForCredentialSelection(conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> {
+	const promptForCredentialSelection = useCallback(
+		async (conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> => {
 			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName);
 		},
-		async handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, any>, verifierDomainName: string; } | { err: HandleAuthorizationRequestError }> {
+		[showCredentialSelectionPopup]
+	);
+
+	const handleAuthorizationRequest = useCallback(
+		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string } | { err: HandleAuthorizationRequestError }> => {
 			const authorizationRequest = new URL(url);
 			let client_id = authorizationRequest.searchParams.get('client_id');
 			let response_uri = authorizationRequest.searchParams.get('response_uri');
@@ -207,9 +217,11 @@ export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSele
 
 			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName };
 		},
+		[httpProxy, credentialParserRegistry, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
+	);
 
-
-		async sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> {
+	const sendAuthorizationResponse = useCallback(
+		async (selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
 			const S = await openID4VPRelyingPartyStateRepository.retrieve();
 			console.log("send AuthorizationResponse: S = ", S)
 			console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
@@ -358,7 +370,7 @@ export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSele
 				const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
 				const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 				const jwe = await new EncryptJWT({
-					vp_token: generatedVPs.length == 1 ? generatedVPs[0] : generatedVPs,
+					vp_token: generatedVPs.length === 1 ? generatedVPs[0] : generatedVPs,
 					presentation_submission: presentationSubmission,
 					state: S.state ?? undefined
 				})
@@ -369,7 +381,7 @@ export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSele
 				console.log("JWE = ", jwe)
 			}
 			else {
-				formData.append('vp_token', generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
+				formData.append('vp_token', generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
 				formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 				if (S.state) {
 					formData.append('state', S.state);
@@ -379,7 +391,7 @@ export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSele
 
 			const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
 
-			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length == 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
+			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
 			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, credentialIdentifiers, client_id);
 			const updateCredentialPromise = filteredVCEntities.map(async (cred) => credentialBatchHelper.useCredential(cred))
 
@@ -399,7 +411,19 @@ export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSele
 			if (res.data.redirect_uri) {
 				return { url: res.data.redirect_uri };
 			}
-		}
+		},
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation]
+	);
 
-	}
+	return useMemo(() => {
+		return {
+			promptForCredentialSelection,
+			handleAuthorizationRequest,
+			sendAuthorizationResponse,
+		}
+	}, [
+		promptForCredentialSelection,
+		handleAuthorizationRequest,
+		sendAuthorizationResponse,
+	]);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '../../context/StatusContext';
@@ -25,6 +25,7 @@ const Issuers = () => {
 	const { t } = useTranslation();
 
 	useEffect(() => {
+		console.log("Starting to fetch issuers",openID4VCIHelper);
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
@@ -40,7 +41,7 @@ const Issuers = () => {
 
 						if (issuerObject.visible) {
 							setIssuers((currentArray) => {
-								if (currentArray.filter((iss) => iss.credentialIssuerMetadata.credential_issuer == issuerObject.credentialIssuerMetadata.credential_issuer).length == 0) {
+								if (currentArray.filter((iss) => iss.credentialIssuerMetadata.credential_issuer === issuerObject.credentialIssuerMetadata.credential_issuer).length === 0) {
 									return [...currentArray, issuerObject];
 								}
 								return [...currentArray];
@@ -61,7 +62,7 @@ const Issuers = () => {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline]);
+	}, [api, isOnline, openID4VCIHelper]);
 
 	const handleIssuerClick = async (credentialIssuerIdentifier) => {
 		const clickedIssuer = issuers.find((issuer) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier);
