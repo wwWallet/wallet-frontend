@@ -156,15 +156,15 @@ function App() {
 }
 
 export default withSessionContext(
+	withCredentialParserContext(
 		withCredentialsContext(
-			withCredentialParserContext(
-				withOpenID4VPContext(
-					withOpenID4VCIContext(
-						withUriHandler(
-							App
-						)
+			withOpenID4VPContext(
+				withOpenID4VCIContext(
+					withUriHandler(
+						App
 					)
 				)
 			)
 		)
-	);
+	)
+);

@@ -27,6 +27,8 @@ const HistoryDetail = () => {
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const { t } = useTranslation();
 
+	console.log('history',history)
+
 	useEffect(() => {
 		if (history.length > 0) {
 			setMatchingCredentials(history[0].startsWith("b64:") ? JSON.parse(new TextDecoder().decode(fromBase64(history[0].replace("b64:", "")))) : [ history[0] ] );

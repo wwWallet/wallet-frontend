@@ -20,7 +20,6 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
-import CredentialParserContext from '../../context/CredentialParserContext';
 
 const CredentialLayout = ({ children, title = null }) => {
 	const { credentialId } = useParams();
@@ -33,7 +32,6 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [zeroSigCount, setZeroSigCount] = useState(null)
 	const [sigTotal, setSigTotal] = useState(null);
 
-	const { credentialParserRegistry } = useContext(CredentialParserContext);
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
@@ -41,21 +39,11 @@ const CredentialLayout = ({ children, title = null }) => {
 		if (vcEntity) {
 			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
 			setSigTotal(vcEntity.instances.length);
+			setIsExpired(CheckExpired(vcEntity.parsedCredential.beautifiedForm.expiry_date))
+			setCredentialFriendlyName(vcEntity.parsedCredential.credentialFriendlyName);
+
 		}
 	}, [vcEntity]);
-
-	useEffect(() => {
-		if (!vcEntity) {
-			return;
-		}
-		credentialParserRegistry.parse(vcEntity.credential).then((c) => {
-			if ('error' in c) {
-				return;
-			}
-			setIsExpired(CheckExpired(c.beautifiedForm.expiry_date))
-			setCredentialFriendlyName(c.credentialFriendlyName);
-		});
-	}, [vcEntity, credentialParserRegistry]);
 
 	const UsageStats = ({ zeroSigCount, sigTotal }) => {
 		if (zeroSigCount === null || sigTotal === null) return null;
@@ -109,7 +97,7 @@ const CredentialLayout = ({ children, title = null }) => {
 									aria-label={`${credentialFiendlyName}`}
 									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
 								>
-									<CredentialImage vcEntity={vcEntity} credential={vcEntity.credential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
+									<CredentialImage vcEntity={vcEntity} parsedCredential={vcEntity.parsedCredential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
 								</button>
 								{screenType !== 'mobile' && zeroSigCount !== null && sigTotal &&
 									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
@@ -149,7 +137,7 @@ const CredentialLayout = ({ children, title = null }) => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage credential={vcEntity.credential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
+						<CredentialImage parsedCredential={vcEntity.parsedCredential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
 					}
 				/>
 			)}

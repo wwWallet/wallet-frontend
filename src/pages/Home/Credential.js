@@ -1,5 +1,5 @@
 // External libraries
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 
@@ -21,7 +21,6 @@ import CredentialDeleteButton from '../../components/Credentials/CredentialDelet
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
-import CredentialParserContext from '../../context/CredentialParserContext';
 
 const Credential = () => {
 	const { credentialId } = useParams();
@@ -29,28 +28,13 @@ const Credential = () => {
 	const history = useFetchPresentations(api, credentialId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const screenType = useScreenType();
 	const [activeTab, setActiveTab] = useState(0);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
-	const { credentialParserRegistry } = useContext(CredentialParserContext);
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
-
-	useEffect(() => {
-		if (!vcEntity) {
-			return;
-		}
-		credentialParserRegistry.parse(vcEntity.credential).then((c) => {
-			if ('error' in c) {
-				return;
-			}
-			setCredentialFriendlyName(c.credentialFriendlyName);
-		});
-	}, [vcEntity, credentialParserRegistry]);
 
 	const handleSureDelete = async () => {
 		setLoading(true);
@@ -65,7 +49,7 @@ const Credential = () => {
 	};
 
 	const infoTabs = [
-		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson credential={vcEntity?.credential} /> },
+		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} /> },
 		{
 			label: t('pageCredentials.presentationsTitle'), component:
 				<>
@@ -86,7 +70,7 @@ const Credential = () => {
 				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
 
 					{/* Block 2: Information List */}
-					{vcEntity && <CredentialInfo credential={vcEntity.credential} />} {/* Use the CredentialInfo component */}
+					{vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />} {/* Use the CredentialInfo component */}
 				</div>
 
 				<div className="w-full pt-2 px-2">
@@ -129,7 +113,7 @@ const Credential = () => {
 						message={
 							<Trans
 								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName: credentialFiendlyName }}
+								values={{ credentialName: vcEntity.parsedCredential.credentialFriendlyName }}
 								components={{ strong: <strong />, br: <br /> }}
 							/>
 						}

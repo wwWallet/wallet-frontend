@@ -38,29 +38,23 @@ const Home = () => {
 		navigate(`/credential/${vcEntity.credentialIdentifier}`);
 	};
 
-	const renderSlideContent = (vcEntity) => {
-		return (
-			<button
-				key={vcEntity.id}
-				className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
-				onClick={() => {
-					console.log("Button clicked for:", vcEntity);
-					handleImageClick(vcEntity);
-				}}
-				aria-label={`${vcEntity.friendlyName}`}
-				tabIndex={currentSlide !== vcEntityList.indexOf(vcEntity) + 1 ? -1 : 0}
-				title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.friendlyName })}
-			>
-				<CredentialImage
-					vcEntityInstances={vcEntity.instances}
-					showRibbon={currentSlide === vcEntityList.indexOf(vcEntity) + 1}
-					credential={vcEntity.credential}
-					className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`}
-				/>
-			</button>
-		);
-	};
-
+	const renderSlideContent = (vcEntity) => (
+		<button
+			key={vcEntity.id}
+			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
+			onClick={() => { handleImageClick(vcEntity); }}
+			aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
+			tabIndex={currentSlide !== vcEntityList.indexOf(vcEntity) + 1 ? -1 : 0}
+			title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
+		>
+			<CredentialImage
+				vcEntityInstances={vcEntity.instances}
+				showRibbon={currentSlide === vcEntityList.indexOf(vcEntity) + 1}
+				parsedCredential={vcEntity.parsedCredential}
+				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`}
+			/>
+		</button>
+	);
 
 	return (
 		<>
@@ -110,7 +104,7 @@ const Home = () => {
 											>
 												<CredentialImage
 													vcEntityInstances={vcEntity.instances}
-													credential={vcEntity.credential}
+													parsedCredential={vcEntity.parsedCredential}
 													className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`}
 												/>
 											</button>

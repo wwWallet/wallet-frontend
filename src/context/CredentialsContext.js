@@ -2,6 +2,7 @@ import React, { createContext, useState, useCallback, useContext, useEffect } fr
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
+import CredentialParserContext from "./CredentialParserContext";
 
 const CredentialsContext = createContext();
 
@@ -10,6 +11,7 @@ export const CredentialsProvider = ({ children }) => {
 	const [vcEntityList, setVcEntityList] = useState(null);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
+	const { parseCredential } = useContext(CredentialParserContext);
 
 	const fetchVcData = useCallback(async (credentialId = null) => {
 		const response = await api.get('/storage/vc');
@@ -28,23 +30,33 @@ export const CredentialsProvider = ({ children }) => {
 		}, {});
 
 		// Filter and map the fetched list in one go
-		const filteredVcEntityList = fetchedVcList
-			.filter((vcEntity) => {
-				// Apply filtering by credentialId if provided
-				if (credentialId && vcEntity.credentialIdentifier !== credentialId) {
-					return false;
-				}
-				// Include only the first instance (instanceId === 0)
-				return vcEntity.instanceId === 0;
-			})
-			.map((vcEntity) => {
-				// Attach the instances array from the map
-				return { ...vcEntity, instances: instancesMap[vcEntity.credentialIdentifier] };
-			})
-			.sort(reverse(compareBy((vc) => vc.id))); // Sorting by id
+		const filteredVcEntityList = await Promise.all(
+			fetchedVcList
+				.filter((vcEntity) => {
+					// Apply filtering by credentialId if provided
+					if (credentialId && vcEntity.credentialIdentifier !== credentialId) {
+						return false;
+					}
+					// Include only the first instance (instanceId === 0)
+					return vcEntity.instanceId === 0;
+				})
+				.map(async (vcEntity) => {
+					// Parse the credential to get parsedCredential
+					const parsedCredential = await parseCredential(vcEntity.credential);
 
+					// Attach the instances array from the map and add parsedCredential
+					return {
+						...vcEntity,
+						instances: instancesMap[vcEntity.credentialIdentifier],
+						parsedCredential,
+					};
+				})
+		);
+
+		// Sorting by id
+		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api]);
+	}, [api, parseCredential]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
@@ -126,7 +138,7 @@ export const CredentialsProvider = ({ children }) => {
 	}, [getData]);
 
 	return (
-		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide }}>
+		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>
 			{children}
 		</CredentialsContext.Provider>
 	);
