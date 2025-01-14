@@ -15,37 +15,33 @@ export const CredentialsProvider = ({ children }) => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
-		// Group the fetched VC list by credentialIdentifier
-		const groupedByCredential = fetchedVcList.reduce((acc, vcEntity) => {
+		// Create a map of instances grouped by credentialIdentifier
+		const instancesMap = fetchedVcList.reduce((acc, vcEntity) => {
 			if (!acc[vcEntity.credentialIdentifier]) {
 				acc[vcEntity.credentialIdentifier] = [];
 			}
-			// Push the current vcEntity into the group
-			acc[vcEntity.credentialIdentifier].push(vcEntity);
+			acc[vcEntity.credentialIdentifier].push({
+				instanceId: vcEntity.instanceId,
+				sigCount: vcEntity.sigCount
+			});
 			return acc;
 		}, {});
 
-		// Map over each group to add the `instances` field
-		const vcEntityList = Object.values(groupedByCredential).map((group) => {
-			const firstInstance = group[0]; // First instance for each credentialIdentifier
-
-			// Add the instances array with all instance details
-			const instances = group.map((vcEntity) => ({
-				instanceId: vcEntity.instanceId,
-				sigCount: vcEntity.sigCount
-			}));
-
-			// Return the first instance with the added `instances` field
-			return { ...firstInstance, instances };
-		});
-
-		// If a specific credentialId is provided, filter based on it
-		const filteredVcEntityList = credentialId
-			? vcEntityList.filter(vc => vc.credentialIdentifier === credentialId)
-			: vcEntityList;
-
-		// Sorting the list as you did earlier
-		filteredVcEntityList.sort(reverse(compareBy(vc => vc.id)));
+		// Filter and map the fetched list in one go
+		const filteredVcEntityList = fetchedVcList
+			.filter((vcEntity) => {
+				// Apply filtering by credentialId if provided
+				if (credentialId && vcEntity.credentialIdentifier !== credentialId) {
+					return false;
+				}
+				// Include only the first instance (instanceId === 0)
+				return vcEntity.instanceId === 0;
+			})
+			.map((vcEntity) => {
+				// Attach the instances array from the map
+				return { ...vcEntity, instances: instancesMap[vcEntity.credentialIdentifier] };
+			})
+			.sort(reverse(compareBy((vc) => vc.id))); // Sorting by id
 
 		return filteredVcEntityList;
 	}, [api]);
