@@ -16,6 +16,7 @@ import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizati
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
+import { useCredentialRequest } from './CredentialRequest';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
@@ -32,9 +33,10 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications();
 
 	const tokenRequestBuilder = useTokenRequest();
+	const credentialRequestBuilder = useCredentialRequest();
 
 	const credentialRequest = useCallback(
-		async (response: any, flowState: OpenID4VCIClientState, cachedProofs?: string[]) => {
+		async (response: any, flowState: OpenID4VCIClientState) => {
 			console.log('credentialRequest')
 			const {
 				data: { access_token, c_nonce },
@@ -46,97 +48,22 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				openID4VCIHelper.getClientId(flowState.credentialIssuerIdentifier)
 			]);
 
-			const credentialEndpoint = credentialIssuerMetadata.metadata.credential_endpoint;
+			credentialRequestBuilder.setCredentialEndpoint(credentialIssuerMetadata.metadata.credential_endpoint);
+			credentialRequestBuilder.setCNonce(c_nonce);
+			credentialRequestBuilder.setAccessToken(access_token);
+			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
 
-			let credentialRequestHeaders = {
-				"Authorization": `Bearer ${access_token}`,
-			};
+			const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
+			credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
+			credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
+			credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
+			
+			credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
 
-			if (authzServerMetadata.authzServeMetadata.dpop_signing_alg_values_supported) {
-				const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg);
+			await credentialRequestBuilder.setDpopHeader();
+			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId);
 
-				const newDPoPNonce = response.headers['dpop-nonce'];
-				const credentialEndpointDPoP = await generateDPoP(
-					privateKey as jose.KeyLike,
-					flowState.dpop.dpopPublicKeyJwk,
-					flowState.dpop.dpopJti,
-					"POST",
-					credentialEndpoint,
-					newDPoPNonce,
-					access_token
-				);
-
-				credentialRequestHeaders['Authorization'] = `DPoP ${access_token}`;
-				credentialRequestHeaders['dpop'] = credentialEndpointDPoP;
-			}
-
-			let proofsArray: string[] = [];
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
-			try {
-				const inputs = [];
-				for (let i = 0; i < numberOfProofs; i++) {
-					inputs.push({
-						nonce: c_nonce,
-						issuer: clientId.client_id,
-						audience: credentialIssuerMetadata.metadata.credential_issuer
-					})
-				}
-
-				if (cachedProofs) {
-					proofsArray = cachedProofs;
-				}
-				else {
-					const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(inputs);
-					await api.updatePrivateData(newPrivateData);
-					await keystoreCommit();
-					proofsArray = proof_jwts;
-				}
-			}
-			catch (err) {
-				console.error(err);
-				throw new Error("Failed to generate proof");
-			}
-
-			const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId];
-
-			const credentialEndpointBody = {
-				"format": credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
-			} as any;
-
-			if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
-				credentialEndpointBody.proofs = {
-					jwt: proofsArray
-				}
-			}
-			else {
-				credentialEndpointBody.proof = {
-					proof_type: "jwt",
-					jwt: proofsArray[0],
-				}
-			}
-
-			if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
-				credentialEndpointBody.vct = credentialConfigurationSupported.vct;
-			}
-			else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
-				credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
-			}
-
-			const credentialResponse = await httpProxy.post(credentialEndpoint, credentialEndpointBody, credentialRequestHeaders);
-
-			if (credentialResponse.err) {
-				console.log("Error: Credential response = ", JSON.stringify(credentialResponse.err));
-				if (credentialResponse.err.headers["www-authenticate"].includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.err.headers) {
-					console.log("Calling credentialRequest with new dpop-nonce....")
-
-					response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-					await credentialRequest(response, flowState, proofsArray);
-					return;
-				}
-				throw new Error("Credential Request failed");
-			}
-			console.log("Credential response = ", credentialResponse)
-
 
 			const credentialArray = [];
 			if (numberOfProofs === 1 && credentialResponse.data.credential) {
@@ -196,6 +123,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			}
 		}) => {
 			console.log('requestCredentials')
+			console.log(JSON.stringify(requestCredentialsParams));
 			const [authzServerMetadata, clientId] = await Promise.all([
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
