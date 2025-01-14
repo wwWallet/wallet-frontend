@@ -6,7 +6,7 @@ import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifie
 import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useContext } from "react";
+import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "../../../../context/SessionContext";
 import OpenID4VPContext from "../../../../context/OpenID4VPContext";
 
@@ -18,15 +18,18 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IO
 
 	const { keystore } = useContext(SessionContext);
 
-	return {
-		async generate(credentialConfigurationId: string, issuer_state: string | undefined, config: {
-			credentialIssuerIdentifier: string,
-			redirectUri: string,
-			clientId: string,
-			authorizationServerMetadata: OpenidAuthorizationServerMetadata,
-			credentialIssuerMetadata: OpenidCredentialIssuerMetadata,
-		}): Promise<{ authorizationRequestURL: string } | { authorization_code: string; state: string; }> {
-
+	const generate = useCallback(
+		async (
+			credentialConfigurationId: string,
+			issuer_state: string | undefined,
+			config: {
+				credentialIssuerIdentifier: string;
+				redirectUri: string;
+				clientId: string;
+				authorizationServerMetadata: OpenidAuthorizationServerMetadata;
+				credentialIssuerMetadata: OpenidCredentialIssuerMetadata;
+			}
+		): Promise<{ authorizationRequestURL: string } | { authorization_code: string; state: string }> => {
 			const userHandleB64u = keystore.getUserHandleB64u();
 			const { code_challenge, code_verifier } = await pkce();
 
@@ -58,7 +61,7 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IO
 				const err = res.err;
 				if (err) {
 					if (err?.data && err?.data?.error === "insufficient_authorization") { // Authorization Error Response
-						const { error, auth_session, presentation } = err?.data;
+						const { auth_session, presentation } = err?.data;
 
 						// this function should prompt the user for presentation selection
 						const result = await openID4VP.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
@@ -101,7 +104,9 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IO
 			}
 
 			throw new Error("First party app authorization failed");
+		},
+		[httpProxy, keystore, openID4VCIClientStateRepository, openID4VP]
+	);
 
-		}
-	}
+	return useMemo(() => ({ generate }), [generate]);
 }

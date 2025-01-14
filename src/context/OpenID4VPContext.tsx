@@ -1,4 +1,4 @@
-import React, { useState, useContext, createContext } from "react";
+import React, { useState, useContext, createContext, useCallback } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import CredentialsContext from '../context/CredentialsContext';
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
@@ -13,7 +13,7 @@ const OpenID4VPContext: React.Context<OpenID4VPContextValue> = createContext({
 });
 
 export const OpenID4VPContextProvider = ({ children }) => {
-	const { vcEntityList, vcEntityListInstances, latestCredentials, currentSlide, setCurrentSlide } = useContext<any>(CredentialsContext);
+	const { vcEntityList, vcEntityListInstances } = useContext<any>(CredentialsContext);
 
 	const [popupState, setPopupState] = useState({
 		isOpen: false,
@@ -22,9 +22,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		reject: () => { },
 	});
 
-
-
-	const showPopup = (options): Promise<Map<string, string>> =>
+	const showPopup = useCallback((options): Promise<Map<string, string>> =>
 		new Promise((resolve, reject) => {
 			setPopupState({
 				isOpen: true,
@@ -32,18 +30,21 @@ export const OpenID4VPContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		});
+		}), []);
 
-	const hidePopup = () => {
+	const hidePopup = useCallback(() => {
 		setPopupState((prevState) => ({
 			...prevState,
 			isOpen: false,
 		}));
-	};
+	}, []);
 
-	async function showCredentialSelectionPopup(conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string): Promise<Map<string, string>> {
-		return showPopup({ conformantCredentialsMap, verifierDomainName });
-	}
+	const showCredentialSelectionPopup = useCallback(
+		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string): Promise<Map<string, string>> => {
+			return showPopup({ conformantCredentialsMap, verifierDomainName });
+		},
+		[showPopup]
+	);
 
 	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup });
 
@@ -54,7 +55,6 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		</OpenID4VPContext.Provider>
 	);
 }
-
 
 export const withOpenID4VPContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
 	(props) => (

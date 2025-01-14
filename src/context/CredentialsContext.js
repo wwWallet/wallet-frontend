@@ -18,7 +18,7 @@ export const CredentialsProvider = ({ children }) => {
 
 		const vcEntityList = (await Promise.all(fetchedVcList.map(async (vcEntity) => {
 			return { ...vcEntity };
-		}))).filter((vcEntity) => vcEntity.instanceId == 0); // show only the first instance
+		}))).filter((vcEntity) => vcEntity.instanceId === 0); // show only the first instance
 
 		vcEntityList.sort(reverse(compareBy(vc => vc.id)));
 
