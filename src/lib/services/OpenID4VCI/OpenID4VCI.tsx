@@ -10,7 +10,7 @@ import * as config from '../../../config';
 import { VerifiableCredentialFormat } from '../../schemas/vc';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
@@ -115,7 +115,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			for (let i = 0; i < numberOfProofs; i++) {
 				inputs.push({
 					nonce: c_nonce,
-					issuer: clientId.client_id,
+					issuer: clientId ? clientId.client_id : null,
 					audience: credentialIssuerMetadata.metadata.credential_issuer
 				})
 			}
@@ -330,7 +330,8 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			}
 		}
 
-		tokenRequestBuilder.setClientId(clientId.client_id);
+
+		tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 		tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
 		tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
 		tokenRequestBuilder.setCodeVerifier(flowState?.code_verifier);
@@ -459,7 +460,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 					authorizationServerMetadata: authzServerMetadata.authzServeMetadata,
 					credentialIssuerMetadata: credentialIssuerMetadata.metadata,
 					credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-					clientId: clientId.client_id,
+					clientId: clientId ? clientId.client_id : null,
 					redirectUri: redirectUri
 				}
 			);
@@ -475,7 +476,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 					authorizationServerMetadata: authzServerMetadata.authzServeMetadata,
 					credentialIssuerMetadata: credentialIssuerMetadata.metadata,
 					credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-					clientId: clientId.client_id,
+					clientId: clientId ? clientId.client_id : null,
 					redirectUri: redirectUri
 				}
 			).then((result) => {
