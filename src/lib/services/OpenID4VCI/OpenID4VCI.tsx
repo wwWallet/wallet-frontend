@@ -57,7 +57,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
 			credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
 			credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
-			
+
 			credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
 
 			await credentialRequestBuilder.setDpopHeader();
