@@ -313,4 +313,5 @@ Tailwind CSS provides an extensive set of default styles, but you can also custo
 Explore the [Tailwind CSS documentation](https://tailwindcss.com/docs/installation) to learn about all the utility classes, configuration options, and techniques for building beautiful UIs efficiently.
 
 ## 💡Contributing
+
 Want to contribute? Check out our [Contribution Guidelines](https://github.com/wwWallet/.github/blob/main/CONTRIBUTING.md) for more details!

@@ -19,6 +19,18 @@ import useFetchPresentations from '../../hooks/useFetchPresentations';
 import HistoryDetailContent from '../../components/History/HistoryDetailContent';
 import { H1 } from '../../components/Shared/Heading';
 
+export const extractPresentations = (item) => {
+	if (item.presentation.startsWith("b64:") && (new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", "")))).includes("[")) {
+		return JSON.parse(new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", ""))));
+	}
+	else if (item.presentation.startsWith("b64:")) {
+		return [ new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", ""))) ];
+	}
+	else {
+		return [ item.presentation ];
+	}
+}
+
 const HistoryDetail = () => {
 	const { historyId } = useParams();
 	const { api } = useContext(SessionContext);
@@ -29,7 +41,7 @@ const HistoryDetail = () => {
 
 	useEffect(() => {
 		if (history.length > 0) {
-			setMatchingCredentials(history[0].startsWith("b64:") ? JSON.parse(new TextDecoder().decode(fromBase64(history[0].replace("b64:", "")))) : [ history[0] ] );
+			setMatchingCredentials(extractPresentations(history[0]));
 		}
 	}, [history]);
 

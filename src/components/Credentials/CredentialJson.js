@@ -1,23 +1,23 @@
 // CredentialJson.js
 
 import React, { useEffect, useState, useContext } from 'react';
+import CredentialParserContext from "../../context/CredentialParserContext";
 
-import ContainerContext from '../../context/ContainerContext';
 
 const CredentialJson = ({ credential, textAreaRows='10' }) => {
-	const container = useContext(ContainerContext);
+	const { credentialParserRegistry } = useContext(CredentialParserContext);
 	const [parsedCredential, setParsedCredential] = useState(null);
 
 	useEffect(() => {
-		if (container) {
-			container.credentialParserRegistry.parse(credential).then((c) => {
+		if (credentialParserRegistry) {
+			credentialParserRegistry.parse(credential).then((c) => {
 				if ('error' in c) {
 					return;
 				}
 				setParsedCredential(c.beautifiedForm);
 			});
 		}
-	}, [credential, container]);
+	}, [credential, credentialParserRegistry]);
 
 	return (
 		<div className='w-full'>

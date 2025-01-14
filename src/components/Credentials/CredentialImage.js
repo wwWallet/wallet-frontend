@@ -1,15 +1,15 @@
 import { useState, useEffect, useContext } from "react";
 import ExpiredRibbon from './ExpiredRibbon';
 import UsagesRibbon from "./UsagesRibbon";
-import ContainerContext from '../../context/ContainerContext';
+import CredentialParserContext from "../../context/CredentialParserContext";
 
 const CredentialImage = ({ credential, className, onClick, showRibbon = true, vcEntityInstances = null }) => {
 	const [parsedCredential, setParsedCredential] = useState(null);
-	const container = useContext(ContainerContext);
+	const { credentialParserRegistry } = useContext(CredentialParserContext);
 
 	useEffect(() => {
-		if (container) {
-			container.credentialParserRegistry.parse(credential).then((c) => {
+		if (credentialParserRegistry) {
+			credentialParserRegistry.parse(credential).then((c) => {
 				if ('error' in c) {
 					return;
 				}
@@ -17,7 +17,7 @@ const CredentialImage = ({ credential, className, onClick, showRibbon = true, vc
 			});
 		}
 
-	}, [credential, container]);
+	}, [credential, credentialParserRegistry]);
 
 	return (
 		<>
