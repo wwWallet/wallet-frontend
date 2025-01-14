@@ -56,7 +56,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList, vcEntityListInstances }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
 	const { api } = useContext(SessionContext);
 	const credentialParserContext = useContext(CredentialParserContext);
@@ -180,7 +180,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
 		>
 			<CredentialImage
-				vcEntityInstances={vcEntityListInstances.filter((vc) => vc.credentialIdentifier === vcEntity.credentialIdentifier)}
+				vcEntityInstances={vcEntity.instances}
 				key={vcEntity.credentialIdentifier}
 				credential={vcEntity.credential}
 				className="w-full object-cover rounded-xl"

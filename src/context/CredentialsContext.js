@@ -8,7 +8,6 @@ const CredentialsContext = createContext();
 export const CredentialsProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState(null);
-	const [vcEntityListInstances, setVcEntityListInstances] = useState(null);
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
 
@@ -16,23 +15,42 @@ export const CredentialsProvider = ({ children }) => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
-		const vcEntityList = (
-			await Promise.all(
-				fetchedVcList.map(async (vcEntity) => {
-					return { ...vcEntity };
-				})
-			)
-		).filter((vcEntity) =>
-			credentialId ? vcEntity.credentialIdentifier === credentialId : vcEntity.instanceId === 0
-		); // show only the first instance
+		// Group the fetched VC list by credentialIdentifier
+		const groupedByCredential = fetchedVcList.reduce((acc, vcEntity) => {
+			if (!acc[vcEntity.credentialIdentifier]) {
+				acc[vcEntity.credentialIdentifier] = [];
+			}
+			// Push the current vcEntity into the group
+			acc[vcEntity.credentialIdentifier].push(vcEntity);
+			return acc;
+		}, {});
 
-		vcEntityList.sort(reverse(compareBy(vc => vc.id)));
+		// Map over each group to add the `instances` field
+		const vcEntityList = Object.values(groupedByCredential).map((group) => {
+			const firstInstance = group[0]; // First instance for each credentialIdentifier
 
-		console.log('--->',vcEntityList, fetchedVcList)
-		return { vcEntityList, fetchedVcList };
+			// Add the instances array with all instance details
+			const instances = group.map((vcEntity) => ({
+				instanceId: vcEntity.instanceId,
+				sigCount: vcEntity.sigCount
+			}));
+
+			// Return the first instance with the added `instances` field
+			return { ...firstInstance, instances };
+		});
+
+		// If a specific credentialId is provided, filter based on it
+		const filteredVcEntityList = credentialId
+			? vcEntityList.filter(vc => vc.credentialIdentifier === credentialId)
+			: vcEntityList;
+
+		// Sorting the list as you did earlier
+		filteredVcEntityList.sort(reverse(compareBy(vc => vc.id)));
+
+		return filteredVcEntityList;
 	}, [api]);
 
-	const updateVcListAndLatestCredentials = (vcEntityList, fetchedVcList) => {
+	const updateVcListAndLatestCredentials = (vcEntityList) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
 
 		setTimeout(() => {
@@ -40,7 +58,6 @@ export const CredentialsProvider = ({ children }) => {
 		}, 2000);
 
 		setVcEntityList(vcEntityList);
-		setVcEntityListInstances(fetchedVcList);
 	};
 
 	const pollForCredentials = useCallback(() => {
@@ -57,13 +74,13 @@ export const CredentialsProvider = ({ children }) => {
 			const previousVcList = await getItem("vc", userId);
 			const previousSize = previousVcList.vc_list.length;
 
-			const { vcEntityList, fetchedVcList } = await fetchVcData();
+			const vcEntityList = await fetchVcData();
 
 			if (previousSize < vcEntityList.length) {
 				console.log('Found new credentials, stopping polling');
 				isPolling = false;
 				clearInterval(intervalId);
-				updateVcListAndLatestCredentials(vcEntityList, fetchedVcList);
+				updateVcListAndLatestCredentials(vcEntityList);
 			}
 
 			if (attempts >= 5) {
@@ -81,10 +98,9 @@ export const CredentialsProvider = ({ children }) => {
 			const uniqueIdentifiers = new Set(previousVcList?.vc_list.map(vc => vc.credentialIdentifier));
 			const previousSize = uniqueIdentifiers.size;
 
-			const { vcEntityList, fetchedVcList } = await fetchVcData();
+			const vcEntityList = await fetchVcData();
 
 			setVcEntityList(vcEntityList);
-			setVcEntityListInstances(fetchedVcList);
 
 			const newCredentialsFound = previousSize < vcEntityList.length;
 			if (shouldPoll && !newCredentialsFound) {
@@ -94,10 +110,9 @@ export const CredentialsProvider = ({ children }) => {
 			} else if (newCredentialsFound) {
 				window.history.replaceState({}, '', `/`);
 				console.log("Found new credentials, no need to poll");
-				updateVcListAndLatestCredentials(vcEntityList, fetchedVcList);
+				updateVcListAndLatestCredentials(vcEntityList);
 			} else {
 				setVcEntityList(vcEntityList);
-				setVcEntityListInstances(fetchedVcList);
 			}
 		} catch (error) {
 			console.error('Failed to fetch data', error);
@@ -115,7 +130,7 @@ export const CredentialsProvider = ({ children }) => {
 	}, [getData]);
 
 	return (
-		<CredentialsContext.Provider value={{ vcEntityList, vcEntityListInstances, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide }}>
+		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide }}>
 			{children}
 		</CredentialsContext.Provider>
 	);

@@ -36,12 +36,10 @@ const Credential = () => {
 	const { t } = useTranslation();
 
 	const { credentialParserRegistry } = useContext(CredentialParserContext);
-	const { vcEntityList, vcEntityListInstances, fetchVcData } = useContext(CredentialsContext);
+	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 
-	const {vcEntity, vcEntityInstances} = useVcEntity(fetchVcData, vcEntityList, vcEntityListInstances, credentialId);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
-	console.log('-> vcEntity',vcEntity)
-	console.log('-> vcEntityInstances',vcEntityInstances)
 	useEffect(() => {
 		if (!vcEntity) {
 			return;

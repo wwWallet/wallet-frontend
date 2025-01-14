@@ -34,15 +34,15 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [sigTotal, setSigTotal] = useState(null);
 
 	const { credentialParserRegistry } = useContext(CredentialParserContext);
-	const { vcEntityList, vcEntityListInstances, fetchVcData } = useContext(CredentialsContext);
-	const { vcEntity, vcEntityInstances } = useVcEntity(fetchVcData, vcEntityList, vcEntityListInstances, credentialId);
+	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
 	useEffect(() => {
-		if (vcEntity && vcEntityInstances) {
-			setZeroSigCount(vcEntityInstances.filter(instance => instance.sigCount === 0).length || 0);
-			setSigTotal(vcEntityInstances.length);
+		if (vcEntity) {
+			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
+			setSigTotal(vcEntity.instances.length);
 		}
-	}, [vcEntity, vcEntityInstances]);
+	}, [vcEntity]);
 
 	useEffect(() => {
 		if (!vcEntity) {

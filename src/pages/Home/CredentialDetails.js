@@ -18,7 +18,7 @@ const CredentialDetails = () => {
 	const { t } = useTranslation();
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const { vcEntity } = useVcEntity(fetchVcData, vcEntityList, credentialId);
+	const vcEntity  = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
 	return (
 		<>

@@ -13,7 +13,7 @@ const OpenID4VPContext: React.Context<OpenID4VPContextValue> = createContext({
 });
 
 export const OpenID4VPContextProvider = ({ children }) => {
-	const { vcEntityList, vcEntityListInstances } = useContext<any>(CredentialsContext);
+	const { vcEntityList } = useContext<any>(CredentialsContext);
 
 	const [popupState, setPopupState] = useState({
 		isOpen: false,
@@ -51,7 +51,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 	return (
 		<OpenID4VPContext.Provider value={{ openID4VP }}>
 			{children}
-			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} vcEntityListInstances={vcEntityListInstances} />
+			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} />
 		</OpenID4VPContext.Provider>
 	);
 }
