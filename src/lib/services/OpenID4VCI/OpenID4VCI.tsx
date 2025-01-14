@@ -1,13 +1,11 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
 import { CredentialConfigurationSupported } from '../../schemas/CredentialConfigurationSupportedSchema';
 import { OpenID4VCIClientState } from '../../types/OpenID4VCIClientState';
-import { generateDPoP } from '../../utils/dpop';
 import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import { StorableCredential } from '../../types/StorableCredential';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
-import { VerifiableCredentialFormat } from '../../schemas/vc';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
 import { useCallback, useContext, useMemo } from 'react';
@@ -15,20 +13,13 @@ import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
-import OpenID4VCIContext from '../../../context/OpenID4VCIContext';
+import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
+import { useCredentialRequest } from './CredentialRequest';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
 
-export function useOpenID4VCI() {
-	const openID4VCI = useContext(OpenID4VCIContext);
-	if (!openID4VCI.openID4VCI) {
-		throw new Error("OpenID4VCIContext is not defined in the context");
-	}
-	return openID4VCI.openID4VCI;
-}
-
-export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
@@ -39,8 +30,11 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
 	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications();
 
+	const tokenRequestBuilder = useTokenRequest();
+	const credentialRequestBuilder = useCredentialRequest();
+
 	const credentialRequest = useCallback(
-		async (response: any, flowState: OpenID4VCIClientState, cachedProofs?: string[]) => {
+		async (response: any, flowState: OpenID4VCIClientState) => {
 			console.log('credentialRequest')
 			const {
 				data: { access_token, c_nonce },
@@ -52,97 +46,22 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 				openID4VCIHelper.getClientId(flowState.credentialIssuerIdentifier)
 			]);
 
-			const credentialEndpoint = credentialIssuerMetadata.metadata.credential_endpoint;
+			credentialRequestBuilder.setCredentialEndpoint(credentialIssuerMetadata.metadata.credential_endpoint);
+			credentialRequestBuilder.setCNonce(c_nonce);
+			credentialRequestBuilder.setAccessToken(access_token);
+			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
 
-			let credentialRequestHeaders = {
-				"Authorization": `Bearer ${access_token}`,
-			};
+			const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
+			credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
+			credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
+			credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
 
-			if (authzServerMetadata.authzServeMetadata.dpop_signing_alg_values_supported) {
-				const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg);
+			credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
 
-				const newDPoPNonce = response.headers['dpop-nonce'];
-				const credentialEndpointDPoP = await generateDPoP(
-					privateKey as jose.KeyLike,
-					flowState.dpop.dpopPublicKeyJwk,
-					flowState.dpop.dpopJti,
-					"POST",
-					credentialEndpoint,
-					newDPoPNonce,
-					access_token
-				);
+			await credentialRequestBuilder.setDpopHeader();
+			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId);
 
-				credentialRequestHeaders['Authorization'] = `DPoP ${access_token}`;
-				credentialRequestHeaders['dpop'] = credentialEndpointDPoP;
-			}
-
-			let proofsArray: string[] = [];
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
-			try {
-				const inputs = [];
-				for (let i = 0; i < numberOfProofs; i++) {
-					inputs.push({
-						nonce: c_nonce,
-						issuer: clientId.client_id,
-						audience: credentialIssuerMetadata.metadata.credential_issuer
-					})
-				}
-
-				if (cachedProofs) {
-					proofsArray = cachedProofs;
-				}
-				else {
-					const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(inputs);
-					await api.updatePrivateData(newPrivateData);
-					await keystoreCommit();
-					proofsArray = proof_jwts;
-				}
-			}
-			catch (err) {
-				console.error(err);
-				throw new Error("Failed to generate proof");
-			}
-
-			const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId];
-
-			const credentialEndpointBody = {
-				"format": credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
-			} as any;
-
-			if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
-				credentialEndpointBody.proofs = {
-					jwt: proofsArray
-				}
-			}
-			else {
-				credentialEndpointBody.proof = {
-					proof_type: "jwt",
-					jwt: proofsArray[0],
-				}
-			}
-
-			if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
-				credentialEndpointBody.vct = credentialConfigurationSupported.vct;
-			}
-			else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
-				credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
-			}
-
-			const credentialResponse = await httpProxy.post(credentialEndpoint, credentialEndpointBody, credentialRequestHeaders);
-
-			if (credentialResponse.err) {
-				console.log("Error: Credential response = ", JSON.stringify(credentialResponse.err));
-				if (credentialResponse.err.headers["www-authenticate"].includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.err.headers) {
-					console.log("Calling credentialRequest with new dpop-nonce....")
-
-					response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-					await credentialRequest(response, flowState, proofsArray);
-					return;
-				}
-				throw new Error("Credential Request failed");
-			}
-			console.log("Credential response = ", credentialResponse)
-
 
 			const credentialArray = [];
 			if (numberOfProofs === 1 && credentialResponse.data.credential) {
@@ -202,6 +121,7 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 			}
 		}) => {
 			console.log('requestCredentials')
+			console.log(JSON.stringify(requestCredentialsParams));
 			const [authzServerMetadata, clientId] = await Promise.all([
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
@@ -284,74 +204,40 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 			}
 			const jti = generateRandomIdentifier(8);
 
-			let tokenRequestHeaders = {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			};
+			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 
 			if (authzServerMetadata.authzServeMetadata.dpop_signing_alg_values_supported) {
-				const dpop = await generateDPoP(
-					dpopPrivateKey as jose.KeyLike,
-					dpopPublicKeyJwk,
-					jti,
-					"POST",
-					tokenEndpoint,
-					requestCredentialsParams.dpopNonceHeader
-				);
+				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
 				flowState.dpop = {
 					dpopAlg: 'ES256',
 					dpopJti: jti,
 					dpopPrivateKeyJwk: dpopPrivateKeyJwk,
 					dpopPublicKeyJwk: dpopPublicKeyJwk,
 				}
-				tokenRequestHeaders['DPoP'] = dpop;
 			}
 
 
-			const formData = new URLSearchParams();
-			formData.append('client_id', clientId.client_id);
-			if (requestCredentialsParams.authorizationCodeGrant) {
-				formData.append('grant_type', 'authorization_code');
-				formData.append('code', requestCredentialsParams.authorizationCodeGrant.code);
-				formData.append('code_verifier', flowState.code_verifier);
-			}
-			else if (requestCredentialsParams.refreshTokenGrant) {
-				if (!flowState?.tokenResponse?.data.refresh_token) {
-					console.info("Found no refresh_token to execute refesh_token grant")
-					throw new Error("Found no refresh_token to execute refesh_token grant");
+			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
+			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
+			tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
+			tokenRequestBuilder.setCodeVerifier(flowState?.code_verifier);
+
+			tokenRequestBuilder.setRefreshToken(flowState?.tokenResponse?.data?.refresh_token);
+
+			tokenRequestBuilder.setRedirectUri(redirectUri);
+
+
+			const result = await tokenRequestBuilder.execute();
+
+			if ('error' in result) {
+				if (result.error == TokenRequestError.AUTHORIZATION_REQUIRED) {
+					return generateAuthorizationRequest(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
 				}
-				formData.append('grant_type', 'refresh_token');
-				formData.append('refresh_token', flowState.tokenResponse.data.refresh_token);
-			}
-			else {
-				throw new Error("No grant type selected in requestCredentials()");
-			}
-			formData.append('redirect_uri', redirectUri);
-
-			const response = await httpProxy.post(tokenEndpoint, formData.toString(), tokenRequestHeaders);
-
-			if (response.err) {
-				const { err } = response;
-				console.log("failed token request")
-				console.log(JSON.stringify(err));
-				console.log("Dpop nonce found = ", err.headers['dpop-nonce'])
-				if (err.headers['dpop-nonce']) {
-					requestCredentialsParams.dpopNonceHeader = err.headers['dpop-nonce'];
-					if (requestCredentialsParams.dpopNonceHeader) {
-						await requestCredentials(credentialIssuerIdentifier, requestCredentialsParams);
-						return;
-					}
-				}
-				else if (err.data.error) {
-					console.error("OID4VCI Token Response Error: ", JSON.stringify(err.data))
-				}
-				return;
+				throw new Error("Token request failed");
 			}
 
-			console.log("== response = ", response)
 			try { // try to extract the response and update the OpenID4VCIClientStateRepository
-				const {
-					data: { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token },
-				} = response;
+				const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
 
 				if (!access_token) {
 					console.log("Missing access_token from response");
@@ -362,7 +248,7 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 					data: {
 						access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
 					},
-					headers: { ...response.headers }
+					headers: { ...result.response.httpResponseHeaders }
 				}
 
 				await openID4VCIClientStateRepository.updateState(flowState);
@@ -546,7 +432,7 @@ export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, m
 				return {}
 			}
 		},
-		[openID4VCIClientStateRepository,openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications,openID4VCIPushedAuthorizationRequest, requestCredentials]
+		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials]
 	);
 
 	return useMemo(() => {

@@ -39,7 +39,7 @@ const CredentialLayout = ({ children, title = null }) => {
 		if (vcEntity) {
 			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
 			setSigTotal(vcEntity.instances.length);
-			setIsExpired(CheckExpired(vcEntity.parsedCredential.beautifiedForm.expiry_date))
+			setIsExpired(CheckExpired(vcEntity.parsedCredential.beautifiedForm.expiry_date ?? vcEntity.parsedCredential.beautifiedForm.expiry_date))
 			setCredentialFriendlyName(vcEntity.parsedCredential.credentialFriendlyName);
 
 		}

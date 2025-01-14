@@ -8,7 +8,7 @@ import { H1 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
-import { useOpenID4VCI } from '../../lib/services/OpenID4VCI/OpenID4VCI';
+import OpenID4VCIContext from '../../context/OpenID4VCIContext';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -20,7 +20,7 @@ const Issuers = () => {
 	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
-	const openID4VCI = useOpenID4VCI();
+	const { openID4VCI } = useContext(OpenID4VCIContext);
 
 	const { t } = useTranslation();
 

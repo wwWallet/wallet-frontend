@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useMemo, useCallback, useContext } from "react";
+import React, { createContext, useEffect, useMemo, useCallback } from "react";
 import { ICredentialParser, ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
 import { useCredentialParserRegistry } from "../lib/services/CredentialParserRegistry";
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";

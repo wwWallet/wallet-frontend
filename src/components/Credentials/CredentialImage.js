@@ -8,7 +8,7 @@ const CredentialImage = ({ parsedCredential, className, onClick, showRibbon = tr
 			{parsedCredential && (
 				<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
 			)}
-			{showRibbon &&
+			{parsedCredential && showRibbon &&
 				<ExpiredRibbon parsedCredential={parsedCredential} />
 			}
 			{vcEntityInstances && showRibbon &&

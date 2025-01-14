@@ -91,14 +91,14 @@ export function useTokenRequest() {
 		const formData = new URLSearchParams();
 
 		formData.append('client_id', client_id);
-		if (grant_type == GrantType.AUTHORIZATION_CODE) {
+		if (grant_type === GrantType.AUTHORIZATION_CODE) {
 			console.log("Executing authorization code grant...");
 
 			formData.append('grant_type', 'authorization_code');
 			formData.append('code', code);
 			formData.append('code_verifier', code_verifier);
 		}
-		else if (grant_type == GrantType.REFRESH) {
+		else if (grant_type === GrantType.REFRESH) {
 			console.log("Executing refresh token grant...");
 			if (!refresh_token) {
 				console.info("Found no refresh_token to execute refesh_token grant")
@@ -125,7 +125,7 @@ export function useTokenRequest() {
 					return execute();
 				}
 			}
-			else if (err.data.error == "authorization_required") {
+			else if (err.data.error === "authorization_required") {
 				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: err.data };
 			}
 			else if (err.data.error) {

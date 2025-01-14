@@ -9,10 +9,13 @@ import Slider from '../Shared/Slider';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 
+import useScreenType from '../../hooks/useScreenType';
+
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
 	const [parsedCredentials, setParsedCredentials] = useState([]);
 	const { parseCredential } = useContext(CredentialParserContext);
+	const screenType = useScreenType();
 
 	// Parse all the credentials when historyItem changes
 	useEffect(() => {
@@ -55,7 +58,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 
 			{/* Render details of the currently selected credential */}
 			{parsedCredentials[currentSlide - 1] && (
-				<div className="pt-5">
+				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
 					<CredentialInfo parsedCredential={parsedCredentials[currentSlide - 1]} />
 				</div>
 			)}

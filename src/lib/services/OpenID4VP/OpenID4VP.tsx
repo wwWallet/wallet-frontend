@@ -15,19 +15,8 @@ import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "../../../context/SessionContext";
 import CredentialParserContext from "../../../context/CredentialParserContext";
-import OpenID4VPContext from "../../../context/OpenID4VPContext";
 
-
-export function useOpenID4VP() {
-	const openID4VP = useContext(OpenID4VPContext);
-	if (!openID4VP.openID4VP) {
-		throw new Error("OpenID4VPContext is not defined in the context");
-	}
-	return openID4VP.openID4VP;
-}
-
-
-export function OpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
