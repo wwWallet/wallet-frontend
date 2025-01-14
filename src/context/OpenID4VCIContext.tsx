@@ -1,6 +1,6 @@
 import React, { createContext } from "react";
 import { IOpenID4VCI } from "../lib/interfaces/IOpenID4VCI";
-import { OpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
+import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
 
 
 export type OpenID4VPContextValue = {
@@ -17,7 +17,7 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 		throw new Error("Not implemented");
 	}
 
-	const openID4VCI = OpenID4VCI({ errorCallback });
+	const openID4VCI = useOpenID4VCI({ errorCallback });
 	return (
 		<OpenID4VCIContext.Provider value={{ openID4VCI }}>
 			{children}

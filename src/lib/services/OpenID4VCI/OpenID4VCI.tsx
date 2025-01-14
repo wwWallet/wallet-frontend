@@ -16,20 +16,11 @@ import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizati
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
-import OpenID4VCIContext from '../../../context/OpenID4VCIContext';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
 
-export function useOpenID4VCI() {
-	const openID4VCI = useContext(OpenID4VCIContext);
-	if (!openID4VCI.openID4VCI) {
-		throw new Error("OpenID4VCIContext is not defined in the context");
-	}
-	return openID4VCI.openID4VCI;
-}
-
-export function OpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();

@@ -1,7 +1,7 @@
 import React, { useState, useContext, createContext } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import CredentialsContext from '../context/CredentialsContext';
-import { OpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
+import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import { IOpenID4VP } from "../lib/interfaces/IOpenID4VP";
 
 export type OpenID4VPContextValue = {
@@ -45,7 +45,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		return showPopup({ conformantCredentialsMap, verifierDomainName });
 	}
 
-	const openID4VP = OpenID4VP({ showCredentialSelectionPopup });
+	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup });
 
 	return (
 		<OpenID4VPContext.Provider value={{ openID4VP }}>

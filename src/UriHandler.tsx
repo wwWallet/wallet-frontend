@@ -2,12 +2,12 @@ import React, { useEffect, createContext, useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
 import { checkForUpdates } from './offlineRegistrationSW';
 import StatusContext from "./context/StatusContext";
-import { useOpenID4VCI } from "./lib/services/OpenID4VCI/OpenID4VCI";
 import SessionContext from "./context/SessionContext";
 import { BackgroundTasksContext } from "./context/BackgroundTasksContext";
 import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestError } from "./lib/interfaces/IOpenID4VP";
-import { useOpenID4VP } from "./lib/services/OpenID4VP/OpenID4VP";
+import OpenID4VCIContext from "./context/OpenID4VCIContext";
+import OpenID4VPContext from "./context/OpenID4VPContext";
 
 const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
@@ -21,8 +21,8 @@ export const UriHandler = ({ children }) => {
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
-	const openID4VCI = useOpenID4VCI();
-	const openID4VP = useOpenID4VP();
+	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { openID4VP } = useContext(OpenID4VPContext);
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 

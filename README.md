@@ -341,3 +341,4 @@ We welcome contributions from the community to help improve the wwWallet Fronten
 
 6.	**Review and Merge:**
 	Your pull request will be reviewed by the maintainers. Make any requested changes and address feedback. Once approved, your changes will be merged into master branch of the project.
+
