@@ -1,3 +1,4 @@
+import { useCallback, useRef, useMemo } from 'react';
 import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { generateDPoP } from '../../utils/dpop';
@@ -10,15 +11,14 @@ export type AccessToken = {
 	refresh_token?: string;
 
 	httpResponseHeaders: {
-		"dpop-nonce"?: string
-	}
-}
+		"dpop-nonce"?: string;
+	};
+};
 
 export enum GrantType {
 	AUTHORIZATION_CODE = "code",
 	REFRESH = "refresh_token",
 }
-
 
 export enum TokenRequestError {
 	FAILED,
@@ -26,129 +26,137 @@ export enum TokenRequestError {
 }
 
 export function useTokenRequest() {
-
 	const httpProxy = useHttpProxy();
 
-	let tokenEndpointURL = null;
+	const tokenEndpointURL = useRef<string | null>(null);
+	const grantType = useRef<GrantType>(GrantType.AUTHORIZATION_CODE);
+	const refreshToken = useRef<string | null>(null);
+	const authorizationCode = useRef<string | null>(null);
+	const codeVerifier = useRef<string | null>(null);
+	const redirectUri = useRef<string | null>(null);
+	const clientId = useRef<string | null>(null);
 
-	let grant_type: GrantType = GrantType.AUTHORIZATION_CODE;
-	let refresh_token = null;
-	let code = null;
-	let code_verifier = null;
-	let redirect_uri = null;
-	let client_id = null;
-
-	const httpHeaders = {
+	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/x-www-form-urlencoded',
-	};
+	}), []);
 
-	function setClientId(clientId: string) {
-		client_id = clientId;
-	}
+	const setClientId = useCallback((clientIdValue: string) => {
+		clientId.current = clientIdValue;
+	}, []);
 
-	function setGrantType(grant: GrantType) {
-		grant_type = grant;
-	}
+	const setGrantType = useCallback((grant: GrantType) => {
+		grantType.current = grant;
+	}, []);
 
-	function setAuthorizationCode(authzCode: string) {
-		code = authzCode;
-	}
+	const setAuthorizationCode = useCallback((authzCode: string) => {
+		authorizationCode.current = authzCode;
+	}, []);
 
-	function setCodeVerifier(codeVerifier: string) {
-		code_verifier = codeVerifier;
-	}
+	const setCodeVerifier = useCallback((codeVerifierValue: string) => {
+		codeVerifier.current = codeVerifierValue;
+	}, []);
 
-	function setRefreshToken(tok: string) {
-		refresh_token = tok;
-	}
+	const setRefreshToken = useCallback((token: string) => {
+		refreshToken.current = token;
+	}, []);
 
-	function setRedirectUri(redirectUri: string) {
-		redirect_uri = redirectUri;
-	}
+	const setRedirectUri = useCallback((uri: string) => {
+		redirectUri.current = uri;
+	}, []);
 
-	function setTokenEndpoint(tokenEndpoint: string) {
-		tokenEndpointURL = tokenEndpoint;
-	}
+	const setTokenEndpoint = useCallback((endpoint: string) => {
+		tokenEndpointURL.current = endpoint;
+	}, []);
 
-	async function setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string) {
-		if (!tokenEndpointURL) {
+	const setDpopHeader = useCallback(async (
+		dpopPrivateKey: KeyLike,
+		dpopPublicKeyJwk: JWK,
+		jti: string
+	) => {
+		if (!tokenEndpointURL.current) {
 			throw new Error("tokenEndpointURL was not defined");
 		}
 		const dpop = await generateDPoP(
-			dpopPrivateKey as KeyLike,
+			dpopPrivateKey,
 			dpopPublicKeyJwk,
 			jti,
 			"POST",
-			tokenEndpointURL,
+			tokenEndpointURL.current,
 			httpHeaders['dpop-nonce']
 		);
 
 		httpHeaders['DPoP'] = dpop;
-	}
+	}, [httpHeaders]);
 
-
-	async function execute(): Promise<{ response: AccessToken } | { error: TokenRequestError, response?: any }> {
+	const execute = useCallback(async (): Promise<
+		{ response: AccessToken } | { error: TokenRequestError; response?: any }
+	> => {
 		const formData = new URLSearchParams();
 
-		formData.append('client_id', client_id);
-		if (grant_type === GrantType.AUTHORIZATION_CODE) {
-			console.log("Executing authorization code grant...");
+		if (!clientId.current || !redirectUri.current) {
+			throw new Error("Client ID or Redirect URI is not set");
+		}
+
+		formData.append('client_id', clientId.current);
+
+		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
+			if (!authorizationCode.current || !codeVerifier.current) {
+				throw new Error("Authorization Code or Code Verifier is not set");
+			}
 
 			formData.append('grant_type', 'authorization_code');
-			formData.append('code', code);
-			formData.append('code_verifier', code_verifier);
-		}
-		else if (grant_type === GrantType.REFRESH) {
-			console.log("Executing refresh token grant...");
-			if (!refresh_token) {
-				console.info("Found no refresh_token to execute refesh_token grant")
-				throw new Error("Found no refresh_token to execute refesh_token grant");
+			formData.append('code', authorizationCode.current);
+			formData.append('code_verifier', codeVerifier.current);
+		} else if (grantType.current === GrantType.REFRESH) {
+			if (!refreshToken.current) {
+				throw new Error("Refresh Token is not set");
 			}
-			formData.append('grant_type', 'refresh_token');
-			formData.append('refresh_token', refresh_token);
-		}
-		else {
-			throw new Error("No grant type selected in requestCredentials()");
-		}
-		formData.append('redirect_uri', redirect_uri);
 
-		const response = await httpProxy.post(tokenEndpointURL, formData.toString(), httpHeaders);
+			formData.append('grant_type', 'refresh_token');
+			formData.append('refresh_token', refreshToken.current);
+		} else {
+			throw new Error("Invalid grant type selected");
+		}
+
+		formData.append('redirect_uri', redirectUri.current);
+
+		const response = await httpProxy.post(
+			tokenEndpointURL.current!,
+			formData.toString(),
+			httpHeaders
+		);
 
 		if (response.err) {
 			const { err } = response;
-			console.log("failed token request")
-			console.log(JSON.stringify(err));
-			console.log("Dpop nonce found = ", err.headers['dpop-nonce'])
-			if (err.headers['dpop-nonce']) {
+			console.error("Failed token request", err);
+
+			if (err.headers?.['dpop-nonce']) {
 				httpHeaders['dpop-nonce'] = err.headers['dpop-nonce'];
-				if (httpHeaders['dpop-nonce']) {
-					return execute();
-				}
+				return execute();
 			}
-			else if (err.data.error === "authorization_required") {
+
+			if (err.data?.error === "authorization_required") {
 				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: err.data };
 			}
-			else if (err.data.error) {
-				console.error("OID4VCI Token Response Error: ", JSON.stringify(err.data))
-			}
+
 			return { error: TokenRequestError.FAILED };
 		}
 
 		return {
-				response: {
+			response: {
 				access_token: response.data.access_token,
 				c_nonce: response.data.c_nonce,
 				c_nonce_expires_in: response.data.c_nonce_expires_in,
 				expires_in: response.data.expires_in,
 				refresh_token: response.data?.refresh_token,
 				httpResponseHeaders: {
-					...response.headers
-				}
-			}
-		}
-	}
+					...response.headers,
+				},
+			},
+		};
+	}, [httpProxy, httpHeaders]);
 
-	return {
+	return useMemo(() => ({
 		setClientId,
 		setGrantType,
 		setAuthorizationCode,
@@ -157,7 +165,16 @@ export function useTokenRequest() {
 		setRedirectUri,
 		setTokenEndpoint,
 		setDpopHeader,
-
 		execute,
-	}
+	}), [
+		setClientId,
+		setGrantType,
+		setAuthorizationCode,
+		setCodeVerifier,
+		setRefreshToken,
+		setRedirectUri,
+		setTokenEndpoint,
+		setDpopHeader,
+		execute,
+	]);
 }

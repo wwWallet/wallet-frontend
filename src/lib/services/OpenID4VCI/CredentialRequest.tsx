@@ -2,64 +2,66 @@ import { JWK, KeyLike } from "jose";
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
-import { useContext } from "react";
+import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "../../../context/SessionContext";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
-
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { keystore, api } = useContext(SessionContext);
 
-	let credentialEndpointURL = null;
-	let access_token = null;
-	let c_nonce = null;
-	let dpop_nonce = null;
+	const credentialEndpointURLRef = useRef<string | null>(null);
+	const accessTokenRef = useRef<string | null>(null);
+	const cNonceRef = useRef<string | null>(null);
+	const dpopNonceRef = useRef<string | null>(null);
+	const dpopPrivateKeyRef = useRef<KeyLike | null>(null);
+	const dpopPublicKeyJwkRef = useRef<JWK | null>(null);
+	const jtiRef = useRef<string | null>(null);
+	const credentialIssuerIdentifierRef = useRef<string | null>(null);
 
-	let dpopPrivateKey: KeyLike;
-	let dpopPublicKeyJwk: JWK;
-	let jti: string;
-
-	let credentialIssuerIdentifier: string;
-
-	const httpHeaders = {
+	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/json',
-	};
+	}), []);
 
-	function setCredentialEndpoint(endpoint: string) {
-		credentialEndpointURL = endpoint;
-	}
+	const setCredentialEndpoint = useCallback((endpoint: string) => {
+		credentialEndpointURLRef.current = endpoint;
+	}, []);
 
-	function setCNonce(cNonce: string) {
-		c_nonce = cNonce;
-	}
+	const setCNonce = useCallback((cNonce: string) => {
+		cNonceRef.current = cNonce;
+	}, []);
 
-	function setAccessToken(at: string) {
-		access_token = at;
-		httpHeaders['Authorization'] = `Bearer ${access_token}`;
-	}
+	const setAccessToken = useCallback((at: string) => {
+		accessTokenRef.current = at;
+		httpHeaders['Authorization'] = `Bearer ${at}`;
+	}, [httpHeaders]);
 
-	function setDpopNonce(dpopNonce: string) {
-		dpop_nonce = dpopNonce;
-	}
+	const setDpopNonce = useCallback((dpopNonce: string) => {
+		dpopNonceRef.current = dpopNonce;
+	}, []);
 
-	function setDpopPrivateKey(sk: KeyLike) {
-		dpopPrivateKey = sk;
-	}
+	const setDpopPrivateKey = useCallback((sk: KeyLike) => {
+		dpopPrivateKeyRef.current = sk;
+	}, []);
 
-	function setDpopPublicKeyJwk(jwk: JWK) {
-		dpopPublicKeyJwk = jwk;
-	}
+	const setDpopPublicKeyJwk = useCallback((jwk: JWK) => {
+		dpopPublicKeyJwkRef.current = jwk;
+	}, []);
 
-	function setDpopJti(id: string) {
-		jti = id;
-	}
+	const setDpopJti = useCallback((id: string) => {
+		jtiRef.current = id;
+	}, []);
 
+	const setDpopHeader = useCallback(async () => {
+		const credentialEndpointURL = credentialEndpointURLRef.current;
+		const dpopPublicKeyJwk = dpopPublicKeyJwkRef.current;
+		const jti = jtiRef.current;
+		const dpopNonce = dpopNonceRef.current;
+		const accessToken = accessTokenRef.current;
 
-	async function setDpopHeader() {
-		if (!credentialEndpointURL) {
-			throw new Error("CredentialRequest: credentialEndpointURL was not defined");
+		if (!credentialEndpointURL || !dpopPublicKeyJwk || !jti) {
+			throw new Error("Missing required parameters for DPoP header");
 		}
 
 		if (!dpopPublicKeyJwk) {
@@ -71,27 +73,29 @@ export function useCredentialRequest() {
 		}
 
 		const credentialEndpointDPoP = await generateDPoP(
-			dpopPrivateKey,
+			dpopPrivateKeyRef.current,
 			dpopPublicKeyJwk,
 			jti,
 			"POST",
 			credentialEndpointURL,
-			dpop_nonce,
-			access_token
+			dpopNonce,
+			accessToken
 		);
 
-		httpHeaders['Authorization'] = `DPoP ${access_token}`;
+		httpHeaders['Authorization'] = `DPoP ${accessToken}`;
 		httpHeaders['dpop'] = credentialEndpointDPoP;
-	}
+	}, [httpHeaders]);
 
-	function setCredentialIssuerIdentifier(id: string) {
-		credentialIssuerIdentifier = id;
-	}
+	const setCredentialIssuerIdentifier = useCallback((id: string) => {
+		credentialIssuerIdentifierRef.current = id;
+	}, []);
 
-	async function execute(credentialConfigurationId: string, cachedProofs?: any): Promise<{ credentialResponse: any }> {
+	const execute = useCallback(async (credentialConfigurationId: string, cachedProofs?: any): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
-		const [authzServerMetadata, credentialIssuerMetadata, clientId] = await Promise.all([
-			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
+		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
+		const c_nonce = cNonceRef.current;
+
+		const [credentialIssuerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 		]);
@@ -150,7 +154,7 @@ export function useCredentialRequest() {
 
 		console.log("Credential endpoint body = ", credentialEndpointBody);
 
-		const credentialResponse = await httpProxy.post(credentialEndpointURL, credentialEndpointBody, httpHeaders);
+		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
 
 		if (credentialResponse.err) {
 			console.log("Error: Credential response = ", JSON.stringify(credentialResponse.err));
@@ -165,9 +169,9 @@ export function useCredentialRequest() {
 			throw new Error("Credential Request failed");
 		}
 		return { credentialResponse };
-	}
+	}, [api, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
 
-	return {
+	return useMemo(() => ({
 		setCredentialEndpoint,
 		setCNonce,
 		setAccessToken,
@@ -177,7 +181,17 @@ export function useCredentialRequest() {
 		setDpopJti,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
-
 		execute,
-	}
+	}), [
+		setCredentialEndpoint,
+		setCNonce,
+		setAccessToken,
+		setDpopNonce,
+		setDpopPrivateKey,
+		setDpopPublicKeyJwk,
+		setDpopJti,
+		setDpopHeader,
+		setCredentialIssuerIdentifier,
+		execute,
+	]);
 }
