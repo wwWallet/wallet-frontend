@@ -99,8 +99,8 @@ const Home = () => {
 												key={vcEntity.id}
 												className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 												onClick={() => handleImageClick(vcEntity)}
-												aria-label={`${vcEntity.friendlyName}`}
-												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.friendlyName })}
+												aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
+												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
 											>
 												<CredentialImage
 													vcEntityInstances={vcEntity.instances}
