@@ -1,4 +1,4 @@
-import React, { useEffect, createContext, useMemo } from "react";
+import React, { createContext, useEffect, useMemo, useCallback } from "react";
 import { ICredentialParser, ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
 import { useCredentialParserRegistry } from "../lib/services/CredentialParserRegistry";
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
@@ -10,10 +10,13 @@ import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTe
 
 export type CredentialParserContextValue = {
 	credentialParserRegistry: ICredentialParserRegistry;
+	parseCredential: (credential: string) => Promise<any>;
+
 }
 
 const CredentialParserContext: React.Context<CredentialParserContextValue> = createContext({
-	credentialParserRegistry: null
+	credentialParserRegistry: null,
+	parseCredential: async () => null,
 });
 
 const defaultLocale = 'en-US';
@@ -22,6 +25,21 @@ export const CredentialParserContextProvider = ({ children }) => {
 
 	const credentialParserRegistry = useCredentialParserRegistry();
 	const openID4VCIHelper = useOpenID4VCIHelper();
+
+	// Function to parse credentials
+	const parseCredential = useCallback(async (credential: string) => {
+		try {
+			const c = await credentialParserRegistry.parse(credential);
+			if ('error' in c) {
+				console.error('Error parsing credential', c.error);
+				return null;
+			}
+			return c;
+		} catch (error) {
+			console.error('Error parsing credential', error);
+			return null;
+		}
+	}, [credentialParserRegistry]);
 
 	const parser1: ICredentialParser = useMemo(() => ({
 		async parse(rawCredential) {
@@ -132,7 +150,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 
 
 	return (
-		<CredentialParserContext.Provider value={{ credentialParserRegistry }}>
+		<CredentialParserContext.Provider value={{ credentialParserRegistry, parseCredential }}>
 			{children}
 		</CredentialParserContext.Provider>
 	);

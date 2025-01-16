@@ -1,5 +1,4 @@
 import React, { createContext } from "react";
-import { withOpenID4VPContext } from "./OpenID4VPContext";
 import { withCredentialParserContext } from "./CredentialParserContext";
 
 export type ContainerContextValue = {}

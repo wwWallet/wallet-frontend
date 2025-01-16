@@ -1,16 +1,14 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
 import { CredentialConfigurationSupported } from '../../schemas/CredentialConfigurationSupportedSchema';
 import { OpenID4VCIClientState } from '../../types/OpenID4VCIClientState';
-import { generateDPoP } from '../../utils/dpop';
 import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import { StorableCredential } from '../../types/StorableCredential';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
-import { VerifiableCredentialFormat } from '../../schemas/vc';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo, useEffect, useRef } from 'react';
 import SessionContext from '../../../context/SessionContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
@@ -25,7 +23,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
-	const { keystore, api } = useContext(SessionContext);
+	const { api } = useContext(SessionContext);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
@@ -42,10 +40,8 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				data: { access_token, c_nonce },
 			} = response;
 
-			const [authzServerMetadata, credentialIssuerMetadata, clientId] = await Promise.all([
-				openID4VCIHelper.getAuthorizationServerMetadata(flowState.credentialIssuerIdentifier),
-				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier),
-				openID4VCIHelper.getClientId(flowState.credentialIssuerIdentifier)
+			const [credentialIssuerMetadata] = await Promise.all([
+				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
 			]);
 
 			credentialRequestBuilder.setCredentialEndpoint(credentialIssuerMetadata.metadata.credential_endpoint);
@@ -101,7 +97,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			return;
 
 		},
-		[openID4VCIHelper, api, httpProxy, keystore, openID4VCIClientStateRepository]
+		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder]
 	);
 
 	const requestCredentials = useCallback(
@@ -232,8 +228,8 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			const result = await tokenRequestBuilder.execute();
 
 			if ('error' in result) {
-				if (result.error == TokenRequestError.AUTHORIZATION_REQUIRED) {
-					return generateAuthorizationRequest(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
+				if (result.error === TokenRequestError.AUTHORIZATION_REQUIRED) {
+					return generateAuthorizationRequestRef.current(flowState.credentialIssuerIdentifier, flowState.credentialConfigurationId);
 				}
 				throw new Error("Token request failed");
 			}
@@ -272,10 +268,12 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 		[
 			openID4VCIClientStateRepository,
 			openID4VCIHelper,
-			httpProxy,
 			credentialRequest,
+			tokenRequestBuilder,
 		]
 	);
+
+	const generateAuthorizationRequestRef = useRef<Function | null>(null);
 
 	const handleAuthorizationResponse = useCallback(
 		async (url: string, dpopNonceHeader?: string) => {
@@ -436,6 +434,12 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 		},
 		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials]
 	);
+
+	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
+	useEffect(() => {
+		console.log('call and call')
+		generateAuthorizationRequestRef.current = generateAuthorizationRequest;
+	}, [generateAuthorizationRequest]);
 
 	return useMemo(() => {
 		return {

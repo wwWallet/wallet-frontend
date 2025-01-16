@@ -56,7 +56,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList, vcEntityListInstances }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
 	const { api } = useContext(SessionContext);
 	const credentialParserContext = useContext(CredentialParserContext);
@@ -90,22 +90,12 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 
 			try {
-				const vcEntities = await Promise.all(
-					vcEntityList.map(async vcEntity => {
-						return credentialParserContext.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
-							if ('error' in c) {
-								return;
-							}
-							return { ...vcEntity, friendlyName: c.credentialFriendlyName }
-						});
-					})
-				);
-
-				const filteredVcEntities = vcEntities.filter(vcEntity =>
+				const filteredVcEntities = vcEntityList.filter(vcEntity =>
 					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 				);
 
 				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
+				console.log('filteredVcEntities',filteredVcEntities)
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -126,7 +116,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		credentialParserContext.credentialParserRegistry,
 		reinitialize
 	]);
-
 
 	useEffect(() => {
 		if (popupState?.options) {
@@ -176,13 +165,13 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
 			onClick={() => handleClick(vcEntity.credentialIdentifier)}
-			aria-label={`${vcEntity.friendlyName}`}
-			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
+			aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
+			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
 		>
 			<CredentialImage
-				vcEntityInstances={vcEntityListInstances.filter((vc) => vc.credentialIdentifier === vcEntity.credentialIdentifier)}
+				vcEntityInstances={vcEntity.instances}
 				key={vcEntity.credentialIdentifier}
-				credential={vcEntity.credential}
+				parsedCredential={vcEntity.parsedCredential}
 				className="w-full object-cover rounded-xl"
 				showRibbon={currentSlide === vcEntities.indexOf(vcEntity) + 1}
 			/>
@@ -265,7 +254,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				</div>
 				{vcEntities[currentSlide - 1] && (
 					<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
-						<CredentialInfo credential={vcEntities[currentSlide - 1].credential} mainClassName={"text-xs w-full"} />
+						<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} mainClassName={"text-xs w-full"} />
 					</div>
 				)}
 				<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>

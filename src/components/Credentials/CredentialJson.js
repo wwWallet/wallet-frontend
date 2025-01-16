@@ -1,23 +1,8 @@
 // CredentialJson.js
 
-import React, { useEffect, useState, useContext } from 'react';
-import CredentialParserContext from "../../context/CredentialParserContext";
+import React from 'react';
 
-
-const CredentialJson = ({ credential, textAreaRows='10' }) => {
-	const { credentialParserRegistry } = useContext(CredentialParserContext);
-	const [parsedCredential, setParsedCredential] = useState(null);
-
-	useEffect(() => {
-		if (credentialParserRegistry) {
-			credentialParserRegistry.parse(credential).then((c) => {
-				if ('error' in c) {
-					return;
-				}
-				setParsedCredential(c.beautifiedForm);
-			});
-		}
-	}, [credential, credentialParserRegistry]);
+const CredentialJson = ({ parsedCredential, textAreaRows='10' }) => {
 
 	return (
 		<div className='w-full'>
@@ -27,7 +12,7 @@ const CredentialJson = ({ credential, textAreaRows='10' }) => {
 						rows={textAreaRows}
 						readOnly
 						className="dark:bg-gray-900 dark:text-white border rounded p-2 text-sm w-full rounded-xl"
-						value={JSON.stringify(parsedCredential, null, 2)}
+						value={JSON.stringify(parsedCredential.beautifiedForm, null, 2)}
 					/>
 				</div>
 			)}

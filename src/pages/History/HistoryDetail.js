@@ -39,6 +39,8 @@ const HistoryDetail = () => {
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const { t } = useTranslation();
 
+	console.log('history',history)
+
 	useEffect(() => {
 		if (history.length > 0) {
 			setMatchingCredentials(extractPresentations(history[0]));
