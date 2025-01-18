@@ -7,7 +7,7 @@ import i18n from './i18n';
 import { withSessionContext } from './context/SessionContext';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
-import HandlerNotification from './components/Notifications/HandlerNotification';
+import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
@@ -116,7 +116,7 @@ function App() {
 		<I18nextProvider i18n={i18n}>
 			<Snowfalling />
 			<Suspense fallback={<Spinner />}>
-				{notification && <HandlerNotification notification={notification} />}
+				{notification && <NewCredentialNotification notification={notification} />}
 				<UpdateNotification />
 				<Routes>
 					<Route element={

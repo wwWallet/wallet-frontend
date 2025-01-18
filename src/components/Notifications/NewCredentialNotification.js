@@ -28,7 +28,7 @@ const ToastDisplay = ({ id, notification }) => {
 	);
 };
 
-const HandlerNotification = ({ notification }) => {
+const NewCredentialNotification = ({ notification }) => {
 
 	const showToast = useCallback(
 		() => toast((t) => <ToastDisplay id={t.id} notification={notification} />),
@@ -46,4 +46,4 @@ const HandlerNotification = ({ notification }) => {
 	);
 };
 
-export default HandlerNotification;
+export default NewCredentialNotification;
