@@ -19,7 +19,7 @@ import { withUriHandler } from './UriHandler';
 import { withCredentialParserContext } from './context/CredentialParserContext';
 import { withOpenID4VPContext } from './context/OpenID4VPContext';
 import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
-import useNotificationListener from './hooks/useNotificationListener';
+import useNewCredentialListener from './hooks/useNewCredentialListener';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -89,7 +89,7 @@ const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
 	const location = useLocation();
-	const notification = useNotificationListener();
+	const notification = useNewCredentialListener();
 
 	useEffect(() => {
 		if (navigator?.serviceWorker) {

@@ -2,7 +2,7 @@ import { useEffect, useState, useContext, useRef } from 'react';
 import { onMessageListener } from '../firebase';
 import CredentialsContext from '../context/CredentialsContext';
 
-const useNotificationListener = () => {
+const useNewCredentialListener = () => {
 	const [notification, setNotification] = useState(null);
 	const { getData } = useContext(CredentialsContext);
 
@@ -33,4 +33,4 @@ const useNotificationListener = () => {
 	return notification;
 };
 
-export default useNotificationListener;
+export default useNewCredentialListener;
