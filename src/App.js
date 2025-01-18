@@ -19,6 +19,7 @@ import { withUriHandler } from './UriHandler';
 import { withCredentialParserContext } from './context/CredentialParserContext';
 import { withOpenID4VPContext } from './context/OpenID4VPContext';
 import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
+import useNotificationListener from './hooks/useNotificationListener';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -88,6 +89,8 @@ const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
 	const location = useLocation();
+	const notification = useNotificationListener();
+
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
 			navigator.serviceWorker.addEventListener('message', handleMessage);
@@ -113,7 +116,7 @@ function App() {
 		<I18nextProvider i18n={i18n}>
 			<Snowfalling />
 			<Suspense fallback={<Spinner />}>
-				<HandlerNotification />
+				{notification && <HandlerNotification notification={notification} />}
 				<UpdateNotification />
 				<Routes>
 					<Route element={
