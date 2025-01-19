@@ -14,20 +14,23 @@ const useNewCredentialListener = () => {
 	}, [getData]);
 
 	useEffect(() => {
-		const listenForNotifications = () => {
-			onMessageListener()
-				.then((payload) => {
-					setNotification({
-						title: payload?.notification?.title,
-						body: payload?.notification?.body,
-					})
-					getDataRef.current();
-				})
-				.catch((err) => {
-					console.error('Failed to receive notification:', err);
-				});
+		const listenForNotification = (payload) => {
+			console.log('Notification received:', payload);
+			setNotification({
+				title: payload?.notification?.title,
+				body: payload?.notification?.body,
+			});
+			getDataRef.current();
 		};
-		listenForNotifications();
+
+		onMessageListener(listenForNotification);
+
+		// Optional cleanup function for consistency and future-proofing
+		return () => {
+			// Firebase's `onMessage` does not require unsubscription
+			// Add cleanup logic here if needed in the future
+		};
+
 	}, []);
 
 	return notification;

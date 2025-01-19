@@ -112,14 +112,15 @@ export const fetchToken = async () => {
 	return null; // Return null in case of failure
 };
 
-export const onMessageListener = () =>
-	new Promise(async (resolve) => {
-		if (await isEnabledAndIsSupported()) {
-			onMessage(messaging, (payload) => {
-				resolve(payload);
-			});
-		}
-	});
+export const onMessageListener = async (callback) => {
+	if (await isEnabledAndIsSupported()) {
+		onMessage(messaging, (payload) => {
+			callback(payload);
+		});
+	} else {
+		console.error('Messaging is not supported or enabled');
+	}
+};
 
 const initializeFirebaseAndMessaging = async () => {
 	if (notificationApiIsSupported) {
