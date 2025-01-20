@@ -3,7 +3,12 @@ import { onMessageListener } from '../firebase';
 import CredentialsContext from '../context/CredentialsContext';
 
 const useNewCredentialListener = () => {
-	const [notification, setNotification] = useState(null);
+	const [notification, setNotification] = useState(() => {
+		// Retrieve notification from sessionStorage on initial load
+		const savedNotification = sessionStorage.getItem('newCredentialNotification');
+		return savedNotification ? JSON.parse(savedNotification) : null;
+	});
+
 	const { getData } = useContext(CredentialsContext);
 
 	// Use a ref to store getData to prevent triggering useEffect when it changes
@@ -16,10 +21,17 @@ const useNewCredentialListener = () => {
 	useEffect(() => {
 		const listenForNotification = (payload) => {
 			console.log('Notification received:', payload);
-			setNotification({
+
+			const newNotification = {
 				title: payload?.notification?.title,
 				body: payload?.notification?.body,
-			});
+			};
+			// Save notification to sessionStorage
+			sessionStorage.setItem('newCredentialNotification', JSON.stringify(newNotification));
+
+			// Update the state
+			setNotification(newNotification);
+
 			getDataRef.current();
 		};
 
@@ -33,7 +45,12 @@ const useNewCredentialListener = () => {
 
 	}, []);
 
-	return notification;
+	const clearNotification = () => {
+		setNotification(null);
+		sessionStorage.removeItem('newCredentialNotification'); // Clear from sessionStorage
+	};
+
+	return { notification, clearNotification };
 };
 
 export default useNewCredentialListener;

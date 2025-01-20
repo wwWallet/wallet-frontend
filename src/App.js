@@ -90,7 +90,7 @@ const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
 	const location = useLocation();
-	const notification = useNewCredentialListener();
+	const { notification, clearNotification } = useNewCredentialListener();
 
 	return (
 		<>
@@ -98,7 +98,7 @@ function App() {
 			<I18nextProvider i18n={i18n}>
 				<Snowfalling />
 				<Suspense fallback={<Spinner />}>
-					{notification && <NewCredentialNotification notification={notification} />}
+					<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
 					<UpdateNotification />
 					<Routes>
 						<Route element={

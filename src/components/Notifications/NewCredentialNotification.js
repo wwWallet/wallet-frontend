@@ -2,6 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { AiOutlineClose } from 'react-icons/ai';
 import Logo from '../Logo/Logo';
+import { useLocation } from "react-router-dom";
 
 const ToastDisplay = ({ id, notification }) => {
 	return (
@@ -28,18 +29,18 @@ const ToastDisplay = ({ id, notification }) => {
 	);
 };
 
-const NewCredentialNotification = ({ notification }) => {
-
-	const showToast = useCallback(
-		() => toast((t) => <ToastDisplay id={t.id} notification={notification} />),
-		[notification]
-	);
+const NewCredentialNotification = ({ notification, clearNotification }) => {
+	const location = useLocation();
+	const showToast = useCallback(() => {
+		toast((t) => <ToastDisplay id={t.id} notification={notification} />);
+		clearNotification();
+	}, [notification, clearNotification]);
 
 	useEffect(() => {
-		if (notification) {
+		if (notification && location.pathname === '/') {
 			showToast();
 		}
-	}, [notification, showToast]);
+	}, [notification, location, showToast]);
 
 	return (
 		<Toaster />
