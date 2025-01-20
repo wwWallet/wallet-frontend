@@ -8,8 +8,8 @@ const ExpiredRibbon = ({ parsedCredential }) => {
 
 	return (
 		<>
-			{parsedCredential && CheckExpired(parsedCredential.exp ?? parsedCredential.expiry_date) &&
-				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg rounded-br-2xl border-t border-l border-white ${CheckExpired(parsedCredential.exp ?? parsedCredential.expiry_date) ? 'bg-red-600' : 'bg-green-500'}`}>
+			{parsedCredential?.beautifiedForm && CheckExpired(parsedCredential.beautifiedForm) &&
+				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg rounded-br-2xl border-t border-l border-white ${CheckExpired(parsedCredential.beautifiedForm) ? 'bg-red-600' : 'bg-green-500'}`}>
 					{t('expiredRibbon.expired')}
 				</div>
 			}
