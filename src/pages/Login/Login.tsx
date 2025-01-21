@@ -664,13 +664,13 @@ const Auth = () => {
 			/>
 		}>
 			<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+				<h1 className="my-5 md:my-0 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
-				<LanguageSelector className='absolute text-gray-500 dark top-0 right-5 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white' showFullLabel={false} />
+				<LanguageSelector className='absolute font-medium px-1 dark top-0 right-3 text-sm text-primary dark:text-white cursor-pointer rounded focus:outline-none dark:bg-gray-800' showFullLabel={false} />
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
