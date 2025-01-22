@@ -5,5 +5,5 @@ type Option = {
 
 export const languageOptions: Option[] = [
 	{ value: "en", label: "English" },
-	// { value: "el", label: "Ελληνικά" },
+	{ value: "el", label: "Ελληνικά" },
 ];
