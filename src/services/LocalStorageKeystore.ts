@@ -101,7 +101,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const closeSessionTabLocal = useCallback(
 		async (): Promise<void> => {
-			console.log('KeystoreEvent: closeSessionTabLocal');
 			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
 			clearSessionStorage();
 		},
@@ -110,7 +109,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const close = useCallback(
 		async (): Promise<void> => {
-			console.log('Close');
+			console.log('Keystore Close');
 			await idb.destroy();
 			clearPrivateData();
 			clearGlobalUserHandleB64u();
@@ -149,7 +148,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
 				// When user logs in in any tab, log out in all other tabs
 				// that are logged in to a different account
-				console.log('closeSessionTabLocal by globalUserHandleB64u');
 				closeSessionTabLocal();
 			}
 		},
@@ -160,7 +158,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		() => {
 			if (!privateData) {
 				// When user logs out in any tab, log out in all tabs
-				console.log('closeSessionTabLocal by privateData')
 				closeSessionTabLocal();
 			}
 		},

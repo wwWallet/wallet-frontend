@@ -42,7 +42,6 @@ export const SessionContextProvider = ({ children }) => {
 
 	// The close() will dispatch Event CloseSessionTabLocal in order to call the clearSession
 	const logout = async () => {
-		console.log('Logout');
 		await keystore.close();
 	};
 
