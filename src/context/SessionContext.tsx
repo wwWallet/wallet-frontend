@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 
 import StatusContext from './StatusContext';
 import { BackendApi, useApi } from '../api';
@@ -25,11 +25,20 @@ export const SessionContextProvider = ({ children }) => {
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 
-	const clearSession = async () => {
+	// Use a ref to hold a stable reference to the clearSession function
+	const clearSessionRef = useRef<() => void>();
+
+	// Memoize clearSession using useCallback
+	const clearSession = useCallback(async () => {
 		sessionStorage.setItem('freshLogin', 'true');
 		console.log('Clear Session');
 		api.clearSession();
-	};
+	}, [api]);
+
+	// Update the ref whenever clearSession changes
+	useEffect(() => {
+		clearSessionRef.current = clearSession;
+	}, [clearSession]);
 
 	const logout = async () => {
 		console.log('Logout');
@@ -37,12 +46,19 @@ export const SessionContextProvider = ({ children }) => {
 	};
 
 	useEffect(() => {
+		// Handler function that calls the current clearSession function
+		const handleClearSession = () => {
+			if (clearSessionRef.current) {
+				clearSessionRef.current();
+			}
+		};
+
 		// Add event listener
-		keystoreEvents.addEventListener(KeystoreEvent.CloseTabLocal, clearSession);
+		keystoreEvents.addEventListener(KeystoreEvent.CloseTabLocal, handleClearSession);
 
 		// Cleanup event listener to prevent duplicates
 		return () => {
-			keystoreEvents.removeEventListener(KeystoreEvent.CloseTabLocal, clearSession);
+			keystoreEvents.removeEventListener(KeystoreEvent.CloseTabLocal, handleClearSession);
 		};
 	}, []);
 
