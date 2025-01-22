@@ -28,9 +28,7 @@ export type CachedUser = {
 }
 
 export enum KeystoreEvent {
-	/** The keystore has been closed. This event should be propagated to all tabs. */
-	Close = 'keystore.close',
-	/** The keystore has been closed. This event should not be propagated to other tabs. */
+	/** This event should be propagated to needed tabs which must clean SessionStorage. */
 	CloseTabLocal = 'keystore.closeTabLocal',
 }
 
@@ -103,6 +101,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const closeTabLocal = useCallback(
 		async (): Promise<void> => {
+			console.log('KeystoreEvent: closeTabLocal');
 			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseTabLocal));
 			clearSessionStorage();
 		},
@@ -111,12 +110,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const close = useCallback(
 		async (): Promise<void> => {
+			console.log('Close');
 			await idb.destroy();
 			clearPrivateData();
 			clearGlobalUserHandleB64u();
-			closeTabLocal();
 		},
-		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
+		[idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
@@ -140,18 +139,32 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 						return cu;
 					}
 				}));
+			}
+		},
+		[closeTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+	);
 
-			} else if (!privateData) {
-				// When user logs out in any tab, log out in all tabs
-				closeTabLocal();
-
-			} else if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
+	useEffect(
+		() => {
+			if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
 				// When user logs in in any tab, log out in all other tabs
 				// that are logged in to a different account
+				console.log('closeTabLocal by globalUserHandleB64u');
 				closeTabLocal();
 			}
 		},
-		[close, closeTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[closeTabLocal, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+	);
+
+	useEffect(
+		() => {
+			if (!privateData) {
+				// When user logs out in any tab, log out in all tabs
+				console.log('closeTabLocal by privateData')
+				closeTabLocal();
+			}
+		},
+		[closeTabLocal, privateData],
 	);
 
 	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
