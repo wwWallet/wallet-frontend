@@ -40,6 +40,7 @@ export const SessionContextProvider = ({ children }) => {
 		clearSessionRef.current = clearSession;
 	}, [clearSession]);
 
+	// The close() will dispatch Event CloseSessionTabLocal in order to call the clearSession
 	const logout = async () => {
 		console.log('Logout');
 		await keystore.close();
@@ -54,11 +55,11 @@ export const SessionContextProvider = ({ children }) => {
 		};
 
 		// Add event listener
-		keystoreEvents.addEventListener(KeystoreEvent.CloseTabLocal, handleClearSession);
+		keystoreEvents.addEventListener(KeystoreEvent.CloseSessionTabLocal, handleClearSession);
 
 		// Cleanup event listener to prevent duplicates
 		return () => {
-			keystoreEvents.removeEventListener(KeystoreEvent.CloseTabLocal, handleClearSession);
+			keystoreEvents.removeEventListener(KeystoreEvent.CloseSessionTabLocal, handleClearSession);
 		};
 	}, []);
 

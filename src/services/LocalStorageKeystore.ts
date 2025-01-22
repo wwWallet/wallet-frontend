@@ -29,7 +29,7 @@ export type CachedUser = {
 
 export enum KeystoreEvent {
 	/** This event should be propagated to needed tabs which must clean SessionStorage. */
-	CloseTabLocal = 'keystore.closeTabLocal',
+	CloseSessionTabLocal = 'keystore.closeSessionTabLocal',
 }
 
 export type CommitCallback = () => Promise<void>;
@@ -99,10 +99,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		}
 	}, []));
 
-	const closeTabLocal = useCallback(
+	const closeSessionTabLocal = useCallback(
 		async (): Promise<void> => {
-			console.log('KeystoreEvent: closeTabLocal');
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseTabLocal));
+			console.log('KeystoreEvent: closeSessionTabLocal');
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
 			clearSessionStorage();
 		},
 		[clearSessionStorage, eventTarget],
@@ -141,7 +141,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				}));
 			}
 		},
-		[closeTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
 	useEffect(
@@ -149,22 +149,22 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
 				// When user logs in in any tab, log out in all other tabs
 				// that are logged in to a different account
-				console.log('closeTabLocal by globalUserHandleB64u');
-				closeTabLocal();
+				console.log('closeSessionTabLocal by globalUserHandleB64u');
+				closeSessionTabLocal();
 			}
 		},
-		[closeTabLocal, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[closeSessionTabLocal, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
 	useEffect(
 		() => {
 			if (!privateData) {
 				// When user logs out in any tab, log out in all tabs
-				console.log('closeTabLocal by privateData')
-				closeTabLocal();
+				console.log('closeSessionTabLocal by privateData')
+				closeSessionTabLocal();
 			}
 		},
-		[closeTabLocal, privateData],
+		[closeSessionTabLocal, privateData],
 	);
 
 	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
