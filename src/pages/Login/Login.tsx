@@ -663,8 +663,8 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="my-5 md:my-0 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
+				<h1 className="pt-3 my-5 md:my-0 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
