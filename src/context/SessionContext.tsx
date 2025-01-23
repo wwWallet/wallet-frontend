@@ -1,10 +1,10 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 
 import StatusContext from './StatusContext';
 import { BackendApi, useApi } from '../api';
-import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
+import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
-
+import keystoreEvents from '../services/keystoreEvents';
 
 type SessionContextValue = {
 	api: BackendApi,
@@ -23,20 +23,50 @@ const SessionContext: React.Context<SessionContextValue> = createContext({
 export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
-	const keystore = useLocalStorageKeystore();
+	const keystore = useLocalStorageKeystore(keystoreEvents);
+
+	// Use a ref to hold a stable reference to the clearSession function
+	const clearSessionRef = useRef<() => void>();
+
+	// Memoize clearSession using useCallback
+	const clearSession = useCallback(async () => {
+		sessionStorage.setItem('freshLogin', 'true');
+		console.log('Clear Session');
+		api.clearSession();
+	}, [api]);
+
+	// Update the ref whenever clearSession changes
+	useEffect(() => {
+		clearSessionRef.current = clearSession;
+	}, [clearSession]);
+
+	// The close() will dispatch Event CloseSessionTabLocal in order to call the clearSession
+	const logout = async () => {
+		await keystore.close();
+	};
+
+	useEffect(() => {
+		// Handler function that calls the current clearSession function
+		const handleClearSession = () => {
+			if (clearSessionRef.current) {
+				clearSessionRef.current();
+			}
+		};
+
+		// Add event listener
+		keystoreEvents.addEventListener(KeystoreEvent.CloseSessionTabLocal, handleClearSession);
+
+		// Cleanup event listener to prevent duplicates
+		return () => {
+			keystoreEvents.removeEventListener(KeystoreEvent.CloseSessionTabLocal, handleClearSession);
+		};
+	}, []);
 
 	const value: SessionContextValue = {
 		api,
 		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
 		keystore,
-		logout: async () => {
-
-			// Clear URL parameters
-			sessionStorage.setItem('freshLogin', 'true');
-			api.clearSession();
-			await keystore.close();
-
-		},
+		logout,
 	};
 
 	return (
