@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
@@ -7,7 +7,7 @@ import i18n from './i18n';
 import { withSessionContext } from './context/SessionContext';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
-import HandlerNotification from './components/Notifications/HandlerNotification';
+import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
@@ -19,6 +19,8 @@ import { withUriHandler } from './UriHandler';
 import { withCredentialParserContext } from './context/CredentialParserContext';
 import { withOpenID4VPContext } from './context/OpenID4VPContext';
 import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
+import useNewCredentialListener from './hooks/useNewCredentialListener';
+import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -88,70 +90,54 @@ const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
 	const location = useLocation();
-	useEffect(() => {
-		if (navigator?.serviceWorker) {
-			navigator.serviceWorker.addEventListener('message', handleMessage);
-			// Clean up the event listener when the component unmounts
-			return () => {
-				navigator.serviceWorker.removeEventListener('message', handleMessage);
-			};
-		}
-
-	}, []);
-
-	// Handle messages received from the service worker
-	const handleMessage = (event) => {
-		if (event.data.type === 'navigate') {
-			// Remove any parameters from the URL
-			const homeURL = window.location.origin + window.location.pathname;
-			// Redirect the current tab to the home URL
-			window.location.href = homeURL;
-		}
-	};
+	const { notification, clearNotification } = useNewCredentialListener();
 
 	return (
-		<I18nextProvider i18n={i18n}>
-			<Snowfalling />
-			<Suspense fallback={<Spinner />}>
-				<HandlerNotification />
-				<UpdateNotification />
-				<Routes>
-					<Route element={
-						<PrivateRoute>
-							<Layout>
-								<Suspense fallback={<Spinner size='small' />}>
-									<PrivateRoute.NotificationPermissionWarning />
-									<FadeInContentTransition appear reanimateKey={location.pathname}>
-										<Outlet />
-									</FadeInContentTransition>
-								</Suspense>
-							</Layout>
-						</PrivateRoute>
-					}>
-						<Route path="/settings" element={<Settings />} />
-						<Route path="/" element={<Home />} />
-						<Route path="/credential/:credentialId" element={<Credential />} />
-						<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
-						<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
-						<Route path="/history" element={<History />} />
-						<Route path="/history/:historyId" element={<HistoryDetail />} />
-						<Route path="/add" element={<AddCredentials />} />
-						<Route path="/send" element={<SendCredentials />} />
-						<Route path="/verification/result" element={<VerificationResult />} />
-						<Route path="/cb/*" element={<Home />} />
-					</Route>
-					<Route element={
-						<FadeInContentTransition reanimateKey={location.pathname}>
-							<Outlet />
-						</FadeInContentTransition>
-					}>
-						<Route path="/login" element={<Login />} />
-						<Route path="/login-state" element={<LoginState />} />
-						<Route path="*" element={<NotFound />} />
-					</Route>
-				</Routes>
-			</Suspense>
-		</I18nextProvider>
+		<>
+			<BackgroundNotificationClickHandler />
+			<I18nextProvider i18n={i18n}>
+				<Snowfalling />
+				<Suspense fallback={<Spinner />}>
+					<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
+					<UpdateNotification />
+					<Routes>
+						<Route element={
+							<PrivateRoute>
+								<Layout>
+									<Suspense fallback={<Spinner size='small' />}>
+										<PrivateRoute.NotificationPermissionWarning />
+										<FadeInContentTransition appear reanimateKey={location.pathname}>
+											<Outlet />
+										</FadeInContentTransition>
+									</Suspense>
+								</Layout>
+							</PrivateRoute>
+						}>
+							<Route path="/settings" element={<Settings />} />
+							<Route path="/" element={<Home />} />
+							<Route path="/credential/:credentialId" element={<Credential />} />
+							<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
+							<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
+							<Route path="/history" element={<History />} />
+							<Route path="/history/:historyId" element={<HistoryDetail />} />
+							<Route path="/add" element={<AddCredentials />} />
+							<Route path="/send" element={<SendCredentials />} />
+							<Route path="/verification/result" element={<VerificationResult />} />
+							<Route path="/cb/*" element={<Home />} />
+						</Route>
+						<Route element={
+							<FadeInContentTransition reanimateKey={location.pathname}>
+								<Outlet />
+							</FadeInContentTransition>
+						}>
+							<Route path="/login" element={<Login />} />
+							<Route path="/login-state" element={<LoginState />} />
+							<Route path="*" element={<NotFound />} />
+						</Route>
+					</Routes>
+				</Suspense>
+			</I18nextProvider>
+		</>
 	);
 }
 

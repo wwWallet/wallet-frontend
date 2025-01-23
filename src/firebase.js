@@ -16,11 +16,11 @@ export async function isEnabledAndIsSupported() {
 export async function register() {
 	if (await isEnabledAndIsSupported() && 'serviceWorker' in navigator) {
 		try {
-			const existingRegistration = await navigator.serviceWorker.getRegistration('/notifications/');
+			const existingRegistration = await navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope');
 			if (existingRegistration) {
 				console.log('Service Worker is already registered. Scope:', existingRegistration.scope);
 			} else {
-				const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/notifications/' });
+				const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
 				console.log('App: Firebase Messaging Service Worker registered! Scope is:', registration.scope);
 			}
 		} catch (err) {
@@ -70,7 +70,7 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 	if ('serviceWorker' in navigator) {
 		try {
 			// Re-register the service worker
-			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/notifications/' });
+			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
 			if (registration) {
 				console.log('Service Worker re-registered', registration);
 				const token = await requestForToken();
@@ -112,14 +112,15 @@ export const fetchToken = async () => {
 	return null; // Return null in case of failure
 };
 
-export const onMessageListener = () =>
-	new Promise(async (resolve) => {
-		if (await isEnabledAndIsSupported()) {
-			onMessage(messaging, (payload) => {
-				resolve(payload);
-			});
-		}
-	});
+export const onMessageListener = async (callback) => {
+	if (await isEnabledAndIsSupported()) {
+		onMessage(messaging, (payload) => {
+			callback(payload);
+		});
+	} else {
+		console.error('Messaging is not supported or enabled');
+	}
+};
 
 const initializeFirebaseAndMessaging = async () => {
 	if (notificationApiIsSupported) {
