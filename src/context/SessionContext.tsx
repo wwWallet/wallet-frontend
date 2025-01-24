@@ -30,7 +30,7 @@ export const SessionContextProvider = ({ children }) => {
 
 	// Memoize clearSession using useCallback
 	const clearSession = useCallback(async () => {
-		sessionStorage.setItem('freshLogin', 'true');
+		window.history.replaceState({}, '', `${window.location.pathname}`);
 		console.log('Clear Session');
 		api.clearSession();
 	}, [api]);
