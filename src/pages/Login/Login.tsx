@@ -670,7 +670,7 @@ const Auth = () => {
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
-				<LanguageSelector className='absolute font-medium px-1 dark top-0 right-3 text-sm text-primary dark:text-white cursor-pointer rounded focus:outline-none dark:bg-gray-800' showFullLabel={false} />
+				<LanguageSelector className='absolute font-medium px-1 dark top-0 right-3 text-sm text-primary dark:text-white cursor-pointer rounded focus:outline-none dark:bg-gray-800' />
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />

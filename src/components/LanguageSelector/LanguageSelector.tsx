@@ -5,12 +5,12 @@ import { languageOptions } from "./languages";
 
 type LanguageSelectorProps = {
 	className?: string;
-	showFullLabel: boolean;
+	showFullLabel?: boolean;
 };
 
 const LanguageSelector = ({
 	className,
-	showFullLabel = true,
+	showFullLabel = false,
 }: LanguageSelectorProps) => {
 	const { i18n } = useTranslation();
 	const { language } = i18n;
@@ -31,7 +31,7 @@ const LanguageSelector = ({
 		>
 			{languageOptions.map((option) => (
 				<option key={option.value} value={option.value}>
-					{showFullLabel ? option.label : option.label.split(" ")[0]}
+					{showFullLabel ? `${option.label} (${option.name})` : option.label}
 				</option>
 			))}
 		</select>

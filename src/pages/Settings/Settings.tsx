@@ -864,7 +864,7 @@ const Settings = () => {
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36 text-gray-700">
 								<div className="relative w-full h-10">
-									<LanguageSelector className="w-full pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 appearance-none" showFullLabel />
+									<LanguageSelector className="w-full pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 appearance-none" showFullLabel={true} />
 									<span className="absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none">
 										<IoIosArrowDown />
 									</span>
