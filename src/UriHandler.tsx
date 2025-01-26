@@ -110,14 +110,9 @@ export const UriHandler = ({ children }) => {
 				})
 				return;
 			}
-
-			const urlParams = new URLSearchParams(window.location.search);
-			const state = urlParams.get('state');
-			const error = urlParams.get('error');
-			if (url && isLoggedIn && state && error) {
+			else if (url && isLoggedIn && u.searchParams.get('state') && u.searchParams.get('error') && u.searchParams.get('error_description')) {
 				window.history.replaceState({}, '', `${window.location.pathname}`);
-				const errorDescription = urlParams.get('error_description');
-				setTextMessagePopup({ title: error, description: errorDescription });
+				setTextMessagePopup({ title: u.searchParams.get('error'), description: u.searchParams.get('error_description') });
 				setTypeMessagePopup('error');
 				setMessagePopup(true);
 			}
