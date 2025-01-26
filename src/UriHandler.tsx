@@ -44,11 +44,17 @@ export const UriHandler = ({ children }) => {
 		}
 
 		async function handle(urlToCheck: string) {
+
+			const u = new URL(urlToCheck);
+			if (u.searchParams.size === 0) {
+				return;
+			}
+
 			const userHandleB64u = keystore.getUserHandleB64u();
 			if (!userHandleB64u) {
 				return;
 			}
-			const u = new URL(urlToCheck);
+
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 				openID4VCI.handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
 					console.log("Generating authorization request...");
