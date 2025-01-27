@@ -127,16 +127,6 @@ export const CredentialsProvider = ({ children }) => {
 		}
 	}, [api, fetchVcData, pollForCredentials]);
 
-	useEffect(() => {
-		const handleNewCredentialEvent = () => {
-			getData(true);
-		};
-		window.addEventListener('newCredential', handleNewCredentialEvent);
-		return () => {
-			window.removeEventListener('newCredential', handleNewCredentialEvent);
-		};
-	}, [getData]);
-
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>
 			{children}
