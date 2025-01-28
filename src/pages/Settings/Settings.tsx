@@ -863,8 +863,8 @@ const Settings = () => {
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36 text-gray-700">
-								<div className="relative w-full h-10">
-									<LanguageSelector className="w-full pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 appearance-none" showName={true} />
+								<div className="relative">
+									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
 							</div>
 						</div>
@@ -888,9 +888,9 @@ const Settings = () => {
 							</p>
 							<div className='flex gap-2 items-center'>
 								<div className="relative inline-block min-w-36 text-gray-700">
-									<div className="relative w-full h-10">
+									<div className="relative">
 										<select
-											className={`w-full h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36 appearance-none`}
+											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 											disabled={!isOnline}

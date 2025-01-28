@@ -145,8 +145,8 @@ const LoginState = () => {
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
-				<div className='absolute text-medium top-0 right-3'>
-					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer rounded dark:bg-gray-800 appearance-none' />
+				<div className='absolute top-0 right-3'>
+				<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
