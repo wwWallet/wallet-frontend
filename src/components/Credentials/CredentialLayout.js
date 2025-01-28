@@ -7,10 +7,10 @@ import { PiCardsBold } from "react-icons/pi";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
+import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Contexts
-import SessionContext from '../../context/SessionContext';
-import ContainerContext from '../../context/ContainerContext';
+import CredentialsContext from '../../context/CredentialsContext';
 
 //Functions
 import { CheckExpired } from '../../functions/CheckExpired';
@@ -23,10 +23,7 @@ import PageDescription from '../Shared/PageDescription';
 
 const CredentialLayout = ({ children, title = null }) => {
 	const { credentialId } = useParams();
-	const { api } = useContext(SessionContext);
-	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
-	const [vcEntity, setVcEntity] = useState(null);
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const { t } = useTranslation();
@@ -35,36 +32,18 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [zeroSigCount, setZeroSigCount] = useState(null)
 	const [sigTotal, setSigTotal] = useState(null);
 
-	useEffect(() => {
-		const getData = async () => {
-			const response = await api.get('/storage/vc');
-			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId)[0];
-			const vcEntityInstances = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId);
-			setZeroSigCount(vcEntityInstances.filter(instance => instance.sigCount === 0).length || 0);
-			setSigTotal(vcEntityInstances.length);
-			if (!vcEntity) {
-				throw new Error("Credential not found");
-			}
-			setVcEntity(vcEntity);
-		};
-
-		getData();
-	}, [api, credentialId]);
+	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
 	useEffect(() => {
-		if (!vcEntity) {
-			return;
+		if (vcEntity) {
+			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
+			setSigTotal(vcEntity.instances.length);
+			setIsExpired(CheckExpired(vcEntity.parsedCredential.beautifiedForm.expiry_date ?? vcEntity.parsedCredential.beautifiedForm.expiry_date))
+			setCredentialFriendlyName(vcEntity.parsedCredential.credentialFriendlyName);
+
 		}
-		container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
-			if ('error' in c) {
-				return;
-			}
-			setIsExpired(CheckExpired(c.beautifiedForm.expiry_date))
-			setCredentialFriendlyName(c.credentialFriendlyName);
-		});
-	}, [vcEntity, container]);
+	}, [vcEntity]);
 
 	const UsageStats = ({ zeroSigCount, sigTotal }) => {
 		if (zeroSigCount === null || sigTotal === null) return null;
@@ -118,7 +97,7 @@ const CredentialLayout = ({ children, title = null }) => {
 									aria-label={`${credentialFiendlyName}`}
 									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
 								>
-									<CredentialImage vcEntity={vcEntity} credential={vcEntity.credential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
+									<CredentialImage vcEntity={vcEntity} parsedCredential={vcEntity.parsedCredential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
 								</button>
 								{screenType !== 'mobile' && zeroSigCount !== null && sigTotal &&
 									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
@@ -158,7 +137,7 @@ const CredentialLayout = ({ children, title = null }) => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage credential={vcEntity.credential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
+						<CredentialImage parsedCredential={vcEntity.parsedCredential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
 					}
 				/>
 			)}

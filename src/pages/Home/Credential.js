@@ -1,15 +1,16 @@
 // External libraries
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 
 // Contexts
 import SessionContext from '../../context/SessionContext';
-import ContainerContext from '../../context/ContainerContext';
+import CredentialsContext from '../../context/CredentialsContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
 import useScreenType from '../../hooks/useScreenType';
+import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
 import CredentialTabs from '../../components/Credentials/CredentialTabs';
@@ -24,43 +25,16 @@ import CredentialLayout from '../../components/Credentials/CredentialLayout';
 const Credential = () => {
 	const { credentialId } = useParams();
 	const { api } = useContext(SessionContext);
-	const container = useContext(ContainerContext);
 	const history = useFetchPresentations(api, credentialId, null);
-
-	const [vcEntity, setVcEntity] = useState(null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const screenType = useScreenType();
 	const [activeTab, setActiveTab] = useState(0);
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
-	useEffect(() => {
-		const getData = async () => {
-			const response = await api.get('/storage/vc');
-			const vcEntity = response.data.vc_list
-				.filter((vcEntity) => vcEntity.credentialIdentifier === credentialId)[0];
-			if (!vcEntity) {
-				throw new Error("Credential not found");
-			}
-			setVcEntity(vcEntity);
-		};
-
-		getData();
-	}, [api, credentialId]);
-
-	useEffect(() => {
-		if (!vcEntity) {
-			return;
-		}
-		container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
-			if ('error' in c) {
-				return;
-			}
-			setCredentialFriendlyName(c.credentialFriendlyName);
-		});
-	}, [vcEntity, container]);
+	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
 	const handleSureDelete = async () => {
 		setLoading(true);
@@ -75,7 +49,7 @@ const Credential = () => {
 	};
 
 	const infoTabs = [
-		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson credential={vcEntity?.credential} /> },
+		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} /> },
 		{
 			label: t('pageCredentials.presentationsTitle'), component:
 				<>
@@ -96,7 +70,7 @@ const Credential = () => {
 				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
 
 					{/* Block 2: Information List */}
-					{vcEntity && <CredentialInfo credential={vcEntity.credential} />} {/* Use the CredentialInfo component */}
+					{vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />} {/* Use the CredentialInfo component */}
 				</div>
 
 				<div className="w-full pt-2 px-2">
@@ -139,7 +113,7 @@ const Credential = () => {
 						message={
 							<Trans
 								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName: credentialFiendlyName }}
+								values={{ credentialName: vcEntity.parsedCredential.credentialFriendlyName }}
 								components={{ strong: <strong />, br: <br /> }}
 							/>
 						}

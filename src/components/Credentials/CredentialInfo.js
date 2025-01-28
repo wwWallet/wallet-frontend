@@ -1,11 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React from 'react';
 import { BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
 import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
 import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
 import { GiLevelEndFlag } from 'react-icons/gi';
 import { formatDate } from '../../functions/DateFormat';
-import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
 
 const getFieldIcon = (fieldName) => {
@@ -51,41 +50,27 @@ const renderRow = (fieldName, label, fieldValue, screenType) => {
 	}
 };
 
-const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-full" }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full" }) => {
 
-	const [parsedCredential, setParsedCredential] = useState(null);
-	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
-
-	useEffect(() => {
-		if (container) {
-			container.credentialParserRegistry.parse(credential).then((c) => {
-				if ('error' in c) {
-					return;
-				}
-				setParsedCredential(c.beautifiedForm);
-			});
-		}
-
-	}, [credential, container]);
 
 	return (
 		<div className={mainClassName}>
 			<table className="lg:w-4/5">
 				<tbody className="divide-y-4 divide-transparent">
-					{parsedCredential && (
+					{parsedCredential.beautifiedForm && (
 						<>
-							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential?.exp * 1000).toISOString()), screenType)}
-							{renderRow('familyName', 'Family Name', parsedCredential?.family_name, screenType)}
-							{renderRow('firstName', 'Given Name', parsedCredential?.given_name, screenType)}
-							{renderRow('id', 'Personal ID', parsedCredential?.personal_identifier, screenType)}
-							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential?.dateOfBirth, 'date'), screenType)}
-							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential?.birth_date, 'date'), screenType)}
-							{renderRow('diplomaTitle', 'Title', parsedCredential?.title, screenType)}
-							{renderRow('eqfLevel', 'EQF', parsedCredential?.eqf_level, screenType)}
-							{renderRow('grade', 'Grade', parsedCredential?.grade, screenType)}
-							{renderRow('id', 'Social Security Number', parsedCredential?.ssn, screenType)}
-							{renderRow('id', 'Document Number', parsedCredential?.document_number, screenType)}
+							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential.beautifiedForm?.exp * 1000).toISOString()), screenType)}
+							{renderRow('familyName', 'Family Name', parsedCredential.beautifiedForm?.family_name, screenType)}
+							{renderRow('firstName', 'Given Name', parsedCredential.beautifiedForm?.given_name, screenType)}
+							{renderRow('id', 'Personal ID', parsedCredential.beautifiedForm?.personal_identifier, screenType)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.beautifiedForm?.dateOfBirth, 'date'), screenType)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.beautifiedForm?.birth_date, 'date'), screenType)}
+							{renderRow('diplomaTitle', 'Title', parsedCredential.beautifiedForm?.title, screenType)}
+							{renderRow('eqfLevel', 'EQF', parsedCredential.beautifiedForm?.eqf_level, screenType)}
+							{renderRow('grade', 'Grade', parsedCredential.beautifiedForm?.grade, screenType)}
+							{renderRow('id', 'Social Security Number', parsedCredential.beautifiedForm?.ssn, screenType)}
+							{renderRow('id', 'Document Number', parsedCredential.beautifiedForm?.document_number, screenType)}
 						</>
 					)}
 				</tbody>
