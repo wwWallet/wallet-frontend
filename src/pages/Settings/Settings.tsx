@@ -902,8 +902,8 @@ const Settings = () => {
 											<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
 											<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
 										</select>
-										<span className="absolute top-1/2 right-2 transform -translate-y-1/2 pointer-events-none">
-											<IoIosArrowDown />
+										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
+											<IoIosArrowDown className='dark:text-white' />
 										</span>
 									</div>
 								</div>
