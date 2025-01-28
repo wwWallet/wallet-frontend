@@ -27,6 +27,9 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"language": {
+		"label": "Language"
+	},
 	"ConnectionStatusIcon": {
 		"status": "Connection status:",
 		"qualityLabels": {
@@ -226,6 +229,7 @@
 			"successMessage": "Saved"
 		},
 		"title": {
+			"language": "Language",
 			"rememberIssuer": "Remember Issuer",
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
