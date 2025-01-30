@@ -51,14 +51,15 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			credentialRequestBuilder.setAccessToken(access_token);
 			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
 
-			const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
-			credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
-			credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
-			credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
+			if (flowState?.dpop) {
+				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg)
+				credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
+				credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
+				credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
+				credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
+				await credentialRequestBuilder.setDpopHeader();
+			}
 
-			credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
-
-			await credentialRequestBuilder.setDpopHeader();
 			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId);
 
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
