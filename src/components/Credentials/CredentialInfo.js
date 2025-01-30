@@ -80,16 +80,17 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 			let iss = c.beautifiedForm.iss;
 
 			// @todo: make less specific for SURF agent
+			// this will no longer be needed if the issuer configuration is saved and includes the issuer URL
 			if (iss.startsWith('did:web:')) {
 				const issDomain = iss.split(':').pop();
 				const domainParts = issDomain.split('.');
-				const subDomain = domainParts.shift();
-				const domain = domainParts.join('.');
+				const domain = domainParts.slice(-3).join('.');
+				const subDomain = domainParts.slice(0, -3).join('');
 				iss = `https://agent.${domain}/${subDomain}`;
 			}
 
 			const metadataResponse = await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline, iss, true);
-
+			
 			if (!metadataResponse) {
 				return { error: 'No metadata response' };
 			}

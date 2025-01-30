@@ -204,33 +204,35 @@ export const ContainerContextProvider = ({ children }) => {
 
 					},
 				});
-
+				
 				credentialParserRegistry.addParser({
 					async parse(rawCredential) {
 
 						if (typeof rawCredential != 'string') {
 							return { error: "rawCredential not of type 'string'" };
+
 						}
-
+						
 						const result = await parseJwtVcJsonCredential(rawCredential);
-
+						
 						if ('error' in result) {
 							return { error: "Failed to parse jwt_vc_json" };
 						}
-
+						
 						let iss = result.beautifiedForm.iss;
 
 						// @todo: make less specific for SURF agent
+						// this will no longer be needed if the issuer configuration is saved and includes the issuer URL
 						if (iss.startsWith('did:web:')) {
 							const issDomain = iss.split(':').pop();
 							const domainParts = issDomain.split('.');
-							const subDomain = domainParts.shift();
-							const domain = domainParts.join('.');
+    					const domain = domainParts.slice(-3).join('.');
+							const subDomain = domainParts.slice(0, -3).join('');
 							iss = `https://agent.${domain}/${subDomain}`;
 						}
 
 						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, iss, shouldUseCache);
-
+						
 						if (!metadataResponse) {
 							return { error: 'No metadata response' };
 						}
@@ -295,7 +297,6 @@ export const ContainerContextProvider = ({ children }) => {
 							},
 							credentialFriendlyName,
 						}
-
 					},
 				});
 
