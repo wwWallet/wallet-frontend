@@ -1,16 +1,14 @@
-import React, { useEffect, useMemo, useState, useContext } from 'react';
+import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
-import { useNavigate } from 'react-router-dom';
 import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
-import ContainerContext from '../../context/ContainerContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
-import CredentialsContext from '../../context/CredentialsContext';
+import CredentialParserContext from '../../context/CredentialParserContext';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -58,72 +56,74 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
-function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformantCredentialsMap, verifierDomainName }) {
+function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
+
 	const { api } = useContext(SessionContext);
+	const credentialParserContext = useContext(CredentialParserContext);
 	const [vcEntities, setVcEntities] = useState([]);
-	const { vcEntityList, vcEntityListInstances } = useContext(CredentialsContext);
-	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const keys = useMemo(() => Object.keys(conformantCredentialsMap), [conformantCredentialsMap]);
-	const stepTitles = useMemo(() => Object.keys(conformantCredentialsMap).map(key => key), [conformantCredentialsMap]);
+	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
+	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showAllFields, setShowAllFields] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
-	const container = useContext(ContainerContext);
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
 
+	const reinitialize = useCallback(() => {
+		setCurrentIndex(0);
+		setCurrentSlide(1);
+		setCurrentSelectionMap({});
+		setRequestedFields([]);
+		setSelectedCredential(null);
+		setPopupState({ isOpen: false });
+	}, [setPopupState]);
+
 	useEffect(() => {
 		const getData = async () => {
-			if (currentIndex === Object.keys(conformantCredentialsMap).length) {
-				setSelectionMap(currentSelectionMap);
-				setIsOpen(false);
+			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length) {
+				reinitialize();
+				popupState.resolve(new Map(Object.entries(currentSelectionMap)));
 				return;
 			}
 
 			try {
-				const vcEntities = await Promise.all(
-					vcEntityList.map(async vcEntity => {
-						return container.credentialParserRegistry.parse(vcEntity.credential).then((c) => {
-							if ('error' in c) {
-								return;
-							}
-							return { ...vcEntity, friendlyName: c.credentialFriendlyName }
-						});
-					})
+				const filteredVcEntities = vcEntityList.filter(vcEntity =>
+					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 				);
 
-				const filteredVcEntities = vcEntities.filter(vcEntity =>
-					conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
-				);
-
-				setRequestedFields(conformantCredentialsMap[keys[currentIndex]].requestedFields);
+				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
+				console.log('filteredVcEntities',filteredVcEntities)
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
 			}
 		};
 
-		getData();
+		if (popupState?.options && vcEntityList) {
+			console.log("opts = ", popupState.options)
+			getData();
+		}
 	}, [
 		api,
-		conformantCredentialsMap,
 		currentIndex,
 		currentSelectionMap,
 		keys,
+		popupState,
 		vcEntityList,
-		setSelectionMap,
-		setIsOpen,
-		container.credentialParserRegistry,
+		credentialParserContext.credentialParserRegistry,
+		reinitialize
 	]);
 
 	useEffect(() => {
-		const currentKey = keys[currentIndex];
-		const selectedId = currentSelectionMap[currentKey];
-		setSelectedCredential(selectedId);
-	}, [currentIndex, currentSelectionMap, keys]);
+		if (popupState?.options) {
+			const currentKey = keys[currentIndex];
+			const selectedId = currentSelectionMap[currentKey];
+			setSelectedCredential(selectedId);
+		}
+	}, [currentIndex, currentSelectionMap, keys, popupState]);
 
 	const goToNextSelection = () => {
 		setShowAllFields(false);
@@ -149,11 +149,13 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	};
 
 	const onClose = () => {
-		setIsOpen(false);
-		navigate('/');
+		// setIsOpen(false);
+		popupState.reject();
+		reinitialize();
+		// navigate('/');
 	}
 
-	if (!isOpen) {
+	if (!popupState?.isOpen) {
 		return null;
 	};
 
@@ -163,13 +165,13 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
 			onClick={() => handleClick(vcEntity.credentialIdentifier)}
-			aria-label={`${vcEntity.friendlyName}`}
-			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.friendlyName })}
+			aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
+			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
 		>
 			<CredentialImage
-				vcEntityInstances={vcEntityListInstances.filter((vc) => vc.credentialIdentifier === vcEntity.credentialIdentifier)}
+				vcEntityInstances={vcEntity.instances}
 				key={vcEntity.credentialIdentifier}
-				credential={vcEntity.credential}
+				parsedCredential={vcEntity.parsedCredential}
 				className="w-full object-cover rounded-xl"
 				showRibbon={currentSlide === vcEntities.indexOf(vcEntity) + 1}
 			/>
@@ -200,7 +202,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 	})();
 
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
+		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
 			<div className={`${screenType !== 'desktop' && 'pb-16'}`}>
 				<div>
 					{stepTitles && (
@@ -214,13 +216,13 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 					)}
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					{requestedFieldsText && requestedFields.length > 0 && verifierDomainName && (
+					{requestedFieldsText && requestedFields.length > 0 && popupState.options.verifierDomainName && (
 						<>
 							<p className="pd-2 text-gray-700 text-sm dark:text-white">
 								<span>
 									<Trans
 										i18nKey={requestedFields.length === 1 ? "selectCredentialPopup.descriptionFieldsSingle" : "selectCredentialPopup.descriptionFieldsMultiple"}
-										values={{ verifierDomainName }}
+										values={{ verifierDomainName: popupState.options.verifierDomainName }}
 										components={{ strong: <strong /> }}
 									/>
 								</span>
@@ -252,7 +254,7 @@ function SelectCredentialsPopup({ isOpen, setIsOpen, setSelectionMap, conformant
 				</div>
 				{vcEntities[currentSlide - 1] && (
 					<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
-						<CredentialInfo credential={vcEntities[currentSlide - 1].credential} mainClassName={"text-xs w-full"} />
+						<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} mainClassName={"text-xs w-full"} />
 					</div>
 				)}
 				<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>

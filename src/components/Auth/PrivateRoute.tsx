@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { fetchToken, notificationApiIsSupported } from '../../firebase';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
-import { Trans } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
 import Spinner from '../Shared/Spinner'; // Import your spinner component
 import { useSessionStorage } from '../../hooks/useStorage';
@@ -22,6 +22,8 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 
 
 export function NotificationPermissionWarning(): React.ReactNode {
+	useTranslation(); // This ensures reactivity to language changes
+
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
