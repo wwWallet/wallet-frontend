@@ -29,7 +29,6 @@ export const UriHandler = ({ children }) => {
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
-	const { addLoader, removeLoader } = useContext(BackgroundTasksContext);
 	const { t } = useTranslation();
 
 	useEffect(() => {
@@ -63,14 +62,11 @@ export const UriHandler = ({ children }) => {
 			}
 			else if (u.searchParams.get('code')) {
 				console.log("Handling authorization response...");
-				addLoader();
 				openID4VCI.handleAuthorizationResponse(u.toString()).then(() => {
-					removeLoader();
 				}).catch(err => {
 					console.log("Error during the handling of authorization response")
 					window.history.replaceState({}, '', `${window.location.pathname}`);
 					console.error(err)
-					removeLoader();
 				})
 			}
 			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri')) {
@@ -123,7 +119,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, addLoader, removeLoader, t, keystore, isLoggedIn, openID4VCI, openID4VP]);
+	}, [url, t, keystore, isLoggedIn, openID4VCI, openID4VP]);
 
 	return (
 		<>
