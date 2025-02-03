@@ -510,12 +510,15 @@ const WebauthnSignupLogin = ({
 												variant="tertiary"
 												disabled={isSubmitting}
 												additionalClassName="w-full"
+												ariaLabel={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+												title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 											>
 												<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
 												<span className="truncate">
 													{isSubmitting
 														? t('loginSignup.submitting')
-														: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+														: cachedUser.displayName
+													}
 												</span>
 											</Button>
 										</div>
@@ -524,8 +527,8 @@ const WebauthnSignupLogin = ({
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
-												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
-												title={t('loginSignup.forgetCachedUserTitle')}
+												ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+												title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 											>
 												<GoTrash className="text-xl" />
 											</Button>
