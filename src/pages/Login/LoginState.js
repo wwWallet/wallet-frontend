@@ -106,8 +106,8 @@ const LoginState = () => {
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search;
 
-	const getCachedUser = () => {
-		const queryParams = new URLSearchParams(from?.search ?? location.search);
+	const getfilteredUser = () => {
+		const queryParams = new URLSearchParams(from);
 		const state = queryParams.get('state');
 		if (state) {
 			try {
@@ -121,7 +121,7 @@ const LoginState = () => {
 		}
 		return null;
 	};
-	const filteredUser = getCachedUser();
+	const filteredUser = getfilteredUser();
 
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
