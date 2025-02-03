@@ -498,23 +498,25 @@ const WebauthnSignupLogin = ({
 							</>)}
 
 						{isLoginCache && (
-							<ul className="overflow-y-auto max-h-24 p-2 custom-scrollbar">
+							<ul className="overflow-y-auto overflow-x-hidden max-h-28 p-2 custom-scrollbar">
 								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser) => (
 									<li
 										key={cachedUser.userHandleB64u}
-										className="w-full flex flex-row flex-nowrap mb-2"
+										className="w-full flex flex-row mb-2 gap-2"
 									>
-										<div className='flex-grow mr-2'>
+										<div className="flex flex-1 min-w-0">
 											<Button
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
-												additionalClassName='w-full'
+												additionalClassName="w-full"
 											>
-												<GoPasskeyFill className="inline text-xl mr-2" />
-												{isSubmitting
-													? t('loginSignup.submitting')
-													: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+												<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
+												<span className="truncate">
+													{isSubmitting
+														? t('loginSignup.submitting')
+														: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+												</span>
 											</Button>
 										</div>
 										<div>
@@ -525,7 +527,7 @@ const WebauthnSignupLogin = ({
 												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUserTitle')}
 											>
-												<GoTrash className="inline text-xl" />
+												<GoTrash className="text-xl" />
 											</Button>
 										</div>
 									</li>
