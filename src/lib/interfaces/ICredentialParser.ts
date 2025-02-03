@@ -1,7 +1,7 @@
 import { PresentationDefinitionType } from "../types/presentationDefinition.type";
 
 export interface ICredentialParserRegistry {
-	addParser(parser: ICredentialParser): void;
+	setParsers(parsers: ICredentialParser[]): void;
 	parse(rawCredential: object | string, presentationDefinitionFilter?: PresentationDefinitionType): Promise<{ credentialFriendlyName: string; credentialImage: { credentialImageURL: string; }; beautifiedForm: any; } | { error: string }>;
 }
 

@@ -1,24 +1,24 @@
-import React, { useEffect, Suspense, useState, useContext } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
 
 import i18n from './i18n';
-import useCheckURL from './hooks/useCheckURL';
-import { CredentialsProvider } from './context/CredentialsContext';
 import { withSessionContext } from './context/SessionContext';
-import { checkForUpdates } from './offlineRegistrationSW';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import HandlerNotification from './components/Notifications/HandlerNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
-import { withContainerContext } from './context/ContainerContext';
-import StatusContext from './context/StatusContext';
+import { withCredentialsContext } from './context/CredentialsContext';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
+import { withUriHandler } from './UriHandler';
+import { withCredentialParserContext } from './context/CredentialParserContext';
+import { withOpenID4VPContext } from './context/OpenID4VPContext';
+import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -67,13 +67,10 @@ const lazyWithDelay = (importFunction, delay = 1000) => {
 	);
 };
 
-const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
-const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
 const PrivateRoute = reactLazyWithNonDefaultExports(
 	() => import('./components/Auth/PrivateRoute'),
 	'NotificationPermissionWarning',
 );
-const SelectCredentialsPopup = React.lazy(() => import('./components/Popups/SelectCredentialsPopup'));
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
@@ -90,29 +87,7 @@ const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
-	const { updateOnlineStatus } = useContext(StatusContext);
 	const location = useLocation();
-	const [url, setUrl] = useState(window.location.href);
-	const {
-		showSelectCredentialsPopup,
-		setShowSelectCredentialsPopup,
-		setSelectionMap,
-		conformantCredentialsMap,
-		showPinInputPopup,
-		setShowPinInputPopup,
-		verifierDomainName,
-		showMessagePopup,
-		setMessagePopup,
-		textMessagePopup,
-		typeMessagePopup,
-	} = useCheckURL(url);
-
-	useEffect(() => {
-		setUrl(window.location.href);
-		checkForUpdates();
-		updateOnlineStatus(false);
-	}, [location])
-
 	useEffect(() => {
 		if (navigator?.serviceWorker) {
 			navigator.serviceWorker.addEventListener('message', handleMessage);
@@ -136,59 +111,60 @@ function App() {
 
 	return (
 		<I18nextProvider i18n={i18n}>
-			<CredentialsProvider>
-				<Snowfalling />
-				<Suspense fallback={<Spinner />}>
-					<HandlerNotification />
-					<UpdateNotification />
-					<Routes>
-						<Route element={
-							<PrivateRoute>
-								<Layout>
-									<Suspense fallback={<Spinner size='small' />}>
-										<PrivateRoute.NotificationPermissionWarning />
-										<FadeInContentTransition appear reanimateKey={location.pathname}>
-											<Outlet />
-										</FadeInContentTransition>
-									</Suspense>
-								</Layout>
-							</PrivateRoute>
-						}>
-							<Route path="/settings" element={<Settings />} />
-							<Route path="/" element={<Home />} />
-							<Route path="/credential/:credentialId" element={<Credential />} />
-							<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
-							<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
-							<Route path="/history" element={<History />} />
-							<Route path="/history/:historyId" element={<HistoryDetail />} />
-							<Route path="/add" element={<AddCredentials />} />
-							<Route path="/send" element={<SendCredentials />} />
-							<Route path="/verification/result" element={<VerificationResult />} />
-							<Route path="/cb/*" element={<Home />} />
-						</Route>
-						<Route element={
-							<FadeInContentTransition reanimateKey={location.pathname}>
-								<Outlet />
-							</FadeInContentTransition>
-						}>
-							<Route path="/login" element={<Login />} />
-							<Route path="/login-state" element={<LoginState />} />
-							<Route path="*" element={<NotFound />} />
-						</Route>
-					</Routes>
-					{showSelectCredentialsPopup &&
-						<SelectCredentialsPopup isOpen={showSelectCredentialsPopup} setIsOpen={setShowSelectCredentialsPopup} setSelectionMap={setSelectionMap} conformantCredentialsMap={conformantCredentialsMap} verifierDomainName={verifierDomainName} />
-					}
-					{showPinInputPopup &&
-						<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
-					}
-					{showMessagePopup &&
-						<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-					}
-				</Suspense>
-			</CredentialsProvider>
+			<Snowfalling />
+			<Suspense fallback={<Spinner />}>
+				<HandlerNotification />
+				<UpdateNotification />
+				<Routes>
+					<Route element={
+						<PrivateRoute>
+							<Layout>
+								<Suspense fallback={<Spinner size='small' />}>
+									<PrivateRoute.NotificationPermissionWarning />
+									<FadeInContentTransition appear reanimateKey={location.pathname}>
+										<Outlet />
+									</FadeInContentTransition>
+								</Suspense>
+							</Layout>
+						</PrivateRoute>
+					}>
+						<Route path="/settings" element={<Settings />} />
+						<Route path="/" element={<Home />} />
+						<Route path="/credential/:credentialId" element={<Credential />} />
+						<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
+						<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
+						<Route path="/history" element={<History />} />
+						<Route path="/history/:historyId" element={<HistoryDetail />} />
+						<Route path="/add" element={<AddCredentials />} />
+						<Route path="/send" element={<SendCredentials />} />
+						<Route path="/verification/result" element={<VerificationResult />} />
+						<Route path="/cb/*" element={<Home />} />
+					</Route>
+					<Route element={
+						<FadeInContentTransition reanimateKey={location.pathname}>
+							<Outlet />
+						</FadeInContentTransition>
+					}>
+						<Route path="/login" element={<Login />} />
+						<Route path="/login-state" element={<LoginState />} />
+						<Route path="*" element={<NotFound />} />
+					</Route>
+				</Routes>
+			</Suspense>
 		</I18nextProvider>
 	);
 }
 
-export default withSessionContext(withContainerContext(App));
+export default withSessionContext(
+	withCredentialParserContext(
+		withCredentialsContext(
+			withOpenID4VPContext(
+				withOpenID4VCIContext(
+					withUriHandler(
+						App
+					)
+				)
+			)
+		)
+	)
+);

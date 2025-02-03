@@ -76,6 +76,7 @@ The project uses environment variables to manage different configurations. A `.e
 	 - REACT_APP_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
    - REACT_APP_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri
 	 - REACT_APP_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
+	 - REACT_APP_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
 4. Install dependencies:
 	```bash
 	yarn install
@@ -314,30 +315,4 @@ Explore the [Tailwind CSS documentation](https://tailwindcss.com/docs/installati
 
 ## 💡Contributing
 
-We welcome contributions from the community to help improve the wwWallet Frontend repository. If you'd like to contribute, follow these steps:
-
-1.	**Create a New Branch:**
-	Create a new branch for your feature or bug fix
-	```bash
-	git checkout -b my-feature
-	```
-	Replace my-feature with a descriptive name.
-
-2.	**Make Changes:**
-	Make the necessary changes in your code editor.
-
-3.	**Commit Changes:**
-	Commit your changes with a descriptive commit message:
-	```bash
-	git commit -m "Add new feature"
-	```
-4.	**Push Changes:**
-	Push your changes to your new branrch:
-	```bash
-	git push --set-upstream origin my-feature
-	```
-5.	**Create a Pull Request:**
-	Open a pull request on the original repository. Provide a detailed description of your changes and their purpose.
-
-6.	**Review and Merge:**
-	Your pull request will be reviewed by the maintainers. Make any requested changes and address feedback. Once approved, your changes will be merged into master branch of the project.
+Want to contribute? Check out our [Contribution Guidelines](https://github.com/wwWallet/.github/blob/main/CONTRIBUTING.md) for more details!

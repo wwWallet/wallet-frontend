@@ -1,6 +1,10 @@
 // CheckExpired.js
-export function CheckExpired(expiry_date) {
-	const today = new Date();
-	const expirationDate = new Date(expiry_date);
-	return expirationDate < today;
+export function CheckExpired(data) {
+
+	if (!data.exp || typeof data.exp != 'number') {
+		return false;
+	}
+	const parsedExpiryDate = new Date(data.exp * 1000);
+	console.log("Parsed expiry date = ", parsedExpiryDate)
+	return parsedExpiryDate < new Date();
 };
