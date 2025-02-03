@@ -14,6 +14,7 @@ export const FIREBASE = {
 	storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
 };
 export const FIREBASE_ENABLED: boolean = process.env.REACT_APP_FIREBASE_ENABLED ? JSON.parse(process.env.REACT_APP_FIREBASE_ENABLED) === true : false;
+export const REACT_APP_MULTI_LANGUAGE_DISPLAY: boolean = process.env.REACT_APP_MULTI_LANGUAGE_DISPLAY ? JSON.parse(process.env.REACT_APP_MULTI_LANGUAGE_DISPLAY) : false;
 export const FIREBASE_VAPIDKEY = process.env.REACT_APP_FIREBASE_VAPIDKEY;
 export const INACTIVE_LOGOUT_MILLIS = (process.env.REACT_APP_INACTIVE_LOGOUT_SECONDS ? parseInt(process.env.REACT_APP_INACTIVE_LOGOUT_SECONDS, 10) : 60 * 15) * 1000
 export const LOGIN_WITH_PASSWORD: boolean = process.env.REACT_APP_LOGIN_WITH_PASSWORD ? JSON.parse(process.env.REACT_APP_LOGIN_WITH_PASSWORD) === true : false;
