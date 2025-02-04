@@ -222,7 +222,7 @@ const WebauthnSignupLogin = ({
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
-	const from = location.search;
+	const from = location.search || '/';
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -564,7 +564,7 @@ const Auth = () => {
 	const { t } = useTranslation();
 	const location = useLocation();
 
-	const from = location.search;
+	const from = location.search || '/';
 
 	const [error, setError] = useState<React.ReactNode>('');
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');

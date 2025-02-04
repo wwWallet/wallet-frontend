@@ -20,7 +20,7 @@ const WebauthnLogin = ({
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
-	const from = location.search;
+	const from = location.search || '/';
 	const { t } = useTranslation();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -104,7 +104,7 @@ const LoginState = () => {
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
-	const from = location.search;
+	const from = location.search || '/';
 
 	const getfilteredUser = () => {
 		const queryParams = new URLSearchParams(from);
