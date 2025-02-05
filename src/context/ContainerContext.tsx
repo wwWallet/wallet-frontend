@@ -252,7 +252,9 @@ export const ContainerContextProvider = ({ children }) => {
 						// @todo: make more dynamic using schema from credential context
 						const isOpenBadgeCredential = result.beautifiedForm.type.includes('OpenBadgeCredential');
 
-						const credentialConfiguration = metadata.credential_configurations_supported[result.beautifiedForm.name.replaceAll(' ', '')];
+						const credentialConfiguration =
+							metadata.credential_configurations_supported[result.beautifiedForm.name.replaceAll(' ', '')] ||
+							Object.values(metadata.credential_configurations_supported)[0];
 						const credentialFriendlyName = isOpenBadgeCredential
 							? result.beautifiedForm.credentialSubject.achievement.name
 							: credentialConfiguration?.display?.[0]?.name || 'Credential';
