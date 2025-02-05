@@ -10,6 +10,7 @@ import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
 import { useCallback, useContext, useMemo, useEffect, useRef } from 'react';
 import SessionContext from '../../../context/SessionContext';
+import CredentialsContext from '../../../context/CredentialsContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
@@ -24,6 +25,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { api } = useContext(SessionContext);
+	const { getData } = useContext<any>(CredentialsContext);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
@@ -49,14 +51,15 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			credentialRequestBuilder.setAccessToken(access_token);
 			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
 
-			const privateKey = await jose.importJWK(flowState.dpop.dpopPrivateKeyJwk, flowState.dpop.dpopAlg)
-			credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
-			credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
-			credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
+			if (flowState?.dpop) {
+				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg)
+				credentialRequestBuilder.setDpopPrivateKey(privateKey as jose.KeyLike);
+				credentialRequestBuilder.setDpopPublicKeyJwk(flowState.dpop.dpopPublicKeyJwk);
+				credentialRequestBuilder.setDpopJti(flowState.dpop.dpopJti);
+				credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
+				await credentialRequestBuilder.setDpopHeader();
+			}
 
-			credentialRequestBuilder.setDpopNonce(response.headers['dpop-nonce']);
-
-			await credentialRequestBuilder.setDpopHeader();
 			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId);
 
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
@@ -94,10 +97,13 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			await api.post('/storage/vc', {
 				credentials: storableCredentials
 			});
+
+			getData(true);
+
 			return;
 
 		},
-		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder]
+		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
 	);
 
 	const requestCredentials = useCallback(

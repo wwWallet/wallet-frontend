@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import { checkForUpdates } from './offlineRegistrationSW';
 import StatusContext from "./context/StatusContext";
 import SessionContext from "./context/SessionContext";
-import { BackgroundTasksContext } from "./context/BackgroundTasksContext";
 import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestError } from "./lib/interfaces/IOpenID4VP";
 import OpenID4VCIContext from "./context/OpenID4VCIContext";
@@ -26,7 +25,6 @@ export const UriHandler = ({ children }) => {
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
-	const { addLoader, removeLoader } = useContext(BackgroundTasksContext);
 	const { t } = useTranslation();
 
 	useEffect(() => {
@@ -53,7 +51,7 @@ export const UriHandler = ({ children }) => {
 			}
 			else if (u.searchParams.get('code')) {
 				console.log("Handling authorization response...");
-				await handleAuthorizationResponse(u.toString(), openID4VCI, addLoader, removeLoader);
+				await handleAuthorizationResponse(u.toString(), openID4VCI);
 			}
 			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri')) {
 				console.log("Handling authorization Request...");
@@ -65,7 +63,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, addLoader, removeLoader, t, keystore, isLoggedIn, openID4VCI, openID4VP]);
+	}, [url, t, keystore, isLoggedIn, openID4VCI, openID4VP]);
 
 	// handleCredentialOffer
 	const handleCredentialOffer = async (url: string, openID4VCI: any) => {
@@ -81,15 +79,12 @@ export const UriHandler = ({ children }) => {
 	};
 
 	// handleAuthorizationResponse
-	const handleAuthorizationResponse = async (url: string, openID4VCI: any, addLoader: () => void, removeLoader: () => void) => {
+	const handleAuthorizationResponse = async (url: string, openID4VCI: any) => {
 		try {
-			addLoader();
 			await openID4VCI.handleAuthorizationResponse(url);
 		} catch (err) {
 			console.error("Error during the handling of authorization response", err);
 			window.history.replaceState({}, "", `${window.location.pathname}`);
-		} finally {
-			removeLoader();
 		}
 	};
 

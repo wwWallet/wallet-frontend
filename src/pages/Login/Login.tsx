@@ -14,7 +14,7 @@ import SessionContext from '../../context/SessionContext';
 import * as config from '../../config';
 import Button from '../../components/Buttons/Button';
 
-// import LanguageSelector from '../../components/LanguageSelector/LanguageSelector'; // Import the LanguageSelector component
+import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
@@ -222,7 +222,7 @@ const WebauthnSignupLogin = ({
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
-	const from = location.search;
+	const from = location.search || '/';
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -564,7 +564,7 @@ const Auth = () => {
 	const { t } = useTranslation();
 	const location = useLocation();
 
-	const from = location.search;
+	const from = location.search || '/';
 
 	const [error, setError] = useState<React.ReactNode>('');
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');
@@ -663,12 +663,15 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
+				<h1 className="pt-3 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
+				</div>
+				<div className='absolute top-0 right-3'>
+					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">

@@ -7,6 +7,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '../../context/StatusContext';
 import SessionContext from '../../context/SessionContext';
 
+import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import Button from '../../components/Buttons/Button';
 import LoginPageLayout from '../../components/Auth/LoginLayout';
 import { checkForUpdates } from '../../offlineRegistrationSW';
@@ -19,7 +20,7 @@ const WebauthnLogin = ({
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
-	const from = location.search;
+	const from = location.search || '/';
 	const { t } = useTranslation();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -103,10 +104,10 @@ const LoginState = () => {
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
-	const from = location.search;
+	const from = location.search || '/';
 
-	const getCachedUser = () => {
-		const queryParams = new URLSearchParams(from?.search ?? location.search);
+	const getfilteredUser = () => {
+		const queryParams = new URLSearchParams(from);
 		const state = queryParams.get('state');
 		if (state) {
 			try {
@@ -120,7 +121,7 @@ const LoginState = () => {
 		}
 		return null;
 	};
-	const filteredUser = getCachedUser();
+	const filteredUser = getfilteredUser();
 
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
@@ -137,12 +138,15 @@ const LoginState = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-6 space-y-4 md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
+				<h1 className="pt-3 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
+				</div>
+				<div className='absolute top-0 right-3'>
+				<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">

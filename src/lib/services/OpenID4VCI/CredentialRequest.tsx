@@ -56,6 +56,9 @@ export function useCredentialRequest() {
 	const setDpopHeader = useCallback(async () => {
 		const credentialEndpointURL = credentialEndpointURLRef.current;
 		const dpopPublicKeyJwk = dpopPublicKeyJwkRef.current;
+		if (!dpopPublicKeyJwk) {
+			return;
+		}
 		const jti = jtiRef.current;
 		const dpopNonce = dpopNonceRef.current;
 		const accessToken = accessTokenRef.current;

@@ -1,0 +1,318 @@
+{
+	"common": {
+		"cancel": "Ακύρωση",
+		"continue": "Συνέχεια",
+		"delete": "Διαγραφή",
+		"navItemAddCredentials": "Προσθήκη Πιστοποιητικών",
+		"navItemAddCredentialsSimple": "Προσθήκη",
+		"navItemCredentials": "Πιστοποιητικά",
+		"navItemHistory": "Ιστορικό",
+		"navItemProfile": "Προφίλ",
+		"navItemSendCredentials": "Αποστολή Πιστοποιητικών",
+		"navItemSendCredentialsSimple": "Αποστολή",
+		"navItemSettings": "Ρυθμίσεις",
+		"next": "Επόμενο",
+		"offline": "Εκτός σύνδεσης",
+		"offlineTitle": "Είστε εκτός σύνδεσης. Δεν έχετε πρόσβαση εδώ αυτή τη στιγμή.",
+		"online": "Συνδεδεμένος",
+		"passwordHideAriaLabel": "Απόκρυψη κωδικού",
+		"passwordHideTitle": "Κάντε κλικ για να αποκρύψετε τον κωδικό",
+		"passwordShowAriaLabel": "Εμφάνιση κωδικού",
+		"passwordShowTitle": "Κάντε κλικ για να εμφανίσετε τον κωδικό",
+		"previous": "Προηγούμενο",
+		"privateDataConflict": "Η συνεδρία σας δεν είναι συγχρονισμένη με τον server. Παρακαλώ αποσυνδεθείτε, συνδεθείτε ξανά και δοκιμάστε ξανά.",
+		"save": "Αποθήκευση",
+		"refresh": "Ανανέωση",
+		"submit": "Υποβολή",
+		"tryAgain": "Δοκιμάστε ξανά",
+		"walletName": "wwWallet"
+	},
+	"language": {
+		"label": "Γλώσσα"
+	},
+	"ConnectionStatusIcon": {
+		"status": "Κατάσταση σύνδεσης:",
+		"qualityLabels": {
+			"excellent": "Άριστη",
+			"good": "Καλή",
+			"fair": "Μέτρια",
+			"poor": "Κακή",
+			"veryPoor": "Πολύ Κακή"
+		}
+	},
+	"layout": {
+		"messageAllowPermission": "Για να λαμβάνετε ενημερώσεις σε πραγματικό χρόνο για <strong>Πιστοποιητικά, επιτρέψτε την άδεια ειδοποιήσεων και ανανεώστε αυτήν τη σελίδα</strong>.",
+		"messageResetPermission": "Κάτι <strong>δεν λειτουργεί σωστά με τις ειδοποιήσεις</strong>, παρακαλώ <reloadButton>ανανεώστε αυτή τη σελίδα</reloadButton>.",
+		"messageOffline": "Είστε αυτή τη στιγμή <strong>εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.</strong>"
+	},
+	"loginState": {
+		"confirm": "Επιβεβαίωση",
+		"message": "Χρησιμοποιήστε το <strong>κλειδί πρόσβασής</strong> σας για να συνεχίσετε και να λάβετε το πιστοποιητικό σας στο πορτοφόλι σας.",
+		"title": "Γεια σας,",
+		"welcomeBackMessage": "Καλώς ήρθατε ξανά στο <highlight>$t(common.walletName)</highlight>"
+	},
+	"loginSignup": {
+		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό; ",
+		"authOnceMoreLogin": "Για να ολοκληρώσετε την ξεκλείδωμα του wallet, παρακαλώ αυθεντικοποιηθείτε με το κλειδί πρόσβασής σας μία ακόμη φορά.",
+		"capitalLetter": "Τουλάχιστον ένα κεφαλαίο γράμμα",
+		"choosePasskeyUsername": "Πώς να σας αποκαλούμε;",
+		"confirmPasswordLabel": "Επιβεβαίωση Κωδικού",
+		"enterPasskeyName": "Επιλέξτε ένα όνομα για εσάς",
+		"enterPassword": "Εισάγετε τον κωδικό σας",
+		"enterUsername": "Εισάγετε το όνομα χρήστη σας",
+		"enterconfirmPasswordLabel": "Εισάγετε την επιβεβαίωση κωδικού σας",
+		"fillInFieldsError": "Παρακαλώ συμπληρώστε όλα τα απαιτούμενα πεδία",
+		"forgetCachedUserAriaLabel": "Ξεχάστε τον Αποθηκευμένο Χρήστη {{name}}",
+		"forgetCachedUserTitle": "Κάντε κλικ για να Ξεχάσετε τον Αποθηκευμένο Χρήστη",
+		"incorrectCredentialsError": "Λάθος όνομα χρήστη ή κωδικός",
+		"login": "Σύνδεση",
+		"loginCache": "Επιλέξτε τον λογαριασμό σας",
+		"loginAsUser": "Συνδεθείτε ως {{name}}",
+		"loginLocalKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του wallet, παρακαλώ δοκιμάστε ξανά.",
+		"loginPasskey": "Σύνδεση με κλειδί πρόσβασης",
+		"loginSubmit": "Σύνδεση",
+		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
+		"newHereQuestion": "Είστε καινούργιος εδώ; ",
+		"number": "Τουλάχιστον ένας αριθμός",
+		"or": "Ή",
+		"passkeyInvalid": "Άγνωστο κλειδί πρόσβασης, πιθανώς διαγράφηκε από τον χρήστη.",
+		"passkeyLoginFailedServerError": "Απέτυχε η εκκίνηση της σύνδεσης με κλειδί πρόσβασης, παρακαλώ δοκιμάστε ξανά αργότερα.",
+		"passkeyLoginFailedTryAgain": "Η σύνδεση με κλειδί πρόσβασης απέτυχε, παρακαλώ δοκιμάστε ξανά.",
+		"passkeySignupFailedServerError": "Απέτυχε η εκκίνηση δημιουργίας κλειδιού πρόσβασης, παρακαλώ δοκιμάστε ξανά αργότερα.",
+		"passkeySignupFailedTryAgain": "Η δημιουργία κλειδιού πρόσβασης απέτυχε, παρακαλώ δοκιμάστε ξανά.",
+		"passkeySignupFinishFailedServerError": "Απέτυχε η ολοκλήρωση δημιουργίας κλειδιού πρόσβασης, παρακαλώ δοκιμάστε ξανά αργότερα.",
+		"passkeySignupKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του πορτοφολιού, παρακαλώ δοκιμάστε ξανά.",
+		"passkeySignupPrfNotSupported": "Αυτό το πρόγραμμα περιήγησης ή το κλειδί ασφαλείας δεν υποστηρίζεται. Παρακαλώ βεβαιωθείτε ότι το πρόγραμμα περιήγησής σας υποστηρίζει την επέκταση WebAuthn PRF και το κλειδί ασφαλείας σας, αν υπάρχει, υποστηρίζει την επέκταση \"hmac-secret\". <docLink>Μάθετε περισσότερα εδώ</docLink>.",
+		"passkeySignupPrfNotSupportedAriaLabel": "Μάθετε περισσότερα για υποστηριζόμενα προγράμματα περιήγησης ή κλειδιά ασφαλείας",
+		"passwordLabel": "Κωδικός",
+		"passwordLength": "Ελάχιστο μήκος: 8 χαρακτήρες",
+		"passwordsNotMatchError": "Οι κωδικοί δεν ταιριάζουν",
+		"passwordUnlockFailed": "Απέτυχε η ξεκλείδωμα του wallet με κωδικό",
+		"privateDataConflict": "Μια άλλη συνεδρία για αυτόν τον λογαριασμό διέκοψε την προσπάθεια σύνδεσης. Παρακαλώ δοκιμάστε ξανά.",
+		"signUp": "Εγγραφή",
+		"signUpPasskey": "Εγγραφή με κλειδί πρόσβασης",
+		"signUpSubmit": "Εγγραφή",
+		"signupPasskey": "Εγγραφή με κλειδί πρόσβασης",
+		"specialCharacter": "Τουλάχιστον ένας ειδικός χαρακτήρας",
+		"reachedLengthLimit": "Υπερβαίνει το όριο μήκους",
+		"strength": "Δύναμη",
+		"submitting": "Υποβολή...",
+		"usernameExistsError": "Απέτυχε η δημιουργία λογαριασμού χρήστη, το όνομα χρήστη υπάρχει ήδη",
+		"usernameLabel": "Όνομα Χρήστη",
+		"useOtherAccount": "Χρησιμοποιήστε άλλο λογαριασμό",
+		"weakPasswordError": "Αδύναμος κωδικός",
+		"welcomeMessage": "Καλώς ήρθατε στο <highlight>$t(common.walletName)</highlight>"
+	},
+	"messagePopup": {
+		"close": "Κλείσιμο",
+		"insufficientCredentials": {
+			"title": "Ανεπαρκή Πιστοποιητικά",
+			"description": "Ένα ή περισσότερα από τα πιστοποιητικά που θέλετε να στείλετε δεν υπάρχουν για επιλογή."
+		},
+		"onlyOneInputDescriptor": {
+			"title": "Μη υποστηριζόμενη έκδοση πρωτοκόλλου",
+			"description": "Προς το παρόν, το wallet δεν μπορεί να δεχτεί Αίτηση Παρουσίασης για περισσότερα από ένα πιστοποιητικά κάθε φορά."
+		},
+		"nonTrustedVerifier": {
+			"title": "Ο Verifier δεν είναι Αξιόπιστος",
+			"description": "Ο Verifier δεν παρείχε έγκυρα δεδομένα για επαλήθευση."
+		},
+		"sendResponseError": {
+			"title": "Σφάλμα Αποστολής Απάντησης",
+			"description": "Προέκυψε σφάλμα κατά την παρουσίαση των πιστοποιητικών."
+		},
+		"sendResponseSuccess": {
+			"title": "Η Παρουσίαση ήταν Επιτυχής",
+			"description": "Τα πιστοποιητικά στάλθηκαν με επιτυχία."
+		}
+	},
+	"notFound": {
+		"homeButton": "Επιστροφή στην Αρχική",
+		"message": "Λυπούμαστε, η σελίδα που ψάχνετε δεν μπορεί να προσπελαστεί",
+		"title": "Ωχ, η σελίδα δεν βρέθηκε!"
+	},
+	"pageAddCredentials": {
+		"description": "Αναζητήστε και επιλέξτε έναν issuer για ανάκτηση πιστοποιητικού",
+		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
+		"popup": {
+			"message": "Έχετε επιλέξει τον {{issuerName}}. Αν συνεχίσετε, θα ανακατευθυνθείτε στην τρέχουσα καρτέλα στη σελίδα του issuer.",
+			"title": "Επιλεγμένος Issuer:"
+		},
+		"searchPlaceholder": "Αναζήτηση issuers..."
+	},
+	"pageCredentials": {
+		"addCardTitle": "Προσθήκη Νέου Πιστοποιητικού",
+		"credentialTitle": "Πιστοποιητικό",
+		"datasetTitle": "Σύνολο Δεδομένων",
+		"presentationsTitle": "Απεσταλμένα Πιστοποιητικά",
+		"deletePopupMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε το πιστοποιητικό <strong>{{credentialName}}</strong>;<br/> Αν το διαγράψετε, <strong>όλες οι κοινοποιήσεις που περιλαμβάνουν αυτό το VC θα αφαιρεθούν από το ιστορικό σας.</strong>",
+		"description": "Δείτε όλα τα πιστοποιητικά σας",
+		"details": {
+			"availableUsages": "Διαθέσιμες Χρήσεις",
+			"description": "Δείτε όλες τις πληροφορίες για το επιλεγμένο πιστοποιητικό",
+			"expired": "Αυτό το Πιστοποιητικό έχει λήξει"
+		},
+		"delete": "Διαγραφή Πιστοποιητικού",
+		"credentialFullScreenTitle": "Κάντε κλικ για πλήρη οθόνη στο {{friendlyName}}",
+		"credentialDetailsTitle": "Κάντε κλικ για να δείτε λεπτομέρειες για το {{friendlyName}}",
+		"slideNext": "επόμενο",
+		"slidePrevious": "προηγούμενο",
+		"slideButtonAriaLabelEnable": "Μεταβείτε στο {{direction}} πιστοποιητικό",
+		"slideButtonTitleEnable": "Κάντε κλικ για να μεταβείτε στο {{direction}} πιστοποιητικό",
+		"slideButtonAriaLabelDisable": "Δεν υπάρχει {{direction}} πιστοποιητικό",
+		"slideButtonTitleDisable": "Δεν υπάρχει διαθέσιμο {{direction}} πιστοποιητικό"
+	},
+	"pageHistory": {
+		"description": "Δείτε το ιστορικό μεταδόσεων πιστοποιητικών, αναλυτικά πότε και σε ποιους verifiers τα στείλατε",
+		"presentationDetails": {
+			"title": "Λεπτομέρειες Αποστολής"
+		},
+		"noFound": "Δεν βρέθηκαν απεσταλμένα πιστοποιητικά",
+		"popupTitle": "Απεσταλμένα Πιστοποιητικά"
+	},
+	"pageSendCredentials": {
+		"description": "Αναζητήστε και επιλέξτε ένα verifier για να μοιραστείτε πιστοποιητικά",
+		"noFound": "Δεν βρέθηκαν αντίστοιχοι verifiers.",
+		"popup": {
+			"message": "Έχετε επιλέξει τον {{verifierName}}. Αν συνεχίσετε, θα ανακατευθυνθείτε στην τρέχουσα καρτέλα στη σελίδα του issuer.",
+			"title": "Επιλεγμένος Verifier:"
+		},
+		"searchPlaceholder": "Αναζήτηση verifiers..."
+	},
+	"pageSettings": {
+		"addPasskey": "Προσθήκη κλειδιού πρόσβασης",
+		"addPasskeyTitle": "Κάντε κλικ για να προσθέσετε κλειδί πρόσβασης",
+		"deleteAccount": {
+			"buttonText": "Διαγραφή του λογαριασμού σας",
+			"deleteButtonTitleLocked": "Δεν μπορείτε να διαγράψετε τον λογαριασμό σας ενώ είναι κλειδωμένος",
+			"description": "Μόλις διαγράψετε τον λογαριασμό σας, δεν υπάρχει επιστροφή. Παρακαλώ να είστε βέβαιοι.",
+			"message": "Είστε σίγουροι ότι θέλετε να διαγράψετε <strong>τον λογαριασμό σας</strong>;",
+			"title": "Διαγραφή λογαριασμού"
+		},
+		"deletePasskeyButtonTitleLocked": "Δεν μπορείτε να προσθέσετε κλειδί πρόσβασης ενώ είναι κλειδωμένο",
+		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
+		"lockPasskeyManagement": "Κλείδωμα διαχείρισης κλειδιών πρόσβασης",
+		"lockPasskeyManagementTitle": "Κάντε κλικ για να κλειδώσετε τη διαχείριση κλειδιών πρόσβασης",
+		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
+		"passkeyItem": {
+			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
+			"canEncryptNo": "Όχι",
+			"canEncryptYes": "Ναι",
+			"cancelChangesAriaLabel": "Ακύρωση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
+			"created": "Δημιουργήθηκε",
+			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
+			"deleteButtonTitleLocked": "Δεν μπορείτε να διαγράψετε κλειδί πρόσβασης ενώ είναι κλειδωμένο",
+			"deleteButtonTitleUnlocked": "Κάντε κλικ για να διαγράψετε το κλειδί πρόσβασης {{passkeyLabel}}",
+			"lastUsed": "Τελευταία Χρήση",
+			"messageDeletePasskey": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί πρόσβασης <strong>{{nickname}}</strong>;",
+			"needsPrfUpgrade": "Απαιτείται αναβάθμιση",
+			"nickname": "Ψευδώνυμο",
+			"nicknameInput": "Νέο ψευδώνυμο",
+			"nicknameInputAriaLabel": "Εισάγετε νέο ψευδώνυμο για το κλειδί πρόσβασης {{passkeyLabel}}",
+			"prfUpgrade": "Αναβάθμιση",
+			"prfUpgradeAriaLabel": "Αναβάθμιση κλειδιού πρόσβασης {{passkeyLabel}}",
+			"rename": "Μετονομασία",
+			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
+			"renameButtonTitleLocked": "Δεν μπορείτε να επεξεργαστείτε το κλειδί πρόσβασης ενώ είναι κλειδωμένο",
+			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
+			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
+		},
+		"rememberIssuer": {
+			"description": "Ορίστε τη διάρκεια πρόσβασης σε issuers χωρίς νέα αυθεντικοποίηση (σύμφωνα με την πολιτική του issuer)",
+			"options": {
+				"none": "Πάντα Αυθεντικοποίηση",
+				"hour": "1 ώρα",
+				"day": "1 ημέρα",
+				"week": "1 εβδομάδα",
+				"month": "1 μήνας"
+			},
+			"successMessage": "Αποθηκεύτηκε"
+		},
+		"title": {
+			"language": "Γλώσσα",
+			"rememberIssuer": "Remember Issuer",
+			"confirmDeletePopup": "Είστε Σίγουροι;",
+			"loggedInPasskey": "Συνδεδεμένο Κλειδί Πρόσβασης",
+			"manageAcount": "Διαχείριση Λογαριασμού",
+			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
+			"appVersion": "Έκδοση Εφαρμογής"
+		},
+		"unlockPasskeyManagement": "Ξεκλείδωμα Διαχείρισης",
+		"unlockPasskeyManagementTitle": "Κάντε κλικ για Ξεκλείδωμα Διαχείρισης",
+		"unlockPassword": {
+			"description": "Παρακαλώ εισάγετε τον κωδικό σας για να ξεκλειδώσετε το πορτοφόλι.",
+			"passwordInputAriaLabel": "Κωδικός",
+			"passwordInputPlaceholder": "Κωδικός",
+			"title": "Εισάγετε Κωδικό"
+		},
+		"upgradePrfKey": {
+			"description": "Παρακαλώ αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\"...",
+			"error": "<p>Κάτι πήγε στραβά, παρακαλώ δοκιμάστε ξανά.</p><p>Σημειώστε ότι πρέπει να αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\".</p>",
+			"title": "Αναβάθμιση κλειδιού κρυπτογράφησης"
+		},
+		"appVersion": {
+			"descriptionLatestVersion": "Χρησιμοποιείτε την τελευταία έκδοση του $t(common.walletName) {{react_app_version}}",
+			"descriptionOldVersion": "Χρησιμοποιείτε την έκδοση του wwWallet {{react_app_version}}.<br/> <strong>Μια νέα έκδοση είναι διαθέσιμη.</strong> Παρακαλώ <reloadButton>ανανεώστε</reloadButton> για ενημέρωση!"
+		}
+	},
+	"PinInputPopup": {
+		"description": "Παρακαλώ εισάγετε το PIN που εμφανίστηκε από τον issuer",
+		"errMessage": "Έχετε εισάγει λάθος PIN",
+		"inputPlaceholder": "PIN",
+		"title": "Εισάγετε το PIN"
+	},
+	"qrCodeScanner": {
+		"cameraPermissionAllow": "Παρακαλώ επιτρέψτε την άδεια κάμερας για να χρησιμοποιήσετε τον σαρωτή QR.",
+		"description": "Στόχευση του QR Κωδικού, και θα ανακατευθυνθείτε για να προχωρήσετε στη διαδικασία",
+		"title": "Σαρώστε τον QR Κωδικό"
+	},
+	"registerPasskey": {
+		"authOnceMore": "Για να ολοκληρώσετε τη ρύθμιση, παρακαλώ αυθεντικοποιηθείτε μία ακόμη φορά.",
+		"giveNickname": "Δώστε σε αυτό το πιστοποιητικό ένα ψευδώνυμο:",
+		"messageSuccess": "Επιτυχία!",
+		"messageDone": "Σχεδόν έτοιμο!",
+		"messageInteract": "Παρακαλώ αλληλεπιδράστε με τον αυθεντικοποιητή σας...",
+		"messageInteractNewPasskey": "Παρακαλώ αυθεντικοποιηθείτε με το νέο κλειδί πρόσβασης...",
+		"messageErrorTryAgain": "Κάτι πήγε στραβά, παρακαλώ δοκιμάστε ξανά.<br/> Σημειώστε ότι πρέπει να χρησιμοποιήσετε το ίδιο κλειδί πρόσβασης που δημιουργήσατε στο προηγούμενο βήμα.",
+		"passkeyCreated": "Το κλειδί πρόσβασής σας δημιουργήθηκε."
+	},
+	"selectCredentialPopup": {
+		"credentialSelectTitle": "Κάντε κλικ για να επιλέξετε το {{friendlyName}}",
+		"descriptionFieldsSingle": "Ο <strong>{{verifierDomainName}}</strong> ζητάει το πεδίο:",
+		"descriptionFieldsMultiple": "Ο <strong>{{verifierDomainName}}</strong> ζητάει τα πεδία:",
+		"descriptionSelect": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
+		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
+		"requestedFieldsLess": "Εμφάνιση λιγότερων",
+		"requestedFieldsMore": "Εμφάνιση περισσότερων",
+		"title": "Επιλογή : "
+	},
+	"sidebar": {
+		"navItemLogout": "Αποσύνδεση",
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredByAriaLabel": "GitHub repository του wwWallet"
+	},
+	"expiredRibbon": {
+		"expired": "Ληγμένο"
+	},
+	"tourGuide": {
+		"tourStep1": "Εδώ μπορείτε να δείτε όλα τα αποθηκευμένα πιστοποιητικά σας. Κάντε κλικ στην κάρτα 'Προσθήκη Νέων Πιστοποιητικών' για να αποκτήσετε ένα νέο VC από διαθέσιμο Issuer",
+		"tourStep2": "Η σελίδα 'Πιστοποιητικά' είναι η Αρχική σας σελίδα, όπου μπορείτε να διαχειριστείτε τα πιστοποιητικά σας.",
+		"tourStep3": "Η σελίδα 'Προσθήκη Πιστοποιητικών' σας επιτρέπει να λάβετε πιστοποιητικά από έναν συγκεκριμένο Issuer",
+		"tourStep4": "Κάντε κλικ σε αυτό το κουμπί για να σαρώσετε έναν QR κωδικό για αποστολή ή λήψη πιστοποιητικών.",
+		"tourStep5": "Χρησιμοποιήστε τη σελίδα 'Αποστολή Πιστοποιητικών' για να επιλέξετε ένα verifier για κοινή χρήση των πιστοποιητικών σας.",
+		"tourStep6": "Στη σελίδα 'Ιστορικό', μπορείτε να δείτε λεπτομέρειες μεταδόσεων πιστοποιητικών, συμπεριλαμβανομένου πότε και σε ποιους verifiers εστάλησαν.",
+		"tourStep7": "Στη σελίδα 'Ρυθμίσεις' μπορείτε να διαχειριστείτε τα κλειδιά πρόσβασης και τις ρυθμίσεις του λογαριασμού σας.",
+		"tourComplete": "Ευχαριστούμε που ολοκληρώσατε την ξενάγηση, ελπίζουμε να σας ήταν χρήσιμη!",
+		"closeTourButton": "Κλείσιμο Ξενάγησης"
+	},
+	"updateNotification": {
+		"description": "Μια νέα έκδοση είναι διαθέσιμη!"
+	},
+	"welcomeModal": {
+		"title": "Καλώς ήρθατε στο $t(common.walletName)!",
+		"description": "Ανακαλύψτε το <strong> $t(common.walletName) </strong>, το απόλυτο εργαλείο σας για τη διαχείριση ψηφιακών πιστοποιητικών. Δείτε, λάβετε, στείλτε και παρακολουθήστε όλα τα πιστοποιητικά σας με ευκολία!",
+		"question": "Είστε έτοιμοι να εξερευνήσετε τις δυνατότητες του $t(common.walletName) μέσω μιας ξενάγησης;",
+		"dismissButton": "Απόρριψη",
+		"startTourButton": "Έναρξη Ξενάγησης"
+	}
+}

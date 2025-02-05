@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useContext, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useContext } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -126,16 +126,6 @@ export const CredentialsProvider = ({ children }) => {
 			console.error('Failed to fetch data', error);
 		}
 	}, [api, fetchVcData, pollForCredentials]);
-
-	useEffect(() => {
-		const handleNewCredentialEvent = () => {
-			getData(true);
-		};
-		window.addEventListener('newCredential', handleNewCredentialEvent);
-		return () => {
-			window.removeEventListener('newCredential', handleNewCredentialEvent);
-		};
-	}, [getData]);
 
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>
