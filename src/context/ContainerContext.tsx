@@ -252,13 +252,13 @@ export const ContainerContextProvider = ({ children }) => {
 						// @todo: make more dynamic using schema from credential context
 						const isOpenBadgeCredential = result.beautifiedForm.type.includes('OpenBadgeCredential');
 
-						const firstCredentialConfiguration = Object.values(metadata.credential_configurations_supported)[0];
+						const credentialConfiguration = metadata.credential_configurations_supported[result.beautifiedForm.name.replaceAll(' ', '')];
 						const credentialFriendlyName = isOpenBadgeCredential
 							? result.beautifiedForm.credentialSubject.achievement.name
-							: firstCredentialConfiguration?.display?.[0]?.name || 'Credential';
+							: credentialConfiguration?.display?.[0]?.name || 'Credential';
 
-						if (firstCredentialConfiguration) {
-							const display = firstCredentialConfiguration?.display?.[0] || {};
+						if (credentialConfiguration) {
+							const display = credentialConfiguration?.display?.[0] || {};
 							let description = isOpenBadgeCredential
 								? result.beautifiedForm.credentialSubject.achievement.description
 								: display?.description || '';
