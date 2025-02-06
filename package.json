@@ -1,6 +1,6 @@
 {
   "name": "wallet-frontend",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "dependencies": {
     "@cef-ebsi/key-did-resolver": "^1.1.0",
