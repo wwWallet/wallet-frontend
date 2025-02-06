@@ -11,20 +11,24 @@ import SessionContext from '../../../context/SessionContext';
 import { MdNotifications } from "react-icons/md";
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 
-const NavItem = ({
-	children,
-	handleNavigate,
-	location,
-	path,
-	alias,
-}) => {
+const NavItem = ({ icon: Icon, label, handleNavigate, location, path, alias, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
 	return (
 		<button
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl w-full ${isActive ? 'bg-white text-primary' : 'nav-item-animate-hover'}`}
+			className={`cursor-pointer flex items-center justify-between space-x-2 mb-4 p-2 rounded-r-xl w-full ${isActive ? 'bg-white text-primary' : 'nav-item-animate-hover'} ${className}`}
 		>
-			{children}
+			<div className="flex items-center space-x-2 text-left">
+				{Icon && <Icon className="shrink-0" size={30} />}
+				<span>
+					{label}
+				</span>
+			</div>
+			{notificationIcon && (
+				<div className="flex items-center">
+					{notificationIcon}
+				</div>
+			)}
 		</button>
 	);
 };
@@ -57,8 +61,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		<div
 			className={`${isOpen && screenType !== 'desktop'
 				? 'w-full flex flex-col justify-between fixed h-dvh z-30 bg-primary dark:bg-primary-hover text-white p-4 pb-24 md:pb-0 overflow-y-auto'
-				: 'hidden w-auto md:flex md:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover w-auto text-white h-dvh py-10 px-10 overflow-y-auto'
-
+				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover text-white h-dvh py-8 px-7 overflow-y-auto'
 				}`}
 		>
 			{/* Header and Nav */}
@@ -74,10 +77,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 					</div>
 				</div>
 				<div>
-					<div className="hidden md:flex justify-between items-center">
-						<Logo type='white' aClassName='mb-2 mr-2' imgClassName='w-20 h-22' />
+					<div className="hidden md:flex md:gap-2 justify-between items-center">
+						<Logo type='white' aClassName='mb-2 mr-2 w-5/12' imgClassName='object-contain' />
 						<a href={('/')}
-							className="text-white text-xl font-bold cursor-pointer"
+							className="text-white text-xl font-bold cursor-pointer w-7/12"
 						>
 							{t('common.walletName')}
 						</a>
@@ -92,9 +95,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 								<ConnectionStatusIcon size='small' />
 							</div>
 
-							<FaUserCircle size={20} title={displayName || username} />
+							<FaUserCircle className="shrink-0" size={20} title={displayName || username} />
 							<span
-								className="text-overflow-ellipsis text-sm overflow-hidden whitespace-nowrap md:max-w-[95px]"
+								className="text-overflow-ellipsis text-sm overflow-hidden whitespace-nowrap"
 								title={displayName || username}
 							>
 								{displayName || username}
@@ -104,44 +107,56 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-2 border-t border-white/20" />
 
 						{/* Nav Menu */}
-						<div className='step-2 hidden md:block'>
-							<NavItem path="/" alias="/cb" location={location} handleNavigate={handleNavigate}>
-								<FaWallet size={30} />
-								<span>{t("common.navItemCredentials")}</span>
-							</NavItem>
-						</div>
-						<div className='step-3 hidden md:block'>
-							<NavItem path="/add" location={location} handleNavigate={handleNavigate}>
-								<IoIosAddCircle size={30} />
-								<span>{t("common.navItemAddCredentials")}</span>
-							</NavItem>
-						</div>
-						<div className='step-5 hidden md:block'>
-							<NavItem path="/send" location={location} handleNavigate={handleNavigate}>
-								<IoIosSend size={30} />
-								<span>{t("common.navItemSendCredentials")}</span>
-							</NavItem>
-						</div>
-						<div className='step-6'>
-							<NavItem path="/history" location={location} handleNavigate={handleNavigate}>
-								<IoIosTime size={30} />
-								<span>{t("common.navItemHistory")}</span>
-							</NavItem>
-						</div>
-						<div className='step-7'>
-							<NavItem path="/settings" location={location} handleNavigate={handleNavigate}>
-								<IoMdSettings size={30} />
-								<div className='flex gap-2 items-center'>
-									<span>{t("common.navItemSettings")}</span>
-									{updateAvailable && (
-										<MdNotifications
-											size={22}
-											className="text-green-500"
-										/>
-									)}
-								</div>
-							</NavItem>
-						</div>
+						<NavItem
+							path="/"
+							alias="/cb"
+							location={location}
+							handleNavigate={handleNavigate}
+							icon={FaWallet}
+							label={t("common.navItemCredentials")}
+							className="step-2 hidden md:block"
+						/>
+
+						<NavItem
+							path="/add"
+							location={location}
+							handleNavigate={handleNavigate}
+							icon={IoIosAddCircle}
+							label={t("common.navItemAddCredentials")}
+							className="step-3 hidden md:block"
+						/>
+
+						<NavItem
+							path="/send"
+							location={location}
+							handleNavigate={handleNavigate}
+							icon={IoIosSend}
+							label={t("common.navItemSendCredentials")}
+							className="step-5 hidden md:block"
+						/>
+
+						<NavItem
+							path="/history"
+							location={location}
+							handleNavigate={handleNavigate}
+							icon={IoIosTime}
+							label={t("common.navItemHistory")}
+							className="step-6"
+						/>
+
+						<NavItem
+							path="/settings"
+							location={location}
+							handleNavigate={handleNavigate}
+							icon={IoMdSettings}
+							label={t("common.navItemSettings")}
+							notificationIcon={
+								updateAvailable && (
+									<MdNotifications size={22} className="text-green-500" />
+								)
+							}
+							className="step-7"
+						/>
 
 						<hr className="my-2 border-t border-white/20" />
 
@@ -150,7 +165,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover w-full`}
 						>
 							<AiOutlineLogout size={30} />
-							<span>{t("sidebar.navItemLogout")}</span>
+							<span className='text-left'>
+								{t("sidebar.navItemLogout")}
+							</span>
 						</button>
 					</ul>
 				</div>

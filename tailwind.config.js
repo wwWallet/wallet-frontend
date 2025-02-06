@@ -18,6 +18,7 @@ module.exports = {
 				'extra-light-hover': '#5DB5D8',
 			},
 			screens: {
+				'2xs': '360px',
 				'xm': { 'max': '479px' },
 			},
 			keyframes: {

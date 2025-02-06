@@ -480,7 +480,7 @@ const WebauthnSignupLogin = ({
 										value={name}
 										required
 									/>
-									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-4 mt-1' : 'h-0 mt-0'} transition-all`}>
+									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
 										<div
 											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
@@ -488,33 +488,38 @@ const WebauthnSignupLogin = ({
 											{t('loginSignup.reachedLengthLimit')}
 										</div>
 										<div
-											className={`text-right dark:text-gray-300 ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											className={`text-right ${nameByteLimitApproaching ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitApproaching}
 										>
-											{nameByteLength} / 64
+											{nameByteLength + `/64`}
 										</div>
 									</div>
 								</FormInputRow>
 							</>)}
 
 						{isLoginCache && (
-							<ul className="overflow-y-auto max-h-24 p-2 custom-scrollbar">
+							<ul className="overflow-y-auto overflow-x-hidden max-h-28 px-2 custom-scrollbar flex flex-col gap-2">
 								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser) => (
 									<li
 										key={cachedUser.userHandleB64u}
-										className="w-full flex flex-row flex-nowrap mb-2"
+										className="w-full flex flex-row gap-2"
 									>
-										<div className='flex-grow mr-2'>
+										<div className="flex flex-1 min-w-0">
 											<Button
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
-												additionalClassName='w-full'
+												additionalClassName="w-full"
+												ariaLabel={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+												title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 											>
-												<GoPasskeyFill className="inline text-xl mr-2" />
-												{isSubmitting
-													? t('loginSignup.submitting')
-													: t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
+												<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
+												<span className="truncate">
+													{isSubmitting
+														? t('loginSignup.submitting')
+														: cachedUser.displayName
+													}
+												</span>
 											</Button>
 										</div>
 										<div>
@@ -522,10 +527,10 @@ const WebauthnSignupLogin = ({
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
-												ariaLabel={t('loginSignup.forgetCachedUserAriaLabel', { name: cachedUser.displayName })}
-												title={t('loginSignup.forgetCachedUserTitle')}
+												ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
+												title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 											>
-												<GoTrash className="inline text-xl" />
+												<GoTrash className="text-xl" />
 											</Button>
 										</div>
 									</li>
@@ -541,7 +546,7 @@ const WebauthnSignupLogin = ({
 								additionalClassName="w-full"
 								title={!isLogin && !isOnline && t("common.offlineTitle")}
 							>
-								<GoPasskeyFill className="inline text-xl mr-2" />
+								<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
 								{isSubmitting
 									? t('loginSignup.submitting')
 									: isLogin
@@ -550,7 +555,7 @@ const WebauthnSignupLogin = ({
 								}
 							</Button>
 						)}
-						{error && <div className="text-red-500 pt-4">{error}</div>}
+						{error && <div className="text-red-500 pt-2">{error}</div>}
 					</>
 				)
 			}
@@ -664,7 +669,7 @@ const Auth = () => {
 			/>
 		}>
 			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="pt-3 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
 				</h1>
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
