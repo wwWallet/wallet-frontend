@@ -30,7 +30,6 @@
     "react-icons": "^4.10.1",
     "react-modal": "^3.16.1",
     "react-router-dom": "^6.14.1",
-    "react-scripts": "5.0.1",
     "react-snowfall": "^1.2.1",
     "react-transition-group": "^4.4.5",
     "react-webcam": "^7.2.0",
@@ -48,16 +47,15 @@
     "workbox-strategies": "^7.3.0",
     "zod": "^3.23.8"
   },
-	"devDependencies": {
+  "devDependencies": {
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
-		"@types/react-dom": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@types/reflect-metadata": "^0.1.0",
+    "@vitejs/plugin-react": "^4.3.3",
     "depcheck": "^1.4.7",
-		"@vitejs/plugin-react": "^4.3.3",
     "vite": "^5.4.10",
     "vite-plugin-svgr": "^4.3.0",
-		"@types/reflect-metadata": "^0.1.0",
-    "eslint-config-react-app": "^7.0.1",
     "vitest": "^1.5.0"
   },
   "scripts": {
