@@ -7,10 +7,13 @@ const isLocalhost = Boolean(
 );
 
 export function register(config) {
-	if (import.meta.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
+	console.log(import.meta.env,import.meta.env.MODE,navigator.serviceWorker)
+	if (import.meta.env.MODE === 'production' && 'serviceWorker' in navigator) {
+		console.log('inside')
 		window.addEventListener('load', () => {
-			const swUrl = `${import.meta.env.PUBLIC_URL}/service-worker.js`;
+			const swUrl = `/service-worker.js`;
 
+			console.log('isLocalhost:',isLocalhost)
 			if (isLocalhost) {
 				// This is running on localhost. Let's check if a service worker still exists or not.
 				checkValidServiceWorker(swUrl, config);
@@ -29,6 +32,7 @@ export function register(config) {
 }
 
 function registerValidSW(swUrl, config) {
+	console.log('registerValidSW',swUrl)
 	navigator.serviceWorker
 		.register(swUrl)
 		.then((registration) => {
@@ -71,6 +75,8 @@ function checkValidServiceWorker(swUrl, config) {
 		.then((response) => {
 			// Ensure service worker exists, and that we really are getting a JS file.
 			const contentType = response.headers.get('content-type');
+			console.log('response',response,contentType,contentType.indexOf('javascript'))
+
 			if (
 				response.status === 404 ||
 				(contentType != null && contentType.indexOf('javascript') === -1)
@@ -83,6 +89,7 @@ function checkValidServiceWorker(swUrl, config) {
 				});
 			} else {
 				// Service worker found. Proceed as normal.
+				console.log('try to registerValidSW')
 				registerValidSW(swUrl, config);
 			}
 		})

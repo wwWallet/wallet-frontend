@@ -17,10 +17,10 @@ const BottomNav = ({ isOpen, toggle }) => {
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <FaWallet size={26} />, path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen' },
-		{ icon: <IoIosAddCircle size={26} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
+		{ icon: <FaWallet size={30} />, path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen' },
+		{ icon: <IoIosAddCircle size={30} />, path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
 		{ icon: <BsQrCodeScan size={19} />, path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
-		{ icon: <IoIosSend size={26} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
+		{ icon: <IoIosSend size={30} />, path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
 	];
 
 	const handleNavigate = (path) => {
@@ -39,7 +39,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 
 	return (
 		<>
-			<div className={`sticky bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex justify-around px-4 pt-4 pb-6 z-40 flex md:hidden shadow-2xl rounded-t-lg`}>
+			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex justify-around px-4 pt-4 pb-6 z-40 flex md:hidden shadow-2xl rounded-t-lg`}>
 				{navItems.map(item => (
 					<button
 						key={item.path}
@@ -48,7 +48,9 @@ const BottomNav = ({ isOpen, toggle }) => {
 						title={item.label}
 					>
 						{item.icon}
-						<span className="text-xs">{item.label}</span>
+						<span className="hidden 2xs:block text-xs">
+							{item.label}
+						</span>
 					</button>
 				))}
 				<button
@@ -58,7 +60,9 @@ const BottomNav = ({ isOpen, toggle }) => {
 					title={t("common.navItemProfile")}
 				>
 					<FaUserCircle size={26} />
-					<span className="text-xs">{t("common.navItemProfile")}</span>
+					<span className="hidden 2xs:block text-xs">
+						{t("common.navItemProfile")}
+					</span>
 					{updateAvailable && (
 						<MdNotifications
 							size={22}

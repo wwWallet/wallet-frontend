@@ -7,7 +7,14 @@ function toU8(b: BufferSource) {
 }
 
 export function toBase64(binary: BufferSource): string {
-	return btoa(String.fromCharCode.apply(String, toU8(binary)));
+	const uint8Array = toU8(binary);
+	const chunkSize = 0x8000; // 32KB
+	let result = '';
+	for (let i = 0; i < uint8Array.length; i += chunkSize) {
+		const chunk = uint8Array.subarray(i, i + chunkSize);
+		result += String.fromCharCode(...chunk);
+	}
+	return btoa(result);
 }
 
 export function toBase64Url(binary: BufferSource): string {

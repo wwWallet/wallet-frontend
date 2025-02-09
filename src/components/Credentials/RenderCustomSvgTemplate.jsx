@@ -49,7 +49,7 @@ const renderCustomSvgTemplate = async ({ beautifiedForm, name, description, logo
 			.replace(/{{textColor}}/g, textColor)
 			.replace(/{{description}}/g, description);
 
-		const expiryDate = jsonpointer.get(beautifiedForm, "/expiry_date");
+		const expiryDate = jsonpointer.get(beautifiedForm, "/expiry_date") ?? new Date(jsonpointer.get(beautifiedForm, "/exp") * 1000).toISOString();
 		svgContent = svgContent.replace(/{{\/expiry_date}}/g, expiryDate ? `Expiry Date: ${formatDate(expiryDate, 'date')}` : '');
 
 		return `data:image/svg+xml;utf8,${encodeURIComponent(svgContent)}`;

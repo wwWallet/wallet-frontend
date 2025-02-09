@@ -14,6 +14,8 @@ ConsoleBehavior();
 
 Modal.setAppElement('#root');
 
+ConsoleBehavior();
+
 const RootComponent = () => {
 	useEffect(() => {
 		const initDB = async () => {

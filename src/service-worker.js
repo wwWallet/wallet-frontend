@@ -60,9 +60,7 @@ self.addEventListener('activate', (event) => {
 
 			return self.clients.matchAll().then((clients) => {
 				clients.forEach((client) => {
-					client.postMessage({
-						type: 'NEW_CONTENT_AVAILABLE',
-					});
+					client.navigate(client.url);
 				});
 			});
 		})
