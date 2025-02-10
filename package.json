@@ -6,7 +6,6 @@
   "dependencies": {
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.2.1",
-    "@testing-library/jest-dom": "^5.16.5",
     "ajv": "^8.17.1",
     "asn1js": "^3.0.5",
     "autoprefixer": "^10.4.14",
