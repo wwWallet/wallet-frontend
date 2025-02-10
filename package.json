@@ -2,7 +2,7 @@
   "name": "wallet-frontend",
   "version": "0.2.5",
   "private": true,
-	"type": "module",
+  "type": "module",
   "dependencies": {
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.2.1",
@@ -49,13 +49,17 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.3.1",
     "@types/reflect-metadata": "^0.1.0",
     "@vitejs/plugin-react": "^4.3.3",
     "depcheck": "^1.4.7",
+    "eslint": "^8.56.0",
+    "eslint-config-react-app": "^7.0.1",
     "vite": "^5.4.10",
+    "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-svgr": "^4.3.0",
     "vitest": "^1.5.0"
   },
@@ -67,25 +71,6 @@
     "vitest": "VITE_CJS_IGNORE_WARNING=true vitest run",
     "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "main": "index.js",
   "repository": "https://github.com/wwwallet/wallet-frontend",
   "license": "BSD-2-Clause"
 }
