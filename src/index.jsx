@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
@@ -10,32 +10,23 @@ import Modal from 'react-modal';
 import './index.css';
 import { BrowserRouter } from "react-router-dom";
 
-ConsoleBehavior();
-
+// Set root element for react-modal
 Modal.setAppElement('#root');
 
 ConsoleBehavior();
 
-const RootComponent = () => {
-	useEffect(() => {
-		const initDB = async () => {
-			try {
-				await initializeDataSource();
-				console.log('Database initialized');
-			} catch (err) {
-				console.error('Error initializing database', err);
-			}
-		};
-		initDB();
-	}, []);
+// Initialize IndexedDB BEFORE React renders
+initializeDataSource()
+	.then(() => console.log('Database initialized'))
+	.catch((err) => console.error('Error initializing database', err));
 
-	return <BrowserRouter><App /></BrowserRouter>;
-};
-
+// Create root and render app
 const root = createRoot(document.getElementById('root'));
 root.render(
 	<StatusProvider>
-		<RootComponent />
+		<BrowserRouter>
+			<App />
+		</BrowserRouter>
 	</StatusProvider>
 );
 
