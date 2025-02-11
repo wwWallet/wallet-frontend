@@ -4,7 +4,6 @@ import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
 import { StatusProvider } from './context/StatusContext';
 import { initializeDataSource } from './indexedDB';
-import * as offlineSW from './offlineRegistrationSW';
 import * as firebaseSW from './firebase';
 import Modal from 'react-modal';
 import './index.css';
@@ -31,4 +30,3 @@ root.render(
 );
 
 firebaseSW.register()
-offlineSW.register();
