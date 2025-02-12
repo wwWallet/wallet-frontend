@@ -6,4 +6,6 @@ export type StorableCredential = {
 	credential: string;
 	credentialConfigurationId: string;
 	credentialIssuerIdentifier: string;
+	instanceId: number;
+	sigCount: number;
 };

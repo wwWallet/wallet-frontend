@@ -14,6 +14,7 @@ export const FIREBASE = {
 	storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
 };
 export const FIREBASE_ENABLED: boolean = import.meta.env.VITE_FIREBASE_ENABLED ? JSON.parse(import.meta.env.VITE_FIREBASE_ENABLED) === true : false;
+export const MULTI_LANGUAGE_DISPLAY: boolean = import.meta.env.VITE_MULTI_LANGUAGE_DISPLAY ? JSON.parse(import.meta.env.VITE_MULTI_LANGUAGE_DISPLAY) : false;
 export const FIREBASE_VAPIDKEY = import.meta.env.VITE_FIREBASE_VAPIDKEY;
 export const INACTIVE_LOGOUT_MILLIS = (import.meta.env.VITE_INACTIVE_LOGOUT_SECONDS ? parseInt(import.meta.env.VITE_INACTIVE_LOGOUT_SECONDS, 10) : 60 * 15) * 1000
 export const LOGIN_WITH_PASSWORD: boolean = import.meta.env.VITE_LOGIN_WITH_PASSWORD ? JSON.parse(import.meta.env.VITE_LOGIN_WITH_PASSWORD) === true : false;

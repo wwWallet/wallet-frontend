@@ -27,6 +27,11 @@ export type CachedUser = {
 	prfKeys: WebauthnPrfSaltInfo[];
 }
 
+export enum KeystoreEvent {
+	/** This event should be propagated to needed tabs which must clean SessionStorage. */
+	CloseSessionTabLocal = 'keystore.closeSessionTabLocal',
+}
+
 export type CommitCallback = () => Promise<void>;
 export interface LocalStorageKeystore {
 	isOpen(): boolean,
@@ -75,7 +80,7 @@ export interface LocalStorageKeystore {
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
-export function useLocalStorageKeystore(): LocalStorageKeystore {
+export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [privateData, setPrivateData, clearPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
 	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
@@ -94,21 +99,22 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		}
 	}, []));
 
-	const closeTabLocal = useCallback(
-		() => {
+	const closeSessionTabLocal = useCallback(
+		async (): Promise<void> => {
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
 			clearSessionStorage();
 		},
-		[clearSessionStorage],
+		[clearSessionStorage, eventTarget],
 	);
 
 	const close = useCallback(
 		async (): Promise<void> => {
+			console.log('Keystore Close');
 			await idb.destroy();
 			clearPrivateData();
 			clearGlobalUserHandleB64u();
-			closeTabLocal();
 		},
-		[closeTabLocal, idb, clearGlobalUserHandleB64u, clearPrivateData],
+		[idb, clearGlobalUserHandleB64u, clearPrivateData],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
@@ -132,18 +138,30 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 						return cu;
 					}
 				}));
-
-			} else if (!privateData) {
-				// When user logs out in any tab, log out in all tabs
-				closeTabLocal();
-
-			} else if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
-				// When user logs in in any tab, log out in all other tabs
-				// that are logged in to a different account
-				closeTabLocal();
 			}
 		},
-		[close, closeTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+	);
+
+	useEffect(
+		() => {
+			if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
+				// When user logs in in any tab, log out in all other tabs
+				// that are logged in to a different account
+				closeSessionTabLocal();
+			}
+		},
+		[closeSessionTabLocal, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+	);
+
+	useEffect(
+		() => {
+			if (!privateData) {
+				// When user logs out in any tab, log out in all tabs
+				closeSessionTabLocal();
+			}
+		},
+		[closeSessionTabLocal, privateData],
 	);
 
 	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
@@ -181,9 +199,6 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 		{ exportedMainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
-		setMainKey(exportedMainKey);
-		setPrivateData(privateData);
-
 		if (user) {
 			const userHandleB64u = ("prfKeys" in user
 				? user.userHandleB64u
@@ -199,13 +214,21 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			);
 
 			setUserHandleB64u(userHandleB64u);
+
+			// This must happen before setPrivateData in order to prevent the
+			// useEffect updating cachedUsers from corrupting cache entries for other
+			// users logged in in other tabs.
 			setGlobalUserHandleB64u(userHandleB64u);
+
 			setCachedUsers((cachedUsers) => {
 				// Move most recently used user to front of list
 				const otherUsers = (cachedUsers || []).filter((cu) => cu.userHandleB64u !== newUser.userHandleB64u);
 				return [newUser, ...otherUsers];
 			});
 		}
+
+		setMainKey(exportedMainKey);
+		setPrivateData(privateData);
 	};
 
 	const init = async (
@@ -375,20 +398,16 @@ export function useLocalStorageKeystore(): LocalStorageKeystore {
 			CommitCallback,
 		]> => (
 			await editPrivateData(async (originalContainer) => {
-				let container = originalContainer;
-				let proof_jwts = [];
-				for (const { nonce, audience, issuer } of requests) {
-					const [{ proof_jwt }, newContainer] = await keystore.generateOpenid4vciProof(
-						container,
-						config.DID_KEY_VERSION,
-						nonce,
-						audience,
-						issuer
-					);
-					proof_jwts.push(proof_jwt);
-					container = newContainer;
-				}
-				return [{ proof_jwts }, container];
+				const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
+				const [{ proof_jwts }, newContainer] = await keystore.generateOpenid4vciProofs(
+					originalContainer,
+					config.DID_KEY_VERSION,
+					nonce,
+					audience,
+					issuer,
+					requests.length
+				);
+				return [{ proof_jwts }, newContainer];
 			})
 		),
 	};

@@ -10,6 +10,7 @@ import SessionContext from '@/context/SessionContext';
 
 // Utility functions
 import { formatDate } from '@/functions/DateFormat';
+import { fromBase64 } from '@/util';
 
 // Hooks
 import useFetchPresentations from '@/hooks/useFetchPresentations';
@@ -17,6 +18,18 @@ import useFetchPresentations from '@/hooks/useFetchPresentations';
 // Components
 import HistoryDetailContent from '@/components/History/HistoryDetailContent';
 import { H1 } from '@/components/Shared/Heading';
+
+export const extractPresentations = (item) => {
+	if (item.presentation.startsWith("b64:") && (new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", "")))).includes("[")) {
+		return JSON.parse(new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", ""))));
+	}
+	else if (item.presentation.startsWith("b64:")) {
+		return [ new TextDecoder().decode(fromBase64(item.presentation.replace("b64:", ""))) ];
+	}
+	else {
+		return [ item.presentation ];
+	}
+}
 
 const HistoryDetail = () => {
 	const { historyId } = useParams();
@@ -26,10 +39,11 @@ const HistoryDetail = () => {
 	const [matchingCredentials, setMatchingCredentials] = useState([]);
 	const { t } = useTranslation();
 
+	console.log('history',history)
+
 	useEffect(() => {
 		if (history.length > 0) {
-			const verifiableCredentials = [history[0].presentation];
-			setMatchingCredentials(verifiableCredentials);
+			setMatchingCredentials(extractPresentations(history[0]));
 		}
 	}, [history]);
 

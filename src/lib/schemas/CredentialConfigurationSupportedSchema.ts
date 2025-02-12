@@ -24,8 +24,8 @@ const commonSchema = z.object({
 		}).optional(),
 	})).optional(),
 	scope: z.string(),
-	cryptographic_binding_methods_supported: z.array(z.string().nonempty()),
-	credential_signing_alg_values_supported: z.array(z.string().nonempty()),
+	cryptographic_binding_methods_supported: z.array(z.string()),
+	credential_signing_alg_values_supported: z.array(z.string()),
 	proof_types_supported: proofTypesSupportedSchema,
 });
 

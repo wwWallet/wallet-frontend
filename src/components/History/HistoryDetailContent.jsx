@@ -1,24 +1,48 @@
 // External libraries
-import React from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useContext, useEffect, useState } from 'react';
+
+// Context
+import CredentialParserContext from '../../context/CredentialParserContext';
 
 // Components
 import Slider from '../Shared/Slider';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 
-const HistoryDetailContent = ({ historyItem }) => {
-	const { t } = useTranslation();
-	const [currentSlide, setCurrentSlide] = React.useState(1);
+import useScreenType from '../../hooks/useScreenType';
 
-	const renderSlideContent = (credential) => (
+const HistoryDetailContent = ({ historyItem }) => {
+	const [currentSlide, setCurrentSlide] = React.useState(1);
+	const [parsedCredentials, setParsedCredentials] = useState([]);
+	const { parseCredential } = useContext(CredentialParserContext);
+	const screenType = useScreenType();
+
+	// Parse all the credentials when historyItem changes
+	useEffect(() => {
+		const parseAllCredentials = async () => {
+			const parsed = await Promise.all(
+				historyItem.map(async (credential) => {
+					const parsed = await parseCredential(credential);
+					return parsed; // Store each parsed credential
+				})
+			);
+			setParsedCredentials(parsed);
+		};
+
+		// Parse credentials on historyItem change
+		if (historyItem.length > 0) {
+			parseAllCredentials();
+		}
+	}, [historyItem, parseCredential]);
+
+	const renderSlideContent = (parsedCredential, index) => (
 		<div
-			key={credential.id}
-			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer"
-			aria-label={credential.friendlyName}
-			title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credential.friendlyName })}
+			key={index}
+			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"
+			aria-label={parsedCredential.credentialFriendlyName}
+			title={parsedCredential.credentialFriendlyName}
 		>
-			<CredentialImage credential={credential} className="w-full h-full rounded-xl" />
+			<CredentialImage parsedCredential={parsedCredential} showRibbon={false} className="w-full h-full rounded-xl" />
 		</div>
 	);
 
@@ -26,16 +50,16 @@ const HistoryDetailContent = ({ historyItem }) => {
 		<div className="py-2 w-full">
 			<div className="px-2">
 				<Slider
-					items={historyItem}
+					items={parsedCredentials}
 					renderSlideContent={renderSlideContent}
 					onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
 				/>
 			</div>
 
 			{/* Render details of the currently selected credential */}
-			{historyItem[currentSlide - 1] && (
-				<div className="pt-5">
-					<CredentialInfo credential={historyItem[currentSlide - 1]} />
+			{parsedCredentials[currentSlide - 1] && (
+				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
+					<CredentialInfo parsedCredential={parsedCredentials[currentSlide - 1]} />
 				</div>
 			)}
 		</div>

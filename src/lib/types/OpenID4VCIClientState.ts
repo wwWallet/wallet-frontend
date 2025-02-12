@@ -29,6 +29,9 @@ export class OpenID4VCIClientState {
 			dpopPublicKeyJwk?: JWK,
 			dpopAlg: string,
 		},
+		public firstPartyAuthorization?: {
+			auth_session: string;
+		},
 		public created: number = Math.floor(Date.now() / 1000),
 	) { }
 

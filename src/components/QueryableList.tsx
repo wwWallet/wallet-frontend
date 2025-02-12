@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SearchInput from "./Inputs/SearchInput";
 import Button from "../components/Buttons/Button";
 import { useTranslation } from "react-i18next";
@@ -52,13 +52,10 @@ const QueryableList = <T,>({
 		setFilteredList(filtered);
 	};
 
-	if (list.length === 0) {
-		return (
-			<p className="text-gray-700 dark:text-gray-300 mt-4">
-				{t(translationPrefix + ".noFound")}
-			</p>
-		);
-	}
+	useEffect(() => {
+		setFilteredList([...list]);
+	}, [list]);
+
 
 	return (
 		<>

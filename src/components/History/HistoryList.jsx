@@ -4,6 +4,7 @@ import useScreenType from '../../hooks/useScreenType';
 import { formatDate } from '../../functions/DateFormat';
 import { H3 } from '../Shared/Heading';
 import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
+import { extractPresentations } from '../../pages/History/HistoryDetail';
 
 const HistoryList = ({ credentialId = null, history, title = '', limit = null }) => {
 
@@ -21,7 +22,7 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 	}, [history, credentialId, limit]);
 
 	const handleHistoryItemClick = async (item) => {
-		setMatchingCredentials([item.presentation]);
+		setMatchingCredentials(extractPresentations(item));
 		if (screenType === 'mobile') {
 			navigate(`/history/${item.id}`);
 		}

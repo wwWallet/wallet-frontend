@@ -14,18 +14,11 @@ precacheAndRoute([
 	{ url: '/favicon.ico', revision: '1' },
 ]);
 
-const fileExtensionRegexp = new RegExp("/[^/?]+\\.[^/]+$");
 registerRoute(
 	({ request, url }) => {
-		if (request.mode !== "navigate") {
-			return false;
-		}
-		if (url.pathname.startsWith("/_")) {
-			return false;
-		}
-		if (url.pathname.match(fileExtensionRegexp)) {
-			return false;
-		}
+		if (request.mode !== "navigate") return false;
+		if (url.pathname.startsWith("/_")) return false;
+		if (/\.[a-zA-Z]+$/.test(url.pathname)) return false;
 		return true;
 	},
 	createHandlerBoundToURL('/index.html')
@@ -48,7 +41,6 @@ registerRoute(
 	})
 );
 
-
 self.addEventListener('install', (event) => {
 	self.skipWaiting();
 });
@@ -60,9 +52,7 @@ self.addEventListener('activate', (event) => {
 
 			return self.clients.matchAll().then((clients) => {
 				clients.forEach((client) => {
-					client.postMessage({
-						type: 'NEW_CONTENT_AVAILABLE',
-					});
+					client.navigate(client.url);
 				});
 			});
 		})

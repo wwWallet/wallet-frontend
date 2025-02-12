@@ -156,8 +156,8 @@ type WebauthnPrfEncryptionKeyInfoV1 = WebauthnPrfSaltInfo & WebauthnPrfEncryptio
 }
 export type WebauthnPrfEncryptionKeyInfoV2 = (
 	WebauthnPrfSaltInfo
-		& WebauthnPrfEncryptionKeyDeriveKeyParams
-		& StaticEncapsulationInfo
+	& WebauthnPrfEncryptionKeyDeriveKeyParams
+	& StaticEncapsulationInfo
 );
 export function isPrfKeyV2(prfKeyInfo: WebauthnPrfEncryptionKeyInfo): prfKeyInfo is WebauthnPrfEncryptionKeyInfoV2 {
 	return (
@@ -794,7 +794,7 @@ export async function upgradePrfKey(
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfoV1,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
-	const [prfKey,, prfCredential] = await getPrfKey(
+	const [prfKey, , prfCredential] = await getPrfKey(
 		{
 			...privateData,
 			prfKeys: privateData.prfKeys.filter((keyInfo) => (
@@ -1041,45 +1041,63 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 	return { didKeyString };
 }
 
-async function addNewCredentialKeypair(
+async function addNewCredentialKeypairs(
 	[privateData, mainKey]: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
 	deriveKid: (publicKey: CryptoKey, did: string) => Promise<string>,
+	numberOfKeyPairs: number = 1
 ): Promise<{
-	privateKey: CryptoKey,
-	keypair: CredentialKeyPair,
+	privateKeys: CryptoKey[],
+	keypairs: CredentialKeyPair[],
 	newPrivateData: OpenedContainer,
 }> {
-	const { publicKey, privateKey } = await crypto.subtle.generateKey(
-		{ name: "ECDSA", namedCurve: "P-256" },
-		true,
-		['sign']
-	);
-	const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
-	const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
-	const did = await createDid(publicKey, didKeyVersion);
-	const kid = await deriveKid(publicKey, did);
 
-	const keypair: CredentialKeyPair = {
-		kid,
-		did,
-		alg: "ES256",
-		publicKey: publicKeyJwk,
-		wrappedPrivateKey,
-	};
+	const keypairsWithPrivateKeys = await Promise.all(Array.from({ length: numberOfKeyPairs }).map(async () => {
+		const { publicKey, privateKey } = await crypto.subtle.generateKey(
+			{ name: "ECDSA", namedCurve: "P-256" },
+			true,
+			['sign']
+		);
+		const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
+		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
+		const did = await createDid(publicKey, didKeyVersion);
+		const kid = await deriveKid(publicKey, did);
 
+		const keypair: CredentialKeyPair = {
+			kid,
+			did,
+			alg: "ES256",
+			publicKey: publicKeyJwk,
+			wrappedPrivateKey,
+		};
+
+		return { kid, keypair, privateKey };
+	}));
+
+
+
+	console.log("addNewredentialKeypair: Before update private data")
 	return {
-		privateKey,
-		keypair,
+		privateKeys: keypairsWithPrivateKeys.map((k) => k.privateKey),
+		keypairs: keypairsWithPrivateKeys.map((k) => k.keypair),
 		newPrivateData: await updatePrivateData(
 			[privateData, mainKey],
-			async (privateData: PrivateData) => ({
-				...privateData,
-				keypairs: {
-					...privateData.keypairs,
-					[kid]: keypair,
-				},
-			}),
+			async (privateData: PrivateData) => {
+
+				const combinedKeypairs = {
+					...privateData.keypairs
+				};
+
+				for (const { kid, keypair } of keypairsWithPrivateKeys) {
+					combinedKeypairs[kid] = keypair;
+				}
+				return {
+					...privateData,
+					keypairs: {
+						...combinedKeypairs
+					},
+				}
+			}
 		),
 	};
 }
@@ -1127,31 +1145,37 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 	return { vpjwt: jws };
 }
 
-export async function generateOpenid4vciProof(
+export async function generateOpenid4vciProofs(
 	container: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
 	nonce: string,
 	audience: string,
-	issuer: string
-): Promise<[{ proof_jwt: string }, OpenedContainer]> {
+	issuer: string,
+	numberOfKeyPairs: number = 1
+): Promise<[{ proof_jwts: string[] }, OpenedContainer]> {
 	const deriveKid = async (publicKey: CryptoKey) => {
 		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
 		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
 		return jwkThumbprint;
 	};
-	const { privateKey, keypair, newPrivateData } = await addNewCredentialKeypair(container, didKeyVersion, deriveKid);
+	const { privateKeys, newPrivateData, keypairs } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
 
-	const jws = await new SignJWT({
-		nonce: nonce,
-		aud: audience,
-		iss: issuer,
-	})
-		.setProtectedHeader({
-			alg: keypair.alg,
-			typ: "openid4vci-proof+jwt",
-			jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+	const proof_jwts = await Promise.all(keypairs.map(async (keypair, index) => {
+		const privateKey = privateKeys[index];
+		const jws: string = await new SignJWT({
+			nonce: nonce,
+			aud: audience,
+			iss: issuer,
 		})
-		.setIssuedAt()
-		.sign(privateKey);
-	return [{ proof_jwt: jws }, newPrivateData];
+			.setProtectedHeader({
+				alg: keypair.alg,
+				typ: "openid4vci-proof+jwt",
+				jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+			})
+			.setIssuedAt()
+			.sign(privateKey);
+		return jws;
+	}));
+
+	return [{ proof_jwts: proof_jwts }, newPrivateData];
 }

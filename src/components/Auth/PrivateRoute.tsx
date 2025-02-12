@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { fetchToken, notificationApiIsSupported } from '../../firebase';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
-import { Trans } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 
 import Spinner from '../Shared/Spinner'; // Import your spinner component
 import { useSessionStorage } from '../../hooks/useStorage';
@@ -22,6 +22,8 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 
 
 export function NotificationPermissionWarning(): React.ReactNode {
+	useTranslation(); // This ensures reactivity to language changes
+
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
@@ -184,7 +186,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 						if (fcmToken !== null) {
 							await api.post('/user/session/fcm_token/add', { fcm_token: fcmToken });
 							setTokenSentInSession(true);
-							console.log('FCM Token success:', fcmToken);
+							console.log('FCM Token send:', fcmToken);
 						} else {
 							console.log('FCM Token failed to get fcmtoken in private route', fcmToken);
 							setTokenSentInSession(false);
@@ -198,9 +200,9 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		if (isOnline) {
+		if (isOnline === true && isLoggedIn) {
 			sendFcmTokenToBackend();
-		} else {
+		} else if (isOnline === false) {
 			setTokenSentInSession(false);
 		}
 	}, [
@@ -209,6 +211,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		isPermissionGranted,
 		setTokenSentInSession,
 		tokenSentInSession,
+		isLoggedIn,
 	]);
 
 	useEffect(() => {
@@ -242,16 +245,10 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	};
 
 	if (!isLoggedIn) {
-		const freshLogin = sessionStorage.getItem('freshLogin');
-		if (freshLogin) {
-			sessionStorage.removeItem('freshLogin');
-			window.history.replaceState(null, '', '/');
-			return <Navigate to="/login" replace />;
-		}
 		if (state && userExistsInCache(state)) {
-			return <Navigate to="/login-state" state={{ from: location }} replace />;
+			return <Navigate to={`/login-state${window.location.search}`} replace />;
 		} else {
-			return <Navigate to="/login" state={{ from: location }} replace />;
+			return <Navigate to={`/login${window.location.search}`} replace />;
 		}
 	}
 
