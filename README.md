@@ -80,6 +80,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
   - VITE_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri
   - VITE_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
+	- VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
+	- VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
 	- VITE_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
 
 4. Install dependencies:
@@ -326,36 +328,4 @@ Explore the [Tailwind CSS documentation](https://tailwindcss.com/docs/installati
 
 ## 💡Contributing
 
-<<<<<<< HEAD
-We welcome contributions from the community to help improve the wwWallet Frontend repository. If you'd like to contribute, follow these steps:
-
-1. **Create a New Branch:**
-   Create a new branch for your feature or bug fix
-
-   ```bash
-   git checkout -b my-feature
-   ```
-
-   Replace my-feature with a descriptive name.
-
-2. **Make Changes:**
-   Make the necessary changes in your code editor.
-
-3. **Commit Changes:**
-   Commit your changes with a descriptive commit message:
-   ```bash
-   git commit -m "Add new feature"
-   ```
-4. **Push Changes:**
-   Push your changes to your new branrch:
-   ```bash
-   git push --set-upstream origin my-feature
-   ```
-5. **Create a Pull Request:**
-   Open a pull request on the original repository. Provide a detailed description of your changes and their purpose.
-
-6. **Review and Merge:**
-   Your pull request will be reviewed by the maintainers. Make any requested changes and address feedback. Once approved, your changes will be merged into master branch of the project.
-=======
 Want to contribute? Check out our [Contribution Guidelines](https://github.com/wwWallet/.github/blob/main/CONTRIBUTING.md) for more details!
->>>>>>> master
