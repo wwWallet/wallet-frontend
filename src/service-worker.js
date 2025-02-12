@@ -15,13 +15,13 @@ precacheAndRoute([
 ]);
 
 registerRoute(
-  ({ request, url }) => {
-    if (request.mode !== "navigate") return false;
-    if (url.pathname.startsWith("/_")) return false; 
-    if (/\.[a-zA-Z]+$/.test(url.pathname)) return false;
-    return true;
-  },
-  createHandlerBoundToURL('/index.html')
+	({ request, url }) => {
+		if (request.mode !== "navigate") return false;
+		if (url.pathname.startsWith("/_")) return false;
+		if (/\.[a-zA-Z]+$/.test(url.pathname)) return false;
+		return true;
+	},
+	createHandlerBoundToURL('/index.html')
 );
 
 registerRoute(
