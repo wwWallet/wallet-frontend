@@ -1,7 +1,7 @@
 import { useContext, useCallback, useMemo } from "react";
 import { compareBy } from "../../util";
 import { StorableCredential } from "../types/StorableCredential";
-import SessionContext from "../../context/SessionContext";
+import SessionContext from "@/context/SessionContext";
 
 export function useCredentialBatchHelper() {
 	const { api } = useContext(SessionContext);

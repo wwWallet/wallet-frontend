@@ -1,5 +1,5 @@
-import React, { createContext, useEffect, useMemo, useCallback } from "react";
-import { ICredentialParser, ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
+import React, { useEffect, useMemo, useCallback } from "react";
+import { ICredentialParser } from "../lib/interfaces/ICredentialParser";
 import { useCredentialParserRegistry } from "../lib/services/CredentialParserRegistry";
 import { parseSdJwtCredential } from "../functions/parseSdJwtCredential";
 import { useOpenID4VCIHelper } from "../lib/services/OpenID4VCIHelper";
@@ -7,17 +7,7 @@ import { getSdJwtVcMetadata } from "../lib/utils/getSdJwtVcMetadata";
 import defaultCredentialImage from "../assets/images/cred.png";
 import renderSvgTemplate from "../components/Credentials/RenderSvgTemplate";
 import renderCustomSvgTemplate from "../components/Credentials/RenderCustomSvgTemplate";
-
-export type CredentialParserContextValue = {
-	credentialParserRegistry: ICredentialParserRegistry;
-	parseCredential: (credential: string) => Promise<any>;
-
-}
-
-const CredentialParserContext: React.Context<CredentialParserContextValue> = createContext({
-	credentialParserRegistry: null,
-	parseCredential: async () => null,
-});
+import CredentialParserContext from "./CredentialParserContext";
 
 const defaultLocale = 'en-US';
 
@@ -155,11 +145,3 @@ export const CredentialParserContextProvider = ({ children }) => {
 		</CredentialParserContext.Provider>
 	);
 }
-
-export const withCredentialParserContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<CredentialParserContextProvider>
-			<Component {...props} />
-		</CredentialParserContextProvider>
-	);
-export default CredentialParserContext;

@@ -2,7 +2,7 @@ import React, { createContext, useState, useCallback, useContext } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
-import CredentialParserContext from "./CredentialParserContext";
+import CredentialParserContext from './CredentialParserContext';
 
 const CredentialsContext = createContext();
 

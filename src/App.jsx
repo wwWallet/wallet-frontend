@@ -4,21 +4,14 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 
 import i18n from './i18n';
-import { withSessionContext } from './context/SessionContext';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
-import { withCredentialsContext } from './context/CredentialsContext';
-
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
-import { withUriHandler } from './UriHandler';
-import { withCredentialParserContext } from './context/CredentialParserContext';
-import { withOpenID4VPContext } from './context/OpenID4VPContext';
-import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
 import useNewCredentialListener from './hooks/useNewCredentialListener';
 import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
@@ -94,63 +87,51 @@ function App() {
 
 	return (
 		<>
-			<BackgroundNotificationClickHandler />
-			<I18nextProvider i18n={i18n}>
-				<Snowfalling />
-				<Suspense fallback={<Spinner />}>
-					<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
-					<UpdateNotification />
-					<Routes>
-						<Route element={
-							<PrivateRoute>
-								<Layout>
-									<Suspense fallback={<Spinner size='small' />}>
-										<PrivateRoute.NotificationPermissionWarning />
-										<FadeInContentTransition appear reanimateKey={location.pathname}>
-											<Outlet />
-										</FadeInContentTransition>
-									</Suspense>
-								</Layout>
-							</PrivateRoute>
-						}>
-							<Route path="/settings" element={<Settings />} />
-							<Route path="/" element={<Home />} />
-							<Route path="/credential/:credentialId" element={<Credential />} />
-							<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
-							<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
-							<Route path="/history" element={<History />} />
-							<Route path="/history/:historyId" element={<HistoryDetail />} />
-							<Route path="/add" element={<AddCredentials />} />
-							<Route path="/send" element={<SendCredentials />} />
-							<Route path="/verification/result" element={<VerificationResult />} />
-							<Route path="/cb/*" element={<Home />} />
-						</Route>
-						<Route element={
-							<FadeInContentTransition reanimateKey={location.pathname}>
-								<Outlet />
-							</FadeInContentTransition>
-						}>
-							<Route path="/login" element={<Login />} />
-							<Route path="/login-state" element={<LoginState />} />
-							<Route path="*" element={<NotFound />} />
-						</Route>
-					</Routes>
-				</Suspense>
-			</I18nextProvider>
+									<BackgroundNotificationClickHandler />
+									<I18nextProvider i18n={i18n}>
+										<Snowfalling />
+										<Suspense fallback={<Spinner />}>
+											<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
+											<UpdateNotification />
+											<Routes>
+												<Route element={
+													<PrivateRoute>
+														<Layout>
+															<Suspense fallback={<Spinner size='small' />}>
+																<PrivateRoute.NotificationPermissionWarning />
+																<FadeInContentTransition appear reanimateKey={location.pathname}>
+																	<Outlet />
+																</FadeInContentTransition>
+															</Suspense>
+														</Layout>
+													</PrivateRoute>
+												}>
+													<Route path="/settings" element={<Settings />} />
+													<Route path="/" element={<Home />} />
+													<Route path="/credential/:credentialId" element={<Credential />} />
+													<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
+													<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
+													<Route path="/history" element={<History />} />
+													<Route path="/history/:historyId" element={<HistoryDetail />} />
+													<Route path="/add" element={<AddCredentials />} />
+													<Route path="/send" element={<SendCredentials />} />
+													<Route path="/verification/result" element={<VerificationResult />} />
+													<Route path="/cb/*" element={<Home />} />
+												</Route>
+												<Route element={
+													<FadeInContentTransition reanimateKey={location.pathname}>
+														<Outlet />
+													</FadeInContentTransition>
+												}>
+													<Route path="/login" element={<Login />} />
+													<Route path="/login-state" element={<LoginState />} />
+													<Route path="*" element={<NotFound />} />
+												</Route>
+											</Routes>
+										</Suspense>
+									</I18nextProvider>
 		</>
 	);
 }
 
-export default withSessionContext(
-	withCredentialParserContext(
-		withCredentialsContext(
-			withOpenID4VPContext(
-				withOpenID4VCIContext(
-					withUriHandler(
-						App
-					)
-				)
-			)
-		)
-	)
-);
+export default App;
