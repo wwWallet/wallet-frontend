@@ -78,8 +78,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
   - VITE_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
   - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
-  - VITE_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri
   - VITE_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
+  - VITE_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri (`true` or `false`).
 	- VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
 	- VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
 	- VITE_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
