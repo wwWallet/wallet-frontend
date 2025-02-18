@@ -132,12 +132,3 @@ export const UriHandler = ({ children }) => {
 		</>
 	);
 }
-
-
-export const withUriHandler: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<UriHandler>
-			<Component {...props} />
-		</UriHandler>
-	);
-export default withUriHandler;

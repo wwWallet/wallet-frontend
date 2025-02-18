@@ -1,7 +1,7 @@
 import React, { createContext} from "react";
 import { ICredentialParserRegistry } from "../lib/interfaces/ICredentialParser";
 
-export type CredentialParserContextValue = {
+type CredentialParserContextValue = {
 	credentialParserRegistry: ICredentialParserRegistry;
 	parseCredential: (credential: string) => Promise<any>;
 

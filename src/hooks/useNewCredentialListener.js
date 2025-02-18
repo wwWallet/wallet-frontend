@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext, useRef } from 'react';
 import { onMessageListener } from '../firebase';
-import CredentialsContext from '../context/CredentialsContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 const useNewCredentialListener = () => {
 	const [notification, setNotification] = useState(() => {

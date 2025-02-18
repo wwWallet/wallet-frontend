@@ -10,9 +10,9 @@ import './index.css';
 import { BrowserRouter } from "react-router-dom";
 import { SessionContextProvider } from './context/SessionProvider';
 import { CredentialParserContextProvider } from './context/CredentialParserProvider';
-import { CredentialsProvider } from './context/CredentialsContext';
-import { OpenID4VCIContextProvider } from './context/OpenID4VCIContext';
-import { OpenID4VPContextProvider } from './context/OpenID4VPContext';
+import { CredentialsProvider } from './context/CredentialsProvider';
+import { OpenID4VCIContextProvider } from './context/OpenID4VCIProvider';
+import { OpenID4VPContextProvider } from './context/OpenID4VPProvider';
 import { UriHandler } from './UriHandler';
 // Set root element for react-modal
 Modal.setAppElement('#root');

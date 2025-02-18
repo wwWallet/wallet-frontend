@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Contexts
-import CredentialsContext from '../../context/CredentialsContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 // Components
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
