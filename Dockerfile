@@ -1,4 +1,4 @@
-FROM node:21-bullseye-slim AS builder-base
+FROM node:22-bullseye-slim AS builder-base
 
 WORKDIR /home/node/app
 
@@ -30,7 +30,7 @@ FROM nginx:alpine AS deploy
 WORKDIR /usr/share/nginx/html
 
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /home/node/app/build/ .
+COPY --from=builder /home/node/app/dist/ .
 
 EXPOSE 80
 

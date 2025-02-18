@@ -10,7 +10,7 @@ import SessionContext from '../../context/SessionContext';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import Button from '../../components/Buttons/Button';
 import LoginPageLayout from '../../components/Auth/LoginLayout';
-import { checkForUpdates } from '../../offlineRegistrationSW';
+import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 const WebauthnLogin = ({

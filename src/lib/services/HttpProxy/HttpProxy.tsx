@@ -3,7 +3,7 @@ import axios from 'axios';
 import { IHttpProxy } from '../../interfaces/IHttpProxy';
 
 // @ts-ignore
-const walletBackendServerUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
+const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 
 export function useHttpProxy(): IHttpProxy {
 	const proxy = useMemo(() => ({

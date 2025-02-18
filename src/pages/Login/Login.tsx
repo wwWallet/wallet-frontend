@@ -18,7 +18,7 @@ import LanguageSelector from '../../components/LanguageSelector/LanguageSelector
 import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
-import { checkForUpdates } from '../../offlineRegistrationSW';
+import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 const FormInputRow = ({
