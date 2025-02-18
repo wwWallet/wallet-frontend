@@ -27,6 +27,19 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"language": {
+		"label": "Language"
+	},
+	"ConnectionStatusIcon": {
+		"status": "Connection status:",
+		"qualityLabels": {
+			"excellent": "Excellent",
+			"good": "Good",
+			"fair": "Fair",
+			"poor": "Poor",
+			"veryPoor": "Very Poor"
+		}
+	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
@@ -49,8 +62,7 @@
 		"enterUsername": "Enter your username",
 		"enterconfirmPasswordLabel": "Enter your confirm password",
 		"fillInFieldsError": "Please fill in all required fields",
-		"forgetCachedUserAriaLabel": "Forget Cached User {{name}}",
-		"forgetCachedUserTitle": "Click to Forget Cached User",
+		"forgetCachedUser": "Click to Forget Cached User {{name}}",
 		"incorrectCredentialsError": "Incorrect username or password",
 		"login": "Login",
 		"loginCache": "Choose your account",
@@ -135,6 +147,7 @@
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials",
 		"details": {
+			"availableUsages": "Available Usages",
 			"description": "View all the information about the chosen credential",
 			"expired": "This Credential has been expired"
 		},
@@ -215,6 +228,7 @@
 			"successMessage": "Saved"
 		},
 		"title": {
+			"language": "Language",
 			"rememberIssuer": "Remember Issuer",
 			"confirmDeletePopup": "Are You Sure?",
 			"loggedInPasskey": "Logged in Passkey",
@@ -276,7 +290,7 @@
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
-	"statusRibbon": {
+	"expiredRibbon": {
 		"expired": "Expired"
 	},
 	"tourGuide": {

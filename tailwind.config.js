@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
 	content: ["./src/**/*.{js,jsx,ts,tsx}"],
 	theme: {
 		extend: {
@@ -18,6 +18,7 @@ module.exports = {
 				'extra-light-hover': '#5DB5D8',
 			},
 			screens: {
+				'2xs': '360px',
 				'xm': { 'max': '479px' },
 			},
 			keyframes: {

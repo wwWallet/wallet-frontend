@@ -258,7 +258,7 @@ describe("The keystore", () => {
 		const [{ exportedMainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		const mainKey = await keystore.importMainKey(exportedMainKey);
 		const test = async (didKeyVersion: DidKeyVersion) => {
-			const [{ proof_jwt }, [newPrivateData, newMainKey]] = await keystore.generateOpenid4vciProof(
+			const [{ proof_jwts }, [newPrivateData, newMainKey]] = await keystore.generateOpenid4vciProofs(
 				[privateData, mainKey],
 				didKeyVersion,
 				"test-nonce",
@@ -269,7 +269,7 @@ describe("The keystore", () => {
 			const [newPrivateDataContents,] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
 			const { kid, publicKey: publicKeyJwk } = Object.values(newPrivateDataContents.keypairs)[0];
 			const publicKey = await jose.importJWK(publicKeyJwk)
-			const { protectedHeader } = await jose.jwtVerify(proof_jwt, publicKey, { audience: "test-audience", issuer: "test-issuer" });
+			const { protectedHeader } = await jose.jwtVerify(proof_jwts[0], publicKey, { audience: "test-audience", issuer: "test-issuer" });
 			assert.equal(await jose.calculateJwkThumbprint(protectedHeader.jwk), kid);
 		};
 		it("p256-pub.", async () => test("p256-pub"));
