@@ -4,7 +4,6 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
 import { PiCardsBold } from "react-icons/pi";
-import { initializeCredentialEngine } from "../../lib/initializeCredentialEngine";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -18,8 +17,6 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
-import { useHttpProxy } from '../../lib/services/HttpProxy/HttpProxy';
-import { CredentialVerificationError } from 'core/dist/error';
 
 const CredentialLayout = ({ children, title = null }) => {
 	const { credentialId } = useParams();
