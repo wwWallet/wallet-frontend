@@ -1,15 +1,15 @@
 import ExpiredRibbon from './ExpiredRibbon';
 import UsagesRibbon from "./UsagesRibbon";
 
-const CredentialImage = ({ parsedCredential, className, onClick, showRibbon = true, vcEntityInstances = null }) => {
+const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null }) => {
 
 	return (
 		<>
-			{parsedCredential && (
-				<img src={parsedCredential.metadata.credential.image.dataUri} alt={"Credential"} className={className} onClick={onClick} />
+			{vcEntity && (
+				<img src={vcEntity.parsedCredential.metadata.credential.image.dataUri} alt={"Credential"} className={className} onClick={onClick} />
 			)}
-			{parsedCredential && showRibbon &&
-				<ExpiredRibbon parsedCredential={parsedCredential} />
+			{vcEntity && showRibbon &&
+				<ExpiredRibbon vcEntity={vcEntity} />
 			}
 			{vcEntityInstances && showRibbon &&
 				<UsagesRibbon vcEntityInstances={vcEntityInstances} />

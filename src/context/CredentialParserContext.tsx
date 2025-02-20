@@ -1,9 +1,7 @@
 import React, { createContext, useCallback } from "react";
-import { ParsingEngine, VerifyingEngine, PublicKeyResolverEngine, SDJWTVCParser, SDJWTVCVerifier } from 'core';
-import { ParsedCredential, VerifiableCredentialFormat } from "core/dist/types";
-import { IHttpProxy } from "../lib/interfaces/IHttpProxy";
+import { ParsedCredential } from "core/dist/types";
 import { useHttpProxy } from "../lib/services/HttpProxy/HttpProxy";
-import { CLOCK_TOLERANCE } from "../config";
+import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 
 export type CredentialParserContextValue = {
 	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
@@ -15,22 +13,6 @@ const CredentialParserContext: React.Context<CredentialParserContextValue> = cre
 });
 
 
-export function initializeCredentialEngine(httpProxy: IHttpProxy) {
-
-	const ctx = {
-		clockTolerance: CLOCK_TOLERANCE,
-		subtle: crypto.subtle,
-		lang: 'en-US',
-		trustedCertificates: [],
-	};
-	const credentialParsingEngine = ParsingEngine();
-	credentialParsingEngine.register(SDJWTVCParser({ context: ctx, httpClient: httpProxy }));
-
-	const pkResolverEngine = PublicKeyResolverEngine();
-	const verifyingEngine = VerifyingEngine();
-	verifyingEngine.register(SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine }));
-	return { credentialParsingEngine, verifyingEngine };
-}
 
 export const CredentialParserContextProvider = ({ children }) => {
 
