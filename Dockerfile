@@ -5,8 +5,13 @@ WORKDIR /home/node/app
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY package.json yarn.lock .
 COPY .env.prod .env
-RUN yarn cache clean -f && yarn install
 
+COPY lib/ ./lib/
+WORKDIR /home/node/app/lib/core
+RUN yarn cache clean -f && yarn install && yarn build --production
+
+WORKDIR /home/node/app
+RUN yarn cache clean -f && yarn install
 
 FROM builder-base AS test
 
