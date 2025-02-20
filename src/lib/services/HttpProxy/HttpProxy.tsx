@@ -25,7 +25,7 @@ export function useHttpProxy(): IHttpProxy {
 				return {
 					data: err.response.data.err.data,
 					headers: err.response.data.err.headers,
-					status: err.response.status	
+					status: err.response.status
 				}
 			}
 
@@ -50,7 +50,7 @@ export function useHttpProxy(): IHttpProxy {
 				return {
 					data: err.response.data.err.data,
 					headers: err.response.data.err.headers,
-					status: err.response.status	
+					status: err.response.status
 				}
 			}
 		}

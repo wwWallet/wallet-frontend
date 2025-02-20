@@ -2,7 +2,6 @@ import { CredentialParsingError } from "./error";
 import { CredentialParser, ParsingEngineI } from "./interfaces";
 import { VerifiableCredentialFormat } from "./types";
 
-
 export function ParsingEngine(): ParsingEngineI {
 	const parsers: CredentialParser[] = [];
 

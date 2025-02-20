@@ -16,7 +16,6 @@ export async function getSdJwtVcMetadata(credential: string): Promise<{ credenti
 			}
 		}
 
-
 		// use vct to fetch metadata if hosted
 		const fetchResult = (await axios.get(credentialPayload.vct).catch(() => null));
 		if (fetchResult && fetchResult.data.vct === credentialPayload.vct) {

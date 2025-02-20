@@ -174,7 +174,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 			}
 		}
 		const { sd_hash, nonce, aud } = kbJwtDecodedPayload as { sd_hash: string, nonce: string, aud: string };
-		
+
 		const data = encoder.encode(rawCredentialWithoutKbJwt);
 
 		const hashBuffer = await args.context.subtle.digest('SHA-256', data);

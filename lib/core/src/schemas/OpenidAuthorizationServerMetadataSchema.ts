@@ -13,5 +13,4 @@ export const OpenidAuthorizationServerMetadataSchema = z.object({
 	dpop_signing_alg_values_supported: z.array(z.string()).optional(),
 });
 
-
 export type OpenidAuthorizationServerMetadata = z.infer<typeof OpenidAuthorizationServerMetadataSchema>;

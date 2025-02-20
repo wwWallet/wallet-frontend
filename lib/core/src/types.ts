@@ -5,14 +5,13 @@ export enum VerifiableCredentialFormat {
 }
 
 export type CredentialIssuer = {
-	id: string; // must have the value of "iss" attribute of an SD-JWT VC credential 
+	id: string; // must have the value of "iss" attribute of an SD-JWT VC credential
 	name: string;
 
 	// ...other metadata
 }
 
 export type CredentialClaims = Record<string, unknown>;
-
 
 export type Result<T, E> = { success: true; value: T } | { success: false; error: E };
 

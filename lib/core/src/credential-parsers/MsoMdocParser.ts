@@ -5,7 +5,6 @@ import { fromBase64Url } from "../utils/util";
 import { ParsedCredential, VerifiableCredentialFormat } from "../types";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 
-
 export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }): CredentialParser {
 
 	async function deviceResponseParser(rawCredential: string): Promise<ParsedCredential | null> {

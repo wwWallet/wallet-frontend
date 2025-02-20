@@ -31,7 +31,7 @@ export enum CredentialVerificationError {
 
 	InvalidSignature = "InvalidSignature",
 	CannotResolveIssuerPublicKey = "CannotResolveIssuerPublicKey",
-	CannotImportIssuerPublicKey = "CannotImportIssuerPublicKey", 
+	CannotImportIssuerPublicKey = "CannotImportIssuerPublicKey",
 	NotTrustedIssuer = "NotTrustedIssuer",
 
 	ExpiredCredential = "ExpiredCredential",
