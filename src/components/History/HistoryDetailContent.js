@@ -44,7 +44,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 		if (historyItem.length > 0) {
 			parseAllCredentials();
 		}
-	}, [historyItem, parseCredential]);
+	}, [historyItem, parseCredential, httpProxy]);
 
 	const renderSlideContent = (vcEntity, index) => (
 		<div

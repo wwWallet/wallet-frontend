@@ -120,7 +120,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			return;
 
 		},
-		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
+		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData, httpProxy]
 	);
 
 	const requestCredentials = useCallback(

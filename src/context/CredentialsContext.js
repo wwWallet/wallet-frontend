@@ -61,7 +61,7 @@ export const CredentialsProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api, parseCredential]);
+	}, [api, parseCredential, httpProxy]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
