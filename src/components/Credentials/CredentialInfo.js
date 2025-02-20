@@ -58,19 +58,19 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		<div className={mainClassName}>
 			<table className="lg:w-4/5">
 				<tbody className="divide-y-4 divide-transparent">
-					{parsedCredential.beautifiedForm && (
+					{parsedCredential.signedClaims && (
 						<>
-							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential.beautifiedForm?.exp * 1000).toISOString()), screenType)}
-							{renderRow('familyName', 'Family Name', parsedCredential.beautifiedForm?.family_name, screenType)}
-							{renderRow('firstName', 'Given Name', parsedCredential.beautifiedForm?.given_name, screenType)}
-							{renderRow('id', 'Personal ID', parsedCredential.beautifiedForm?.personal_identifier, screenType)}
-							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.beautifiedForm?.dateOfBirth, 'date'), screenType)}
-							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.beautifiedForm?.birth_date, 'date'), screenType)}
-							{renderRow('diplomaTitle', 'Title', parsedCredential.beautifiedForm?.title, screenType)}
-							{renderRow('eqfLevel', 'EQF', parsedCredential.beautifiedForm?.eqf_level, screenType)}
-							{renderRow('grade', 'Grade', parsedCredential.beautifiedForm?.grade, screenType)}
-							{renderRow('id', 'Social Security Number', parsedCredential.beautifiedForm?.ssn, screenType)}
-							{renderRow('id', 'Document Number', parsedCredential.beautifiedForm?.document_number, screenType)}
+							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential.signedClaims?.exp * 1000).toISOString()), screenType)}
+							{renderRow('familyName', 'Family Name', parsedCredential.signedClaims?.family_name, screenType)}
+							{renderRow('firstName', 'Given Name', parsedCredential.signedClaims?.given_name, screenType)}
+							{renderRow('id', 'Personal ID', parsedCredential.signedClaims?.personal_identifier, screenType)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.signedClaims?.dateOfBirth, 'date'), screenType)}
+							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.signedClaims?.birth_date, 'date'), screenType)}
+							{renderRow('diplomaTitle', 'Title', parsedCredential.signedClaims?.title, screenType)}
+							{renderRow('eqfLevel', 'EQF', parsedCredential.signedClaims?.eqf_level, screenType)}
+							{renderRow('grade', 'Grade', parsedCredential.signedClaims?.grade, screenType)}
+							{renderRow('id', 'Social Security Number', parsedCredential.signedClaims?.ssn, screenType)}
+							{renderRow('id', 'Document Number', parsedCredential.signedClaims?.document_number, screenType)}
 						</>
 					)}
 				</tbody>

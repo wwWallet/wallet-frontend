@@ -6,7 +6,7 @@ const CredentialImage = ({ parsedCredential, className, onClick, showRibbon = tr
 	return (
 		<>
 			{parsedCredential && (
-				<img src={parsedCredential.credentialImage.credentialImageURL} alt={"Credential"} className={className} onClick={onClick} />
+				<img src={parsedCredential.metadata.credential.image.dataUri} alt={"Credential"} className={className} onClick={onClick} />
 			)}
 			{parsedCredential && showRibbon &&
 				<ExpiredRibbon parsedCredential={parsedCredential} />

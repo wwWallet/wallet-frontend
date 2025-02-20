@@ -16,6 +16,7 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
+import { initializeCredentialEngine } from '../../../context/CredentialParserContext';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
@@ -64,6 +65,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 
+			console.log("Response = ", credentialResponse)
 			const credentialArray = [];
 			if (numberOfProofs === 1 && credentialResponse.data.credential) {
 				const { credential } = credentialResponse.data;
@@ -71,6 +73,21 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			}
 			else {
 				credentialArray.push(...credentialResponse.data.credentials);
+			}
+
+			const validCredentialsArray = [];
+
+			console.log("Credential array = ", credentialArray)
+			for (const rawCredential of credentialArray) {
+				const e = initializeCredentialEngine(httpProxy);
+				const result = await e.verifyingEngine.verify({ rawCredential, opts: {} });
+				if (result.success) {
+					validCredentialsArray.push(rawCredential);
+					continue;
+				}
+				else if (result.success === false) {
+					console.error("Credential verification failed. Cause: ", result.error);
+				}
 			}
 			const new_c_nonce = credentialResponse.data.c_nonce;
 			const new_c_nonce_expires_in = credentialResponse.data.c_nonce_expires_in;
@@ -84,7 +101,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			const identifier = generateRandomIdentifier(32);
-			const storableCredentials: StorableCredential[] = credentialArray.map((credential, index) => ({
+			const storableCredentials: StorableCredential[] = validCredentialsArray.map((credential, index) => ({
 				credentialIdentifier: identifier,
 				credential: credential,
 				format: credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
