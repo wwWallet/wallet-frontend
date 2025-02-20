@@ -4,6 +4,11 @@ WORKDIR /dependencies
 
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY lib/ ./lib/
+
+WORKDIR /dependencies/lib/core
+RUN yarn install && yarn cache clean -f && yarn build
+
+WORKDIR /dependencies
 COPY package.json yarn.lock .
 RUN yarn install && yarn cache clean -f
 

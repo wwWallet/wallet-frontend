@@ -169,6 +169,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
 		>
 			<CredentialImage
+				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
 				key={vcEntity.credentialIdentifier}
 				parsedCredential={vcEntity.parsedCredential}
