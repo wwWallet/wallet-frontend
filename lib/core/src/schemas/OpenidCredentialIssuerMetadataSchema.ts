@@ -16,5 +16,4 @@ export const OpenidCredentialIssuerMetadataSchema = z.object({
 	signed_metadata: z.string().optional(),
 })
 
-
 export type OpenidCredentialIssuerMetadata = z.infer<typeof OpenidCredentialIssuerMetadataSchema>;

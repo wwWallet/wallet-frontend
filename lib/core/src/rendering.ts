@@ -11,7 +11,7 @@ export function CredentialRenderingService(): CredentialRendering {
 		} catch (error) {
 			return null; // Return null if fetching fails
 		}
-	
+
 		if (svgContent) {
 			// Build pathMap from credentialHeader.vctm.claims
 			const pathMap = sdJwtVcMetadataClaims.reduce((acc: any, claim: any) => {
@@ -20,20 +20,20 @@ export function CredentialRenderingService(): CredentialRendering {
 				}
 				return acc;
 			}, {});
-	
+
 			// Regular expression to match {{svg_id}} placeholders
 			const regex = /{{([^}]+)}}/g;
 			const replacedSvgText = svgContent.replace(regex, (_match, svgId) => {
 				// Retrieve the path array for the current svgId from pathMap
 				const pathArray = pathMap[svgId];
-	
+
 				// If pathArray exists, convert it to a JSON pointer path
 				if (Array.isArray(pathArray)) {
 					const jsonPointerPath = `/${pathArray.join('/')}`;
-	
+
 					// Retrieve the value from beautifiedForm using jsonpointer
 					let value = jsonpointer.get(json, jsonPointerPath);
-	
+
 					if (value !== undefined) {
 						value = formatDate(value, 'date');
 						return value;
@@ -44,7 +44,7 @@ export function CredentialRenderingService(): CredentialRendering {
 			const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;
 			return dataUri; // Return the data URI for the SVG
 		}
-	
+
 		return null;
 	};
 

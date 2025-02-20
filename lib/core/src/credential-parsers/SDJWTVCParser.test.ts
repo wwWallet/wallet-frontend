@@ -9,10 +9,10 @@ const expiredCredential = `eyJ0eXAiOiJ2YytzZC1qd3QiLCJ2Y3RtIjpbImV5SjJZM1FpT2lKM
 
 const httpClient: HttpClient = {
 	async get(url, headers) {
-		return axios.get(url, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? {...res.data} : {})).catch((err) => (err?.response?.data ? {...err.response.data} : { }));
+		return axios.get(url, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? { ...res.data } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
 	},
 	async post(url, data, headers) {
-		return axios.post(url, data, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? {...res.data} : {})).catch((err) => (err?.response?.data ? {...err.response.data} : { }));
+		return axios.post(url, data, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? { ...res.data } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
 	},
 }
 
