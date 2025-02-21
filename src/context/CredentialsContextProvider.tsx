@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -8,7 +8,7 @@ import { CredentialVerificationError } from 'core/dist/error';
 import { useHttpProxy } from '../lib/services/HttpProxy/HttpProxy';
 import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
 
-export const CredentialsProvider = ({ children }) => {
+export const CredentialsContextProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
 	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());
@@ -141,7 +141,7 @@ export const CredentialsProvider = ({ children }) => {
 };
 
 export const withCredentialsContext = (Component: React.ComponentType<any>) => (props: any) => (
-	<CredentialsProvider>
+	<CredentialsContextProvider>
 		<Component {...props} />
-	</CredentialsProvider>
+	</CredentialsContextProvider>
 );
