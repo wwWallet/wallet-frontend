@@ -21,7 +21,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
-	const { credentialParserRegistry } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 
@@ -74,7 +74,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			if (request_uri) {
 				const requestUriResponse = await httpProxy.get(request_uri, {});
-				const requestObject = requestUriResponse.data; // jwt
+				const requestObject = requestUriResponse.data as string; // jwt
 				const [header, payload] = requestObject.split('.');
 				const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
 
@@ -170,11 +170,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 					try {
 
 						if (vc.format === VerifiableCredentialFormat.SD_JWT_VC && (descriptor.format === undefined || VerifiableCredentialFormat.SD_JWT_VC in descriptor.format)) {
-							const result = await credentialParserRegistry.parse(vc.credential);
+							const result = await parseCredential(vc.credential);
 							if ('error' in result) {
 								throw new Error('Could not parse credential');
 							}
-							if (Verify.verifyVcJwtWithDescriptor(descriptor, result.beautifiedForm)) {
+							if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
 								conformingVcList.push(vc.credentialIdentifier);
 								continue;
 							}
@@ -206,7 +206,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName };
 		},
-		[httpProxy, credentialParserRegistry, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
+		[httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
 	);
 
 	const sendAuthorizationResponse = useCallback(
@@ -392,13 +392,13 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				'Content-Type': 'application/x-www-form-urlencoded',
 			});
 
+			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
-
-			if (res.data.presentation_during_issuance_session) {
-				return { presentation_during_issuance_session: res.data.presentation_during_issuance_session }
+			if (responseData.presentation_during_issuance_session) {
+				return { presentation_during_issuance_session: responseData.presentation_during_issuance_session }
 			}
-			if (res.data.redirect_uri) {
-				return { url: res.data.redirect_uri };
+			if (responseData.redirect_uri) {
+				return { url: responseData.redirect_uri };
 			}
 		},
 		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation]

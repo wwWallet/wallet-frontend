@@ -48,6 +48,7 @@ const Home = () => {
 			title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
 		>
 			<CredentialImage
+				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
 				showRibbon={currentSlide === vcEntityList.indexOf(vcEntity) + 1}
 				parsedCredential={vcEntity.parsedCredential}
@@ -103,6 +104,7 @@ const Home = () => {
 												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
 											>
 												<CredentialImage
+													vcEntity={vcEntity}
 													vcEntityInstances={vcEntity.instances}
 													parsedCredential={vcEntity.parsedCredential}
 													className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''}`}

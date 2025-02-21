@@ -126,17 +126,17 @@ export function useTokenRequest() {
 			httpHeaders
 		);
 
-		if (response.err) {
-			const { err } = response;
-			console.error("Failed token request", err);
+		if (response.status !== 200) {
 
-			if (err.headers?.['dpop-nonce']) {
-				httpHeaders['dpop-nonce'] = err.headers['dpop-nonce'];
+			console.error("Failed token request");
+
+			if (response.headers?.['dpop-nonce']) {
+				httpHeaders['dpop-nonce'] = response.headers['dpop-nonce'];
 				return execute();
 			}
 
-			if (err.data?.error === "authorization_required") {
-				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: err.data };
+			if (response?.data?.["error"] === "authorization_required") {
+				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: response?.data };
 			}
 
 			return { error: TokenRequestError.FAILED };
@@ -144,11 +144,11 @@ export function useTokenRequest() {
 
 		return {
 			response: {
-				access_token: response.data.access_token,
-				c_nonce: response.data.c_nonce,
-				c_nonce_expires_in: response.data.c_nonce_expires_in,
-				expires_in: response.data.expires_in,
-				refresh_token: response.data?.refresh_token,
+				access_token: response.data?.["access_token"],
+				c_nonce: response.data?.["c_nonce"],
+				c_nonce_expires_in: response.data?.["c_nonce_expires_in"],
+				expires_in: response.data?.["expires_in"],
+				refresh_token: response.data?.["refresh_token"],
 				httpResponseHeaders: {
 					...response.headers,
 				},

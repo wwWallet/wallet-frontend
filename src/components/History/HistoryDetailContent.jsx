@@ -11,38 +11,49 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 
 import useScreenType from '../../hooks/useScreenType';
 
+import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
+import { useHttpProxy } from '../../lib/services/HttpProxy/HttpProxy';
+import { CredentialVerificationError } from "core/dist/error";
+
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
-	const [parsedCredentials, setParsedCredentials] = useState([]);
+	const [vcEntities, setVcEntities] = useState([]);
 	const { parseCredential } = useContext(CredentialParserContext);
 	const screenType = useScreenType();
-
+	const httpProxy = useHttpProxy();
 	// Parse all the credentials when historyItem changes
 	useEffect(() => {
 		const parseAllCredentials = async () => {
-			const parsed = await Promise.all(
+			Promise.all(
 				historyItem.map(async (credential) => {
-					const parsed = await parseCredential(credential);
-					return parsed; // Store each parsed credential
+					const parsedCredential = await parseCredential(credential);
+					const credentialEngine = initializeCredentialEngine(httpProxy);
+					const result = await credentialEngine.verifyingEngine.verify({ rawCredential: credential, opts: {} });
+
+					const newVcEntity = {
+						parsedCredential: parsedCredential,
+						credential: credential,
+						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
+					};
+					setVcEntities((currentArray) => [...currentArray, newVcEntity]);
 				})
 			);
-			setParsedCredentials(parsed);
 		};
 
 		// Parse credentials on historyItem change
 		if (historyItem.length > 0) {
 			parseAllCredentials();
 		}
-	}, [historyItem, parseCredential]);
+	}, [historyItem, parseCredential, httpProxy]);
 
-	const renderSlideContent = (parsedCredential, index) => (
+	const renderSlideContent = (vcEntity, index) => (
 		<div
 			key={index}
 			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"
-			aria-label={parsedCredential.credentialFriendlyName}
-			title={parsedCredential.credentialFriendlyName}
+			aria-label={vcEntity.parsedCredential.credentialFriendlyName}
+			title={vcEntity.parsedCredential.credentialFriendlyName}
 		>
-			<CredentialImage parsedCredential={parsedCredential} showRibbon={false} className="w-full h-full rounded-xl" />
+			<CredentialImage vcEntity={vcEntity} showRibbon={false} className="w-full h-full rounded-xl" />
 		</div>
 	);
 
@@ -50,16 +61,16 @@ const HistoryDetailContent = ({ historyItem }) => {
 		<div className="py-2 w-full">
 			<div className="px-2">
 				<Slider
-					items={parsedCredentials}
+					items={vcEntities}
 					renderSlideContent={renderSlideContent}
 					onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
 				/>
 			</div>
 
 			{/* Render details of the currently selected credential */}
-			{parsedCredentials[currentSlide - 1] && (
+			{vcEntities[currentSlide - 1] && (
 				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
-					<CredentialInfo parsedCredential={parsedCredentials[currentSlide - 1]} />
+					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1]} />
 				</div>
 			)}
 		</div>

@@ -1,4 +1,4 @@
 export interface IHttpProxy {
-	get(url: string, headers: any): Promise<any>;
-	post(url: string, body: any, headers: any): Promise<any>;
+	get(url: string, headers?: Record<string, unknown>): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
+	post(url: string, body: any, headers?: Record<string, unknown>): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
 }
