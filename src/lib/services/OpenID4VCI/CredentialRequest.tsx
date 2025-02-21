@@ -159,12 +159,12 @@ export function useCredentialRequest() {
 
 		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
 
-		if (credentialResponse.err) {
-			console.log("Error: Credential response = ", JSON.stringify(credentialResponse.err));
-			if (credentialResponse.err.headers["www-authenticate"].includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.err.headers) {
+		if (credentialResponse.status !== 200) {
+			console.log("Error: Credential response = ", JSON.stringify(credentialResponse));
+			if ((credentialResponse.headers["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
 				console.log("Calling credentialRequest with new dpop-nonce....")
 
-				setDpopNonce(credentialResponse.err.headers["dpop-nonce"]);
+				setDpopNonce(credentialResponse.headers?.["dpop-nonce"] as string);
 				await setDpopHeader();
 				// response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
 				return await execute(credentialConfigurationId, proofsArray);

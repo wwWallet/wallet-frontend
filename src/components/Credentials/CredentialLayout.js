@@ -12,9 +12,6 @@ import { useVcEntity } from '../../hooks/useVcEntity';
 // Contexts
 import CredentialsContext from '../../context/CredentialsContext';
 
-//Functions
-import { CheckExpired } from '../../functions/CheckExpired';
-
 // Components
 import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
@@ -28,7 +25,6 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-	const [isExpired, setIsExpired] = useState(null);
 	const [zeroSigCount, setZeroSigCount] = useState(null)
 	const [sigTotal, setSigTotal] = useState(null);
 
@@ -39,9 +35,7 @@ const CredentialLayout = ({ children, title = null }) => {
 		if (vcEntity) {
 			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
 			setSigTotal(vcEntity.instances.length);
-			setIsExpired(CheckExpired(vcEntity.parsedCredential.beautifiedForm))
-			setCredentialFriendlyName(vcEntity.parsedCredential.credentialFriendlyName);
-
+			setCredentialFriendlyName(vcEntity.parsedCredential.metadata.credential.name);
 		}
 	}, [vcEntity]);
 
@@ -118,7 +112,7 @@ const CredentialLayout = ({ children, title = null }) => {
 
 				{screenType === 'mobile' && (
 					<>
-						{isExpired && (
+						{vcEntity.isExpired && (
 							<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
 								<div className="mr-2 text-orange-500">
 									<FaExclamationTriangle size={18} />
@@ -137,7 +131,7 @@ const CredentialLayout = ({ children, title = null }) => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage parsedCredential={vcEntity.parsedCredential} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
+						<CredentialImage vcEntity={vcEntity} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
 					}
 				/>
 			)}

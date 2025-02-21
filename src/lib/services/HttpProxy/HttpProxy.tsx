@@ -7,7 +7,7 @@ const walletBackendServerUrl = process.env.REACT_APP_WALLET_BACKEND_URL;
 
 export function useHttpProxy(): IHttpProxy {
 	const proxy = useMemo(() => ({
-		async get(url: string, headers: any): Promise<any> {
+		async get(url: string, headers: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }> {
 			try {
 				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 					headers: headers,
@@ -22,12 +22,16 @@ export function useHttpProxy(): IHttpProxy {
 				return response.data;
 			}
 			catch (err) {
-				return null;
+				return {
+					data: err.response.data.err.data,
+					headers: err.response.data.err.headers,
+					status: err.response.status
+				}
 			}
 
 		},
 
-		async post(url: string, body: any, headers: any): Promise<any> {
+		async post(url: string, body: any, headers: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }> {
 			try {
 				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 					headers: headers,
@@ -44,11 +48,9 @@ export function useHttpProxy(): IHttpProxy {
 			}
 			catch (err) {
 				return {
-					err: {
-						data: err.response.data.err.data,
-						headers: err.response.data.err.headers,
-						status: err.response.status
-					}
+					data: err.response.data.err.data,
+					headers: err.response.data.err.headers,
+					status: err.response.status
 				}
 			}
 		}
