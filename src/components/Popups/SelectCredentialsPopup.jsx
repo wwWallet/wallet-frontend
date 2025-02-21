@@ -8,7 +8,7 @@ import Button from '../Buttons/Button';
 import SessionContext from '../../context/SessionContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
-import CredentialParserContext from '../../context/CredentialParserContext';
+import CredentialParserContext from '@/context/CredentialParserContext';
 
 const formatTitle = (title) => {
 	if (title) {

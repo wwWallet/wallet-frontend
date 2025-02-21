@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 // Context
-import CredentialParserContext from '../../context/CredentialParserContext';
+import CredentialParserContext from '@/context/CredentialParserContext';
 
 // Components
 import Slider from '../Shared/Slider';

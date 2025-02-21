@@ -16,7 +16,7 @@ import { withCredentialsContext } from './context/CredentialsContextProvider';
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 import { withUriHandler } from './UriHandler';
-import { withCredentialParserContext } from './context/CredentialParserContext';
+import { withCredentialParserContext } from './context/CredentialParserProvider';
 import { withOpenID4VPContext } from './context/OpenID4VPContext';
 import { withOpenID4VCIContext } from './context/OpenID4VCIContext';
 import useNewCredentialListener from './hooks/useNewCredentialListener';
