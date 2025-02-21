@@ -1,6 +1,6 @@
 import React, { useState, useContext, createContext, useCallback } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
-import CredentialsContext from '../context/CredentialsContext';
+import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import { IOpenID4VP } from "../lib/interfaces/IOpenID4VP";
 

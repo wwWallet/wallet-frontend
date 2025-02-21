@@ -11,7 +11,7 @@ import NewCredentialNotification from './components/Notifications/NewCredentialN
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
-import { withCredentialsContext } from './context/CredentialsContext';
+import { withCredentialsContext } from './context/CredentialsProvider';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';

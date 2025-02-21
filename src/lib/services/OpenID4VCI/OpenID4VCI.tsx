@@ -10,7 +10,7 @@ import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
 import { useCallback, useContext, useMemo, useEffect, useRef } from 'react';
 import SessionContext from '../../../context/SessionContext';
-import CredentialsContext from '../../../context/CredentialsContext';
+import CredentialsContext from '@/context/CredentialsContext';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';

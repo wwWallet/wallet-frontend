@@ -10,7 +10,7 @@ import useScreenType from '../../hooks/useScreenType';
 import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Contexts
-import CredentialsContext from '../../context/CredentialsContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 // Components
 import { H1 } from '../Shared/Heading';

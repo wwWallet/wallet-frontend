@@ -6,17 +6,19 @@ import CredentialParserContext from "./CredentialParserContext";
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from 'core/dist/error';
 import { useHttpProxy } from '../lib/services/HttpProxy/HttpProxy';
-const CredentialsContext = createContext();
+import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
 
 export const CredentialsProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
-	const [vcEntityList, setVcEntityList] = useState(null);
-	const [latestCredentials, setLatestCredentials] = useState(new Set());
-	const [currentSlide, setCurrentSlide] = useState(1);
+	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
+	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());
+	const [currentSlide, setCurrentSlide] = useState<number>(1);
 	const { parseCredential } = useContext(CredentialParserContext);
 	const httpProxy = useHttpProxy();
 
-	const fetchVcData = useCallback(async (credentialId = null) => {
+	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
+		console.log('fetchVcData', credentialId)
+
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
@@ -63,7 +65,7 @@ export const CredentialsProvider = ({ children }) => {
 		return filteredVcEntityList;
 	}, [api, parseCredential, httpProxy]);
 
-	const updateVcListAndLatestCredentials = (vcEntityList) => {
+	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
 
 		setTimeout(() => {
@@ -88,7 +90,6 @@ export const CredentialsProvider = ({ children }) => {
 			const previousSize = previousVcList.vc_list.length;
 
 			const vcEntityList = await fetchVcData();
-
 			if (previousSize < vcEntityList.length) {
 				console.log('Found new credentials, stopping polling');
 				isPolling = false;
@@ -139,10 +140,8 @@ export const CredentialsProvider = ({ children }) => {
 	);
 };
 
-export const withCredentialsContext = (Component) =>
-	(props) => (
-		<CredentialsProvider>
-			<Component {...props} />
-		</CredentialsProvider>
-	);
-export default CredentialsContext;
+export const withCredentialsContext = (Component: React.ComponentType<any>) => (props: any) => (
+	<CredentialsProvider>
+		<Component {...props} />
+	</CredentialsProvider>
+);
