@@ -1,6 +1,7 @@
 {
   "exclude": [
-    "cli/"
+    "cli/",
+    "lib/"
   ],
   "include": [
     "src"

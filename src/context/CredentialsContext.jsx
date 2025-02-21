@@ -3,7 +3,9 @@ import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
 import CredentialParserContext from "./CredentialParserContext";
-
+import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
+import { CredentialVerificationError } from 'core/dist/error';
+import { useHttpProxy } from '../lib/services/HttpProxy/HttpProxy';
 const CredentialsContext = createContext();
 
 export const CredentialsProvider = ({ children }) => {
@@ -12,6 +14,7 @@ export const CredentialsProvider = ({ children }) => {
 	const [latestCredentials, setLatestCredentials] = useState(new Set());
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const { parseCredential } = useContext(CredentialParserContext);
+	const httpProxy = useHttpProxy();
 
 	const fetchVcData = useCallback(async (credentialId = null) => {
 		const response = await api.get('/storage/vc');
@@ -43,12 +46,14 @@ export const CredentialsProvider = ({ children }) => {
 				.map(async (vcEntity) => {
 					// Parse the credential to get parsedCredential
 					const parsedCredential = await parseCredential(vcEntity.credential);
-
+					const credentialEngine = initializeCredentialEngine(httpProxy);
+					const result = await credentialEngine.verifyingEngine.verify({ rawCredential: vcEntity.credential, opts: {} });
 					// Attach the instances array from the map and add parsedCredential
 					return {
 						...vcEntity,
 						instances: instancesMap[vcEntity.credentialIdentifier],
 						parsedCredential,
+						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
 					};
 				})
 		);
@@ -56,7 +61,7 @@ export const CredentialsProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api, parseCredential]);
+	}, [api, parseCredential, httpProxy]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
