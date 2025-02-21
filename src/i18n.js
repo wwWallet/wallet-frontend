@@ -14,7 +14,7 @@ const resources = {
 };
 
 // Check if multi-language display is enabled
-const isMultiLanguageEnabled = config.REACT_APP_MULTI_LANGUAGE_DISPLAY;
+const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 
 // Only keep the fallback language if multi-language is disabled
 const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
