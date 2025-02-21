@@ -12,9 +12,8 @@ export function VerifyingEngine(): VerifyingEngineI {
 			verifiers.push(credentialVerifier);
 		},
 
-		async verify({ rawCredential, format, opts }: {
+		async verify({ rawCredential, opts }: {
 			rawCredential: unknown,
-			format: VerifiableCredentialFormat,
 			opts: {
 				expectedNonce?: string;
 				expectedAudience?: string;
