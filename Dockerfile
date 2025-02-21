@@ -8,7 +8,7 @@ COPY .env.prod .env
 
 COPY lib/ ./lib/
 WORKDIR /home/node/app/lib/core
-RUN yarn cache clean -f && yarn install && yarn build --production
+RUN yarn cache clean -f && yarn install && yarn build && rm -rf node_modules && yarn install --production
 
 WORKDIR /home/node/app
 RUN yarn cache clean -f && yarn install
