@@ -8,7 +8,7 @@ import { H1 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
-import OpenID4VCIContext from '../../context/OpenID4VCIContext';
+import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);

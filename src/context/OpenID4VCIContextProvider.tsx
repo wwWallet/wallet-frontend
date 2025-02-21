@@ -1,15 +1,6 @@
-import React, { createContext } from "react";
-import { IOpenID4VCI } from "../lib/interfaces/IOpenID4VCI";
+import React from "react";
 import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
-
-
-export type OpenID4VPContextValue = {
-	openID4VCI: IOpenID4VCI;
-}
-
-const OpenID4VCIContext: React.Context<OpenID4VPContextValue> = createContext({
-	openID4VCI: null
-});
+import OpenID4VCIContext from "./OpenID4VCIContext";
 
 export const OpenID4VCIContextProvider = ({ children }) => {
 
@@ -31,4 +22,3 @@ export const withOpenID4VCIContext: <P>(component: React.ComponentType<P>) => Re
 			<Component {...props} />
 		</OpenID4VCIContextProvider>
 	);
-export default OpenID4VCIContext;
