@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
-import { StatusProvider } from './context/StatusContext';
+import { StatusProvider } from './context/StatusContextProvider';
 import { initializeDataSource } from './indexedDB';
 import * as firebaseSW from './firebase';
 import Modal from 'react-modal';

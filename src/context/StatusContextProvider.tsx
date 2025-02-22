@@ -1,26 +1,7 @@
-import React, { useEffect, createContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
-
-interface Connectivity {
-	navigatorOnline: boolean;
-	Internet: boolean;
-	speed: number;
-}
-
-interface StatusContextValue {
-	isOnline: boolean;
-	updateAvailable: boolean;
-	connectivity: Connectivity;
-	updateOnlineStatus: (forceCheck?: boolean) => Promise<void>;
-}
-
-const StatusContext = createContext<StatusContextValue>({
-	isOnline: null,
-	updateAvailable: false,
-	connectivity: { navigatorOnline: null, Internet: null, speed: 0 },
-	updateOnlineStatus: async () => { },
-});
+import StatusContext, {Connectivity} from './StatusContext';
 
 // Function to calculate speed based on RTT (lower RTT means higher speed)
 function calculateNetworkSpeed(rtt: number): number {
@@ -188,5 +169,3 @@ export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
 		</StatusContext.Provider>
 	);
 };
-
-export default StatusContext;
