@@ -7,7 +7,7 @@ import { getPublicKeyFromB64Cert } from "../utils/pki";
 import { useHttpProxy } from "./HttpProxy/HttpProxy";
 import { useCallback, useContext, useEffect, useState, useMemo } from "react";
 import StatusContext from "../../context/StatusContext";
-import SessionContext from "../../context/SessionContext";
+import SessionContext from "@/context/SessionContext";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();

@@ -9,7 +9,7 @@ import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize } from '../../util';
 
 import StatusContext from '../../context/StatusContext';
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 
 import * as config from '../../config';
 import Button from '../../components/Buttons/Button';

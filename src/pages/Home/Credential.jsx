@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 
 // Contexts
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
 
 // Hooks

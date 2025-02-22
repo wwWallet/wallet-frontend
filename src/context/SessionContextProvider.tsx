@@ -1,24 +1,10 @@
 import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 
 import StatusContext from './StatusContext';
-import { BackendApi, useApi } from '../api';
+import { useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
-import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
-
-type SessionContextValue = {
-	api: BackendApi,
-	isLoggedIn: boolean,
-	keystore: LocalStorageKeystore,
-	logout: () => Promise<void>,
-};
-
-const SessionContext: React.Context<SessionContextValue> = createContext({
-	api: undefined,
-	isLoggedIn: false,
-	keystore: undefined,
-	logout: async () => { },
-});
+import SessionContext, { SessionContextValue } from './SessionContext';
 
 export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
@@ -82,5 +68,3 @@ export const withSessionContext: <P>(component: React.ComponentType<P>) => React
 			<Component {...props} />
 		</SessionContextProvider>
 	);
-
-export default SessionContext;

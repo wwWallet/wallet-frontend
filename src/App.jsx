@@ -4,7 +4,7 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 
 import i18n from './i18n';
-import { withSessionContext } from './context/SessionContext';
+import { withSessionContext } from './context/SessionContextProvider';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
