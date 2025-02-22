@@ -61,10 +61,3 @@ export const SessionContextProvider = ({ children }) => {
 		</SessionContext.Provider>
 	);
 };
-
-export const withSessionContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<SessionContextProvider>
-			<Component {...props} />
-		</SessionContextProvider>
-	);

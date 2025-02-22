@@ -15,10 +15,3 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 		</OpenID4VCIContext.Provider>
 	);
 }
-
-export const withOpenID4VCIContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<OpenID4VCIContextProvider>
-			<Component {...props} />
-		</OpenID4VCIContextProvider>
-	);

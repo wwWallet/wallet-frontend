@@ -1,24 +1,18 @@
+// App.jsx
 import React, { Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
+
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
-
 import i18n from './i18n';
-import { withSessionContext } from './context/SessionContextProvider';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
-import { withCredentialsContext } from './context/CredentialsContextProvider';
-
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
-import { withUriHandler } from './UriHandler';
-import { withCredentialParserContext } from './context/CredentialParserProvider';
-import { withOpenID4VPContext } from './context/OpenID4VPContextProvider';
-import { withOpenID4VCIContext } from './context/OpenID4VCIContextProvider';
 import useNewCredentialListener from './hooks/useNewCredentialListener';
 import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
@@ -141,16 +135,4 @@ function App() {
 	);
 }
 
-export default withSessionContext(
-	withCredentialParserContext(
-		withCredentialsContext(
-			withOpenID4VPContext(
-				withOpenID4VCIContext(
-					withUriHandler(
-						App
-					)
-				)
-			)
-		)
-	)
-);
+export default App;

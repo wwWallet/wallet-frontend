@@ -1,13 +1,14 @@
+// Index.jsx
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
-import { StatusContextProvider } from './context/StatusContextProvider';
 import { initializeDataSource } from './indexedDB';
 import * as firebaseSW from './firebase';
 import Modal from 'react-modal';
 import './index.css';
 import { BrowserRouter } from "react-router-dom";
+import AppProvider from './AppProvider';
 
 // Set root element for react-modal
 Modal.setAppElement('#root');
@@ -22,11 +23,11 @@ initializeDataSource()
 // Create root and render app
 const root = createRoot(document.getElementById('root'));
 root.render(
-	<StatusContextProvider>
-		<BrowserRouter>
+	<BrowserRouter>
+		<AppProvider>
 			<App />
-		</BrowserRouter>
-	</StatusContextProvider>
+		</AppProvider>
+	</BrowserRouter>
 );
 
 firebaseSW.register()

@@ -139,9 +139,3 @@ export const CredentialsContextProvider = ({ children }) => {
 		</CredentialsContext.Provider>
 	);
 };
-
-export const withCredentialsContext = (Component: React.ComponentType<any>) => (props: any) => (
-	<CredentialsContextProvider>
-		<Component {...props} />
-	</CredentialsContextProvider>
-);

@@ -1,17 +1,15 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
-import checkForUpdates from "./offlineUpdateSW";
-import StatusContext from "./context/StatusContext";
-import SessionContext from "./context/SessionContext";
+import checkForUpdates from "../offlineUpdateSW";
+import StatusContext from "../context/StatusContext";
+import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import { HandleAuthorizationRequestError } from "./lib/interfaces/IOpenID4VP";
-import OpenID4VCIContext from "./context/OpenID4VCIContext";
-import OpenID4VPContext from "./context/OpenID4VPContext";
+import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
+import OpenID4VCIContext from "../context/OpenID4VCIContext";
+import OpenID4VPContext from "../context/OpenID4VPContext";
 
-const MessagePopup = React.lazy(() => import('./components/Popups/MessagePopup'));
-const PinInputPopup = React.lazy(() => import('./components/Popups/PinInput'));
-
-
+const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
+const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandler = ({ children }) => {
 	const { updateOnlineStatus } = useContext(StatusContext);
@@ -133,11 +131,4 @@ export const UriHandler = ({ children }) => {
 	);
 }
 
-
-export const withUriHandler: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<UriHandler>
-			<Component {...props} />
-		</UriHandler>
-	);
-export default withUriHandler;
+export default UriHandler;

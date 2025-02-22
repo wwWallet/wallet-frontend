@@ -47,10 +47,3 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		</OpenID4VPContext.Provider>
 	);
 }
-
-export const withOpenID4VPContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<OpenID4VPContextProvider>
-			<Component {...props} />
-		</OpenID4VPContextProvider>
-	);

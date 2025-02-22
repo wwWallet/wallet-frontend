@@ -34,9 +34,3 @@ export const CredentialParserContextProvider = ({ children }) => {
 	);
 }
 
-export const withCredentialParserContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<CredentialParserContextProvider>
-			<Component {...props} />
-		</CredentialParserContextProvider>
-	);
