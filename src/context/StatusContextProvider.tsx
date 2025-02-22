@@ -35,7 +35,7 @@ function getNavigatorOnlineStatus(): boolean {
 	return navigator.onLine;
 }
 
-export const StatusProvider = ({ children }: { children: React.ReactNode }) => {
+export const StatusContextProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isOnline, setIsOnline] = useState<boolean | null>(null);
 	const [updateAvailable, setUpdateAvailable] = useState(false);
 	const [connectivity, setConnectivity] = useState<Connectivity>({

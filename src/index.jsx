@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
-import { StatusProvider } from './context/StatusContextProvider';
+import { StatusContextProvider } from './context/StatusContextProvider';
 import { initializeDataSource } from './indexedDB';
 import * as firebaseSW from './firebase';
 import Modal from 'react-modal';
@@ -22,11 +22,11 @@ initializeDataSource()
 // Create root and render app
 const root = createRoot(document.getElementById('root'));
 root.render(
-	<StatusProvider>
+	<StatusContextProvider>
 		<BrowserRouter>
 			<App />
 		</BrowserRouter>
-	</StatusProvider>
+	</StatusContextProvider>
 );
 
 firebaseSW.register()
