@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { ParsedCredential } from "core/dist/types";
-import { useHttpProxy } from "../lib/services/HttpProxy/HttpProxy";
+import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import CredentialParserContext from "./CredentialParserContext";
 

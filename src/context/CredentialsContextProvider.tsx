@@ -5,7 +5,7 @@ import { compareBy, reverse } from '../util';
 import CredentialParserContext from './CredentialParserContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from 'core/dist/error';
-import { useHttpProxy } from '../lib/services/HttpProxy/HttpProxy';
+import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
 
 export const CredentialsContextProvider = ({ children }) => {

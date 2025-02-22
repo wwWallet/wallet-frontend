@@ -12,7 +12,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import useScreenType from '../../hooks/useScreenType';
 
 import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
-import { useHttpProxy } from '../../lib/services/HttpProxy/HttpProxy';
+import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { CredentialVerificationError } from "core/dist/error";
 
 const HistoryDetailContent = ({ historyItem }) => {
