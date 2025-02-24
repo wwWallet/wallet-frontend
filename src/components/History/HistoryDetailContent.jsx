@@ -70,7 +70,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 			{/* Render details of the currently selected credential */}
 			{vcEntities[currentSlide - 1] && (
 				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
-					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1]} />
+					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} />
 				</div>
 			)}
 		</div>
