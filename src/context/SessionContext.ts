@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
+import React, { createContext } from 'react';
 
 import { BackendApi } from '../api';
 import type { LocalStorageKeystore } from '../services/LocalStorageKeystore';
