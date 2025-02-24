@@ -7,7 +7,7 @@ const ExpiredRibbon = ({ vcEntity }) => {
 
 	return (
 		<>
-			{vcEntity.isExpired &&
+			{vcEntity && vcEntity.isExpired &&
 				<div className={`absolute bottom-0 right-0 text-white text-xs py-1 px-3 rounded-tl-lg rounded-br-2xl border-t border-l border-white ${vcEntity.isExpired ? 'bg-red-600' : 'bg-green-500'}`}>
 					{t('expiredRibbon.expired')}
 				</div>
