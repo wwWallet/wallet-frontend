@@ -4,7 +4,7 @@ import { IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MdNotifications } from "react-icons/md";
-import StatusContext from '../../../context/StatusContext';
+import StatusContext from '@/context/StatusContext';
 import { BsQrCodeScan } from 'react-icons/bs';
 import { useQRScanner } from '../../../hooks/useQRScanner';
 import QRCodeScanner from '../../QRCodeScanner/QRCodeScanner';

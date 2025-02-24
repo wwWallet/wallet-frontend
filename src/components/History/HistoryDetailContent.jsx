@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 // Context
-import CredentialParserContext from '../../context/CredentialParserContext';
+import CredentialParserContext from '@/context/CredentialParserContext';
 
 // Components
 import Slider from '../Shared/Slider';
@@ -12,7 +12,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import useScreenType from '../../hooks/useScreenType';
 
 import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
-import { useHttpProxy } from '../../lib/services/HttpProxy/HttpProxy';
+import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { CredentialVerificationError } from "core/dist/error";
 
 const HistoryDetailContent = ({ historyItem }) => {
@@ -70,7 +70,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 			{/* Render details of the currently selected credential */}
 			{vcEntities[currentSlide - 1] && (
 				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
-					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1]} />
+					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} />
 				</div>
 			)}
 		</div>

@@ -10,7 +10,7 @@ import useScreenType from '../../hooks/useScreenType';
 import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Contexts
-import CredentialsContext from '../../context/CredentialsContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 // Components
 import { H1 } from '../Shared/Heading';
@@ -112,7 +112,7 @@ const CredentialLayout = ({ children, title = null }) => {
 
 				{screenType === 'mobile' && (
 					<>
-						{vcEntity.isExpired && (
+						{vcEntity?.isExpired && (
 							<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
 								<div className="mr-2 text-orange-500">
 									<FaExclamationTriangle size={18} />

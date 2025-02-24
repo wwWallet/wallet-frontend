@@ -1,7 +1,7 @@
 import { useContext, useCallback, useMemo } from "react";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
 import { OpenID4VCIClientState } from "../types/OpenID4VCIClientState";
-import SessionContext from "../../context/SessionContext";
+import SessionContext from "@/context/SessionContext";
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 

@@ -1,18 +1,8 @@
-import React, { createContext, useCallback } from "react";
+import React, { useCallback } from "react";
 import { ParsedCredential } from "core/dist/types";
-import { useHttpProxy } from "../lib/services/HttpProxy/HttpProxy";
+import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
-
-export type CredentialParserContextValue = {
-	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
-
-}
-
-const CredentialParserContext: React.Context<CredentialParserContextValue> = createContext({
-	parseCredential: async () => null,
-});
-
-
+import CredentialParserContext from "./CredentialParserContext";
 
 export const CredentialParserContextProvider = ({ children }) => {
 
@@ -30,15 +20,12 @@ export const CredentialParserContextProvider = ({ children }) => {
 			}
 			return null;
 		}
-		catch(err) {
+		catch (err) {
 			console.error(err);
 			return null;
 		}
 
 	}, [httpProxy]);
-
-
-
 
 	return (
 		<CredentialParserContext.Provider value={{ parseCredential }}>
@@ -47,10 +34,3 @@ export const CredentialParserContextProvider = ({ children }) => {
 	);
 }
 
-export const withCredentialParserContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<CredentialParserContextProvider>
-			<Component {...props} />
-		</CredentialParserContextProvider>
-	);
-export default CredentialParserContext;

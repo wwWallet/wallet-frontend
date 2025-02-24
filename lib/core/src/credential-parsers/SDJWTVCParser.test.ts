@@ -30,6 +30,7 @@ describe("The SDJWTVCParser", () => {
 
 		const parsedCredential = await parser.parse({ rawCredential });
 		assert(parsedCredential.success);
+		assert(parsedCredential.value.validityInfo.validUntil?.toISOString() === new Date("2026-01-29T14:34:06.000Z").toISOString());
 	})
 
 	it("should detect expired vc+sd-jwt credential", async () => {

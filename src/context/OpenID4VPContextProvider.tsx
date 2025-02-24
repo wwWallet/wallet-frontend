@@ -1,16 +1,8 @@
-import React, { useState, useContext, createContext, useCallback } from "react";
+import React, { useState, useContext, useCallback } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
-import CredentialsContext from '../context/CredentialsContext';
+import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
-import { IOpenID4VP } from "../lib/interfaces/IOpenID4VP";
-
-export type OpenID4VPContextValue = {
-	openID4VP: IOpenID4VP;
-}
-
-const OpenID4VPContext: React.Context<OpenID4VPContextValue> = createContext({
-	openID4VP: null
-});
+import OpenID4VPContext from "./OpenID4VPContext";
 
 export const OpenID4VPContextProvider = ({ children }) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
@@ -55,11 +47,3 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		</OpenID4VPContext.Provider>
 	);
 }
-
-export const withOpenID4VPContext: <P>(component: React.ComponentType<P>) => React.ComponentType<P> = (Component) =>
-	(props) => (
-		<OpenID4VPContextProvider>
-			<Component {...props} />
-		</OpenID4VPContextProvider>
-	);
-export default OpenID4VPContext;

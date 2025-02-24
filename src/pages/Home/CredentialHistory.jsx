@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 // Contexts
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';

@@ -8,8 +8,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import type { CachedUser } from '../../services/LocalStorageKeystore';
 import { calculateByteSize } from '../../util';
 
-import StatusContext from '../../context/StatusContext';
-import SessionContext from '../../context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+import SessionContext from '@/context/SessionContext';
 
 import * as config from '../../config';
 import Button from '../../components/Buttons/Button';

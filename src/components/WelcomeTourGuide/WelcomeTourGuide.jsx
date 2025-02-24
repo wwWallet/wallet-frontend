@@ -3,7 +3,7 @@ import Tour from 'reactour';
 import { useTranslation } from 'react-i18next';
 
 import useScreenType from '../../hooks/useScreenType';
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 
 import WelcomeModal from './WecomeModal';
 import Button from '../Buttons/Button';
