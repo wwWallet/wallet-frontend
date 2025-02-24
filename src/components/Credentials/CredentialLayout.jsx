@@ -112,7 +112,7 @@ const CredentialLayout = ({ children, title = null }) => {
 
 				{screenType === 'mobile' && (
 					<>
-						{vcEntity && vcEntity.isExpired && (
+						{vcEntity?.isExpired && (
 							<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
 								<div className="mr-2 text-orange-500">
 									<FaExclamationTriangle size={18} />
