@@ -4,8 +4,14 @@ import { DataItem, DeviceSignedDocument, parse } from "@auth0/mdl";
 import { fromBase64Url } from "../utils/util";
 import { ParsedCredential, VerifiableCredentialFormat } from "../types";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
+import { IssuerSigned } from "@auth0/mdl/lib/mdoc/model/types";
 
 export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }): CredentialParser {
+
+
+	function extractValidityInfo(issuerSigned: IssuerSigned): { validUntil?: Date, validFrom?: Date, signed?: Date } {
+		return issuerSigned.issuerAuth.decodedPayload.validityInfo;
+	}
 
 	async function deviceResponseParser(rawCredential: string): Promise<ParsedCredential | null> {
 		try {
@@ -30,6 +36,9 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 				signedClaims: {
 					...attrValues
 				},
+				validityInfo: {
+					...extractValidityInfo(parsedDocument.issuerSigned),
+				}
 			}
 		}
 		catch (err) {
@@ -74,6 +83,9 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 				signedClaims: {
 					...attrValues
 				},
+				validityInfo: {
+					...extractValidityInfo(parsedDocument.issuerSigned),
+				}
 			}
 
 		}

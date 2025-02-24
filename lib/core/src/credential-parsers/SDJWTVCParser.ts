@@ -11,6 +11,30 @@ import { fromBase64 } from "../utils/util";
 export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }): CredentialParser {
 	const encoder = new TextEncoder();
 
+	function extractValidityInfo(jwtPayload: { exp?: number, iat?: number, nbf?: number }): { validUntil?: Date, validFrom?: Date, signed?: Date } {
+		let obj = {};
+		if (jwtPayload.exp) {
+			obj = {
+				...obj,
+				validUntil: new Date(jwtPayload.exp * 1000),
+			}
+		}
+		if (jwtPayload.iat) {
+			obj = {
+				...obj,
+				signed: new Date(jwtPayload.iat * 1000),
+			}
+		}
+
+		if (jwtPayload.nbf) {
+			obj = {
+				...obj,
+				validFrom: new Date(jwtPayload.nbf * 1000),
+			}
+		}
+		return obj;
+	}
+
 	// Encoding the string into a Uint8Array
 	const hasherAndAlgorithm: HasherAndAlgorithm = {
 		hasher: (input: string) => {
@@ -79,12 +103,6 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 				}
 			}
 
-			if ('exp' in parsedClaims &&
-				typeof parsedClaims.exp === 'number' &&
-				Math.floor(Date.now() / 1000) + args.context.clockTolerance > parsedClaims.exp) {
-
-			}
-
 			// const response = await args.httpClient.get<unknown>(`${parsedClaims.iss}/.well-known/openid-credential-issuer`).catch(() => null);
 
 			let credentialFriendlyName: string | null = null;
@@ -126,6 +144,9 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 							id: parsedClaims.iss,
 							name: parsedClaims.iss,
 						}
+					},
+					validityInfo: {
+						...extractValidityInfo(parsedClaims)
 					}
 				}
 			}

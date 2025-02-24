@@ -36,6 +36,8 @@ describe("The MsoMdocParser", () => {
 		assert(parsedDeviceResponse.value.signedClaims["family_name"] === "MUSTERMANN");
 		assert(parsedDeviceResponse.value.signedClaims["given_name"] === "ERIKA");
 		assert((parsedDeviceResponse.value.signedClaims["birth_date"] as Date).toISOString() === new Date("1964-08-12T00:00:00.000Z").toISOString());
+		assert(parsedDeviceResponse.value.validityInfo.signed?.toISOString() === new Date("2025-02-18T14:12:04.000Z").toISOString());
+		assert(parsedDeviceResponse.value.validityInfo.validUntil?.toISOString() === new Date("2025-03-04T14:12:04.000Z").toISOString());
 
 	});
 
