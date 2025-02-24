@@ -26,5 +26,10 @@ export type ParsedCredential = {
 		},
 		issuer: CredentialIssuer,
 	},
+	validityInfo: {
+		validUntil?: Date,
+		validFrom?: Date,
+		signed?: Date,
+	}
 	signedClaims: CredentialClaims,
 };
