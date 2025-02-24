@@ -4,8 +4,8 @@ import { FaInfoCircle } from 'react-icons/fa';
 import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 
-import StatusContext from '../../context/StatusContext';
-import SessionContext from '../../context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+import SessionContext from '@/context/SessionContext';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import Button from '../../components/Buttons/Button';

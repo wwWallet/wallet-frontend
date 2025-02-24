@@ -3,7 +3,7 @@ import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
-import SessionContext from "../../../context/SessionContext";
+import SessionContext from "@/context/SessionContext";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 
 export function useCredentialRequest() {

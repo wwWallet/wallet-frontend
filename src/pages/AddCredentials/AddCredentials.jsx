@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import StatusContext from '../../context/StatusContext';
-import SessionContext from '../../context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+import SessionContext from '@/context/SessionContext';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
-import OpenID4VCIContext from '../../context/OpenID4VCIContext';
+import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);

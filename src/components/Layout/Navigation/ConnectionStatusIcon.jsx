@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import StatusContext from '../../../context/StatusContext';
+import StatusContext from '@/context/StatusContext';
 import { FaXmark } from "react-icons/fa6";
 
 const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => {

@@ -6,8 +6,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import useScreenType from '../../../hooks/useScreenType';
 import Logo from '../../Logo/Logo';
 import { Trans, useTranslation } from 'react-i18next';
-import StatusContext from '../../../context/StatusContext';
-import SessionContext from '../../../context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+import SessionContext from '@/context/SessionContext';
 import { MdNotifications } from "react-icons/md";
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 

@@ -5,8 +5,8 @@ import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
 import { MdNotifications } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 
-import StatusContext from '../../context/StatusContext';
-import SessionContext from '../../context/SessionContext';
+import StatusContext from '@/context/StatusContext';
+import SessionContext from '@/context/SessionContext';
 
 import useScreenType from '../../hooks/useScreenType';
 

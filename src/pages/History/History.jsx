@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // Context
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';

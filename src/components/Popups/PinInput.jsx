@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import SessionContext from '../../context/SessionContext';
+import SessionContext from '@/context/SessionContext';
 import PopupLayout from './PopupLayout';
 
 function PinInput({ isOpen, setIsOpen }) {

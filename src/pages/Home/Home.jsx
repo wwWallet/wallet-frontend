@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 // Contexts
-import SessionContext from '../../context/SessionContext';
-import CredentialsContext from '../../context/CredentialsContext';
+import SessionContext from '@/context/SessionContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';

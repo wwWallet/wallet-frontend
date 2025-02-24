@@ -13,8 +13,8 @@ import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
-import SessionContext from "../../../context/SessionContext";
-import CredentialParserContext from "../../../context/CredentialParserContext";
+import SessionContext from "@/context/SessionContext";
+import CredentialParserContext from "@/context/CredentialParserContext";
 
 export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
 
