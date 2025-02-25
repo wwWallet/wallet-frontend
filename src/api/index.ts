@@ -169,8 +169,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 	async function fetchInitialData(appToken: string, userUuid: string): Promise<void> {
 		try {
-			await get('/storage/vc', userUuid, { appToken });
-			await get('/storage/vp', userUuid, { appToken });
+			// get('/storage/vc') on home page ('/')
+			// get('/storage/vp') on home page ('/')
 			await get('/user/session/account-info', userUuid, { appToken });
 			await getExternalEntity('/verifier/all', { appToken }, false);
 			const response = await getExternalEntity('/issuer/all', { appToken }, false);
