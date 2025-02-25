@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import axios from 'axios';
 import { IHttpProxy } from '../../interfaces/IHttpProxy';
 
@@ -6,9 +6,14 @@ import { IHttpProxy } from '../../interfaces/IHttpProxy';
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 
 export function useHttpProxy(): IHttpProxy {
+	const cachedResponses = useRef<Map<string, { status: number, headers: Record<string, unknown>, data: unknown }>>(new Map());
+
 	const proxy = useMemo(() => ({
 		async get(url: string, headers: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }> {
 			try {
+				if ((url.endsWith(".svg") || url.endsWith(".png")) && cachedResponses.current.get(url)) {
+					return cachedResponses.current.get(url);
+				}
 				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 					headers: headers,
 					url: url,
@@ -19,6 +24,7 @@ export function useHttpProxy(): IHttpProxy {
 						Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
 					}
 				});
+				cachedResponses.current.set(url, response.data as { status: number, headers: Record<string, unknown>, data: unknown });
 				return response.data;
 			}
 			catch (err) {
