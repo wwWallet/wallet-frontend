@@ -14,7 +14,10 @@ const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 export const UriHandler = ({ children }) => {
 	const { updateOnlineStatus } = useContext(StatusContext);
 
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
+	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
+
+	const { isLoggedIn } = useContext(SessionContext);
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
@@ -35,16 +38,16 @@ export const UriHandler = ({ children }) => {
 	}, [location, updateOnlineStatus]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !url || !keystore || !t || !openID4VCI || !openID4VP) {
+		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP) {
 			return;
 		}
 
 		async function handle(urlToCheck: string) {
-			const userHandleB64u = keystore.getUserHandleB64u();
-			if (!userHandleB64u) {
-				return;
-			}
+
 			const u = new URL(urlToCheck);
+			if (u.searchParams.size === 0) return;
+			setUrl(window.location.origin);
+
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 				openID4VCI.handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
 					console.log("Generating authorization request...");
@@ -57,7 +60,9 @@ export const UriHandler = ({ children }) => {
 					.catch((err) => console.error(err));
 				return;
 			}
-			else if (u.searchParams.get('code')) {
+			else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code'))) {
+				setUsedAuthorizationCodes((codes) => [...codes, u.searchParams.get('code')]);
+
 				console.log("Handling authorization response...");
 				openID4VCI.handleAuthorizationResponse(u.toString()).then(() => {
 				}).catch(err => {
@@ -66,7 +71,8 @@ export const UriHandler = ({ children }) => {
 					console.error(err)
 				})
 			}
-			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri')) {
+			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
+				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
 				await openID4VP.handleAuthorizationRequest(u.toString()).then((result) => {
 					console.log("Result = ", result);
 					if ('err' in result) {
@@ -116,7 +122,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, t, keystore, isLoggedIn, openID4VCI, openID4VP]);
+	}, [url, t, isLoggedIn, openID4VCI, openID4VP]);
 
 	return (
 		<>
