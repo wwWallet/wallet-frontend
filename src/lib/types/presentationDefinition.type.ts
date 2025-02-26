@@ -15,6 +15,7 @@ export type InputDescriptorConstraintFieldType = {
 export type InputDescriptorType = {
 	id: string;
 	format?: string;
+	purpose?: string;
 	constraints: {
 		fields: InputDescriptorConstraintFieldType[];
 	}

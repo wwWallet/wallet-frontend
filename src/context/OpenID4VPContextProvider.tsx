@@ -32,8 +32,8 @@ export const OpenID4VPContextProvider = ({ children }) => {
 	}, []);
 
 	const showCredentialSelectionPopup = useCallback(
-		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string): Promise<Map<string, string>> => {
-			return showPopup({ conformantCredentialsMap, verifierDomainName });
+		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
+			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose });
 		},
 		[showPopup]
 	);

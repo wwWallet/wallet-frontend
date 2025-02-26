@@ -16,7 +16,7 @@ import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import CredentialParserContext from "@/context/CredentialParserContext";
 
-export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
@@ -47,14 +47,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 	);
 
 	const promptForCredentialSelection = useCallback(
-		async (conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> => {
-			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName);
+		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
+			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose);
 		},
 		[showCredentialSelectionPopup]
 	);
 
 	const handleAuthorizationRequest = useCallback(
-		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string } | { err: HandleAuthorizationRequestError }> => {
+		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { err: HandleAuthorizationRequestError }> => {
 			const authorizationRequest = new URL(url);
 			let client_id = authorizationRequest.searchParams.get('client_id');
 			let response_uri = authorizationRequest.searchParams.get('response_uri');
@@ -164,8 +164,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			));
 
 			const mapping = new Map<string, { credentials: string[], requestedFields: string[] }>();
+			let descriptorPurpose;
 			for (const descriptor of presentation_definition.input_descriptors) {
 				const conformingVcList = [];
+				descriptorPurpose = descriptor.purpose || "Purpose not specified by verifier";
+
 				for (const vc of vcList) {
 					try {
 
@@ -189,22 +192,19 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				if (conformingVcList.length === 0) {
 					return { err: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
 				}
-				const requestedFieldNames = descriptor.constraints.fields
-					.map((field) => {
-						if (field.name) {
-							return field.name;
-						}
-						return field.path[0];
-					})
-				mapping.set(descriptor.id, { credentials: [...conformingVcList], requestedFields: requestedFieldNames });
+
+				const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
+					name: field.name || field.path[0],
+					purpose: field.purpose || descriptorPurpose // Use field-specific purpose if available, otherwise fall back to descriptor-level
+				}));
+				mapping.set(descriptor.id, { credentials: [...conformingVcList], requestedFields: requestedFieldDetails });
 			}
 			const verifierDomainName = client_id.includes("http") ? new URL(client_id).hostname : client_id;
 			if (mapping.size === 0) {
 				console.log("Credentials don't satisfy any descriptor")
 				throw new Error("Credentials don't satisfy any descriptor");
 			}
-
-			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName };
+			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName, verifierPurpose: descriptorPurpose };
 		},
 		[httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
 	);

@@ -88,10 +88,10 @@ export const UriHandler = ({ children }) => {
 						}
 						return;
 					}
-					const { conformantCredentialsMap, verifierDomainName } = result;
+					const { conformantCredentialsMap, verifierDomainName, verifierPurpose } = result;
 					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
 					console.log("Prompting for selection..")
-					return openID4VP.promptForCredentialSelection(jsonedMap, verifierDomainName);
+					return openID4VP.promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose);
 				}).then((selection) => {
 					if (!(selection instanceof Map)) {
 						return;
