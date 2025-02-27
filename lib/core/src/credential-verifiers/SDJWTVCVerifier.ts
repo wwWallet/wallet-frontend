@@ -22,14 +22,33 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 		algorithm: HasherAlgorithm.Sha256
 	};
 
-	const getHolderPublicKey = async (rawCredential: string): Promise<Result<Uint8Array<ArrayBufferLike> | KeyLike, CredentialVerificationError>> => {
-		const credential = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
-		const parsedSdJwt = await SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm).getPrettyClaims();
-		const cnf = parsedSdJwt.cnf as Record<string, unknown>;
+	const parse = async (rawCredential: string) => {
+		try {
+			const credential = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+			const parsedSdJwtWithPrettyClaims = await SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm).getPrettyClaims();
+			return { credential, parsedSdJwtWithPrettyClaims };
+		}
+		catch (err) {
+			if (err instanceof Error) {
+				logError(CredentialVerificationError.InvalidFormat, "Invalid format. Error: " + err.name + ": " + err.message);
+			}
+			return CredentialVerificationError.InvalidFormat;
+		}
 
-		if (cnf.jwk && typeof credential.header["alg"] === 'string') {
+	}
+	const getHolderPublicKey = async (rawCredential: string): Promise<Result<Uint8Array<ArrayBufferLike> | KeyLike, CredentialVerificationError>> => {
+		const parseResult = await parse(rawCredential);
+		if (parseResult === CredentialVerificationError.InvalidFormat) {
+			return {
+				success: false,
+				error: CredentialVerificationError.InvalidFormat,
+			}
+		}
+		const cnf = parseResult.parsedSdJwtWithPrettyClaims.cnf as Record<string, unknown>;
+
+		if (cnf.jwk && typeof parseResult.credential.header["alg"] === 'string') {
 			try {
-				const holderPublicKey = await importJWK(cnf.jwk as JWK, credential.header["alg"]);
+				const holderPublicKey = await importJWK(cnf.jwk as JWK, parseResult.credential.header["alg"]);
 				return {
 					success: true,
 					value: holderPublicKey,
@@ -53,7 +72,24 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 
 
 	const verifyIssuerSignature = async (rawCredential: string): Promise<Result<{}, CredentialVerificationError>> => {
-		const parsedSdJwt = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+		const parsedSdJwt = (() => {
+			try {
+				return SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+			}
+			catch (err) {
+				if (err instanceof Error) {
+					logError(CredentialVerificationError.InvalidFormat, "Invalid format. Error: " + err.name + ": " + err.message);
+				}
+				return CredentialVerificationError.InvalidFormat;
+			}
+		})();
+		
+		if (parsedSdJwt === CredentialVerificationError.InvalidFormat) {
+			return {
+				success: false,
+				error: CredentialVerificationError.InvalidFormat
+			}
+		}
 
 		const getIssuerPublicKey = async (): Promise<Result<Uint8Array<ArrayBufferLike> | KeyLike, CredentialVerificationError>> => {
 			const x5c = parsedSdJwt.header["x5c"];

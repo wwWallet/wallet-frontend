@@ -84,11 +84,19 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 			}
 
 			let dataUri: string | null = null;
-			const parsedClaims: Record<string, unknown> | null = await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
-				.withHasher(hasherAndAlgorithm)
-				.getPrettyClaims()
-				.then((signedClaims) => signedClaims)
-				.catch(() => null);
+			const parsedClaims: Record<string, unknown> | null = await (async () => {
+				try {
+					return await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
+					.withHasher(hasherAndAlgorithm)
+					.getPrettyClaims()
+					.then((signedClaims) => signedClaims)
+					.catch(() => null);
+				}
+				catch(err) {
+					return null;
+				}
+
+			})();
 			if (parsedClaims === null) {
 				return {
 					success: false,

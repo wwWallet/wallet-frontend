@@ -27,6 +27,7 @@ export enum CredentialVerificationError {
 	InvalidDatatype = "InvalidDatatype",
 	InvalidFormat = "InvalidFormat",
 	MissingOpts = "MissingOpts",
+	InvalidCertificateChain = "InvalidCertificateChain",
 
 
 	InvalidSignature = "InvalidSignature",
