@@ -192,7 +192,7 @@ export const CredentialOfferHandler = ({
 				const issuerConfiguration = await getIssuerConfiguration(
 					issuer.endsWith('/') ? issuer.slice(0, -1) : issuer,
 					isOnline,
-					true
+					false
 				);
 
 				const metadata = 'metadata' in issuerConfiguration
