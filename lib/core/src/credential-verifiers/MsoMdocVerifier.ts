@@ -127,10 +127,12 @@ export function MsoMdocVerifier(args: { context: Context, pkResolverEngine: Publ
 				return { holderPublicKeyJwk: null };
 			}
 
-			const res = await parsedDocument.issuerSigned.issuerAuth.verifyX509(args.context.trustedCertificates);
-			if (!res) {
-				logError(CredentialVerificationError.NotTrustedIssuer, "Issuer is not trusted");
-				return { holderPublicKeyJwk: null };
+			if (args.context.trustedCertificates.length > 0) {
+				const res = await parsedDocument.issuerSigned.issuerAuth.verifyX509(args.context.trustedCertificates);
+				if (!res) {
+					logError(CredentialVerificationError.NotTrustedIssuer, "Issuer is not trusted");
+					return { holderPublicKeyJwk: null };
+				}
 			}
 
 			const expiredResult = await expirationCheck(parsedDocument.issuerSigned);
@@ -221,7 +223,7 @@ export function MsoMdocVerifier(args: { context: Context, pkResolverEngine: Publ
 				}
 			}
 
-
+			console.error(errors);
 
 
 			return {

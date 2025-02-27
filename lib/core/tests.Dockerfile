@@ -16,5 +16,3 @@ FROM builder-base AS test
 
 COPY . .
 RUN yarn vitest
-
-CMD yarn vitest
