@@ -60,7 +60,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				<tbody className="divide-y-4 divide-transparent">
 					{parsedCredential.signedClaims && (
 						<>
-							{renderRow('expdate', 'Expiration', formatDate(new Date(parsedCredential.signedClaims?.exp * 1000).toISOString()), screenType)}
+							{renderRow('expdate', 'Expiration', parsedCredential.signedClaims?.exp ? formatDate(new Date(parsedCredential.signedClaims?.exp * 1000).toISOString()) : null, screenType)}
 							{renderRow('familyName', 'Family Name', parsedCredential.signedClaims?.family_name, screenType)}
 							{renderRow('firstName', 'Given Name', parsedCredential.signedClaims?.given_name, screenType)}
 							{renderRow('id', 'Personal ID', parsedCredential.signedClaims?.personal_identifier, screenType)}
