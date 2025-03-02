@@ -17,7 +17,7 @@ const Issuers = () => {
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
-	const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
+	// const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useContext(OpenID4VCIContext);
@@ -30,23 +30,23 @@ const Issuers = () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
 				let fetchedIssuers = response.data;
+				const newIssuerList = [];
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
-						const issuerObject = {
-							...issuer,
-							selectedDisplay: metadata?.display?.filter((display) => display.locale === 'en-US')[0] ? metadata.display.filter((display) => display.locale === 'en-US')[0] : null,
-							credentialIssuerMetadata: metadata,
-						};
-
-						if (issuerObject.visible) {
-							setIssuers((currentArray) => {
-								if (currentArray.filter((iss) => iss.credentialIssuerMetadata.credential_issuer === issuerObject.credentialIssuerMetadata.credential_issuer).length === 0) {
-									return [...currentArray, issuerObject];
-								}
-								return [...currentArray];
-							});
-						}
+						Object.keys(metadata.credential_configurations_supported).forEach(key => {
+							const config = metadata.credential_configurations_supported[key];
+							const issuerWithConfig = {
+								...issuer,
+								id: `${issuer.id}-${config.vct}`,
+								configId: config.vct,
+								selectedDisplayName: `${metadata.display.filter((display) => display.locale === 'en-US')[0].name} - ${config.display.filter((display) => display.locale === 'en-US')[0].name}` || null,
+							};
+							if (issuerWithConfig.visible) {
+								newIssuerList.push(issuerWithConfig);
+							}
+						});
+						setIssuers(newIssuerList)
 					}
 					catch (err) {
 						console.error(err);
@@ -64,22 +64,20 @@ const Issuers = () => {
 		}
 	}, [api, isOnline, openID4VCIHelper]);
 
-	const handleIssuerClick = async (credentialIssuerIdentifier) => {
-		const clickedIssuer = issuers.find((issuer) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier);
+	const handleIssuerClick = async (id) => {
+		const clickedIssuer = issuers.find((issuer) => issuer.id === id);
 		if (clickedIssuer) {
-			const confs = await openID4VCI.getAvailableCredentialConfigurations(credentialIssuerIdentifier);
-			setAvailableCredentialConfigurations(confs);
 			setSelectedIssuer(clickedIssuer);
 			setShowRedirectPopup(true);
 		}
 	};
-
+ 
 	const handleCancel = () => {
 		setShowRedirectPopup(false);
 		setSelectedIssuer(null);
 	};
 
-	const handleContinue = (selectedConfigurationId) => {
+	const handleContinue = () => {
 		setLoading(true);
 
 		if (selectedIssuer && selectedIssuer.credentialIssuerIdentifier) {
@@ -88,7 +86,7 @@ const Issuers = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			openID4VCI.generateAuthorizationRequest(selectedIssuer.credentialIssuerIdentifier, selectedConfigurationId).then((result) => {
+			openID4VCI.generateAuthorizationRequest(selectedIssuer.credentialIssuerIdentifier, selectedIssuer.configId).then((result) => {
 				if ('url' in result) {
 					const { url } = result;
 					window.location.href = url;
@@ -113,9 +111,9 @@ const Issuers = () => {
 					<QueryableList
 						isOnline={isOnline}
 						list={issuers}
-						queryField='selectedDisplay.name'
+						queryField='selectedDisplayName'
 						translationPrefix='pageAddCredentials'
-						identifierField='credentialIssuerIdentifier'
+						identifierField='id'
 						onClick={handleIssuerClick}
 					/>
 				)}
@@ -126,9 +124,8 @@ const Issuers = () => {
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					availableCredentialConfigurations={availableCredentialConfigurations}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplay?.name ?? "Unknown"}`}
-					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.selectedDisplay?.name ?? "Unknown" })}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedIssuer?.selectedDisplayName ?? "Unknown"}`}
+					popupMessage={t('pageAddCredentials.popup.message', { issuerName: selectedIssuer?.selectedDisplayName ?? "Unknown" })}
 				/>
 			)}
 		</>
