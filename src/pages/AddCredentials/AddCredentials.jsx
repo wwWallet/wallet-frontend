@@ -17,7 +17,6 @@ const Issuers = () => {
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedIssuer, setSelectedIssuer] = useState(null);
 	const [loading, setLoading] = useState(false);
-	// const [availableCredentialConfigurations, setAvailableCredentialConfigurations] = useState(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useContext(OpenID4VCIContext);
@@ -25,7 +24,6 @@ const Issuers = () => {
 	const { t } = useTranslation();
 
 	useEffect(() => {
-		console.log("Starting to fetch issuers",openID4VCIHelper);
 		const fetchIssuers = async () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
