@@ -383,20 +383,6 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 		[httpProxy, openID4VCIHelper]
 	);
 
-	const getAvailableCredentialConfigurations = useCallback(
-		async (credentialIssuerIdentifier: string): Promise<Record<string, CredentialConfigurationSupported>> => {
-			console.log('getAvailableCredentialConfigurations')
-			const [credentialIssuerMetadata] = await Promise.all([
-				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier)
-			]);
-			if (!credentialIssuerMetadata.metadata?.credential_configurations_supported) {
-				throw new Error("Credential configuration supported not found")
-			}
-			return credentialIssuerMetadata.metadata?.credential_configurations_supported;
-		},
-		[openID4VCIHelper]
-	);
-
 	const generateAuthorizationRequest = useCallback(
 		async (credentialIssuerIdentifier: string, credentialConfigurationId: string, issuer_state?: string) => {
 			console.log('generateAuthorizationRequest')
@@ -467,13 +453,11 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 	return useMemo(() => {
 		return {
 			generateAuthorizationRequest,
-			getAvailableCredentialConfigurations,
 			handleCredentialOffer,
 			handleAuthorizationResponse
 		}
 	}, [
 		generateAuthorizationRequest,
-		getAvailableCredentialConfigurations,
 		handleCredentialOffer,
 		handleAuthorizationResponse
 	]);
