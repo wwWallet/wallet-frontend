@@ -37,9 +37,9 @@ type ArkgPublicSeed<BlPublicKey, KemPublicKey> = {
 	pubk_bl: BlPublicKey,
 	pubk_kem: KemPublicKey,
 }
-type ArkgPrivateSeed<BlPublicKey, KemPublicKey> = {
-	prik_bl: BlPublicKey,
-	prik_kem: KemPublicKey,
+type ArkgPrivateSeed<BlPrivateKey, KemPrivateKey> = {
+	prik_bl: BlPrivateKey,
+	prik_kem: KemPrivateKey,
 }
 
 type ArkgGenerateSeedFunction<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey> = (
