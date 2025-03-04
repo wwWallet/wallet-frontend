@@ -32,10 +32,12 @@ const Issuers = () => {
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
-						const configsLength = Object.keys(metadata.credential_configurations_supported).length;
+						const configs = await openID4VCI.getAvailableCredentialConfigurations(issuer.credentialIssuerIdentifier);
 
-						Object.keys(metadata.credential_configurations_supported).forEach(key => {
-							const config = metadata.credential_configurations_supported[key];
+						const configsLength = Object.keys(configs).length;
+
+						Object.keys(configs).forEach(key => {
+							const config = configs[key];
 
 							// Check if only one configuration supported
 							if (configsLength === 1) {
@@ -71,7 +73,6 @@ const Issuers = () => {
 				console.error('Error fetching issuers:', error);
 			}
 		};
-
 
 		if (openID4VCIHelper) {
 			console.log("Fetching issuers...")
