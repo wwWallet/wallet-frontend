@@ -18,6 +18,7 @@ import AddCredentialCard from '../../components/Credentials/AddCredentialCard';
 import HistoryList from '../../components/History/HistoryList';
 import Slider from '../../components/Shared/Slider';
 
+
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
 	const { api } = useContext(SessionContext);
@@ -43,9 +44,9 @@ const Home = () => {
 			key={vcEntity.id}
 			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 			onClick={() => { handleImageClick(vcEntity); }}
-			aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
+			aria-label={`${vcEntity?.parsedCredential?.metadata?.credential?.name}`}
 			tabIndex={currentSlide !== vcEntityList.indexOf(vcEntity) + 1 ? -1 : 0}
-			title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
+			title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: vcEntity?.parsedCredential?.metadata?.credential.name })}
 		>
 			<CredentialImage
 				vcEntity={vcEntity}
@@ -100,8 +101,8 @@ const Home = () => {
 												key={vcEntity.id}
 												className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 												onClick={() => handleImageClick(vcEntity)}
-												aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
-												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
+												aria-label={`${vcEntity?.parsedCredential?.metadata?.credential?.name}`}
+												title={t('pageCredentials.credentialDetailsTitle', { friendlyName: vcEntity?.parsedCredential?.metadata?.credential?.name })}
 											>
 												<CredentialImage
 													vcEntity={vcEntity}

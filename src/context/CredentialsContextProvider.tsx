@@ -35,7 +35,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		}, {});
 
 		// Filter and map the fetched list in one go
-		const filteredVcEntityList = await Promise.all(
+		let filteredVcEntityList = await Promise.all(
 			fetchedVcList
 				.filter((vcEntity) => {
 					// Apply filtering by credentialId if provided
@@ -48,6 +48,9 @@ export const CredentialsContextProvider = ({ children }) => {
 				.map(async (vcEntity) => {
 					// Parse the credential to get parsedCredential
 					const parsedCredential = await parseCredential(vcEntity.credential);
+					if (parsedCredential === null) { // filter out the non parsable credentials
+						return null;
+					}
 					const credentialEngine = initializeCredentialEngine(httpProxy);
 					const result = await credentialEngine.verifyingEngine.verify({ rawCredential: vcEntity.credential, opts: {} });
 					// Attach the instances array from the map and add parsedCredential
@@ -59,6 +62,7 @@ export const CredentialsContextProvider = ({ children }) => {
 					};
 				})
 		);
+		filteredVcEntityList = filteredVcEntityList.filter((vcEntity) => vcEntity !== null);
 
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
