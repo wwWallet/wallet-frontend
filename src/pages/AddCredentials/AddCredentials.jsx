@@ -32,16 +32,32 @@ const Issuers = () => {
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
+						const configsLength = Object.keys(metadata.credential_configurations_supported).length;
+
 						Object.keys(metadata.credential_configurations_supported).forEach(key => {
 							const config = metadata.credential_configurations_supported[key];
-							const issuerWithConfig = {
-								...issuer,
-								id: `${issuer.id}-${config.vct}`,
-								configId: config.vct,
-								selectedDisplayName: `${metadata.display.filter((display) => display.locale === 'en-US')[0].name} - ${config.display.filter((display) => display.locale === 'en-US')[0].name}` || null,
-							};
-							if (issuerWithConfig.visible) {
-								newIssuerList.push(issuerWithConfig);
+
+							// Check if only one configuration supported
+							if (configsLength === 1) {
+								const issuerWithConfig = {
+									...issuer,
+									id: issuer.id,
+									configId: config.vct,
+									selectedDisplayName: metadata.display.filter((display) => display.locale === 'en-US')[0].name || null,
+								};
+								if (issuerWithConfig.visible) {
+									newIssuerList.push(issuerWithConfig);
+								}
+							} else {
+								const issuerWithConfig = {
+									...issuer,
+									id: `${issuer.id}-${config.vct}`,
+									configId: config.vct,
+									selectedDisplayName: `${metadata.display.filter((display) => display.locale === 'en-US')[0].name} - ${config.display.filter((display) => display.locale === 'en-US')[0].name}` || null,
+								};
+								if (issuerWithConfig.visible) {
+									newIssuerList.push(issuerWithConfig);
+								}
 							}
 						});
 						setIssuers([...newIssuerList]);
@@ -56,6 +72,7 @@ const Issuers = () => {
 			}
 		};
 
+
 		if (openID4VCIHelper) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
@@ -69,7 +86,7 @@ const Issuers = () => {
 			setShowRedirectPopup(true);
 		}
 	};
- 
+
 	const handleCancel = () => {
 		setShowRedirectPopup(false);
 		setSelectedIssuer(null);
