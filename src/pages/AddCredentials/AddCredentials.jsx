@@ -34,6 +34,15 @@ const Issuers = () => {
 		return null;
 	}
 
+	const getIssuerDisplayMetadata = (issuerMetadata) => {
+		const selectedDisplayBasedOnLang = issuerMetadata.display.filter((d) => d.locale === 'en-US')[0];
+		if (selectedDisplayBasedOnLang) {
+			const { name, logo } = selectedDisplayBasedOnLang;
+			return { name, logo };
+		}
+		return null;
+	}
+
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
 		console.log("Selected issuer " , selectedIssuer)
@@ -77,7 +86,7 @@ const Issuers = () => {
 
 							const credentialConfiguration = {
 								identifierField: `${key}-${metadata.credential_issuer}`,
-								credentialConfigurationDisplayName: config?.display?.filter((d) => d.locale === 'en-US')[0]?.name ?? key,
+								credentialConfigurationDisplayName: `${config?.display?.filter((d) => d.locale === 'en-US')[0]?.name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
 
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
@@ -85,8 +94,6 @@ const Issuers = () => {
 							};
 
 
-							console.log("Adding configuration...")
-							console.log(credentialConfiguration)
 							setCredentialConfigurations((currentArray) => {
 								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
 									credentialConfigurationId === key
