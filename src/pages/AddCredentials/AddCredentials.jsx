@@ -44,7 +44,7 @@ const Issuers = () => {
 								newIssuerList.push(issuerWithConfig);
 							}
 						});
-						setIssuers(newIssuerList)
+						setIssuers([...newIssuerList]);
 					}
 					catch (err) {
 						console.error(err);
