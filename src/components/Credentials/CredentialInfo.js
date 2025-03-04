@@ -109,9 +109,15 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 
 			setCredentialFormat(VerifiableCredentialFormat.JWT_VC_JSON.toString());
 
-			const rows = supportedCredentialConfigurations[0].credential_definition.credentialSubject
-				? Object.entries(supportedCredentialConfigurations[0].credential_definition.credentialSubject)
-					.reduce(
+			const credentialSubjects = supportedCredentialConfigurations
+				.filter(config => c.beautifiedForm.type.includes(config.scope))
+				.map(config => Object.entries(config?.credential_definition?.credentialSubject || {}))
+				;
+			
+			const rows = credentialSubjects.reduce((prev, curr) => {
+				return [
+					...prev,
+					...curr.reduce(
 						(previous, [key, subject]) => {
 							const display = subject.display.find(d => d.locale === locale) || subject.display[0];
 							return [
@@ -125,7 +131,8 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 						},
 						[],
 					)
-				: [];
+				];
+			}, []);
 
 			setCredentialSubjectRows(rows);
 		}

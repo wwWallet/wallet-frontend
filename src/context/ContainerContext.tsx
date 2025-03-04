@@ -231,7 +231,7 @@ export const ContainerContextProvider = ({ children }) => {
 							iss = `https://agent.${domain}/${subDomain}`;
 						}
 
-						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, iss, shouldUseCache);
+						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, iss, false);
 						
 						if (!metadataResponse) {
 							return { error: 'No metadata response' };
@@ -252,18 +252,20 @@ export const ContainerContextProvider = ({ children }) => {
 						// @todo: make more dynamic using schema from credential context
 						const isOpenBadgeCredential = result.beautifiedForm.type.includes('OpenBadgeCredential');
 
-						const credentialConfiguration =
-							metadata.credential_configurations_supported[result.beautifiedForm.name.replaceAll(' ', '')] ||
-							Object.values(metadata.credential_configurations_supported)[0];
+						const credentialConfiguration: Record<string, any> = (Object.entries(metadata.credential_configurations_supported).find(([key]) => result.beautifiedForm.type.includes(key)) || []).pop() as unknown as Record<string, any>;
 						const credentialFriendlyName = isOpenBadgeCredential
 							? result.beautifiedForm.credentialSubject.achievement.name
-							: credentialConfiguration?.display?.[0]?.name || 'Credential';
+							: result.beautifiedForm.name || credentialConfiguration?.display?.[0]?.name || 'Credential';
 
 						if (credentialConfiguration) {
-							const display = credentialConfiguration?.display?.[0] || {};
+							const display =
+								credentialConfiguration?.display?.find((d) => (d.locale || '').split('-')[0] === defaultLocale.split('-')[0]) ||
+								credentialConfiguration?.display?.[0] ||
+								{};
+
 							let description = isOpenBadgeCredential
 								? result.beautifiedForm.credentialSubject.achievement.description
-								: display?.description || '';
+								: result.beautifiedForm.description || display?.description || '';
 							let logoURL = isOpenBadgeCredential
 								? result.beautifiedForm.credentialSubject.achievement.image.id
 								: display?.logo?.uri || null;
