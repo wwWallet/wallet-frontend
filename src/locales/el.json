@@ -281,10 +281,10 @@
 		"descriptionFieldsMultiple": "Ζητούμενα πεδία:",
 		"descriptionSelect": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
+		"purpose": "Purpose του <strong> {{verifierDomainName}}: </strong>",
 		"requestedFieldsLess": "Εμφάνιση λιγότερων",
 		"requestedFieldsMore": "Εμφάνιση περισσότερων",
-		"title": "Επιλογή : ",
-		"purpose": "Purpose του <strong> {{verifierDomainName}}: </strong>"
+		"title": "Επιλογή : "
 	},
 	"sidebar": {
 		"navItemLogout": "Αποσύνδεση",
