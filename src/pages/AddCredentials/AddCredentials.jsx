@@ -28,7 +28,6 @@ const Issuers = () => {
 			try {
 				const response = await api.getExternalEntity('/issuer/all', undefined, true);
 				let fetchedIssuers = response.data;
-				const newIssuerList = [];
 				fetchedIssuers.map(async (issuer) => {
 					try {
 						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
@@ -46,9 +45,21 @@ const Issuers = () => {
 									id: issuer.id,
 									configId: config.vct,
 									selectedDisplayName: metadata.display.filter((display) => display.locale === 'en-US')[0].name || null,
+									credentialIssuerMetadata: metadata,
 								};
+
 								if (issuerWithConfig.visible) {
-									newIssuerList.push(issuerWithConfig);
+									setIssuers((currentArray) => {
+										const issuerExists = currentArray.some((iss) =>
+											iss.credentialIssuerMetadata.credential_issuer === issuerWithConfig.credentialIssuerMetadata.credential_issuer &&
+											iss.configId === issuerWithConfig.configId
+										);
+
+										if (!issuerExists) {
+											return [...currentArray, issuerWithConfig];
+										}
+										return currentArray;
+									});
 								}
 							} else {
 								const issuerWithConfig = {
@@ -56,13 +67,25 @@ const Issuers = () => {
 									id: `${issuer.id}-${config.vct}`,
 									configId: config.vct,
 									selectedDisplayName: `${metadata.display.filter((display) => display.locale === 'en-US')[0].name} - ${config.display.filter((display) => display.locale === 'en-US')[0].name}` || null,
+									credentialIssuerMetadata: metadata,
 								};
+
 								if (issuerWithConfig.visible) {
-									newIssuerList.push(issuerWithConfig);
+									setIssuers((currentArray) => {
+										const issuerExists = currentArray.some((iss) =>
+											iss.credentialIssuerMetadata.credential_issuer === issuerWithConfig.credentialIssuerMetadata.credential_issuer &&
+											iss.configId === issuerWithConfig.configId
+										);
+
+										if (!issuerExists) {
+											return [...currentArray, issuerWithConfig];
+										}
+										return currentArray;
+									});
 								}
 							}
 						});
-						setIssuers([...newIssuerList]);
+
 					}
 					catch (err) {
 						console.error(err);
