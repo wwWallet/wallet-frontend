@@ -54,9 +54,9 @@ export function useHttpProxy(): IHttpProxy {
 			}
 			catch (err) {
 				return {
-					data: err.response.data.err.data,
-					headers: err.response.data.err.headers,
-					status: err.response.status
+					data: err.response.data.data,
+					headers: err.response.data.headers,
+					status: err.response.data.status
 				}
 			}
 		}
