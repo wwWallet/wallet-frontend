@@ -3,7 +3,7 @@ import { Verify } from "../../utils/Verify";
 import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
-import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
+import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
@@ -434,6 +434,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 					}
 					console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
 					const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
+					console.log("B64U Encoded device response = ", encodedDeviceResponse);
 					selectedVCs.push(encodedDeviceResponse);
 					generatedVPs.push(encodedDeviceResponse);
 					descriptorMap.push({
