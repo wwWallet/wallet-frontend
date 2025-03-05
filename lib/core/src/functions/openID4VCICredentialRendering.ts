@@ -1,6 +1,6 @@
-import { OpenID4VCICredentialRendering } from "../interfaces";
+import { HttpClient, OpenID4VCICredentialRendering } from "../interfaces";
 
-export function OpenID4VCICredentialRendering(): OpenID4VCICredentialRendering {
+export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }): OpenID4VCICredentialRendering {
 	return {
 		renderCustomSvgTemplate(args) {
 			throw new Error("Not implemented");
