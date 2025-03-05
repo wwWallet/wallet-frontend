@@ -228,7 +228,7 @@ export function MsoMdocVerifier(args: { context: Context, pkResolverEngine: Publ
 
 			return {
 				success: false,
-				error: CredentialVerificationError.UnkownProblem
+				error: CredentialVerificationError.UnknownProblem
 			}
 		},
 	}

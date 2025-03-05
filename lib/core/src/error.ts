@@ -22,7 +22,7 @@ export enum ValidatePresentationRequirementsError {
 }
 
 export enum CredentialVerificationError {
-	UnkownProblem = "UnkownProblem",
+	UnknownProblem = "UnknownProblem",
 	VerificationProcessNotStarted = "VerificationProcessNotStarted", // will be used when the verifier functions cannot start the verification process because of format
 	InvalidDatatype = "InvalidDatatype",
 	InvalidFormat = "InvalidFormat",

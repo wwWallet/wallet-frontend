@@ -50,12 +50,12 @@ describe("The MsoMdocVerifier", () => {
 
 	const verifier = MsoMdocVerifier({ context, pkResolverEngine: resolverEngine });
 
-	it("should produce successful result when verifying IssuerSigned", async () => {
+	it("should detected expired IssuerSigned", async () => {
 		const result = await verifier.verify({ rawCredential: issuerSignedB64U, opts: {} });
-		assert(result.success);
+		assert(result.success === false && result.error === CredentialVerificationError.ExpiredCredential);
 	});
 
-	it("should produce successful result when verifying DeviceResponse", async () => {
+	it("should detect expired DeviceResponse", async () => {
 		const result = await verifier.verify({
 			rawCredential: deviceResponseB64U, opts: {
 				responseUri: "http://wallet-enterprise-acme-verifier:8005/verification/direct_post",
@@ -64,7 +64,8 @@ describe("The MsoMdocVerifier", () => {
 				expectedNonce: "6bc90bea-1e01-49a3-a4de-5d98ddb64850"
 			}
 		});
-		assert(result.success);
+
+		assert(result.success === false && result.error === CredentialVerificationError.ExpiredCredential);
 	});
 
 	it("should produce error because the wrong root certificate was used", async () => {
@@ -99,6 +100,7 @@ describe("The MsoMdocVerifier", () => {
 				holderNonce: "bf9aada85729a0ef",
 			}
 		});
+
 		assert(result.success === true);
 	});
 })

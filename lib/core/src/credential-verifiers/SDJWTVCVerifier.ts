@@ -4,6 +4,7 @@ import { CredentialVerificationError } from "../error";
 import { Result } from "../types";
 import { exportJWK, importJWK, importX509, JWK, jwtVerify, KeyLike } from "jose";
 import { fromBase64Url, toBase64Url } from "../utils/util";
+import { verifyCertificate } from "../utils/verifyCertificate";
 
 export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: PublicKeyResolverEngineI }): CredentialVerifier {
 	let errors: { error: CredentialVerificationError, message: string }[] = [];
@@ -95,14 +96,19 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 			const x5c = parsedSdJwt.header["x5c"];
 			const alg = parsedSdJwt.header["alg"];
 			if (x5c && x5c instanceof Array && x5c.length > 0 && typeof alg === 'string') { // extract public key from certificate
-				const rootCertificate: string = x5c[x5c.length - 1];
-				if (args.context.trustedCertificates.length > 0 && !args.context.trustedCertificates.includes(rootCertificate)) {
+				const lastCertificate: string = x5c[x5c.length - 1];
+				const lastCertificatePem = `-----BEGIN CERTIFICATE-----\n${lastCertificate}\n-----END CERTIFICATE-----`;
+				const certificateValidationResult = await verifyCertificate(lastCertificatePem, args.context.trustedCertificates);
+				const lastCertificateIsRootCa = args.context.trustedCertificates.map((c) => c.trim()).includes(lastCertificatePem);
+				const rootCertIsTrusted = certificateValidationResult === true || lastCertificateIsRootCa;
+				if (!rootCertIsTrusted) {
 					logError(CredentialVerificationError.NotTrustedIssuer, "Error on getIssuerPublicKey(): Issuer is not trusted");
 					return {
 						success: false,
 						error: CredentialVerificationError.NotTrustedIssuer,
 					};
 				}
+				
 				try {
 					const issuerPemCert = `-----BEGIN CERTIFICATE-----\n${x5c[0]}\n-----END CERTIFICATE-----`;
 					const issuerPublicKey = await importX509(issuerPemCert, alg);
