@@ -4,26 +4,8 @@ import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 
-const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, handleContinue, popupTitle, popupMessage }) => {
+const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMessage }) => {
 	const { t } = useTranslation();
-
-	const locale = 'en-US';
-
-	const [selectedConfiguration, setSelectedConfiguration] = useState(null);
-
-	const configurationsCount = availableCredentialConfigurations ? Object.keys(availableCredentialConfigurations).length : 0;
-
-	useEffect(() => {
-		if (availableCredentialConfigurations) {
-			setSelectedConfiguration(Object.keys(availableCredentialConfigurations)[0])
-		}
-	}, [availableCredentialConfigurations, setSelectedConfiguration])
-
-	const handleOptionChange = (event) => {
-		if (availableCredentialConfigurations) {
-			setSelectedConfiguration(event.target.value);
-		}
-	};
 
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} loading={loading}>
@@ -36,31 +18,11 @@ const RedirectPopup = ({ loading, availableCredentialConfigurations, onClose, ha
 				{popupMessage}
 			</p>
 
-			{configurationsCount > 1 && Object.keys(availableCredentialConfigurations).map((credentialConfigurationId, index) => {
-				return (
-					<div key={credentialConfigurationId} className="flex items-center mb-4">
-						<input
-							id={"radio-" + index}
-							onChange={handleOptionChange}
-							type="radio"
-							value={credentialConfigurationId}
-							name="default-radio"
-							className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-							checked={selectedConfiguration === credentialConfigurationId}
-							aria-label={`Option ${credentialConfigurationId}`}
-						/>
-						<label htmlFor={"radio-" + index} className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
-							{(availableCredentialConfigurations[credentialConfigurationId]?.display ? availableCredentialConfigurations[credentialConfigurationId]?.display.filter((d) => d.locale === locale)[0]?.name : null) ?? credentialConfigurationId}
-						</label>
-					</div>
-				)
-			})}
-
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button variant="cancel" onClick={onClose}>
 					{t('common.cancel')}
 				</Button>
-				<Button variant="primary" onClick={() => handleContinue(selectedConfiguration)}>
+				<Button variant="primary" onClick={() => handleContinue()}>
 					{t('common.continue')}
 				</Button>
 			</div>

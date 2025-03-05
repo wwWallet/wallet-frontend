@@ -78,7 +78,7 @@ const QueryableList = <T,>({
 						<Button
 							variant="outline"
 							additionalClassName="break-words w-full text-left"
-							key={el["id"]}
+							key={getElementPropValue(el, identifierField as string)}
 							{...(onClick &&
 								identifierField && {
 									onClick: () =>
