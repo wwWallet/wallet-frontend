@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
+import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -94,6 +95,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	 */
 	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
 
+	const openID4VCIHelper = useOpenID4VCIHelper();
+
 	function getAppToken(): string | null {
 		return appToken;
 	}
@@ -166,12 +169,18 @@ export function useApi(isOnline: boolean = true): BackendApi {
 
 	async function fetchInitialData(appToken: string, userUuid: string): Promise<void> {
 		try {
-			await get('/storage/vc', userUuid, { appToken });
-			await get('/storage/vp', userUuid, { appToken });
+			// get('/storage/vc') on home page ('/')
+			// get('/storage/vp') on home page ('/')
 			await get('/user/session/account-info', userUuid, { appToken });
 			await getExternalEntity('/verifier/all', { appToken }, false);
-			await getExternalEntity('/issuer/all', { appToken }, false);
-
+			const response = await getExternalEntity('/issuer/all', { appToken }, false);
+			response.data.forEach(async (issuer) => {
+				try {
+					await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier);
+				} catch (err) {
+					console.error(err);
+				}
+			});
 		} catch (error) {
 			console.error('Failed to perform get requests', error);
 		}
