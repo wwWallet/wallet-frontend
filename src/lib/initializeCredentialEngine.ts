@@ -1,6 +1,6 @@
 import { CLOCK_TOLERANCE } from "../config";
 import { IHttpProxy } from "./interfaces/IHttpProxy";
-import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, VerifyingEngine, SDJWTVCVerifier } from "core";
+import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, VerifyingEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "core";
 
 export function initializeCredentialEngine(httpProxy: IHttpProxy) {
 
@@ -12,9 +12,11 @@ export function initializeCredentialEngine(httpProxy: IHttpProxy) {
 	};
 	const credentialParsingEngine = ParsingEngine();
 	credentialParsingEngine.register(SDJWTVCParser({ context: ctx, httpClient: httpProxy }));
+	credentialParsingEngine.register(MsoMdocParser({ context: ctx, httpClient: httpProxy }));
 
 	const pkResolverEngine = PublicKeyResolverEngine();
 	const verifyingEngine = VerifyingEngine();
 	verifyingEngine.register(SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine }));
+	verifyingEngine.register(MsoMdocVerifier({ context: ctx, pkResolverEngine: pkResolverEngine }));
 	return { credentialParsingEngine, verifyingEngine };
 }
