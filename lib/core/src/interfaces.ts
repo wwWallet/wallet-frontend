@@ -1,6 +1,6 @@
 import { JWK } from "jose";
 import { CredentialParsingError, CredentialVerificationError, PublicKeyResolutionError, CredentialRenderingError, ValidatePresentationRequirementsError } from "./error";
-import { Result, ParsedCredential } from "./types";
+import { Result, ParsedCredential, CredentialClaims } from "./types";
 import { CredentialConfigurationSupported } from "./schemas";
 
 export interface CredentialRendering {
@@ -12,7 +12,7 @@ export interface CredentialRendering {
 }
 
 export interface OpenID4VCICredentialRendering {
-	renderCustomSvgTemplate(args: { parsedCredential: ParsedCredential, credentialConfigurationSupported: CredentialConfigurationSupported }): Promise<string>;
+	renderCustomSvgTemplate(args: { signedClaims: CredentialClaims, credentialConfigurationSupported: CredentialConfigurationSupported }): Promise<string>;
 }
 
 
