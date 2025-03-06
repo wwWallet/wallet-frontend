@@ -12,7 +12,7 @@ export interface CredentialRendering {
 }
 
 export interface OpenID4VCICredentialRendering {
-	renderCustomSvgTemplate(args: { signedClaims: CredentialClaims, credentialConfigurationSupported: CredentialConfigurationSupported }): Promise<string>;
+	renderCustomSvgTemplate(args: { signedClaims: CredentialClaims, displayConfig: any }): Promise<string>;
 }
 
 
