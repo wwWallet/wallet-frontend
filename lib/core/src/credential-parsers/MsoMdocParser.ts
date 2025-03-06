@@ -31,6 +31,9 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			}
 
 			const svgContent = await renderer.renderCustomSvgTemplate({ signedClaims: attrValues, displayConfig: mdocDisplayConfig })
+				.then((res) => res)
+				.catch((err) => { console.error(err); return null; });
+
 			dataUri = svgContent ? svgContent : "";
 			return {
 				metadata: {
@@ -55,6 +58,7 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			}
 		}
 		catch (err) {
+			console.error(err);
 			return null;
 		}
 	}
@@ -89,6 +93,8 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			}
 
 			const svgContent = await renderer.renderCustomSvgTemplate({ signedClaims: attrValues, displayConfig: mdocDisplayConfig })
+				.then((res) => res)
+				.catch((err) => { console.error(err); return null; })
 			dataUri = svgContent ? svgContent : "";
 			return {
 				metadata: {
