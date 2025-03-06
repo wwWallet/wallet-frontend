@@ -30,14 +30,14 @@ describe("The MsoMdocParser", () => {
 	it("should parse a Base64-URL-encoded IssuerSigned object in mso_mdoc format", async () => {
 		const parser = MsoMdocParser({ httpClient, context });
 
-		const parsedDeviceResponse = await parser.parse({ rawCredential: issuerSignedB64U });
+		const parsedIssuerSigned = await parser.parse({ rawCredential: issuerSignedB64U });
 
-		assert(parsedDeviceResponse.success);
-		assert(parsedDeviceResponse.value.signedClaims["family_name"] === "MUSTERMANN");
-		assert(parsedDeviceResponse.value.signedClaims["given_name"] === "ERIKA");
-		assert((parsedDeviceResponse.value.signedClaims["birth_date"] as Date).toISOString() === new Date("1964-08-12T00:00:00.000Z").toISOString());
-		assert(parsedDeviceResponse.value.validityInfo.signed?.toISOString() === new Date("2025-02-18T14:12:04.000Z").toISOString());
-		assert(parsedDeviceResponse.value.validityInfo.validUntil?.toISOString() === new Date("2025-03-04T14:12:04.000Z").toISOString());
+		assert(parsedIssuerSigned.success);
+		assert(parsedIssuerSigned.value.signedClaims["family_name"] === "MUSTERMANN");
+		assert(parsedIssuerSigned.value.signedClaims["given_name"] === "ERIKA");
+		assert((parsedIssuerSigned.value.signedClaims["birth_date"] as Date).toISOString() === new Date("1964-08-12T00:00:00.000Z").toISOString());
+		assert(parsedIssuerSigned.value.validityInfo.signed?.toISOString() === new Date("2025-02-18T14:12:04.000Z").toISOString());
+		assert(parsedIssuerSigned.value.validityInfo.validUntil?.toISOString() === new Date("2025-03-04T14:12:04.000Z").toISOString());
 
 	});
 
