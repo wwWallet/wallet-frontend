@@ -31,6 +31,17 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 		}
 	}
 
+	function formatExpiryDate(signedClaims: CredentialClaims): string {
+		if (signedClaims.expiry_date) {
+			return formatDate(signedClaims.expiry_date, 'date');
+		} else if (signedClaims.exp != null) {
+			const expiryDateISO = new Date(Number(signedClaims.exp) * 1000).toISOString();
+			return formatDate(expiryDateISO, 'date');
+		} else {
+			return "";
+		}
+	}
+
 	const renderCustomSvgTemplate = async ({ signedClaims, displayConfig }: { signedClaims: CredentialClaims, displayConfig: any }) => {
 
 		const name = displayConfig.name || defaultName;
@@ -39,8 +50,7 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 		const backgroundImageBase64 = displayConfig.background_image ? await getBase64Image(displayConfig.background_image.uri) : '';
 
 		const logoBase64 = displayConfig.logo ? await getBase64Image(displayConfig.logo.uri) : '';
-
-		const expiryDate = formatDate(jsonpointer.get(signedClaims, "/expiry_date") ?? new Date(jsonpointer.get(signedClaims, "/exp") * 1000).toISOString(), 'date');
+		const expiryDate = formatExpiryDate(signedClaims);
 
 		const replacedSvgText = svgTemplate
 			.replace(/{{backgroundColor}}/g, backgroundColor)
