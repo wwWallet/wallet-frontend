@@ -84,7 +84,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 				return CredentialVerificationError.InvalidFormat;
 			}
 		})();
-		
+
 		if (parsedSdJwt === CredentialVerificationError.InvalidFormat) {
 			return {
 				success: false,
@@ -108,7 +108,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 						error: CredentialVerificationError.NotTrustedIssuer,
 					};
 				}
-				
+
 				try {
 					const issuerPemCert = `-----BEGIN CERTIFICATE-----\n${x5c[0]}\n-----END CERTIFICATE-----`;
 					const issuerPublicKey = await importX509(issuerPemCert, alg);
