@@ -16,7 +16,6 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
-import { initializeCredentialEngine } from '../../initializeCredentialEngine';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
@@ -106,7 +105,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			return;
 
 		},
-		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData, httpProxy]
+		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
 	);
 
 	const requestCredentials = useCallback(
