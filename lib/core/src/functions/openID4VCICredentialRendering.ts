@@ -1,7 +1,6 @@
 import { HttpClient, OpenID4VCICredentialRendering } from "../interfaces";
 import { CredentialClaims } from "../types";
 import { formatDate } from "./formatDate";
-import jsonpointer from 'jsonpointer';
 
 export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }): OpenID4VCICredentialRendering {
 
@@ -20,16 +19,6 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 			<text x="790" y="431" text-anchor="end" font-family="Arial, Helvetica, sans-serif" font-size="25" fill="{{textColor}}" font-weight="normal">{{expiry_date}}</text>
 		</svg>`
 
-	async function getBase64Image(url: string): Promise<string> {
-		try {
-			const response = await args.httpClient.get(url);
-
-			return `${response.data}`;
-		} catch (error) {
-			console.error('Failed get the getBase64Image:', error);
-			return '';  // Return an empty string in case of error
-		}
-	}
 
 	function formatExpiryDate(signedClaims: CredentialClaims): string {
 		if (signedClaims.expiry_date) {
@@ -42,14 +31,50 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 		}
 	}
 
-	const renderCustomSvgTemplate = async ({ signedClaims, displayConfig }: { signedClaims: CredentialClaims, displayConfig: any }) => {
 
+	async function getBase64Image(url: string) {
+		if (!url) return null;
+
+		try {
+			const isBrowser = typeof window !== "undefined";
+
+			if (isBrowser) {
+				// Frontend: Use FileReader with Fetch API
+				const response = await fetch(url);
+				const blob = await response.blob();
+
+				return new Promise<string | null>((resolve, reject) => {
+					const reader = new FileReader();
+					reader.onloadend = () => resolve(reader.result as string);
+					reader.onerror = reject;
+					reader.readAsDataURL(blob);
+				});
+			} else {
+				// Backend (Node.js): Use Axios or Fetch with Buffer
+				const response = await args.httpClient.get(url, {}, { responseType: 'arraybuffer' })
+				const blob = response.data as any;
+				const base64 = Buffer.from(blob, "binary").toString("base64");
+				const mimeType = response.headers["content-type"]; // Get MIME type
+				return `data:${mimeType};base64,${base64}`;
+			}
+		} catch (error) {
+			console.error("Failed to load image", url, error);
+			return null;
+		}
+	}
+
+
+	const renderCustomSvgTemplate = async ({ signedClaims, displayConfig }: { signedClaims: CredentialClaims, displayConfig: any }) => {
 		const name = displayConfig.name || defaultName;
 		const backgroundColor = displayConfig.backgroundColor || defaultBackgroundColor;
 		const textColor = displayConfig.text_color || defaultTextColor;
-		const backgroundImageBase64 = displayConfig.background_image ? await getBase64Image(displayConfig.background_image.uri) : '';
+		const backgroundImageBase64 = displayConfig?.background_image?.uri ?
+			displayConfig?.background_image?.uri?.startsWith("data:") ?
+				displayConfig?.background_image.uri
+				: await getBase64Image(displayConfig?.background_image?.uri)
+			: '';
 
-		const logoBase64 = displayConfig.logo ? await getBase64Image(displayConfig.logo.uri) : '';
+		const logoBase64 = displayConfig?.logo?.uri ? await getBase64Image(displayConfig.logo.uri) : '';
 		const expiryDate = formatExpiryDate(signedClaims);
 
 		const replacedSvgText = svgTemplate

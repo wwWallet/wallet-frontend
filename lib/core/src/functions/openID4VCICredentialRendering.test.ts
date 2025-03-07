@@ -40,25 +40,16 @@ function convertDataUriToImage(dataUri, outputFileName = "output-image") {
 
 	const outputPath = `${outputFileName}${fileExtension}`;
 	fs.writeFileSync(outputPath, buffer);
-	console.log(`Image saved to ${outputPath} (${mimeType})`);
 }
 
 
 const httpClient: HttpClient = {
-	async get(url, headers) {
-		if (url !== "https://issuer.wwwallet.org/images/background-image.png") {
-			throw new Error("Overrided only for url https://issuer.wwwallet.org/images/background-image.png");
-		}
-		return {
-			data: fs.readFileSync(path.join(__dirname, "../../assets/pid_background_image.data_uri"), 'utf-8'),
-			headers: {
-				'content-type': 'image/png'
-			},
-			status: 200,
-		}
+	async get(url, headers, opts) {
+		return axios.get(url, { ...opts, headers: headers as any }).then((res) => (res?.data ? { status: res.status, data: res.data, headers: res.headers } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
+
 	},
-	async post(url, data, headers) {
-		return axios.post(url, data, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? res.data : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
+	async post(url, data, headers, opts) {
+		return axios.post(url, data, { ...opts, headers: headers as any }).then((res) => (res?.data ? { status: res.status, data: res.data, headers: res.headers } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
 	},
 }
 

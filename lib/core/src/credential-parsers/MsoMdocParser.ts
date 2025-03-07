@@ -58,7 +58,6 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			}
 		}
 		catch (err) {
-			console.error(err);
 			return null;
 		}
 	}

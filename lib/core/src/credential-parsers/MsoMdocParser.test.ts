@@ -10,10 +10,10 @@ const deviceResponseB64U = `uQADZ3ZlcnNpb25jMS4waWRvY3VtZW50c4GjZ2RvY1R5cGV3ZXUu
 
 const httpClient: HttpClient = {
 	async get(url, headers) {
-		return axios.get(url, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? { ...res.data } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
+		return axios.get(url, { headers: headers as any }).then((res) => (res?.data ? { status: res.status, data: res.data, headers: res.headers } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
 	},
 	async post(url, data, headers) {
-		return axios.post(url, data, { headers: headers as AxiosHeaders }).then((res) => (res?.data ? { ...res.data } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
+		return axios.post(url, data, { headers: headers as any }).then((res) => (res?.data ? { status: res.status, data: res.data, headers: res.headers } : {})).catch((err) => (err?.response?.data ? { ...err.response.data } : {}));
 	},
 }
 

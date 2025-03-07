@@ -40,6 +40,22 @@
     jose "^4.15.5"
     uncrypto "^0.1.3"
 
+"@auth0/mdl@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@auth0/mdl/-/mdl-2.0.1.tgz#d8e3d0ab2bdcffb298818ff103054e195c0d296a"
+  integrity sha512-OTFEUtLc+jZlAifDR0NjCPvlIYUxN+5nA1mxg22ZoD1R5RPMaHwaeJxTNuWSRe8SdJMB5UaYVQ5/pyDBZyWofw==
+  dependencies:
+    "@noble/curves" "^1.2.0"
+    "@panva/hkdf" "^1.1.1"
+    "@peculiar/x509" "^1.9.5"
+    buffer "^6.0.3"
+    cbor-x "^1.5.9"
+    compare-versions "^6.0.0"
+    cose-kit "^1.7.1"
+    debug "^4.3.4"
+    jose "^4.15.5"
+    uncrypto "^0.1.3"
+
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.26.2":
   version "7.26.2"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.26.2.tgz#4b5fab97d33338eff916235055f0ebc21e573a85"
@@ -3449,13 +3465,17 @@ core-js-compat@^3.38.0, core-js-compat@^3.40.0:
 core@./lib/core:
   version "1.0.0"
   dependencies:
-    "@auth0/mdl" "^2.0.0"
+    "@auth0/mdl" "^2.0.1"
     "@sd-jwt/core" "^0.2.1"
     ajv "^8.17.1"
+    asn1js "^3.0.5"
     axios "^1.7.9"
+    buffer "^6.0.3"
     cose-kit "^1.7.1"
     jose "^5.9.6"
     jsonpointer "^5.0.1"
+    pkijs "^3.2.4"
+    uncrypto "^0.1.3"
     zod "^3.24.1"
 
 cose-kit@^1.7.1:
