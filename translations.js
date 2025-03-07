@@ -44,6 +44,6 @@ for (const lc in locales) {
 			missingCount++;
 		}
 	}
-	console.log(`${missingCount} entries (${missingCount*100.0/lcLeafs.size}%)`);
+	console.log(`${missingCount} entries (${(100 - (missingCount * 100.0 / lcLeafs.size)).toFixed(2)}% completion)`);
 	console.log('');
 }
