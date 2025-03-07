@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-		"cose-kit": "^1.7.1",
+    "cose-kit": "^1.7.1",
     "@auth0/mdl": "^2.0.0",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.2.1",

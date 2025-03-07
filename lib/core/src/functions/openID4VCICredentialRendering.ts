@@ -8,7 +8,7 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 	const defaultTextColor = "#000000";
 	const defaultName = "Credential";
 	const svgTemplate =
-		`<svg 
+		`<svg
 			xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="829"
 			height="504" version="1.1">
 			<rect width="100%" height="100%" fill="{{backgroundColor}}" />
