@@ -316,7 +316,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 
 - In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
   For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.\*
-- The **PRF extension is supported in Mozilla Firefox on iOS only in internal cases** because Firefox generally uses the Gecko engine, but on iOS, it is required for all browsers to run on WebKit.
+- **Mozilla Firefox supports the PRF extension** starting with **version 135.0 or later** except on iOS. This is because Firefox generally uses the Gecko engine, but on iOS, all browsers are required to run on WebKit.
 - iOS supports PRF extension starting with the **iOS 18** release.
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
