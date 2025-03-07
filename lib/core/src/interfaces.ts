@@ -1,6 +1,7 @@
 import { JWK } from "jose";
 import { CredentialParsingError, CredentialVerificationError, PublicKeyResolutionError, CredentialRenderingError, ValidatePresentationRequirementsError } from "./error";
-import { Result, ParsedCredential } from "./types";
+import { Result, ParsedCredential, CredentialClaims } from "./types";
+import { CredentialConfigurationSupported } from "./schemas";
 
 export interface CredentialRendering {
 	renderSvgTemplate(args: {
@@ -9,6 +10,11 @@ export interface CredentialRendering {
 		sdJwtVcMetadataClaims: any;
 	}): Promise<string | null>
 }
+
+export interface OpenID4VCICredentialRendering {
+	renderCustomSvgTemplate(args: { signedClaims: CredentialClaims, displayConfig: any }): Promise<string>;
+}
+
 
 export interface ParsingEngineI {
 	register(parser: CredentialParser): void;
@@ -46,8 +52,8 @@ export interface PublicKeyResolver {
 }
 
 export interface HttpClient {
-	get(url: string, headers?: Record<string, unknown>): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
-	post(url: string, body: any, headers?: Record<string, unknown>): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
+	get(url: string, headers?: Record<string, unknown>, options?: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
+	post(url: string, body: any, headers?: Record<string, unknown>, options?: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
 }
 
 

@@ -10,7 +10,8 @@ export enum ResponseMode {
 export const ResponseModeSchema = z.nativeEnum(ResponseMode);
 
 type ClientMetadata = {
-	jwks?: { keys: JWK[] },
+	jwks?: { keys: JWK[] };
+	jwks_uri?: string;
 	authorization_encrypted_response_alg?: string;
 	authorization_encrypted_response_enc?: string;
 	vp_formats: any;
