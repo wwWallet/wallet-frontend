@@ -1,4 +1,6 @@
-# <img src="https://demo.wwwallet.org/static/media/logo.4c2efe036042f9f1f0a8.png" width="150"/> wwWallet
+<img src="https://demo.wwwallet.org/wallet_192.png" width="150"/>
+
+# wwWallet
 
 Welcome to wwWallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
 
