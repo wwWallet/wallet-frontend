@@ -1,6 +1,7 @@
 import jsonpointer from 'jsonpointer';
 import { formatDate } from './functions/formatDate';
 import { CredentialRendering } from './interfaces';
+import { escapeSVG } from './utils/escapeSVG';
 
 export function CredentialRenderingService(): CredentialRendering {
 	const renderSvgTemplate = async ({ json, credentialImageSvgTemplate, sdJwtVcMetadataClaims }: { json: any, credentialImageSvgTemplate: string, sdJwtVcMetadataClaims: any }) => {
@@ -32,7 +33,7 @@ export function CredentialRenderingService(): CredentialRendering {
 					const jsonPointerPath = `/${pathArray.join('/')}`;
 
 					// Retrieve the value from beautifiedForm using jsonpointer
-					let value = jsonpointer.get(json, jsonPointerPath);
+					let value = escapeSVG(jsonpointer.get(json, jsonPointerPath));
 
 					if (value !== undefined) {
 						value = formatDate(value, 'date');

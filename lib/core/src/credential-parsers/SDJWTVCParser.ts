@@ -84,11 +84,19 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 			}
 
 			let dataUri: string | null = null;
-			const parsedClaims: Record<string, unknown> | null = await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
-				.withHasher(hasherAndAlgorithm)
-				.getPrettyClaims()
-				.then((signedClaims) => signedClaims)
-				.catch(() => null);
+			const parsedClaims: Record<string, unknown> | null = await (async () => {
+				try {
+					return await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
+						.withHasher(hasherAndAlgorithm)
+						.getPrettyClaims()
+						.then((signedClaims) => signedClaims)
+						.catch(() => null);
+				}
+				catch (err) {
+					return null;
+				}
+
+			})();
 			if (parsedClaims === null) {
 				return {
 					success: false,
@@ -117,11 +125,13 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 				const simple: string | null = displayMetadata?.rendering?.simple || null;
 
 				if (credentialImageSvgTemplateURL) {
-					const response = await args.httpClient.get(credentialImageSvgTemplateURL);
-					if (response.status === 200) {
+					const response = await args.httpClient.get(credentialImageSvgTemplateURL).then((res) => res).catch(() => null);
+					if (response && response.status === 200) {
 						const svgdata = response.data as string;
 						if (svgdata) {
-							const svgContent = await cr.renderSvgTemplate({ json: parsedClaims, credentialImageSvgTemplate: svgdata, sdJwtVcMetadataClaims: credentialMetadata.claims });
+							const svgContent = await cr.renderSvgTemplate({ json: parsedClaims, credentialImageSvgTemplate: svgdata, sdJwtVcMetadataClaims: credentialMetadata.claims })
+								.then((res) => res)
+								.catch(() => null);
 							dataUri = svgContent ? svgContent : "";
 						}
 					}
@@ -135,6 +145,8 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 					metadata: {
 						credential: {
 							format: VerifiableCredentialFormat.VC_SDJWT,
+							// @ts-ignore
+							metadataDocuments: [getSdJwtMetadataResult.credentialMetadata],
 							image: {
 								dataUri: dataUri ?? "",
 							},

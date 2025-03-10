@@ -7,6 +7,7 @@ import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from 'core/dist/error';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
+import { VerifiableCredentialFormat } from 'core/dist/types';
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
@@ -51,8 +52,16 @@ export const CredentialsContextProvider = ({ children }) => {
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}
-					const credentialEngine = initializeCredentialEngine(httpProxy);
-					const result = await credentialEngine.verifyingEngine.verify({ rawCredential: vcEntity.credential, opts: {} });
+					const { sdJwtVerifier, msoMdocVerifier } = initializeCredentialEngine(httpProxy);
+					const result = await (async () => {
+						switch (parsedCredential.metadata.credential.format) {
+							case VerifiableCredentialFormat.VC_SDJWT:
+								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+							case VerifiableCredentialFormat.MSO_MDOC:
+								return msoMdocVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+						}
+					})();
+
 					// Attach the instances array from the map and add parsedCredential
 					return {
 						...vcEntity,
