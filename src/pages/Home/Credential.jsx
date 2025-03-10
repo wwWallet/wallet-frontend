@@ -64,13 +64,14 @@ const Credential = () => {
 		}
 	];
 
+	console.log('vcEntity',vcEntity)
 	return (
 		<CredentialLayout title={t('pageCredentials.credentialTitle')}>
 			<>
-				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
+				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-1 mt-0">
 
 					{/* Block 2: Information List */}
-					{vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />} {/* Use the CredentialInfo component */}
+					{vcEntity && <CredentialInfo signedClaims={vcEntity.parsedCredential?.signedClaims} claims={vcEntity.credential_configuration?.claims} />} {/* Use the CredentialInfo component */}
 				</div>
 
 				<div className="w-full pt-2 px-2">

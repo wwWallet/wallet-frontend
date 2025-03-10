@@ -8,6 +8,7 @@ import { CredentialVerificationError } from 'core/dist/error';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
 import { VerifiableCredentialFormat } from 'core/dist/types';
+import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
@@ -16,6 +17,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	const [currentSlide, setCurrentSlide] = useState<number>(1);
 	const { parseCredential } = useContext(CredentialParserContext);
 	const httpProxy = useHttpProxy();
+	const openID4VCIHelper = useOpenID4VCIHelper();
 
 	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
 		console.log('fetchVcData', credentialId)
@@ -62,11 +64,16 @@ export const CredentialsContextProvider = ({ children }) => {
 						}
 					})();
 
+					// Get the CredentialIssuerMetadata to get credential configuration
+					const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(vcEntity.credentialIssuerIdentifier)).metadata;
+					const credential_configuration = metadata.credential_configurations_supported[vcEntity.credentialConfigurationId]
+
 					// Attach the instances array from the map and add parsedCredential
 					return {
 						...vcEntity,
 						instances: instancesMap[vcEntity.credentialIdentifier],
 						parsedCredential,
+						credential_configuration,
 						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
 					};
 				})
@@ -75,8 +82,9 @@ export const CredentialsContextProvider = ({ children }) => {
 
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
+		console.log('filteredVcEntityList',filteredVcEntityList)
 		return filteredVcEntityList;
-	}, [api, parseCredential, httpProxy]);
+	}, [api, parseCredential, httpProxy, openID4VCIHelper]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));

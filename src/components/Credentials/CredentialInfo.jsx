@@ -1,80 +1,65 @@
 import React from 'react';
-import { BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
-import { AiFillCalendar } from 'react-icons/ai';
-import { RiPassExpiredFill } from 'react-icons/ri';
-import { MdTitle, MdGrade, MdOutlineNumbers } from 'react-icons/md';
-import { GiLevelEndFlag } from 'react-icons/gi';
 import { formatDate } from '../../functions/DateFormat';
-import useScreenType from '../../hooks/useScreenType';
+import { getLanguage } from '@/i18n';
+import { useTranslation } from 'react-i18next';
 
-const getFieldIcon = (fieldName) => {
-	switch (fieldName) {
-		case 'type':
-			return <BiSolidCategoryAlt size={25} className="inline mr-1" />;
-		case 'expdate':
-			return <RiPassExpiredFill size={25} className="inline mr-1" />;
-		case 'dateOfBirth':
-			return <AiFillCalendar size={25} className="inline mr-1" />;
-		case 'id':
-			return <MdOutlineNumbers size={25} className="inline mr-1" />;
-		case 'familyName':
-		case 'firstName':
-			return <BiSolidUserCircle size={25} className="inline mr-1" />;
-		case 'diplomaTitle':
-			return <MdTitle size={25} className="inline mr-1" />;
-		case 'eqfLevel':
-			return <GiLevelEndFlag size={25} className="inline mr-1" />;
-		case 'grade':
-			return <MdGrade size={25} className="inline mr-1" />;
-		default:
-			return null;
-	}
-};
+const CredentialInfo = ({ signedClaims, claims, mainClassName = "text-sm lg:text-base w-full" }) => {
+	const { i18n } = useTranslation();
+	const defaultLang = i18n.language;
 
-const renderRow = (fieldName, label, fieldValue, screenType) => {
+	console.log('signedClaims', signedClaims);
+	console.log('claims', claims);
 
-	if (fieldValue) {
-		return (
-			<tr className="text-left">
-				<td className="font-bold text-primary dark:text-primary-light py-2 xm:py-1 px-2 rounded-l-xl">
-					<div className="flex flex-row items-left">
-						{screenType !== 'mobile' && getFieldIcon(fieldName)}
-						<span className="md:ml-1 flex items-center">{label}:</span>
-					</div>
-				</td>
-				<td className="text-gray-700 dark:text-white py-2 xm:py-1 px-2 rounded-r-xl">{fieldValue}</td>
-			</tr>
-		);
-	} else {
-		return null;
-	}
-};
+	// Enhanced function to get label based on language preferences
+	const getLabelByLang = (displayArray, lang) => {
+		const fallbackLang = i18n.options.fallbackLng;
+		// Try to find label in the preferred language
+		let displayObj = displayArray.find(d => getLanguage(d.lang) === lang);
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full" }) => {
+		// If not found, try the i18n fallback language
+		if (!displayObj) {
+			displayObj = displayArray.find(d => getLanguage(d.lang) === fallbackLang);
+		}
 
-	const screenType = useScreenType();
+		// If still not found, default to the first available language
+		if (!displayObj && displayArray.length > 0) {
+			displayObj = displayArray[0];
+		}
+
+		return displayObj ? displayObj.label : '';
+	};
+
+	// Function to retrieve value from signedClaims based on path array
+	const getValueByPath = (pathArray) => {
+		console.log('pathArray', pathArray)
+		return pathArray.reduce((acc, key) => acc[key], signedClaims);
+	};
+
+	// Safely access claims if claims is defined and claims are array
+	const claimsWithValues = claims && Array.isArray(claims[0])
+		? claims[0].map(claim => ({
+			...claim,
+			label: getLabelByLang(claim.display, defaultLang),
+			value: formatDate(getValueByPath(claim.path), 'date')
+		}))
+		: []; // Fallback to empty array if undefined or null
 
 	return (
-		<div className={mainClassName}>
-			<table className="lg:w-4/5">
-				<tbody className="divide-y-4 divide-transparent">
-					{parsedCredential.signedClaims && (
-						<>
-							{renderRow('expdate', 'Expiration', parsedCredential.signedClaims?.exp ? formatDate(new Date(parsedCredential.signedClaims?.exp * 1000).toISOString()) : null, screenType)}
-							{renderRow('familyName', 'Family Name', parsedCredential.signedClaims?.family_name, screenType)}
-							{renderRow('firstName', 'Given Name', parsedCredential.signedClaims?.given_name, screenType)}
-							{renderRow('id', 'Personal ID', parsedCredential.signedClaims?.personal_identifier, screenType)}
-							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.signedClaims?.dateOfBirth, 'date'), screenType)}
-							{renderRow('dateOfBirth', 'Birthday', formatDate(parsedCredential.signedClaims?.birth_date, 'date'), screenType)}
-							{renderRow('diplomaTitle', 'Title', parsedCredential.signedClaims?.title, screenType)}
-							{renderRow('eqfLevel', 'EQF', parsedCredential.signedClaims?.eqf_level, screenType)}
-							{renderRow('grade', 'Grade', parsedCredential.signedClaims?.grade, screenType)}
-							{renderRow('id', 'Social Security Number', parsedCredential.signedClaims?.ssn, screenType)}
-							{renderRow('id', 'Document Number', parsedCredential.signedClaims?.document_number, screenType)}
-						</>
-					)}
-				</tbody>
-			</table>
+		<div className={mainClassName} data-testid="credential-info">
+			{claimsWithValues.length > 0 && (
+				<div>
+					{claimsWithValues.map((claim, index) => (
+						<p key={index} className='py-1 px-2'>
+							<span className='font-bold text-primary dark:text-primary-light'>
+								{claim.label}:{' '}
+							</span>
+							<span className="text-gray-700 dark:text-white">
+								{claim.value}
+							</span>
+						</p>
+					))}
+				</div>
+			)}
 		</div>
 	);
 };
