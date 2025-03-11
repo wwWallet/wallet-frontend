@@ -87,12 +87,12 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 			const parsedClaims: Record<string, unknown> | null = await (async () => {
 				try {
 					return await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
-					.withHasher(hasherAndAlgorithm)
-					.getPrettyClaims()
-					.then((signedClaims) => signedClaims)
-					.catch(() => null);
+						.withHasher(hasherAndAlgorithm)
+						.getPrettyClaims()
+						.then((signedClaims) => signedClaims)
+						.catch(() => null);
 				}
-				catch(err) {
+				catch (err) {
 					return null;
 				}
 
@@ -145,6 +145,8 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 					metadata: {
 						credential: {
 							format: VerifiableCredentialFormat.VC_SDJWT,
+							// @ts-ignore
+							metadataDocuments: [getSdJwtMetadataResult.credentialMetadata],
 							image: {
 								dataUri: dataUri ?? "",
 							},
