@@ -19,7 +19,7 @@ import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
 
-export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string) => Promise<Map<string, string>> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
@@ -71,14 +71,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 	);
 
 	const promptForCredentialSelection = useCallback(
-		async (conformantCredentialsMap: any, verifierDomainName: string): Promise<Map<string, string>> => {
-			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName);
+		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
+			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose);
 		},
 		[showCredentialSelectionPopup]
 	);
 
 	const handleAuthorizationRequest = useCallback(
-		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string } | { err: HandleAuthorizationRequestError }> => {
+		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { err: HandleAuthorizationRequestError }> => {
 			const authorizationRequest = new URL(url);
 			let client_id = authorizationRequest.searchParams.get('client_id');
 			let response_uri = authorizationRequest.searchParams.get('response_uri');
@@ -188,8 +188,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			));
 
 			const mapping = new Map<string, { credentials: string[], requestedFields: string[] }>();
+			let descriptorPurpose;
 			for (const descriptor of presentation_definition.input_descriptors) {
 				const conformingVcList = [];
+				descriptorPurpose = descriptor.purpose || "Purpose not specified by verifier";
+
 				for (const vc of vcList) {
 					try {
 
@@ -247,22 +250,19 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				if (conformingVcList.length === 0) {
 					return { err: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
 				}
-				const requestedFieldNames = descriptor.constraints.fields
-					.map((field) => {
-						if (field.name) {
-							return field.name;
-						}
-						return field.path[0];
-					})
-				mapping.set(descriptor.id, { credentials: [...conformingVcList], requestedFields: requestedFieldNames });
+
+				const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
+					name: field.name || field.path[0],
+					purpose: field.purpose || descriptorPurpose // Use field-specific purpose if available, otherwise fall back to descriptor-level
+				}));
+				mapping.set(descriptor.id, { credentials: [...conformingVcList], requestedFields: requestedFieldDetails });
 			}
 			const verifierDomainName = client_id.includes("http") ? new URL(client_id).hostname : client_id;
 			if (mapping.size === 0) {
 				console.log("Credentials don't satisfy any descriptor")
 				throw new Error("Credentials don't satisfy any descriptor");
 			}
-
-			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName };
+			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName, verifierPurpose: descriptorPurpose };
 		},
 		[httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
 	);
@@ -488,9 +488,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
-			const res = await httpProxy.post(response_uri, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			});
+			let res = null;
+			try {
+				res = await httpProxy.post(response_uri, formData.toString(), {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				});
+			}
+			catch (err) {
+				console.error(err);
+				showStatusPopup({
+					title: "Error in verification",
+					description: "The verification process has was not completed successfully",
+				}, 'error');
+				return {};
+			}
 
 			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
@@ -500,8 +511,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			if (responseData.redirect_uri) {
 				return { url: responseData.redirect_uri };
 			}
+			showStatusPopup({
+				title: "Verification succeeded",
+				description: "The verification process has been completed",
+			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation]
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {
