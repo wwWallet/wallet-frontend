@@ -28,6 +28,36 @@
 			"type": "image/png"
 		}
 	],
+	"screenshots": [
+		{
+			"src": "screenshots/screen_mobile_1.png",
+			"sizes": "800x1714",
+			"type": "image/png",
+			"form_factor": "narrow",
+			"label": "Home screen showing navigation and a credential"
+		},
+		{
+			"src": "screenshots/screen_mobile_2.png",
+			"sizes": "800x1714",
+			"type": "image/png",
+			"form_factor": "narrow",
+			"label": "Credential details view"
+		},
+		{
+			"src": "screenshots/screen_tablet_1.png",
+			"sizes": "2048x1536",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Home screen showing navigation and a credential"
+		},
+		{
+			"src": "screenshots/screen_tablet_2.png",
+			"sizes": "2048x1536",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Credential details view"
+		}
+	],
 	"start_url": ".",
 	"display": "standalone",
 	"orientation": "any",
