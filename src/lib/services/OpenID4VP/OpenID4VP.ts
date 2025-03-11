@@ -16,7 +16,7 @@ import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import CredentialParserContext from "@/context/CredentialParserContext";
 
-export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
@@ -388,9 +388,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
-			const res = await httpProxy.post(response_uri, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			});
+			let res = null;
+			try {
+				res = await httpProxy.post(response_uri, formData.toString(), {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				});
+			}
+			catch (err) {
+				console.error(err);
+				showStatusPopup({
+					title: "Error in verification",
+					description: "The verification process has was not completed successfully",
+				}, 'error');
+				return {};
+			}
 
 			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
@@ -400,8 +411,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			if (responseData.redirect_uri) {
 				return { url: responseData.redirect_uri };
 			}
+			showStatusPopup({
+				title: "Verification succeeded",
+				description: "The verification process has been completed",
+			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation]
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {
