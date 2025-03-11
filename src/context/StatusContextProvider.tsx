@@ -43,6 +43,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		Internet: null,
 		speed: 0,
 	});
+	const [pwaInstallable, setPwaInstallable] = useState(null);
 	const lastUpdateCallTime = React.useRef<number>(0);
 
 	const updateOnlineStatus = async (forceCheck = true) => {
@@ -151,6 +152,17 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		};
 	}, [isOnline]);
 
+	useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+			setPwaInstallable(event);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
 			const isWindowHidden = document.hidden;
@@ -164,7 +176,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	});
 
 	return (
-		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus }}>
+		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable }}>
 			{children}
 		</StatusContext.Provider>
 	);
