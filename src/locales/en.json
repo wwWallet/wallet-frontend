@@ -268,14 +268,14 @@
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",
+		"nicknameAriaLabel": "Nickname for new credential",
+		"nicknamePlaceholder": "Credential nickname",
 		"messageSuccess": "Success!",
 		"messageDone": "Almost done!",
 		"messageInteract": "Please interact with your authenticator...",
 		"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
-		"passkeyCreated": "Your passkey has been created.",
-		"newNickname": "Nickname for new credential",
-		"credentialNickname": "Credential Nickname"
+		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
@@ -284,6 +284,7 @@
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
+		"purposeNotSpecified": "Purpose not specified by verifier",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
 		"title": "Select : "
