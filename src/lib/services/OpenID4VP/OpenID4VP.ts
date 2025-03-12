@@ -18,6 +18,7 @@ import CredentialParserContext from "@/context/CredentialParserContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
+import { useTranslation } from 'react-i18next';
 
 export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
 
@@ -27,6 +28,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 	const { parseCredential } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
+	const { t } = useTranslation();
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -191,7 +193,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			let descriptorPurpose;
 			for (const descriptor of presentation_definition.input_descriptors) {
 				const conformingVcList = [];
-				descriptorPurpose = descriptor.purpose || "Purpose not specified by verifier";
+				descriptorPurpose = descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
 
 				for (const vc of vcList) {
 					try {

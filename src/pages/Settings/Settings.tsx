@@ -237,11 +237,11 @@ const WebauthnRegistation = ({
 								<input
 									type="text"
 									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
-									aria-label="Nickname for new credential"
+									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
 									onChange={(event) => setNickname(event.target.value)}
-									placeholder="Credential nickname"
+									placeholder={t('registerPasskey.nicknamePlaceholder')}
 									value={nickname}
 								/>
 							</>
