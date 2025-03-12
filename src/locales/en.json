@@ -273,7 +273,9 @@
 		"messageInteract": "Please interact with your authenticator...",
 		"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
-		"passkeyCreated": "Your passkey has been created."
+		"passkeyCreated": "Your passkey has been created.",
+		"newNickname": "Nickname for new credential",
+		"credentialNickname": "Credential Nickname"
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
