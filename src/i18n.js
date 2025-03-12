@@ -22,7 +22,7 @@ const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
 
 // Helper function to get only the language part and check if it exists
-const getLanguage = (locale) => {
+export const getLanguage = (locale) => {
 	const language = locale.includes('-') ? locale.split('-')[0] : locale;
 	return language;
 };
