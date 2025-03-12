@@ -126,7 +126,7 @@ const Issuers = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-    const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+		const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
