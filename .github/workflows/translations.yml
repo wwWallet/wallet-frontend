@@ -1,0 +1,31 @@
+name: translation-check
+
+on:
+  push:
+    branches-ignore:
+      - 'tmp**'
+  pull_request:
+    branches-ignore:
+      - 'tmp**'
+
+jobs:
+  check-translations:
+    name: Check translation coverage
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Run translation check
+        run: npm run translations

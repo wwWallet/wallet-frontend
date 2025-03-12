@@ -1,6 +1,8 @@
-<img src="https://demo.wwwallet.org/wallet_192.png" width="150"/>
+<img src="https://demo.wwwallet.org/wallet_192.png" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
 
 # wwWallet
+
+![Translation Coverage](https://img.shields.io/github/actions/workflow/status/wwWallet/wallet-frontend/.github/workflows/translations.yml?label=Translation%20Coverage)
 
 Welcome to wwWallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
 
