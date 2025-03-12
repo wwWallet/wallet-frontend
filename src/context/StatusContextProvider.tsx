@@ -153,6 +153,8 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	}, [isOnline]);
 
 	useEffect(() => {
+		// beforeinstallprompt is triggered if browser can install pwa
+		// it will not trigger if pwa is already installed
     const handleBeforeInstallPrompt = (event) => {
 			setPwaInstallable(event);
     };
@@ -160,6 +162,19 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+	useEffect(() => {
+		// appinstaled is triggered if pwa was installed
+		// we want to remove installation prompts in that case
+    const handleAppInstalled = () => {
+			setPwaInstallable(null);
+    };
+    window.addEventListener("appinstalled", handleAppInstalled);
+
+    return () => {
+      window.removeEventListener("appinstalled", handleAppInstalled);
     };
   }, []);
 
