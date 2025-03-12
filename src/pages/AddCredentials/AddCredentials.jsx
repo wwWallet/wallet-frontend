@@ -45,7 +45,7 @@ const Issuers = () => {
 
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
-		console.log("Selected issuer " , selectedIssuer)
+		console.log("Selected issuer ", selectedIssuer)
 
 		if (selectedIssuer) {
 			const selectedDisplayBasedOnLang = selectedIssuer.display.filter((d) => d.locale === 'en-US')[0];
@@ -99,7 +99,7 @@ const Issuers = () => {
 
 							setCredentialConfigurations((currentArray) => {
 								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
-									credentialConfigurationId === key
+									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
 								);
 								if (!credentialConfigurationExists) {
 									return [...currentArray, credentialConfiguration];
@@ -188,7 +188,7 @@ const Issuers = () => {
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${ getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
 					popupMessage={t('pageAddCredentials.popup.message', { issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown" })}
 				/>
 			)}
