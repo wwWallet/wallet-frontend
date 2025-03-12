@@ -58,18 +58,20 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	return (
 		<div className={mainClassName} data-testid="credential-info">
 			{claimsWithValues.length > 0 && (
-				<div>
-					{claimsWithValues.map((claim, index) => (
-						<p key={index} className='py-1 px-2'>
-							<span className='font-bold text-primary dark:text-primary-light'>
-								{claim.label}:{' '}
-							</span>
-							<span className="text-gray-700 dark:text-white">
-								{claim.value}
-							</span>
-						</p>
-					))}
-				</div>
+				<table>
+					<tbody>
+						{claimsWithValues.map((claim, index) => (
+							<tr key={index}>
+								<td className="py-1 px-2 font-bold text-primary dark:text-primary-light">
+									{claim.label}:
+								</td>
+								<td className="min-w-min max-w-[70%] py-1 px-2 text-gray-700 dark:text-white">
+									{claim.value}
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
 			)}
 		</div>
 	)
