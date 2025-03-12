@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@auth0/mdl@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@auth0/mdl/-/mdl-2.0.0.tgz#ae08f184ceeff0659f10c9281ca3bb65f1630813"
-  integrity sha512-zwX+Y4aB5ImJZpTMQAARn5x85JEJtNHW8WI+h69S5vKsl2mVQKD/jqsTcLDHaKqFMhIfY8/IngczAYBwNC1hfQ==
+"@auth0/mdl@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@auth0/mdl/-/mdl-2.0.1.tgz#d8e3d0ab2bdcffb298818ff103054e195c0d296a"
+  integrity sha512-OTFEUtLc+jZlAifDR0NjCPvlIYUxN+5nA1mxg22ZoD1R5RPMaHwaeJxTNuWSRe8SdJMB5UaYVQ5/pyDBZyWofw==
   dependencies:
     "@noble/curves" "^1.2.0"
     "@panva/hkdf" "^1.1.1"
@@ -834,7 +834,7 @@ picocolors@^1.1.1:
   resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.1.1.tgz#3d321af3eab939b083c8f929a1d12cda81c26b6b"
   integrity sha512-xceH2snhtb5M9liqDsmEw56le376mTZkEX/jEb/RxNFyegNul7eNslCXP9FDj/Lcu0X8KEyMceP2ntpaHrDEVA==
 
-pkijs@^3.0.15:
+pkijs@^3.0.15, pkijs@^3.2.4:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/pkijs/-/pkijs-3.2.4.tgz#55ed72b363a20fbd42b139ee3b72e54483635171"
   integrity sha512-Et9V5QpvBilPFgagJcaKBqXjKrrgF5JL2mSDELk1vvbOTt4fuBhSSsGn9Tcz0TQTfS5GCpXQ31Whrpqeqp0VRg==

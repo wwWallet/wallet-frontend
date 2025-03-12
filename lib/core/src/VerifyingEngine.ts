@@ -30,7 +30,7 @@ export function VerifyingEngine(): VerifyingEngineI {
 
 			return {
 				success: false,
-				error: lastError ? lastError : CredentialVerificationError.UnkownProblem
+				error: lastError ? lastError : CredentialVerificationError.UnknownProblem
 			}
 		}
 	}
