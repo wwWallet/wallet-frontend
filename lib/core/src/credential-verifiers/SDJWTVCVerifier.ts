@@ -86,6 +86,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 		})();
 
 		if (parsedSdJwt === CredentialVerificationError.InvalidFormat) {
+			logError(CredentialVerificationError.InvalidFormat, "Invalid format");
 			return {
 				success: false,
 				error: CredentialVerificationError.InvalidFormat
@@ -129,6 +130,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 			if (typeof parsedSdJwt.payload.iss === 'string' && typeof alg === 'string') {
 				const publicKeyResolutionResult = await args.pkResolverEngine.resolve({ identifier: parsedSdJwt.payload.iss });
 				if (!publicKeyResolutionResult.success) {
+					logError(CredentialVerificationError.CannotResolveIssuerPublicKey, "CannotResolveIssuerPublicKey");
 					return {
 						success: false,
 						error: CredentialVerificationError.CannotResolveIssuerPublicKey,
@@ -149,6 +151,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 					}
 				}
 			}
+			logError(CredentialVerificationError.CannotResolveIssuerPublicKey, "CannotResolveIssuerPublicKey");
 			return {
 				success: false,
 				error: CredentialVerificationError.CannotResolveIssuerPublicKey,
@@ -158,6 +161,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 		const issuerPublicKeyResult = await getIssuerPublicKey();
 
 		if (!issuerPublicKeyResult.success) {
+			logError(CredentialVerificationError.CannotResolveIssuerPublicKey, "CannotResolveIssuerPublicKey");
 			return {
 				success: false,
 				error: issuerPublicKeyResult.error,
@@ -201,6 +205,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 
 		const publicKeyResult = await getHolderPublicKey(rawCredentialWithoutKbJwt);
 		if (!publicKeyResult.success) {
+			logError(CredentialVerificationError.CannotExtractHolderPublicKey, "CannotExtractHolderPublicKey");
 			return {
 				success: false,
 				error: publicKeyResult.error,
@@ -276,7 +281,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 			if (!issuerSignatureVerificationResult.success) {
 				return {
 					success: false,
-					error: errors[0].error,
+					error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 				}
 			}
 
@@ -286,7 +291,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 				if (!verifyKbJwtResult.success) {
 					return {
 						success: false,
-						error: errors[0].error,
+						error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 					}
 				}
 			}
@@ -296,7 +301,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 				logError(CredentialVerificationError.CannotExtractHolderPublicKey, "Could not extract holder public key");
 				return {
 					success: false,
-					error: errors[0].error,
+					error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 				}
 			}
 

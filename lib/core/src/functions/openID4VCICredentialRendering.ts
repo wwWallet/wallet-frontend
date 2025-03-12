@@ -1,5 +1,6 @@
 import { HttpClient, OpenID4VCICredentialRendering } from "../interfaces";
 import { CredentialClaims } from "../types";
+import { escapeSVG } from "../utils/escapeSVG";
 import { formatDate } from "./formatDate";
 
 export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }): OpenID4VCICredentialRendering {
@@ -65,7 +66,8 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 
 
 	const renderCustomSvgTemplate = async ({ signedClaims, displayConfig }: { signedClaims: CredentialClaims, displayConfig: any }) => {
-		const name = displayConfig.name || defaultName;
+		const name =  displayConfig?.name ? escapeSVG(displayConfig?.name) : defaultName;
+		const description = displayConfig?.description ? escapeSVG(displayConfig?.description) : "";
 		const backgroundColor = displayConfig.backgroundColor || defaultBackgroundColor;
 		const textColor = displayConfig.text_color || defaultTextColor;
 		const backgroundImageBase64 = displayConfig?.background_image?.uri ?
@@ -93,7 +95,7 @@ export function OpenID4VCICredentialRendering(args: { httpClient: HttpClient }):
 			)
 			.replace(/{{name}}/g, name)
 			.replace(/{{textColor}}/g, textColor)
-			.replace(/{{description}}/g, displayConfig?.description || "")
+			.replace(/{{description}}/g, description)
 			.replace(/{{expiry_date}}/g, expiryDate ? `Expiry Date: ${expiryDate}` : '');
 
 		const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(replacedSvgText)}`;

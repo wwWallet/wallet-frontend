@@ -200,7 +200,7 @@ export function MsoMdocVerifier(args: { context: Context, pkResolverEngine: Publ
 				if (errors.length > 0) {
 					return {
 						success: false,
-						error: errors[0].error
+						error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 					}
 				}
 			}
@@ -218,7 +218,7 @@ export function MsoMdocVerifier(args: { context: Context, pkResolverEngine: Publ
 				if (errors.length > 0) {
 					return {
 						success: false,
-						error: errors[0].error,
+						error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 					}
 				}
 			}

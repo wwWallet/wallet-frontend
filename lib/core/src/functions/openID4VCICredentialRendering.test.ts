@@ -73,7 +73,7 @@ describe("The openID4VCICredentialRendering", () => {
 			},
 			displayConfig: {
 				"name": "PID - MDOC",
-				"description": "This is a Verifiable ID verifiable credential issued by the well-known VID Issuer",
+				"description": "Person Identification Data (PID) VC in mso_mdoc format",
 				"background_image": {
 					"uri": "https://issuer.wwwallet.org/images/background-image.png"
 				},

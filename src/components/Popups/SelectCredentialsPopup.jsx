@@ -95,7 +95,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				);
 
 				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
-				console.log('filteredVcEntities',filteredVcEntities)
+				console.log('filteredVcEntities', filteredVcEntities)
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -193,14 +193,17 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	};
 
 	const requestedFieldsText = (() => {
-		if (requestedFields.length === 2 && !showAllFields) {
-			return `${requestedFields[0]} & ${requestedFields[1]}`;
+		const fieldNames = requestedFields.map(field => field.name || field.path[0]);
+
+		if (fieldNames.length === 2 && !showAllFields) {
+			return `${fieldNames[0]} & ${fieldNames[1]}`;
 		} else if (showAllFields) {
-			return requestedFields.slice(0, -1).join(', ') + (requestedFields.length > 1 ? ' & ' : '') + requestedFields.slice(-1);
+			return fieldNames.slice(0, -1).join(', ') + (fieldNames.length > 1 ? ' & ' : '') + fieldNames.slice(-1);
 		} else {
-			return requestedFields.slice(0, 2).join(', ') + (requestedFields.length > 2 ? '...' : '');
+			return fieldNames.slice(0, 2).join(', ') + (fieldNames.length > 2 ? '...' : '');
 		}
 	})();
+
 
 	return (
 		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
@@ -221,11 +224,17 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						<>
 							<p className="pd-2 text-gray-700 text-sm dark:text-white">
 								<span>
+									{/* <strong>{t('selectCredentialPopup.purpose')}:</strong> {popupState.options.verifierPurpose} */}
 									<Trans
-										i18nKey={requestedFields.length === 1 ? "selectCredentialPopup.descriptionFieldsSingle" : "selectCredentialPopup.descriptionFieldsMultiple"}
+										i18nKey={"selectCredentialPopup.purpose"}
 										values={{ verifierDomainName: popupState.options.verifierDomainName }}
 										components={{ strong: <strong /> }}
-									/>
+									/> {popupState.options.verifierPurpose}
+								</span>
+							</p>
+							<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
+								<span>
+									{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
 								</span>
 								&nbsp;
 								<strong>
@@ -240,7 +249,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									</>
 								)}.
 							</p>
-							<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+							<p className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">
 								{t('selectCredentialPopup.descriptionSelect')}
 							</p>
 						</>
