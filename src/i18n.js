@@ -5,12 +5,14 @@ import * as config from './config';
 
 import enTranslation from './locales/en.json';
 import elTranslation from './locales/el.json';
+import ptTranslation from './locales/pt.json';
 
 const fallbackLng = 'en';
 
 const resources = {
 	en: { translation: enTranslation },
 	el: { translation: elTranslation },
+	pt: { translation: ptTranslation },
 };
 
 // Check if multi-language display is enabled
