@@ -119,14 +119,14 @@ const Issuers = () => {
 			}
 		};
 
-		if (openID4VCIHelper) {
+		if (openID4VCIHelper && openID4VCI) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline, openID4VCIHelper]);
+	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const [credentialConfigurationId, credentialIssuerIdentifier] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+    const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
