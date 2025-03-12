@@ -1,15 +1,14 @@
-import { importJWK, JWK } from "jose";
+import { JWK } from "jose";
 import { CredentialVerificationError } from "../error";
 import { Context, CredentialVerifier, PublicKeyResolverEngineI } from "../interfaces";
 import { fromBase64Url } from "../utils/util";
 import { DataItem, DeviceSignedDocument, IssuerSignedDocument, MDoc, parse, Verifier } from "@auth0/mdl";
 import { IssuerSigned } from "@auth0/mdl/lib/mdoc/model/types";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor/";
-import { VerifiableCredentialFormat } from "../types";
-import { COSEKeyFromJWK, COSEKeyToJWK, importCOSEKey } from "cose-kit";
+import { COSEKeyToJWK } from "cose-kit";
 
 
-export function MsoMdocVerifier(args: { context: Context, resolverEngine: PublicKeyResolverEngineI }): CredentialVerifier {
+export function MsoMdocVerifier(args: { context: Context, pkResolverEngine: PublicKeyResolverEngineI }): CredentialVerifier {
 	let errors: { error: CredentialVerificationError, message: string }[] = [];
 	const logError = (error: CredentialVerificationError, message: string): void => {
 		errors.push({ error, message });
@@ -82,15 +81,22 @@ export function MsoMdocVerifier(args: { context: Context, resolverEngine: Public
 			if (expirationCheckRes !== null) {
 				return { holderPublicKeyJwk: null };
 			}
-			const { publicKey } = await parsedDocument.issuerSigned.issuerAuth.verifyX509Chain(args.context.trustedCertificates);
-			if (!publicKey) {
-				logError(CredentialVerificationError.NotTrustedIssuer, "Issuer is not trusted");
-				return { holderPublicKeyJwk: null };
-			}
 
-			const verification = await parsedDocument.issuerSigned.issuerAuth.verify(publicKey);
-			if (verification !== true) {
-				logError(CredentialVerificationError.InvalidSignature, "Invalid signature");
+			if (parsedDocument.issuerSigned.issuerAuth.x5chain && args.context.trustedCertificates.length > 0) {
+				const { publicKey } = await parsedDocument.issuerSigned.issuerAuth.verifyX509Chain(args.context.trustedCertificates);
+				if (!publicKey) {
+					logError(CredentialVerificationError.NotTrustedIssuer, "Issuer is not trusted");
+					return { holderPublicKeyJwk: null };
+				}
+				const verification = await parsedDocument.issuerSigned.issuerAuth.verify(publicKey);
+				if (verification !== true) {
+					logError(CredentialVerificationError.InvalidSignature, "Invalid signature");
+				}
+				const holderPublicKeyJwk = extractHolderPublicKeyJwk(parsedDocument);
+
+				return {
+					holderPublicKeyJwk
+				};
 			}
 			const holderPublicKeyJwk = extractHolderPublicKeyJwk(parsedDocument);
 
@@ -100,7 +106,10 @@ export function MsoMdocVerifier(args: { context: Context, resolverEngine: Public
 
 		}
 		catch (err) {
-			logError(CredentialVerificationError.VerificationProcessNotStarted, "VerificationProcessNotStarted");
+			// @ts-ignore
+			if (err?.name && err.name === "X509InvalidCertificateChain") {
+				logError(CredentialVerificationError.InvalidCertificateChain, "Invalid Certificate chain: " + JSON.stringify(err))
+			}
 		}
 		return { holderPublicKeyJwk: null };
 
@@ -118,10 +127,12 @@ export function MsoMdocVerifier(args: { context: Context, resolverEngine: Public
 				return { holderPublicKeyJwk: null };
 			}
 
-			const res = await parsedDocument.issuerSigned.issuerAuth.verifyX509(args.context.trustedCertificates);
-			if (!res) {
-				logError(CredentialVerificationError.NotTrustedIssuer, "Issuer is not trusted");
-				return { holderPublicKeyJwk: null };
+			if (args.context.trustedCertificates.length > 0) {
+				const res = await parsedDocument.issuerSigned.issuerAuth.verifyX509(args.context.trustedCertificates);
+				if (!res) {
+					logError(CredentialVerificationError.NotTrustedIssuer, "Issuer is not trusted");
+					return { holderPublicKeyJwk: null };
+				}
 			}
 
 			const expiredResult = await expirationCheck(parsedDocument.issuerSigned);
@@ -141,9 +152,8 @@ export function MsoMdocVerifier(args: { context: Context, resolverEngine: Public
 				});
 				return { holderPublicKeyJwk };
 			}
-			logError(CredentialVerificationError.MissingOpts, "Some opts are missing");
 
-			return { holderPublicKeyJwk: null }
+			return { holderPublicKeyJwk: holderPublicKeyJwk }
 
 		}
 		catch (err) {
@@ -190,7 +200,7 @@ export function MsoMdocVerifier(args: { context: Context, resolverEngine: Public
 				if (errors.length > 0) {
 					return {
 						success: false,
-						error: errors[0].error
+						error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 					}
 				}
 			}
@@ -208,17 +218,17 @@ export function MsoMdocVerifier(args: { context: Context, resolverEngine: Public
 				if (errors.length > 0) {
 					return {
 						success: false,
-						error: errors[0].error,
+						error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 					}
 				}
 			}
 
-
+			console.error(errors);
 
 
 			return {
 				success: false,
-				error: CredentialVerificationError.UnkownProblem
+				error: CredentialVerificationError.UnknownProblem
 			}
 		},
 	}
