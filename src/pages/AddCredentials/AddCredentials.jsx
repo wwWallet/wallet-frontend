@@ -9,13 +9,16 @@ import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import CredentialsContext from '@/context/CredentialsContext';
+import Button from '@/components/Buttons/Button';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [issuers, setIssuers] = useState([]);
+	const [recent, setRecent] = useState([]);
 	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
-
+	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState([]);
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 
 	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
@@ -23,8 +26,42 @@ const Issuers = () => {
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { vcEntityList, getData } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();
+
+	useEffect(() => {
+		if (vcEntityList === null) {
+			getData();
+		}
+	}, [vcEntityList, getData]);
+
+	useEffect(() => {
+		const fetchRecentCredConfigs = async () => {
+			vcEntityList.map(async (vcEntity, key) => {
+
+				// Currently, the implementation is limited to the 'sd-jwt-vc' format which includes 'vct'.
+				// Other formats, like 'mdoc', which do not have a 'vct', are not supported at this time.
+				const identifierField = vcEntity.parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.vct + '-' + vcEntity.parsedCredential?.metadata?.issuer?.id;
+				setRecent((currentArray) => {
+					const issuerExists = currentArray.some((rec) =>
+						rec.identifierField === identifierField
+					);
+
+					if (!issuerExists) {
+						return [...currentArray, identifierField];
+					}
+					return currentArray;
+				});
+
+			})
+		};
+
+		if (vcEntityList) {
+			console.log("Fetching Recent Credential Configurations...")
+			fetchRecentCredConfigs();
+		}
+	}, [vcEntityList]);
 
 	const getSelectedIssuer = () => {
 		if (selectedCredentialConfiguration) {
@@ -45,7 +82,7 @@ const Issuers = () => {
 
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
-		console.log("Selected issuer " , selectedIssuer)
+		console.log("Selected issuer ", selectedIssuer)
 
 		if (selectedIssuer) {
 			const selectedDisplayBasedOnLang = selectedIssuer.display.filter((d) => d.locale === 'en-US')[0];
@@ -171,10 +208,11 @@ const Issuers = () => {
 				<H1 heading={t('common.navItemAddCredentials')} />
 				<PageDescription description={t('pageAddCredentials.description')} />
 
-				{credentialConfigurations && (
+				{credentialConfigurations && recent && (
 					<QueryableList
 						isOnline={isOnline}
 						list={credentialConfigurations}
+						recent={recent}
 						queryField='credentialConfigurationDisplayName'
 						translationPrefix='pageAddCredentials'
 						identifierField='identifierField'
@@ -188,7 +226,7 @@ const Issuers = () => {
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${ getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
 					popupMessage={t('pageAddCredentials.popup.message', { issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown" })}
 				/>
 			)}
