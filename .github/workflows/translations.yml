@@ -38,16 +38,43 @@ jobs:
           path: coverage_*.json
           retention-days: 1
 
-      - name: Deploy coverage to GitHub Pages
-        if: env.ACT != 'true'  # Skip this step in act
+  deploy-coverage:
+    name: Deploy Translation Coverage to GitHub Pages
+    needs: check-translations
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write  # Needed to push to gh-pages branch
+      pages: write
+      id-token: write  # Needed for GitHub Pages deployment
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: translation-coverage
+          path: public/coverage
+
+      - name: Commit and Push Coverage JSONs
         run: |
-          mkdir -p coverage
-          mv coverage_*.json coverage/
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git checkout --orphan gh-pages
-          git rm -rf .
-          mv coverage/* .
-          git add .
-          git commit -m "Update translation coverage"
-          git push -f origin gh-pages
+          git checkout --orphan gh-pages || git checkout gh-pages
+          mkdir -p coverage
+          mv public/coverage/* coverage/
+          git add coverage/
+          git commit -m "Update translation coverage JSONs"
+          git push origin gh-pages --force
+
+      - name: Deploy to GitHub Pages
+        uses: actions/configure-pages@v1
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./coverage
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
