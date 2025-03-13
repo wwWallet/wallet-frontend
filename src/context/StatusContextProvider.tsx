@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import StatusContext, {Connectivity} from './StatusContext';
+import { useLocalStorage } from '@/hooks/useStorage';
 
 // Function to calculate speed based on RTT (lower RTT means higher speed)
 function calculateNetworkSpeed(rtt: number): number {
@@ -44,6 +45,8 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		speed: 0,
 	});
 	const [pwaInstallable, setPwaInstallable] = useState(null);
+	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>("hidePwaPrompt", false);
+
 	const lastUpdateCallTime = React.useRef<number>(0);
 
 	const updateOnlineStatus = async (forceCheck = true) => {
@@ -186,8 +189,12 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		}
 	});
 
+	const dismissPwaPrompt = () => {
+		setHidePwaPrompt(true);
+	}
+
 	return (
-		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable }}>
+		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt }}>
 			{children}
 		</StatusContext.Provider>
 	);
