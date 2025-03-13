@@ -54,9 +54,9 @@ for (const lc in locales) {
 
 // Save JSON files only if running in CI
 if (process.env.CI) {
-    console.log("Running in CI - Saving coverage reports...");
+		console.log("Running in CI - Saving coverage reports...");
 
-    for (const [lang, percent] of Object.entries(coverageResults)) {
+		for (const [lang, percent] of Object.entries(coverageResults)) {
 			const color = percent >= 100 ? "brightgreen" : percent >= 80 ? "yellow" : "red";
 			const langResult = {
 				schemaVersion: 1,
@@ -65,5 +65,5 @@ if (process.env.CI) {
 				color: color,
 			};
 			fs.writeFileSync(`coverage_${lang}.json`, JSON.stringify(langResult, null, 2));
-    }
+		}
 }
