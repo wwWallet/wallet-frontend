@@ -1,0 +1,321 @@
+{
+	"common": {
+		"cancel": "Cancelar",
+		"continue": "Continuar",
+		"delete": "Eliminar",
+		"navItemAddCredentials": "Adicionar Credenciais",
+		"navItemAddCredentialsSimple": "Adicionar",
+		"navItemCredentials": "Credenciais",
+		"navItemHistory": "Histórico",
+		"navItemProfile": "Perfil",
+		"navItemSendCredentials": "Enviar Credenciais",
+		"navItemSendCredentialsSimple": "Enviar",
+		"navItemSettings": "Definições",
+		"next": "Próximo",
+		"offline": "Offline",
+		"offlineTitle": "Está offline. Não tem acesso neste momento.",
+		"online": "Online",
+		"passwordHideAriaLabel": "Ocultar palavra-passe",
+		"passwordHideTitle": "Clique para ocultar palavra-passe",
+		"passwordShowAriaLabel": "Mostrar palavra-passe",
+		"passwordShowTitle": "Clique para mostrar palavra-passe",
+		"previous": "Anterior",
+		"privateDataConflict": "A sua sessão não está sincronizada com o servidor. Por favor, volte a iniciar sessão e tente novamente.",
+		"save": "Guardar",
+		"refresh": "Atualizar",
+		"submit": "Submeter",
+		"tryAgain": "Tentar novamente",
+		"walletName": "wwWallet"
+	},
+	"language": {
+		"label": "Idioma"
+	},
+	"ConnectionStatusIcon": {
+		"status": "Estado da conexão:",
+		"qualityLabels": {
+			"excellent": "Excelente",
+			"good": "Boa",
+			"fair": "Razoável",
+			"poor": "Má",
+			"veryPoor": "Muito má"
+		}
+	},
+	"layout": {
+		"messageAllowPermission": "Para receber atualizações em tempo real de <strong>Credenciais, ative a permissão de notificações e recarregue esta página</strong>.",
+		"messageResetPermission": "Algo <strong>não está a funcionar corretamente com as notificações.</strong> Por favor, <reloadButton>recarregue esta página</reloadButton>.",
+		"messageOffline": "Neste momento está <strong>offline. Algumas funcionalidades podem não estar disponíveis.</strong>"
+	},
+	"loginState": {
+		"confirm": "Confirmar",
+		"message": "Use a sua <strong>chave de acesso</strong> para continuar e obter a sua credencial na sua carteira.",
+		"title": "Olá,",
+		"welcomeBackMessage": "Bem-vindo(a) novamente à <highlight>$t(common.walletName)</highlight>"
+	},
+	"loginSignup": {
+		"alreadyHaveAccountQuestion": "Já tem uma conta? ",
+		"authOnceMoreLogin": "Para concluir o desbloqueio da carteira, por favor autentique-se com a sua chave de acesso novamente.",
+		"capitalLetter": "Pelo menos, uma letra maiúscula",
+		"choosePasskeyUsername": "Como devemos chamar-lhe?",
+		"confirmPasswordLabel": "Confirmar palavra-passe",
+		"enterPasskeyName": "Escolha um nome para si",
+		"enterPassword": "Introduza a sua palavra-passe",
+		"enterUsername": "Introduza o seu nome de utilizador",
+		"enterconfirmPasswordLabel": "Confirme a sua palavra-passe",
+		"fillInFieldsError": "Por favor, preencha todos os campos obrigatórios",
+		"forgetCachedUser": "Clique para esquecer o utilizador guardado {{name}}",
+		"incorrectCredentialsError": "Nome de utilizador ou palavra-passe incorreto(s)",
+		"login": "Iniciar sessão",
+		"loginCache": "Escolha a sua conta",
+		"loginAsUser": "Iniciar sessão como {{name}}",
+		"loginLocalKeystoreFailed": "Não foi possível iniciar o armazenamento de chaves da carteira. Por favor, tente novamente.",
+		"loginPasskey": "Iniciar sessão com chave de acesso",
+		"loginSubmit": "Iniciar sessão",
+		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
+		"newHereQuestion": "Ainda não tem conta? ",
+		"number": "Pelo menos, um número",
+		"or": "OU",
+		"passkeyInvalid": "Chave de acesso desconhecida, possivelmente eliminada pelo utilizador.",
+		"passkeyLoginFailedServerError": "Não foi possível iniciar sessão com chave de acesso. Por favor, tente novamente mais tarde.",
+		"passkeyLoginFailedTryAgain": "Início de sessão com chave de acesso falhou. Por favor, tente novamente.",
+		"passkeySignupFailedServerError": "Não foi possível iniciar criação de chave de acesso. Por favor, tente novamente mais tarde.",
+		"passkeySignupFailedTryAgain": "Criação de chave de acesso falhou. Por favor, tente novamente.",
+		"passkeySignupFinishFailedServerError": "Não foi possível finalizar criação de chave de acesso. Por favor, tente novamente mais tarde.",
+		"passkeySignupKeystoreFailed": "Não foi possível iniciar armazenamento de chaves da carteira. Por favor, tente novamente.",
+		"passkeySignupPrfNotSupported": "Este navegador ou a chave de segurança não são suportados. Por favor, assegure-se que o seu navegador suporta a extensão WebAuthn PRF e que a sua chave de segurança, caso exista, suporta a extensão \"hmac-secret\". <docLink>Saiba mais aqui</docLink>.",
+		"passkeySignupPrfNotSupportedAriaLabel": "Saiba mais sobre navegadores suportados ou chaves de segurança.",
+		"passwordLabel": "Palavra-passe",
+		"passwordLength": "Tamanho mínimo: 8 caracteres",
+		"passwordsNotMatchError": "Palavras-passe não correspondem",
+		"passwordUnlockFailed": "Não foi possível desbloquear a carteira com palavra-passe.",
+		"privateDataConflict": "Outra sessão associada a esta conta interrompeu a tentativa de início de sessão. Por favor, tente novamente.",
+		"signUp": "Registar",
+		"signUpPasskey": "Registar com chave de acesso",
+		"signUpSubmit": "Registar",
+		"signupPasskey": "Registar com chave de acesso",
+		"specialCharacter": "Pelo menos, um carácter especial",
+		"reachedLengthLimit": "Tamanho máximo excedido",
+		"strength": "Força",
+		"submitting": "A submeter...",
+		"usernameExistsError": "Não foi possível criar conta de utilizador. O nome de utilizador já existe.",
+		"usernameLabel": "Nome de utilizador",
+		"useOtherAccount": "Usar outra conta",
+		"weakPasswordError": "Palavra-passe fraca",
+		"welcomeMessage": "Bem-vindo(a) à <highlight>$t(common.walletName)</highlight>"
+	},
+	"messagePopup": {
+		"close": "Fechar",
+		"insufficientCredentials": {
+			"title": "Credenciais insuficientes",
+			"description": "Uma ou mais das credenciais que deseja apresentar não estão disponíveis para seleção."
+		},
+		"onlyOneInputDescriptor": {
+			"title": "Versão de protocolo não suportada",
+			"description": "Neste momento, a carteira não pode aceitar um Pedido de Apresentação para mais do que uma credencial em simultâneo."
+		},
+		"nonTrustedVerifier": {
+			"title": "Verifier não confiável",
+			"description": "O verifier não forneceu informação válida para verificação."
+		},
+		"sendResponseError": {
+			"title": "Erro de envio de resposta",
+			"description": "Ocorreu um erro durante a apresentação das credenciais."
+		},
+		"sendResponseSuccess": {
+			"title": "Apresentação bem-sucedida",
+			"description": "As credenciais foram enviadas com sucesso."
+		}
+	},
+	"notFound": {
+		"homeButton": "Voltar à página inicial",
+		"message": "Lamentamos, mas a página que procura não pode ser acedida",
+		"title": "Oops, página não encontrada!"
+	},
+	"pageAddCredentials": {
+		"description": "Pesquise e selecione um issuer para obter uma credencial.",
+		"noFound": "Sem issuers correspondentes.",
+		"popup": {
+			"message": "Selecionou {{issuerName}}. Se continuar, será redirecionado para a página do issuer neste mesmo separador.",
+			"title": "Issuer selecionado:"
+		},
+		"searchPlaceholder": "Procurar issuers..."
+	},
+	"pageCredentials": {
+		"addCardTitle": "Adicionar Nova Credencial",
+		"credentialTitle": "Credencial",
+		"datasetTitle": "Dataset",
+		"presentationsTitle": "Apresentações",
+		"deletePopupMessage": "Tem a certeza que deseja eliminar a credencial <strong>{{credentialName}}</strong>? Se continuar, <strong>todas as apresentações que incluem esta VC serão removidas do seu histórico.</strong>",
+		"description": "Consulte as suas credenciais",
+		"details": {
+			"availableUsages": "Utilizações disponíveis",
+			"description": "Consulte toda a informação sobre a credencial selecionada",
+			"expired": "Esta credencial expirou"
+		},
+		"delete": "Eliminar credencial",
+		"credentialFullScreenTitle": "Clique para ver em tela cheia o {{friendlyName}}",
+		"credentialDetailsTitle": "Clique para ver detalhes sobre {{friendlyName}}",
+		"slideNext": "Seguinte",
+		"slidePrevious": "Anterior",
+		"slideButtonAriaLabelEnable": "Ir para credencial {{direction}}",
+		"slideButtonTitleEnable": "Clique para ir para a credencial {{direction}}",
+		"slideButtonAriaLabelDisable": "Sem credencial {{direction}}",
+		"slideButtonTitleDisable": "Sem credencial {{direction}} disponível"
+	},
+	"pageHistory": {
+		"description": "Consulte o histórico de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
+		"presentationDetails": {
+			"title": "Detalhes de apresentação"
+		},
+		"noFound": "Sem apresentações",
+		"popupTitle": "Credenciais apresentadas"
+	},
+	"pageSendCredentials": {
+		"description": "Pesquise e selecione um verifier para partilhar credenciais",
+		"noFound": "Sem verifiers correspondentes.",
+		"popup": {
+			"message": "Selecionou {{verifierName}}. Se continuar, será redirecionado para a página do verifier neste mesmo separador.",
+			"title": "Verifier selecionado:"
+		},
+		"searchPlaceholder": "Procurar verifiers..."
+	},
+	"pageSettings": {
+		"addPasskey": "Adicionar chave de acesso",
+		"addPasskeyTitle": "Clique para adicionar chave de acesso",
+		"deleteAccount": {
+			"buttonText": "Elimine a sua conta",
+			"deleteButtonTitleLocked": "Não é possível apagar a conta com gestão bloqueada",
+			"description": "Eliminar a conta é um processo irreversível. Por favor, assegure-se de que quer prosseguir.",
+			"message": "Tem a certeza que quer eliminar <strong>a sua conta</strong>?",
+			"title": "Eliminar conta"
+		},
+		"deletePasskeyButtonTitleLocked": "Não é possível adicionar chave de acesso com gestão bloqueada.",
+		"description": "Consulte informação da conta e gira chaves de acesso",
+		"lockPasskeyManagement": "Bloquear gestão",
+		"lockPasskeyManagementTitle": "Clique para bloquear gestão de chaves de acesso",
+		"noOtherPasskeys": "Não há mais chaves de acesso nesta conta.",
+		"passkeyItem": {
+			"canEncrypt": "Pode encriptar",
+			"canEncryptNo": "Não",
+			"canEncryptYes": "Sim",
+			"cancelChangesAriaLabel": "Cancelar alterações à chave de acesso {{passkeyLabel}}",
+			"created": "Criada",
+			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
+			"deleteButtonTitleLocked": "Não é possível eliminar chave de acesso com gestão bloqueada.",
+			"deleteButtonTitleUnlocked": "Clique para eliminar a chave de acesso {{passkeyLabel}}",
+			"lastUsed": "Última utilização",
+			"messageDeletePasskey": "Tem a certeza que deseja eliminar a chave de acesso <strong>{{nickname}}</strong>?",
+			"needsPrfUpgrade": "Atualização necessária",
+			"nickname": "Nome",
+			"nicknameInput": "Novo nome",
+			"nicknameInputAriaLabel": "Introduza novo nome para a chave de acesso {{passkeyLabel}}",
+			"prfUpgrade": "Atualizar",
+			"prfUpgradeAriaLabel": "Atualizar chave de acesso {{passkeyLabel}}",
+			"rename": "Renomear",
+			"renameAriaLabel": "Renomear chave de acesso {{passkeyLabel}}",
+			"renameButtonTitleLocked": "Não é possível alterar chave de acesso com gestão bloqueada.",
+			"saveChangesAriaLabel": "Guardar alterações para chave de acesso {{passkeyLabel}}",
+			"unnamed": "Chave de acesso sem nome"
+		},
+		"rememberIssuer": {
+			"description": "Defina a duração de acesso aos issuers sem ser necessário nova autenticação (de acordo com a política do issuer)",
+			"options": {
+				"none": "Autenticar sempre",
+				"hour": "1 hora",
+				"day": "1 dia",
+				"week": "1 semana",
+				"month": "1 mês"
+			},
+			"successMessage": "Guardado"
+		},
+		"title": {
+			"language": "Idioma",
+			"rememberIssuer": "Relembrar issuer",
+			"confirmDeletePopup": "Tem a certeza?",
+			"loggedInPasskey": "Chave de acesso autenticada",
+			"manageAcount": "Gerir conta",
+			"manageOtherPasskeys": "Gerir outras chaves de acesso",
+			"appVersion": "Versão da aplicação"
+		},
+		"unlockPasskeyManagement": "Desbloquear gestão",
+		"unlockPasskeyManagementTitle": "Clique para desbloquear gestão",
+		"unlockPassword": {
+			"description": "Por favor, introduza a sua palavra-passe para desbloquear a gestão da carteira.",
+			"passwordInputAriaLabel": "Palavra-passe",
+			"passwordInputPlaceholder": "Palavra-passe",
+			"title": "Introduzir Palavra-passe"
+		},
+		"upgradePrfKey": {
+			"description": "Por favor, autentique-se com a chave de acesso \"{{passkeyLabel}}\"...",
+			"error": "<p>Algo correu mal. Por favor, tente novamente.</p><p>Por favor, lembre-se que precisa de se autenticar com a chave de acesso \"{{passkeyLabel}}\".</p>",
+			"title": "A atualizar a chave de encriptação da chave de acesso"
+		},
+		"appVersion": {
+			"descriptionLatestVersion": "Está, neste momento, a usar a versão mais recente ({{react_app_version}}) da $t(common.walletName).",
+			"descriptionOldVersion": "Está, neste momento, a usar a versão {{react_app_version}} da wwWallet.<br/> <strong>Está disponível uma nova versão.</strong> Por favor, <reloadButton>recarregue</reloadButton> para atualizar!"
+		}
+	},
+	"PinInputPopup": {
+		"description": "Por favor, introduza o PIN apresentado pelo issuer",
+		"errMessage": "PIN incorreto",
+		"inputPlaceholder": "PIN",
+		"title": "Introduza o PIN"
+	},
+	"qrCodeScanner": {
+		"cameraPermissionAllow": "Por favor, ative a permissão da câmara para usar o digitalizador de código QR.",
+		"description": "Vise o código QR e será redirecionado para continuar com o processo",
+		"title": "Ler o código QR"
+	},
+	"registerPasskey": {
+		"authOnceMore": "Para concluir a configuração, por favor autentique-se novamente.",
+		"giveNickname": "Dê um nome a esta credencial:",
+		"nicknameAriaLabel": "Nome para nova credencial",
+		"nicknamePlaceholder": "Nome da credencial",
+		"messageSuccess": "Sucesso!",
+		"messageDone": "Quase pronto!",
+		"messageInteract": "Por favor, interaja com o seu autenticador...",
+		"messageInteractNewPasskey": "Por favor, autentique-se com a nova chave de acesso...",
+		"messageErrorTryAgain": "Algo correu mal. Por favor, tente novamente.<br/> Note que tem que usar a chave de acesso que criou no passo anterior.",
+		"passkeyCreated": "A sua chave de acesso foi criada."
+	},
+	"selectCredentialPopup": {
+		"credentialSelectTitle": "Clique para selecionar a {{friendlyName}}",
+		"descriptionFieldsSingle": "Campo solicitado:",
+		"descriptionFieldsMultiple": "Campos solicitados:",
+		"descriptionSelect": "Selecione a credencial que deseja apresentar",
+		"nextButtonDisabledTitle": "Precisa de selecionar uma credencial para continuar",
+		"purpose": "Objetivo do <strong> {{verifierDomainName}}: </strong>",
+		"purposeNotSpecified": "Objetivo não especificado pelo verifier",
+		"requestedFieldsLess": "Mostrar menos",
+		"requestedFieldsMore": "Mostrar mais",
+		"title": "Selecionar: "
+	},
+	"sidebar": {
+		"navItemLogout": "Sair",
+		"poweredBy": "Desenvolvido por <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredByAriaLabel": "Repositório GitHub da wwWallet"
+	},
+	"expiredRibbon": {
+		"expired": "Expirada"
+	},
+	"tourGuide": {
+		"tourStep1": "Aqui, pode ver todas as suas credenciais armazenadas. Clique em 'Adicionar Nova Credencial' para obter uma nova VC de um issuer disponível",
+		"tourStep2": "A página 'Credenciais' é a sua página inicial. Aqui, pode gerir as suas credenciais.",
+		"tourStep3": "A página 'Adicionar Credenciais' permite que receba credenciais de um issuer específico.",
+		"tourStep4": "Clique neste botão para ler um código QR para enviar ou receber crendenciais.",
+		"tourStep5": "Utilize a página 'Enviar Credenciais' para selecionar um verifier e partilhar as suas credenciais.",
+		"tourStep6": "Na página 'Histórico', pode ver detalhes das transmissões de credenciais, incluindo quando e para que verifiers elas foram enviadas.",
+		"tourStep7": "Na página 'Definições' pode gerir as suas chaves de acesso e configurações de conta.",
+		"tourComplete": "Obrigado por ter concluído esta apresentação. Esperamos ter ajudado!",
+		"closeTourButton": "Fechar apresentação"
+	},
+	"updateNotification": {
+		"description": "Nova versão disponível!"
+	},
+	"welcomeModal": {
+		"title": "Bem vindo(a) à $t(common.walletName)!",
+		"description": "Explore a <strong> $t(common.walletName) </strong>, a sua ferramenta para gerir credenciais digitais. Consulte, apresente e acompanhe todas as suas credenciais com facilidade!",
+		"question": "Está disponível para explorar as funcionalidades da $t(common.walletName) através de uma apresentação guiada?",
+		"dismissButton": "Dispensar",
+		"startTourButton": "Começar"
+	}
+}

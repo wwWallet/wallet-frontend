@@ -268,6 +268,8 @@
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",
+		"nicknameAriaLabel": "Nickname for new credential",
+		"nicknamePlaceholder": "Credential nickname",
 		"messageSuccess": "Success!",
 		"messageDone": "Almost done!",
 		"messageInteract": "Please interact with your authenticator...",
@@ -282,6 +284,7 @@
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
+		"purposeNotSpecified": "Purpose not specified by verifier",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
 		"title": "Select : "
