@@ -88,7 +88,7 @@ const QueryableList = <T,>({
 					searchCallback={handleSearch}
 				/>
 				<div className="my-2">
-					{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading='Recent' />}
+					{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
 					<div
 						className="space-y-2 mb-2"
 					>
@@ -111,7 +111,7 @@ const QueryableList = <T,>({
 					</div>
 				</div>
 			</div>
-			{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading='All' />}
+			{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.all")} />}
 			{filteredList.length === 0 ? (
 				<p className="text-gray-700 dark:text-gray-300 mt-4">
 					{t(translationPrefix + ".noFound")}
