@@ -38,10 +38,6 @@ jobs:
           path: coverage_*.json
           retention-days: 1
 
-      - name: Clean up coverage reports
-        if: env.ACT != 'true'  # Skip this step in act
-        run: rm -f coverage_*.json
-
       - name: Deploy coverage to GitHub Pages
         if: env.ACT != 'true'  # Skip this step in act
         run: |
