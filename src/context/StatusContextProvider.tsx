@@ -158,23 +158,19 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
     const handleBeforeInstallPrompt = (event) => {
 			setPwaInstallable(event);
     };
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
-
-	useEffect(() => {
 		// appinstaled is triggered if pwa was installed
 		// we want to remove installation prompts in that case
     const handleAppInstalled = () => {
 			setPwaInstallable(null);
     };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
 
     return () => {
       window.removeEventListener("appinstalled", handleAppInstalled);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
   }, []);
 
