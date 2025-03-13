@@ -64,6 +64,6 @@ for (const [lang, percent] of Object.entries(coverageResults)) {
 		color: color,
 	};
 	const filename = `./translation_coverage/coverage_${lang}.json`
-	fs.writeFileSync(filename, JSON.stringify(langResult, null, 2));
+	fs.writeFileSync(filename, JSON.stringify(langResult, null, "\t") + "\n");
 	console.log(`Saved ${filename}`)
 }
