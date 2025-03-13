@@ -29,6 +29,8 @@ for (const locale of dir) {
 const leafNames = new Set();
 constructLeafNames(locales['en'], '', leafNames);
 
+const coverageResults = {};
+
 for (const lc in locales) {
 	if (lc == 'en') {
 		continue;
@@ -44,6 +46,24 @@ for (const lc in locales) {
 			missingCount++;
 		}
 	}
+	const completion = ((1 - missingCount / leafNames.size) * 100).toFixed(2);
 	console.log(`${missingCount} entries (${(100 - (missingCount * 100.0 / lcLeafs.size)).toFixed(2)}% completion)`);
 	console.log('');
+	coverageResults[lc] = Number(completion);
+}
+
+// Save JSON files only if running in CI
+if (process.env.CI) {
+    console.log("Running in CI - Saving coverage reports...");
+
+    for (const [lang, percent] of Object.entries(coverageResults)) {
+			const color = percent >= 100 ? "brightgreen" : percent >= 80 ? "yellow" : "red";
+			const langResult = {
+				schemaVersion: 1,
+				label: `${lang.toUpperCase()} Coverage`,
+				message: `${percent}%`,
+				color: color,
+			};
+			fs.writeFileSync(`coverage_${lang}.json`, JSON.stringify(langResult, null, 2));
+    }
 }

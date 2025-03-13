@@ -29,3 +29,29 @@ jobs:
 
       - name: Run translation check
         run: npm run translations
+
+      - name: Upload coverage reports
+        if: env.ACT != 'true'  # Skip this step in act
+        uses: actions/upload-artifact@v3
+        with:
+          name: translation-coverage
+          path: coverage_*.json
+          retention-days: 1
+
+      - name: Clean up coverage reports
+        if: env.ACT != 'true'  # Skip this step in act
+        run: rm -f coverage_*.json
+
+      - name: Deploy coverage to GitHub Pages
+        if: env.ACT != 'true'  # Skip this step in act
+        run: |
+          mkdir -p coverage
+          mv coverage_*.json coverage/
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git checkout --orphan gh-pages
+          git rm -rf .
+          mv coverage/* .
+          git add .
+          git commit -m "Update translation coverage"
+          git push -f origin gh-pages
