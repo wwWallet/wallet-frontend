@@ -64,7 +64,7 @@ jobs:
           git checkout --orphan gh-pages || git checkout gh-pages
           mkdir -p coverage
           mv public/coverage/* coverage/
-          git add coverage/
+          git add -f coverage/
           git commit -m "Update translation coverage JSONs"
           git push origin gh-pages --force
 
