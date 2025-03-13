@@ -30,53 +30,20 @@ jobs:
       - name: Run translation check
         run: npm run translations
 
-      - name: Upload coverage reports
-        if: env.ACT != 'true'  # Skip this step in act
-        uses: actions/upload-artifact@v4
-        with:
-          name: translation-coverage
-          path: coverage_*.json
-          retention-days: 1
-
-  deploy-coverage:
-    name: Deploy Translation Coverage to GitHub Pages
-    environment:
-      name: github-pages
-    needs: check-translations
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: write  # Needed to push to gh-pages branch
-      pages: write
-      id-token: write  # Needed for GitHub Pages deployment
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-
-      - name: Download coverage artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: translation-coverage
-          path: public/coverage
-
-      - name: Commit and Push Coverage JSONs
+      - name: Commit changes if any
         run: |
+          # Configure git user for CI
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          git checkout --orphan gh-pages || git checkout gh-pages
-          mkdir -p coverage
-          mv public/coverage/* coverage/
-          git add -f coverage/
-          git commit -m "Update translation coverage JSONs"
-          git push origin gh-pages --force
 
-      - name: Deploy to GitHub Pages
-        uses: actions/configure-pages@v1
+          # Stage changes from translation coverage
+          git add translation_coverage/*.json
 
-      - name: Upload GitHub Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./coverage
+          # If there are changes, commit and push them
+          if ! git diff --cached --exit-code; then
+            git commit -m "Update translation coverage badges [skip ci]"
+            git push
+          else
+            echo "No translation coverage changes detected."
+          fi
 
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4

@@ -52,18 +52,18 @@ for (const lc in locales) {
 	coverageResults[lc] = Number(completion);
 }
 
-// Save JSON files only if running in CI
-if (process.env.CI) {
-		console.log("Running in CI - Saving coverage reports...");
+// Save JSON files
+console.log("Saving coverage reports...");
 
-		for (const [lang, percent] of Object.entries(coverageResults)) {
-			const color = percent >= 100 ? "brightgreen" : percent >= 80 ? "yellow" : "red";
-			const langResult = {
-				schemaVersion: 1,
-				label: `${lang.toUpperCase()} Coverage`,
-				message: `${percent}%`,
-				color: color,
-			};
-			fs.writeFileSync(`coverage_${lang}.json`, JSON.stringify(langResult, null, 2));
-		}
+for (const [lang, percent] of Object.entries(coverageResults)) {
+	const color = percent >= 100 ? "brightgreen" : percent >= 80 ? "yellow" : "red";
+	const langResult = {
+		schemaVersion: 1,
+		label: `${lang.toUpperCase()} Coverage`,
+		message: `${percent}%`,
+		color: color,
+	};
+	const filename = `./translation_coverage/coverage_${lang}.json`
+	fs.writeFileSync(filename, JSON.stringify(langResult, null, 2));
+	console.log(`Saved ${filename}`)
 }

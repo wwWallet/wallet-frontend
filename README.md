@@ -2,9 +2,8 @@
 
 # wwWallet
 
-![Greek (EL) Coverage](https://img.shields.io/endpoint?url=https://wwWallet.github.io/wallet-frontend/coverage_el.json&label=Greek%20(EL)%20Coverage)
-![Portuguese (PT) Coverage](https://img.shields.io/endpoint?url=https://wwWallet.github.io/wallet-frontend/coverage_pt.json&label=Portuguese%20(PT)%20Coverage)
-
+![Greek (EL) Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/wwWallet/wallet-frontend/feat/translation-workflow/translation_coverage/coverage_el.json)
+![Portuguese (PT) Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/wwWallet/wallet-frontend/feat/translation-workflow/translation_coverage/coverage_pt.json)
 
 Welcome to wwWallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
 
