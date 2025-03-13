@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaArrowDown } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaTimes } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
@@ -564,7 +564,7 @@ const WebauthnSignupLogin = ({
 };
 
 const Auth = () => {
-	const { isOnline, updateOnlineStatus, pwaInstallable } = useContext(StatusContext);
+	const { isOnline, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
@@ -732,10 +732,11 @@ const Auth = () => {
 				)}
 
 			</div>
-			{pwaInstallable !== null && (
-				<div className="text-gray-500 dark:text-gray-200 text-sm text-center flex flex-row flex-wrap justify-center items-center content-center relative p-8 mt-10 space-y-4 md:space-y-6 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-600 rounded-md rounded-lg shadow">
+			{pwaInstallable !== null && !hidePwaPrompt && (
+				<div className="relative text-gray-500 dark:text-gray-200 text-sm text-center flex flex-row flex-wrap justify-center items-center content-center relative p-5 mt-10 space-y-4 md:space-y-6 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-600 rounded-md rounded-lg shadow">
 					<span className="block">Enhance your experience with the <strong>wwWallet PWA</strong></span>
-					<Button variant="tertiary" additionalClassName='w-full' onClick={() => pwaInstallable.prompt()}>Install <FaArrowDown/></Button>
+					<Button variant="tertiary" additionalClassName='w-60' onClick={() => pwaInstallable.prompt()}>Install</Button>
+					<a href="#" onClick={dismissPwaPrompt} className="w-full font-medium text-gray-400 focus-visible:outline-2 focus-visible:outline-offset-2">Don't show this again</a>
 				</div>
 			)}
 
