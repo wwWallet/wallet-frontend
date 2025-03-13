@@ -4,6 +4,7 @@ import { CredentialVerificationError } from "../error";
 import { Result } from "../types";
 import { exportJWK, importJWK, importX509, JWK, jwtVerify, KeyLike } from "jose";
 import { fromBase64Url, toBase64Url } from "../utils/util";
+import { verifyCertificate } from "../utils/verifyCertificate";
 
 export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: PublicKeyResolverEngineI }): CredentialVerifier {
 	let errors: { error: CredentialVerificationError, message: string }[] = [];
@@ -22,14 +23,33 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 		algorithm: HasherAlgorithm.Sha256
 	};
 
-	const getHolderPublicKey = async (rawCredential: string): Promise<Result<Uint8Array<ArrayBufferLike> | KeyLike, CredentialVerificationError>> => {
-		const credential = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
-		const parsedSdJwt = await SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm).getPrettyClaims();
-		const cnf = parsedSdJwt.cnf as Record<string, unknown>;
+	const parse = async (rawCredential: string) => {
+		try {
+			const credential = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+			const parsedSdJwtWithPrettyClaims = await SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm).getPrettyClaims();
+			return { credential, parsedSdJwtWithPrettyClaims };
+		}
+		catch (err) {
+			if (err instanceof Error) {
+				logError(CredentialVerificationError.InvalidFormat, "Invalid format. Error: " + err.name + ": " + err.message);
+			}
+			return CredentialVerificationError.InvalidFormat;
+		}
 
-		if (cnf.jwk && typeof credential.header["alg"] === 'string') {
+	}
+	const getHolderPublicKey = async (rawCredential: string): Promise<Result<Uint8Array<ArrayBufferLike> | KeyLike, CredentialVerificationError>> => {
+		const parseResult = await parse(rawCredential);
+		if (parseResult === CredentialVerificationError.InvalidFormat) {
+			return {
+				success: false,
+				error: CredentialVerificationError.InvalidFormat,
+			}
+		}
+		const cnf = parseResult.parsedSdJwtWithPrettyClaims.cnf as Record<string, unknown>;
+
+		if (cnf.jwk && typeof parseResult.credential.header["alg"] === 'string') {
 			try {
-				const holderPublicKey = await importJWK(cnf.jwk as JWK, credential.header["alg"]);
+				const holderPublicKey = await importJWK(cnf.jwk as JWK, parseResult.credential.header["alg"]);
 				return {
 					success: true,
 					value: holderPublicKey,
@@ -53,20 +73,43 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 
 
 	const verifyIssuerSignature = async (rawCredential: string): Promise<Result<{}, CredentialVerificationError>> => {
-		const parsedSdJwt = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+		const parsedSdJwt = (() => {
+			try {
+				return SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+			}
+			catch (err) {
+				if (err instanceof Error) {
+					logError(CredentialVerificationError.InvalidFormat, "Invalid format. Error: " + err.name + ": " + err.message);
+				}
+				return CredentialVerificationError.InvalidFormat;
+			}
+		})();
+
+		if (parsedSdJwt === CredentialVerificationError.InvalidFormat) {
+			logError(CredentialVerificationError.InvalidFormat, "Invalid format");
+			return {
+				success: false,
+				error: CredentialVerificationError.InvalidFormat
+			}
+		}
 
 		const getIssuerPublicKey = async (): Promise<Result<Uint8Array<ArrayBufferLike> | KeyLike, CredentialVerificationError>> => {
 			const x5c = parsedSdJwt.header["x5c"];
 			const alg = parsedSdJwt.header["alg"];
 			if (x5c && x5c instanceof Array && x5c.length > 0 && typeof alg === 'string') { // extract public key from certificate
-				const rootCertificate: string = x5c[x5c.length - 1];
-				if (args.context.trustedCertificates.length > 0 && !args.context.trustedCertificates.includes(rootCertificate)) {
+				const lastCertificate: string = x5c[x5c.length - 1];
+				const lastCertificatePem = `-----BEGIN CERTIFICATE-----\n${lastCertificate}\n-----END CERTIFICATE-----`;
+				const certificateValidationResult = await verifyCertificate(lastCertificatePem, args.context.trustedCertificates);
+				const lastCertificateIsRootCa = args.context.trustedCertificates.map((c) => c.trim()).includes(lastCertificatePem);
+				const rootCertIsTrusted = certificateValidationResult === true || lastCertificateIsRootCa;
+				if (!rootCertIsTrusted) {
 					logError(CredentialVerificationError.NotTrustedIssuer, "Error on getIssuerPublicKey(): Issuer is not trusted");
 					return {
 						success: false,
 						error: CredentialVerificationError.NotTrustedIssuer,
 					};
 				}
+
 				try {
 					const issuerPemCert = `-----BEGIN CERTIFICATE-----\n${x5c[0]}\n-----END CERTIFICATE-----`;
 					const issuerPublicKey = await importX509(issuerPemCert, alg);
@@ -87,6 +130,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 			if (typeof parsedSdJwt.payload.iss === 'string' && typeof alg === 'string') {
 				const publicKeyResolutionResult = await args.pkResolverEngine.resolve({ identifier: parsedSdJwt.payload.iss });
 				if (!publicKeyResolutionResult.success) {
+					logError(CredentialVerificationError.CannotResolveIssuerPublicKey, "CannotResolveIssuerPublicKey");
 					return {
 						success: false,
 						error: CredentialVerificationError.CannotResolveIssuerPublicKey,
@@ -107,6 +151,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 					}
 				}
 			}
+			logError(CredentialVerificationError.CannotResolveIssuerPublicKey, "CannotResolveIssuerPublicKey");
 			return {
 				success: false,
 				error: CredentialVerificationError.CannotResolveIssuerPublicKey,
@@ -116,6 +161,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 		const issuerPublicKeyResult = await getIssuerPublicKey();
 
 		if (!issuerPublicKeyResult.success) {
+			logError(CredentialVerificationError.CannotResolveIssuerPublicKey, "CannotResolveIssuerPublicKey");
 			return {
 				success: false,
 				error: issuerPublicKeyResult.error,
@@ -159,6 +205,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 
 		const publicKeyResult = await getHolderPublicKey(rawCredentialWithoutKbJwt);
 		if (!publicKeyResult.success) {
+			logError(CredentialVerificationError.CannotExtractHolderPublicKey, "CannotExtractHolderPublicKey");
 			return {
 				success: false,
 				error: publicKeyResult.error,
@@ -234,7 +281,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 			if (!issuerSignatureVerificationResult.success) {
 				return {
 					success: false,
-					error: errors[0].error,
+					error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 				}
 			}
 
@@ -244,7 +291,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 				if (!verifyKbJwtResult.success) {
 					return {
 						success: false,
-						error: errors[0].error,
+						error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 					}
 				}
 			}
@@ -254,7 +301,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 				logError(CredentialVerificationError.CannotExtractHolderPublicKey, "Could not extract holder public key");
 				return {
 					success: false,
-					error: errors[0].error,
+					error: errors.length > 0 ?  errors[0].error : CredentialVerificationError.UnknownProblem,
 				}
 			}
 
