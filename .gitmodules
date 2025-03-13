@@ -1,0 +1,4 @@
+[submodule "lib/core"]
+	path = lib/core
+	url = git@github.com:wwWallet/wallet-backend-server.git
+	branch = lib/core
