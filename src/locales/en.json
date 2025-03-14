@@ -268,6 +268,13 @@
 	"queryableList": {
 		"all": "All",
 		"recent": "Recent"
+  },
+	"pwaInstallPrompt": {
+		"message": "PWA Available",
+		"button": {
+			"install": "Install",
+			"closeTitle": "Click to close the PWA Install Prompt"
+		}
 	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",

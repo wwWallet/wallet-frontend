@@ -77,7 +77,8 @@
     "preview": "vite preview",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
     "vitest": "VITE_CJS_IGNORE_WARNING=true vitest run",
-    "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest"
+    "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest",
+    "translations": "node translation_coverage/translations.js"
   },
   "repository": "https://github.com/wwwallet/wallet-frontend",
   "license": "BSD-2-Clause"
