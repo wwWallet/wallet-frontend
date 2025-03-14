@@ -19,7 +19,6 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			const decodedCred = fromBase64Url(rawCredential)
 			const parsedMDOC = parse(decodedCred);
 			const [parsedDocument] = parsedMDOC.documents as DeviceSignedDocument[];
-
 			const namespace = parsedDocument.issuerSignedNameSpaces[0];
 
 			const attrValues = parsedDocument.getIssuerNameSpace(namespace);
@@ -39,6 +38,7 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 				metadata: {
 					credential: {
 						format: VerifiableCredentialFormat.MSO_MDOC,
+						doctype: parsedDocument.docType,
 						image: {
 							dataUri: dataUri ?? "",
 						},
@@ -99,6 +99,7 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 				metadata: {
 					credential: {
 						format: VerifiableCredentialFormat.MSO_MDOC,
+						doctype: docType as string | undefined ?? "",
 						image: {
 							dataUri: dataUri ?? "",
 						},

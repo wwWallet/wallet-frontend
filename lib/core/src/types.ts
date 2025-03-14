@@ -19,16 +19,18 @@ export type ParsedCredential = {
 	metadata: {
 		credential: {
 			format: VerifiableCredentialFormat.VC_SDJWT,
+			vct: string,
 			name: string,
 			metadataDocuments: Record<string, unknown>[],
 			image: {
-				dataUri: string;
+				dataUri: string,
 			},
 		} | {
 			format: VerifiableCredentialFormat.MSO_MDOC,
+			doctype: string,
 			name: string,
 			image: {
-				dataUri: string;
+				dataUri: string,
 			},
 		},
 		issuer: CredentialIssuer,

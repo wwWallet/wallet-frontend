@@ -9,14 +9,15 @@ import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [issuers, setIssuers] = useState([]);
+	const [recent, setRecent] = useState([]);
 	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
-
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 
 	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
@@ -24,9 +25,42 @@ const Issuers = () => {
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { vcEntityList, getData } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();
 	const filterItemByLang = useFilterItemByLang();
+
+	useEffect(() => {
+		if (vcEntityList === null) {
+			getData();
+		}
+	}, [vcEntityList, getData]);
+
+	const getCredentialType = (parsedCredential) => parsedCredential.metadata.credential.vct ?? parsedCredential.metadata.credential.doctype ?? "";
+
+	useEffect(() => {
+		const fetchRecentCredConfigs = async () => {
+			vcEntityList.map(async (vcEntity, key) => {
+				const identifierField = getCredentialType(vcEntity.parsedCredential) + '-' + vcEntity.credentialIssuerIdentifier;
+				setRecent((currentArray) => {
+					const recentRecordExists = currentArray.some((rec) =>
+						rec === identifierField
+					);
+
+					if (!recentRecordExists) {
+						return [...currentArray, identifierField];
+					}
+					return currentArray;
+				});
+
+			})
+		};
+
+		if (vcEntityList) {
+			console.log("Fetching Recent Credential Configurations...")
+			fetchRecentCredConfigs();
+		}
+	}, [vcEntityList]);
 
 	const getSelectedIssuer = () => {
 		if (selectedCredentialConfiguration) {
@@ -42,7 +76,7 @@ const Issuers = () => {
 			const { name, logo } = selectedDisplayBasedOnLang;
 			return { name, logo };
 		}
-		return null;
+		return { name: new URL(issuerMetadata.credential_issuer).host, logo: null };
 	}
 
 	const getSelectedIssuerDisplay = () => {
@@ -57,6 +91,16 @@ const Issuers = () => {
 			}
 		}
 		return null;
+	}
+
+	const getCredentialConfigurationDisplay = (credentialConfigurationId, credentialConfiguration) => {
+		if (credentialConfiguration?.display && credentialConfiguration?.display.length > 0) {
+			const display = filterItemByLang(credentialConfiguration?.display, 'locale');
+			return { name: display?.name ?? credentialConfigurationId, logo: display.logo };
+		}
+		else {
+			return { name: credentialConfigurationId, logo: null };
+		}
 	}
 
 	useEffect(() => {
@@ -91,7 +135,7 @@ const Issuers = () => {
 
 							const credentialConfiguration = {
 								identifierField: `${key}-${metadata.credential_issuer}`,
-								credentialConfigurationDisplayName: `${filterItemByLang(config?.display, 'locale').name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
+								credentialConfigurationDisplayName: `${getCredentialConfigurationDisplay(key, config).name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
 
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
@@ -173,10 +217,11 @@ const Issuers = () => {
 				<H1 heading={t('common.navItemAddCredentials')} />
 				<PageDescription description={t('pageAddCredentials.description')} />
 
-				{credentialConfigurations && (
+				{credentialConfigurations && recent && (
 					<QueryableList
 						isOnline={isOnline}
 						list={credentialConfigurations}
+						recent={recent}
 						queryField='credentialConfigurationDisplayName'
 						translationPrefix='pageAddCredentials'
 						identifierField='identifierField'

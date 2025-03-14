@@ -265,6 +265,10 @@
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},
+	"queryableList": {
+		"all": "All",
+		"recent": "Recent"
+  },
 	"pwaInstallPrompt": {
 		"message": "PWA Available",
 		"button": {
