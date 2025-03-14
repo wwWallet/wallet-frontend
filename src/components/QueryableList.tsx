@@ -75,7 +75,7 @@ const QueryableList = <T,>({
 				)
 			)
 			.filter(Boolean) // This ensures undefined entries are removed
-			.slice(0, 2); // This limits the array to the first two entries
+			.slice(0, 3); // This limits the array to the first two entries
 
 		setRecentCredentialConfigurations(recentConfigs);
 	}, [recentList, filteredList, identifierField]);

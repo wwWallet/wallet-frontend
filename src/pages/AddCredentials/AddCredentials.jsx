@@ -11,6 +11,7 @@ import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import Button from '@/components/Buttons/Button';
+import { VerifiableCredentialFormat } from "core/dist/types";
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -36,19 +37,18 @@ const Issuers = () => {
 		}
 	}, [vcEntityList, getData]);
 
+	const getCredentialType = (parsedCredential) => parsedCredential.metadata.credential.vct ?? parsedCredential.metadata.credential.doctype ?? "";
+
 	useEffect(() => {
 		const fetchRecentCredConfigs = async () => {
 			vcEntityList.map(async (vcEntity, key) => {
-
-				// Currently, the implementation is limited to the 'sd-jwt-vc' format which includes 'vct'.
-				// Other formats, like 'mdoc', which do not have a 'vct', are not supported at this time.
-				const identifierField = vcEntity.parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.vct + '-' + vcEntity.parsedCredential?.metadata?.issuer?.id;
+				const identifierField = getCredentialType(vcEntity.parsedCredential) + '-' + vcEntity.credentialIssuerIdentifier;
 				setRecent((currentArray) => {
-					const issuerExists = currentArray.some((rec) =>
-						rec.identifierField === identifierField
+					const recentRecordExists = currentArray.some((rec) =>
+						rec === identifierField
 					);
 
-					if (!issuerExists) {
+					if (!recentRecordExists) {
 						return [...currentArray, identifierField];
 					}
 					return currentArray;
@@ -77,7 +77,7 @@ const Issuers = () => {
 			const { name, logo } = selectedDisplayBasedOnLang;
 			return { name, logo };
 		}
-		return null;
+		return { name: new URL(issuerMetadata.credential_issuer).host, logo: null };
 	}
 
 	const getSelectedIssuerDisplay = () => {
@@ -92,6 +92,16 @@ const Issuers = () => {
 			}
 		}
 		return null;
+	}
+
+	const getCredentialConfigurationDisplay = (credentialConfigurationId, credentialConfiguration) => {
+		if (credentialConfiguration?.display && credentialConfiguration?.display.length > 0) {
+			const display = credentialConfiguration?.display?.filter((d) => d.locale === 'en-US')[0];
+			return { name: display?.name ?? credentialConfigurationId, logo: display.logo };
+		}
+		else {
+			return { name: credentialConfigurationId, logo: null };
+		}
 	}
 
 	useEffect(() => {
@@ -126,7 +136,7 @@ const Issuers = () => {
 
 							const credentialConfiguration = {
 								identifierField: `${key}-${metadata.credential_issuer}`,
-								credentialConfigurationDisplayName: `${config?.display?.filter((d) => d.locale === 'en-US')[0]?.name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
+								credentialConfigurationDisplayName: `${getCredentialConfigurationDisplay(key, config).name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
 
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
