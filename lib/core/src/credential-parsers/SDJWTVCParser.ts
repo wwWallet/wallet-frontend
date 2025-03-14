@@ -117,6 +117,7 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 					metadata: {
 						credential: {
 							format: VerifiableCredentialFormat.VC_SDJWT,
+							vct: parsedClaims?.vct as string | undefined ?? "" ,
 							// @ts-ignore
 							metadataDocuments: [getSdJwtMetadataResult.credentialMetadata],
 							image: {
