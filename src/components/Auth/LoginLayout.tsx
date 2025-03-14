@@ -1,13 +1,19 @@
 import React from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-
 import * as config from '../../config';
 import Logo from '../Logo/Logo';
+import PWAInstallPrompt from '../PWAInstall/PWAInstallPrompt';
+import useScreenType from '@/hooks/useScreenType';
 
 export default function LoginLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
 	const { t } = useTranslation();
+	const screenType = useScreenType();
+
 	return (
 		<section className="bg-gray-100 dark:bg-gray-900 min-h-dvh flex flex-col">
+			{screenType !== 'desktop' && (
+				<PWAInstallPrompt />
+			)}
 			<div className="flex-grow flex flex-col items-center justify-center px-6 py-8">
 				<Logo aClassName='mb-6' imgClassName='w-40' />
 
@@ -18,6 +24,9 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 				<div className="relative w-full sm:max-w-md xl:p-0">
 					{children}
 				</div>
+				{screenType === 'desktop' && (
+					<PWAInstallPrompt />
+				)}
 			</div>
 
 			<footer className="py-4">
