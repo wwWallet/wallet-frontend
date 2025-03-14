@@ -4,10 +4,12 @@ import StatusContext from '@/context/StatusContext';
 import { IoClose } from "react-icons/io5";
 import { MdInstallMobile, MdInstallDesktop } from "react-icons/md";
 import useScreenType from '@/hooks/useScreenType';
+import { useTranslation } from 'react-i18next';
 
 const PWAInstallPrompt = () => {
 	const { pwaInstallable, dismissPwaPrompt, hidePwaPrompt } = useContext(StatusContext);
 	const screenType = useScreenType();
+	const { t } = useTranslation();
 
 	console.log('pwaInstallable', pwaInstallable)
 	return (
@@ -21,15 +23,15 @@ const PWAInstallPrompt = () => {
 							<MdInstallDesktop className='text-white mr-2' size={32} />
 						)}
 						<a href="/" className={`text-white font-semibold cursor-pointer transition-all duration-300 text-sm`}>
-							PWA Available
+							{t('pwaInstallPrompt.message')}
 						</a>
 					</div>
 					<div className='flex items-center space-y'>
 
 						<Button variant="tertiary" additionalClassName='text-sm mr-2' onClick={() => pwaInstallable.prompt()}>
-							Install
+							{t('pwaInstallPrompt.button.install')}
 						</Button>
-						<button className='text-white' onClick={dismissPwaPrompt}>
+						<button className='text-white' title={t('pwaInstallPrompt.button.closeTitle')} onClick={dismissPwaPrompt}>
 							<IoClose size={25} />
 						</button>
 					</div>
