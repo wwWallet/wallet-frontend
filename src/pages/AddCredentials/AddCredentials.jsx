@@ -10,8 +10,7 @@ import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
-import Button from '@/components/Buttons/Button';
-import { VerifiableCredentialFormat } from "core/dist/types";
+import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -19,7 +18,6 @@ const Issuers = () => {
 	const [issuers, setIssuers] = useState([]);
 	const [recent, setRecent] = useState([]);
 	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
-	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState([]);
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 
 	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
@@ -30,6 +28,7 @@ const Issuers = () => {
 	const { vcEntityList, getData } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();
+	const filterItemByLang = useFilterItemByLang();
 
 	useEffect(() => {
 		if (vcEntityList === null) {
@@ -72,7 +71,7 @@ const Issuers = () => {
 	}
 
 	const getIssuerDisplayMetadata = (issuerMetadata) => {
-		const selectedDisplayBasedOnLang = issuerMetadata.display.filter((d) => d.locale === 'en-US')[0];
+		const selectedDisplayBasedOnLang = filterItemByLang(issuerMetadata.display, 'locale')
 		if (selectedDisplayBasedOnLang) {
 			const { name, logo } = selectedDisplayBasedOnLang;
 			return { name, logo };
@@ -85,7 +84,7 @@ const Issuers = () => {
 		console.log("Selected issuer ", selectedIssuer)
 
 		if (selectedIssuer) {
-			const selectedDisplayBasedOnLang = selectedIssuer.display.filter((d) => d.locale === 'en-US')[0];
+			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
 			if (selectedDisplayBasedOnLang) {
 				const { name, logo } = selectedDisplayBasedOnLang;
 				return { name, logo };
@@ -96,7 +95,7 @@ const Issuers = () => {
 
 	const getCredentialConfigurationDisplay = (credentialConfigurationId, credentialConfiguration) => {
 		if (credentialConfiguration?.display && credentialConfiguration?.display.length > 0) {
-			const display = credentialConfiguration?.display?.filter((d) => d.locale === 'en-US')[0];
+			const display = filterItemByLang(credentialConfiguration?.display, 'locale');
 			return { name: display?.name ?? credentialConfigurationId, logo: display.logo };
 		}
 		else {
@@ -146,7 +145,7 @@ const Issuers = () => {
 
 							setCredentialConfigurations((currentArray) => {
 								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
-									credentialConfigurationId === key
+									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
 								);
 								if (!credentialConfigurationExists) {
 									return [...currentArray, credentialConfiguration];
@@ -166,14 +165,14 @@ const Issuers = () => {
 			}
 		};
 
-		if (openID4VCIHelper) {
+		if (openID4VCIHelper && openID4VCI) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline, openID4VCIHelper]);
+	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const [credentialConfigurationId, credentialIssuerIdentifier] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+		const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
