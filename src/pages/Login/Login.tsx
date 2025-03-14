@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaTimes } from 'react-icons/fa';
 import { GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
