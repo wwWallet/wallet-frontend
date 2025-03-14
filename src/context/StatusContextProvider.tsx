@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
-import StatusContext, {Connectivity} from './StatusContext';
+import StatusContext, { Connectivity } from './StatusContext';
 import { useLocalStorage } from '@/hooks/useStorage';
 
 // Function to calculate speed based on RTT (lower RTT means higher speed)
@@ -158,24 +158,24 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	useEffect(() => {
 		// beforeinstallprompt is triggered if browser can install pwa
 		// it will not trigger if pwa is already installed
-    const handleBeforeInstallPrompt = (event) => {
+		const handleBeforeInstallPrompt = (event) => {
 			setPwaInstallable(event);
-    };
+		};
 
 		// appinstaled is triggered if pwa was installed
 		// we want to remove installation prompts in that case
-    const handleAppInstalled = () => {
+		const handleAppInstalled = () => {
 			setPwaInstallable(null);
-    };
+		};
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    window.addEventListener("appinstalled", handleAppInstalled);
+		window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+		window.addEventListener("appinstalled", handleAppInstalled);
 
-    return () => {
-      window.removeEventListener("appinstalled", handleAppInstalled);
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
+		return () => {
+			window.removeEventListener("appinstalled", handleAppInstalled);
+			window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+		};
+	}, []);
 
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
