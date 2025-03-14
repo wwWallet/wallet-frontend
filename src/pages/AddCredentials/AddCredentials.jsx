@@ -9,6 +9,7 @@ import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -25,6 +26,7 @@ const Issuers = () => {
 	const { openID4VCI } = useContext(OpenID4VCIContext);
 
 	const { t } = useTranslation();
+	const filterItemByLang = useFilterItemByLang();
 
 	const getSelectedIssuer = () => {
 		if (selectedCredentialConfiguration) {
@@ -35,7 +37,7 @@ const Issuers = () => {
 	}
 
 	const getIssuerDisplayMetadata = (issuerMetadata) => {
-		const selectedDisplayBasedOnLang = issuerMetadata.display.filter((d) => d.locale === 'en-US')[0];
+		const selectedDisplayBasedOnLang = filterItemByLang(issuerMetadata.display, 'locale')
 		if (selectedDisplayBasedOnLang) {
 			const { name, logo } = selectedDisplayBasedOnLang;
 			return { name, logo };
@@ -45,10 +47,10 @@ const Issuers = () => {
 
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
-		console.log("Selected issuer " , selectedIssuer)
+		console.log("Selected issuer ", selectedIssuer)
 
 		if (selectedIssuer) {
-			const selectedDisplayBasedOnLang = selectedIssuer.display.filter((d) => d.locale === 'en-US')[0];
+			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
 			if (selectedDisplayBasedOnLang) {
 				const { name, logo } = selectedDisplayBasedOnLang;
 				return { name, logo };
@@ -89,7 +91,7 @@ const Issuers = () => {
 
 							const credentialConfiguration = {
 								identifierField: `${key}-${metadata.credential_issuer}`,
-								credentialConfigurationDisplayName: `${config?.display?.filter((d) => d.locale === 'en-US')[0]?.name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
+								credentialConfigurationDisplayName: `${filterItemByLang(config?.display, 'locale').name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
 
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
@@ -99,7 +101,7 @@ const Issuers = () => {
 
 							setCredentialConfigurations((currentArray) => {
 								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
-									credentialConfigurationId === key
+									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
 								);
 								if (!credentialConfigurationExists) {
 									return [...currentArray, credentialConfiguration];
@@ -119,14 +121,14 @@ const Issuers = () => {
 			}
 		};
 
-		if (openID4VCIHelper) {
+		if (openID4VCIHelper && openID4VCI) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline, openID4VCIHelper]);
+	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const [credentialConfigurationId, credentialIssuerIdentifier] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+		const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
@@ -188,7 +190,7 @@ const Issuers = () => {
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${ getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
 					popupMessage={t('pageAddCredentials.popup.message', { issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown" })}
 				/>
 			)}
