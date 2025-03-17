@@ -268,12 +268,12 @@
 	"queryableList": {
 		"all": "All",
 		"recent": "Recent"
-  },
+	},
 	"pwaInstallPrompt": {
 		"message": "PWA Available",
 		"button": {
 			"install": "Install",
-			"closeTitle": "Click to close the PWA Install Prompt"
+			"closeTitle": "Click to close the PWA Installation Prompt"
 		}
 	},
 	"registerPasskey": {
