@@ -1,9 +1,6 @@
 name: translation-check
 
 on:
-  push:
-    branches-ignore:
-      - 'tmp**'
   pull_request:
     branches-ignore:
       - 'tmp**'
