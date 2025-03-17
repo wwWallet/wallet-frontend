@@ -268,7 +268,7 @@
 	"queryableList": {
 		"all": "All",
 		"recent": "Recent"
-  },
+	},
 	"pwaInstallPrompt": {
 		"message": "PWA Available",
 		"button": {
