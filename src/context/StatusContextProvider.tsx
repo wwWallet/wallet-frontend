@@ -159,6 +159,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		// beforeinstallprompt is triggered if browser can install pwa
 		// it will not trigger if pwa is already installed
 		const handleBeforeInstallPrompt = (event) => {
+			event.preventDefault();
 			setPwaInstallable(event);
 		};
 
