@@ -74,7 +74,6 @@ async function handlePostRequest(request) {
 		}
 		return await fetch(request);
 	} catch (error) {
-		console.error('Error in handlePostRequest:', error);
 		return handleOffline(request);
 	}
 }
@@ -98,7 +97,6 @@ async function cachePostResponse(request, cacheKey) {
 		await cache.put(new Request(cacheKey, { method: 'GET' }), response.clone());
 		return response;
 	} catch (error) {
-		console.error('Error in cachePostResponse:', error);
 		throw error;
 	}
 }
