@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -80,7 +80,13 @@ const Verifiers = () => {
 					onClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
-					popupMessage={t('pageSendCredentials.popup.message', { verifierName: selectedVerifier?.name })}
+					popupMessage={
+						<Trans
+							i18nKey="pageSendCredentials.popup.message"
+							values={{ verifierName: selectedVerifier?.name ?? "Unknown" }}
+							components={{ strong: <strong /> }}
+						/>
+					}
 				/>
 			)}
 		</>

@@ -172,7 +172,6 @@
 		"description": "Αναζητήστε και επιλέξτε ένα verifier για να μοιραστείτε πιστοποιητικά",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι verifiers.",
 		"popup": {
-			"message": "Έχετε επιλέξει τον {{verifierName}}. Αν συνεχίσετε, θα ανακατευθυνθείτε στην τρέχουσα καρτέλα στη σελίδα του verifier.",
 			"title": "Επιλεγμένος Verifier:"
 		},
 		"searchPlaceholder": "Αναζήτηση verifiers..."

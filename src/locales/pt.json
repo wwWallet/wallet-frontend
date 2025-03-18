@@ -172,7 +172,6 @@
 		"description": "Pesquise e selecione um verifier para partilhar credenciais",
 		"noFound": "Sem verifiers correspondentes.",
 		"popup": {
-			"message": "Selecionou {{verifierName}}. Se continuar, será redirecionado para a página do verifier neste mesmo separador.",
 			"title": "Verifier selecionado:"
 		},
 		"searchPlaceholder": "Procurar verifiers..."
