@@ -134,7 +134,6 @@
 		"description": "Pesquise e selecione um issuer para obter uma credencial.",
 		"noFound": "Sem issuers correspondentes.",
 		"popup": {
-			"message": "Selecionou {{issuerName}}. Se continuar, será redirecionado para a página do issuer neste mesmo separador.",
 			"title": "Issuer selecionado:"
 		},
 		"searchPlaceholder": "Procurar issuers..."
