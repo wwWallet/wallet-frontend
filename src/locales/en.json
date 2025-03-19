@@ -134,8 +134,8 @@
 		"description": "Search and choose an issuer for credential retrieval",
 		"noFound": "No matching issuers found.",
 		"popup": {
-			"message": "You have selected {{issuerName}}. If you continue, you will be redirected in the current tab to the issuer's page.",
-			"title": "Selected Issuer:"
+			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> to issue a <strong>{{credentialName}}</strong>.",
+			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search issuers..."
 	},
@@ -173,8 +173,8 @@
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
 		"popup": {
-			"message": "You have selected {{verifierName}}. If you continue, you will be redirected in the current tab to the issuer's page.",
-			"title": "Selected Verifier:"
+			"message": "If you continue, you will be redirected to <strong>{{verifierName}}</strong>.",
+			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search verifiers..."
 	},
