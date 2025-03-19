@@ -41,7 +41,7 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchRecentCredConfigs = async () => {
 			vcEntityList.map(async (vcEntity, key) => {
-				const identifierField = getCredentialType(vcEntity.parsedCredential) + '-' + vcEntity.credentialIssuerIdentifier;
+				const identifierField = JSON.stringify([getCredentialType(vcEntity.parsedCredential), vcEntity.credentialIssuerIdentifier]);
 				setRecent((currentArray) => {
 					const recentRecordExists = currentArray.some((rec) =>
 						rec === identifierField
@@ -134,7 +134,7 @@ const Issuers = () => {
 							const config = configs[key];
 
 							const credentialConfiguration = {
-								identifierField: `${key}-${metadata.credential_issuer}`,
+								identifierField: `${JSON.stringify([key, metadata.credential_issuer])}`,
 								credentialConfigurationDisplayName: `${getCredentialConfigurationDisplay(key, config).name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
 
 								credentialConfigurationId: key,
@@ -172,7 +172,7 @@ const Issuers = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+		const [credentialConfigurationId] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
