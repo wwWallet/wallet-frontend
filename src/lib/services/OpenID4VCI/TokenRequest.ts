@@ -35,10 +35,14 @@ export function useTokenRequest() {
 	const codeVerifier = useRef<string | null>(null);
 	const redirectUri = useRef<string | null>(null);
 	const clientId = useRef<string | null>(null);
+	const retries = useRef<number>(0);
+	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string } | null>(null);
 
-	const httpHeaders = useMemo(() => ({
-		'Content-Type': 'application/x-www-form-urlencoded',
-	}), []);
+
+	const httpHeaders = useRef<Map<string, string>>(new Map([
+		['Content-Type', 'application/x-www-form-urlencoded']
+	]));
+
 
 	const setClientId = useCallback((clientIdValue: string) => {
 		clientId.current = clientIdValue;
@@ -76,16 +80,16 @@ export function useTokenRequest() {
 		if (!tokenEndpointURL.current) {
 			throw new Error("tokenEndpointURL was not defined");
 		}
+		dpopParams.current = { dpopPrivateKey, dpopPublicKeyJwk, jti };
 		const dpop = await generateDPoP(
 			dpopPrivateKey,
 			dpopPublicKeyJwk,
 			jti,
 			"POST",
 			tokenEndpointURL.current,
-			httpHeaders['dpop-nonce']
+			httpHeaders.current.get('dpop-nonce')
 		);
-
-		httpHeaders['DPoP'] = dpop;
+		httpHeaders.current.set('DPoP', dpop);
 	}, [httpHeaders]);
 
 	const execute = useCallback(async (): Promise<
@@ -120,18 +124,23 @@ export function useTokenRequest() {
 
 		formData.append('redirect_uri', redirectUri.current);
 
+		console.log("Token endpoint headers to send = ", Object.fromEntries(httpHeaders.current))
 		const response = await httpProxy.post(
 			tokenEndpointURL.current!,
 			formData.toString(),
-			httpHeaders
+			Object.fromEntries(httpHeaders.current)
 		);
 
 		if (response.status !== 200) {
 
 			console.error("Failed token request");
 
-			if (response.headers?.['dpop-nonce']) {
-				httpHeaders['dpop-nonce'] = response.headers['dpop-nonce'];
+			if (response.headers?.['dpop-nonce'] && retries.current < 1) {
+				console.log("Response headers = ", response.headers)
+				retries.current = retries.current + 1;
+				httpHeaders.current.set('dpop-nonce', response.headers['dpop-nonce']);
+				const { dpopPrivateKey, dpopPublicKeyJwk, jti } = dpopParams.current;
+				await setDpopHeader(dpopPrivateKey, dpopPublicKeyJwk, jti);
 				return execute();
 			}
 

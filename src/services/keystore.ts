@@ -1169,13 +1169,13 @@ export async function generateOpenid4vciProofs(
 			nonce: nonce,
 			aud: audience,
 			iss: issuer,
+			iat: config.CLOCK_TOLERANCE ? Math.floor(new Date().getTime() / 1000) - config.CLOCK_TOLERANCE : Math.floor(new Date().getTime() / 1000),
 		})
 			.setProtectedHeader({
 				alg: keypair.alg,
 				typ: "openid4vci-proof+jwt",
 				jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
 			})
-			.setIssuedAt()
 			.sign(privateKey);
 		return jws;
 	}));

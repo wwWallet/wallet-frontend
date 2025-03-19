@@ -68,6 +68,9 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 				}
 			}
 
+			if (!res.data.request_uri) {
+				throw new Error("Pushed Authorization request failed. Reason: " + JSON.stringify(res.data))
+			}
 			const { request_uri } = res.data;
 			const authorizationRequestURL = `${config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${config.clientId}`
 
