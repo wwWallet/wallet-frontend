@@ -52,7 +52,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			if (typeof rawValue === 'boolean') {
 				formattedValue = String(rawValue);
 			}
-			else if (typeof rawValue !== 'string' && typeof !== 'number') {
+			else if (typeof rawValue !== 'string' && typeof rawValue !== 'number') {
 				formattedValue = JSON.stringify(rawValue);
 			}
 			else {
