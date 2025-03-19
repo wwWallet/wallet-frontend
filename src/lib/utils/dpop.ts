@@ -1,4 +1,5 @@
 import { JWK, KeyLike, SignJWT } from "jose";
+import * as config from "../../config";
 
 export async function generateDPoP(privateKey: KeyLike, publicKeyJwk: JWK, jti: string, targetMethod: string, targetUri: string, nonce?: string, access_token?: string) {
 	return new SignJWT({
@@ -7,8 +8,8 @@ export async function generateDPoP(privateKey: KeyLike, publicKeyJwk: JWK, jti: 
 		"htu": targetUri,
 		"nonce": nonce,
 		"ath": access_token ? await calculateAth(access_token) : undefined,
+		"iat": config.CLOCK_TOLERANCE ? Math.floor(new Date().getTime() / 1000) - config.CLOCK_TOLERANCE : Math.floor(new Date().getTime() / 1000),
 	})
-		.setIssuedAt()
 		.setProtectedHeader({
 			"typ": "dpop+jwt",
 			"alg": "ES256",
