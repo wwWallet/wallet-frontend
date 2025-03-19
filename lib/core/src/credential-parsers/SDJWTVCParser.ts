@@ -87,12 +87,13 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 
 			let credentialFriendlyName: string | null = null;
 
-			const getSdJwtMetadataResult = await getSdJwtVcMetadata(args.httpClient,rawCredential);
+			const getSdJwtMetadataResult = await getSdJwtVcMetadata(args.httpClient, rawCredential);
 			if (!('error' in getSdJwtMetadataResult)) {
 				const { credentialMetadata } = getSdJwtMetadataResult;
 
 				let displayMetadata = credentialMetadata.display.filter((d: any) => d.lang === args.context.lang)[0];
 
+				credentialFriendlyName = displayMetadata?.name ?? null;
 				let credentialImageSvgTemplateURL: string | null = displayMetadata?.rendering?.svg_templates?.[0]?.uri || null;
 				const simple: string | null = displayMetadata?.rendering?.simple || null;
 
@@ -117,7 +118,7 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 					metadata: {
 						credential: {
 							format: VerifiableCredentialFormat.VC_SDJWT,
-							vct: parsedClaims?.vct as string | undefined ?? "" ,
+							vct: parsedClaims?.vct as string | undefined ?? "",
 							// @ts-ignore
 							metadataDocuments: [getSdJwtMetadataResult.credentialMetadata],
 							image: {

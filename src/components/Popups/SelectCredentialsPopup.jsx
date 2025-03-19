@@ -165,8 +165,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
 			onClick={() => handleClick(vcEntity.credentialIdentifier)}
-			aria-label={`${vcEntity.parsedCredential.credentialFriendlyName}`}
-			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.parsedCredential.credentialFriendlyName })}
+			aria-label={`${vcEntity.parsedCredential.metadata.credential.name}`}
+			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.parsedCredential.metadata.credential.name })}
 		>
 			<CredentialImage
 				vcEntity={vcEntity}
