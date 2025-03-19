@@ -48,7 +48,17 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		const rawValue = getValueByPath(claim.path, signedClaims);
 		const { label, description } = getLabelAndDescriptionByLang(claim.display, language, fallbackLng);
 		if (rawValue && label) {
-			const formattedValue = typeof rawValue === 'boolean' ? String(rawValue) : formatDate(rawValue, 'date');
+			let formattedValue = "";
+			if (typeof rawValue === 'boolean') {
+				formattedValue = String(rawValue);
+			}
+			else if (typeof rawValue !== 'string' && typeof !== 'number') {
+				formattedValue = JSON.stringify(rawValue);
+			}
+			else {
+				formattedValue = formatDate(rawValue, 'date'); // to handle dates and other types of values
+			}
+
 			return {
 				label,
 				description,
@@ -69,7 +79,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 									{claim.label}:
 								</td>
 								<td className="min-w-min max-w-[70%] py-1 px-2 text-gray-700 dark:text-white">
-									{JSON.stringify(claim.value)}
+									{claim.value}
 								</td>
 							</tr>
 						))}
