@@ -113,7 +113,7 @@ const Credential = () => {
 						message={
 							<Trans
 								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName: vcEntity.parsedCredential.credentialFriendlyName }}
+								values={{ credentialName: vcEntity.parsedCredential.metadata.credential.name }}
 								components={{ strong: <strong />, br: <br /> }}
 							/>
 						}
