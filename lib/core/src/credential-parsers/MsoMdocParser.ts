@@ -26,7 +26,7 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			let dataUri: string | null = null;
 
 			const mdocDisplayConfig = {
-				name: "mdoc Veriable Credential"
+				name: "mdoc Verifiable Credential"
 			}
 
 			const svgContent = await renderer.renderCustomSvgTemplate({ signedClaims: attrValues, displayConfig: mdocDisplayConfig })
@@ -88,7 +88,7 @@ export function MsoMdocParser(args: { context: Context, httpClient: HttpClient }
 			let dataUri: string | null = null;
 
 			const mdocDisplayConfig = {
-				name: "mdoc Veriable Credential"
+				name: "mdoc Verifiable Credential"
 			}
 
 			const svgContent = await renderer.renderCustomSvgTemplate({ signedClaims: attrValues, displayConfig: mdocDisplayConfig })
