@@ -42,6 +42,9 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	// Filter and prepare claims for display
 	const claimsWithValues = displayClaims.map(claim => {
+		if (!claim.display || !claim.path) {
+			return null;
+		}
 		const rawValue = getValueByPath(claim.path, signedClaims);
 		const { label, description } = getLabelAndDescriptionByLang(claim.display, language, fallbackLng);
 		if (rawValue && label) {
@@ -66,7 +69,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 									{claim.label}:
 								</td>
 								<td className="min-w-min max-w-[70%] py-1 px-2 text-gray-700 dark:text-white">
-									{claim.value}
+									{JSON.stringify(claim.value)}
 								</td>
 							</tr>
 						))}
