@@ -67,6 +67,7 @@
 		"login": "Login",
 		"loginCache": "Choose your account",
 		"loginAsUser": "Log in as {{name}}",
+		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
