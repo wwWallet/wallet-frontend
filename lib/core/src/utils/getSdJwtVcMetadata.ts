@@ -104,6 +104,24 @@ async function fetchAndMergeMetadata(httpClient: HttpClient, url: string, visite
 	return merged;
 }
 
+export async function resolveIssuerMetadata(httpClient: any, issuerUrl: string): Promise<{ valid: true } | { error: "NOT_FOUND" }> {
+	try {
+		const issUrl = new URL(issuerUrl);
+		if (!issUrl?.origin) return { error: "NOT_FOUND" };
+
+		const result = await httpClient.get(`${issUrl.origin}/.well-known/jwt-vc-issuer`) as {
+			data: { issuer: string };
+		};
+
+		if (result.data?.issuer !== issUrl.origin) {
+			return { error: "NOT_FOUND" };
+		}
+
+		return { valid: true };
+	} catch (err) {
+		return { error: "NOT_FOUND" };
+	}
+}
 
 export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: string): Promise<{ credentialMetadata: any } | { error: "NOT_FOUND" }> {
 	try {
@@ -112,6 +130,11 @@ export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: str
 
 		// console.log('Decoded credential header:', credentialHeader);
 		// console.log('Decoded credential payload:', credentialPayload);
+
+		const checkIssuer = await resolveIssuerMetadata(httpClient, credentialPayload.iss);
+		if ('error' in checkIssuer) {
+			return { error: "NOT_FOUND" };
+		}
 
 		const vct = credentialPayload.vct;
 		if (vct && typeof vct === 'string') {
