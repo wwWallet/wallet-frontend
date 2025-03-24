@@ -5,12 +5,14 @@ import * as config from './config';
 
 import enTranslation from './locales/en.json';
 import elTranslation from './locales/el.json';
+import ptTranslation from './locales/pt.json';
 
 const fallbackLng = 'en';
 
 const resources = {
 	en: { translation: enTranslation },
 	el: { translation: elTranslation },
+	pt: { translation: ptTranslation },
 };
 
 // Check if multi-language display is enabled
@@ -20,7 +22,7 @@ const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
 
 // Helper function to get only the language part and check if it exists
-const getLanguage = (locale) => {
+export const getLanguage = (locale) => {
 	const language = locale.includes('-') ? locale.split('-')[0] : locale;
 	return language;
 };

@@ -18,10 +18,19 @@ export type Result<T, E> = { success: true; value: T } | { success: false; error
 export type ParsedCredential = {
 	metadata: {
 		credential: {
-			format: VerifiableCredentialFormat,
+			format: VerifiableCredentialFormat.VC_SDJWT,
+			vct: string,
+			name: string,
+			metadataDocuments: Record<string, unknown>[],
+			image: {
+				dataUri: string,
+			},
+		} | {
+			format: VerifiableCredentialFormat.MSO_MDOC,
+			doctype: string,
 			name: string,
 			image: {
-				dataUri: string;
+				dataUri: string,
 			},
 		},
 		issuer: CredentialIssuer,

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext, useRef } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -7,6 +7,7 @@ import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from 'core/dist/error';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
+import { VerifiableCredentialFormat } from 'core/dist/types';
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
@@ -16,9 +17,19 @@ export const CredentialsContextProvider = ({ children }) => {
 	const { parseCredential } = useContext(CredentialParserContext);
 	const httpProxy = useHttpProxy();
 
-	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
-		console.log('fetchVcData', credentialId)
+	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
+	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+	const stopPolling = useCallback(() => {
+		if (intervalRef.current) {
+			clearInterval(intervalRef.current);
+			intervalRef.current = null;
+			setIsPollingActive(false);
+			console.log("Polling stopped.");
+		}
+	}, []);
+
+	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
@@ -51,8 +62,16 @@ export const CredentialsContextProvider = ({ children }) => {
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}
-					const credentialEngine = initializeCredentialEngine(httpProxy);
-					const result = await credentialEngine.verifyingEngine.verify({ rawCredential: vcEntity.credential, opts: {} });
+					const { sdJwtVerifier, msoMdocVerifier } = initializeCredentialEngine(httpProxy);
+					const result = await (async () => {
+						switch (parsedCredential.metadata.credential.format) {
+							case VerifiableCredentialFormat.VC_SDJWT:
+								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+							case VerifiableCredentialFormat.MSO_MDOC:
+								return msoMdocVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+						}
+					})();
+
 					// Attach the instances array from the map and add parsedCredential
 					return {
 						...vcEntity,
@@ -80,14 +99,14 @@ export const CredentialsContextProvider = ({ children }) => {
 	};
 
 	const pollForCredentials = useCallback(() => {
-		let attempts = 0;
-		let isPolling = true;
-		const intervalId = setInterval(async () => {
-			if (!isPolling) {
-				clearInterval(intervalId);
-				return;
-			}
+		if (isPollingActive) {
+			console.log('Polling is already active. Restarting polling.');
+			stopPolling();
+		}
 
+		setIsPollingActive(true);
+		let attempts = 0;
+		intervalRef.current = setInterval(async () => {
 			attempts += 1;
 			const userId = api.getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
@@ -96,18 +115,16 @@ export const CredentialsContextProvider = ({ children }) => {
 			const vcEntityList = await fetchVcData();
 			if (previousSize < vcEntityList.length) {
 				console.log('Found new credentials, stopping polling');
-				isPolling = false;
-				clearInterval(intervalId);
+				stopPolling();
 				updateVcListAndLatestCredentials(vcEntityList);
 			}
 
 			if (attempts >= 5) {
 				console.log('Max attempts reached, stopping polling');
-				isPolling = false;
-				clearInterval(intervalId);
+				stopPolling();
 			}
 		}, 1000);
-	}, [api, fetchVcData]);
+	}, [api, fetchVcData, isPollingActive, stopPolling]);
 
 	const getData = useCallback(async (shouldPoll = false) => {
 		try {
@@ -117,16 +134,16 @@ export const CredentialsContextProvider = ({ children }) => {
 			const previousSize = uniqueIdentifiers.size;
 
 			const vcEntityList = await fetchVcData();
-
-			setVcEntityList(vcEntityList);
-
 			const newCredentialsFound = previousSize < vcEntityList.length;
+
 			if (shouldPoll && !newCredentialsFound) {
 				window.history.replaceState({}, '', `/`);
 				console.log("No new credentials, starting polling");
+				setVcEntityList(vcEntityList);
 				pollForCredentials();
 			} else if (newCredentialsFound) {
 				window.history.replaceState({}, '', `/`);
+				stopPolling();
 				console.log("Found new credentials, no need to poll");
 				updateVcListAndLatestCredentials(vcEntityList);
 			} else {
@@ -135,7 +152,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	}, [api, fetchVcData, pollForCredentials]);
+	}, [api, fetchVcData, pollForCredentials, stopPolling]);
 
 	return (
 		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>

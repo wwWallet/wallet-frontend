@@ -14,6 +14,7 @@ import useScreenType from '../../hooks/useScreenType';
 import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { CredentialVerificationError } from "core/dist/error";
+import { VerifiableCredentialFormat } from "core/dist/types";
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
@@ -28,7 +29,17 @@ const HistoryDetailContent = ({ historyItem }) => {
 				historyItem.map(async (credential) => {
 					const parsedCredential = await parseCredential(credential);
 					const credentialEngine = initializeCredentialEngine(httpProxy);
-					const result = await credentialEngine.verifyingEngine.verify({ rawCredential: credential, opts: {} });
+
+					const result = await (async () => {
+						switch (parsedCredential.metadata.credential.format) {
+							case VerifiableCredentialFormat.VC_SDJWT:
+								return credentialEngine.sdJwtVerifier.verify({ rawCredential: credential, opts: {} });
+							case VerifiableCredentialFormat.MSO_MDOC:
+								return credentialEngine.msoMdocVerifier.verify({ rawCredential: credential, opts: {} });
+							default:
+								return null
+						}
+					})();
 
 					const newVcEntity = {
 						parsedCredential: parsedCredential,
@@ -50,8 +61,8 @@ const HistoryDetailContent = ({ historyItem }) => {
 		<div
 			key={index}
 			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"
-			aria-label={vcEntity.parsedCredential.credentialFriendlyName}
-			title={vcEntity.parsedCredential.credentialFriendlyName}
+			aria-label={vcEntity.parsedCredential.metadata.credential.name}
+			title={vcEntity.parsedCredential.metadata.credential.name}
 		>
 			<CredentialImage vcEntity={vcEntity} showRibbon={false} className="w-full h-full rounded-xl" />
 		</div>

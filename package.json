@@ -1,16 +1,18 @@
 {
   "name": "wallet-frontend",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": true,
   "type": "module",
   "dependencies": {
-    "core": "./lib/core",
+    "@auth0/mdl": "^2.0.1",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.2.1",
     "ajv": "^8.17.1",
     "asn1js": "^3.0.5",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
+    "core": "./lib/core",
+    "cose-kit": "^1.7.1",
     "did-resolver": "^4.1.0",
     "firebase": "^10.1.0",
     "i18next": "^23.2.11",
@@ -51,6 +53,9 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
     "@types/node": "^20.5.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.3.1",
@@ -59,6 +64,7 @@
     "depcheck": "^1.4.7",
     "eslint": "^8.56.0",
     "eslint-config-react-app": "^7.0.1",
+    "jsdom": "^26.0.0",
     "vite": "^6.1.0",
     "vite-plugin-eslint": "^1.8.1",
     "vite-plugin-svgr": "^4.3.0",
@@ -71,7 +77,8 @@
     "preview": "vite preview",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
     "vitest": "VITE_CJS_IGNORE_WARNING=true vitest run",
-    "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest"
+    "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest",
+    "translations": "node translation_coverage/translations.js"
   },
   "repository": "https://github.com/wwwallet/wallet-frontend",
   "license": "BSD-2-Clause"

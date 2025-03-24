@@ -1,6 +1,9 @@
-<img src="https://demo.wwwallet.org/wallet_192.png" width="150"/>
+<img src="https://demo.wwwallet.org/wallet_192.png" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
 
 # wwWallet
+
+![Greek (EL) Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/wwWallet/wallet-frontend/master/translation_coverage/coverage_el.json)
+![Portuguese (PT) Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/wwWallet/wallet-frontend/master/translation_coverage/coverage_pt.json)
 
 Welcome to wwWallet Frontend repository! This application is a user-friendly web wallet that empowers users to manage their digital credentials effortlessly. With a seamless interface and powerful features, users can view their credentials, obtain new ones from issuers, present credentials to verifiers, and access their presentation history.
 
@@ -82,16 +85,49 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
   - VITE_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
   - VITE_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri (`true` or `false`).
-	- VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
-	- VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
-	- VITE_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
-	- VITE_CLOCK_TOLERANCE: Αpplied on the verification of timestamps in credential signatures (default is 60 seconds).
+  - VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
+  - VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
+  - VITE_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
+  - VITE_CLOCK_TOLERANCE: Αpplied on the verification of timestamps in credential signatures (default is 60 seconds).
 
-4. Install dependencies:
+
+- Set up Firebase (optional)
+
+  a. Create a Firebase Project
+    - Go to the Firebase Console (https://console.firebase.google.com/).
+    - Click "Add Project" to create a new Firebase project.
+    - Configure your project settings.
+
+  b. Configure Firebase for Web
+    - After creating the project, Add app and select "Web."
+    - Register your app with a name (e.g., "MyApp").
+    - Firebase will provide you with a configuration `firebaseConfig` object; keep this handy.
+
+  c. Get Service Account Key
+  - Navigate to "Project settings" > "Service accounts."
+  - Under the "Firebase Admin SDK" section, click "Generate new private key" to download the JSON file.
+  - in root of wallet-backend paste this file inside the `keys/` folder if the folder does not exist, then create it with name `firebaseConfig.json`
+  - The file name should be the same with the `notifications.serviceAccount` JSON attribute on the configuration of the wallet-backend-server which is located on the `config/` folder. That being said, the `notifications.serviceAccount` JSON attribute should be set to `firebaseConfig.json`
+  - The `notifications.enabled` JSON attribute on the wallet-backend-server configuration should be set to `true`
+
+
+  d. Generate VAPID Key
+  - Navigate to "Project settings" > "Service accounts > Cloud Messaging."
+  - Scroll down to the "Web configuration" section.
+  - You should see an option to generate a new VAPID key. Click the "Generate" button.
+  - After generating the VAPID key, you'll see it displayed on the screen.
+  - Save this VAPID key securely, as you'll need it in your frontend.
+
+  e. Fill config variables
+  - With your `firebaseConfig` and the VAPID KEY now you can fill the wallet-frontend `.env`.
+  - Also navigate to `wallet-frontend/public/firebase-messaging-sw.js` and replace the `firebaseConfig` with yours.
+
+
+- Install dependencies:
    ```bash
    yarn install
    ```
-5. Start the development server:
+- Start the development server:
 
    ```bash
    yarn start
@@ -127,7 +163,6 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 			</th>
 			<th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
       <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
-
     </tr>
 	</th>
   </thead>
@@ -140,7 +175,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td> </td>
 	    <td> </td>
     </tr>
-		<tr>
+    <tr>
       <td>Linux</td>
       <td>Android</td>
       <td>Hybrid</td>
@@ -220,7 +255,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>❌</td>
 	    <td>❌</td>
     </tr>
-	  <tr>
+    <tr>
       <td>MacOS</td>
       <td>FIDO Security Key</td>
       <td>USB</td>

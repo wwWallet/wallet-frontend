@@ -1,0 +1,46 @@
+name: translation-check
+
+on:
+  pull_request:
+    branches-ignore:
+      - 'tmp**'
+
+jobs:
+  check-translations:
+    name: Check translation coverage
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Run translation check
+        run: npm run translations
+
+      - name: Commit changes if any
+        run: |
+          # Configure git user for CI
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          # Stage changes from translation coverage
+          git add translation_coverage/*.json
+
+          # If there are changes, commit and push them
+          if ! git diff --cached --exit-code; then
+            git commit -m "Update translation coverage badges [skip ci]"
+            git push
+          else
+            echo "No translation coverage changes detected."
+          fi
+

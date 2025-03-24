@@ -67,6 +67,7 @@
 		"login": "Login",
 		"loginCache": "Choose your account",
 		"loginAsUser": "Log in as {{name}}",
+		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
@@ -134,8 +135,8 @@
 		"description": "Search and choose an issuer for credential retrieval",
 		"noFound": "No matching issuers found.",
 		"popup": {
-			"message": "You have selected {{issuerName}}. If you continue, you will be redirected in the current tab to the issuer's page.",
-			"title": "Selected Issuer:"
+			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> to issue a <strong>{{credentialName}}</strong>.",
+			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search issuers..."
 	},
@@ -173,8 +174,8 @@
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
 		"popup": {
-			"message": "You have selected {{verifierName}}. If you continue, you will be redirected in the current tab to the issuer's page.",
-			"title": "Selected Verifier:"
+			"message": "If you continue, you will be redirected to <strong>{{verifierName}}</strong>.",
+			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search verifiers..."
 	},
@@ -265,9 +266,22 @@
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},
+	"queryableList": {
+		"all": "All",
+		"recent": "Recent"
+	},
+	"pwaInstallPrompt": {
+		"message": "PWA Available",
+		"button": {
+			"install": "Install",
+			"closeTitle": "Click to close the PWA Installation Prompt"
+		}
+	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",
+		"nicknameAriaLabel": "Nickname for new credential",
+		"nicknamePlaceholder": "Credential nickname",
 		"messageSuccess": "Success!",
 		"messageDone": "Almost done!",
 		"messageInteract": "Please interact with your authenticator...",
@@ -282,6 +296,7 @@
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
+		"purposeNotSpecified": "Purpose not specified by verifier",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
 		"title": "Select : "

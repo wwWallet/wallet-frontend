@@ -3,7 +3,7 @@ import { CredentialParsingError } from "../error";
 import { Context, CredentialParser, HttpClient } from "../interfaces";
 import { VerifiableCredentialFormat } from "../types";
 import { CredentialRenderingService } from "../rendering";
-import { fromBase64 } from "../utils/util";
+import { getSdJwtVcMetadata } from "../utils/getSdJwtVcMetadata";
 
 
 
@@ -45,34 +45,6 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 
 	const cr = CredentialRenderingService();
 
-	async function getSdJwtVcMetadata(credential: string): Promise<{ credentialMetadata: any } | { error: "NOT_FOUND" }> {
-		try {
-			const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[0] as string)));
-			const credentialPayload = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[1] as string)));
-
-			if (credentialHeader.vctm) {
-				const sdjwtvcMetadataDocument = credentialHeader.vctm.map((encodedMetadataDocument: string) =>
-					JSON.parse(new TextDecoder().decode(fromBase64(encodedMetadataDocument)))
-				).filter(((metadataDocument: Record<string, unknown>) => metadataDocument.vct === credentialPayload.vct))[0];
-				if (sdjwtvcMetadataDocument) {
-					return { credentialMetadata: sdjwtvcMetadataDocument };
-				}
-			}
-
-
-			// use vct to fetch metadata if hosted
-			const fetchResult = await args.httpClient.get(credentialPayload.vct);
-			if (fetchResult && fetchResult.status === 200 && (fetchResult.data as Record<string, unknown>).vct === credentialPayload.vct) {
-				return { credentialMetadata: fetchResult.data };
-			}
-
-			return { error: "NOT_FOUND" };
-		}
-		catch (err) {
-			console.log(err);
-			return { error: "NOT_FOUND" };
-		}
-	}
 
 	return {
 		async parse({ rawCredential }) {
@@ -84,11 +56,19 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 			}
 
 			let dataUri: string | null = null;
-			const parsedClaims: Record<string, unknown> | null = await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
-				.withHasher(hasherAndAlgorithm)
-				.getPrettyClaims()
-				.then((signedClaims) => signedClaims)
-				.catch(() => null);
+			const parsedClaims: Record<string, unknown> | null = await (async () => {
+				try {
+					return await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
+						.withHasher(hasherAndAlgorithm)
+						.getPrettyClaims()
+						.then((signedClaims) => signedClaims)
+						.catch(() => null);
+				}
+				catch (err) {
+					return null;
+				}
+
+			})();
 			if (parsedClaims === null) {
 				return {
 					success: false,
@@ -107,21 +87,24 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 
 			let credentialFriendlyName: string | null = null;
 
-			const getSdJwtMetadataResult = await getSdJwtVcMetadata(rawCredential);
+			const getSdJwtMetadataResult = await getSdJwtVcMetadata(args.httpClient, rawCredential);
 			if (!('error' in getSdJwtMetadataResult)) {
 				const { credentialMetadata } = getSdJwtMetadataResult;
 
 				let displayMetadata = credentialMetadata.display.filter((d: any) => d.lang === args.context.lang)[0];
 
+				credentialFriendlyName = displayMetadata?.name ?? null;
 				let credentialImageSvgTemplateURL: string | null = displayMetadata?.rendering?.svg_templates?.[0]?.uri || null;
 				const simple: string | null = displayMetadata?.rendering?.simple || null;
 
 				if (credentialImageSvgTemplateURL) {
-					const response = await args.httpClient.get(credentialImageSvgTemplateURL);
-					if (response.status === 200) {
+					const response = await args.httpClient.get(credentialImageSvgTemplateURL).then((res) => res).catch(() => null);
+					if (response && response.status === 200) {
 						const svgdata = response.data as string;
 						if (svgdata) {
-							const svgContent = await cr.renderSvgTemplate({ json: parsedClaims, credentialImageSvgTemplate: svgdata, sdJwtVcMetadataClaims: credentialMetadata.claims });
+							const svgContent = await cr.renderSvgTemplate({ json: parsedClaims, credentialImageSvgTemplate: svgdata, sdJwtVcMetadataClaims: credentialMetadata.claims })
+								.then((res) => res)
+								.catch(() => null);
 							dataUri = svgContent ? svgContent : "";
 						}
 					}
@@ -135,6 +118,9 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 					metadata: {
 						credential: {
 							format: VerifiableCredentialFormat.VC_SDJWT,
+							vct: parsedClaims?.vct as string | undefined ?? "",
+							// @ts-ignore
+							metadataDocuments: [getSdJwtMetadataResult.credentialMetadata],
 							image: {
 								dataUri: dataUri ?? "",
 							},

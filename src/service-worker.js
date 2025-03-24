@@ -58,3 +58,60 @@ self.addEventListener('activate', (event) => {
 		})
 	);
 });
+
+self.addEventListener('fetch', event => {
+	if (event.request.method === 'POST' && event.request.url.includes('/proxy')) {
+		console.log('Handling POST request:', event.request.url);
+		event.respondWith(handlePostRequest(event.request));
+	}
+});
+
+async function handlePostRequest(request) {
+	try {
+		const bodyJson = await getRequestBody(request);
+		if (bodyJson.url && /\.(png|jpg|jpeg|svg|webp)$/i.test(bodyJson.url)) {
+			return await cachePostResponse(request, bodyJson.url);
+		}
+		return await fetch(request);
+	} catch (error) {
+		return handleOffline(request);
+	}
+}
+
+async function getRequestBody(request) {
+	const clonedRequest = request.clone();
+	const bodyText = await clonedRequest.text();
+	try {
+		return JSON.parse(bodyText);
+	} catch (error) {
+		throw new Error('Failed to parse request body');
+	}
+}
+
+async function cachePostResponse(request, cacheKey) {
+	try {
+		const response = await fetch(request.clone());
+		if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
+
+		const cache = await caches.open('proxy-images');
+		await cache.put(new Request(cacheKey, { method: 'GET' }), response.clone());
+		return response;
+	} catch (error) {
+		throw error;
+	}
+}
+
+async function handleOffline(request) {
+	try {
+		const bodyJson = await getRequestBody(request);
+		const cache = await caches.open('proxy-images');
+		const cachedResponse = await cache.match(new Request(bodyJson.url, { method: 'GET' }));
+		if (cachedResponse) {
+			return cachedResponse;
+		}
+		throw new Error('No cached response available');
+	} catch (error) {
+		console.error('Error in handleOffline:', error);
+		return new Response('Cache retrieval failed', { status: 500 });
+	}
+}

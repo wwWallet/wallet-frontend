@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -9,13 +9,15 @@ import PageDescription from '../../components/Shared/PageDescription';
 import QueryableList from '../../components/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
+import CredentialsContext from '@/context/CredentialsContext';
+import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [issuers, setIssuers] = useState([]);
+	const [recent, setRecent] = useState([]);
 	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
-
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 
 	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
@@ -23,8 +25,42 @@ const Issuers = () => {
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { vcEntityList, getData } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();
+	const filterItemByLang = useFilterItemByLang();
+
+	useEffect(() => {
+		if (vcEntityList === null) {
+			getData();
+		}
+	}, [vcEntityList, getData]);
+
+	const getCredentialType = (parsedCredential) => parsedCredential.metadata.credential.vct ?? parsedCredential.metadata.credential.doctype ?? "";
+
+	useEffect(() => {
+		const fetchRecentCredConfigs = async () => {
+			vcEntityList.map(async (vcEntity, key) => {
+				const identifierField = JSON.stringify([getCredentialType(vcEntity.parsedCredential), vcEntity.credentialIssuerIdentifier]);
+				setRecent((currentArray) => {
+					const recentRecordExists = currentArray.some((rec) =>
+						rec === identifierField
+					);
+
+					if (!recentRecordExists) {
+						return [...currentArray, identifierField];
+					}
+					return currentArray;
+				});
+
+			})
+		};
+
+		if (vcEntityList) {
+			console.log("Fetching Recent Credential Configurations...")
+			fetchRecentCredConfigs();
+		}
+	}, [vcEntityList]);
 
 	const getSelectedIssuer = () => {
 		if (selectedCredentialConfiguration) {
@@ -35,26 +71,35 @@ const Issuers = () => {
 	}
 
 	const getIssuerDisplayMetadata = (issuerMetadata) => {
-		const selectedDisplayBasedOnLang = issuerMetadata.display.filter((d) => d.locale === 'en-US')[0];
+		const selectedDisplayBasedOnLang = filterItemByLang(issuerMetadata.display, 'locale')
 		if (selectedDisplayBasedOnLang) {
 			const { name, logo } = selectedDisplayBasedOnLang;
 			return { name, logo };
 		}
-		return null;
+		return { name: new URL(issuerMetadata.credential_issuer).host, logo: null };
 	}
 
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
-		console.log("Selected issuer " , selectedIssuer)
 
 		if (selectedIssuer) {
-			const selectedDisplayBasedOnLang = selectedIssuer.display.filter((d) => d.locale === 'en-US')[0];
+			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
 			if (selectedDisplayBasedOnLang) {
 				const { name, logo } = selectedDisplayBasedOnLang;
 				return { name, logo };
 			}
 		}
 		return null;
+	}
+
+	const getCredentialConfigurationDisplay = (credentialConfigurationId, credentialConfiguration) => {
+		if (credentialConfiguration?.display && credentialConfiguration?.display.length > 0) {
+			const display = filterItemByLang(credentialConfiguration?.display, 'locale');
+			return { name: display?.name ?? credentialConfigurationId, logo: display.logo };
+		}
+		else {
+			return { name: credentialConfigurationId, logo: null };
+		}
 	}
 
 	useEffect(() => {
@@ -64,6 +109,9 @@ const Issuers = () => {
 				let fetchedIssuers = response.data;
 				fetchedIssuers.map(async (issuer) => {
 					try {
+						if (!issuer.visible) {
+							return;
+						}
 						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
 						const configs = await openID4VCI.getAvailableCredentialConfigurations(issuer.credentialIssuerIdentifier);
 
@@ -85,9 +133,9 @@ const Issuers = () => {
 							const config = configs[key];
 
 							const credentialConfiguration = {
-								identifierField: `${key}-${metadata.credential_issuer}`,
-								credentialConfigurationDisplayName: `${config?.display?.filter((d) => d.locale === 'en-US')[0]?.name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
-
+								identifierField: `${JSON.stringify([key, metadata.credential_issuer])}`,
+								credentialConfigurationDisplayName: `${getCredentialConfigurationDisplay(key, config).name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
+								credentialConfigurationName: `${getCredentialConfigurationDisplay(key, config).name}` ?? "Unknown",
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
 								credentialConfiguration: config,
@@ -96,7 +144,7 @@ const Issuers = () => {
 
 							setCredentialConfigurations((currentArray) => {
 								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
-									credentialConfigurationId === key
+									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
 								);
 								if (!credentialConfigurationExists) {
 									return [...currentArray, credentialConfiguration];
@@ -116,14 +164,14 @@ const Issuers = () => {
 			}
 		};
 
-		if (openID4VCIHelper) {
+		if (openID4VCIHelper && openID4VCI) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline, openID4VCIHelper]);
+	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const [credentialConfigurationId, credentialIssuerIdentifier] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+		const [credentialConfigurationId] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
@@ -168,10 +216,11 @@ const Issuers = () => {
 				<H1 heading={t('common.navItemAddCredentials')} />
 				<PageDescription description={t('pageAddCredentials.description')} />
 
-				{credentialConfigurations && (
+				{credentialConfigurations && recent && (
 					<QueryableList
 						isOnline={isOnline}
 						list={credentialConfigurations}
+						recent={recent}
 						queryField='credentialConfigurationDisplayName'
 						translationPrefix='pageAddCredentials'
 						identifierField='identifierField'
@@ -180,13 +229,19 @@ const Issuers = () => {
 				)}
 			</div>
 
-			{showRedirectPopup && (
+			{showRedirectPopup && selectedCredentialConfiguration && (
 				<RedirectPopup
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${ getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
-					popupMessage={t('pageAddCredentials.popup.message', { issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown" })}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedCredentialConfiguration?.credentialConfigurationDisplayName}`}
+					popupMessage={
+						<Trans
+							i18nKey="pageAddCredentials.popup.message"
+							values={{ issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown", credentialName: selectedCredentialConfiguration?.credentialConfigurationName ?? "Unknown" }}
+							components={{ strong: <strong /> }}
+						/>
+					}
 				/>
 			)}
 		</>

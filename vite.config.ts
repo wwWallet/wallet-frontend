@@ -16,6 +16,9 @@ export default defineConfig({
 			filename: 'service-worker.js', // Custom service worker (MUST exist in `src/`)
 			strategies: 'injectManifest', // Uses `src/service-worker.js` for caching
 			manifest: false, // Vite will use `public/manifest.json` automatically
+			injectManifest: {
+				maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+			},
 		}),
 
 	],

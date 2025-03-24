@@ -3,7 +3,7 @@ import { Verify } from "../../utils/Verify";
 import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
-import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
+import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
@@ -15,8 +15,12 @@ import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import CredentialParserContext from "@/context/CredentialParserContext";
+import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
+import { parse } from "@auth0/mdl";
+import { JSONPath } from "jsonpath-plus";
+import { useTranslation } from 'react-i18next';
 
-export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
@@ -24,6 +28,28 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 	const { parseCredential } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
+	const { t } = useTranslation();
+
+	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
+		if (S.client_metadata.jwks) {
+			const rp_eph_pub_jwk = S.client_metadata.jwks.keys.filter(k => k.use === 'enc')[0];
+			if (!rp_eph_pub_jwk) {
+				throw new Error("Could not find Relying Party public key for encryption");
+			}
+			return { rp_eph_pub_jwk };
+		}
+		if (S.client_metadata.jwks_uri) {
+			const response = await axios.get(S.client_metadata.jwks_uri).catch(() => null);
+			if (response && 'keys' in response.data) {
+				const rp_eph_pub_jwk = response.data.keys.filter((k) => k.use === 'enc')[0];
+				if (!rp_eph_pub_jwk) {
+					throw new Error("Could not find Relying Party public key for encryption");
+				}
+				return { rp_eph_pub_jwk };
+			}
+		}
+		throw new Error("Could not find Relying Party public key for encryption");
+	};
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
@@ -151,7 +177,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				return { err: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
 			}
 
-			const vcList = await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials);
+			const vcList = (await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials))
+				.filter((vc) => vc.instanceId === 0);
 
 			await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
 				presentation_definition,
@@ -167,7 +194,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			let descriptorPurpose;
 			for (const descriptor of presentation_definition.input_descriptors) {
 				const conformingVcList = [];
-				descriptorPurpose = descriptor.purpose || "Purpose not specified by verifier";
+				descriptorPurpose = descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
 
 				for (const vc of vcList) {
 					try {
@@ -181,6 +208,40 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 								conformingVcList.push(vc.credentialIdentifier);
 								continue;
 							}
+						}
+
+						if (vc.format == VerifiableCredentialFormat.MSO_MDOC && (VerifiableCredentialFormat.MSO_MDOC in descriptor.format)) {
+							const credentialBytes = base64url.decode(vc.credential);
+							const issuerSigned = cborDecode(credentialBytes);
+							// According to ISO 23220-4: The value of input descriptor id should be the doctype
+							const m = {
+								version: '1.0',
+								documents: [new Map([
+									['docType', descriptor.id],
+									['issuerSigned', issuerSigned]
+								])],
+								status: 0
+							};
+							const encoded = cborEncode(m);
+							const mdoc = parse(encoded);
+							const [document] = mdoc.documents;
+							const ns = document.getIssuerNameSpace(document.issuerSignedNameSpaces[0]);
+							const json = {};
+							json[descriptor.id] = ns;
+
+							const fieldsWithValue = descriptor.constraints.fields.map((field) => {
+								const values = field.path.map((possiblePath) => JSONPath({ path: possiblePath, json: json })[0]);
+								const val = values.filter((v) => v != undefined || v != null)[0]; // get first value that is not undefined
+								return { field, val };
+							});
+							console.log("Fields with value = ", fieldsWithValue)
+
+							if (fieldsWithValue.map((fwv) => fwv.val).includes(undefined)) {
+								continue; // there is at least one field missing from the requirements
+							}
+
+							conformingVcList.push(vc.credentialIdentifier);
+							continue;
 						}
 					}
 					catch (err) {
@@ -293,6 +354,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			const response_uri = S.response_uri;
 			const client_id = S.client_id;
 			const nonce = S.nonce;
+			let apu = undefined;
+			let apv = undefined;
 
 			let { verifiableCredentials } = await getAllStoredVerifiableCredentials();
 			const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
@@ -302,6 +365,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 				const result = await credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials)
 				return result.credential;
 			}));
+			console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
 
 			const filteredVCEntities = credentialsFilteredByUsage
 				.filter((vc) =>
@@ -345,6 +409,45 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 					originalVCs.push(vcEntity);
 				}
+				else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
+					console.log("Response uri = ", response_uri);
+					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
+					const credentialBytes = base64url.decode(vcEntity.credential);
+					const issuerSigned = cborDecode(credentialBytes);
+
+					// According to ISO 23220-4: The value of input descriptor id should be the doctype
+					const m = {
+						version: '1.0',
+						documents: [new Map([
+							['docType', descriptor.id],
+							['issuerSigned', issuerSigned]
+						])],
+						status: 0
+					};
+					const encoded = cborEncode(m);
+					const mdoc = parse(encoded);
+
+					const mdocGeneratedNonce = generateRandomIdentifier(8); // mdoc generated nonce
+					apu = mdocGeneratedNonce; // no need to base64url encode. jose library handles it
+					apv = nonce;  // no need to base64url encode. jose library handles it
+
+					const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, mdocGeneratedNonce, nonce, client_id, response_uri);
+					function uint8ArrayToHexString(uint8Array) {
+						// @ts-ignore
+						return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
+					}
+					console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
+					const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
+					console.log("B64U Encoded device response = ", encodedDeviceResponse);
+					selectedVCs.push(encodedDeviceResponse);
+					generatedVPs.push(encodedDeviceResponse);
+					descriptorMap.push({
+						id: descriptor_id,
+						format: VerifiableCredentialFormat.MSO_MDOC,
+						path: `$`
+					});
+					originalVCs.push(vcEntity);
+				}
 			}
 
 			const presentationSubmission = {
@@ -355,19 +458,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			const formData = new URLSearchParams();
 
-			if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg && S.client_metadata.jwks.keys.length > 0) {
-				const rp_eph_pub_jwk = S.client_metadata.jwks.keys[0];
+			if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
+				const { rp_eph_pub_jwk } = await retrieveKeys(S);
 				const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 				const jwe = await new EncryptJWT({
 					vp_token: generatedVPs.length === 1 ? generatedVPs[0] : generatedVPs,
 					presentation_submission: presentationSubmission,
 					state: S.state ?? undefined
 				})
+					.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
 					.setProtectedHeader({ alg: S.client_metadata.authorization_encrypted_response_alg, enc: S.client_metadata.authorization_encrypted_response_enc, kid: rp_eph_pub_jwk.kid })
 					.encrypt(rp_eph_pub);
 
 				formData.append('response', jwe);
-				console.log("JWE = ", jwe)
+				console.log("JWE = ", jwe);
 			}
 			else {
 				formData.append('vp_token', generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
@@ -388,9 +492,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 
 			await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
-			const res = await httpProxy.post(response_uri, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded',
-			});
+			let res = null;
+			try {
+				res = await httpProxy.post(response_uri, formData.toString(), {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				});
+			}
+			catch (err) {
+				console.error(err);
+				showStatusPopup({
+					title: "Error in verification",
+					description: "The verification process has was not completed successfully",
+				}, 'error');
+				return {};
+			}
 
 			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
@@ -400,8 +515,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup }: { showCredentialS
 			if (responseData.redirect_uri) {
 				return { url: responseData.redirect_uri };
 			}
+			showStatusPopup({
+				title: "Verification succeeded",
+				description: "The verification process has been completed",
+			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation]
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {
