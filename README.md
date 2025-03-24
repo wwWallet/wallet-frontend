@@ -314,7 +314,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
 
 **\*Notes:**
-
+- ✅-marked scenarios have been confirmed using the latest public releases of relevant browsers, operating systems, and other dependencies at the time of testing.
 - In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
   For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.\*
 - **Mozilla Firefox supports the PRF extension** starting with **version 135.0 or later** except on iOS. This is because Firefox generally uses the Gecko engine, but on iOS, all browsers are required to run on WebKit.
