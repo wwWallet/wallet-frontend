@@ -1,7 +1,7 @@
 import { cborEncode } from "@auth0/mdl/lib/cbor";
 import { DataItem } from "@auth0/mdl";
 
-export async function createSessionKey(rawPublic: ArrayBuffer, ephemeralKey: CryptoKeyPair) : Promise<CryptoKey> { 
+export async function createSessionKey(rawPublic: ArrayBuffer, ephemeralKey: CryptoKeyPair) : Promise<CryptoKey> {
 	const importedVerifierPublicKey = await crypto.subtle.importKey(
 		"raw",
 		rawPublic,
@@ -105,9 +105,9 @@ export async function deriveSKReader(sessionTranscriptBytes) {
 
 /*
 		Source: https://github.com/mdn/dom-examples/blob/main/web-crypto/derive-key/hkdf.js
-    Derive a shared secret, given:
-    - our ECDH private key
-    - their ECDH public key
+		Derive a shared secret, given:
+		- our ECDH private key
+		- their ECDH public key
 */
 export async function deriveSharedSecret(privateKey, publicKey) {
 	const secret = await crypto.subtle.deriveBits(

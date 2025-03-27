@@ -109,7 +109,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		const SKReader = await getKey(zab, salt, "SKReader");
 		const iv = new Uint8Array([
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // identifier
-		  0x00, 0x00, 0x00, 0x01 // message counter
+			0x00, 0x00, 0x00, 0x01 // message counter
 		]);
 
 		let decryptedVerifierData;
