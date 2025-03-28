@@ -1,5 +1,6 @@
 import { HttpClient } from '../interfaces';
 import { fromBase64 } from './util';
+import { verifySRIFromObject } from './verifySRIFromObject';
 
 function deepMerge(parent: any, child: any): any {
 
@@ -61,7 +62,12 @@ function deepMerge(parent: any, child: any): any {
 	return child;
 }
 
-async function fetchAndMergeMetadata(httpClient: HttpClient, url: string, visited = new Set<string>()): Promise<Record<string, any>> {
+async function fetchAndMergeMetadata(
+	httpClient: HttpClient,
+	url: string,
+	visited = new Set<string>(),
+	integrity?: string
+): Promise<Record<string, any>> {
 	if (visited.has(url)) {
 		console.warn(`Cycle detected or already visited: ${url}`);
 		return {};
@@ -85,15 +91,27 @@ async function fetchAndMergeMetadata(httpClient: HttpClient, url: string, visite
 	const current = result.data as {
 		vct: string;
 		extends?: string;
+		'extends#integrity'?: string;
 		[key: string]: any;
 	};
 	// console.log(`Fetched metadata from ${url}:`, current);
+
+	if (integrity) {
+		const isValid = verifySRIFromObject(result.data, integrity);
+		if (!isValid) {
+			throw new Error(`#integrity check failed for url: ${url}`);
+		}
+		// console.log(`#integrity check success for url: ${url} and ${integrity}`)
+	} else {
+		throw new Error(`Missing integrity for metadata at ${url}`);
+	}
 
 	let merged = {};
 
 	if (typeof current.extends === 'string') {
 		// console.log(`Found extends → ${current.extends}`);
-		const parent = await fetchAndMergeMetadata(httpClient, current.extends, visited);
+		const childIntegrity = current['extends#integrity'] as string | undefined;
+		const parent = await fetchAndMergeMetadata(httpClient, current.extends, visited, childIntegrity);
 		merged = deepMerge(parent, current); // child overrides
 	} else {
 		merged = current;
@@ -141,9 +159,10 @@ export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: str
 			try {
 				const url = new URL(vct);
 				if (url.protocol.startsWith('http')) {
-					console.log(`Resolving metadata from vct: ${vct}`);
-					const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct);
-					console.log(`Final merged credential metadata from ${vct}:`, mergedMetadata);
+					// console.log(`Resolving metadata from vct: ${vct}`);
+					const vctIntegrity = credentialPayload['vct#integrity'] as string | undefined;
+					const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct, new Set(), vctIntegrity);
+					// console.log(`Final merged credential metadata from ${vct}:`, mergedMetadata);
 					return { credentialMetadata: mergedMetadata };
 				}
 			} catch (e) {
