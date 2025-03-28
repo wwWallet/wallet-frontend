@@ -46,7 +46,7 @@ export async function encryptMessage(sessionKey, plaintext, iv=null) {
 		},
 		sessionKey,
 		// enc.encode(plaintext)
-		plaintext
+		new TextEncoder().encode(plaintext).buffer
 	);
 
 	return { iv, ciphertext };
