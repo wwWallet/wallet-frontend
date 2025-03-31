@@ -2,6 +2,14 @@ import { HttpClient } from '../interfaces';
 import { fromBase64 } from './util';
 import { verifySRIFromObject } from './verifySRIFromObject';
 
+type MetadataErrorCode =
+	| "NOT_FOUND"
+	| "INTEGRITY_FAIL"
+	| "INTEGRITY_MISSING"
+	| "ISSUER_MISMATCH";
+
+type MetadataError = { error: MetadataErrorCode };
+
 function deepMerge(parent: any, child: any): any {
 
 	if (Array.isArray(parent) && Array.isArray(child)) {
@@ -67,16 +75,13 @@ async function fetchAndMergeMetadata(
 	url: string,
 	visited = new Set<string>(),
 	integrity?: string
-): Promise<Record<string, any>> {
+): Promise<Record<string, any> | MetadataError> {
 	if (visited.has(url)) {
-		console.warn(`Cycle detected or already visited: ${url}`);
-		return {};
+		return { error: "NOT_FOUND" };
 	}
 	visited.add(url);
 
-	// console.log(`Fetching metadata from: ${url}`);
 	const result = await httpClient.get(url);
-	// console.log(`HTTP GET ${url} → status: ${result?.status}`);
 
 	if (
 		!result ||
@@ -85,8 +90,13 @@ async function fetchAndMergeMetadata(
 		result.data === null ||
 		!('vct' in result.data)
 	) {
-		throw new Error(`Invalid metadata from ${url}`);
+		return { error: "NOT_FOUND" };
 	}
+
+	if (!integrity) return { error: "INTEGRITY_MISSING" };
+
+	const isValid = verifySRIFromObject(result.data, integrity);
+	if (!isValid) return { error: "INTEGRITY_FAIL" };
 
 	const current = result.data as {
 		vct: string;
@@ -94,35 +104,21 @@ async function fetchAndMergeMetadata(
 		'extends#integrity'?: string;
 		[key: string]: any;
 	};
-	// console.log(`Fetched metadata from ${url}:`, current);
-
-	if (integrity) {
-		const isValid = verifySRIFromObject(result.data, integrity);
-		if (!isValid) {
-			throw new Error(`#integrity check failed for url: ${url}`);
-		}
-		// console.log(`#integrity check success for url: ${url} and ${integrity}`)
-	} else {
-		throw new Error(`Missing integrity for metadata at ${url}`);
-	}
 
 	let merged = {};
 
 	if (typeof current.extends === 'string') {
-		// console.log(`Found extends → ${current.extends}`);
 		const childIntegrity = current['extends#integrity'] as string | undefined;
 		const parent = await fetchAndMergeMetadata(httpClient, current.extends, visited, childIntegrity);
-		merged = deepMerge(parent, current); // child overrides
+		if ('error' in parent) return parent;
+		merged = deepMerge(parent, current);
 	} else {
 		merged = current;
-		// console.log(`No extends found in ${url}`);
 	}
-
-	// console.log(`Final merged metadata from ${url}:`, merged);
 	return merged;
 }
 
-export async function resolveIssuerMetadata(httpClient: any, issuerUrl: string): Promise<{ valid: true } | { error: "NOT_FOUND" }> {
+export async function resolveIssuerMetadata(httpClient: any, issuerUrl: string): Promise<{ valid: true } | MetadataError> {
 	try {
 		const issUrl = new URL(issuerUrl);
 		if (!issUrl?.origin) return { error: "NOT_FOUND" };
@@ -132,7 +128,7 @@ export async function resolveIssuerMetadata(httpClient: any, issuerUrl: string):
 		};
 
 		if (result.data?.issuer !== issUrl.origin) {
-			return { error: "NOT_FOUND" };
+			return { error: 'ISSUER_MISMATCH' };
 		}
 
 		return { valid: true };
@@ -141,30 +137,40 @@ export async function resolveIssuerMetadata(httpClient: any, issuerUrl: string):
 	}
 }
 
-export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: string): Promise<{ credentialMetadata: any } | { error: "NOT_FOUND" }> {
+function isValidHttpUrl(value: string): boolean {
+	try {
+		const url = new URL(value);
+		return url.protocol.startsWith('http');
+	} catch {
+		return false;
+	}
+}
+
+export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: string): Promise<{ credentialMetadata: any } | MetadataError> {
 	try {
 		const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[0] as string)));
 		const credentialPayload = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[1] as string)));
 
+		if (!credentialHeader || !credentialPayload) {
+			return { error: "NOT_FOUND" };
+		}
 		// console.log('Decoded credential header:', credentialHeader);
 		// console.log('Decoded credential payload:', credentialPayload);
 
 		const checkIssuer = await resolveIssuerMetadata(httpClient, credentialPayload.iss);
 		if ('error' in checkIssuer) {
-			return { error: "NOT_FOUND" };
+			return { error: checkIssuer.error };
 		}
 
 		const vct = credentialPayload.vct;
-		if (vct && typeof vct === 'string') {
+		if (vct && typeof vct === 'string' && isValidHttpUrl(vct)) {
 			try {
-				const url = new URL(vct);
-				if (url.protocol.startsWith('http')) {
-					// console.log(`Resolving metadata from vct: ${vct}`);
-					const vctIntegrity = credentialPayload['vct#integrity'] as string | undefined;
-					const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct, new Set(), vctIntegrity);
-					// console.log(`Final merged credential metadata from ${vct}:`, mergedMetadata);
-					return { credentialMetadata: mergedMetadata };
+				const vctIntegrity = credentialPayload['vct#integrity'] as string | undefined;
+				const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct, new Set(), vctIntegrity);
+				if ('error' in mergedMetadata) {
+					return { error: mergedMetadata.error }
 				}
+				return { credentialMetadata: mergedMetadata };
 			} catch (e) {
 				console.warn('Invalid vct URL:', vct, e);
 			}
