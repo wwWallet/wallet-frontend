@@ -1,13 +1,15 @@
 import { HttpClient } from '../interfaces';
 import { fromBase64 } from './util';
 import { verifySRIFromObject } from './verifySRIFromObject';
+import Ajv2020 from "ajv/dist/2020";
 
 type MetadataErrorCode =
 	| "NOT_FOUND"
 	| "INTEGRITY_FAIL"
 	| "INTEGRITY_MISSING"
 	| "ISSUER_MISMATCH"
-	| "SCHEMA_CONFLICT";
+	| "SCHEMA_CONFLICT"
+	| "SCHEMA_FAIL";
 
 type MetadataError = { error: MetadataErrorCode };
 
@@ -82,11 +84,46 @@ function deepMerge(parent: any, child: any): any {
 	return child;
 }
 
+export function validateAgainstSchema(
+	schema: Record<string, any>,
+	dataToValidate?: Record<string, any>
+): { valid: true } | MetadataError {
+	// console.log('Schema to validate:', schema);
+	// console.log('Data to validate against schema:', dataToValidate);
+
+	const ajv = new Ajv2020();
+
+	// 1. Validate the schema itself
+	const isSchemaValid = ajv.validateSchema(schema);
+	if (!isSchemaValid) {
+		console.warn('❌ Invalid schema structure:', ajv.errors);
+		return { error: "SCHEMA_FAIL" };
+	}
+
+	// 2. If data is provided, validate it against the schema
+	if (dataToValidate) {
+		try {
+			const validate = ajv.compile(schema);
+			const isValid = validate(dataToValidate);
+			if (!isValid) {
+				console.warn('❌ Data does not conform to schema:', validate.errors);
+				return { error: "SCHEMA_FAIL" };
+			}
+		} catch (err) {
+			console.warn('⚠️ Error during schema compilation/validation:', err);
+			return { error: "SCHEMA_FAIL" };
+		}
+	}
+
+	return { valid: true };
+}
+
 async function fetchAndMergeMetadata(
 	httpClient: HttpClient,
 	url: string,
 	visited = new Set<string>(),
-	integrity?: string
+	integrity?: string,
+	credentialPayload?: Record<string, any>
 ): Promise<Record<string, any> | MetadataError> {
 	if (visited.has(url)) {
 		return { error: "NOT_FOUND" };
@@ -116,6 +153,13 @@ async function fetchAndMergeMetadata(
 		return { error: "SCHEMA_CONFLICT" };
 	}
 
+	if ('schema' in metadata) {
+		const resultValidate = validateAgainstSchema(metadata.schema, credentialPayload);
+		if ('error' in resultValidate) {
+			return resultValidate;
+		}
+	}
+
 	if (metadata.schema_uri && typeof metadata.schema_uri === 'string') {
 		const schemaIntegrity = metadata['schema_uri#integrity'];
 		if (!schemaIntegrity) {
@@ -134,6 +178,11 @@ async function fetchAndMergeMetadata(
 
 		if (!verifySRIFromObject(resultSchema.data, schemaIntegrity)) {
 			return { error: "INTEGRITY_FAIL" };
+		}
+
+		const resultValidate = validateAgainstSchema(resultSchema.data, credentialPayload);
+		if ('error' in resultValidate) {
+			return resultValidate;
 		}
 
 		// Inject schema into metadata before assigning it to `current`
@@ -204,7 +253,7 @@ export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: str
 		if (vct && typeof vct === 'string' && isValidHttpUrl(vct)) {
 			try {
 				const vctIntegrity = credentialPayload['vct#integrity'] as string | undefined;
-				const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct, new Set(), vctIntegrity);
+				const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct, new Set(), vctIntegrity, credentialPayload);
 				if ('error' in mergedMetadata) {
 					return { error: mergedMetadata.error }
 				}
