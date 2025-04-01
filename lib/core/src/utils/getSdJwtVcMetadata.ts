@@ -6,7 +6,8 @@ type MetadataErrorCode =
 	| "NOT_FOUND"
 	| "INTEGRITY_FAIL"
 	| "INTEGRITY_MISSING"
-	| "ISSUER_MISMATCH";
+	| "ISSUER_MISMATCH"
+	| "SCHEMA_CONFLICT";
 
 type MetadataError = { error: MetadataErrorCode };
 
@@ -98,12 +99,43 @@ async function fetchAndMergeMetadata(
 	const isValid = verifySRIFromObject(result.data, integrity);
 	if (!isValid) return { error: "INTEGRITY_FAIL" };
 
+	if ('schema' in result.data && 'schema_uri' in result.data) {
+		return { error: "SCHEMA_CONFLICT" };
+	}
+
 	const current = result.data as {
 		vct: string;
 		extends?: string;
 		'extends#integrity'?: string;
+		schema_uri?: string;
+		'schema_uri#integrity'?: string;
+		schema?: any;
 		[key: string]: any;
 	};
+
+	if (current.schema_uri && typeof current.schema_uri === 'string') {
+		const schemaIntegrity = current['schema_uri#integrity'];
+
+		if (!schemaIntegrity) {
+			return { error: "INTEGRITY_MISSING" };
+		}
+
+		const resultSchema = await httpClient.get(current.schema_uri);
+		if (
+			!resultSchema ||
+			resultSchema.status !== 200 ||
+			typeof resultSchema.data !== 'object' ||
+			resultSchema.data === null
+		) {
+			return { error: "NOT_FOUND" };
+		}
+
+		if (!verifySRIFromObject(resultSchema.data, schemaIntegrity)) {
+			return { error: "INTEGRITY_FAIL" };
+		}
+
+		current.schema = resultSchema.data;
+	}
 
 	let merged = {};
 
@@ -170,6 +202,7 @@ export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: str
 				if ('error' in mergedMetadata) {
 					return { error: mergedMetadata.error }
 				}
+				console.log('Final Metadata:', mergedMetadata);
 				return { credentialMetadata: mergedMetadata };
 			} catch (e) {
 				console.warn('Invalid vct URL:', vct, e);
@@ -181,6 +214,7 @@ export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: str
 				JSON.parse(new TextDecoder().decode(fromBase64(encodedMetadataDocument)))
 			).filter(((metadataDocument: Record<string, unknown>) => metadataDocument.vct === credentialPayload.vct))[0];
 			if (sdjwtvcMetadataDocument) {
+				console.log('Final Metadata:', sdjwtvcMetadataDocument);
 				return { credentialMetadata: sdjwtvcMetadataDocument };
 			}
 		}
