@@ -51,8 +51,19 @@ function deepMerge(parent: any, child: any): any {
 			return Array.from(map.values());
 		}
 
-		// Default: just concat arrays
+		// If they're not arrays of objects (i.e., primitives), override with child
+		if (
+			typeof parent[0] !== 'object' ||
+			typeof child[0] !== 'object' ||
+			parent[0] === null ||
+			child[0] === null
+		) {
+			return child;
+		}
+
+		// Otherwise, merge arrays of objects (default behavior)
 		return [...parent, ...child];
+
 	}
 
 	if (typeof parent === 'object' && typeof child === 'object' && parent !== null && child !== null) {
@@ -99,28 +110,19 @@ async function fetchAndMergeMetadata(
 	const isValid = verifySRIFromObject(result.data, integrity);
 	if (!isValid) return { error: "INTEGRITY_FAIL" };
 
-	if ('schema' in result.data && 'schema_uri' in result.data) {
+	let metadata = result.data as Record<string, any>;
+
+	if ('schema' in metadata && 'schema_uri' in metadata) {
 		return { error: "SCHEMA_CONFLICT" };
 	}
 
-	const current = result.data as {
-		vct: string;
-		extends?: string;
-		'extends#integrity'?: string;
-		schema_uri?: string;
-		'schema_uri#integrity'?: string;
-		schema?: any;
-		[key: string]: any;
-	};
-
-	if (current.schema_uri && typeof current.schema_uri === 'string') {
-		const schemaIntegrity = current['schema_uri#integrity'];
-
+	if (metadata.schema_uri && typeof metadata.schema_uri === 'string') {
+		const schemaIntegrity = metadata['schema_uri#integrity'];
 		if (!schemaIntegrity) {
 			return { error: "INTEGRITY_MISSING" };
 		}
 
-		const resultSchema = await httpClient.get(current.schema_uri);
+		const resultSchema = await httpClient.get(metadata.schema_uri);
 		if (
 			!resultSchema ||
 			resultSchema.status !== 200 ||
@@ -134,18 +136,22 @@ async function fetchAndMergeMetadata(
 			return { error: "INTEGRITY_FAIL" };
 		}
 
-		current.schema = resultSchema.data;
+		// Inject schema into metadata before assigning it to `current`
+		metadata = {
+			...metadata,
+			schema: resultSchema.data,
+		};
 	}
 
-	let merged = {};
+	let merged: Record<string, any> = {};
 
-	if (typeof current.extends === 'string') {
-		const childIntegrity = current['extends#integrity'] as string | undefined;
-		const parent = await fetchAndMergeMetadata(httpClient, current.extends, visited, childIntegrity);
+	if (typeof metadata.extends === 'string') {
+		const childIntegrity = metadata['extends#integrity'] as string | undefined;
+		const parent = await fetchAndMergeMetadata(httpClient, metadata.extends, visited, childIntegrity);
 		if ('error' in parent) return parent;
-		merged = deepMerge(parent, current);
+		merged = deepMerge(parent, metadata);
 	} else {
-		merged = current;
+		merged = metadata;
 	}
 	return merged;
 }
