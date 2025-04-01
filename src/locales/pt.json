@@ -67,6 +67,7 @@
 		"login": "Iniciar sessão",
 		"loginCache": "Escolha a sua conta",
 		"loginAsUser": "Iniciar sessão como {{name}}",
+		"loginKeystoreFailed": "Não foi possível aceder ao armazenamento de chaves da carteira. Por favor, tente novamente.",
 		"loginLocalKeystoreFailed": "Não foi possível iniciar o armazenamento de chaves da carteira. Por favor, tente novamente.",
 		"loginPasskey": "Iniciar sessão com chave de acesso",
 		"loginSubmit": "Iniciar sessão",
@@ -134,7 +135,7 @@
 		"description": "Pesquise e selecione um issuer para obter uma credencial.",
 		"noFound": "Sem issuers correspondentes.",
 		"popup": {
-			"message": "Se continuar, será redireccionado para <strong>{{issuerName}}</strong> para emitir uma <strong>{{credentialName}}</strong>.",
+			"message": "Se continuar, será redirecionado para <strong>{{issuerName}}</strong> para emitir uma <strong>{{credentialName}}</strong>.",
 			"title": "Selecionado:"
 		},
 		"searchPlaceholder": "Procurar issuers..."
@@ -173,7 +174,7 @@
 		"description": "Pesquise e selecione um verifier para partilhar credenciais",
 		"noFound": "Sem verifiers correspondentes.",
 		"popup": {
-			"message": "Se continuar, será redireccionado para {{verifierName}}.",
+			"message": "Se continuar, será redirecionado para {{verifierName}}.",
 			"title": "Selecionado:"
 		},
 		"searchPlaceholder": "Procurar verifiers..."
@@ -264,6 +265,17 @@
 		"cameraPermissionAllow": "Por favor, ative a permissão da câmara para usar o digitalizador de código QR.",
 		"description": "Vise o código QR e será redirecionado para continuar com o processo",
 		"title": "Ler o código QR"
+	},
+	"queryableList": {
+		"all": "Todos",
+		"recent": "Recentes"
+	},
+	"pwaInstallPrompt": {
+		"message": "PWA Disponível",
+		"button": {
+			"install": "Instalar",
+			"closeTitle": "Clique para fechar a opção de instalação PWA"
+		}
 	},
 	"registerPasskey": {
 		"authOnceMore": "Para concluir a configuração, por favor autentique-se novamente.",
