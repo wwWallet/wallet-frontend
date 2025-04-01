@@ -67,6 +67,7 @@
 		"login": "Σύνδεση",
 		"loginCache": "Επιλέξτε τον λογαριασμό σας",
 		"loginAsUser": "Συνδεθείτε ως {{name}}",
+		"loginKeystoreFailed": "Απέτυχε η προσπέλαση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"loginLocalKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"loginPasskey": "Σύνδεση με κλειδί πρόσβασης",
 		"loginSubmit": "Σύνδεση",
@@ -134,8 +135,8 @@
 		"description": "Αναζητήστε και επιλέξτε έναν issuer για έκδοση πιστοποιητικού",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
 		"popup": {
-			"message": "Έχετε επιλέξει τον {{issuerName}}. Αν συνεχίσετε, θα ανακατευθυνθείτε στην τρέχουσα καρτέλα στη σελίδα του issuer.",
-			"title": "Επιλεγμένος Issuer:"
+			"message": "Αν συνεχίσετε, θα μεταφερθείτε στο <strong>{{issuerName}}</strong> για να εκδώσετε ένα <strong>{{credentialName}}</strong>.",
+			"title": "Επιλεγμένο:"
 		},
 		"searchPlaceholder": "Αναζήτηση issuers..."
 	},
@@ -173,8 +174,8 @@
 		"description": "Αναζητήστε και επιλέξτε ένα verifier για να μοιραστείτε πιστοποιητικά",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι verifiers.",
 		"popup": {
-			"message": "Έχετε επιλέξει τον {{verifierName}}. Αν συνεχίσετε, θα ανακατευθυνθείτε στην τρέχουσα καρτέλα στη σελίδα του verifier.",
-			"title": "Επιλεγμένος Verifier:"
+			"message": "Αν συνεχίσετε, θα ανακατευθυνθείτε στo {{verifierName}}.",
+			"title": "Επιλεγμένο:"
 		},
 		"searchPlaceholder": "Αναζήτηση verifiers..."
 	},

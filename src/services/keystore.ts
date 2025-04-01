@@ -1169,13 +1169,13 @@ export async function generateOpenid4vciProofs(
 			nonce: nonce,
 			aud: audience,
 			iss: issuer,
+			iat: config.CLOCK_TOLERANCE ? Math.floor(new Date().getTime() / 1000) - config.CLOCK_TOLERANCE : Math.floor(new Date().getTime() / 1000),
 		})
 			.setProtectedHeader({
 				alg: keypair.alg,
 				typ: "openid4vci-proof+jwt",
 				jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
 			})
-			.setIssuedAt()
 			.sign(privateKey);
 		return jws;
 	}));
@@ -1236,6 +1236,9 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 		verifierGeneratedNonce,
 		mdocGeneratedNonce
 	);
+
+	const uint8ArrayToHexString = (uint8Array: any) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
+	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
 		.usingPresentationDefinition(presentationDefinition)

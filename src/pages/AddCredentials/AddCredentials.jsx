@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -41,7 +41,7 @@ const Issuers = () => {
 	useEffect(() => {
 		const fetchRecentCredConfigs = async () => {
 			vcEntityList.map(async (vcEntity, key) => {
-				const identifierField = getCredentialType(vcEntity.parsedCredential) + '-' + vcEntity.credentialIssuerIdentifier;
+				const identifierField = JSON.stringify([getCredentialType(vcEntity.parsedCredential), vcEntity.credentialIssuerIdentifier]);
 				setRecent((currentArray) => {
 					const recentRecordExists = currentArray.some((rec) =>
 						rec === identifierField
@@ -81,7 +81,6 @@ const Issuers = () => {
 
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
-		console.log("Selected issuer ", selectedIssuer)
 
 		if (selectedIssuer) {
 			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
@@ -134,9 +133,9 @@ const Issuers = () => {
 							const config = configs[key];
 
 							const credentialConfiguration = {
-								identifierField: `${key}-${metadata.credential_issuer}`,
+								identifierField: `${JSON.stringify([key, metadata.credential_issuer])}`,
 								credentialConfigurationDisplayName: `${getCredentialConfigurationDisplay(key, config).name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
-
+								credentialConfigurationName: `${getCredentialConfigurationDisplay(key, config).name}` ?? "Unknown",
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
 								credentialConfiguration: config,
@@ -172,7 +171,7 @@ const Issuers = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const [credentialConfigurationId] = credentialConfigurationIdWithCredentialIssuerIdentifier.split('-');
+		const [credentialConfigurationId] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
 		if (clickedCredentialConfiguration) {
 			setSelectedCredentialConfiguration(clickedCredentialConfiguration);
@@ -230,13 +229,19 @@ const Issuers = () => {
 				)}
 			</div>
 
-			{showRedirectPopup && (
+			{showRedirectPopup && selectedCredentialConfiguration && (
 				<RedirectPopup
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${getSelectedIssuerDisplay()?.name ?? "Unknown"}`}
-					popupMessage={t('pageAddCredentials.popup.message', { issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown" })}
+					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedCredentialConfiguration?.credentialConfigurationDisplayName}`}
+					popupMessage={
+						<Trans
+							i18nKey="pageAddCredentials.popup.message"
+							values={{ issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown", credentialName: selectedCredentialConfiguration?.credentialConfigurationName ?? "Unknown" }}
+							components={{ strong: <strong /> }}
+						/>
+					}
 				/>
 			)}
 		</>

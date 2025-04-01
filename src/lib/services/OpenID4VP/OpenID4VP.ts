@@ -177,7 +177,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				return { err: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
 			}
 
-			const vcList = await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials);
+			const vcList = (await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials))
+				.filter((vc) => vc.instanceId === 0);
 
 			await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
 				presentation_definition,
@@ -364,6 +365,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				const result = await credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials)
 				return result.credential;
 			}));
+			console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
 
 			const filteredVCEntities = credentialsFilteredByUsage
 				.filter((vc) =>

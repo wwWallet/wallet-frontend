@@ -42,10 +42,23 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	// Filter and prepare claims for display
 	const claimsWithValues = displayClaims.map(claim => {
+		if (!claim.display || !claim.path) {
+			return null;
+		}
 		const rawValue = getValueByPath(claim.path, signedClaims);
 		const { label, description } = getLabelAndDescriptionByLang(claim.display, language, fallbackLng);
 		if (rawValue && label) {
-			const formattedValue = typeof rawValue === 'boolean' ? String(rawValue) : formatDate(rawValue, 'date');
+			let formattedValue = "";
+			if (typeof rawValue === 'boolean') {
+				formattedValue = String(rawValue);
+			}
+			else if (typeof rawValue !== 'string' && typeof rawValue !== 'number') {
+				formattedValue = JSON.stringify(rawValue);
+			}
+			else {
+				formattedValue = formatDate(rawValue, 'date'); // to handle dates and other types of values
+			}
+
 			return {
 				label,
 				description,

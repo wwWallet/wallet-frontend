@@ -13,7 +13,7 @@ const LanguageSelector = ({
 	className,
 	showName = false,
 }: LanguageSelectorProps) => {
-	const { i18n } = useTranslation();
+	const { i18n, t } = useTranslation();
 	const { language } = i18n;
 
 	// Filter language options based on resources in i18n and languageOptions
@@ -46,6 +46,7 @@ const LanguageSelector = ({
 					className={className}
 					value={language}
 					onChange={handleChangeLanguage}
+					aria-label={t("language.label")}
 				>
 					{availableLanguages.map((option) => (
 						<option key={option.value} value={option.value}>

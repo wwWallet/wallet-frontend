@@ -153,23 +153,26 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <th rowspan="2">OS</th>
       <th rowspan="2">Authenticator</th>
       <th rowspan="2">Transport</th>
-      <th colspan="3">PRF Compatibility</th>
+      <th colspan="4">PRF Compatibility</th>
     </tr>
     <tr>
       <th style="display:flex;align-items:center;border:none;"><img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
-        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
-        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
-        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
-      </th>
+	  		<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
+				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
+				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
+			</th>
+			<th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
       <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
     </tr>
+	</th>
   </thead>
   <tbody>
     <tr>
       <td>Linux</td>
       <td>Linux</td>
       <td>Internal</td>
-      <td>❌</td>
+      <td> </td>
+      <td> </td>
       <td> </td>
     </tr>
     <tr>
@@ -177,19 +180,22 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
       <td>Linux</td>
       <td>iOS</td>
       <td>Hybrid</td>
-      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
       <td>Linux</td>
       <td>FIDO Security Key</td>
       <td>USB</td>
+      <td>✅</td>
       <td>✅</td>
       <td> </td>
     </tr>
@@ -198,6 +204,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Windows</td>
       <td>Internal</td>
       <td>❌</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
@@ -205,6 +212,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
@@ -212,6 +220,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
@@ -219,12 +228,14 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
       <td>MacOS</td>
       <td>MacOS</td>
       <td>Internal</td>
+      <td>✅</td>
       <td>❌</td>
       <td>✅</td>
     </tr>
@@ -234,19 +245,22 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Hybrid</td>
       <td>✅</td>
       <td>❌</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>MacOS</td>
       <td>iOS</td>
       <td>Hybrid</td>
-      <td>✅</td>
-      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
     </tr>
     <tr>
       <td>MacOS</td>
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅</td>
+      <td>❌</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -254,12 +268,14 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Internal</td>
       <td>✅</td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
       <td>Android</td>
       <td>Android</td>
       <td>Hybrid</td>
+      <td>✅</td>
       <td>❌</td>
       <td> </td>
     </tr>
@@ -267,6 +283,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>iOS</td>
       <td>Hybrid</td>
+      <td>✅</td>
       <td>❌</td>
       <td> </td>
     </tr>
@@ -275,12 +292,14 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅<sup>[1]</sup></td>
+      <td>❌</td>
       <td> </td>
     </tr>
     <tr>
       <td>Android</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
+      <td>❌</td>
       <td>❌</td>
       <td> </td>
     </tr>
@@ -290,18 +309,21 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Internal</td>
       <td>✅</td>
       <td>✅</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>iOS</td>
       <td>Android</td>
       <td>Hybrid</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>iOS</td>
       <td>iOS</td>
       <td>Hybrid</td>
+      <td>❌</td>
       <td>❌</td>
       <td>❌</td>
     </tr>
@@ -311,11 +333,13 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>USB</td>
       <td>❌</td>
       <td>❌</td>
+      <td>❌</td>
     </tr>
     <tr>
       <td>iOS</td>
       <td>FIDO Security Key</td>
       <td>NFC</td>
+      <td>❌</td>
       <td>❌</td>
       <td>❌</td>
     </tr>
@@ -325,10 +349,10 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
 
 **\*Notes:**
-
+- ✅-marked scenarios have been confirmed using the latest public releases of relevant browsers, operating systems, and other dependencies at the time of testing.
 - In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
   For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.\*
-- The **PRF extension is supported in Mozilla Firefox on iOS only in internal cases** because Firefox generally uses the Gecko engine, but on iOS, it is required for all browsers to run on WebKit.
+- **Mozilla Firefox supports the PRF extension** starting with **version 135.0 or later** except on iOS. This is because Firefox generally uses the Gecko engine, but on iOS, all browsers are required to run on WebKit.
 - iOS supports PRF extension starting with the **iOS 18** release.
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.

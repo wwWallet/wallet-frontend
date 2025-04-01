@@ -1,10 +1,10 @@
 {
   "name": "wallet-frontend",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@auth0/mdl": "^2.0.0",
+    "@auth0/mdl": "^2.0.1",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.2.1",
     "ajv": "^8.17.1",
