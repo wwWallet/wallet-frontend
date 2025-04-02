@@ -13,6 +13,7 @@ export const OpenidCredentialIssuerMetadataSchema = z.object({
 		batch_size: z.number(),
 	}).optional(),
 	credential_configurations_supported: z.record(CredentialConfigurationSupportedSchema),
+	mdoc_iacas_uri: z.string().optional(),
 	signed_metadata: z.string().optional(),
 })
 
