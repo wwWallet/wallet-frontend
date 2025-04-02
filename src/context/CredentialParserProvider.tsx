@@ -14,6 +14,14 @@ export const CredentialParserContextProvider = ({ children }) => {
 	const [issuers, setIssuers] = useState<Record<string, unknown>[] | null>(null);
 	const { api } = useContext(SessionContext);
 
+	const [credentialEngine, setCredentialEngine] = useState(null);
+
+	useEffect(() => {
+		if (issuers) {
+			initializeCredentialEngine(httpProxy, helper, issuers, []).then((e) => setCredentialEngine(e)).catch(() => null)
+		}
+	}, [httpProxy, helper, issuers]);
+
 	useEffect(() => {
 		api
 			.getExternalEntity("/issuer/all", undefined, true)
@@ -26,10 +34,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 	// Function to parse credentials
 	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
 		try {
-
-			const { credentialParsingEngine } = await initializeCredentialEngine(httpProxy, helper, issuers, []);
-
-			const result = await credentialParsingEngine.parse({ rawCredential });
+			const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential });
 			if (result.success) {
 				return result.value;
 			}
@@ -40,7 +45,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 			return null;
 		}
 
-	}, [httpProxy, helper, issuers]);
+	}, [httpProxy, helper, issuers, credentialEngine]);
 
 	return (
 		<CredentialParserContext.Provider value={{ parseCredential }}>
