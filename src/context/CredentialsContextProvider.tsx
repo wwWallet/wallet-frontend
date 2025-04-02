@@ -58,6 +58,8 @@ export const CredentialsContextProvider = ({ children }) => {
 			return acc;
 		}, {});
 
+		const { sdJwtVerifier, msoMdocVerifier } = await initializeCredentialEngine(httpProxy, helper, issuers, []);
+
 		// Filter and map the fetched list in one go
 		let filteredVcEntityList = await Promise.all(
 			fetchedVcList
@@ -75,7 +77,6 @@ export const CredentialsContextProvider = ({ children }) => {
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}
-					const { sdJwtVerifier, msoMdocVerifier } = await initializeCredentialEngine(httpProxy, helper, issuers, []);
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
