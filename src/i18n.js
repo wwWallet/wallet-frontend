@@ -15,6 +15,12 @@ const resources = {
 	pt: { translation: ptTranslation },
 };
 
+if (config.I18N_WALLET_NAME_OVERRIDE) {
+	for (const lang in resources) {
+		resources[lang].translation.common.walletName = config.I18N_WALLET_NAME_OVERRIDE;
+	}
+}
+
 // Check if multi-language display is enabled
 const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 
