@@ -1,13 +1,14 @@
-import React, { useState, useCallback, useContext, useRef } from 'react';
+import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
 import CredentialParserContext from './CredentialParserContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
-import { CredentialVerificationError } from 'core/dist/error';
-import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
-import CredentialsContext, { ExtendedVcEntity } from './CredentialsContext';
-import { VerifiableCredentialFormat } from 'core/dist/types';
+import { CredentialVerificationError } from "core/dist/error";
+import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
+import CredentialsContext, { ExtendedVcEntity } from "./CredentialsContext";
+import { VerifiableCredentialFormat } from "core/dist/types";
+import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api } = useContext(SessionContext);
@@ -16,9 +17,21 @@ export const CredentialsContextProvider = ({ children }) => {
 	const [currentSlide, setCurrentSlide] = useState<number>(1);
 	const { parseCredential } = useContext(CredentialParserContext);
 	const httpProxy = useHttpProxy();
+	const helper = useOpenID4VCIHelper();
+
+	const [issuers, setIssuers] = useState<Record<string, unknown>[] | null>(null);
 
 	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
 	const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+	useEffect(() => {
+		api
+			.getExternalEntity("/issuer/all", undefined, true)
+			.then((res) =>
+				setIssuers(res.data)
+			)
+			.catch(() => null);
+	}, [api]);
 
 	const stopPolling = useCallback(() => {
 		if (intervalRef.current) {
@@ -62,7 +75,7 @@ export const CredentialsContextProvider = ({ children }) => {
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}
-					const { sdJwtVerifier, msoMdocVerifier } = initializeCredentialEngine(httpProxy);
+					const { sdJwtVerifier, msoMdocVerifier } = await initializeCredentialEngine(httpProxy, helper, issuers, []);
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
@@ -86,7 +99,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api, parseCredential, httpProxy]);
+	}, [api, parseCredential, httpProxy, issuers, helper]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
