@@ -117,9 +117,9 @@ async function migration1(): Promise<void> {
 	await UserHandleToUserID.dropInstance();
 }
 
-export async function addItem(storeName: string, key: any, value: any): Promise<void> {
+export async function addItem(storeName: string, key: any, value: any, forceMappedStoreName?: string): Promise<void> {
 	try {
-		const mappedStoreName = getMappedStoreName(storeName);
+		const mappedStoreName = forceMappedStoreName ?? getMappedStoreName(storeName);
 		await stores[mappedStoreName].setItem(key, value);
 	} catch (err) {
 		console.error('Error adding item', err);
