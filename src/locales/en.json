@@ -37,7 +37,8 @@
 			"good": "Good",
 			"fair": "Fair",
 			"poor": "Poor",
-			"veryPoor": "Very Poor"
+			"veryPoor": "Very Poor",
+			"connecting": "Connecting..."
 		}
 	},
 	"layout": {
