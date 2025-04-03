@@ -7,7 +7,6 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 	const { connectivity } = useContext(StatusContext);
 	const { t } = useTranslation();
 
-	console.log('connectivity', connectivity)
 	const quality = connectivity.speed;
 	const bars = Array.from({ length: 5 }, (_, i) => i < quality);
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
