@@ -89,6 +89,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
   - VITE_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
   - VITE_CLOCK_TOLERANCE: Αpplied on the verification of timestamps in credential signatures (default is 60 seconds).
+  - VITE_STATIC_PUBLIC_URL: The installation's public url
+  - VITE_STATIC_NAME: The installation's public name
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
 
 
