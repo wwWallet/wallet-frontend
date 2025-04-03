@@ -9,8 +9,8 @@ import path from "path";
 function generateManifest(env) : Partial<ManifestOptions>{
 
 	return {
-		"short_name": env.VITE_STATIC_NAME,
-		"name": env.VITE_STATIC_NAME,
+		"short_name": env.VITE_STATIC_NAME || 'wwWallet',
+		"name": env.VITE_STATIC_NAME || 'wwWallet',
 		"icons": [
 			{
 				"src": "wallet_16.png",
