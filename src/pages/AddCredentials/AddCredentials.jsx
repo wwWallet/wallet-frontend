@@ -157,7 +157,9 @@ const Issuers = () => {
 												className="h-[1em] ml-1 w-auto align-middle inline"
 											/>
 										)}{" "}
-										{highlightBestSequence(issuerDisplay.name, searchQuery)}
+										<span className="font-light">
+											{highlightBestSequence(issuerDisplay.name, searchQuery)}
+										</span>
 										)
 									</span>
 
