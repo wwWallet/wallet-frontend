@@ -6,26 +6,12 @@ import SessionContext from '@/context/SessionContext';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
-import QueryableList from '../../components/QueryableList';
+import QueryableList from '../../components/QueryableList/QueryableList';
 import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
-
-function highlightBestSequence(text, search) {
-	if (!text || !search) return text;
-
-	const regex = new RegExp(`(${search})`, 'gi');
-	return text.split(regex).map((part, i) =>
-		regex.test(part) ? (
-			<span key={i} className="font-bold text-primary dark:text-primary-light">
-				{part}
-			</span>
-		) : (
-			<span key={i}>{part}</span>
-		)
-	);
-}
+import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);

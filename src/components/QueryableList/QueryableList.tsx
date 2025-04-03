@@ -1,24 +1,10 @@
 import React, { useEffect, useState } from "react";
-import SearchInput from "./Inputs/SearchInput";
-import Button from "../components/Buttons/Button";
+import SearchInput from "../Inputs/SearchInput";
+import Button from "../Buttons/Button";
 import { useTranslation } from "react-i18next";
-import { getElementPropValue } from "../util";
-import { H3 } from "./Shared/Heading";
-
-function highlightBestSequence(text, search) {
-	if (!text || !search) return text;
-
-	const regex = new RegExp(`(${search})`, 'gi');
-	return text.split(regex).map((part, i) =>
-		regex.test(part) ? (
-			<span key={i} className="font-bold text-primary dark:text-primary-light">
-				{part}
-			</span>
-		) : (
-			<span key={i}>{part}</span>
-		)
-	);
-}
+import { getElementPropValue } from "../../util";
+import { H3 } from "../Shared/Heading";
+import { highlightBestSequence } from "./highlightBestSequence";
 
 type QueryableListProps<T> = {
 	list: T[];
