@@ -5,23 +5,24 @@ import { useTranslation } from "react-i18next";
 import { getElementPropValue } from "../util";
 import { H3 } from "./Shared/Heading";
 
-function highlightBestSequence(issuer: any, search: any) {
-	if (typeof issuer !== "string" || typeof search !== "string") {
-		return issuer;
-	}
+function highlightBestSequence(text, search) {
+	if (!text || !search) return text;
 
-	const searchRegex = new RegExp(search, "gi");
-	const highlighted = issuer.replace(
-		searchRegex,
-		'<span class="font-bold text-primary dark:text-primary-light">$&</span>'
+	const regex = new RegExp(`(${search})`, 'gi');
+	return text.split(regex).map((part, i) =>
+		regex.test(part) ? (
+			<span key={i} className="font-bold text-primary dark:text-primary-light">
+				{part}
+			</span>
+		) : (
+			<span key={i}>{part}</span>
+		)
 	);
-
-	return highlighted;
 }
 
 type QueryableListProps<T> = {
 	list: T[];
-	recent?: T[]; // Optional
+	recent?: string[];
 	queryField: string;
 	isOnline: boolean;
 	translationPrefix: string;
@@ -31,7 +32,7 @@ type QueryableListProps<T> = {
 
 const defaultRecent: any[] = [];
 
-const QueryableList = <T,>({
+const QueryableList = <T extends object>({
 	list,
 	recent = defaultRecent, // Default to an empty array if not provided
 	queryField,
@@ -43,7 +44,7 @@ const QueryableList = <T,>({
 	const { t } = useTranslation();
 	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [filteredList, setFilteredList] = useState<T[]>(list);
-	const [recentList, setRecentList] = useState<T[]>(recent);
+	const [recentList, setRecentList] = useState<string[]>(recent);
 	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState([]);
 
 	const handleSearch = (inputQuery: string) => {
@@ -105,7 +106,9 @@ const QueryableList = <T,>({
 								disabled={!isOnline}
 								title={!isOnline ? t("common.offlineTitle") : ""}
 							>
-								{getElementPropValue(el, queryField) ?? "Unknown"}
+								{"displayNode" in el && typeof el.displayNode === "function"
+									? el.displayNode("") // 👈 no highlight for recent
+									: getElementPropValue(el, queryField) ?? "Unknown"}
 							</Button>
 						))}
 					</div>
@@ -134,14 +137,12 @@ const QueryableList = <T,>({
 							disabled={!isOnline}
 							title={!isOnline ? t("common.offlineTitle") : ""}
 						>
-							<div
-								dangerouslySetInnerHTML={{
-									__html: highlightBestSequence(
-										getElementPropValue(el, queryField) ?? "Unknown",
-										searchQuery.trimStart()
-									),
-								}}
-							/>
+							{"displayNode" in el && typeof el.displayNode === "function"
+								? el.displayNode(searchQuery)
+								: highlightBestSequence(
+									getElementPropValue(el, queryField) ?? "Unknown",
+									searchQuery
+								)}
 						</Button>
 					))}
 				</div>

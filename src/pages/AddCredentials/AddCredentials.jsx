@@ -12,6 +12,21 @@ import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 
+function highlightBestSequence(text, search) {
+	if (!text || !search) return text;
+
+	const regex = new RegExp(`(${search})`, 'gi');
+	return text.split(regex).map((part, i) =>
+		regex.test(part) ? (
+			<span key={i} className="font-bold text-primary dark:text-primary-light">
+				{part}
+			</span>
+		) : (
+			<span key={i}>{part}</span>
+		)
+	);
+}
+
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -132,10 +147,37 @@ const Issuers = () => {
 						Object.keys(configs).forEach(key => {
 							const config = configs[key];
 
+							const displayData = getCredentialConfigurationDisplay(key, config);
+							const issuerDisplay = getIssuerDisplayMetadata(metadata);
+
 							const credentialConfiguration = {
 								identifierField: `${JSON.stringify([key, metadata.credential_issuer])}`,
-								credentialConfigurationDisplayName: `${getCredentialConfigurationDisplay(key, config).name} (${getIssuerDisplayMetadata(metadata)?.name})` ?? key,
-								credentialConfigurationName: `${getCredentialConfigurationDisplay(key, config).name}` ?? "Unknown",
+								credentialConfigurationDisplayName: `${displayData.name} (${issuerDisplay?.name})`, // For search only
+								displayNode: (searchQuery) => (
+									<span className="leading-tight break-words">
+										{displayData.logo && (
+											<img
+												src={displayData.logo.uri}
+												alt={displayData.logo.alt_text || displayData.name}
+												className="h-[1em] w-auto align-middle inline"
+											/>
+										)}{" "}
+										{highlightBestSequence(displayData.name, searchQuery)}{" "}
+										(
+										{issuerDisplay.logo && (
+											<img
+												src={issuerDisplay.logo.uri}
+												alt={issuerDisplay.logo.alt_text || issuerDisplay.name}
+												className="h-[1em] ml-1 w-auto align-middle inline"
+											/>
+										)}{" "}
+										{highlightBestSequence(issuerDisplay.name, searchQuery)}
+										)
+									</span>
+
+
+								),
+								credentialConfigurationName: displayData.name ?? "Unknown",
 								credentialConfigurationId: key,
 								credentialIssuerIdentifier: metadata.credential_issuer,
 								credentialConfiguration: config,
