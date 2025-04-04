@@ -75,13 +75,13 @@ export const UriHandler = ({ children }) => {
 				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
 				await openID4VP.handleAuthorizationRequest(u.toString()).then((result) => {
 					console.log("Result = ", result);
-					if ('err' in result) {
-						if (result.err === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
+					if ('error' in result) {
+						if (result.error === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
 							setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
 							setTypeMessagePopup('error');
 							setMessagePopup(true);
 						}
-						else if (result.err === HandleAuthorizationRequestError.NONTRUSTED_VERIFIER) {
+						else if (result.error === HandleAuthorizationRequestError.NONTRUSTED_VERIFIER) {
 							setTextMessagePopup({ title: `${t('messagePopup.nonTrustedVerifier.title')}`, description: `${t('messagePopup.nonTrustedVerifier.description')}` });
 							setTypeMessagePopup('error');
 							setMessagePopup(true);

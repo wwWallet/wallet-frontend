@@ -1,14 +1,15 @@
 export interface IOpenID4VP {
-	handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string } | { err: HandleAuthorizationRequestError }>;
+	handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string } | { error: HandleAuthorizationRequestError }>;
 	promptForCredentialSelection(conformantCredentialsMap: { [x: string]: string[] }, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>>;
 	sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }>;
 }
 
 export enum HandleAuthorizationRequestError {
-	INSUFFICIENT_CREDENTIALS,
-	MISSING_PRESENTATION_DEFINITION,
-	MISSING_PRESENTATION_DEFINITION_URI,
-	NONTRUSTED_VERIFIER,
-	INVALID_RESPONSE_MODE,
-	OLD_STATE,
+	INSUFFICIENT_CREDENTIALS = "insufficient_credentials",
+	MISSING_PRESENTATION_DEFINITION = "missing_presentation_definition",
+	MISSING_PRESENTATION_DEFINITION_URI = "missing_presentation_definition_uri",
+	NONTRUSTED_VERIFIER = "nontrusted_verifier",
+	INVALID_RESPONSE_MODE = "invalid_response_mode",
+	OLD_STATE = "old_state",
+	INVALID_TRANSACTION_DATA = "invalid_transaction_data",
 }
