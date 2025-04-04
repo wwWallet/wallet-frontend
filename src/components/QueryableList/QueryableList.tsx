@@ -77,7 +77,7 @@ const QueryableList = <T extends object>({
 				<div className="my-2">
 					{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
 					<div
-						className="space-y-2 mb-2"
+						className="space-y-2 mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
 					>
 						{!searchQuery && recentCredentialConfigurations.map((el) => (
 							<Button
@@ -107,8 +107,8 @@ const QueryableList = <T extends object>({
 				</p>
 			) : (
 				<div
-					className="max-h-screen-80 overflow-y-auto space-y-2"
-					style={{ maxHeight: "80vh" }}
+				className="max-h-screen-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
+				style={{ maxHeight: "80vh" }}
 				>
 					{filteredList.map((el) => (
 						<Button

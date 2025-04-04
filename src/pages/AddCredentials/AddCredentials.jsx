@@ -11,7 +11,7 @@ import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
-import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
+import { buildCredentialConfiguration, getCredentialType } from '@/components/QueryableList/DisplayUtils';
 
 const Issuers = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -36,8 +36,6 @@ const Issuers = () => {
 			getData();
 		}
 	}, [vcEntityList, getData]);
-
-	const getCredentialType = (parsedCredential) => parsedCredential.metadata.credential.vct ?? parsedCredential.metadata.credential.doctype ?? "";
 
 	useEffect(() => {
 		const fetchRecentCredConfigs = async () => {
@@ -71,15 +69,6 @@ const Issuers = () => {
 		return null;
 	}
 
-	const getIssuerDisplayMetadata = (issuerMetadata) => {
-		const selectedDisplayBasedOnLang = filterItemByLang(issuerMetadata.display, 'locale')
-		if (selectedDisplayBasedOnLang) {
-			const { name, logo } = selectedDisplayBasedOnLang;
-			return { name, logo };
-		}
-		return { name: new URL(issuerMetadata.credential_issuer).host, logo: null };
-	}
-
 	const getSelectedIssuerDisplay = () => {
 		const selectedIssuer = getSelectedIssuer();
 
@@ -91,16 +80,6 @@ const Issuers = () => {
 			}
 		}
 		return null;
-	}
-
-	const getCredentialConfigurationDisplay = (credentialConfigurationId, credentialConfiguration) => {
-		if (credentialConfiguration?.display && credentialConfiguration?.display.length > 0) {
-			const display = filterItemByLang(credentialConfiguration?.display, 'locale');
-			return { name: display?.name ?? credentialConfigurationId, logo: display.logo };
-		}
-		else {
-			return { name: credentialConfigurationId, logo: null };
-		}
 	}
 
 	useEffect(() => {
@@ -129,49 +108,8 @@ const Issuers = () => {
 							return currentArray;
 						});
 
-
-						Object.keys(configs).forEach(key => {
-							const config = configs[key];
-
-							const displayData = getCredentialConfigurationDisplay(key, config);
-							const issuerDisplay = getIssuerDisplayMetadata(metadata);
-
-							const credentialConfiguration = {
-								identifierField: `${JSON.stringify([key, metadata.credential_issuer])}`,
-								credentialConfigurationDisplayName: `${displayData.name} (${issuerDisplay?.name})`, // For search only
-								displayNode: (searchQuery) => (
-									<span className="leading-tight break-words">
-										{displayData.logo && (
-											<img
-												src={displayData.logo.uri}
-												alt={displayData.logo.alt_text || displayData.name}
-												className="h-[1em] w-auto align-middle inline"
-											/>
-										)}{" "}
-										{highlightBestSequence(displayData.name, searchQuery)}{" "}
-										(
-										{issuerDisplay.logo && (
-											<img
-												src={issuerDisplay.logo.uri}
-												alt={issuerDisplay.logo.alt_text || issuerDisplay.name}
-												className="h-[1em] ml-1 w-auto align-middle inline"
-											/>
-										)}{" "}
-										<span className="font-light">
-											{highlightBestSequence(issuerDisplay.name, searchQuery)}
-										</span>
-										)
-									</span>
-
-
-								),
-								credentialConfigurationName: displayData.name ?? "Unknown",
-								credentialConfigurationId: key,
-								credentialIssuerIdentifier: metadata.credential_issuer,
-								credentialConfiguration: config,
-							};
-
-
+						Object.keys(configs).forEach((key) => {
+							const credentialConfiguration = buildCredentialConfiguration(key, configs[key], metadata, filterItemByLang);
 							setCredentialConfigurations((currentArray) => {
 								const credentialConfigurationExists = currentArray.some(({ credentialConfigurationId, credentialIssuerIdentifier, credentialConfiguration }) =>
 									credentialConfigurationId === key && credentialIssuerIdentifier === metadata.credential_issuer
@@ -182,7 +120,6 @@ const Issuers = () => {
 								return currentArray;
 							})
 						});
-
 					}
 					catch (err) {
 						console.error(err);
@@ -194,11 +131,11 @@ const Issuers = () => {
 			}
 		};
 
-		if (openID4VCIHelper && openID4VCI) {
+		if (openID4VCIHelper && openID4VCI && filterItemByLang) {
 			console.log("Fetching issuers...")
 			fetchIssuers();
 		}
-	}, [api, isOnline, openID4VCIHelper, openID4VCI]);
+	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
 		const [credentialConfigurationId] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
