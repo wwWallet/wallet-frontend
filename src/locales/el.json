@@ -132,13 +132,13 @@
 		"title": "Ωχ, η σελίδα δεν βρέθηκε!"
 	},
 	"pageAddCredentials": {
-		"description": "Αναζητήστε και επιλέξτε έναν issuer για έκδοση πιστοποιητικού",
+		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
 		"popup": {
 			"message": "Αν συνεχίσετε, θα μεταφερθείτε στο <strong>{{issuerName}}</strong> για να εκδώσετε ένα <strong>{{credentialName}}</strong>.",
 			"title": "Επιλεγμένο:"
 		},
-		"searchPlaceholder": "Αναζήτηση issuers..."
+		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
 		"addCardTitle": "Προσθήκη Νέου Πιστοποιητικού",
