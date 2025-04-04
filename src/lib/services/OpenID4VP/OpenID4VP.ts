@@ -19,6 +19,8 @@ import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
+import { parseTransactionData } from "./TransactionData/parseTransactionData";
+import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
 
 export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
 
@@ -80,7 +82,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 	);
 
 	const handleAuthorizationRequest = useCallback(
-		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { err: HandleAuthorizationRequestError }> => {
+		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { error: HandleAuthorizationRequestError }> => {
 			const authorizationRequest = new URL(url);
 			let client_id = authorizationRequest.searchParams.get('client_id');
 			let response_uri = authorizationRequest.searchParams.get('response_uri');
@@ -90,6 +92,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			let presentation_definition_uri = authorizationRequest.searchParams.get('presentation_definition_uri');
 			let client_metadata = authorizationRequest.searchParams.get('client_metadata') ? JSON.parse(authorizationRequest.searchParams.get('client_metadata')) : null;
 			let response_mode = authorizationRequest.searchParams.get('response_mode') ? JSON.parse(authorizationRequest.searchParams.get('response_mode')) : null;
+			let transaction_data = authorizationRequest.searchParams.get('transaction_data') ? JSON.parse(authorizationRequest.searchParams.get('transaction_data')) : null;
+
 			if (presentation_definition_uri) {
 				const presentationDefinitionFetch = await httpProxy.get(presentation_definition_uri, {});
 				presentation_definition = presentationDefinitionFetch.data;
@@ -108,7 +112,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				const verificationResult = await jwtVerify(requestObject, publicKey).catch(() => null);
 				if (verificationResult == null) {
 					console.log("Signature verification of request_uri failed");
-					return { err: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
+					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 				}
 				const p = JSON.parse(new TextDecoder().decode(base64url.decode(payload)));
 				client_id = p.client_id;
@@ -118,7 +122,15 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				if (p.response_mode) {
 					response_mode = p.response_mode;
 				}
-
+				if (p.transaction_data) {
+					console.log("Received transaction data");
+					console.log('Transaction data = ', p.transaction_data)
+					transaction_data = p.transaction_data;
+					const result = parseTransactionData(transaction_data, presentation_definition);
+					if (result === "invalid_transaction_data") {
+						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
+					}
+				}
 				state = p.state;
 				nonce = p.nonce;
 				if (!response_uri.startsWith("http")) {
@@ -127,20 +139,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 
 				if (new URL(request_uri).hostname !== new URL(response_uri).hostname) {
 					console.log("Hostname of request_uri is different from response_uri")
-					return { err: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
+					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 				}
 				const altNames = await extractSAN('-----BEGIN CERTIFICATE-----\n' + parsedHeader.x5c[0] + '\n-----END CERTIFICATE-----');
 
 				if (OPENID4VP_SAN_DNS_CHECK && (!altNames || altNames.length === 0)) {
 					console.log("No SAN found");
-					return { err: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
+					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 				}
 
 				if (OPENID4VP_SAN_DNS_CHECK && !altNames.includes(new URL(response_uri).hostname)) {
 					console.log("altnames = ", altNames)
 					console.log("request_uri uri hostname = ", new URL(request_uri).hostname)
 					console.log("Hostname of request_uri is not included in the SAN list")
-					return { err: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
+					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 				}
 
 				if (OPENID4VP_SAN_DNS_CHECK_SSL_CERTS) { // get x5c from SSL
@@ -165,16 +177,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 
 			const lastUsedNonce = sessionStorage.getItem('last_used_nonce');
 			if (lastUsedNonce && nonce === lastUsedNonce) {
-				return { err: HandleAuthorizationRequestError.OLD_STATE }
+				return { error: HandleAuthorizationRequestError.OLD_STATE }
 			}
 
 			if (!presentation_definition) {
-				return { err: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
+				return { error: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
 			}
 
 			const { error } = ResponseModeSchema.safeParse(response_mode);
 			if (error) {
-				return { err: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
+				return { error: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
 			}
 
 			const vcList = (await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials))
@@ -188,6 +200,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				state,
 				client_metadata,
 				response_mode,
+				transaction_data,
 			));
 
 			const mapping = new Map<string, { credentials: string[], requestedFields: string[] }>();
@@ -251,7 +264,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 
 				}
 				if (conformingVcList.length === 0) {
-					return { err: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
+					return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
 				}
 
 				const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
@@ -354,6 +367,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			const response_uri = S.response_uri;
 			const client_id = S.client_id;
 			const nonce = S.nonce;
+			const transaction_data = S.transaction_data;
 			let apu = undefined;
 			let apv = undefined;
 
@@ -389,7 +403,17 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 						vcEntity.credential
 					).withHasher(hasherAndAlgorithm);
 					const presentation = await sdJwt.present(presentationFrame);
-					const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation]);
+					let transactionDataResponseParams = undefined;
+					if (transaction_data) {
+						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)
+							.generateTransactionDataResponseParameters(transaction_data);
+						if (err) {
+							throw err;
+						}
+						transactionDataResponseParams = { ...res };
+					}
+
+					const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation], transactionDataResponseParams);
 					selectedVCs.push(presentation);
 					generatedVPs.push(vpjwt);
 					if (selectionMap.size > 1) {

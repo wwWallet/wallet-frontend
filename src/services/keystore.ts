@@ -1115,7 +1115,7 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 	}
 }
 
-export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[]): Promise<{ vpjwt: string }> {
+export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
 	const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
 	const { cnf } = inputJwt.payload as { cnf?: { jwk?: JWK } };
 
@@ -1137,6 +1137,7 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 		nonce,
 		aud: audience,
 		sd_hash,
+		...transactionDataResponseParams,
 	}).setIssuedAt()
 		.setProtectedHeader({
 			typ: "kb+jwt",
