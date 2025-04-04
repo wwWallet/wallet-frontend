@@ -48,3 +48,5 @@ ssl_keys/*
 .npmrc
 
 variables.vars
+
+public/manifest.json
