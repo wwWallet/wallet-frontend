@@ -7,7 +7,7 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
 import QueryableList from '../../components/QueryableList/QueryableList';
 import PageDescription from '../../components/Shared/PageDescription';
-
+import CredentialDisplayNode from '@/components/QueryableList/CredentialDisplayNode';
 const Verifiers = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
@@ -65,12 +65,23 @@ const Verifiers = () => {
 				{verifiers && (
 					<QueryableList
 						isOnline={isOnline}
-						list={verifiers}
-						queryField='name'
-						translationPrefix='pageSendCredentials'
-						identifierField='id'
+						list={verifiers.map((verifier) => ({
+							...verifier,
+							displayNode: (searchQuery) => (
+								<CredentialDisplayNode
+									displayData={{
+										name: verifier.name,
+									}}
+									searchQuery={searchQuery}
+								/>
+							),
+						}))}
+						queryField="name"
+						translationPrefix="pageSendCredentials"
+						identifierField="id"
 						onClick={handleVerifierClick}
 					/>
+
 				)}
 			</div>
 
