@@ -7,8 +7,9 @@ import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
 import QueryableList from '../../components/QueryableList/QueryableList';
 import PageDescription from '../../components/Shared/PageDescription';
-import CredentialDisplayNode from '@/components/QueryableList/CredentialDisplayNode';
-const Verifiers = () => {
+import EntityListItem from '@/components/QueryableList/EntityListItem';
+
+const SendCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [verifiers, setVerifiers] = useState(null);
@@ -68,8 +69,8 @@ const Verifiers = () => {
 						list={verifiers.map((verifier) => ({
 							...verifier,
 							displayNode: (searchQuery) => (
-								<CredentialDisplayNode
-									displayData={{
+								<EntityListItem
+									primaryData={{
 										name: verifier.name,
 									}}
 									searchQuery={searchQuery}
@@ -104,4 +105,4 @@ const Verifiers = () => {
 	);
 };
 
-export default Verifiers;
+export default SendCredentials;

@@ -1,5 +1,5 @@
 import React from 'react';
-import CredentialDisplayNode from './CredentialDisplayNode';
+import EntityListItem from './EntityListItem';
 
 export function getCredentialType(parsedCredential: any): string {
 	return (
@@ -45,9 +45,9 @@ export function buildCredentialConfiguration(
 		identifierField: JSON.stringify([key, metadata.credential_issuer]),
 		credentialConfigurationDisplayName,
 		displayNode: (searchQuery: string): React.ReactNode => (
-			<CredentialDisplayNode
-				displayData={credentialDisplay}
-				issuerDisplay={issuerDisplay}
+			<EntityListItem
+				primaryData={credentialDisplay}
+				secondaryData={issuerDisplay}
 				searchQuery={searchQuery}
 			/>
 		),

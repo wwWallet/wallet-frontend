@@ -11,9 +11,9 @@ import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
-import { buildCredentialConfiguration, getCredentialType } from '@/components/QueryableList/DisplayUtils';
+import { buildCredentialConfiguration, getCredentialType } from '@/components/QueryableList/CredentialsDisplayUtils';
 
-const Issuers = () => {
+const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [issuers, setIssuers] = useState([]);
@@ -215,4 +215,4 @@ const Issuers = () => {
 	);
 };
 
-export default Issuers;
+export default AddCredentials;
