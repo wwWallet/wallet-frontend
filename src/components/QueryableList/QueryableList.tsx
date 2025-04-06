@@ -75,7 +75,7 @@ const QueryableList = <T extends object>({
 					searchCallback={handleSearch}
 				/>
 				<div className="my-2">
-					{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
+					{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
 					<div
 						className="space-y-2 mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
 					>
@@ -100,15 +100,15 @@ const QueryableList = <T extends object>({
 					</div>
 				</div>
 			</div>
-			{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.all")} />}
+			{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.all")} />}
 			{filteredList.length === 0 ? (
 				<p className="text-gray-700 dark:text-gray-300 mt-4">
 					{t(translationPrefix + ".noFound")}
 				</p>
 			) : (
 				<div
-				className="max-h-screen-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
-				style={{ maxHeight: "80vh" }}
+					className="max-h-screen-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
+					style={{ maxHeight: "80vh" }}
 				>
 					{filteredList.map((el) => (
 						<Button
