@@ -75,8 +75,8 @@ const AddCredentials = () => {
 		if (selectedIssuer) {
 			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
 			if (selectedDisplayBasedOnLang) {
-				const { name, logo } = selectedDisplayBasedOnLang;
-				return { name, logo };
+				const { name, description } = selectedDisplayBasedOnLang;
+				return { name, description };
 			}
 		}
 		return null;
@@ -205,8 +205,13 @@ const AddCredentials = () => {
 					popupMessage={
 						<Trans
 							i18nKey="pageAddCredentials.popup.message"
-							values={{ issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown", credentialName: selectedCredentialConfiguration?.credentialConfigurationName ?? "Unknown" }}
-							components={{ strong: <strong /> }}
+							values={{
+								issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown",
+								issuerDescription: getSelectedIssuerDisplay()?.description ? `(${getSelectedIssuerDisplay()?.description})` : "",
+								credentialName: selectedCredentialConfiguration?.credentialDisplay.name ?? "Unknown",
+								credentialDescription: selectedCredentialConfiguration?.credentialDisplay?.description ? `(${selectedCredentialConfiguration?.credentialDisplay?.description})` : "",
+							}}
+							components={{ strong: <strong />, italic: <i /> }}
 						/>
 					}
 				/>

@@ -135,7 +135,7 @@
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
 		"popup": {
-			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> to issue a <strong>{{credentialName}}</strong>.",
+			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
 			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search credential..."

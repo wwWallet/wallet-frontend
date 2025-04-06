@@ -18,7 +18,7 @@ export function buildCredentialConfiguration(
 	identifierField: string;
 	credentialConfigurationDisplayName: string;
 	displayNode: (searchQuery: string) => React.ReactNode;
-	credentialConfigurationName: string;
+	credentialDisplay: any;
 	credentialConfigurationId: string;
 	credentialIssuerIdentifier: string;
 	credentialConfiguration: any;
@@ -51,7 +51,7 @@ export function buildCredentialConfiguration(
 				searchQuery={searchQuery}
 			/>
 		),
-		credentialConfigurationName: credentialDisplay.name ?? 'Unknown',
+		credentialDisplay: credentialDisplay,
 		credentialConfigurationId: key,
 		credentialIssuerIdentifier: metadata.credential_issuer,
 		credentialConfiguration: config,
