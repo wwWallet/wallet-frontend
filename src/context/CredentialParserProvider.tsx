@@ -1,20 +1,40 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext, useState, useEffect } from "react";
 import { ParsedCredential } from "core/dist/types";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import CredentialParserContext from "./CredentialParserContext";
+import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
+import SessionContext from "./SessionContext";
 
 export const CredentialParserContextProvider = ({ children }) => {
 
 	const httpProxy = useHttpProxy();
+	const helper = useOpenID4VCIHelper();
+
+	const [issuers, setIssuers] = useState<Record<string, unknown>[] | null>(null);
+	const { api } = useContext(SessionContext);
+
+	const [credentialEngine, setCredentialEngine] = useState(null);
+
+	useEffect(() => {
+		if (issuers) {
+			initializeCredentialEngine(httpProxy, helper, issuers, []).then((e) => setCredentialEngine(e)).catch(() => null)
+		}
+	}, [httpProxy, helper, issuers]);
+
+	useEffect(() => {
+		api
+			.getExternalEntity("/issuer/all", undefined, true)
+			.then((res) => {
+				setIssuers(res.data);
+			})
+			.catch(() => null);
+	}, [api]);
 
 	// Function to parse credentials
 	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
 		try {
-
-			const { credentialParsingEngine } = initializeCredentialEngine(httpProxy);
-
-			const result = await credentialParsingEngine.parse({ rawCredential });
+			const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential });
 			if (result.success) {
 				return result.value;
 			}
@@ -25,7 +45,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 			return null;
 		}
 
-	}, [httpProxy]);
+	}, [httpProxy, helper, issuers, credentialEngine]);
 
 	return (
 		<CredentialParserContext.Provider value={{ parseCredential }}>
@@ -33,4 +53,3 @@ export const CredentialParserContextProvider = ({ children }) => {
 		</CredentialParserContext.Provider>
 	);
 }
-
