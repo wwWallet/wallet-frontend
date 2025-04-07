@@ -3,8 +3,8 @@
 import React from 'react';
 
 const CredentialJson = ({ parsedCredential, textAreaRows='10' }) => {
-	const MAX_LENGTH = 280;       // string truncation
-	const MAX_ARRAY_LENGTH = 4;   // array truncation
+	const MAX_LENGTH = 120;       // string truncation
+	const MAX_ARRAY_LENGTH = 3;   // array truncation
 
 	// Truncate long strings or arrays (mainly picture/portrait fields)
 	const replacer = (key, value) => {
