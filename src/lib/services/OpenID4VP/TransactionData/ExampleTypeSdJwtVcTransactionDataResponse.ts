@@ -4,8 +4,8 @@ import { toBase64Url } from "@/util";
 /**
  * format: sdjwt vc
  * transaction_data type: urn:wwwallet:example_transaction_data_type
- * @param descriptor_id 
- * @returns 
+ * @param descriptor_id
+ * @returns
  */
 export const ExampleTypeSdJwtVcTransactionDataResponse = (presentation_definition: Record<string, unknown>, descriptor_id: string): TransactionDataResponse => {
 	return {
@@ -21,8 +21,8 @@ export const ExampleTypeSdJwtVcTransactionDataResponse = (presentation_definitio
 					const hashBuffer = await crypto.subtle.digest("SHA-256", data);
 					const td_hash = toBase64Url(hashBuffer);
 					return [{
-						transaction_data_hashes: [ td_hash ],
-						transaction_data_hashes_alg: [ "sha-256" ],
+						transaction_data_hashes: [td_hash],
+						transaction_data_hashes_alg: ["sha-256"],
 					}, null]
 				}
 			}
