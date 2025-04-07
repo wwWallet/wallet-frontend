@@ -14,7 +14,7 @@ export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: 
 
 	const result = await Promise.all(credentialIssuerEntities.map(async (issuerEntity) =>
 		"credentialIssuerIdentifier" in issuerEntity && typeof issuerEntity.credentialIssuerIdentifier === "string" ?
-		  helper.getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier).then((result =>
+			helper.getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier).then((result =>
 				result.metadata
 			)) : null
 	));
