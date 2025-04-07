@@ -47,9 +47,15 @@ export const CredentialParserContextProvider = ({ children }) => {
 
 	}, [httpProxy, helper, issuers, credentialEngine]);
 
-	return (
-		<CredentialParserContext.Provider value={{ parseCredential }}>
-			{children}
-		</CredentialParserContext.Provider>
-	);
+	if (credentialEngine) {
+		return (
+			<CredentialParserContext.Provider value={{ parseCredential }}>
+				{children}
+			</CredentialParserContext.Provider>
+		);
+	}
+	else {
+		return <></>
+	}
+
 }
