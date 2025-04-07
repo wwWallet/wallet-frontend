@@ -51,13 +51,13 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 				<span className="flex w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-gray-200 dark:bg-gray-600 whitespace-nowrap">
 					{secondaryData?.logo?.uri && (
 						<div
-							className="h-5 w-5 flex justify-center items-center rounded-md shrink-0 border-[0.5px] border-gray-200"
+							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-gray-200"
 							style={issuerLogoStyle}
 						>
 							<img
 								src={secondaryData.logo.uri}
 								alt={secondaryData.logo.alt_text || secondaryData.name}
-								className="h-4 w-auto align-middle inline"
+								className="max-h-4 max-w-4 w-auto align-middle inline"
 							/>
 						</div>
 					)}
