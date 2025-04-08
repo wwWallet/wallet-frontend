@@ -23,8 +23,8 @@ const useNewCredentialListener = () => {
 			console.log('Notification received:', payload);
 
 			const newNotification = {
-				title: payload?.notification?.title,
-				body: payload?.notification?.body,
+				title: payload?.data?.title,
+				body: payload?.data?.body,
 			};
 			// Save notification to sessionStorage
 			sessionStorage.setItem('newCredentialNotification', JSON.stringify(newNotification));
