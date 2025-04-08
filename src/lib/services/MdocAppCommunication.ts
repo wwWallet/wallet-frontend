@@ -4,7 +4,7 @@ import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { v4 as uuidv4 } from 'uuid';
 import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement } from "../utils/mdocProtocol";
 import { base64url } from "jose";
-import { useContext, useMemo, useRef } from "react";
+import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 
 
@@ -19,7 +19,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const { keystore } = useContext(SessionContext);
 
 
-	const generateEngagementQR = async (credential :any) => {
+	const generateEngagementQR = useCallback(async (credential :any) => {
 		const keyPair = await crypto.subtle.generateKey(
 			{
 				name: "ECDH",
@@ -42,9 +42,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		credentialRef.current = credential;
 
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
-	}
+	}, [uuid]);
 
-	const startClient = async () :Promise<boolean> => {
+	const startClient = useCallback(async () :Promise<boolean> => {
 		/* @ts-ignore */
 		if (window.nativeWrapper) {
 			/* @ts-ignore */
@@ -62,9 +62,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			}
 		}
 		return false;
-	}
+	}, [uuid]);
 
-	const getMdocRequest = async () :Promise<string[]> => {
+	const getMdocRequest = useCallback(async () :Promise<string[]> => {
 		let aggregatedData = [];
 		/* @ts-ignore */
 		if (window.nativeWrapper) {
@@ -162,7 +162,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				]
 			}
 
-			const presentationDefinition = fullPEX;
+			// const presentationDefinition = fullPEX;
 			const credentialBytes = base64url.decode(credentialRef.current);
 			const issuerSigned = cborDecode(credentialBytes);
 			// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
@@ -199,9 +199,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 
 		return fieldKeys;
-	}
+	}, [keystore]);
 
-	const sendMdocResponse = async (): Promise<void> => {
+	const sendMdocResponse = useCallback(async (): Promise<void> => {
 		if (sessionDataEncodedRef.current) {
 			let toSendBytes = Array.from(sessionDataEncodedRef.current);
 			while (toSendBytes.length > (assumedChunkSize - 1)){
@@ -218,7 +218,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		/* @ts-ignore */
 		await nativeWrapper.bluetoothTerminate();
 		return ;
-	}
+	}, []);
 
 	return useMemo(
 		() => ({
