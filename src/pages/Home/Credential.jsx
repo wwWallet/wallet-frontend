@@ -1,5 +1,5 @@
 // External libraries
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { BsQrCode, BsCheckCircle } from "react-icons/bs";
@@ -74,16 +74,16 @@ const Credential = () => {
 		}
 	};
 
-	const handleMdocRequest = async () => {
+	const handleMdocRequest = useCallback(async () => {
 		const fields = await getMdocRequest();
 		setShareWithQrFilter(fields);
 		setMdocQRStatus(2);
-	}
+	}, [getMdocRequest]);
 
-	const handleMdocResponse = async () => {
+	const handleMdocResponse = useCallback(async () => {
 		await sendMdocResponse();
 		setMdocQRStatus(4);
-	}
+	}, [sendMdocResponse]);
 
 	const consentToShare = () => {
 		setMdocQRStatus(3);
