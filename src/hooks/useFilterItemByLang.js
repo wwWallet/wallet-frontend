@@ -9,6 +9,11 @@ const useFilterItemByLang = () => {
 	const fallbackLang = i18n.options.fallbackLng;
 
 	const filterItemByLang = (arrayOfItems, langFieldName = 'lang') => {
+
+		if (!Array.isArray(arrayOfItems) || arrayOfItems.length === 0) {
+			return {};
+		}
+
 		let item = arrayOfItems.find(a => getLanguage(a[langFieldName]) === language) ||
 			arrayOfItems.find(a => getLanguage(a[langFieldName]) === fallbackLang);
 

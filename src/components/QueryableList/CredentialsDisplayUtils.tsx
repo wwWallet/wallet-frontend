@@ -26,6 +26,7 @@ export function buildCredentialConfiguration(
 	const display = filterItemByLang(config?.display, 'locale');
 	const credentialDisplay = {
 		...display,
+		name: display?.name ?? key,
 		credentialConfigurationId: key,
 	};
 
