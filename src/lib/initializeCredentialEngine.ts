@@ -24,14 +24,19 @@ export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: 
 			continue;
 		}
 		if (r.mdoc_iacas_uri) {
-			const response = await helper.getMdocIacas(r.credential_issuer);
-			if (!response.iacas) {
+			try {
+				const response = await helper.getMdocIacas(r.credential_issuer);
+				if (!response.iacas) {
+					continue;
+				}
+				const pemCertificates = response.iacas.map((cert) =>
+					`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
+				)
+				ctx.trustedCertificates.push(...pemCertificates);
+			}
+			catch (err) {
 				continue;
 			}
-			const pemCertificates = response.iacas.map((cert) =>
-				`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
-			)
-			ctx.trustedCertificates.push(...pemCertificates);
 		}
 	}
 
