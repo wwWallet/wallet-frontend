@@ -1,27 +1,14 @@
 import React, { useEffect, useState } from "react";
-import SearchInput from "./Inputs/SearchInput";
-import Button from "../components/Buttons/Button";
+import SearchInput from "../Inputs/SearchInput";
+import Button from "../Buttons/Button";
 import { useTranslation } from "react-i18next";
-import { getElementPropValue } from "../util";
-import { H3 } from "./Shared/Heading";
-
-function highlightBestSequence(issuer: any, search: any) {
-	if (typeof issuer !== "string" || typeof search !== "string") {
-		return issuer;
-	}
-
-	const searchRegex = new RegExp(search, "gi");
-	const highlighted = issuer.replace(
-		searchRegex,
-		'<span class="font-bold text-primary dark:text-primary-light">$&</span>'
-	);
-
-	return highlighted;
-}
+import { getElementPropValue } from "../../util";
+import { H3 } from "../Shared/Heading";
+import { highlightBestSequence } from "./highlightBestSequence";
 
 type QueryableListProps<T> = {
 	list: T[];
-	recent?: T[]; // Optional
+	recent?: string[];
 	queryField: string;
 	isOnline: boolean;
 	translationPrefix: string;
@@ -31,7 +18,7 @@ type QueryableListProps<T> = {
 
 const defaultRecent: any[] = [];
 
-const QueryableList = <T,>({
+const QueryableList = <T extends object>({
 	list,
 	recent = defaultRecent, // Default to an empty array if not provided
 	queryField,
@@ -43,7 +30,7 @@ const QueryableList = <T,>({
 	const { t } = useTranslation();
 	const [searchQuery, setSearchQuery] = useState<string>("");
 	const [filteredList, setFilteredList] = useState<T[]>(list);
-	const [recentList, setRecentList] = useState<T[]>(recent);
+	const [recentList, setRecentList] = useState<string[]>(recent);
 	const [recentCredentialConfigurations, setRecentCredentialConfigurations] = useState([]);
 
 	const handleSearch = (inputQuery: string) => {
@@ -88,9 +75,9 @@ const QueryableList = <T,>({
 					searchCallback={handleSearch}
 				/>
 				<div className="my-2">
-					{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
+					{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
 					<div
-						className="space-y-2 mb-2"
+						className="space-y-2 mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
 					>
 						{!searchQuery && recentCredentialConfigurations.map((el) => (
 							<Button
@@ -105,20 +92,22 @@ const QueryableList = <T,>({
 								disabled={!isOnline}
 								title={!isOnline ? t("common.offlineTitle") : ""}
 							>
-								{getElementPropValue(el, queryField) ?? "Unknown"}
+								{"displayNode" in el && typeof el.displayNode === "function"
+									? el.displayNode("") // 👈 no highlight for recent
+									: getElementPropValue(el, queryField) ?? "Unknown"}
 							</Button>
 						))}
 					</div>
 				</div>
 			</div>
-			{recentCredentialConfigurations && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.all")} />}
+			{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.all")} />}
 			{filteredList.length === 0 ? (
 				<p className="text-gray-700 dark:text-gray-300 mt-4">
 					{t(translationPrefix + ".noFound")}
 				</p>
 			) : (
 				<div
-					className="max-h-screen-80 overflow-y-auto space-y-2"
+					className="max-h-screen-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
 					style={{ maxHeight: "80vh" }}
 				>
 					{filteredList.map((el) => (
@@ -134,14 +123,12 @@ const QueryableList = <T,>({
 							disabled={!isOnline}
 							title={!isOnline ? t("common.offlineTitle") : ""}
 						>
-							<div
-								dangerouslySetInnerHTML={{
-									__html: highlightBestSequence(
-										getElementPropValue(el, queryField) ?? "Unknown",
-										searchQuery.trimStart()
-									),
-								}}
-							/>
+							{"displayNode" in el && typeof el.displayNode === "function"
+								? el.displayNode(searchQuery)
+								: highlightBestSequence(
+									getElementPropValue(el, queryField) ?? "Unknown",
+									searchQuery
+								)}
 						</Button>
 					))}
 				</div>

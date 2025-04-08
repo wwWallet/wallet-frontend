@@ -5,10 +5,11 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import RedirectPopup from '../../components/Popups/RedirectPopup';
 import { H1 } from '../../components/Shared/Heading';
-import QueryableList from '../../components/QueryableList';
+import QueryableList from '../../components/QueryableList/QueryableList';
 import PageDescription from '../../components/Shared/PageDescription';
+import EntityListItem from '@/components/QueryableList/EntityListItem';
 
-const Verifiers = () => {
+const SendCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
 	const [verifiers, setVerifiers] = useState(null);
@@ -65,12 +66,23 @@ const Verifiers = () => {
 				{verifiers && (
 					<QueryableList
 						isOnline={isOnline}
-						list={verifiers}
-						queryField='name'
-						translationPrefix='pageSendCredentials'
-						identifierField='id'
+						list={verifiers.map((verifier) => ({
+							...verifier,
+							displayNode: (searchQuery) => (
+								<EntityListItem
+									primaryData={{
+										name: verifier.name,
+									}}
+									searchQuery={searchQuery}
+								/>
+							),
+						}))}
+						queryField="name"
+						translationPrefix="pageSendCredentials"
+						identifierField="id"
 						onClick={handleVerifierClick}
 					/>
+
 				)}
 			</div>
 
@@ -93,4 +105,4 @@ const Verifiers = () => {
 	);
 };
 
-export default Verifiers;
+export default SendCredentials;
