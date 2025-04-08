@@ -12,15 +12,15 @@ export const CredentialParserContextProvider = ({ children }) => {
 	const helper = useOpenID4VCIHelper();
 
 	const [issuers, setIssuers] = useState<Record<string, unknown>[] | null>(null);
-	const { api } = useContext(SessionContext);
+	const { api, isLoggedIn } = useContext(SessionContext);
 
 	const [credentialEngine, setCredentialEngine] = useState(null);
 
 	useEffect(() => {
-		if (issuers) {
+		if (isLoggedIn && issuers) {
 			initializeCredentialEngine(httpProxy, helper, issuers, []).then((e) => setCredentialEngine(e)).catch(() => null)
 		}
-	}, [httpProxy, helper, issuers]);
+	}, [httpProxy, helper, issuers, isLoggedIn]);
 
 	useEffect(() => {
 		api
@@ -47,15 +47,17 @@ export const CredentialParserContextProvider = ({ children }) => {
 
 	}, [httpProxy, helper, issuers, credentialEngine]);
 
-	if (credentialEngine) {
+	if (isLoggedIn && !credentialEngine) {
+		return (
+			<></>
+		);
+	}
+	else {
 		return (
 			<CredentialParserContext.Provider value={{ parseCredential }}>
 				{children}
 			</CredentialParserContext.Provider>
 		);
-	}
-	else {
-		return <></>
 	}
 
 }
