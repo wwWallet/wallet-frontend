@@ -10,7 +10,7 @@ import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../../config";
 import { useCredentialBatchHelper } from "../CredentialBatchHelper";
-import { toBase64 } from "../../../util";
+import { fromBase64Url, toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
@@ -31,6 +31,34 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 	const { t } = useTranslation();
+
+	const hasherAndAlgorithm = (jwt: string): HasherAndAlgorithm => {
+		const decoder = new TextDecoder();
+		const encoder = new TextEncoder();
+
+		// alg extraction
+		const encodedHeader = fromBase64Url(jwt.split('.')[0]);
+		const { alg } = JSON.parse(decoder.decode(encodedHeader)) as { alg: string };
+		let hasherAlg = null;
+		switch (alg) {
+			case "ES256":
+				hasherAlg = HasherAlgorithm.Sha256;
+				break;
+			case "ES512":
+				hasherAlg = HasherAlgorithm.Sha512;
+				break;
+			default:
+				throw new Error("not supported algorithm");
+		}
+		const hasherAndAlgorithm: HasherAndAlgorithm = {
+			hasher: (input: string) => {
+				return crypto.subtle.digest(hasherAlg.toUpperCase(), encoder.encode(input)).then((v) => new Uint8Array(v));
+			},
+			algorithm: hasherAlg
+		};
+		return hasherAndAlgorithm;
+	}
+
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -294,20 +322,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			else {
 				sessionStorage.setItem('last_used_nonce', S.nonce);
 			}
-			async function hashSHA256(input) {
-				// Step 1: Encode the input string as a Uint8Array
-				const encoder = new TextEncoder();
-				const data = encoder.encode(input);
+			// async function hashSHA256(input) {
+			// 	// Step 1: Encode the input string as a Uint8Array
+			// 	const encoder = new TextEncoder();
+			// 	const data = encoder.encode(input);
 
-				// Step 2: Hash the data using SHA-256
-				const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-				return new Uint8Array(hashBuffer);
-			}
+			// 	// Step 2: Hash the data using SHA-256
+			// 	const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+			// 	return new Uint8Array(hashBuffer);
+			// }
 
-			const hasherAndAlgorithm: HasherAndAlgorithm = {
-				hasher: async (input: string) => hashSHA256(input),
-				algorithm: HasherAlgorithm.Sha256
-			}
+			// const hasherAndAlgorithm: HasherAndAlgorithm = {
+			// 	hasher: async (input: string) => hashSHA256(input),
+			// 	algorithm: HasherAlgorithm.Sha256
+			// }
 
 			/**
 			*
@@ -401,7 +429,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 					let presentationFrame = generatePresentationFrameForPaths(allPaths);
 					const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
 						vcEntity.credential
-					).withHasher(hasherAndAlgorithm);
+					).withHasher(hasherAndAlgorithm(vcEntity.credential));
 					const presentation = await sdJwt.present(presentationFrame);
 					let transactionDataResponseParams = undefined;
 					if (transaction_data) {

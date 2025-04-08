@@ -15,18 +15,34 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 	const encoder = new TextEncoder();
 	const decoder = new TextDecoder();
 
-	// Encoding the string into a Uint8Array
-	const hasherAndAlgorithm: HasherAndAlgorithm = {
-		hasher: (input: string) => {
-			return args.context.subtle.digest('SHA-256', encoder.encode(input)).then((v) => new Uint8Array(v));
-		},
-		algorithm: HasherAlgorithm.Sha256
-	};
+	const hasherAndAlgorithm = (jwt: string): HasherAndAlgorithm => {
+		// alg extraction
+		const encodedHeader = fromBase64Url(jwt.split('.')[0]);
+		const { alg } = JSON.parse(decoder.decode(encodedHeader)) as { alg: string };
+		let hasherAlg = null;
+		switch (alg) {
+		case "ES256":
+			hasherAlg = HasherAlgorithm.Sha256;
+			break;
+		case "ES512":
+			hasherAlg = HasherAlgorithm.Sha512;
+			break;
+		default:
+			throw new Error("not supported algorithm");
+		}
+		const hasherAndAlgorithm: HasherAndAlgorithm = {
+			hasher: (input: string) => {
+				return args.context.subtle.digest(hasherAlg.toUpperCase(), encoder.encode(input)).then((v) => new Uint8Array(v));
+			},
+			algorithm: hasherAlg
+		};
+		return hasherAndAlgorithm;
+	}
 
 	const parse = async (rawCredential: string) => {
 		try {
-			const credential = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
-			const parsedSdJwtWithPrettyClaims = await SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm).getPrettyClaims();
+			const credential = SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm(rawCredential));
+			const parsedSdJwtWithPrettyClaims = await SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm(rawCredential)).getPrettyClaims();
 			return { credential, parsedSdJwtWithPrettyClaims };
 		}
 		catch (err) {
@@ -75,7 +91,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 	const verifyIssuerSignature = async (rawCredential: string): Promise<Result<{}, CredentialVerificationError>> => {
 		const parsedSdJwt = (() => {
 			try {
-				return SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm);
+				return SdJwt.fromCompact(rawCredential).withHasher(hasherAndAlgorithm(rawCredential));
 			}
 			catch (err) {
 				if (err instanceof Error) {
@@ -181,6 +197,7 @@ export function SDJWTVCVerifier(args: { context: Context, pkResolverEngine: Publ
 				}
 			}
 
+			console.error(err);
 			logError(CredentialVerificationError.InvalidSignature, `Error on verifyIssuerSignature(): Issuer signature verification failed. Cause: ${err}`);
 			return {
 				success: false,

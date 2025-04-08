@@ -5,9 +5,35 @@ import { VerifiableCredentialFormat } from "../types";
 import { CredentialRenderingService } from "../rendering";
 import { getSdJwtVcMetadata } from "../utils/getSdJwtVcMetadata";
 import { OpenID4VCICredentialRendering } from "../functions/openID4VCICredentialRendering";
+import { fromBase64Url } from "../utils/util";
 
 export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }): CredentialParser {
 	const encoder = new TextEncoder();
+	const decoder = new TextDecoder();
+
+	const hasherAndAlgorithm = (jwt: string): HasherAndAlgorithm => {
+		// alg extraction
+		const encodedHeader = fromBase64Url(jwt.split('.')[0]);
+		const { alg } = JSON.parse(decoder.decode(encodedHeader)) as { alg: string };
+		let hasherAlg = null;
+		switch (alg) {
+			case "ES256":
+				hasherAlg = HasherAlgorithm.Sha256;
+				break;
+			case "ES512":
+				hasherAlg = HasherAlgorithm.Sha512;
+				break;
+			default:
+				throw new Error("not supported algorithm");
+		}
+		const hasherAndAlgorithm: HasherAndAlgorithm = {
+			hasher: (input: string) => {
+				return args.context.subtle.digest(hasherAlg.toUpperCase(), encoder.encode(input)).then((v) => new Uint8Array(v));
+			},
+			algorithm: hasherAlg
+		};
+		return hasherAndAlgorithm;
+	}
 
 	function extractValidityInfo(jwtPayload: { exp?: number, iat?: number, nbf?: number }): { validUntil?: Date, validFrom?: Date, signed?: Date } {
 		let obj = {};
@@ -33,13 +59,7 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 		return obj;
 	}
 
-	// Encoding the string into a Uint8Array
-	const hasherAndAlgorithm: HasherAndAlgorithm = {
-		hasher: (input: string) => {
-			return args.context.subtle.digest('SHA-256', encoder.encode(input)).then((v) => new Uint8Array(v));
-		},
-		algorithm: HasherAlgorithm.Sha256
-	};
+
 
 	const cr = CredentialRenderingService();
 	const renderer = OpenID4VCICredentialRendering({ httpClient: args.httpClient });
@@ -58,7 +78,7 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 			const parsedClaims: Record<string, unknown> | null = await (async () => {
 				try {
 					return await SdJwt.fromCompact<Record<string, unknown>, any>(rawCredential)
-						.withHasher(hasherAndAlgorithm)
+						.withHasher(hasherAndAlgorithm(rawCredential))
 						.getPrettyClaims()
 						.then((signedClaims) => signedClaims)
 						.catch(() => null);
