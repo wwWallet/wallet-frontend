@@ -77,7 +77,7 @@ const QueryableList = <T extends object>({
 				<div className="my-2">
 					{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.recent")} />}
 					<div
-						className="space-y-2 mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
+						className="mb-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
 					>
 						{!searchQuery && recentCredentialConfigurations.map((el) => (
 							<Button
