@@ -28,7 +28,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 			Promise.all(
 				historyItem.map(async (credential) => {
 					const parsedCredential = await parseCredential(credential);
-					const credentialEngine = initializeCredentialEngine(httpProxy);
+					const credentialEngine = await initializeCredentialEngine(httpProxy);
 
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
