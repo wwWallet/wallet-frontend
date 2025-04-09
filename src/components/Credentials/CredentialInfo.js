@@ -110,7 +110,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 			setCredentialFormat(VerifiableCredentialFormat.JWT_VC_JSON.toString());
 
 			const credentialSubjects = supportedCredentialConfigurations
-				.filter(config => c.beautifiedForm.type.includes(config.scope))
+				.filter(config => (c.beautifiedForm.type || c.beautifiedForm.vc.type || []).includes(config.scope))
 				.map(config => Object.entries(config?.credential_definition?.credentialSubject || {}))
 				;
 			
@@ -125,7 +125,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 								{
 									name: key,
 									label: display.name,
-									value: c.beautifiedForm.credentialSubject[key] || '',
+									value: (c.beautifiedForm.credentialSubject || c.beautifiedForm.vc.credentialSubject)[key] || '',
 								},
 							]
 						},

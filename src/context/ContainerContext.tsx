@@ -243,16 +243,17 @@ export const ContainerContextProvider = ({ children }) => {
 							return { error: 'No metadata' };
 						}
 
-						const supportedCredentialConfigurations = Object.values(metadata.credential_configurations_supported);
-
-						if (! supportedCredentialConfigurations.every(configuration => configuration.format === VerifiableCredentialFormat.JWT_VC_JSON.toString())) {
+						const credentialConfiguration: Record<string, any> = (Object.entries(metadata.credential_configurations_supported)
+							.find(([key]) => (result.beautifiedForm.type || result.beautifiedForm.vc.type || []).includes(key)) || [])
+							.pop() as unknown as Record<string, any>;
+						
+						if (credentialConfiguration.format !== VerifiableCredentialFormat.JWT_VC_JSON.toString()) {
 							return { error: 'Credential parser can only parse jwt_vc_json format' };
 						}
 
 						// @todo: make more dynamic using schema from credential context
-						const isOpenBadgeCredential = result.beautifiedForm.type.includes('OpenBadgeCredential');
+						const isOpenBadgeCredential = (result.beautifiedForm.type || result.beautifiedForm.vc.type).includes('OpenBadgeCredential');
 
-						const credentialConfiguration: Record<string, any> = (Object.entries(metadata.credential_configurations_supported).find(([key]) => result.beautifiedForm.type.includes(key)) || []).pop() as unknown as Record<string, any>;
 						const credentialFriendlyName = isOpenBadgeCredential
 							? result.beautifiedForm.credentialSubject.achievement.name
 							: result.beautifiedForm.name || credentialConfiguration?.display?.[0]?.name || 'Credential';
