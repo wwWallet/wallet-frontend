@@ -85,6 +85,7 @@ const FormInputField = ({
 			{type === 'password' && (
 				<div className="absolute inset-y-0 right-3 flex items-center">
 					<button
+						id={`${show ? 'hide' : 'show'}-password-loginsignup`}
 						type="button"
 						onClick={onToggleShow}
 						className="text-gray-500 hover:text-gray-600"
@@ -183,6 +184,7 @@ const UsernamePasswordForm = ({
 					</FormInputRow>
 				)}
 				<Button
+					id="submit-username-password-loginsignup"
 					type="submit"
 					variant="primary"
 					disabled={disabled}
@@ -416,12 +418,14 @@ const WebauthnSignupLogin = ({
 								}
 								<div className='flex justify-center gap-4'>
 									<Button
+										id="cancel-prf-loginsignup"
 										onClick={() => resolvePrfRetryPrompt(false)}
 										variant="cancel"
 									>
 										{t('common.cancel')}
 									</Button>
 									<Button
+										id="continue-prf-loginsignup"
 										onClick={() => resolvePrfRetryPrompt(true)}
 										variant="secondary"
 										disabled={prfRetryAccepted}
@@ -443,10 +447,18 @@ const WebauthnSignupLogin = ({
 										</p>
 										<div className='flex justify-center gap-4'>
 
-											<Button variant="cancel" onClick={onCancel}>
+											<Button
+												id="cancel-prf-loginsignup"
+												variant="cancel"
+												onClick={onCancel}
+											>
 												{t('common.cancel')}
 											</Button>
-											<Button type="submit" variant="secondary">
+											<Button
+												id="try-again-prf-loginsignup"
+												type="submit"
+												variant="secondary"
+											>
 												{t('common.tryAgain')}
 											</Button>
 										</div>
@@ -456,6 +468,7 @@ const WebauthnSignupLogin = ({
 									<>
 										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
 										<Button
+											id="cancel-in-progress-prf-loginsignup"
 											onClick={onCancel}
 											variant="cancel"
 											additionalClassName='w-full'
@@ -506,6 +519,7 @@ const WebauthnSignupLogin = ({
 									>
 										<div className="flex flex-1 min-w-0">
 											<Button
+												id={`login-cached-user-${cachedUser.userHandleB64u}-loginsignup`}
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
@@ -524,6 +538,7 @@ const WebauthnSignupLogin = ({
 										</div>
 										<div>
 											<Button
+												id={`forget-cached-user-${cachedUser.userHandleB64u}-loginsignup`}
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
@@ -540,6 +555,7 @@ const WebauthnSignupLogin = ({
 
 						{!isLoginCache && (
 							<Button
+								id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signupPasskey'}-submit-loginsignup`}
 								type="submit"
 								variant="primary"
 								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
@@ -715,6 +731,7 @@ const Auth = () => {
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
+							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
 							variant="link"
 							onClick={toggleForm}
 							disabled={!isOnline}
@@ -725,7 +742,11 @@ const Auth = () => {
 					</p>
 				) : (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
-						<Button variant="link" onClick={useOtherAccount}>
+						<Button
+							id="useOtherAccount-switch-loginsignup"
+							variant="link"
+							onClick={useOtherAccount}
+						>
 							{t('loginSignup.useOtherAccount')}
 						</Button>
 					</p>

@@ -81,6 +81,7 @@ const QueryableList = <T extends object>({
 					>
 						{!searchQuery && recentCredentialConfigurations.map((el) => (
 							<Button
+								id={`querylist-recent-${getElementPropValue(el, identifierField as string)}`}
 								variant="outline"
 								additionalClassName="break-words w-full text-left"
 								key={getElementPropValue(el, identifierField as string)}
@@ -112,6 +113,7 @@ const QueryableList = <T extends object>({
 				>
 					{filteredList.map((el) => (
 						<Button
+							id={`querylist-all-${getElementPropValue(el, identifierField as string)}`}
 							variant="outline"
 							additionalClassName="break-words w-full text-left"
 							key={getElementPropValue(el, identifierField as string)}

@@ -161,6 +161,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	const renderSlideContent = (vcEntity) => (
 		<button
+			id={`slider-select-credentials-${vcEntity.id}`}
 			key={vcEntity.id}
 			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
@@ -269,6 +270,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				</div>
 				<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
 					<Button
+						id="cancel-select-credentials"
 						onClick={onClose}
 						variant="cancel"
 						className="mr-2"
@@ -278,12 +280,16 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 					<div className="flex gap-2">
 						{currentIndex > 0 && (
-							<Button variant="secondary" onClick={goToPreviousSelection}>
+							<Button
+								id="previous-select-credentials"
+								variant="secondary"
+								onClick={goToPreviousSelection}>
 								{t('common.previous')}
 							</Button>
 						)}
 
 						<Button
+							id={`${currentIndex < keys.length - 1 ? 'next' : 'send'}-select-credentials`}
 							onClick={goToNextSelection}
 							variant="primary"
 							disabled={!selectedCredential}

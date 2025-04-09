@@ -33,7 +33,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 				grabCursor={true}
 				modules={[EffectCards]}
 				slidesPerView={1}
-				initialSlide={currentSlide -1}
+				initialSlide={currentSlide - 1}
 				onSlideChange={(swiper) => {
 					setCurrentSlide(swiper.activeIndex + 1);
 					if (onSlideChange) onSlideChange(swiper.activeIndex);
@@ -55,6 +55,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 				<div className="flex items-center justify-end mt-1">
 					<span className="mr-4 dark:text-white">{currentSlide} of {items.length}</span>
 					<button
+						id="previous-slide"
 						onClick={handlePrev}
 						aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
 						title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
@@ -64,6 +65,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						<BiLeftArrow size={22} />
 					</button>
 					<button
+						id="next-slide"
 						onClick={handleNext}
 						aria-label={currentSlide === items.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
 						title={currentSlide === items.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}

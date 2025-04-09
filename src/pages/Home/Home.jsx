@@ -41,6 +41,7 @@ const Home = () => {
 
 	const renderSlideContent = (vcEntity) => (
 		<button
+			id={`credential-slide-${vcEntity.id}`}
 			key={vcEntity.id}
 			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 			onClick={() => { handleImageClick(vcEntity); }}
@@ -98,6 +99,7 @@ const Home = () => {
 									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
 										{vcEntityList && vcEntityList.map((vcEntity) => (
 											<button
+												id={`credential-grid-${vcEntity.id}`}
 												key={vcEntity.id}
 												className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 												onClick={() => handleImageClick(vcEntity)}
