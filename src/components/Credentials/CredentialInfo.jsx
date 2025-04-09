@@ -17,7 +17,7 @@ const getValueByPath = (pathArray, source) => {
 	return pathArray.reduce((acc, key) => acc ? acc[key] : undefined, source);
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full" }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims }) => {
 	const { i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
 
@@ -25,7 +25,8 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
 
 	// Define custom claims to display from signedClaims if claims is missing
-	const customClaims = [
+	const customClaims = fallbackClaims ? fallbackClaims :
+	[
 		{ path: ['given_name'], display: [{ lang: 'en', label: 'Given Name' }] },
 		{ path: ['family_name'], display: [{ lang: 'en', label: 'Family Name' }] },
 		{ path: ['birth_date'], display: [{ lang: 'en', label: 'Birth Date' }] },
