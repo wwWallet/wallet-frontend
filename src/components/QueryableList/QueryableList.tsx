@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import SearchInput from "../Inputs/SearchInput";
 import Button from "../Buttons/Button";
 import { useTranslation } from "react-i18next";
-import { getElementPropValue } from "../../util";
+import { getElementPropValue, sanitizeId } from "../../util";
 import { H3 } from "../Shared/Heading";
 import { highlightBestSequence } from "./highlightBestSequence";
 
@@ -81,7 +81,7 @@ const QueryableList = <T extends object>({
 					>
 						{!searchQuery && recentCredentialConfigurations.map((el) => (
 							<Button
-								id={`querylist-recent-${getElementPropValue(el, identifierField as string)}`}
+								id={`querylist-recent-${sanitizeId(getElementPropValue(el, identifierField as string) as string)}`}
 								variant="outline"
 								additionalClassName="break-words w-full text-left"
 								key={getElementPropValue(el, identifierField as string)}
@@ -113,7 +113,7 @@ const QueryableList = <T extends object>({
 				>
 					{filteredList.map((el) => (
 						<Button
-							id={`querylist-all-${getElementPropValue(el, identifierField as string)}`}
+							id={`querylist-all-${sanitizeId(getElementPropValue(el, identifierField as string) as string)}`}
 							variant="outline"
 							additionalClassName="break-words w-full text-left"
 							key={getElementPropValue(el, identifierField as string)}
