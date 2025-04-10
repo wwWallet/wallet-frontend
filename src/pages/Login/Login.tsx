@@ -512,14 +512,14 @@ const WebauthnSignupLogin = ({
 
 						{isLoginCache && (
 							<ul className="overflow-y-auto overflow-x-hidden max-h-28 px-2 custom-scrollbar flex flex-col gap-2">
-								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser) => (
+								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser, index) => (
 									<li
 										key={cachedUser.userHandleB64u}
 										className="w-full flex flex-row gap-2"
 									>
 										<div className="flex flex-1 min-w-0">
 											<Button
-												id={`login-cached-user-${cachedUser.userHandleB64u}-loginsignup`}
+												id={`login-cached-user-${index}-loginsignup`}
 												onClick={() => onLoginCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
@@ -538,7 +538,7 @@ const WebauthnSignupLogin = ({
 										</div>
 										<div>
 											<Button
-												id={`forget-cached-user-${cachedUser.userHandleB64u}-loginsignup`}
+												id={`forget-cached-user-${index}-loginsignup`}
 												onClick={() => onForgetCachedUser(cachedUser)}
 												variant="tertiary"
 												disabled={isSubmitting}
