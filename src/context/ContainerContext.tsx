@@ -244,7 +244,7 @@ export const ContainerContextProvider = ({ children }) => {
 						}
 
 						const credentialConfiguration: Record<string, any> = (Object.entries(metadata.credential_configurations_supported)
-							.find(([key]) => (result.beautifiedForm.type || result.beautifiedForm.vc.type || []).includes(key)) || [])
+							.find(([key]) => (result.beautifiedForm.type || result.beautifiedForm.vc?.type || []).includes(key)) || [])
 							.pop() as unknown as Record<string, any>;
 						
 						if (credentialConfiguration.format !== VerifiableCredentialFormat.JWT_VC_JSON.toString()) {
@@ -252,7 +252,7 @@ export const ContainerContextProvider = ({ children }) => {
 						}
 
 						// @todo: make more dynamic using schema from credential context
-						const isOpenBadgeCredential = (result.beautifiedForm.type || result.beautifiedForm.vc.type).includes('OpenBadgeCredential');
+						const isOpenBadgeCredential = (result.beautifiedForm.type || result.beautifiedForm.vc?.type || []).includes('OpenBadgeCredential');
 
 						const credentialFriendlyName = isOpenBadgeCredential
 							? result.beautifiedForm.credentialSubject.achievement.name

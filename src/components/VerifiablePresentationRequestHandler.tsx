@@ -101,7 +101,7 @@ export const VerifiablePresentationRequestHandler = ({
 				const conformingVcList = [];
 				for (const vc of vcList) {
 					const parsedCredential = parseJwt(vc.credential);
-					if (vc.format === VerifiableCredentialFormat.JWT_VC_JSON && parsedCredential.type.includes(verifiableCredentialType)) {
+					if (vc.format === VerifiableCredentialFormat.JWT_VC_JSON && (parsedCredential.type || parsedCredential.vc?.type || []).includes(verifiableCredentialType)) {
 						conformingVcList.push(vc.credential);
 					}
 				}
