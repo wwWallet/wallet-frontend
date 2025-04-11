@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { AppSettings } from '@/hooks/useAppSettings';
 
 export interface Connectivity {
 	navigatorOnline: boolean | null;
@@ -6,7 +7,7 @@ export interface Connectivity {
 	speed: number | null;
 }
 
-interface StatusContextValue {
+export interface StatusContextValue {
 	isOnline: boolean;
 	updateAvailable: boolean;
 	connectivity: Connectivity;
@@ -14,6 +15,7 @@ interface StatusContextValue {
 	dismissPwaPrompt: () => void;
 	hidePwaPrompt: boolean;
 	updateOnlineStatus: (forceCheck?: boolean) => Promise<void>;
+	appSettings: AppSettings;
 }
 
 const StatusContext = createContext<StatusContextValue>({
@@ -24,6 +26,7 @@ const StatusContext = createContext<StatusContextValue>({
 	dismissPwaPrompt: () => { },
 	hidePwaPrompt: false,
 	updateOnlineStatus: async () => { },
+	appSettings: undefined,
 });
 
 export default StatusContext;

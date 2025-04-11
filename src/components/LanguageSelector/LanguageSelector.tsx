@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 
 import { useTranslation } from "react-i18next";
 import { languageOptions } from "./languages";
 import { IoIosArrowDown } from "react-icons/io";
+import StatusContext from "@/context/StatusContext";
 
 type LanguageSelectorProps = {
 	className?: string;
@@ -14,7 +15,9 @@ const LanguageSelector = ({
 	showName = false,
 }: LanguageSelectorProps) => {
 	const { i18n, t } = useTranslation();
-	const { language } = i18n;
+	const {appSettings}= useContext(StatusContext);
+	
+	const selectedLocale = appSettings.Settings?.locale ?? i18n.language;
 
 	// Filter language options based on resources in i18n and languageOptions
 	const availableLanguages = languageOptions.filter((option) =>
@@ -25,8 +28,7 @@ const LanguageSelector = ({
 		event: React.ChangeEvent<HTMLSelectElement>
 	) => {
 		const selectedLanguage = event.target.value;
-		i18n.changeLanguage(selectedLanguage);
-		localStorage.setItem("locale", selectedLanguage);
+		appSettings.updateSetting('locale', selectedLanguage);
 	};
 
 	// If only one language and showName is true, show it as static text
@@ -44,7 +46,7 @@ const LanguageSelector = ({
 			<div className={`relative`}>
 				<select
 					className={className}
-					value={language}
+					value={selectedLocale}
 					onChange={handleChangeLanguage}
 					aria-label={t("language.label")}
 				>
