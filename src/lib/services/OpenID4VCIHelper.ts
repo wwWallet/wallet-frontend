@@ -124,6 +124,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 						return null;
 					}
 					catch (err) {
+						console.error(err);
 						return null;
 					}
 				}

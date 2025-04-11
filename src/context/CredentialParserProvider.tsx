@@ -18,7 +18,7 @@ export const CredentialParserContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (isLoggedIn && issuers) {
-			initializeCredentialEngine(httpProxy, helper, issuers, []).then((e) => setCredentialEngine(e)).catch(() => null)
+			initializeCredentialEngine(httpProxy, helper, issuers, []).then((e) => setCredentialEngine(e)).catch((err) => console.error(err))
 		}
 	}, [httpProxy, helper, issuers, isLoggedIn]);
 
