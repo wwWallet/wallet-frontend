@@ -72,6 +72,7 @@ const WebauthnLogin = ({
 			<ul className=" p-2">
 				<div className='flex flex-row gap-4 justify-center mr-2'>
 					<Button
+						id="cancel-login-state"
 						onClick={() => navigate('/')}
 						variant="cancel"
 						disabled={isSubmitting}
@@ -80,6 +81,7 @@ const WebauthnLogin = ({
 						{t('common.cancel')}
 					</Button>
 					<Button
+						id={`${isSubmitting ? 'submitting' : 'continue'}-login-state`}
 						onClick={() => onLoginCachedUser(filteredUser)}
 						variant="primary"
 						disabled={isSubmitting}

@@ -22,7 +22,7 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 	}, [history, credentialId, limit]);
 
 	const handleHistoryItemClick = async (item) => {
-		console.log('extractPresentations',item);
+		console.log('extractPresentations', item);
 		setMatchingCredentials(extractPresentations(item));
 		if (screenType === 'mobile') {
 			navigate(`/history/${item.id}`);
@@ -41,6 +41,7 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
 					{credentialHistory.map(item => (
 						<button
+							id={`credential-history-item-${item.id}`}
 							key={item.id}
 							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
 							style={{ wordBreak: 'break-all' }}

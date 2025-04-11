@@ -147,10 +147,18 @@ function PinInput({ isOpen, setIsOpen }) {
 			</div>
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button variant="cancel" onClick={handleCancel}>
+				<Button
+					id="cancel-pin-input"
+					variant="cancel"
+					onClick={handleCancel}
+				>
 					{t('common.cancel')}
 				</Button>
-				<Button variant="primary" onClick={handleSubmit}>
+				<Button
+					id="submit-pin-input"
+					variant="primary"
+					onClick={handleSubmit}
+				>
 					{t('common.submit')}
 				</Button>
 			</div>

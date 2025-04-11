@@ -28,10 +28,20 @@ const PWAInstallPrompt = () => {
 					</div>
 					<div className='flex items-center space-y'>
 
-						<Button variant="tertiary" additionalClassName='text-sm mr-2' onClick={() => pwaInstallable.prompt()}>
+						<Button
+							id="install-pwa-installable"
+							variant="tertiary"
+							additionalClassName='text-sm mr-2'
+							onClick={() => pwaInstallable.prompt()}
+						>
 							{t('pwaInstallPrompt.button.install')}
 						</Button>
-						<button className='text-white' title={t('pwaInstallPrompt.button.closeTitle')} onClick={dismissPwaPrompt}>
+						<button
+							id="close-pwa-installable"
+							className='text-white'
+							title={t('pwaInstallPrompt.button.closeTitle')}
+							onClick={dismissPwaPrompt}
+						>
 							<IoClose size={25} />
 						</button>
 					</div>

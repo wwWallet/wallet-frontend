@@ -39,7 +39,12 @@ const HistoryDetail = () => {
 		<>
 			<div className=" sm:px-6">
 				<div className='flex'>
-					<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
+					<button
+						id="go-previous"
+						onClick={() => navigate(-1)}
+						className="mr-2 mb-2"
+						aria-label="Go back to the previous page"
+					>
 						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 					</button>
 					<H1 heading={t('pageHistory.presentationDetails.title')} hr={false} />

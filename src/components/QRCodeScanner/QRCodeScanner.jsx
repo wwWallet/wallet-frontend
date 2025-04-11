@@ -169,6 +169,7 @@ const QRScanner = ({ onClose }) => {
 						</h2>
 
 						<button
+							id="close-qr-code-scanner-perm"
 							type="button"
 							className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
 							onClick={handleClose}
@@ -188,7 +189,12 @@ const QRScanner = ({ onClose }) => {
 					<div>
 						{screenType === 'mobile' ? (
 							<div className='flex'>
-								<button onClick={handleClose} className="mr-2 mb-2" aria-label="Go back to the previous page">
+								<button
+									id="close-qr-code-scanner-mobile"
+									onClick={handleClose}
+									className="mr-2 mb-2"
+									aria-label="Go back to the previous page"
+								>
 									<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 								</button>
 								<H1 heading={t('qrCodeScanner.title')} hr={false} />
@@ -201,6 +207,7 @@ const QRScanner = ({ onClose }) => {
 									{t('qrCodeScanner.title')}
 								</h2>
 								<button
+									id="close-qr-code-scanner"
 									type="button"
 									className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
 									onClick={handleClose}
@@ -251,6 +258,7 @@ const QRScanner = ({ onClose }) => {
 						<div className="flex items-center my-4 w-full">
 
 							<button
+								id="zoom-out-qr-code-scanner"
 								type="button"
 								className="text-gray-500 dark:text-gray-200 mr-2 mt-2 cursor-pointer"
 								onClick={handleZoomOut}
@@ -267,6 +275,7 @@ const QRScanner = ({ onClose }) => {
 								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
 							/>
 							<button
+								id="zoom-in-qr-code-scanner"
 								type="button"
 								className="text-gray-500 dark:text-gray-200 ml-2 mt-2 cursor-pointer"
 								onClick={handleZoomIn}
@@ -275,6 +284,7 @@ const QRScanner = ({ onClose }) => {
 							</button>
 							{devices.length > 1 && (
 								<button
+									id="switch-camera-qr-code-scanner"
 									type="button"
 									className="text-gray-500 dark:text-gray-200 text-sm ml-4 mt-2"
 									onClick={switchCamera}
