@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocalStorage } from './useStorage';
 import i18n from '../i18n';
+import * as config from './../config';
 
 type Settings = {
 	locale: string | null;
@@ -21,6 +22,13 @@ export const useAppSettings = () => {
 		'appSettings',
 		null
 	);
+
+	// Initialize version if missing
+	useEffect(() => {
+		if (!settings?.version && config.APP_VERSION) {
+			updateSetting('version', config.APP_VERSION);
+		}
+	}, [settings?.version]);
 
 	useEffect(() => {
 		if (settings?.locale && i18n.language !== settings.locale) {
