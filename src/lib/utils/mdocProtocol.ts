@@ -46,7 +46,31 @@ export async function encryptMessage(sessionKey, plaintext, iv=null) {
 		},
 		sessionKey,
 		// enc.encode(plaintext)
+		// plaintext
 		new TextEncoder().encode(plaintext).buffer
+	);
+
+	return { iv, ciphertext };
+}
+
+export async function encryptUint8Array(sessionKey, arr, iv=null) {
+	// const enc = new TextEncoder();
+	if (!iv) {
+		iv = crypto.getRandomValues(new Uint8Array(12));
+	} else {
+		console.log('using iv:');
+		console.log(iv);
+	}
+
+	const ciphertext = await crypto.subtle.encrypt(
+		{
+			name: "AES-GCM",
+			iv: iv
+		},
+		sessionKey,
+		// enc.encode(plaintext)
+		// plaintext
+		arr
 	);
 
 	return { iv, ciphertext };

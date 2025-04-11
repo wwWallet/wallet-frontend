@@ -2,7 +2,7 @@ import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
 import { DataItem, MDoc, parse } from "@auth0/mdl";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { v4 as uuidv4 } from 'uuid';
-import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement } from "../utils/mdocProtocol";
+import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
 import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
@@ -114,12 +114,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		let decryptedVerifierData;
 		try {
-			decryptedVerifierData = await decryptMessage(SKDevice, iv, verifierData, true);
-		} catch (e) {
-			console.log(e);
-		}
-		console.log(decryptedVerifierData);
-		try {
 			decryptedVerifierData = await decryptMessage(SKReader, iv, verifierData, true);
 		} catch (e) {
 			console.log(e);
@@ -181,17 +175,19 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const { deviceResponseMDoc } = await keystore.generateDeviceResponseWithProximity(mdoc, fullPEX, sessionTranscriptBytes);
 
 			// encrypt mdoc response
-			const iv = new Uint8Array([
+			const ivEncryption = new Uint8Array([
 				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // identifier
 				0x00, 0x00, 0x00, 0x01 // message counter
 			]);
 
 			console.log("Device response: ");
 			console.log(uint8ArraytoHexString(deviceResponseMDoc.encode()));
-			const encryptedMdoc = (await encryptMessage(SKDevice, deviceResponseMDoc.encode(), iv)).ciphertext;
+			const { ciphertext } = (await encryptUint8Array(SKDevice, deviceResponseMDoc.encode(), ivEncryption));
+			const encryptedMdoc = ciphertext;
 
 			const sessionData = {
-				data: encryptedMdoc,
+				data: new Uint8Array(encryptedMdoc),
+				// data: encryptedMdoc,
 				status: 20
 			}
 
