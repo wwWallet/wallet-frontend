@@ -65,7 +65,7 @@ const Home = () => {
 				{screenType !== 'mobile' && (
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				)}
-				{vcEntityList && (
+				{vcEntityList ? (
 					<div className='my-4 p-2 overflow-x-hidden'>
 						{vcEntityList.length === 0 ? (
 							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
@@ -117,6 +117,21 @@ const Home = () => {
 								)}
 							</>
 						)}
+					</div>
+				) : (
+					<div className="my-4 p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-12 xm:px-4 sm:px-20 md:px-0">
+						{Array.from({ length: 6 }).map((_, idx) => (
+							<div
+								key={idx}
+								className="animate-pulse bg-gradient-to-tr from-gray-200 via-gray-300 to-gray-400 dark:from-gray-500 dark:via-gray-600 dark:to-gray-600 shadow-md rounded-xl overflow-hidden aspect-[829/504] w-full"
+							>
+								<div className="h-[60%] w-full bg-transparent"></div>
+								<div className="flex flex-col justify-around h-[40%] px-4 py-3 space-y-2">
+									<div className="h-[30%] w-3/4 bg-white/30 dark:bg-white/15 rounded"></div>
+									<div className="h-[30%] w-1/2 bg-white/20 dark:bg-white/10 rounded"></div>
+								</div>
+							</div>
+						))}
 					</div>
 				)}
 			</div>
