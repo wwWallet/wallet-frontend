@@ -166,6 +166,7 @@ export function getElementPropValue(
  * @param value - The string to sanitize
  * @returns A sanitized string safe for use in HTML IDs
  */
-export function sanitizeId(value: string): string {
-	return value.replace(/[^a-zA-Z0-9-_]/g, "");
+export function sanitizeId(value: string | number): string {
+	const str = String(value);
+	return str.replace(/[^a-zA-Z0-9-_]/g, "");
 }
