@@ -1,15 +1,12 @@
 /**
- * @file CredentialLoadingCard.tsx
+ * @file CredentialCardSkeleton.tsx
  * @description Loading skeleton for a credential card with 829x504 aspect ratio.
  */
 
 // External dependencies
 import React from 'react';
 
-/**
- * Loading placeholder styled like a credential card.
- */
-const CredentialLoadingCard = () => (
+const CredentialCardSkeleton = () => (
 	<div className="animate-pulse bg-gradient-to-tr from-gray-200 via-gray-300 to-gray-400 dark:from-gray-500 dark:via-gray-600 dark:to-gray-600 shadow-md rounded-xl overflow-hidden aspect-[829/504] w-full">
 		<div className="h-[60%] w-full bg-transparent"></div>
 		<div className="flex flex-col justify-around h-[40%] px-4 py-3 space-y-2">
@@ -19,4 +16,4 @@ const CredentialLoadingCard = () => (
 	</div>
 );
 
-export default CredentialLoadingCard;
+export default CredentialCardSkeleton;

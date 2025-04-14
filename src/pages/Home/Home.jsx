@@ -17,7 +17,7 @@ import CredentialImage from '../../components/Credentials/CredentialImage';
 import AddCredentialCard from '../../components/Credentials/AddCredentialCard';
 import HistoryList from '../../components/History/HistoryList';
 import Slider from '../../components/Shared/Slider';
-import CredentialLoadingCard from '@/components/Credentials/CredentialLoadingCard';
+import { CredentialCardSkeleton } from '@/components/Skeletons';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
@@ -121,7 +121,7 @@ const Home = () => {
 				) : (
 					<div className="my-4 p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-12 xm:px-4 sm:px-20 md:px-0">
 						{Array.from({ length: 6 }).map((_, idx) => (
-							<CredentialLoadingCard key={idx} />
+							<CredentialCardSkeleton key={idx} />
 						))}
 					</div>
 				)}
