@@ -29,7 +29,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		async function fetchAndCache<T>(path: string, schema: any, isOnline: boolean, forceIndexDB: boolean): Promise<T> {
 			console.log('fetchAndCache')
 			if (!isOnline || forceIndexDB) {
-				const cachedData = await getItem(path, path);
+				const cachedData = await getItem(path, path, "externalEntities");
 				if (cachedData) return cachedData;
 			}
 
@@ -124,6 +124,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 						return null;
 					}
 					catch (err) {
+						console.error(err);
 						return null;
 					}
 				}

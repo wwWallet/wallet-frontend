@@ -126,9 +126,9 @@ export async function addItem(storeName: string, key: any, value: any, forceMapp
 	}
 }
 
-export async function getItem(storeName: string, key: any): Promise<any> {
+export async function getItem(storeName: string, key: any, forceMappedStoreName?: string): Promise<any> {
 	try {
-		const mappedStoreName = getMappedStoreName(storeName);
+		const mappedStoreName = forceMappedStoreName ?? getMappedStoreName(storeName);
 		const value = await stores[mappedStoreName].getItem(key);
 		return value;
 	} catch (err) {
