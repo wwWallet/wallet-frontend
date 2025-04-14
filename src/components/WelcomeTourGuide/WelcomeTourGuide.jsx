@@ -62,7 +62,11 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 					<>
 						<p className='mt-2'>{t("tourGuide.tourComplete")}</p>
 						<div className='flex justify-center mt-2'>
-							<Button variant="primary" onClick={() => setIsTourOpen(false)}>
+							<Button
+								id="close-tour"
+								variant="primary"
+								onClick={() => setIsTourOpen(false)}
+							>
 								{t("tourGuide.closeTourButton")}
 							</Button>
 						</div>

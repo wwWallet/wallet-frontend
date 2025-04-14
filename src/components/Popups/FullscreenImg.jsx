@@ -13,6 +13,7 @@ const FullscreenImg = ({ isOpen, onClose, content }) => {
 		>
 			{content}
 			<button
+				id="close-full-screen-img"
 				className="fixed top-4 right-4 text-white text-2xl z-50"
 				onClick={onClose}
 			>

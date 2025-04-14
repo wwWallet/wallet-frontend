@@ -84,6 +84,7 @@ const Credential = () => {
 					) : (
 						<>
 							<Button
+								id="navigate-credential-history"
 								variant="primary"
 								onClick={() => navigate(`/credential/${credentialId}/history`)}
 								additionalClassName='w-full my-2'
@@ -91,6 +92,7 @@ const Credential = () => {
 								{t('pageCredentials.presentationsTitle')}
 							</Button>
 							<Button
+								id="navigate-credential-details"
 								variant="primary"
 								onClick={() => navigate(`/credential/${credentialId}/details`)}
 								additionalClassName='w-full my-2'
