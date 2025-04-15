@@ -78,6 +78,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 								</p>
 							</div>
 							<button
+								id="close-message-offline"
 								className="ml-2 text-gray-800"
 								onClick={handleCloseMessageOffline}
 							>
@@ -98,6 +99,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 										</p>
 									</div>
 									<button
+										id="close-message-no-granted"
 										className="ml-2 text-gray-800"
 										onClick={handleCloseMessageNoGranted}
 									>
@@ -113,12 +115,18 @@ export function NotificationPermissionWarning(): React.ReactNode {
 												i18nKey="layout.messageResetPermission"
 												components={{
 													strong: <strong />,
-													reloadButton: <button className='text-primary underline' onClick={() => window.location.reload()} />,
+													reloadButton:
+														<button
+															id="reset-notification-permission"
+															className='text-primary underline'
+															onClick={() => window.location.reload()}
+														/>,
 												}}
 											/>
 										</p>
 									</div>
 									<button
+										id="close-message-granted"
 										className="ml-2 text-gray-800"
 										onClick={handleCloseMessageGranted}
 									>

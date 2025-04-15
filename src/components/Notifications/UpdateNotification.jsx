@@ -28,12 +28,14 @@ const UpdateNotification = () => {
 			/>
 			{t('updateNotification.description')}
 			<Button
+				id="reload-update-notification"
 				variant="tertiary"
 				onClick={handleReload}
 			>
 				{t('common.refresh')}
 			</Button>
 			<button
+				id="close-update-notification"
 				className="ml-2 text-white hover:text-gray-300"
 				onClick={handleClose}
 			>

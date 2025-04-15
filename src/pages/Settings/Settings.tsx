@@ -208,6 +208,7 @@ const WebauthnRegistation = ({
 	return (
 		<>
 			<Button
+				id="add-passkey-settings"
 				onClick={onBegin}
 				variant="primary"
 				disabled={registrationInProgress || !unlocked || !isOnline}
@@ -255,6 +256,7 @@ const WebauthnRegistation = ({
 
 					<div className="pt-2 flex justify-center gap-2">
 						<Button
+							id="cancel-add-passkey-settings"
 							onClick={onCancel}
 							variant="cancel"
 							disabled={isSubmitting}
@@ -264,6 +266,7 @@ const WebauthnRegistation = ({
 
 						{pendingCredential && (
 							<Button
+								id="save-add-passkey-settings"
 								type="submit"
 								variant="secondary"
 								disabled={isSubmitting}
@@ -286,6 +289,7 @@ const WebauthnRegistation = ({
 
 				<div className='flex justify-center gap-2'>
 					<Button
+						id="cancel-prf-passkey-settings"
 						onClick={() => resolvePrfRetryPrompt(false)}
 						variant="cancel"
 					>
@@ -293,6 +297,7 @@ const WebauthnRegistation = ({
 					</Button>
 
 					<Button
+						id="continue-prf-passkey-settings"
 						onClick={() => resolvePrfRetryPrompt(true)}
 						variant="secondary"
 						disabled={prfRetryAccepted}
@@ -309,7 +314,11 @@ const WebauthnRegistation = ({
 			>
 				<p className='dark:text-white'>{t('registerPasskey.messageInteractNewPasskey')}</p>
 				<div className='flex justify-center'>
-					<Button variant="cancel" onClick={onCancel}>
+					<Button
+						id="cancel-in-progress-prf-settings"
+						variant="cancel"
+						onClick={onCancel}
+					>
 						{t('common.cancel')}
 					</Button>
 				</div>
@@ -405,6 +414,7 @@ const UnlockMainKey = ({
 	return (
 		<>
 			<Button
+				id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
@@ -448,6 +458,7 @@ const UnlockMainKey = ({
 
 					<div className="pt-2">
 						<button
+							id="cancel-password-management-settings"
 							type="button"
 							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-gray-100 mr-2"
 							onClick={onCancelPassword}
@@ -457,6 +468,7 @@ const UnlockMainKey = ({
 						</button>
 
 						<button
+							id="submit-password-management-settings"
 							type="submit"
 							className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
 							disabled={isSubmittingPassword}
@@ -610,6 +622,7 @@ const WebauthnCredentialItem = ({
 				{needsPrfUpgrade
 					&&
 					<button
+						id="upgrade-prf-settings"
 						className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 inline-flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center mr-2"
 						type="button"
 						onClick={() => onUpgradePrfKey(prfKeyInfo)}
@@ -624,6 +637,7 @@ const WebauthnCredentialItem = ({
 
 						<div className='flex gap-2'>
 							<Button
+								id="cancel-editing-settings"
 								onClick={onCancelEditing}
 								variant="cancel"
 								disabled={submitting}
@@ -632,6 +646,7 @@ const WebauthnCredentialItem = ({
 								{t('common.cancel')}
 							</Button>
 							<Button
+								id="save-editing-settings"
 								type="submit"
 								disabled={submitting}
 								variant="secondary"
@@ -642,6 +657,7 @@ const WebauthnCredentialItem = ({
 					)
 					: (
 						<Button
+							id="rename-passkey"
 							onClick={() => setEditing(true)}
 							variant="secondary"
 							disabled={(onDelete && !unlocked) || !isOnline}
@@ -656,6 +672,7 @@ const WebauthnCredentialItem = ({
 
 				{onDelete && (
 					<Button
+						id="delete-passkey"
 						onClick={openDeleteConfirmation}
 						variant="delete"
 						disabled={!unlocked || !isOnline}
@@ -966,6 +983,7 @@ const Settings = () => {
 										{t('pageSettings.deleteAccount.description')}
 									</p>
 									<Button
+										id="delete-account"
 										onClick={openDeleteConfirmation}
 										variant="delete"
 										disabled={!unlocked || !isOnline}
@@ -993,7 +1011,14 @@ const Settings = () => {
 										i18nKey="pageSettings.appVersion.descriptionOldVersion"
 										values={{ react_app_version: import.meta.env.VITE_APP_VERSION }}
 										components={{
-											reloadButton: <button className='text-primary dark:text-extra-light underline' onClick={() => window.location.reload()} />, strong: <strong />, br: <br />,
+											reloadButton:
+												<button
+													id="reload-update-version"
+													className='text-primary dark:text-extra-light underline'
+													onClick={() => window.location.reload()}
+												/>,
+											strong: <strong />,
+											br: <br />,
 										}}
 									/>
 								</p>

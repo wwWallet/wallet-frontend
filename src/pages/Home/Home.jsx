@@ -17,7 +17,7 @@ import CredentialImage from '../../components/Credentials/CredentialImage';
 import AddCredentialCard from '../../components/Credentials/AddCredentialCard';
 import HistoryList from '../../components/History/HistoryList';
 import Slider from '../../components/Shared/Slider';
-
+import { CredentialCardSkeleton } from '@/components/Skeletons';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
@@ -41,6 +41,7 @@ const Home = () => {
 
 	const renderSlideContent = (vcEntity) => (
 		<button
+			id={`credential-slide-${vcEntity.id}`}
 			key={vcEntity.id}
 			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''}`}
 			onClick={() => { handleImageClick(vcEntity); }}
@@ -65,7 +66,7 @@ const Home = () => {
 				{screenType !== 'mobile' && (
 					<p className="italic pd-2 text-gray-700 dark:text-gray-300">{t('pageCredentials.description')}</p>
 				)}
-				{vcEntityList && (
+				{vcEntityList ? (
 					<div className='my-4 p-2 overflow-x-hidden'>
 						{vcEntityList.length === 0 ? (
 							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
@@ -98,6 +99,7 @@ const Home = () => {
 									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
 										{vcEntityList && vcEntityList.map((vcEntity) => (
 											<button
+												id={`credential-grid-${vcEntity.id}`}
 												key={vcEntity.id}
 												className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''}`}
 												onClick={() => handleImageClick(vcEntity)}
@@ -117,6 +119,12 @@ const Home = () => {
 								)}
 							</>
 						)}
+					</div>
+				) : (
+					<div className="my-4 p-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-12 xm:px-4 sm:px-20 md:px-0">
+						{Array.from({ length: screenType !== 'desktop' ? 1 : 6 }).map((_, idx) => (
+							<CredentialCardSkeleton key={idx} />
+						))}
 					</div>
 				)}
 			</div>

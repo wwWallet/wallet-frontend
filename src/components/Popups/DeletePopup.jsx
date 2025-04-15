@@ -16,6 +16,7 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 					{t('pageSettings.title.confirmDeletePopup')}
 				</h2>
 				<button
+					id="dismiss-delete-popup"
 					type="button"
 					className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
 					onClick={onClose}
@@ -28,10 +29,18 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 			<hr className="mb-2 border-t border-red-500/80" />
 			<p className="mb-2 mt-4 text-gray-700 dark:text-white">{message}</p>
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button variant="cancel" onClick={onClose}>
+				<Button
+					id="close-delete-popup"
+					variant="cancel"
+					onClick={onClose}
+				>
 					{t('common.cancel')}
 				</Button>
-				<Button variant="delete" onClick={onConfirm}>
+				<Button
+					id="confirm-delete-popup"
+					variant="delete"
+					onClick={onConfirm}
+				>
 					{t('common.delete')}
 				</Button>
 			</div>
