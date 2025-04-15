@@ -10,7 +10,7 @@
 		"digest": "tar --sort=name --mtime='1970-01-01' --owner=0 --group=0 --numeric-owner --exclude=node_modules --exclude=dist --exclude=digest.txt -cf  - . | shasum"
 	},
 	"dependencies": {
-		"@auth0/mdl": "^2.0.1",
+		"@auth0/mdl": "^2.0.2",
 		"@sd-jwt/core": "^0.2.1",
 		"ajv": "^8.17.1",
 		"asn1js": "^3.0.5",
