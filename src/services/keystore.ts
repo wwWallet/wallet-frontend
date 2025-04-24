@@ -649,7 +649,11 @@ function makeRegistrationPrfExtensionInputs(credential: PublicKeyCredential, prf
 	prfInput: PrfExtensionInput,
 } {
 	return {
-		allowCredentials: [{ type: "public-key", id: credential.rawId }],
+		allowCredentials: [{
+			type: "public-key",
+			id: credential.rawId,
+			transports: (credential.response as AuthenticatorAttestationResponse).getTransports() as AuthenticatorTransport[],
+		}],
 		prfInput: { eval: { first: prfSalt } },
 	};
 }
