@@ -27,7 +27,7 @@ const WebauthnLogin = ({
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
-			const result = await api.loginWebauthn(keystore, async () => false, cachedUser);
+			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
 
 				navigate(from, { replace: true });
