@@ -1,4 +1,4 @@
-import { HttpClient } from '../interfaces';
+import { Context, HttpClient } from '../interfaces';
 import { fromBase64 } from './util';
 import { verifySRIFromObject } from './verifySRIFromObject';
 import Ajv2020 from "ajv/dist/2020";
@@ -119,6 +119,7 @@ export function validateAgainstSchema(
 }
 
 async function fetchAndMergeMetadata(
+	context: Context,
 	httpClient: HttpClient,
 	url: string,
 	visited = new Set<string>(),
@@ -144,7 +145,7 @@ async function fetchAndMergeMetadata(
 
 	if (!integrity) return { error: "INTEGRITY_MISSING" };
 
-	const isValid = verifySRIFromObject(result.data, integrity);
+	const isValid = verifySRIFromObject(context, result.data, integrity);
 	if (!isValid) return { error: "INTEGRITY_FAIL" };
 
 	let metadata = result.data as Record<string, any>;
@@ -176,7 +177,7 @@ async function fetchAndMergeMetadata(
 			return { error: "NOT_FOUND" };
 		}
 
-		if (!verifySRIFromObject(resultSchema.data, schemaIntegrity)) {
+		if (!verifySRIFromObject(context, resultSchema.data, schemaIntegrity)) {
 			return { error: "INTEGRITY_FAIL" };
 		}
 
@@ -196,7 +197,7 @@ async function fetchAndMergeMetadata(
 
 	if (typeof metadata.extends === 'string') {
 		const childIntegrity = metadata['extends#integrity'] as string | undefined;
-		const parent = await fetchAndMergeMetadata(httpClient, metadata.extends, visited, childIntegrity);
+		const parent = await fetchAndMergeMetadata(context, httpClient, metadata.extends, visited, childIntegrity);
 		if ('error' in parent) return parent;
 		merged = deepMerge(parent, metadata);
 	} else {
@@ -233,7 +234,7 @@ function isValidHttpUrl(value: string): boolean {
 	}
 }
 
-export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: string): Promise<{ credentialMetadata: any } | MetadataError> {
+export async function getSdJwtVcMetadata(context: Context, httpClient: HttpClient, credential: string): Promise<{ credentialMetadata: any } | MetadataError> {
 	try {
 		const credentialHeader = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[0] as string)));
 		const credentialPayload = JSON.parse(new TextDecoder().decode(fromBase64(credential.split('.')[1] as string)));
@@ -253,7 +254,7 @@ export async function getSdJwtVcMetadata(httpClient: HttpClient, credential: str
 		if (vct && typeof vct === 'string' && isValidHttpUrl(vct)) {
 			try {
 				const vctIntegrity = credentialPayload['vct#integrity'] as string | undefined;
-				const mergedMetadata = await fetchAndMergeMetadata(httpClient, vct, new Set(), vctIntegrity, credentialPayload);
+				const mergedMetadata = await fetchAndMergeMetadata(context, httpClient, vct, new Set(), vctIntegrity, credentialPayload);
 				if ('error' in mergedMetadata) {
 					return { error: mergedMetadata.error }
 				}

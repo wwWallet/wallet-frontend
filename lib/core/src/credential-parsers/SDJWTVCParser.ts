@@ -87,7 +87,7 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 
 			let credentialFriendlyName: string | null = null;
 
-			const getSdJwtMetadataResult = await getSdJwtVcMetadata(args.httpClient, rawCredential);
+			const getSdJwtMetadataResult = await getSdJwtVcMetadata(args.context, args.httpClient, rawCredential);
 			if (!('error' in getSdJwtMetadataResult)) {
 				const { credentialMetadata } = getSdJwtMetadataResult;
 
