@@ -67,7 +67,7 @@ for (const lc in locales) {
 
 function removeExtraneousKeys(src, target) {
 	if (target instanceof Object && !(target instanceof Array)) {
-		return Object.keys(src).toSorted().reduce(
+		return Object.keys(src).reduce(
 			(result, key) => {
 				result[key] = removeExtraneousKeys(src[key], target[key]);
 				return result;
@@ -81,7 +81,7 @@ function removeExtraneousKeys(src, target) {
 
 function sortKeys(obj) {
 	if (obj instanceof Object && !(obj instanceof Array)) {
-		return Object.keys(obj).toSorted().reduce(
+		return Object.keys(obj).sort().reduce(
 			(result, key) => {
 				result[key] = sortKeys(obj[key]);
 				return result;
