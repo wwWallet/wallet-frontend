@@ -212,8 +212,6 @@ const WebauthnRegistation = ({
 				onClick={onBegin}
 				variant="primary"
 				disabled={registrationInProgress || !unlocked || !isOnline}
-				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
-
 				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
 			>
