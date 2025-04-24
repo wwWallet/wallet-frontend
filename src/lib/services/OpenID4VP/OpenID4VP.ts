@@ -402,7 +402,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 					const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
 						vcEntity.credential
 					).withHasher(hasherAndAlgorithm);
-					const presentation = await sdJwt.present(presentationFrame);
+					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame) : vcEntity.credential;
 					let transactionDataResponseParams = undefined;
 					if (transaction_data) {
 						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)
