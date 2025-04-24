@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import StatusContext, { Connectivity, StatusContextValue } from './StatusContext';
-import { useLocalStorage } from '@/hooks/useStorage';
 import { useAppSettings } from '@/hooks/useAppSettings';
 
 // Function to calculate speed based on RTT (lower RTT means higher speed)
@@ -45,8 +44,6 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		Internet: null,
 		speed: null,
 	});
-	const [pwaInstallable, setPwaInstallable] = useState(null);
-	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>("hidePwaPrompt", false);
 	const appSettings = useAppSettings();
 
 	const lastUpdateCallTime = React.useRef<number>(0);
@@ -157,29 +154,6 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		};
 	}, [isOnline]);
 
-	useEffect(() => {
-		// beforeinstallprompt is triggered if browser can install pwa
-		// it will not trigger if pwa is already installed
-		const handleBeforeInstallPrompt = (event) => {
-			event.preventDefault();
-			setPwaInstallable(event);
-		};
-
-		// appinstaled is triggered if pwa was installed
-		// we want to remove installation prompts in that case
-		const handleAppInstalled = () => {
-			setPwaInstallable(null);
-		};
-
-		window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-		window.addEventListener("appinstalled", handleAppInstalled);
-
-		return () => {
-			window.removeEventListener("appinstalled", handleAppInstalled);
-			window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-		};
-	}, []);
-
 	navigator.serviceWorker.addEventListener('message', (event) => {
 		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
 			const isWindowHidden = document.hidden;
@@ -192,12 +166,8 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		}
 	});
 
-	const dismissPwaPrompt = () => {
-		setHidePwaPrompt(true);
-	}
-
 	const value: StatusContextValue = {
-		isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt, appSettings
+		isOnline, updateAvailable, connectivity, updateOnlineStatus, appSettings
 	};
 
 	return (

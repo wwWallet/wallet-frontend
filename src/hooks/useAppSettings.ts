@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useLocalStorage } from './useStorage';
 import i18n from '../i18n';
 import * as config from './../config';
@@ -7,6 +7,7 @@ type Settings = {
 	locale: string | null;
 	theme: 'light' | 'dark' | null;
 	version: string | null;
+	hidePwaPrompt: boolean | null;
 };
 
 export type AppSettings = {
@@ -15,6 +16,9 @@ export type AppSettings = {
 		key: K,
 		value: Settings[K]
 	) => void;
+	pwaInstallable: Event | null;
+	hidePwaPrompt: boolean;
+	dismissPwaPrompt: () => void;
 };
 
 export const useAppSettings = () => {
@@ -22,6 +26,8 @@ export const useAppSettings = () => {
 		'appSettings',
 		null
 	);
+	const [pwaInstallable, setPwaInstallable] = useState<Event | null>(null);
+
 
 	const updateSetting = useCallback(
 		<K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -43,6 +49,9 @@ export const useAppSettings = () => {
 		[settings, setSettings, clearSettings]
 	);
 
+	const dismissPwaPrompt = useCallback(() => {
+		updateSetting('hidePwaPrompt', true);
+	}, [updateSetting]);
 
 	useEffect(() => {
 		if (!settings?.version && config.APP_VERSION) {
@@ -56,8 +65,33 @@ export const useAppSettings = () => {
 		}
 	}, [settings]);
 
+	useEffect(() => {
+		// beforeinstallprompt is triggered if browser can install pwa
+		// it will not trigger if pwa is already installed
+		const handleBeforeInstallPrompt = (event) => {
+			event.preventDefault();
+			setPwaInstallable(event);
+		};
+
+		// appinstaled is triggered if pwa was installed
+		// we want to remove installation prompts in that case
+		const handleAppInstalled = () => {
+			setPwaInstallable(null);
+		};
+
+		window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+		window.addEventListener("appinstalled", handleAppInstalled);
+
+		return () => {
+			window.removeEventListener("appinstalled", handleAppInstalled);
+			window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+		};
+	}, []);
 	return {
 		settings,
 		updateSetting,
+		pwaInstallable,
+		hidePwaPrompt: settings?.hidePwaPrompt ?? false,
+		dismissPwaPrompt,
 	};
 };

@@ -7,7 +7,8 @@ import useScreenType from '@/hooks/useScreenType';
 import { useTranslation } from 'react-i18next';
 
 const PWAInstallPrompt = () => {
-	const { pwaInstallable, dismissPwaPrompt, hidePwaPrompt } = useContext(StatusContext);
+	const { appSettings } = useContext(StatusContext);
+	const { pwaInstallable, dismissPwaPrompt, hidePwaPrompt } = appSettings;
 	const screenType = useScreenType();
 	const { t } = useTranslation();
 
