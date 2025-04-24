@@ -69,7 +69,6 @@
 		"loginAsUser": "Iniciar sessão como {{name}}",
 		"loginKeystoreFailed": "Não foi possível aceder ao armazenamento de chaves da carteira. Por favor, tente novamente.",
 		"loginLocalKeystoreFailed": "Não foi possível iniciar o armazenamento de chaves da carteira. Por favor, tente novamente.",
-		"loginPasskey": "Iniciar sessão com chave de acesso",
 		"loginSubmit": "Iniciar sessão",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
 		"newHereQuestion": "Ainda não tem conta? ",
@@ -90,7 +89,6 @@
 		"passwordUnlockFailed": "Não foi possível desbloquear a carteira com palavra-passe.",
 		"privateDataConflict": "Outra sessão associada a esta conta interrompeu a tentativa de início de sessão. Por favor, tente novamente.",
 		"signUp": "Registar",
-		"signUpPasskey": "Registar com chave de acesso",
 		"signUpSubmit": "Registar",
 		"specialCharacter": "Pelo menos, um carácter especial",
 		"reachedLengthLimit": "Tamanho máximo excedido",
@@ -179,7 +177,7 @@
 		"searchPlaceholder": "Procurar verifiers..."
 	},
 	"pageSettings": {
-		"addPasskey": "Adicionar chave de acesso",
+		"addPasskey": "Adicionar chave de acesso:",
 		"addPasskeyTitle": "Clique para adicionar chave de acesso",
 		"deleteAccount": {
 			"buttonText": "Elimine a sua conta",

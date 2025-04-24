@@ -3,6 +3,8 @@
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
+		"externalPasskey": "Passkey on a security key",
+		"hybridPasskey": "Passkey on another device",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
@@ -19,6 +21,7 @@
 		"passwordHideTitle": "Click to hide password",
 		"passwordShowAriaLabel": "Show password",
 		"passwordShowTitle": "Click to show password",
+		"platformPasskey": "Passkey on this device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"save": "Save",
@@ -70,7 +73,6 @@
 		"loginAsUser": "Log in as {{name}}",
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
-		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
 		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "New here? ",
@@ -91,7 +93,6 @@
 		"passwordUnlockFailed": "Failed to unlock wallet with password",
 		"privateDataConflict": "Another session for this account disrupted the login attempt. Please try again.",
 		"signUp": "Sign Up",
-		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
 		"specialCharacter": "At least one special character",
 		"reachedLengthLimit": "Length limit exceeded",
@@ -180,7 +181,7 @@
 		"searchPlaceholder": "Search verifiers..."
 	},
 	"pageSettings": {
-		"addPasskey": "Add passkey",
+		"addPasskey": "Add passkey:",
 		"addPasskeyTitle": "Click to Add passkey",
 		"deleteAccount": {
 			"buttonText": "Delete your account",

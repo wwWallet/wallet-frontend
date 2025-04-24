@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaTimes } from 'react-icons/fa';
-import { GoPasskeyFill, GoTrash } from 'react-icons/go';
+import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -249,8 +249,8 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
-	const onLogin = async (cachedUser?: CachedUser) => {
-		const result = await api.loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
+		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
 		if (result.ok) {
 			navigate(from, { replace: true });
 
@@ -283,13 +283,14 @@ const WebauthnSignupLogin = ({
 		}
 	};
 
-	const onSignup = async (name) => {
+	const onSignup = async (name: string, webauthnHints: string[]) => {
 		const result = await api.signupWebauthn(
 			name,
 			keystore,
 			retrySignupFrom
 				? async () => true // "Try again" already means user agreed to continue
 				: promptForPrfRetry,
+			webauthnHints,
 			retrySignupFrom,
 		);
 		if (result.ok) {
@@ -343,16 +344,17 @@ const WebauthnSignupLogin = ({
 
 	const onSubmit = async (event) => {
 		event.preventDefault();
+		const webauthnHint = event.nativeEvent?.submitter?.value;
 
 		setError('');
 		setInProgress(true);
 		setIsSubmitting(true);
 
 		if (isLogin) {
-			await onLogin();
+			await onLogin([webauthnHint]);
 
 		} else {
-			await onSignup(name);
+			await onSignup(name, [webauthnHint]);
 		}
 
 		setInProgress(false);
@@ -365,7 +367,7 @@ const WebauthnSignupLogin = ({
 		setError('');
 		setInProgress(true);
 		setIsSubmitting(true);
-		await onLogin(cachedUser);
+		await onLogin([], cachedUser);
 		setInProgress(false);
 		setIsSubmitting(false);
 		checkForUpdates();
@@ -554,22 +556,27 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && (
-							<Button
-								id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-submit-loginsignup`}
-								type="submit"
-								variant="primary"
-								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
-								additionalClassName="w-full"
-								title={!isLogin && !isOnline && t("common.offlineTitle")}
-							>
-								<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
-								{isSubmitting
-									? t('loginSignup.submitting')
-									: isLogin
-										? t('loginSignup.loginPasskey')
-										: t('loginSignup.signUpPasskey')
-								}
-							</Button>
+							[
+								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
+								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
+							].map(({ Icon, hint, btnLabel }) => (
+								<Button
+									key={hint}
+									id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
+									type="submit"
+									variant="primary"
+									additionalClassName="w-full mt-2"
+									title={!isLogin && !isOnline && t("common.offlineTitle")}
+									value={hint}
+								>
+									<Icon className="inline text-xl mr-2 shrink-0" />
+									{isSubmitting
+										? t('loginSignup.submitting')
+										: btnLabel
+									}
+								</Button>
+							))
 						)}
 						{error && <div className="text-red-500 pt-2">{error}</div>}
 					</>

@@ -14,6 +14,7 @@ import { cborEncode, cborDecode, DataItem } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
+import { withHintsFromAllowCredentials } from "@/util-webauthn";
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
@@ -724,12 +725,12 @@ async function getPrfOutput(
 				const filteredPrfInputs = filterPrfAllowCredentials(credential, prfInputs);
 
 				const retryCred = await navigator.credentials.get({
-					publicKey: {
+					publicKey: withHintsFromAllowCredentials({
 						rpId: config.WEBAUTHN_RPID,
 						challenge: crypto.getRandomValues(new Uint8Array(32)),
 						allowCredentials: filteredPrfInputs?.allowCredentials,
 						extensions: { prf: filteredPrfInputs.prfInput } as AuthenticationExtensionsClientInputs,
-					},
+					}),
 					signal: retryOrAbortSignal === true ? undefined : retryOrAbortSignal,
 				}) as PublicKeyCredential;
 				return await getPrfOutput(retryCred, prfInputs, async () => false);
