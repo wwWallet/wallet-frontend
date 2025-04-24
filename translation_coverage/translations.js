@@ -52,6 +52,26 @@ for (const lc in locales) {
 	coverageResults[lc] = Number(completion);
 }
 
+function sortKeys(obj) {
+	if (obj instanceof Object && !(obj instanceof Array)) {
+		return Object.keys(obj).toSorted().reduce(
+			(result, key) => {
+				result[key] = sortKeys(obj[key]);
+				return result;
+			},
+			{},
+		);
+	} else {
+		return obj;
+	}
+}
+
+console.log("Sorting keys in translation files...");
+for (const loc in locales) {
+	const sorted = sortKeys(locales[loc]);
+	fs.writeFileSync(`./src/locales/${loc}.json`, JSON.stringify(sorted, null, "\t"));
+}
+
 // Save JSON files
 console.log("Saving coverage reports...");
 
