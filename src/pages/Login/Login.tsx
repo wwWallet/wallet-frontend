@@ -555,7 +555,7 @@ const WebauthnSignupLogin = ({
 
 						{!isLoginCache && (
 							<Button
-								id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signupPasskey'}-submit-loginsignup`}
+								id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-submit-loginsignup`}
 								type="submit"
 								variant="primary"
 								disabled={isSubmitting || nameByteLimitReached || (!isLogin && !isOnline)}
@@ -567,7 +567,7 @@ const WebauthnSignupLogin = ({
 									? t('loginSignup.submitting')
 									: isLogin
 										? t('loginSignup.loginPasskey')
-										: t('loginSignup.signupPasskey')
+										: t('loginSignup.signUpPasskey')
 								}
 							</Button>
 						)}
