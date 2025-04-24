@@ -65,12 +65,12 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IO
 
 						// this function should prompt the user for presentation selection
 						const result = await openID4VP.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
-							if ('err' in res) {
+							if ('error' in res) {
 								return;
 							}
 
 							const jsonedMap = Object.fromEntries(res.conformantCredentialsMap);
-							return openID4VP.promptForCredentialSelection(jsonedMap, config.credentialIssuerMetadata.credential_issuer);
+							return openID4VP.promptForCredentialSelection(jsonedMap, config.credentialIssuerMetadata.credential_issuer, "");
 						}).then((selectionMap) => {
 							return openID4VP.sendAuthorizationResponse(selectionMap);
 						});

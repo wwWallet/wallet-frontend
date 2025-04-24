@@ -14,6 +14,7 @@ const CredentialDeleteButton = ({ onDelete }) => {
 
 	return (
 		<Button
+			id="credential-delete-button"
 			onClick={handleClick}
 			variant="delete"
 			disabled={!isOnline}

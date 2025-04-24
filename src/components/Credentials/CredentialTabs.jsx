@@ -5,6 +5,7 @@ const CredentialTabs = ({ tabs, activeTab, onTabChange }) => {
 		<div className="flex space-x-4 border-b dark:border-gray-700">
 			{tabs.map((tab, index) => (
 				<button
+					id={`credential-tab-${index}`}
 					key={index}
 					className={`py-2 px-4 ${activeTab === index ? 'bg-primary dark:bg-primary-light text-white rounded-t-lg' : 'text-primary dark:text-primary-light'}`}
 					onClick={() => onTabChange(index)}

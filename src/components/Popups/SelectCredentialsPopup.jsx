@@ -9,6 +9,8 @@ import SessionContext from '@/context/SessionContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
 import CredentialParserContext from '@/context/CredentialParserContext';
+import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
+import { CredentialInfoSkeleton } from '../Skeletons';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -60,7 +62,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	const { api } = useContext(SessionContext);
 	const credentialParserContext = useContext(CredentialParserContext);
-	const [vcEntities, setVcEntities] = useState([]);
+	const [vcEntities, setVcEntities] = useState(null);
 	const { t } = useTranslation();
 	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
 	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
@@ -161,6 +163,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	const renderSlideContent = (vcEntity) => (
 		<button
+			id={`slider-select-credentials-${vcEntity.id}`}
 			key={vcEntity.id}
 			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
@@ -220,55 +223,65 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					)}
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					{requestedFieldsText && requestedFields.length > 0 && popupState.options.verifierDomainName && (
-						<>
-							<p className="pd-2 text-gray-700 text-sm dark:text-white">
-								<span>
-									{/* <strong>{t('selectCredentialPopup.purpose')}:</strong> {popupState.options.verifierPurpose} */}
-									<Trans
-										i18nKey={"selectCredentialPopup.purpose"}
-										values={{ verifierDomainName: popupState.options.verifierDomainName }}
-										components={{ strong: <strong /> }}
-									/> {popupState.options.verifierPurpose}
-								</span>
-							</p>
-							<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
-								<span>
-									{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
-								</span>
-								&nbsp;
-								<strong>
-									{requestedFieldsText}
-								</strong>
-								{requestedFields.length > 2 && (
-									<>
-										{' '}
-										< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
-											{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')}`}
-										</button>
-									</>
-								)}.
-							</p>
-							<p className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">
-								{t('selectCredentialPopup.descriptionSelect')}
-							</p>
-						</>
+					{popupState.options.verifierDomainName && (
+						<p className="pd-2 text-gray-700 text-sm dark:text-white">
+							<span>
+								<Trans
+									i18nKey={"selectCredentialPopup.purpose"}
+									values={{ verifierDomainName: popupState.options.verifierDomainName }}
+									components={{ strong: <strong /> }}
+								/> {popupState.options.verifierPurpose}
+							</span>
+						</p>
 					)}
+					{requestedFieldsText && requestedFields.length > 0 && (
+						<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
+							<span>
+								{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
+							</span>
+							&nbsp;
+							<strong>
+								{requestedFieldsText}
+							</strong>
+							{requestedFields.length > 2 && (
+								<>
+									{' '}
+									< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
+										{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')}`}
+									</button>
+								</>
+							)}.
+						</p>
+					)}
+					<p className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">
+						{t('selectCredentialPopup.descriptionSelect')}
+					</p>
+
 				</div>
 				<div className={`${screenType === 'tablet' ? 'px-28' : 'px-4 xl:px-16'}`}>
-					<Slider
-						items={vcEntities}
-						renderSlideContent={renderSlideContent}
-						onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
-					/>
-					{vcEntities[currentSlide - 1] && (
+					{vcEntities ? (
+						<Slider
+							items={vcEntities}
+							renderSlideContent={renderSlideContent}
+							onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+						/>
+					) : (
+						<CredentialCardSkeleton />
+
+					)}
+					{vcEntities?.[currentSlide - 1] ? (
 						<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'}`}>
 							<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} mainClassName={"text-xs w-full"} />
+						</div>
+					) : (
+						<div className="mt-2">
+							<CredentialInfoSkeleton />
 						</div>
 					)}
 				</div>
 				<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
 					<Button
+						id="cancel-select-credentials"
 						onClick={onClose}
 						variant="cancel"
 						className="mr-2"
@@ -278,12 +291,16 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 					<div className="flex gap-2">
 						{currentIndex > 0 && (
-							<Button variant="secondary" onClick={goToPreviousSelection}>
+							<Button
+								id="previous-select-credentials"
+								variant="secondary"
+								onClick={goToPreviousSelection}>
 								{t('common.previous')}
 							</Button>
 						)}
 
 						<Button
+							id={`${currentIndex < keys.length - 1 ? 'next' : 'send'}-select-credentials`}
 							onClick={goToNextSelection}
 							variant="primary"
 							disabled={!selectedCredential}

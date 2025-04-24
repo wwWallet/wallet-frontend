@@ -17,10 +17,12 @@ const ToastDisplay = ({ id, notification }) => {
 				<p className="font-bold text-lg">{notification?.title}</p>
 				<p>{notification?.body}</p>
 			</div>
-			<button onClick={(e) => {
-				toast.dismiss(id);
-				e.stopPropagation();
-			}}
+			<button
+				id="new-credential-notification-dismiss"
+				onClick={(e) => {
+					toast.dismiss(id);
+					e.stopPropagation();
+				}}
 				className="focus:outline-none ml-6"
 			>
 				<AiOutlineClose size={24} />

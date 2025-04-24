@@ -19,10 +19,18 @@ const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMess
 			</p>
 
 			<div className="flex justify-end space-x-2 pt-4">
-				<Button variant="cancel" onClick={onClose}>
+				<Button
+					id="cancel-redirect-popup"
+					variant="cancel"
+					onClick={onClose}
+				>
 					{t('common.cancel')}
 				</Button>
-				<Button variant="primary" onClick={() => handleContinue()}>
+				<Button
+					id="continue-redirect-popup"
+					variant="primary"
+					onClick={() => handleContinue()}
+				>
 					{t('common.continue')}
 				</Button>
 			</div>

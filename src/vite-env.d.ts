@@ -26,6 +26,9 @@ interface ImportMetaEnv {
 	readonly VITE_MULTI_LANGUAGE_DISPLAY: string;
 	readonly VITE_MULTI_LANGUAGE_DISPLAY: string;
 	readonly VITE_CLOCK_TOLERANCE: string;
+	readonly VITE_STATIC_PUBLIC_URL: string;
+	readonly VITE_STATIC_NAME: string;
+	readonly VITE_I18N_WALLET_NAME_OVERRIDE: string;
 }
 
 interface ImportMeta {

@@ -30,6 +30,7 @@ const NotFound = () => {
 							{t('notFound.message')}
 						</p>
 						<Button
+							id="navigate-home"
 							onClick={handleBackToHome}
 							variant="secondary"
 							additionalClassName='w-full'

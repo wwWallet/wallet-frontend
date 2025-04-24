@@ -4,9 +4,7 @@ import { Context, CredentialParser, HttpClient } from "../interfaces";
 import { VerifiableCredentialFormat } from "../types";
 import { CredentialRenderingService } from "../rendering";
 import { getSdJwtVcMetadata } from "../utils/getSdJwtVcMetadata";
-
-
-
+import { OpenID4VCICredentialRendering } from "../functions/openID4VCICredentialRendering";
 
 export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }): CredentialParser {
 	const encoder = new TextEncoder();
@@ -44,6 +42,7 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 	};
 
 	const cr = CredentialRenderingService();
+	const renderer = OpenID4VCICredentialRendering({ httpClient: args.httpClient });
 
 
 	return {
@@ -83,7 +82,14 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 				}
 			}
 
-			// const response = await args.httpClient.get<unknown>(`${parsedClaims.iss}/.well-known/openid-credential-issuer`).catch(() => null);
+			// Fetch issuer metadata
+			const issuerResponse = await args.httpClient
+				.get(`${parsedClaims.iss}/.well-known/openid-credential-issuer`)
+				.catch(() => null);
+
+			const issuerMetadata = issuerResponse?.data as {
+				credential_configurations_supported?: Record<string, any>;
+			} | null;
 
 			let credentialFriendlyName: string | null = null;
 
@@ -91,23 +97,55 @@ export function SDJWTVCParser(args: { context: Context, httpClient: HttpClient }
 			if (!('error' in getSdJwtMetadataResult)) {
 				const { credentialMetadata } = getSdJwtMetadataResult;
 
-				let displayMetadata = credentialMetadata.display.filter((d: any) => d.lang === args.context.lang)[0];
+				// Get localized display metadata from issuer metadata
+				const issuerDisplay = issuerMetadata?.credential_configurations_supported?.[credentialMetadata.vct]?.display;
+				const issuerDisplayLocalized = Array.isArray(issuerMetadata?.credential_configurations_supported?.[credentialMetadata.vct]?.display)
+					? issuerDisplay.find((d: any) => d.locale === args.context.lang)
+					: null;
 
-				credentialFriendlyName = displayMetadata?.name ?? null;
-				let credentialImageSvgTemplateURL: string | null = displayMetadata?.rendering?.svg_templates?.[0]?.uri || null;
-				const simple: string | null = displayMetadata?.rendering?.simple || null;
+				// Get localized display metadata from credential
+				const credentialDisplayLocalized = Array.isArray(credentialMetadata?.display)
+					? credentialMetadata.display.find((d: any) => d.lang === args.context.lang)
+					: null;
 
+				credentialFriendlyName = credentialDisplayLocalized?.name ?? null;
+
+				let credentialImageSvgTemplateURL: string | null = credentialDisplayLocalized?.rendering?.svg_templates?.[0]?.uri || null;
+				const simpleDisplayConfig = credentialDisplayLocalized?.rendering?.simple || null;
+
+				// 1. Try to fetch SVG template and render
 				if (credentialImageSvgTemplateURL) {
-					const response = await args.httpClient.get(credentialImageSvgTemplateURL).then((res) => res).catch(() => null);
-					if (response && response.status === 200) {
-						const svgdata = response.data as string;
-						if (svgdata) {
-							const svgContent = await cr.renderSvgTemplate({ json: parsedClaims, credentialImageSvgTemplate: svgdata, sdJwtVcMetadataClaims: credentialMetadata.claims })
-								.then((res) => res)
-								.catch(() => null);
-							dataUri = svgContent ? svgContent : "";
-						}
+					const svgResponse = await args.httpClient.get(credentialImageSvgTemplateURL).then((res) => res).catch(() => null);
+					if (svgResponse && svgResponse.status === 200) {
+						const svgdata = svgResponse.data as string;
+						dataUri = await cr
+							.renderSvgTemplate({
+								json: parsedClaims,
+								credentialImageSvgTemplate: svgdata,
+								sdJwtVcMetadataClaims: credentialMetadata.claims,
+							})
+							.catch(() => null);
 					}
+				}
+
+				// 2. Fallback: render from simple config
+				if (!dataUri && simpleDisplayConfig) {
+					dataUri = await renderer
+						.renderCustomSvgTemplate({
+							signedClaims: parsedClaims,
+							displayConfig: { ...credentialDisplayLocalized, ...simpleDisplayConfig },
+						})
+						.catch(() => null);
+				}
+
+				// 3. Fallback: render from issuer metadata display
+				if (!dataUri && issuerDisplayLocalized) {
+					dataUri = await renderer
+						.renderCustomSvgTemplate({
+							signedClaims: parsedClaims,
+							displayConfig: issuerDisplayLocalized,
+						})
+						.catch(() => null);
 				}
 			}
 

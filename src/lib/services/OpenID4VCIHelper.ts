@@ -8,6 +8,7 @@ import { useHttpProxy } from "./HttpProxy/HttpProxy";
 import { useCallback, useContext, useEffect, useState, useMemo } from "react";
 import StatusContext from "@/context/StatusContext";
 import SessionContext from "@/context/SessionContext";
+import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacasResponseSchema";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
@@ -28,7 +29,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		async function fetchAndCache<T>(path: string, schema: any, isOnline: boolean, forceIndexDB: boolean): Promise<T> {
 			console.log('fetchAndCache')
 			if (!isOnline || forceIndexDB) {
-				const cachedData = await getItem(path, path);
+				const cachedData = await getItem(path, path, "externalEntities");
 				if (cachedData) return cachedData;
 			}
 
@@ -38,7 +39,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				if (!response) throw new Error("Couldn't get response");
 
 				const parsedData = schema.parse(response.data);
-				await addItem(path, path, parsedData);  // Cache the fetched data
+				await addItem(path, path, parsedData, "externalEntities");  // Cache the fetched data
 				return parsedData;
 			} catch (err) {
 				console.error(`Error fetching from ${path}:`, err);
@@ -123,6 +124,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 						return null;
 					}
 					catch (err) {
+						console.error(err);
 						return null;
 					}
 				}
@@ -136,16 +138,43 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		[fetchAndCache, isOnline, shouldUseCache]
 	);
 
+
+	const getMdocIacas = useCallback(
+		async (credentialIssuerIdentifier: string) => {
+			console.log('getClientId');
+			try {
+				const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				if (metadata.mdoc_iacas_uri) {
+					const response = await fetchAndCache<MdocIacasResponse>(
+						`${metadata.mdoc_iacas_uri}`,
+						MdocIacasResponseSchema,
+						isOnline,
+						shouldUseCache,
+					);
+					return response;
+				}
+				return null;
+			}
+			catch (err) {
+				console.error(err);
+				return null;
+			}
+		},
+		[api]
+	);
+
 	return useMemo(
 		() => ({
 			getClientId,
 			getAuthorizationServerMetadata,
 			getCredentialIssuerMetadata,
+			getMdocIacas,
 		}),
 		[
 			getClientId,
 			getAuthorizationServerMetadata,
-			getCredentialIssuerMetadata
+			getCredentialIssuerMetadata,
+			getMdocIacas,
 		]
 	);
 }

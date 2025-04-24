@@ -11,10 +11,11 @@ import SessionContext from '@/context/SessionContext';
 import { MdNotifications } from "react-icons/md";
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 
-const NavItem = ({ icon: Icon, label, handleNavigate, location, path, alias, notificationIcon, className = '' }) => {
+const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
 	return (
 		<button
+			id={`sidebar-item-${id}`}
 			onClick={() => handleNavigate(path)}
 			className={`cursor-pointer flex items-center justify-between space-x-2 mb-4 p-2 rounded-r-xl w-full ${isActive ? 'bg-white text-primary' : 'nav-item-animate-hover'} ${className}`}
 		>
@@ -108,6 +109,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						{/* Nav Menu */}
 						<NavItem
+							id="credentials"
 							path="/"
 							alias="/cb"
 							location={location}
@@ -118,6 +120,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
+							id="add"
 							path="/add"
 							location={location}
 							handleNavigate={handleNavigate}
@@ -127,6 +130,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
+							id="send"
 							path="/send"
 							location={location}
 							handleNavigate={handleNavigate}
@@ -136,6 +140,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
+							id="history"
 							path="/history"
 							location={location}
 							handleNavigate={handleNavigate}
@@ -145,6 +150,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						/>
 
 						<NavItem
+							id="settings"
 							path="/settings"
 							location={location}
 							handleNavigate={handleNavigate}
@@ -161,6 +167,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 						<hr className="my-2 border-t border-white/20" />
 
 						<button
+							id="sidebar-item-logout"
 							onClick={handleLogout}
 							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-r-xl nav-item-animate-hover w-full`}
 						>

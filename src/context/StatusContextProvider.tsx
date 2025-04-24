@@ -42,7 +42,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	const [connectivity, setConnectivity] = useState<Connectivity>({
 		navigatorOnline: null,
 		Internet: null,
-		speed: 0,
+		speed: null,
 	});
 	const [pwaInstallable, setPwaInstallable] = useState(null);
 	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>("hidePwaPrompt", false);

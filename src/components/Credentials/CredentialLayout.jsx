@@ -71,7 +71,12 @@ const CredentialLayout = ({ children, title = null }) => {
 				</H1>
 			) : (
 				<div className='flex'>
-					<button onClick={() => navigate(-1)} className="mr-2 mb-2" aria-label="Go back to the previous page">
+					<button
+						id="go-previous"
+						onClick={() => navigate(-1)}
+						className="mr-2 mb-2"
+						aria-label="Go back to the previous page"
+					>
 						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 					</button>
 					{title && <H1 heading={title} hr={false} />}
@@ -86,7 +91,9 @@ const CredentialLayout = ({ children, title = null }) => {
 						{vcEntity && (
 							// Open the modal when the credential is clicked
 							<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
-								<button className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
+								<button
+									id="show-full-screen-credential"
+									className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
 									onClick={() => setShowFullscreenImgPopup(true)}
 									aria-label={`${credentialFiendlyName}`}
 									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}

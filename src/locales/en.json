@@ -37,7 +37,8 @@
 			"good": "Good",
 			"fair": "Fair",
 			"poor": "Poor",
-			"veryPoor": "Very Poor"
+			"veryPoor": "Very Poor",
+			"connecting": "Connecting..."
 		}
 	},
 	"layout": {
@@ -132,13 +133,13 @@
 		"title": "Oops, page not found!"
 	},
 	"pageAddCredentials": {
-		"description": "Search and choose an issuer for credential retrieval",
+		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
 		"popup": {
-			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> to issue a <strong>{{credentialName}}</strong>.",
+			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
 			"title": "Selected:"
 		},
-		"searchPlaceholder": "Search issuers..."
+		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",

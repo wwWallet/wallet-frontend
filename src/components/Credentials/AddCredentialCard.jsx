@@ -8,6 +8,7 @@ const AddCredentialCard = ({ onClick }) => {
 	const { t } = useTranslation();
 	return (
 		<button
+			id="add-credential-card"
 			className="step-1 relative rounded-xl overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 			onClick={onClick}
 		>

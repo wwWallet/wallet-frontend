@@ -1,9 +1,9 @@
 import { createContext } from 'react';
 
 export interface Connectivity {
-	navigatorOnline: boolean;
-	Internet: boolean;
-	speed: number;
+	navigatorOnline: boolean | null;
+	Internet: boolean | null;
+	speed: number | null;
 }
 
 interface StatusContextValue {
@@ -19,7 +19,7 @@ interface StatusContextValue {
 const StatusContext = createContext<StatusContextValue>({
 	isOnline: null,
 	updateAvailable: false,
-	connectivity: { navigatorOnline: null, Internet: null, speed: 0 },
+	connectivity: { navigatorOnline: null, Internet: null, speed: null },
 	pwaInstallable: null,
 	dismissPwaPrompt: () => { },
 	hidePwaPrompt: false,
