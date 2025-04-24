@@ -15,8 +15,8 @@ const LanguageSelector = ({
 	showName = false,
 }: LanguageSelectorProps) => {
 	const { i18n, t } = useTranslation();
-	const {appSettings}= useContext(StatusContext);
-	
+	const { appSettings } = useContext(StatusContext);
+
 	const selectedLocale = appSettings.Settings?.locale ?? i18n.language;
 
 	// Filter language options based on resources in i18n and languageOptions
