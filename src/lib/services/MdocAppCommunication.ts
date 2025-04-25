@@ -14,6 +14,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	let deviceEngagementBytesRef = useRef<any>(null);
 	let credentialRef = useRef<any>(null);
 	let sessionDataEncodedRef = useRef<Buffer | null>(null);
+	let fieldsPEXRef = useRef<any[]>([]);
+	let sessionTranscriptBytesRef = useRef<Buffer | null>(null);
+	let skDeviceRef = useRef<CryptoKey>(null);
 	const assumedChunkSize = 512;
 
 	const { keystore } = useContext(SessionContext);
@@ -99,14 +102,14 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			y: uint8ArrayToBase64Url(coseKey.get(-3))
 		}
 		const verifierPublicKey = await crypto.subtle.importKey("jwk", verifierJWK, {name: "ECDH", namedCurve: "P-256"}, true, []);
-		const sessionTranscriptBytes = getSessionTranscriptBytes(
+		sessionTranscriptBytesRef.current = getSessionTranscriptBytes(
 			deviceEngagementBytesRef.current, // DeviceEngagementBytes
 			decoded.get('eReaderKey'), // EReaderKeyBytes
 		);
 		const zab = await deriveSharedSecret(ephemeralKeyRef.current.privateKey, verifierPublicKey);
-		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytes);
-		const SKDevice = await getKey(zab, salt, "SKDevice");
-		const SKReader = await getKey(zab, salt, "SKReader");
+		const salt = await crypto.subtle.digest("SHA-256", sessionTranscriptBytesRef.current);
+		skDeviceRef.current = await getKey(zab, salt, "SKDevice");
+		const skReader = await getKey(zab, salt, "SKReader");
 		const iv = new Uint8Array([
 			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // identifier
 			0x00, 0x00, 0x00, 0x01 // message counter
@@ -114,7 +117,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		let decryptedVerifierData;
 		try {
-			decryptedVerifierData = await decryptMessage(SKReader, iv, verifierData, true);
+			decryptedVerifierData = await decryptMessage(skReader, iv, verifierData, true);
 		} catch (e) {
 			console.log(e);
 		}
@@ -134,70 +137,72 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 					"intent_to_retain": value
 				},)
 			})
-			const fullPEX = {
-				"id": "MdocPID",
-				"title": "MDOC PID",
-				"description": "Placeholder description",
-				"input_descriptors": [
-					{
-						"id": "eu.europa.ec.eudi.pid.1",
-						"format": {
-							"mso_mdoc": {
-								"alg": [
-									"ES256"
-								]
-							},
-						},
-						"constraints": {
-							"limit_disclosure": "required",
-							"fields": fieldsPEX
-						}
-					}
-				]
-			}
-
-			// const presentationDefinition = fullPEX;
-			const credentialBytes = base64url.decode(credentialRef.current);
-			const issuerSigned = cborDecode(credentialBytes);
-			// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
-			const descriptor = {"id": "eu.europa.ec.eudi.pid.1"}
-			const m = {
-				version: '1.0',
-				documents: [new Map([
-					['docType', descriptor.id],
-					['issuerSigned', issuerSigned]
-				])],
-				status: 0
-			};
-			const encoded = cborEncode(m);
-			const mdoc = parse(encoded);
-
-			const { deviceResponseMDoc } = await keystore.generateDeviceResponseWithProximity(mdoc, fullPEX, sessionTranscriptBytes);
-
-			// encrypt mdoc response
-			const ivEncryption = new Uint8Array([
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // identifier
-				0x00, 0x00, 0x00, 0x01 // message counter
-			]);
-
-			console.log("Device response: ");
-			console.log(uint8ArraytoHexString(deviceResponseMDoc.encode()));
-			const { ciphertext } = (await encryptUint8Array(SKDevice, deviceResponseMDoc.encode(), ivEncryption));
-			const encryptedMdoc = ciphertext;
-
-			const sessionData = {
-				data: new Uint8Array(encryptedMdoc),
-				// data: encryptedMdoc,
-				status: 20
-			}
-
-			sessionDataEncodedRef.current = cborEncode(sessionData);
+			fieldsPEXRef.current = fieldsPEX;
 		}
 
 		return fieldKeys;
 	}, [keystore]);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
+		const fullPEX = {
+			"id": "MdocPID",
+			"title": "MDOC PID",
+			"description": "Placeholder description",
+			"input_descriptors": [
+				{
+					"id": "eu.europa.ec.eudi.pid.1",
+					"format": {
+						"mso_mdoc": {
+							"alg": [
+								"ES256"
+							]
+						},
+					},
+					"constraints": {
+						"limit_disclosure": "required",
+						"fields": fieldsPEXRef.current
+					}
+				}
+			]
+		}
+
+		// const presentationDefinition = fullPEX;
+		const credentialBytes = base64url.decode(credentialRef.current);
+		const issuerSigned = cborDecode(credentialBytes);
+		// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
+		const descriptor = {"id": "eu.europa.ec.eudi.pid.1"}
+		const m = {
+			version: '1.0',
+			documents: [new Map([
+				['docType', descriptor.id],
+				['issuerSigned', issuerSigned]
+			])],
+			status: 0
+		};
+		const encoded = cborEncode(m);
+		const mdoc = parse(encoded);
+
+		const { deviceResponseMDoc } = await keystore.generateDeviceResponseWithProximity(mdoc, fullPEX, sessionTranscriptBytesRef.current);
+
+		// encrypt mdoc response
+		const ivEncryption = new Uint8Array([
+			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, // identifier
+			0x00, 0x00, 0x00, 0x01 // message counter
+		]);
+
+		console.log("Device response: ");
+		console.log(uint8ArraytoHexString(deviceResponseMDoc.encode()));
+		const { ciphertext } = (await encryptUint8Array(skDeviceRef.current, deviceResponseMDoc.encode(), ivEncryption));
+		const encryptedMdoc = ciphertext;
+
+		const sessionData = {
+			data: new Uint8Array(encryptedMdoc),
+			// data: encryptedMdoc,
+			status: 20
+		}
+
+		sessionDataEncodedRef.current = cborEncode(sessionData);
+
 		if (sessionDataEncodedRef.current) {
 			let toSendBytes = Array.from(sessionDataEncodedRef.current);
 			while (toSendBytes.length > (assumedChunkSize - 1)){
