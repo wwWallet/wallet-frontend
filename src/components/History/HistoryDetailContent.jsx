@@ -13,8 +13,8 @@ import useScreenType from '../../hooks/useScreenType';
 
 import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
-import { CredentialVerificationError } from "core/dist/error";
-import { VerifiableCredentialFormat } from "core/dist/types";
+import { CredentialVerificationError } from "wallet-common/dist/error";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);

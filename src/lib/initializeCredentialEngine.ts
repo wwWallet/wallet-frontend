@@ -1,6 +1,6 @@
 import { CLOCK_TOLERANCE } from "../config";
 import { IHttpProxy } from "./interfaces/IHttpProxy";
-import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "core";
+import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
 import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
 
 export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: IOpenID4VCIHelper, credentialIssuerEntities: Record<string, unknown>[] = [], trustedCertificates: string[] = []) {
