@@ -6,7 +6,9 @@ import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url,
 import { base64url } from "jose";
 import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
-
+import { toBase64 } from "@/util";
+import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
+import { VerifiableCredentialFormat } from "../schemas/vc";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
 	let ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
@@ -19,10 +21,24 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	let skDeviceRef = useRef<CryptoKey>(null);
 	const assumedChunkSize = 512;
 
-	const { keystore } = useContext(SessionContext);
+	const { keystore, api } = useContext(SessionContext);
+
+	const storeVerifiablePresentation = useCallback(
+		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
+			await api.post('/storage/vp', {
+				presentationIdentifier: generateRandomIdentifier(32),
+				presentation,
+				presentationSubmission,
+				includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
+				audience,
+				issuanceDate: new Date().toISOString(),
+			});
+		},
+		[api]
+	);
 
 
-	const generateEngagementQR = useCallback(async (credential :any) => {
+	const generateEngagementQR = useCallback(async (vcEntity :any) => {
 		const keyPair = await crypto.subtle.generateKey(
 			{
 				name: "ECDH",
@@ -42,7 +58,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		const cbor = cborEncode(deviceEngagement);
 
 		deviceEngagementBytesRef.current = DataItem.fromData(deviceEngagement);
-		credentialRef.current = credential;
+		credentialRef.current = vcEntity;
 
 		return `mdoc:${uint8ArrayToBase64Url(cbor)}`;
 	}, [uuid]);
@@ -167,7 +183,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 
 		// const presentationDefinition = fullPEX;
-		const credentialBytes = base64url.decode(credentialRef.current);
+		const credentialBytes = base64url.decode(credentialRef.current.credential);
 		const issuerSigned = cborDecode(credentialBytes);
 		// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 		const descriptor = {"id": "eu.europa.ec.eudi.pid.1"}
@@ -215,7 +231,23 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			}
 			/* @ts-ignore */
 			const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
+
+			const presentationSubmission = {
+				id: generateRandomIdentifier(8),
+				definition_id: fullPEX.id,
+				descriptor_map: [
+					{
+						id: fullPEX.input_descriptors[0].id,
+						format: VerifiableCredentialFormat.MSO_MDOC,
+						path: `$`
+					}
+				],
+			};
+
+			const presentations = "b64:" + toBase64(new TextEncoder().encode(base64url.encode((deviceResponseMDoc.encode()))));
+			await storeVerifiablePresentation(presentations, presentationSubmission, credentialRef.current.credentialIdentifier, "Proximity Mode");
 		}
+
 		/* @ts-ignore */
 		await nativeWrapper.bluetoothTerminate();
 		return ;

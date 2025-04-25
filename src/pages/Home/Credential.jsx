@@ -64,7 +64,7 @@ const Credential = () => {
 
 	const generateQR = async () => {
 		setMdocQRStatus(0);
-		setMdocQRContent(await generateEngagementQR(vcEntity.credential));
+		setMdocQRContent(await generateEngagementQR(vcEntity));
 		setShowMdocQR(true);
 		const client = await startClient();
 		if (!client) {
