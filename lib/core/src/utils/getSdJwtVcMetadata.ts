@@ -121,34 +121,40 @@ export function validateAgainstSchema(
 async function fetchAndMergeMetadata(
 	context: Context,
 	httpClient: HttpClient,
-	url: string,
+	metadataId: string,
+	metadataObj?: Object,
 	visited = new Set<string>(),
 	integrity?: string,
 	credentialPayload?: Record<string, any>
 ): Promise<Record<string, any> | MetadataError> {
-	if (visited.has(url)) {
+
+	if (visited.has(metadataId)) {
 		return { error: "NOT_FOUND" };
 	}
-	visited.add(url);
+	visited.add(metadataId);
 
-	const result = await httpClient.get(url);
+	let metadata;
+	if (metadataObj) {
+		metadata = metadataObj as Record<string, any>;
+	} else {
+		const result = await httpClient.get(metadataId);
 
-	if (
-		!result ||
-		result.status !== 200 ||
-		typeof result.data !== 'object' ||
-		result.data === null ||
-		!('vct' in result.data)
-	) {
-		return { error: "NOT_FOUND" };
+		if (
+			!result ||
+			result.status !== 200 ||
+			typeof result.data !== 'object' ||
+			result.data === null ||
+			!('vct' in result.data)
+		) {
+			return { error: "NOT_FOUND" };
+		}
+
+		if (!integrity) return { error: "INTEGRITY_MISSING" };
+
+		const isValid = verifySRIFromObject(context, result.data, integrity);
+		if (!isValid) return { error: "INTEGRITY_FAIL" };
+		metadata = result.data as Record<string, any>;
 	}
-
-	if (!integrity) return { error: "INTEGRITY_MISSING" };
-
-	const isValid = verifySRIFromObject(context, result.data, integrity);
-	if (!isValid) return { error: "INTEGRITY_FAIL" };
-
-	let metadata = result.data as Record<string, any>;
 
 	if ('schema' in metadata && 'schema_uri' in metadata) {
 		return { error: "SCHEMA_CONFLICT" };
@@ -197,7 +203,7 @@ async function fetchAndMergeMetadata(
 
 	if (typeof metadata.extends === 'string') {
 		const childIntegrity = metadata['extends#integrity'] as string | undefined;
-		const parent = await fetchAndMergeMetadata(context, httpClient, metadata.extends, visited, childIntegrity);
+		const parent = await fetchAndMergeMetadata(context, httpClient, metadata.extends, undefined, visited, childIntegrity);
 		if ('error' in parent) return parent;
 		merged = deepMerge(parent, metadata);
 	} else {
@@ -254,7 +260,7 @@ export async function getSdJwtVcMetadata(context: Context, httpClient: HttpClien
 		if (vct && typeof vct === 'string' && isValidHttpUrl(vct)) {
 			try {
 				const vctIntegrity = credentialPayload['vct#integrity'] as string | undefined;
-				const mergedMetadata = await fetchAndMergeMetadata(context, httpClient, vct, new Set(), vctIntegrity, credentialPayload);
+				const mergedMetadata = await fetchAndMergeMetadata(context, httpClient, vct, undefined, new Set(), vctIntegrity, credentialPayload);
 				if ('error' in mergedMetadata) {
 					return { error: mergedMetadata.error }
 				}
@@ -270,8 +276,13 @@ export async function getSdJwtVcMetadata(context: Context, httpClient: HttpClien
 				JSON.parse(new TextDecoder().decode(fromBase64(encodedMetadataDocument)))
 			).filter(((metadataDocument: Record<string, unknown>) => metadataDocument.vct === credentialPayload.vct))[0];
 			if (sdjwtvcMetadataDocument) {
-				console.log('Final Metadata:', sdjwtvcMetadataDocument);
-				return { credentialMetadata: sdjwtvcMetadataDocument };
+				console.log('sdjwtvcMetadataDocument', sdjwtvcMetadataDocument);
+				const vctmMergedMetadata = await fetchAndMergeMetadata(context, httpClient, sdjwtvcMetadataDocument.vct, sdjwtvcMetadataDocument, new Set(), undefined, credentialPayload);
+				if ('error' in vctmMergedMetadata) {
+					return { error: vctmMergedMetadata.error }
+				}
+				console.log('Final vctm Metadata:', vctmMergedMetadata);
+				return { credentialMetadata: vctmMergedMetadata };
 			}
 		}
 
