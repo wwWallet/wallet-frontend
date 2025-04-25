@@ -1,6 +1,6 @@
 // CredentialsContext.ts
 import { createContext } from 'react';
-import { ParsedCredential } from 'core/dist/types';
+import { ParsedCredential } from 'wallet-common/dist/types';
 
 type Instance = {
 	instanceId: number;

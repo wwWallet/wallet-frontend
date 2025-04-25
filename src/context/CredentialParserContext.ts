@@ -1,5 +1,5 @@
 import React, { createContext } from "react";
-import { ParsedCredential } from "core/dist/types";
+import { ParsedCredential } from "wallet-common/dist/types";
 
 export type CredentialParserContextValue = {
 	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
