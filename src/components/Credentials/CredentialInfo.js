@@ -101,16 +101,20 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 				return;
 			}
 
-			const supportedCredentialConfigurations = Object.values(metadata.credential_configurations_supported);
-
-			if (! supportedCredentialConfigurations.every(configuration => configuration.format === VerifiableCredentialFormat.JWT_VC_JSON.toString())) {
-				return;
-			}
+			const beautifiedForm = c.beautifiedForm.vc || c.beautifiedForm;
+			
+			const credentialConfiguration = (Object.entries(metadata.credential_configurations_supported)
+				.find(([key]) => (beautifiedForm.type || beautifiedForm.vc.type || []).includes(key)) || [])
+				.pop();
+			
+			if (credentialConfiguration.format !== VerifiableCredentialFormat.JWT_VC_JSON.toString()) return;
 
 			setCredentialFormat(VerifiableCredentialFormat.JWT_VC_JSON.toString());
 
+			const supportedCredentialConfigurations = Object.values(metadata.credential_configurations_supported);
+
 			const credentialSubjects = supportedCredentialConfigurations
-				.filter(config => (c.beautifiedForm.type || c.beautifiedForm.vc?.type || []).includes(config.scope))
+				.filter(config => (c.beautifiedForm.type || c.beautifiedForm.vc.type || []).includes(config.scope))
 				.map(config => Object.entries(config?.credential_definition?.credentialSubject || {}))
 				;
 			
@@ -172,9 +176,12 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 								{credentialSubjectRows.map(row => renderRow(row.name, row.label, row.value, screenType))}
 								{/* @todo: make dynamic using schema from credential context */}
 								{renderRow('name', 'Name', parsedCredential?.credentialSubject?.achievement?.name, screenType)}
+								{renderRow('name', 'Name', parsedCredential?.vc?.credentialSubject?.achievement?.name, screenType)}
 								{renderRow('description', 'Description', parsedCredential?.credentialSubject?.achievement?.description, screenType)}
+								{renderRow('description', 'Description', parsedCredential?.vc?.credentialSubject?.achievement?.description, screenType)}
 								{renderRow('id', 'ID', parsedCredential?.credentialSubject?.achievement?.id, screenType)}
 								{renderRow('criteria', 'Criteria', parsedCredential?.credentialSubject?.achievement?.criteria?.narrative, screenType)}
+								{renderRow('criteria', 'Criteria', parsedCredential?.vc?.credentialSubject?.achievement?.criteria?.narrative, screenType)}
 							</>
 						)
 					}

@@ -243,8 +243,10 @@ export const ContainerContextProvider = ({ children }) => {
 							return { error: 'No metadata' };
 						}
 
+						const beautifiedForm = result.beautifiedForm.vc || result.beautifiedForm;
+
 						const credentialConfiguration: Record<string, any> = (Object.entries(metadata.credential_configurations_supported)
-							.find(([key]) => (result.beautifiedForm.type || result.beautifiedForm.vc?.type || []).includes(key)) || [])
+							.find(([key]) => (beautifiedForm.type || beautifiedForm.vc.type || []).includes(key)) || [])
 							.pop() as unknown as Record<string, any>;
 						
 						if (credentialConfiguration.format !== VerifiableCredentialFormat.JWT_VC_JSON.toString()) {
@@ -252,10 +254,10 @@ export const ContainerContextProvider = ({ children }) => {
 						}
 
 						// @todo: make more dynamic using schema from credential context
-						const isOpenBadgeCredential = (result.beautifiedForm.type || result.beautifiedForm.vc?.type || []).includes('OpenBadgeCredential');
+						const isOpenBadgeCredential = (beautifiedForm.type || beautifiedForm.vc.type).includes('OpenBadgeCredential');
 
 						const credentialFriendlyName = isOpenBadgeCredential
-							? result.beautifiedForm.credentialSubject.achievement.name
+							? beautifiedForm.credentialSubject.achievement.name
 							: result.beautifiedForm.name || credentialConfiguration?.display?.[0]?.name || 'Credential';
 
 						if (credentialConfiguration) {
@@ -265,10 +267,10 @@ export const ContainerContextProvider = ({ children }) => {
 								{};
 
 							let description = isOpenBadgeCredential
-								? result.beautifiedForm.credentialSubject.achievement.description
+								? beautifiedForm.credentialSubject.achievement.description
 								: result.beautifiedForm.description || display?.description || '';
 							let logoURL = isOpenBadgeCredential
-								? result.beautifiedForm.credentialSubject.achievement.image.id
+								? beautifiedForm.credentialSubject.achievement.image.id
 								: display?.logo?.uri || null;
 							let logoAltText = display?.logo?.alt_text || 'Credential logo';
 							let backgroundColor = display?.background_color || '#808080';
