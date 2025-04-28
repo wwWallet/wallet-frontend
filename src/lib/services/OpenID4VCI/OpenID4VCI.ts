@@ -10,6 +10,7 @@ import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepo
 import { useCallback, useContext, useMemo, useEffect, useRef } from 'react';
 import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
+import { useOpenID4VCIAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequest';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
@@ -29,6 +30,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
+	const OpenID4VCIAuthorizationRequest = useOpenID4VCIAuthorizationRequest();
 	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
 	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications();
 
@@ -421,7 +423,22 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
 
-			if (authzServerMetadata.authzServeMetadata.pushed_authorization_request_endpoint) {
+			if (!authzServerMetadata.authzServeMetadata.require_pushed_authorization_requests) {
+				const res = await OpenID4VCIAuthorizationRequest.generate(
+					credentialConfigurationId,
+					issuer_state,
+					{
+						authorizationServerMetadata: authzServerMetadata.authzServeMetadata,
+						credentialIssuerMetadata: credentialIssuerMetadata.metadata,
+						credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
+						clientId: clientId.client_id,
+						redirectUri: redirectUri
+					}
+				);
+				if ('authorizationRequestURL' in res) {
+					return { url: res.authorizationRequestURL };
+				}
+			} else if (authzServerMetadata.authzServeMetadata.require_pushed_authorization_requests && authzServerMetadata.authzServeMetadata.authorization_challenge_endpoint) {
 				const res = await openID4VCIPushedAuthorizationRequest.generate(
 					credentialConfigurationId,
 					issuer_state,
