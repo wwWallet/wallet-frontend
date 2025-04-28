@@ -36,6 +36,7 @@ for (const lc in locales) {
 		continue;
 	}
 	console.log(`\x1b[32m- ${lc} detected\x1b[0m`);
+
 	console.log(`Missing for ${lc}:`);
 	const lcLeafs = new Set();
 	constructLeafNames(locales[lc], '', lcLeafs);
@@ -47,9 +48,56 @@ for (const lc in locales) {
 		}
 	}
 	const completion = ((1 - missingCount / leafNames.size) * 100).toFixed(2);
-	console.log(`${missingCount} entries (${(100 - (missingCount * 100.0 / lcLeafs.size)).toFixed(2)}% completion)`);
+
+	console.log();
+	console.log(`Extraneous for ${lc}:`);
+	let extraCount = 0;
+	for (const item of lcLeafs) {
+		if (!leafNames.has(item)) {
+			console.log(item);
+			extraCount++;
+		}
+	}
+
+	console.log(`${missingCount} missing entries (${(100 - (missingCount * 100.0 / lcLeafs.size)).toFixed(2)}% completion)`);
+	console.log(`${extraCount} extraneous entries`);
 	console.log('');
 	coverageResults[lc] = Number(completion);
+}
+
+function removeExtraneousKeys(src, target) {
+	if (target instanceof Object && !(target instanceof Array)) {
+		return Object.keys(src).reduce(
+			(result, key) => {
+				result[key] = removeExtraneousKeys(src[key], target[key]);
+				return result;
+			},
+			{},
+		);
+	} else {
+		return target;
+	}
+}
+
+function sortKeys(obj) {
+	if (obj instanceof Object && !(obj instanceof Array)) {
+		return Object.keys(obj).sort().reduce(
+			(result, key) => {
+				result[key] = sortKeys(obj[key]);
+				return result;
+			},
+			{},
+		);
+	} else {
+		return obj;
+	}
+}
+
+console.log("Tidying keys in translation files...");
+for (const loc in locales) {
+	const extraneousRemoved = removeExtraneousKeys(locales['en'], locales[loc]);
+	const sorted = sortKeys(extraneousRemoved);
+	fs.writeFileSync(`./src/locales/${loc}.json`, JSON.stringify(sorted, null, "\t"));
 }
 
 // Save JSON files
