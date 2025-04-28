@@ -182,6 +182,8 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 								{renderRow('id', 'ID', parsedCredential?.credentialSubject?.achievement?.id, screenType)}
 								{renderRow('criteria', 'Criteria', parsedCredential?.credentialSubject?.achievement?.criteria?.narrative, screenType)}
 								{renderRow('criteria', 'Criteria', parsedCredential?.vc?.credentialSubject?.achievement?.criteria?.narrative, screenType)}
+								{renderRow('ects', 'ECTS', parsedCredential?.vc?.credentialSubject?.achievement?.ECTS, screenType)}
+								{renderRow('result', 'Result', (parsedCredential?.vc?.credentialSubject?.result || [])[0]?.value, screenType)}
 							</>
 						)
 					}
