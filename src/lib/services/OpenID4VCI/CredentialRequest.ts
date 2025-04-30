@@ -5,6 +5,7 @@ import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
+import { OPENID4VCI_PROOF_TYPE_PRECEDENCE } from "../../../config";
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -19,6 +20,27 @@ export function useCredentialRequest() {
 	const dpopPublicKeyJwkRef = useRef<JWK | null>(null);
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
+
+	const requestKeyAttestation = async (jwks: JWK[], nonce: string) => {
+		try {
+			const response = await api.post("/wallet-provider/key-attestation/generate", {
+				jwks,
+				openid4vci: {
+					nonce: nonce,
+				}
+			});
+			const { key_attestation } = response.data;
+			if (!key_attestation || typeof key_attestation != 'string') {
+				console.log("Cannot parse key_attestation from wallet-backend-server");
+				return null;
+			}
+			return { key_attestation };
+		}
+		catch (err) {
+			console.log(err);
+			return null;
+		}
+	}
 
 	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/json',
@@ -93,7 +115,7 @@ export function useCredentialRequest() {
 		credentialIssuerIdentifierRef.current = id;
 	}, []);
 
-	const execute = useCallback(async (credentialConfigurationId: string, cachedProofs?: any): Promise<{ credentialResponse: any }> => {
+	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
@@ -102,26 +124,67 @@ export function useCredentialRequest() {
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 		]);
-		let proofsArray: string[] = [];
-		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
-		try {
-			const inputs = [];
-			for (let i = 0; i < numberOfProofs; i++) {
-				inputs.push({
-					nonce: c_nonce,
-					issuer: clientId.client_id,
-					audience: credentialIssuerMetadata.metadata.credential_issuer
-				})
-			}
 
-			if (cachedProofs) {
-				proofsArray = cachedProofs;
+		const credentialEndpointBody = {
+			"format": credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId].format,
+		} as any;
+		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+		let proofs: {
+			nonce: string,
+			issuer: string,
+			audience: string
+		}[] | null = null;
+		let keyAttestation: string | null = null;
+
+		try {
+			if (proofType === "jwt") {
+				const inputs = [];
+				for (let i = 0; i < numberOfProofs; i++) {
+					inputs.push({
+						nonce: c_nonce,
+						issuer: clientId.client_id,
+						audience: credentialIssuerMetadata.metadata.credential_issuer
+					})
+				}
+				proofs = inputs;
 			}
-			else {
-				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(inputs);
+			else if (proofType === "attestation") {
+				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+				const [{ publicKeys }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
 				await api.updatePrivateData(newPrivateData);
 				await keystoreCommit();
-				proofsArray = proof_jwts;
+
+				const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
+				if (!requestKeyAttestationResponse) {
+					throw new Error("Failed to get key attestation from wallet-backend-server");
+				}
+				keyAttestation = requestKeyAttestationResponse.key_attestation;
+			}
+
+			if (proofs) {
+				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
+				await api.updatePrivateData(newPrivateData);
+				await keystoreCommit();
+				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
+					credentialEndpointBody.proofs = {
+						jwt: proof_jwts
+					}
+				}
+				else {
+					credentialEndpointBody.proof = {
+						proof_type: "jwt",
+						jwt: proof_jwts[0]
+					};
+				}
+			}
+			else if (keyAttestation) {
+				credentialEndpointBody.proof = {
+					proof_type: "attestation",
+					attestation: keyAttestation,
+				};
+			}
+			else {
+				throw new Error("Nor proofs, nor keyAttestation was defined before sending CredentialRequest");
 			}
 		}
 		catch (err) {
@@ -129,21 +192,6 @@ export function useCredentialRequest() {
 			throw new Error("Failed to generate proof");
 		}
 
-		const credentialEndpointBody = {
-			"format": credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId].format,
-		} as any;
-
-		if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
-			credentialEndpointBody.proofs = {
-				jwt: proofsArray
-			}
-		}
-		else {
-			credentialEndpointBody.proof = {
-				proof_type: "jwt",
-				jwt: proofsArray[0],
-			}
-		}
 
 		const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
 
@@ -167,7 +215,7 @@ export function useCredentialRequest() {
 				setDpopNonce(credentialResponse.headers?.["dpop-nonce"] as string);
 				await setDpopHeader();
 				// response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-				return await execute(credentialConfigurationId, proofsArray);
+				return await execute(credentialConfigurationId, proofType, proofs);
 			}
 			throw new Error("Credential Request failed");
 		}
