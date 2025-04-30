@@ -77,43 +77,52 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 
 		const { code_challenge, code_verifier } = await pkce();
 
-		const formData = new URLSearchParams();
+
+		const authParams = new URLSearchParams();
 
 		const selectedCredentialConfigurationSupported = this.config.credentialIssuerMetadata.credential_configurations_supported[credentialConfigurationId];
-		formData.append("scope", selectedCredentialConfigurationSupported.scope);
+		authParams.append("scope", selectedCredentialConfigurationSupported.scope);
 
-		formData.append("response_type", "code");
+		authParams.append("response_type", "code");
 
-		formData.append("client_id", this.config.clientId);
-		formData.append("code_challenge", code_challenge);
+		authParams.append("client_id", this.config.clientId);
+		authParams.append("code_challenge", code_challenge);
 
-		formData.append("code_challenge_method", "S256");
+		authParams.append("code_challenge_method", "S256");
 
 		// the purpose of the "id" is to provide the "state" a random factor for unlinkability and to make OpenID4VCIClientState instances unique
 		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-		formData.append("state", state);
+		authParams.append("state", state);
 
 		if (issuer_state) {
-			formData.append("issuer_state", issuer_state);
+			authParams.append("issuer_state", issuer_state);
 		}
 
-		formData.append("redirect_uri", redirectUri);
-		let res;
-		try {
-			res = await this.httpProxy.post(this.config.authorizationServerMetadata.pushed_authorization_request_endpoint, formData.toString(), {
-				'Content-Type': 'application/x-www-form-urlencoded'
-			});
-		}
-		catch (err) {
-			throw new Error("Pushed authorization request failed ", err.response.data)
-		}
+		authParams.append("redirect_uri", redirectUri);
 
-		const { request_uri } = res.data;
-		const authorizationRequestURL = `${this.config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${this.config.clientId}`
+		let request_uri = "";
+		const authorizationRequestURL = new URL(this.config.authorizationServerMetadata.authorization_endpoint);
+		if (this.config.authorizationServerMetadata?.pushed_authorization_request_endpoint && this.config.authorizationServerMetadata?.require_pushed_authorization_requests) {
+			let res: { data: { request_uri: any; }; };
+			try {
+				res = await this.httpProxy.post(this.config.authorizationServerMetadata.pushed_authorization_request_endpoint, authParams.toString(), {
+					'Content-Type': 'application/x-www-form-urlencoded'
+				});
+
+				request_uri = res.data.request_uri;
+				authorizationRequestURL.searchParams.set("request_uri", request_uri);
+				authorizationRequestURL.searchParams.set("client_id", this.config.clientId);
+			}
+			catch (err) {
+				throw new Error("Pushed authorization request failed ", err.response.data)
+			}
+		} else {
+			authorizationRequestURL.search = authParams.toString();
+		}
 
 		await this.openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, this.config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
 
-		const modifiedAuthorizationRequest = await this.authorizationRequestModifier(this.config.credentialIssuerIdentifier, authorizationRequestURL, request_uri, this.config.clientId);
+		const modifiedAuthorizationRequest = await this.authorizationRequestModifier(this.config.credentialIssuerIdentifier, authorizationRequestURL.toString(), request_uri, this.config.clientId);
 
 		return {
 			url: modifiedAuthorizationRequest.url,
