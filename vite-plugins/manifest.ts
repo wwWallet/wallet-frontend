@@ -63,7 +63,7 @@ export function generateManifest(env): Partial<ManifestOptions> {
 				"label": "Credential details view"
 			}
 		],
-		"start_url": ".",
+		"start_url": "/",
 		"display": "standalone",
 		"orientation": "any",
 		"theme_color": "#111827",
