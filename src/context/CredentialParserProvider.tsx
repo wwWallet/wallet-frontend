@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useState, useEffect } from "react";
-import { ParsedCredential } from "core/dist/types";
+import { ParsedCredential } from "wallet-common/dist/types";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import CredentialParserContext from "./CredentialParserContext";

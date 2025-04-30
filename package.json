@@ -11,7 +11,7 @@
     "asn1js": "^3.0.5",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
-    "core": "./lib/core",
+    "wallet-common": "./lib/wallet-common",
     "cose-kit": "^1.7.1",
     "did-resolver": "^4.1.0",
     "firebase": "^10.1.0",
