@@ -231,7 +231,7 @@ export const ContainerContextProvider = ({ children }) => {
 							iss = `https://agent.${domain}/${subDomain}`;
 						}
 
-						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(isOnline, iss, false);
+						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(true, iss, false);
 						
 						if (!metadataResponse) {
 							return { error: 'No metadata response' };
@@ -245,7 +245,13 @@ export const ContainerContextProvider = ({ children }) => {
 
 						const beautifiedForm = result.beautifiedForm.vc || result.beautifiedForm;
 
-						const credentialConfiguration: Record<string, any> = (Object.entries(metadata.credential_configurations_supported)
+						const { data: { vc_list: storedCredentials} } = await api.get('/storage/vc');
+						const storedCredential = storedCredentials.find(c => c.credential === rawCredential);
+						const storedCredentialConfigurationId = storedCredential.credentialConfigurationId;
+
+						let credentialConfiguration: Record<string, any> = metadata.credential_configurations_supported[storedCredentialConfigurationId];
+
+						credentialConfiguration = credentialConfiguration || (Object.entries(metadata.credential_configurations_supported)
 							.find(([key]) => (beautifiedForm.type || beautifiedForm.vc.type || []).includes(key)) || [])
 							.pop() as unknown as Record<string, any>;
 						

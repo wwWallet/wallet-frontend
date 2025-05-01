@@ -25,7 +25,7 @@ const commonSchema = z.object({
 	})).optional(),
 	scope: z.string(),
 	cryptographic_binding_methods_supported: z.array(z.string().nonempty()),
-	credential_signing_alg_values_supported: z.array(z.string().nonempty()),
+	credential_signing_alg_values_supported: z.array(z.string().nonempty()).optional(),
 	proof_types_supported: proofTypesSupportedSchema,
 });
 
@@ -40,6 +40,11 @@ const msoDocSchema = commonSchema.extend({
 	doctype: z.string()
 });
 
-export const CredentialConfigurationSupportedSchema = sdJwtSchema.or(msoDocSchema);
+const jwtVcJsonSchema = commonSchema.extend({
+	format: z.literal(VerifiableCredentialFormat.JWT_VC_JSON),
+	credential_definition: z.any().optional(),
+});
+
+export const CredentialConfigurationSupportedSchema = sdJwtSchema.or(msoDocSchema).or(jwtVcJsonSchema);
 
 export type CredentialConfigurationSupported = z.infer<typeof CredentialConfigurationSupportedSchema>;

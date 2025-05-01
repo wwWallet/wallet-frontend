@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { BiSolidCategoryAlt, BiSolidUserCircle } from 'react-icons/bi';
 import { AiFillCalendar } from 'react-icons/ai';
 import { RiPassExpiredFill } from 'react-icons/ri';
@@ -10,6 +10,7 @@ import useScreenType from '../../hooks/useScreenType';
 import StatusContext from '../../context/StatusContext';
 import { VerifiableCredentialFormat } from '../../lib/schemas/vc';
 import { CredentialFormat } from '../../functions/parseSdJwtCredential';
+import SessionContext from '../../context/SessionContext';
 
 const locale = 'en-US';
 
@@ -61,7 +62,14 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 	const [credentialFormat, setCredentialFormat] = useState('');
 	const [credentialSubjectRows, setCredentialSubjectRows] = useState([]);
 	const container = useContext(ContainerContext);
+	const { api } = useContext(SessionContext);
 	const screenType = useScreenType();
+
+	const fetchVcData = useCallback(async () => {
+		const { data: { vc_list: storedCredentials} } = await api.get('/storage/vc');
+
+		return storedCredentials;
+	}, [api]);
 
 	useEffect(() => {
 		if (!container || !credential) {
@@ -89,7 +97,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 				iss = `https://agent.${domain}/${subDomain}`;
 			}
 
-			const metadataResponse = await container.openID4VCIHelper.getCredentialIssuerMetadata(isOnline, iss, true);
+			const metadataResponse = await container.openID4VCIHelper.getCredentialIssuerMetadata(true, iss, true);
 			
 			if (!metadataResponse) {
 				return { error: 'No metadata response' };
@@ -103,7 +111,13 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 
 			const beautifiedForm = c.beautifiedForm.vc || c.beautifiedForm;
 			
-			const credentialConfiguration = (Object.entries(metadata.credential_configurations_supported)
+			const storedCredentials = await fetchVcData();
+			const storedCredential = storedCredentials.find(c => c.credential === credential);
+			const storedCredentialConfigurationId = storedCredential.credentialConfigurationId;
+
+			let credentialConfiguration = metadata.credential_configurations_supported[storedCredentialConfigurationId];
+
+			credentialConfiguration = credentialConfiguration || (Object.entries(metadata.credential_configurations_supported)
 				.find(([key]) => (beautifiedForm.type || beautifiedForm.vc.type || []).includes(key)) || [])
 				.pop();
 			
@@ -111,18 +125,20 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 
 			setCredentialFormat(VerifiableCredentialFormat.JWT_VC_JSON.toString());
 
-			const supportedCredentialConfigurations = Object.values(metadata.credential_configurations_supported);
+			metadata.credential_configurations_supported[storedCredentialConfigurationId] = credentialConfiguration;
+			const supportedCredentialConfigurations = Object.entries(metadata.credential_configurations_supported);
 
 			const credentialSubjects = supportedCredentialConfigurations
-				.filter(config => (c.beautifiedForm.type || c.beautifiedForm.vc.type || []).includes(config.scope))
-				.map(config => Object.entries(config?.credential_definition?.credentialSubject || {}))
-				;
+				.filter(([key, config]) => key === storedCredentialConfigurationId || (c.beautifiedForm.type || c.beautifiedForm.vc.type || []).includes(config.scope))
+				.map(([key, config]) => Object.entries(config?.credential_definition?.credentialSubject || {}))
+			;
 			
 			const rows = credentialSubjects.reduce((prev, curr) => {
 				return [
 					...prev,
 					...curr.reduce(
 						(previous, [key, subject]) => {
+							if (prev.find(p => p.name === key)) return previous;
 							const display = subject.display.find(d => d.locale === locale) || subject.display[0];
 							return [
 								...previous,
