@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import MessagePopup from '../components/Popups/MessagePopup';
 import { credentialOfferFromUrl } from '../lib/services/credential-offer.service';
 import { useApi } from '../hooks/useApi';
-import { getDid, getIssuerConfiguration } from '../lib/services/credential-issuer.service';
+import { getIssuerConfiguration } from '../lib/services/credential-issuer.service';
 import StatusContext from '../context/StatusContext';
 import {
 	FIELD_PRE_AUTHORIZED_CODE,
@@ -41,6 +41,7 @@ export const CredentialOfferHandler = ({
 	const [nonce, setNonce] = useState('');
 	const [credentialEndpoint, setCredentialEndpoint] = useState('');
 	const [credentialConfiguration, setCredentialConfiguration] = useState<any>();
+	const [selectedConfigurationId, setSelectedConfigurationId] = useState('');
 	const [failed, setFailed] = useState(false);
 
 	// Pre-authorized code flow: Get token after entering PIN
@@ -94,9 +95,6 @@ export const CredentialOfferHandler = ({
 				// Generate proof
 				const { jws } = await generateNonceProof(keystore, nonce, credentialIssuer, 'wwWallet', credentialConfiguration.format);
 
-				// Get issuer did
-				const did = await getDid(credentialIssuer);
-
 				// Get credential
 				const credential = await getCredential(
 					credentialEndpoint,
@@ -109,7 +107,7 @@ export const CredentialOfferHandler = ({
 				// Store credential
 				await api.post('/storage/vc', {
 					credentials: [{
-						credentialConfigurationId: did.id,
+						credentialConfigurationId: selectedConfigurationId,
 						credentialIssuerIdentifier: credentialIssuer,
 						credentialIdentifier: generateRandomIdentifier(32),
 						credential: credential.credential,
@@ -203,6 +201,7 @@ export const CredentialOfferHandler = ({
 
 				// @todo: What if there are multiple configuration IDs?
 				const selectedConfigurationId = credentialOfferConfigurationIds[0];
+				setSelectedConfigurationId(selectedConfigurationId);
 				const selectedConfiguration = metadata.credential_configurations_supported[selectedConfigurationId];
 
 				if (!selectedConfiguration) {
