@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@auth0/mdl": "^2.0.2",
+    "@auth0/mdl": "https://github.com/wwwallet/mdl.git#deploy",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.2.1",
     "ajv": "^8.17.1",
