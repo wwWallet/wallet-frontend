@@ -1189,14 +1189,14 @@ export async function generateKeypairs(
 	container: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
 	numberOfKeyPairs: number = 1
-): Promise<[{ publicKeys: JWK[] }, OpenedContainer]> {
+): Promise<[{ keypairs: CredentialKeyPair[] }, OpenedContainer]> {
 	const deriveKid = async (publicKey: CryptoKey) => {
 		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
 		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
 		return jwkThumbprint;
 	};
 	const { newPrivateData, keypairs } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
-	return [{ publicKeys: keypairs.map(kp => kp.publicKey) }, newPrivateData];
+	return [{ keypairs }, newPrivateData];
 }
 
 export async function generateDeviceResponse([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {

@@ -81,7 +81,7 @@ export interface LocalStorageKeystore {
 	]>,
 
 	generateKeypairs(n: number): Promise<[
-		{ publicKeys: JWK[] },
+		{ keypairs: keystore.CredentialKeyPair[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
@@ -423,17 +423,17 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		),
 
 		generateKeypairs: async (n: number): Promise<[
-			{ publicKeys: JWK[] },
+			{ keypairs: keystore.CredentialKeyPair[] },
 			AsymmetricEncryptedContainer,
 			CommitCallback,
 		]> => (
 			await editPrivateData(async (originalContainer) => {
-				const [{ publicKeys }, newContainer] = await keystore.generateKeypairs(
+				const [{ keypairs }, newContainer] = await keystore.generateKeypairs(
 					originalContainer,
 					config.DID_KEY_VERSION,
 					n
 				);
-				return [{ publicKeys }, newContainer];
+				return [{ keypairs }, newContainer];
 			})
 		),
 

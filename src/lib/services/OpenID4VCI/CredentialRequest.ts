@@ -150,9 +150,10 @@ export function useCredentialRequest() {
 			}
 			else if (proofType === "attestation") {
 				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
-				const [{ publicKeys }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
+				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
 				await api.updatePrivateData(newPrivateData);
 				await keystoreCommit();
+				const publicKeys = keypairs.map(kp => kp.publicKey);
 
 				const requestKeyAttestationResponse = await requestKeyAttestation(publicKeys, c_nonce);
 				if (!requestKeyAttestationResponse) {
