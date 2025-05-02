@@ -13,7 +13,8 @@ COPY .env.template .env
 
 WORKDIR /home/node/app
 
-RUN yarn cache clean -f && yarn add /lib/wallet-common && yarn install --network-concurrency 1
+RUN yarn cache clean -f && yarn add /lib/wallet-common && yarn add https://github.com/wwwallet/mdl.git && yarn install --network-concurrency 1
+RUN yarn add https://github.com/wwwallet/mdl.git#deploy
 
 
 FROM builder-base AS test
