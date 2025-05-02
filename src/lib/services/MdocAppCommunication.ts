@@ -94,10 +94,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 					/* @ts-ignore */
 					dataReceived = JSON.parse(await window.nativeWrapper.bluetoothReceiveFromServer());
 					// this.assumedChunkSize = Math.max(this.assumedChunkSize, dataReceived.length);
-					console.log("Data received");
-					console.log(dataReceived);
 					aggregatedData = [...aggregatedData, ...dataReceived.slice(1)];
-					console.log(dataReceived[0]);
 				}
 			} catch(e) {
 				console.log("Error receiving");
@@ -206,8 +203,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			0x00, 0x00, 0x00, 0x01 // message counter
 		]);
 
-		console.log("Device response: ");
-		console.log(uint8ArraytoHexString(deviceResponseMDoc.encode()));
 		const { ciphertext } = (await encryptUint8Array(skDeviceRef.current, deviceResponseMDoc.encode(), ivEncryption));
 		const encryptedMdoc = ciphertext;
 
@@ -223,10 +218,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			let toSendBytes = Array.from(sessionDataEncodedRef.current);
 			while (toSendBytes.length > (assumedChunkSize - 1)){
 				const chunk = [1, ...toSendBytes.slice(0, (assumedChunkSize - 1))]
-				console.log(chunk);
 				/* @ts-ignore */
 				const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
-				console.log(send);
 				toSendBytes = toSendBytes.slice((assumedChunkSize - 1));
 			}
 			/* @ts-ignore */
