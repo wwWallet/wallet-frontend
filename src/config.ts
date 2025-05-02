@@ -28,3 +28,4 @@ export const OPENID4VCI_REDIRECT_URI = import.meta.env.VITE_OPENID4VCI_REDIRECT_
 export const CLOCK_TOLERANCE = import.meta.env.VITE_CLOCK_TOLERANCE && !isNaN(parseInt(import.meta.env.VITE_CLOCK_TOLERANCE)) ? parseInt(import.meta.env.VITE_CLOCK_TOLERANCE) : 60;
 export const VITE_STATIC_PUBLIC_URL = import.meta.env.VITE_STATIC_PUBLIC_URL || 'https://demo.wwwallet.org';
 export const VITE_STATIC_NAME = import.meta.env.VITE_STATIC_NAME || 'wwWallet';
+export const OPENID4VCI_PROOF_TYPE_PRECEDENCE = import.meta.env.VITE_OPENID4VCI_PROOF_TYPE_PRECEDENCE || 'jwt';

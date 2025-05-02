@@ -9,6 +9,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
+import { JWK } from "jose";
 
 
 type UserData = {
@@ -75,6 +76,12 @@ export interface LocalStorageKeystore {
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
 	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
+
+	generateKeypairs(n: number): Promise<[
+		{ keypairs: keystore.CredentialKeyPair[] },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
@@ -412,6 +419,21 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					requests.length
 				);
 				return [{ proof_jwts }, newContainer];
+			})
+		),
+
+		generateKeypairs: async (n: number): Promise<[
+			{ keypairs: keystore.CredentialKeyPair[] },
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => (
+			await editPrivateData(async (originalContainer) => {
+				const [{ keypairs }, newContainer] = await keystore.generateKeypairs(
+					originalContainer,
+					config.DID_KEY_VERSION,
+					n
+				);
+				return [{ keypairs }, newContainer];
 			})
 		),
 
