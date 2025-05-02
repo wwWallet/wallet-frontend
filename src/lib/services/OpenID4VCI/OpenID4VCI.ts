@@ -63,7 +63,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			const [_credConfId, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
 				id === flowState.credentialConfigurationId
 			)[0];
-			
+
 			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
 			for (const proof_type of openid4vciProofTypePrecedence) {
 				if (proof_type === 'attestation' && credConf?.proof_types_supported?.attestation) {
@@ -77,7 +77,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			}
 
 			console.log("Selected proof type = ", selectedProofType);
-			
+
 			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId, selectedProofType);
 
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
