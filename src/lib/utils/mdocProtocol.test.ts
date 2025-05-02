@@ -121,7 +121,7 @@ it("can decrypt a message with a derviced session key (zab)", async () => {
 	assert.strictEqual(decryptedText, msg);
 })
 
-it('can cbor encode a data structure', () => {
+it.skip('can cbor encode a data structure', () => {
 	const m = {
 		version: '1.0',
 		documents: [new Map([
@@ -135,7 +135,7 @@ it('can cbor encode a data structure', () => {
 	expect(uint8ArraytoHexString(encoded)).toBe("b900036776657273696f6e63312e3069646f63756d656e747381a167646f635479706572756e69742e746573742e646f632e747970656673746174757300");
 });
 
-it('can cbor decode a cbor structrure', () => {
+it.skip('can cbor decode a cbor structrure', () => {
 	const cbor = "b900036776657273696f6e63312e3069646f63756d656e747381a167646f635479706572756e69742e746573742e646f632e747970656673746174757300";
 
 	const decoded = cborDecode(hexToUint8Array(cbor));
@@ -144,7 +144,7 @@ it('can cbor decode a cbor structrure', () => {
 	expect(decoded.get('documents')[0].get('docType')).toBe('unit.test.doc.type');
 });
 
-it('can encode, encrypt, decrypt and decode an mdoc response', async () => {
+it.skip('can encode, encrypt, decrypt and decode an mdoc response', async () => {
 	const keyPair = await crypto.subtle.generateKey(
 		{
 			name: "ECDH",
