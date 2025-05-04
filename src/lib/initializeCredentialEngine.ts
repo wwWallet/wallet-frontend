@@ -3,7 +3,7 @@ import { IHttpProxy } from "./interfaces/IHttpProxy";
 import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
 import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
 
-export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: IOpenID4VCIHelper, credentialIssuerEntities: Record<string, unknown>[] = [], trustedCertificates: string[] = []) {
+export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: IOpenID4VCIHelper, getIssuers: () => Promise<Record<string, unknown>[]>, trustedCertificates: string[] = [], shouldUseCache: boolean = true) {
 
 	const ctx = {
 		clockTolerance: CLOCK_TOLERANCE,
@@ -12,9 +12,11 @@ export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: 
 		trustedCertificates: trustedCertificates,
 	};
 
+	console.log('initializeCredentialEngine getCredentialIssuerMetadata',shouldUseCache)
+	const credentialIssuerEntities = await getIssuers().catch(() => []);
 	const result = await Promise.all(credentialIssuerEntities.map(async (issuerEntity) =>
 		"credentialIssuerIdentifier" in issuerEntity && typeof issuerEntity.credentialIssuerIdentifier === "string" ?
-			helper.getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier).then((result =>
+			helper.getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier, shouldUseCache).then((result =>
 				result?.metadata
 			)).catch((err) => { console.error(err); return null; }) : null
 	));
@@ -25,7 +27,7 @@ export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: 
 		}
 		if (r.mdoc_iacas_uri) {
 			try {
-				const response = await helper.getMdocIacas(r.credential_issuer);
+				const response = await helper.getMdocIacas(r.credential_issuer,r, shouldUseCache);
 				if (!response.iacas) {
 					continue;
 				}

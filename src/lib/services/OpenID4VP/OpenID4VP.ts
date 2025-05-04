@@ -14,7 +14,7 @@ import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
-import CredentialParserContext from "@/context/CredentialParserContext";
+import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
@@ -27,7 +27,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialsContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 	const { t } = useTranslation();

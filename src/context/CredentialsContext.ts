@@ -22,14 +22,14 @@ export type ExtendedVcEntity = {
 	instances: Instance[];
 }
 
-type CredentialsContextValue = {
+export type CredentialsContextValue = {
 	vcEntityList: ExtendedVcEntity[];
 	latestCredentials: Set<number>;
 	fetchVcData: (credentialId?: string) => Promise<ExtendedVcEntity[]>;
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (credential: string) => Promise<ParsedCredential>;
+	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
 };
 
 const defaultContextValue: CredentialsContextValue = {
@@ -39,7 +39,7 @@ const defaultContextValue: CredentialsContextValue = {
 	getData: async () => { },
 	currentSlide: 1,
 	setCurrentSlide: () => { },
-	parseCredential: async () => ({}),
+	parseCredential: async () => null,
 };
 const CredentialsContext = createContext<CredentialsContextValue>(defaultContextValue);
 

@@ -10,10 +10,8 @@ import { useEffect } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
-import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
 
 const walletBackendUrl = config.BACKEND_URL;
-
 
 type SessionState = {
 	uuid: string;
@@ -95,8 +93,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	 */
 	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
 
-	const openID4VCIHelper = useOpenID4VCIHelper();
-
 	function getAppToken(): string | null {
 		return appToken;
 	}
@@ -173,14 +169,8 @@ export function useApi(isOnline: boolean = true): BackendApi {
 			// get('/storage/vp') on home page ('/')
 			await get('/user/session/account-info', userUuid, { appToken });
 			await getExternalEntity('/verifier/all', { appToken }, false);
-			const response = await getExternalEntity('/issuer/all', { appToken }, false);
-			response.data.forEach(async (issuer) => {
-				try {
-					await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier);
-				} catch (err) {
-					console.error(err);
-				}
-			});
+			// getExternalEntity('/issuer/all') on credentialContext
+			// getCredentialIssuerMetadata() on credentialContext
 		} catch (error) {
 			console.error('Failed to perform get requests', error);
 		}
@@ -265,7 +255,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-		dispatchEvent(new CustomEvent("login"));
 	}
 
 	async function login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>> {

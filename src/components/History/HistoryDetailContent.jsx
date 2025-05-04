@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 // Context
-import CredentialParserContext from '@/context/CredentialParserContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 // Components
 import Slider from '../Shared/Slider';
@@ -19,7 +19,7 @@ import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
 	const [vcEntities, setVcEntities] = useState([]);
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialsContext);
 	const screenType = useScreenType();
 	const httpProxy = useHttpProxy();
 	// Parse all the credentials when historyItem changes

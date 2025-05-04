@@ -8,7 +8,6 @@ import Button from '../Buttons/Button';
 import SessionContext from '@/context/SessionContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
-import CredentialParserContext from '@/context/CredentialParserContext';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
 
@@ -61,7 +60,6 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
 	const { api } = useContext(SessionContext);
-	const credentialParserContext = useContext(CredentialParserContext);
 	const [vcEntities, setVcEntities] = useState(null);
 	const { t } = useTranslation();
 	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
@@ -115,7 +113,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		keys,
 		popupState,
 		vcEntityList,
-		credentialParserContext.credentialParserRegistry,
 		reinitialize
 	]);
 

@@ -1,45 +1,30 @@
 import { IOpenID4VCIHelper } from "../interfaces/IOpenID4VCIHelper";
 import { OpenidAuthorizationServerMetadata, OpenidAuthorizationServerMetadataSchema } from "../schemas/OpenidAuthorizationServerMetadataSchema";
 import { OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from "../schemas/OpenidCredentialIssuerMetadataSchema";
-import { addItem, getItem } from '../../indexedDB';
 import { base64url, importX509, jwtVerify } from "jose";
 import { getPublicKeyFromB64Cert } from "../utils/pki";
 import { useHttpProxy } from "./HttpProxy/HttpProxy";
-import { useCallback, useContext, useEffect, useState, useMemo } from "react";
-import StatusContext from "@/context/StatusContext";
+import { useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacasResponseSchema";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
-	const { isOnline } = useContext(StatusContext);
-	const [shouldUseCache, setShouldUseCache] = useState(true)
 	const { api } = useContext(SessionContext);
 
+	const apiRef = useRef(api);
+
 	useEffect(() => {
-		const handleLogin = () => setShouldUseCache(false);
-		window.addEventListener('login', handleLogin);
+		apiRef.current = api;
+	}, [api]);
 
-		return () => {
-			window.removeEventListener('login', handleLogin);
-		};
-	}, []);
-
-	const fetchAndCache = useCallback(
-		async function fetchAndCache<T>(path: string, schema: any, isOnline: boolean, forceIndexDB: boolean): Promise<T> {
-			console.log('fetchAndCache')
-			if (!isOnline || forceIndexDB) {
-				const cachedData = await getItem(path, path, "externalEntities");
-				if (cachedData) return cachedData;
-			}
-
-			// Fetch from network if online
+	const fetchAndParseWithSchema = useCallback(
+		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true): Promise<T> {
 			try {
-				const response = await httpProxy.get(path, {});
+				const response = await httpProxy.get(path, {}, { useCache: useCache !== undefined ? useCache : true });
 				if (!response) throw new Error("Couldn't get response");
 
 				const parsedData = schema.parse(response.data);
-				await addItem(path, path, parsedData, "externalEntities");  // Cache the fetched data
 				return parsedData;
 			} catch (err) {
 				console.error(`Error fetching from ${path}:`, err);
@@ -51,8 +36,10 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const getClientId = useCallback(
 		async (credentialIssuerIdentifier: string) => {
 			console.log('getClientId');
+			const currentApi = apiRef.current;
+
 			try {
-				const issuerResponse = await api.getExternalEntity('/issuer/all', undefined, true);
+				const issuerResponse = await currentApi.getExternalEntity('/issuer/all', undefined, true);
 				const trustedCredentialIssuers = issuerResponse.data;
 				const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
 				if (issuer) {
@@ -67,7 +54,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return { client_id: "CLIENT123" };
 			}
 		},
-		[api]
+		[]
 	);
 
 	// Fetches authorization server metadata with fallback
@@ -77,20 +64,16 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 			console.log('getAuthorizationServerMetadata');
 			try {
-				const authzServeMetadata = await fetchAndCache<OpenidAuthorizationServerMetadata>(
+				const authzServeMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathAuthorizationServer,
 					OpenidAuthorizationServerMetadataSchema,
-					isOnline,
-					shouldUseCache
 				);
 				return { authzServeMetadata };
 			} catch {
 				// Fallback to openid-configuration if oauth-authorization-server fetch fails
-				const authzServeMetadata = await fetchAndCache<OpenidAuthorizationServerMetadata>(
+				const authzServeMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathConfiguration,
 					OpenidAuthorizationServerMetadataSchema,
-					isOnline,
-					shouldUseCache
 				).catch(() => null);
 
 				if (!authzServeMetadata) {
@@ -99,19 +82,18 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return { authzServeMetadata };
 			}
 		},
-		[fetchAndCache, isOnline, shouldUseCache]
+		[fetchAndParseWithSchema]
 	);
 
 	const getCredentialIssuerMetadata = useCallback(
-		async (credentialIssuerIdentifier: string): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
+		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
 			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
-			console.log('getCredentialIssuerMetadata');
+			console.log('getCredentialIssuerMetadata', useCache);
 			try {
-				const metadata = await fetchAndCache<OpenidCredentialIssuerMetadata>(
+				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
 					pathCredentialIssuer,
 					OpenidCredentialIssuerMetadataSchema,
-					isOnline,
-					shouldUseCache
+					useCache,
 				);
 				if (metadata.signed_metadata) {
 					try {
@@ -135,21 +117,23 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return null;
 			}
 		},
-		[fetchAndCache, isOnline, shouldUseCache]
+		[fetchAndParseWithSchema]
 	);
 
 
 	const getMdocIacas = useCallback(
-		async (credentialIssuerIdentifier: string) => {
-			console.log('getClientId');
+		async (credentialIssuerIdentifier: string, metadata?: OpenidCredentialIssuerMetadata, useCache?: boolean) => {
+			console.log('getMdocIacas');
 			try {
-				const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+				if (!metadata) {
+					const response = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+					metadata = response.metadata;
+				}
 				if (metadata.mdoc_iacas_uri) {
-					const response = await fetchAndCache<MdocIacasResponse>(
+					const response = await fetchAndParseWithSchema<MdocIacasResponse>(
 						`${metadata.mdoc_iacas_uri}`,
 						MdocIacasResponseSchema,
-						isOnline,
-						shouldUseCache,
+						useCache
 					);
 					return response;
 				}
@@ -160,7 +144,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return null;
 			}
 		},
-		[api]
+		[]
 	);
 
 	return useMemo(
