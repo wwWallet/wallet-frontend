@@ -21,7 +21,8 @@ export const CredentialsContextProvider = ({ children }) => {
 	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
 	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-	const [credentialEngine, setCredentialEngine] = useState<any>(null);
+	const [credentialEngineReady, setCredentialEngineReady] = useState<any>(false);
+	const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
 
 	const apiRef = useRef(api);
@@ -39,7 +40,8 @@ export const CredentialsContextProvider = ({ children }) => {
 				[],
 				useCache
 			);
-			setCredentialEngine(engine);
+			setCredentialEngineReady(true);
+			engineRef.current = engine;
 		} catch (err) {
 			console.error("[CredentialsContext] Engine init failed:", err);
 		}
@@ -68,8 +70,10 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, []);
 
 	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
+		const engine = engineRef.current;
+		if (!engine) return null;
 		try {
-			const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential });
+			const result = await engine.credentialParsingEngine.parse({ rawCredential });
 			if (result.success) {
 				return result.value;
 			}
@@ -80,9 +84,12 @@ export const CredentialsContextProvider = ({ children }) => {
 			return null;
 		}
 
-	}, [credentialEngine]);
+	}, []);
 
 	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
+		const engine = engineRef.current;
+		if (!engine) return [];
+
 		const response = await api.get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
@@ -98,7 +105,7 @@ export const CredentialsContextProvider = ({ children }) => {
 			return acc;
 		}, {});
 
-		const { sdJwtVerifier, msoMdocVerifier } = credentialEngine ?? {};
+		const { sdJwtVerifier, msoMdocVerifier } = engine;
 		// Filter and map the fetched list in one go
 		let filteredVcEntityList = await Promise.all(
 			fetchedVcList
@@ -139,7 +146,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api, parseCredential, credentialEngine]);
+	}, [api, parseCredential]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
@@ -207,7 +214,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		}
 	}, [api, fetchVcData, pollForCredentials, stopPolling]);
 
-	if (isLoggedIn && !credentialEngine) {
+	if (isLoggedIn && !credentialEngineReady) {
 		return (
 			<></>
 		);
