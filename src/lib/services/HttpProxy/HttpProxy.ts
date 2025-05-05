@@ -57,13 +57,6 @@ export function useHttpProxy(): IHttpProxy {
 
 				} catch (err) {
 					console.warn('[Proxy] Failed cache read', err);
-					if (online === null) {
-						return {
-							data: 'Failed cache read and online status is unknown',
-							headers: {},
-							status: 504,
-						};
-					}
 				}
 			}
 
