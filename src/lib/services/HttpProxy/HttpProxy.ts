@@ -50,8 +50,6 @@ export function useHttpProxy(): IHttpProxy {
 
 						if (online === null || isFresh) {
 							return cachedData;
-						} else {
-							await removeItem('proxyCache', cacheKey, 'proxyCache');
 						}
 					}
 
@@ -97,9 +95,12 @@ export function useHttpProxy(): IHttpProxy {
 				if (typeof cacheControlHeader === 'string') {
 					const lower = cacheControlHeader.toLowerCase();
 
-					if (lower.includes('no-store') || lower.includes('no-cache')) {
+					if (lower.includes('no-store')) {
 						shouldCache = false;
-					} else {
+					} else if (lower.includes('no-cache')) {
+						maxAge = 0;
+					}
+					else {
 						const parsed = parseCacheControl(lower);
 						if (typeof parsed['max-age'] === 'number') {
 							maxAge = parsed['max-age'];
@@ -120,6 +121,11 @@ export function useHttpProxy(): IHttpProxy {
 				if (fallback?.data) {
 					return fallback.data;
 				}
+
+				if (online) {
+					await removeItem('proxyCache', cacheKey, 'proxyCache');
+				}
+
 				return {
 					data: err.response?.data || 'GET proxy failed',
 					headers: err.response?.headers || {},
