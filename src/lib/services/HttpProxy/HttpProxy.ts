@@ -5,6 +5,7 @@ import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
+const inFlightRequests = new Map<string, Promise<any>>();
 
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
@@ -74,64 +75,76 @@ export function useHttpProxy(): IHttpProxy {
 			}
 
 			// Fallback to backend `/proxy`
-			try {
-				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
-					headers,
-					url,
-					method: 'get',
-				}, {
-					timeout: 2500,
-					headers: {
-						Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
-					}
-				});
+			if (inFlightRequests.has(cacheKey)) {
+				return inFlightRequests.get(cacheKey);
+			}
 
-				const res = response.data;
-				const cacheControlHeader = res.headers?.['cache-control'];
+			const requestPromise = (async () => {
+				try {
+					const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
+						headers,
+						url,
+						method: 'get',
+					}, {
+						timeout: 2500,
+						headers: {
+							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+						}
+					});
 
-				let shouldCache = useCache !== false;
-				let maxAge = 60 * 60 * 24 * 30; // default: 30 days
+					const res = response.data;
+					const cacheControlHeader = res.headers?.['cache-control'];
 
-				if (typeof cacheControlHeader === 'string') {
-					const lower = cacheControlHeader.toLowerCase();
+					let shouldCache = options?.useCache !== undefined;
+					let maxAge = 60 * 60 * 24 * 30; // default: 30 days
+					const now = Math.floor(Date.now() / 1000);
 
-					if (lower.includes('no-store')) {
-						shouldCache = false;
-					} else if (lower.includes('no-cache')) {
-						maxAge = 0;
-					}
-					else {
-						const parsed = parseCacheControl(lower);
-						if (typeof parsed['max-age'] === 'number') {
-							maxAge = parsed['max-age'];
-							if (maxAge < 0) {
-								shouldCache = false;
+					if (typeof cacheControlHeader === 'string') {
+						const lower = cacheControlHeader.toLowerCase();
+
+						if (lower.includes('no-store')) {
+							shouldCache = false;
+						} else if (lower.includes('no-cache')) {
+							maxAge = 0;
+						} else {
+							const parsed = parseCacheControl(lower);
+							if (typeof parsed['max-age'] === 'number') {
+								maxAge = parsed['max-age'];
+								if (maxAge < 0) {
+									shouldCache = false;
+								}
 							}
 						}
 					}
-				}
 
-				if (shouldCache) {
-					await addItem('proxyCache', cacheKey, { data: res, expiry: now + maxAge }, 'proxyCache');
-				}
+					if (shouldCache) {
+						await addItem('proxyCache', cacheKey, { data: res, expiry: now + maxAge }, 'proxyCache');
+					}
 
-				return res;
-			} catch (err) {
-				const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
-				if (fallback?.data) {
-					return fallback.data;
-				}
+					return res;
 
-				if (online) {
-					await removeItem('proxyCache', cacheKey, 'proxyCache');
-				}
+				} catch (err) {
+					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
+					if (fallback?.data) {
+						return fallback.data;
+					}
 
-				return {
-					data: err.response?.data || 'GET proxy failed',
-					headers: err.response?.headers || {},
-					status: err.response?.status || 500,
-				};
-			}
+					if (isOnlineRef.current) {
+						await removeItem('proxyCache', cacheKey, 'proxyCache');
+					}
+
+					return {
+						data: err.response?.data || 'GET proxy failed',
+						headers: err.response?.headers || {},
+						status: err.response?.status || 500,
+					};
+				} finally {
+					inFlightRequests.delete(cacheKey);
+				}
+			})();
+
+			inFlightRequests.set(cacheKey, requestPromise);
+			return requestPromise;
 		},
 
 		async post(
