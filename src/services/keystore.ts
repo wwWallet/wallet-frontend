@@ -1263,3 +1263,30 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 		.sign();
 	return { deviceResponseMDoc };
 }
+
+export async function generateDeviceResponseWithProximity([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+	// extract the COSE device public key from mdoc
+	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
+	const deviceKeyInfo = p.data.get('deviceKeyInfo');
+	const deviceKey = deviceKeyInfo.get('deviceKey');
+
+	const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
+
+	// get the keypair based on the jwk Thumbprint
+	const keypair = privateData.keypairs[kid];
+	if (!keypair) {
+		throw new Error("Key pair not found for kid (key ID): " + kid);
+	}
+
+	const { alg, did, wrappedPrivateKey } = keypair;
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
+	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+
+	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
+		.usingPresentationDefinition(presentationDefinition)
+		.usingSessionTranscriptBytes(sessionTranscriptBytes)
+		.authenticateWithSignature({ ...privateKeyJwk, alg } as JWK, alg as SupportedAlgs)
+		.sign();
+	return { deviceResponseMDoc };
+}
