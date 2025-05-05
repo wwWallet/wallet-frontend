@@ -262,9 +262,17 @@ export const ContainerContextProvider = ({ children }) => {
 						// @todo: make more dynamic using schema from credential context
 						const isOpenBadgeCredential = (beautifiedForm.type || beautifiedForm.vc.type).includes('OpenBadgeCredential');
 
-						const credentialFriendlyName = isOpenBadgeCredential
-							? beautifiedForm.credentialSubject.achievement.name
-							: result.beautifiedForm.name || credentialConfiguration?.display?.[0]?.name || 'Credential';
+						const getFriendlyName = () => {
+							const t = (beautifiedForm.type || beautifiedForm.vc.type);
+
+							if (isOpenBadgeCredential) return beautifiedForm.credentialSubject.achievement.name;
+							if (t.includes('SupportCredential') || t.includes('ExamEnrollmentCredential')) return beautifiedForm.credentialSubject.title;
+							if (storedCredentialConfigurationId === 'EduID') return 'eduID'
+
+							return result.beautifiedForm.name || credentialConfiguration?.display?.[0]?.name || 'Credential';
+						};
+
+						const credentialFriendlyName = getFriendlyName();
 
 						if (credentialConfiguration) {
 							const display =
@@ -272,9 +280,7 @@ export const ContainerContextProvider = ({ children }) => {
 								credentialConfiguration?.display?.[0] ||
 								{};
 
-							let description = isOpenBadgeCredential
-								? beautifiedForm.credentialSubject.achievement.description
-								: result.beautifiedForm.description || display?.description || '';
+							let description = display?.description || result.beautifiedForm.description || '';
 							let logoURL = isOpenBadgeCredential
 								? beautifiedForm.credentialSubject.achievement.image.id
 								: display?.logo?.uri || null;

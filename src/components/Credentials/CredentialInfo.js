@@ -200,6 +200,19 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 								{renderRow('criteria', 'Criteria', parsedCredential?.vc?.credentialSubject?.achievement?.criteria?.narrative, screenType)}
 								{renderRow('ects', 'ECTS', parsedCredential?.vc?.credentialSubject?.achievement?.ECTS, screenType)}
 								{renderRow('result', 'Result', (parsedCredential?.vc?.credentialSubject?.result || [])[0]?.value, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'title') && renderRow('title', 'Title', parsedCredential?.vc?.credentialSubject?.title, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'description') && renderRow('description2', 'Description', parsedCredential?.vc?.credentialSubject?.description, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'program') && renderRow('program', 'Program', parsedCredential?.vc?.credentialSubject?.program, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'academic_year') && renderRow('academic_year', 'Academic year', parsedCredential?.vc?.credentialSubject?.academic_year, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'role') && renderRow('role', 'Role', parsedCredential?.vc?.credentialSubject?.role, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'mode') && renderRow('mode', 'Mode of study', parsedCredential?.vc?.credentialSubject?.mode, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'name') && renderRow('name', 'Name', parsedCredential?.vc?.credentialSubject?.name, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'code') && renderRow('code', 'Code', parsedCredential?.vc?.credentialSubject?.code, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'student_number') && renderRow('student_number', 'Student ID', parsedCredential?.vc?.credentialSubject?.student_number, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'institution') && renderRow('institution', 'Institution', parsedCredential?.vc?.credentialSubject?.institution, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'valid_from') && renderRow('valid_from', 'Valid from', parsedCredential?.vc?.credentialSubject?.valid_from, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'valid_until') && renderRow('valid_until', 'Valid until', parsedCredential?.vc?.credentialSubject?.valid_until, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'issuer') && renderRow('issuer', 'Issuer', parsedCredential?.vc?.credentialSubject?.issuer, screenType)}
 							</>
 						)
 					}
