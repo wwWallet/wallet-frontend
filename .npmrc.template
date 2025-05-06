@@ -1,2 +1,4 @@
 //npm.pkg.github.com/:_authToken=${GITHUB_AUTH_TOKEN}
 @wwwallet:registry=https://npm.pkg.github.com/
+@fortawesome:registry=https://npm.fontawesome.com/
+//npm.fontawesome.com/:_authToken=${FONTAWESOME_AUTH_TOKEN}

@@ -34,7 +34,7 @@ export function formatDate(value, format = 'datetime') {
 	}
 
 	const options = format === 'datetime'
-		? { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }
+		? { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: 'numeric' }
 		: { day: '2-digit', month: '2-digit', year: 'numeric' };
 
 	return date.toLocaleDateString('en-GB', options);

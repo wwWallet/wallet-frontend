@@ -3,7 +3,7 @@ FROM node:22-bullseye-slim AS builder-base
 WORKDIR /home/node/app
 
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
-COPY package.json yarn.lock .
+COPY package.json yarn.lock .npmrc .yarnrc.yml .
 COPY .env.prod .env
 
 RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/* && git clone --branch master --single-branch --depth 1 https://github.com/wwWallet/wallet-common.git /lib/wallet-common

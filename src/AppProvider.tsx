@@ -6,6 +6,7 @@ import { CredentialParserContextProvider } from './context/CredentialParserProvi
 import { CredentialsContextProvider } from './context/CredentialsContextProvider';
 import { OpenID4VPContextProvider } from './context/OpenID4VPContextProvider';
 import { OpenID4VCIContextProvider } from './context/OpenID4VCIContextProvider';
+import { ThemeProvider } from './context/ThemeContextProvider';
 import UriHandler from './hocs/UriHandler';
 
 type RootProviderProps = {
@@ -20,9 +21,11 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 					<CredentialsContextProvider>
 						<OpenID4VPContextProvider>
 							<OpenID4VCIContextProvider>
-								<UriHandler>
-									{children}
-								</UriHandler>
+								<ThemeProvider>
+									<UriHandler>
+										{children}
+									</UriHandler>
+								</ThemeProvider>
 							</OpenID4VCIContextProvider>
 						</OpenID4VPContextProvider>
 					</CredentialsContextProvider>

@@ -4,7 +4,7 @@ dist
 .git
 .gitattributes
 .gitignore
-.npmrc
 .npmrc.template
+.yarnrc.yml.template
 .vscode
 README.md

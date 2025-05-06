@@ -91,6 +91,7 @@ function App() {
 			<BackgroundNotificationClickHandler />
 			<I18nextProvider i18n={i18n}>
 				<Snowfalling />
+				
 				<Suspense fallback={<Spinner />}>
 					<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
 					<UpdateNotification />

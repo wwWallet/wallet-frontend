@@ -12,17 +12,15 @@
 /* Global Background */
 html,
 body {
-	background-color: rgb(243 244 246);
+	background-color: #FFFFFF;
 	/* Light mode background */
 }
 
-@media (prefers-color-scheme: dark) {
-
-	html,
-	body {
-		background-color: rgb(17 24 39);
-		/* Dark mode background */
-	}
+html.dark,
+body.dark,
+html.dark body {
+	background-color: #0E0F11;
+	/* Dark mode background */
 }
 
 /* Custom scrollbar */
@@ -141,13 +139,14 @@ button.reactour__close {
 
 /* Light and Dark mode input autofill */
 input:-webkit-autofill {
-	-webkit-box-shadow: 0 0 0 30px rgb(245, 245, 245) inset !important;
+	-webkit-box-shadow: 0 0 0 30px rgb(248, 248, 248) inset !important;
+	-webkit-text-fill-color: rgb(0, 0, 0) !important;
 }
 
 @layer components {
 	.inputDarkModeOverride:-webkit-autofill {
-		-webkit-box-shadow: 0 0 0 30px rgb(70, 70, 70) inset !important;
-		-webkit-text-fill-color: white;
+		-webkit-box-shadow: 0 0 0 30px rgb(228, 230, 234) inset !important;
+		-webkit-text-fill-color: rgb(14, 15, 17) !important;
 	}
 }
 
@@ -164,4 +163,137 @@ input:-webkit-autofill {
 
 .overflow-visible-force {
 	overflow: visible !important;
+}
+
+/* Animations for dialog popups */
+@keyframes dialog-layout-opening {
+	from {
+		opacity: 0;
+		scale: 0.95;
+	}
+	to {
+		opacity: 1;
+		scale: 1;
+	}
+}
+
+@keyframes dialog-layout-closing {
+	from {
+		opacity: 1;
+		scale: 1;
+	}
+	to {
+		opacity: 0;
+		scale: 0.95;
+	}
+}
+
+@keyframes dialog-backdrop-opening {
+	from {
+		background-color: rgba(0, 0, 0, 0);
+		backdrop-filter: blur(0px);
+	}
+	to {
+		background-color: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(4px);
+	}
+}
+
+@keyframes dialog-backdrop-closing {
+	from {
+		background-color: rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(4px);
+	}
+	to {
+		background-color: rgba(0, 0, 0, 0);
+		backdrop-filter: blur(0px);
+	}
+}
+
+.dialog-opening {
+	animation: dialog-opening 200ms ease-out forwards;
+}
+
+.dialog-closing {
+	animation: dialog-closing 200ms ease-out forwards;
+}
+
+.dialog-backdrop-opening::backdrop {
+	animation: dialog-backdrop-opening 200ms ease-out forwards;
+}
+
+.dialog-backdrop-closing::backdrop {
+	animation: dialog-backdrop-closing 200ms ease-out forwards;
+}
+
+/* Animations for modal popups */
+@keyframes popup-layout-opening {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes popup-layout-closing {
+	from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+}
+
+@keyframes popup-overlay-opening {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes popup-overlay-closing {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+	
+.popup-layout-opening {
+	animation: popup-layout-opening 200ms ease-out forwards;
+}
+
+.popup-layout-closing {
+	animation: popup-layout-closing 200ms ease-out forwards;
+}
+
+.popup-overlay-opening {
+	animation: popup-overlay-opening 200ms ease-out forwards;
+}
+
+.popup-overlay-closing {
+	animation: popup-overlay-closing 200ms ease-out forwards;
+}
+
+/* Animations for max height text lines */
+@keyframes height-in {
+	from {
+		opacity: 0;
+		max-height: 0;
+	}
+	to {
+		opacity: 1;
+		max-height: 100px;
+	}
+}
+.animate-height-in {
+	animation: height-in 0.2s ease-out forwards;
 }
