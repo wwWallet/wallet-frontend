@@ -25,14 +25,18 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await api.post('/storage/vp', {
-				presentationIdentifier: generateRandomIdentifier(32),
-				presentation,
-				presentationSubmission,
-				includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
-				audience,
-				issuanceDate: new Date().toISOString(),
-			});
+			try {
+				await api.post('/storage/vp', {
+					presentationIdentifier: generateRandomIdentifier(32),
+					presentation,
+					presentationSubmission,
+					includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
+					audience,
+					issuanceDate: new Date().toISOString(),
+				});
+			} catch(e) {
+				console.log("Failed to reach server: Presentation history not stored");
+			}
 		},
 		[api]
 	);
