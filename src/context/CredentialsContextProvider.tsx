@@ -221,7 +221,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential,credentialEngine: engineRef.current }}>
 				{children}
 			</CredentialsContext.Provider>
 		);
