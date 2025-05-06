@@ -1,48 +1,79 @@
 // DeletePopup.js
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaTrash } from 'react-icons/fa';
-import PopupLayout from './PopupLayout';
-import Button from '../Buttons/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faXmark } from '@fortawesome/pro-regular-svg-icons';
 
-const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
+import Button from '@/components/Buttons/Button';
+import PopupLayout from '@/components/Popups/PopupLayout';
+
+const DeletePopup = ({ isOpen, onConfirm, onClose: onCloseProp, message, loading }) => {
+	//General
 	const { t } = useTranslation();
 
+	//State
+	const [isClosing, setIsClosing] = useState(false);
+
+	//Handlers
+	const onClose = () => {
+		setIsClosing(true);
+		setTimeout(() => {
+			onCloseProp();	
+			setIsClosing(false);
+		}, 200);
+	}
+
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose} loading={loading}>
-			<div className="flex items-start justify-between mb-2">
-				<h2 className="text-lg font-bold text-red-500">
-					<FaTrash size={20} className="inline mr-1" />
-					{t('pageSettings.title.confirmDeletePopup')}
-				</h2>
+		<PopupLayout isOpen={isOpen} isClosing={isClosing} onClose={onClose} loading={loading}>
+			<div className="flex items-start justify-between">
+				<div className='flex items-center justify-center w-12 h-12 rounded-full bg-c-lm-red-bg dark:bg-c-dm-red-bg-dark'>
+					<FontAwesomeIcon icon={faTrash} className="text-xl text-c-lm-red dark:text-c-dm-red" />
+				</div>
+
+				<div className='flex-1 ml-4 mr-12'>
+					<h2 className="text-xl font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100">
+						{t('pageSettings.title.confirmDeletePopup')}
+					</h2>
+
+					<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+						{message}
+					</p>
+
+					<div className="flex items-center space-x-2 mt-4">
+						<Button
+							id="confirm-delete-popup"
+							variant="tertiary"
+							onClick={onConfirm}
+							size='md'
+							textSize='md'
+						>
+							{t('common.delete')}
+						</Button>
+
+						<Button
+							id="close-delete-popup"
+							variant="cancel"
+							onClick={onClose}
+							size='md'
+							textSize='md'
+						>
+							{t('common.cancel')}
+						</Button>
+					</div>
+				</div>
+
 				<button
 					id="dismiss-delete-popup"
 					type="button"
-					className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+					className={`
+						absolute top-2 right-2
+						bg-c-lm-gray-200 dark:bg-c-dm-gray-800 rounded-lg w-8 h-8 flex justify-center items-center
+						hover:bg-c-lm-gray-300 dark:hover:bg-c-dm-gray-700 transition-all duration-150
+					`}
 					onClick={onClose}
 				>
-					<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-						<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-					</svg>
+					<FontAwesomeIcon icon={faXmark} className="text-lg text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 				</button>
-			</div>
-			<hr className="mb-2 border-t border-red-500/80" />
-			<p className="mb-2 mt-4 text-gray-700 dark:text-white">{message}</p>
-			<div className="flex justify-end space-x-2 pt-4">
-				<Button
-					id="close-delete-popup"
-					variant="cancel"
-					onClick={onClose}
-				>
-					{t('common.cancel')}
-				</Button>
-				<Button
-					id="confirm-delete-popup"
-					variant="delete"
-					onClick={onConfirm}
-				>
-					{t('common.delete')}
-				</Button>
 			</div>
 		</PopupLayout>
 	);

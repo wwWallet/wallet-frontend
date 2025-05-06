@@ -9,7 +9,7 @@ const Layout = ({ children }) => {
 	const toggleSidebar = () => setIsOpen(!isOpen);
 
 	return (
-		<div className="flex justify-end min-h-dvh flex-col md:flex-row bg-gray-100 dark:bg-gray-900">
+		<div className="flex justify-end min-h-dvh flex-col md:flex-row bg-c-lm-gray-100 dark:bg-c-dm-gray-900">
 			<Sidebar isOpen={isOpen} toggle={toggleSidebar} />
 
 			{/* Header */}
@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
 
 			<div className={`w-full md:w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
-				<div className="w-full flex-grow bg-gray-100 dark:bg-gray-900 p-6 md:mt-0 md:pt-6 overflow-y-auto">
+				<div className="w-full flex-grow bg-c-lm-gray-100 dark:bg-c-dm-gray-900 overflow-y-auto">
 					{children}
 				</div>
 			</div>

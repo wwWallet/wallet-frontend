@@ -11,7 +11,7 @@ const ToastDisplay = ({ id, notification }) => {
 			onClick={() => window.location.href = '/'}
 		>
 			<div className="w-1/3 flex items-center justify-start mr-6">
-				<Logo />
+				<Logo imgClassName='w-10 h-10' />
 			</div>
 			<div className="flex-grow text-center">
 				<p className="font-bold text-lg">{notification?.title}</p>

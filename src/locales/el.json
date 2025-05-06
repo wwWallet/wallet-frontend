@@ -1,6 +1,7 @@
 {
 	"ConnectionStatusIcon": {
 		"qualityLabels": {
+			"connecting": "Σύνδεση...",
 			"excellent": "Άριστη",
 			"fair": "Μέτρια",
 			"good": "Καλή",
@@ -27,6 +28,9 @@
 		"navItemSendCredentials": "Αποστολή Πιστοποιητικών",
 		"navItemSendCredentialsSimple": "Αποστολή",
 		"navItemSettings": "Ρυθμίσεις",
+		"navItemFeedback": "Σχόλια",
+		"navItemHelp": "Βοήθεια",
+		"navItemDocs": "Έγγραφα",
 		"next": "Επόμενο",
 		"offline": "Εκτός σύνδεσης",
 		"offlineTitle": "Είστε εκτός σύνδεσης. Δεν έχετε πρόσβαση εδώ αυτή τη στιγμή.",
@@ -41,7 +45,7 @@
 		"save": "Αποθήκευση",
 		"submit": "Υποβολή",
 		"tryAgain": "Δοκιμάστε ξανά",
-		"walletName": "wwWallet"
+		"walletName": "Siros ID"
 	},
 	"expiredRibbon": {
 		"expired": "Ληγμένο"
@@ -68,6 +72,7 @@
 		"forgetCachedUser": "Κάντε κλικ για να Ξεχάσετε τον Αποθηκευμένο Χρήστη {{name}}",
 		"incorrectCredentialsError": "Λάθος όνομα χρήστη ή κωδικός",
 		"login": "Σύνδεση",
+		"loginInstead": "Συνδεθείτε αντί για αυτό.",
 		"loginAsUser": "Συνδεθείτε ως {{name}}",
 		"loginCache": "Επιλέξτε τον λογαριασμό σας",
 		"loginKeystoreFailed": "Απέτυχε η προσπέλαση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
@@ -94,6 +99,7 @@
 		"privateDataConflict": "Μια άλλη συνεδρία για αυτόν τον λογαριασμό διέκοψε την προσπάθεια σύνδεσης, δοκιμάστε ξανά.",
 		"reachedLengthLimit": "Υπερβαίνει το όριο μήκους",
 		"signUp": "Εγγραφή",
+		"signUpHere": "Εγγραφείτε εδώ.",
 		"signUpPasskey": "Εγγραφή με κλειδί πρόσβασης",
 		"signUpSubmit": "Εγγραφή",
 		"signupPasskey": "Εγγραφή με κλειδί πρόσβασης",
@@ -103,8 +109,9 @@
 		"useOtherAccount": "Χρησιμοποιήστε άλλο λογαριασμό",
 		"usernameExistsError": "Απέτυχε η δημιουργία λογαριασμού χρήστη, το όνομα χρήστη υπάρχει ήδη.",
 		"usernameLabel": "Όνομα Χρήστη",
-		"weakPasswordError": "Αδύναμος κωδικός",
-		"welcomeMessage": "Καλώς ήρθατε στο <highlight>$t(common.walletName)</highlight>"
+		"weakPasswordError": "Αδύναμος κωδικός. Ικανοποιήστε τα ακόλουθα κριτήρια:",
+		"welcomeMessage": "Καλώς ήρθατε στο <highlight>$t(common.walletName)</highlight>",
+		"welcomeMessageDescription": "Το cloud-based μη-θεματοφυλακικό ψηφιακό πορτοφόλι ταυτότητας.<br />Με την υποστήριξη του ανοιχτού κώδικα."
 	},
 	"loginState": {
 		"confirm": "Επιβεβαίωση",
@@ -151,19 +158,21 @@
 	},
 	"pageCredentials": {
 		"addCardTitle": "Προσθήκη Νέου Πιστοποιητικού",
+		"addCredential": "Προσθήκη νέου πιστοποιητικού",
 		"credentialDetailsTitle": "Κάντε κλικ για να δείτε λεπτομέρειες για το {{friendlyName}}",
 		"credentialFullScreenTitle": "Κάντε κλικ για πλήρη οθόνη στο {{friendlyName}}",
 		"credentialTitle": "Πιστοποιητικό",
 		"datasetTitle": "Σύνολο Δεδομένων",
 		"delete": "Διαγραφή Πιστοποιητικού",
 		"deletePopupMessage": "Είστε σίγουροι ότι θέλετε να διαγράψετε το πιστοποιητικό <strong>{{credentialName}}</strong>;<br/> Αν το διαγράψετε, <strong>όλες οι κοινοποιήσεις που περιλαμβάνουν αυτό το VC θα αφαιρεθούν από το ιστορικό σας.</strong>",
-		"description": "Δείτε όλα τα πιστοποιητικά σας",
+		"description": "Δείτε όλα τα πιστοποιητικά σας. Κάντε κλικ σε ένα για να δείτε τις λεπτομέρειες.",
 		"details": {
 			"availableUsages": "Διαθέσιμες Χρήσεις",
 			"description": "Δείτε όλες τις πληροφορίες για το επιλεγμένο πιστοποιητικό",
 			"expired": "Αυτό το Πιστοποιητικό έχει λήξει"
 		},
 		"presentationsTitle": "Απεσταλμένα Πιστοποιητικά",
+		"searchPlaceholder": "Αναζήτηση πιστοποιητικού...",
 		"slideButtonAriaLabelDisable": "Δεν υπάρχει {{direction}} πιστοποιητικό",
 		"slideButtonAriaLabelEnable": "Μεταβείτε στο {{direction}} πιστοποιητικό",
 		"slideButtonTitleDisable": "Δεν υπάρχει διαθέσιμο {{direction}} πιστοποιητικό",
@@ -207,6 +216,8 @@
 		"lockPasskeyManagement": "Κλείδωμα διαχείρισης κλειδιών πρόσβασης",
 		"lockPasskeyManagementTitle": "Κάντε κλικ για να κλειδώσετε τη διαχείριση κλειδιών πρόσβασης",
 		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
+		"noOtherPasskeysTitle": "Δεν έχετε άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
+		"noOtherPasskeysDescription": "Τα κλειδιά πρόσβασης είναι μια ασφαλής μέθοδος αυθεντικοποίησης από αξιόπιστα μέρη. Συνδέστε περισσότερα κλειδιά πρόσβασης σε περίπτωση που χάσετε ένα.",
 		"passkeyItem": {
 			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
 			"canEncryptNo": "Όχι",
@@ -228,6 +239,7 @@
 			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
 			"renameButtonTitleLocked": "Δεν μπορείτε να επεξεργαστείτε το κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
+			"title": "Κλειδί πρόσβασης",
 			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
 		},
 		"rememberIssuer": {
@@ -242,13 +254,14 @@
 			"successMessage": "Αποθηκεύτηκε"
 		},
 		"title": {
+			"preferences": "Προτιμήσεις",
 			"appVersion": "Έκδοση Εφαρμογής",
-			"confirmDeletePopup": "Είστε Σίγουροι;",
+			"confirmDeletePopup": "Διαγραφή λογαριασμού",
 			"language": "Γλώσσα",
 			"loggedInPasskey": "Συνδεδεμένο Κλειδί Πρόσβασης",
 			"manageAcount": "Διαχείριση Λογαριασμού",
 			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
-			"rememberIssuer": "Remember Issuer"
+			"rememberIssuer": "Απομνημόνευση Issuer"
 		},
 		"unlockPasskeyManagement": "Ξεκλείδωμα Διαχείρισης",
 		"unlockPasskeyManagementTitle": "Κάντε κλικ για Ξεκλείδωμα Διαχείρισης",
@@ -259,9 +272,9 @@
 			"title": "Εισάγετε Κωδικό"
 		},
 		"upgradePrfKey": {
-			"description": "Παρακαλώ αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\"...",
-			"error": "<p>Κάτι πήγε στραβά, δοκιμάστε ξανά.</p><p>Σημειώστε ότι πρέπει να αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\".</p>",
-			"title": "Αναβάθμιση κλειδιού κρυπτογράφησης"
+			"description": "Παρακαλώ αυθεντικοποιηθείτε με το κλειδί πρόσβασης <strong>{{passkeyLabel}}</strong>.",
+			"error": "<p>Κάτι πήγε στραβά, δοκιμάστε ξανά.</p><p>Σημειώστε ότι πρέπει να αυθεντικοποιηθείτε με το κλειδί πρόσβασης <strong>{{passkeyLabel}}</strong>.</p>",
+			"title": "Αναβάθμιση του κλειδιού<br/>κρυπτογράφησης του passkey σας"
 		}
 	},
 	"pwaInstallPrompt": {
@@ -269,7 +282,7 @@
 			"closeTitle": "Κάντε κλικ για να κλείσετε την προτροπή εγκατάστασης του PWA",
 			"install": "Εγκατάσταση"
 		},
-		"message": "Διαθέσιμο PWA"
+		"message": "Εγκαταστήστε την εφαρμογή"
 	},
 	"qrCodeScanner": {
 		"cameraPermissionAllow": "Επιτρέψτε την άδεια κάμερας για να χρησιμοποιήσετε τον σαρωτή QR.",
@@ -282,9 +295,10 @@
 	},
 	"registerPasskey": {
 		"authOnceMore": "Για να ολοκληρώσετε τη ρύθμιση, αυθεντικοποιηθείτε μία ακόμη φορά.",
-		"giveNickname": "Δώστε σε αυτό το πιστοποιητικό ένα ψευδώνυμο:",
+		"giveNickname": "Δώστε σε αυτό το πιστοποιητικό ένα ψευδώνυμο.",
 		"messageDone": "Σχεδόν έτοιμο!",
-		"messageErrorTryAgain": "Κάτι πήγε στραβά, δοκιμάστε ξανά.<br/> Σημειώστε ότι πρέπει να χρησιμοποιήσετε το ίδιο κλειδί πρόσβασης που δημιουργήσατε στο προηγούμενο βήμα.",
+		"messageErrorTryAgainTitle": "Κάτι πήγε στραβά, δοκιμάστε ξανά.",
+		"messageErrorTryAgain": "Σημειώστε ότι πρέπει να χρησιμοποιήσετε το ίδιο κλειδί πρόσβασης που δημιουργήσατε στο προηγούμενο βήμα.",
 		"messageInteract": "Αλληλεπιδράστε με τον αυθεντικοποιητή σας...",
 		"messageInteractNewPasskey": "Αυθεντικοποιηθείτε με το νέο κλειδί πρόσβασης...",
 		"messageSuccess": "Επιτυχία!",
@@ -306,7 +320,7 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Αποσύνδεση",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredBy": "Powered by <docLinkWalletGithub><docBtn>wwWallet</docBtn></docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository του wwWallet"
 	},
 	"tourGuide": {

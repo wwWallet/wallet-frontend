@@ -28,6 +28,9 @@
 		"navItemSendCredentials": "Send Credentials",
 		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
+		"navItemFeedback": "Feedback",
+		"navItemHelp": "Help",
+		"navItemDocs": "Docs",
 		"next": "Next",
 		"offline": "Offline",
 		"offlineTitle": "You are offline. You don't have access here right now.",
@@ -42,7 +45,7 @@
 		"save": "Save",
 		"submit": "Submit",
 		"tryAgain": "Try again",
-		"walletName": "wwWallet"
+		"walletName": "Siros ID"
 	},
 	"expiredRibbon": {
 		"expired": "Expired"
@@ -59,9 +62,9 @@
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
-		"choosePasskeyUsername": "What should we call you?",
+		"choosePasskeyUsername": "Your name",
 		"confirmPasswordLabel": "Confirm Password",
-		"enterPasskeyName": "Choose a name for yourself",
+		"enterPasskeyName": "What should we call you?",
 		"enterPassword": "Enter your password",
 		"enterUsername": "Enter your username",
 		"enterconfirmPasswordLabel": "Enter your confirm password",
@@ -69,6 +72,7 @@
 		"forgetCachedUser": "Click to Forget Cached User {{name}}",
 		"incorrectCredentialsError": "Incorrect username or password",
 		"login": "Login",
+		"loginInstead": "Log in instead.",
 		"loginAsUser": "Log in as {{name}}",
 		"loginCache": "Choose your account",
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
@@ -76,7 +80,7 @@
 		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
 		"messageOffline": "You are offline. Some features may not be available.",
-		"newHereQuestion": "New here? ",
+		"newHereQuestion": "Don't have an account? ",
 		"number": "At least one number",
 		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
@@ -94,18 +98,20 @@
 		"passwordsNotMatchError": "Passwords do not match",
 		"privateDataConflict": "Another session for this account disrupted the login attempt. Please try again.",
 		"reachedLengthLimit": "Length limit exceeded",
-		"signUp": "Sign Up",
+		"signUp": "Sign up",
+		"signUpHere": "Sign up here.",
 		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
 		"signupPasskey": "Sign up with passkey",
 		"specialCharacter": "At least one special character",
 		"strength": "Strength",
 		"submitting": "Submitting...",
-		"useOtherAccount": "Use other Account",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
-		"weakPasswordError": "Weak password",
-		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
+		"useOtherAccount": "Use other account",
+		"weakPasswordError": "Weak password. Meet the following criteria:",
+		"welcomeMessage": "Welcome to $t(common.walletName)",
+		"welcomeMessageDescription": "The cloud based non-custodial digital identity wallet.<br />Powered by open-source."
 	},
 	"loginState": {
 		"confirm": "Confirm",
@@ -138,7 +144,7 @@
 	},
 	"notFound": {
 		"homeButton": "Back to Home",
-		"message": "Sorry, the page you're looking for cannot be accessed",
+		"message": "Sorry, the page you're looking for cannot be accessed.",
 		"title": "Oops, page not found!"
 	},
 	"pageAddCredentials": {
@@ -151,14 +157,16 @@
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
-		"addCardTitle": "Add New Credential",
+		"addCardTitle": "Add new credential",
+		"addCredential": "Add new credential",
+		"searchPlaceholder": "Search credential...",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialTitle": "Credential",
 		"datasetTitle": "Dataset",
 		"delete": "Delete Credential",
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
-		"description": "View all of your credentials",
+		"description": "View all of your credentials. Click one to view the details.",
 		"details": {
 			"availableUsages": "Available Usages",
 			"description": "View all the information about the chosen credential",
@@ -190,25 +198,27 @@
 		"searchPlaceholder": "Search verifiers..."
 	},
 	"pageSettings": {
-		"addPasskey": "Add passkey",
-		"addPasskeyTitle": "Click to Add passkey",
+		"addPasskey": "Add new passkey",
+		"addPasskeyTitle": "Click to add a new passkey",
 		"appVersion": {
-			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
-			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
+			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}.",
+			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/>A new version is available. Please <reloadButton>refresh</reloadButton> to update!"
 		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
-			"message": "Are you sure you want to delete <strong>your Account</strong> ?",
+			"message": "Are you sure you want to delete your account? This action is permanent.",
 			"title": "Delete account"
 		},
 		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
 		"lockPasskeyManagement": "Lock passkey management",
-		"lockPasskeyManagementTitle": "Click to Lock passkey management",
-		"noOtherPasskeys": "There are no other passkeys in this account.",
+		"lockPasskeyManagementTitle": "Click to lock passkey management",
+		"noOtherPasskeysTitle": "You don’t have any other passkeys in this account.",
+		"noOtherPasskeysDescription": "Passkeys are a secure authentication method by trusted parties. Connect more passkeys in case you lose one.",
 		"passkeyItem": {
+			"title": "Passkey",
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
 			"canEncryptYes": "Yes",
@@ -218,7 +228,7 @@
 			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
 			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
-			"messageDeletePasskey": "Are you sure you want to delete <strong>{{nickname}}</strong> passkey?",
+			"messageDeletePasskey": "Are you sure you want to delete {{nickname}} passkey?",
 			"needsPrfUpgrade": "Needs upgrade",
 			"nickname": "Nickname",
 			"nicknameInput": "New nickname",
@@ -243,13 +253,14 @@
 			"successMessage": "Saved"
 		},
 		"title": {
-			"appVersion": "App Version",
-			"confirmDeletePopup": "Are You Sure?",
+			"preferences": "Preferences",
+			"appVersion": "App version",
+			"confirmDeletePopup": "Delete account",
 			"language": "Language",
-			"loggedInPasskey": "Logged in Passkey",
-			"manageAcount": "Manage Account",
-			"manageOtherPasskeys": "Manage other Passkeys",
-			"rememberIssuer": "Remember Issuer"
+			"loggedInPasskey": "Logged in passkey",
+			"manageAcount": "Manage account",
+			"manageOtherPasskeys": "Manage other passkeys",
+			"rememberIssuer": "Remember issuer"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
@@ -260,9 +271,9 @@
 			"title": "Enter password"
 		},
 		"upgradePrfKey": {
-			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
-			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
-			"title": "Upgrading passkey encryption key"
+			"description": "Please authenticate with the passkey <strong>{{passkeyLabel}}</strong>.",
+			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey <strong>{{passkeyLabel}}</strong>.</p>",
+			"title": "Upgrade your passkey<br/>encryption key"
 		}
 	},
 	"pwaInstallPrompt": {
@@ -270,7 +281,7 @@
 			"closeTitle": "Click to close the PWA Installation Prompt",
 			"install": "Install"
 		},
-		"message": "PWA Available"
+		"message": "Install the app"
 	},
 	"qrCodeScanner": {
 		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
@@ -283,9 +294,10 @@
 	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
-		"giveNickname": "Give this credential a nickname:",
+		"giveNickname": "Give this credential a nickname.",
 		"messageDone": "Almost done!",
-		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
+		"messageErrorTryAgainTitle": "Something went wrong, please try again.",
+		"messageErrorTryAgain": "Please note that you need to use the same passkey you created in the previous step.",
 		"messageInteract": "Please interact with your authenticator...",
 		"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 		"messageSuccess": "Success!",
@@ -307,7 +319,7 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredBy": "Powered by <docLinkWalletGithub><docBtn>wwWallet</docBtn></docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
 	"tourGuide": {
