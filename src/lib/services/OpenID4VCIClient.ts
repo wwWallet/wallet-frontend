@@ -220,7 +220,6 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		// Token Request
 		const tokenEndpoint = this.config.authorizationServerMetadata.token_endpoint;
 
-
 		let flowState: OpenID4VCIClientState | null = null;
 
 		if (requestCredentialsParams?.authorizationCodeGrant) {
@@ -354,7 +353,7 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 			await this.credentialRequest(flowState.tokenResponse, flowState);
 		}
 		catch (err) {
-			console.error("Error handling authrozation response ", err);
+			console.error("Error handling authorization response ", err);
 			throw new Error("Credential request failed");
 		}
 	}
@@ -370,7 +369,6 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const {
 			data: { access_token, c_nonce },
 		} = response;
-
 
 		const credentialEndpoint = this.config.credentialIssuerMetadata.credential_endpoint;
 

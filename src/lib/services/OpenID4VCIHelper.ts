@@ -34,7 +34,7 @@ export class OpenID4VCIHelper implements IOpenID4VCIHelper {
 		const pathIssuerAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
 		const pathIssuerConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 
-		const credentialIssuerMetadata = await this.getCredentialIssuerMetadata(isOnline, credentialIssuerIdentifier).catch(() => null);
+		const credentialIssuerMetadata = await this.getCredentialIssuerMetadata(isOnline, credentialIssuerIdentifier, forceIndexDB).catch(() => null);
 		const issuerAuthorizationServers = credentialIssuerMetadata.metadata.authorization_servers;
 
 		// First, try all authorization servers in Issuer authorization_servers metadata
