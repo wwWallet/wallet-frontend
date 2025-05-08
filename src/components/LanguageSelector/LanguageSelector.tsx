@@ -7,7 +7,7 @@ import { faCheck, faChevronDown, faGlobe } from "@fortawesome/pro-regular-svg-ic
 
 import { languageOptions, LanguageOption } from "./languages";
 
-import Dropdown, { DropdownOption } from "@shared/components/Shared/Dropdown";
+import Dropdown, { DropdownOption } from "@/components/Shared/Dropdown";
 
 type LanguageSelectorProps = {
 	className?: string;
