@@ -180,7 +180,7 @@ export const CredentialOfferHandler = ({
 
 				// Get trusted issuers
 				const { data: trustedCredentialIssuers } = await api.getExternalEntity('/issuer/all', undefined, true);
-				const trustedCredentialIssuer = trustedCredentialIssuers[issuer];
+				const trustedCredentialIssuer = trustedCredentialIssuers.find(o => o.credentialIssuerIdentifier = issuer);
 
 				if (!trustedCredentialIssuer) {
 					// @todo: Prompt to add issuer to trusted issuers

@@ -17,7 +17,8 @@ const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 
 export class OpenID4VCIClient implements IOpenID4VCIClient {
 
-	constructor(private config: ClientConfig,
+	constructor(
+		private config: ClientConfig,
 		private httpProxy: IHttpProxy,
 		private openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository,
 		private generateNonceProofs: (requests: { nonce: string, audience: string, issuer: string }[]) => Promise<{ proof_jwts: string[] }>,
@@ -81,7 +82,8 @@ export class OpenID4VCIClient implements IOpenID4VCIClient {
 		const authParams = new URLSearchParams();
 
 		const selectedCredentialConfigurationSupported = this.config.credentialIssuerMetadata.credential_configurations_supported[credentialConfigurationId];
-		authParams.append("scope", selectedCredentialConfigurationSupported.scope);
+		const scopes = `openid ${selectedCredentialConfigurationSupported.scope}`;
+		authParams.append("scope", scopes);
 
 		authParams.append("response_type", "code");
 
