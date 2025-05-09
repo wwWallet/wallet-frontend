@@ -12,35 +12,11 @@ export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: 
 		trustedCertificates: trustedCertificates,
 	};
 
-	console.log('initializeCredentialEngine getCredentialIssuerMetadata',shouldUseCache)
-	const credentialIssuerEntities = await getIssuers().catch(() => []);
-	const result = await Promise.all(credentialIssuerEntities.map(async (issuerEntity) =>
-		"credentialIssuerIdentifier" in issuerEntity && typeof issuerEntity.credentialIssuerIdentifier === "string" ?
-			helper.getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier, shouldUseCache).then((result =>
-				result?.metadata
-			)).catch((err) => { console.error(err); return null; }) : null
-	));
-
-	for (const r of result) {
-		if (r == null) {
-			continue;
-		}
-		if (r.mdoc_iacas_uri) {
-			try {
-				const response = await helper.getMdocIacas(r.credential_issuer,r, shouldUseCache);
-				if (!response.iacas) {
-					continue;
-				}
-				const pemCertificates = response.iacas.map((cert) =>
-					`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
-				)
-				ctx.trustedCertificates.push(...pemCertificates);
-			}
-			catch (err) {
-				continue;
-			}
-		}
-	}
+	await helper.fetchIssuerMetadataAndCertificates(
+		getIssuers,
+		(pemCerts) => trustedCertificates.push(...pemCerts),
+		true
+	);
 
 	const credentialParsingEngine = ParsingEngine();
 	credentialParsingEngine.register(SDJWTVCParser({ context: ctx, httpClient: httpProxy }));

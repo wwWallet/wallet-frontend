@@ -147,18 +147,60 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		[]
 	);
 
+	const fetchIssuerMetadataAndCertificates = useCallback(
+		async (
+			getIssuers: () => Promise<Record<string, unknown>[]>,
+			onCertificates: (pemCertificates: string[]) => void,
+			shouldUseCache: boolean
+		): Promise<void> => {
+			console.log('fetchIssuerMetadataAndCertificates - shouldUseCache', shouldUseCache);
+
+
+			const credentialIssuerEntities = await getIssuers().catch(() => []);
+			const result = await Promise.all(credentialIssuerEntities.map(async (issuerEntity) =>
+				"credentialIssuerIdentifier" in issuerEntity && typeof issuerEntity.credentialIssuerIdentifier === "string" ?
+					getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier, shouldUseCache).then((result =>
+						result?.metadata
+					)).catch((err) => { console.error(err); return null; }) : null
+			));
+
+			for (const r of result) {
+				if (!r) continue;
+
+				if (r.mdoc_iacas_uri) {
+					try {
+						const response = await getMdocIacas(r.credential_issuer, r, shouldUseCache);
+						if (!response.iacas) {
+							continue;
+						}
+						const pemCertificates = response.iacas.map((cert) =>
+							`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
+						)
+						onCertificates(pemCertificates);
+					}
+					catch (err) {
+						continue;
+					}
+				}
+			}
+		},
+		[getCredentialIssuerMetadata, getMdocIacas]
+	);
+
 	return useMemo(
 		() => ({
 			getClientId,
 			getAuthorizationServerMetadata,
 			getCredentialIssuerMetadata,
 			getMdocIacas,
+			fetchIssuerMetadataAndCertificates,
 		}),
 		[
 			getClientId,
 			getAuthorizationServerMetadata,
 			getCredentialIssuerMetadata,
 			getMdocIacas,
+			fetchIssuerMetadataAndCertificates,
 		]
 	);
 }
