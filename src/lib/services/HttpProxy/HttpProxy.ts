@@ -29,16 +29,16 @@ export function useHttpProxy(): IHttpProxy {
 	const proxy = useMemo(() => ({
 		async get(
 			url: string,
-			headers: Record<string, string>,
-			options?: { useCache: boolean }
+			headers: Record<string, string> = {},
+			options?: { useCache?: boolean; }
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
-			const useCache = options?.useCache ?? undefined;
+			const useCache = options?.useCache ?? false;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;
+			const isBinaryRequest = /\.(png|jpe?g|gif|webp|bmp|tiff?|ico)(\?.*)?(#.*)?$/i.test(url);
+			const cacheKey = isBinaryRequest ? `blob:${url}` : `data:${url}`;
 
-			const cacheKey = `data:${url}`;
-
-			if (useCache && isOnline !== false) {
+			if (useCache && online !== false) {
 				try {
 					const cached = await getItem('proxyCache', cacheKey, 'proxyCache');
 
@@ -88,37 +88,61 @@ export function useHttpProxy(): IHttpProxy {
 					}, {
 						timeout: 2500,
 						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
-						}
-					});
+							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
+						},
+						...(isBinaryRequest && { responseType: 'arraybuffer' }),
+					}
+					);
 
 					const res = response.data;
-					const cacheControlHeader = res.headers?.['cache-control'];
+					const cacheControlHeader = response.headers?.['cache-control'];
+					const contentTypeHeader = response.headers?.['content-type'];
 
 					let shouldCache = options?.useCache !== undefined;
 					let maxAge = 60 * 60 * 24 * 30; // default: 30 days
-					const now = Math.floor(Date.now() / 1000);
 
+					// Handle Cache-Control logic
 					if (typeof cacheControlHeader === 'string') {
 						const lower = cacheControlHeader.toLowerCase();
-
-						if (lower.includes('no-store')) {
-							shouldCache = false;
-						} else if (lower.includes('no-cache')) {
-							maxAge = 0;
-						} else {
+						if (lower.includes('no-store')) shouldCache = false;
+						else if (lower.includes('no-cache')) maxAge = 0;
+						else {
 							const parsed = parseCacheControl(lower);
 							if (typeof parsed['max-age'] === 'number') {
 								maxAge = parsed['max-age'];
-								if (maxAge < 0) {
-									shouldCache = false;
-								}
+								if (maxAge < 0) shouldCache = false;
 							}
 						}
 					}
 
+					// blob response
+					if (isBinaryRequest && typeof contentTypeHeader === 'string') {
+						const arrayBuffer = res as ArrayBuffer;
+						const blob = new Blob([new Uint8Array(arrayBuffer)], { type: contentTypeHeader });
+						const blobUrl = URL.createObjectURL(blob);
+
+						const responseToCache = {
+							status: response.status,
+							headers: response.headers,
+							data: blobUrl,
+						};
+
+						if (shouldCache) {
+							await addItem('proxyCache', cacheKey, {
+								data: responseToCache,
+								expiry: now + maxAge,
+							}, 'proxyCache');
+						}
+
+						return responseToCache;
+					}
+
+					// Non-blob response
 					if (shouldCache) {
-						await addItem('proxyCache', cacheKey, { data: res, expiry: now + maxAge }, 'proxyCache');
+						await addItem('proxyCache', cacheKey, {
+							data: res,
+							expiry: now + maxAge,
+						}, 'proxyCache');
 					}
 
 					return res;
@@ -126,7 +150,11 @@ export function useHttpProxy(): IHttpProxy {
 				} catch (err) {
 					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
 					if (fallback?.data) {
-						return fallback.data;
+						return {
+							status: 200,
+							headers: {},
+							data: fallback.data,
+						};
 					}
 
 					if (isOnlineRef.current) {
@@ -134,9 +162,9 @@ export function useHttpProxy(): IHttpProxy {
 					}
 
 					return {
-						data: err.response?.data || 'GET proxy failed',
-						headers: err.response?.headers || {},
 						status: err.response?.status || 500,
+						headers: err.response?.headers || {},
+						data: err.response?.data || 'GET proxy failed',
 					};
 				} finally {
 					inFlightRequests.delete(cacheKey);
