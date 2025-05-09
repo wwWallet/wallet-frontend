@@ -167,6 +167,40 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			for (const r of result) {
 				if (!r) continue;
 
+				const logoUris: string[] = [];
+
+				// Issuer display array
+				if (Array.isArray(r.display)) {
+					for (const entry of r.display) {
+						if (entry?.logo?.uri) {
+							logoUris.push(entry.logo.uri);
+						}
+					}
+				}
+
+				// credential_configurations_supported.*.display[]
+				if (r.credential_configurations_supported && typeof r.credential_configurations_supported === 'object') {
+					for (const config of Object.values(r.credential_configurations_supported)) {
+						const configObj = config as Record<string, any>;
+						if (Array.isArray(configObj.display)) {
+							for (const entry of configObj.display) {
+								if (entry?.logo?.uri) {
+									logoUris.push(entry.logo.uri);
+								}
+							}
+						}
+					}
+				}
+
+				// Fetch logos
+				for (const uri of logoUris) {
+					try {
+						await httpProxy.get(uri, {}, { useCache: shouldUseCache });
+					} catch (err) {
+						console.error(`Failed to fetch logo from ${uri}`, err);
+					}
+				}
+
 				if (r.mdoc_iacas_uri) {
 					try {
 						const response = await getMdocIacas(r.credential_issuer, r, shouldUseCache);
@@ -184,7 +218,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				}
 			}
 		},
-		[getCredentialIssuerMetadata, getMdocIacas]
+		[getCredentialIssuerMetadata, getMdocIacas, httpProxy]
 	);
 
 	return useMemo(
