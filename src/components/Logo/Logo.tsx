@@ -43,12 +43,12 @@ const Logo: React.FC<LogoProps> = ({
 	const logoSrc = (() => {
 		if (isChristmasSeason) {
 			return type === 'white' ?
-				`${config.VITE_STATIC_PUBLIC_URL}/wallet_white_christmas.png` :
-				`${config.VITE_STATIC_PUBLIC_URL}/logo_christmas.png`;
+				`/wallet_white_christmas.png` :
+				`$/logo_christmas.png`;
 		}
 		return type === 'white' ?
-			`${config.VITE_STATIC_PUBLIC_URL}/wallet_white.png` :
-			`${config.VITE_STATIC_PUBLIC_URL}/logo.png`;
+			`/wallet_white.png` :
+			`/logo.png`;
 	})();
 
 	return (
