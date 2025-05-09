@@ -44,7 +44,7 @@ const Logo: React.FC<LogoProps> = ({
 		if (isChristmasSeason) {
 			return type === 'white' ?
 				`/wallet_white_christmas.png` :
-				`$/logo_christmas.png`;
+				`/logo_christmas.png`;
 		}
 		return type === 'white' ?
 			`/wallet_white.png` :
