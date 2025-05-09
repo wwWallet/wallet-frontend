@@ -104,12 +104,12 @@ export const ContainerContextProvider = ({ children }) => {
 
 				credentialParserRegistry.addParser({
 					async parse(rawCredential) {
-
 						if (typeof rawCredential != 'string') {
 							return { error: "rawCredential not of type 'string'" };
 
 						}
 						const result = await parseSdJwtCredential(rawCredential);
+
 						if ('error' in result) {
 							return { error: "Failed to parse sdjwt" };
 						}
@@ -207,22 +207,21 @@ export const ContainerContextProvider = ({ children }) => {
 				
 				credentialParserRegistry.addParser({
 					async parse(rawCredential) {
-
 						if (typeof rawCredential != 'string') {
 							return { error: "rawCredential not of type 'string'" };
 
 						}
 						
 						const result = await parseJwtVcJsonCredential(rawCredential);
-						
+
 						if ('error' in result) {
 							return { error: "Failed to parse jwt_vc_json" };
 						}
-						
+
 						let iss = result.beautifiedForm.iss;
 
-						// @todo: make less specific for SURF agent
-						// this will no longer be needed if the issuer configuration is saved and includes the issuer URL
+						// @TODO: make less specific for SURF agent
+						// @TODO: This will no longer be needed if the issuer configuration is saved and includes the issuer URL
 						if (iss.startsWith('did:web:')) {
 							const issDomain = iss.split(':').pop();
 							const domainParts = issDomain.split('.');
@@ -232,16 +231,19 @@ export const ContainerContextProvider = ({ children }) => {
 						}
 
 						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(true, iss, false);
-						
-						if (!metadataResponse) {
-							return { error: 'No metadata response' };
+
+						if (!metadataResponse || !metadataResponse.metadata) {
+							// If no metadataResponse or metadata, at least return a minimal credential for the dataset view
+							return {
+								beautifiedForm: result.beautifiedForm,
+								credentialImage: {
+									credentialImageURL: defaultCredentialImage,
+								},
+								credentialFriendlyName: () => 'Credential',
+							};
 						}
 
 						const { metadata } = metadataResponse;
-
-						if (!metadata) {
-							return { error: 'No metadata' };
-						}
 
 						const beautifiedForm = result.beautifiedForm.vc || result.beautifiedForm;
 
