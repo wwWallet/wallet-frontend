@@ -32,7 +32,7 @@ export function useHttpProxy(): IHttpProxy {
 			headers: Record<string, string> = {},
 			options?: { useCache?: boolean; }
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
-			const useCache = options?.useCache ?? false;
+			const useCache = options?.useCache;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;
 			const isBinaryRequest = /\.(png|jpe?g|gif|webp|bmp|tiff?|ico)(\?.*)?(#.*)?$/i.test(url);
@@ -98,7 +98,7 @@ export function useHttpProxy(): IHttpProxy {
 					const cacheControlHeader = response.headers?.['cache-control'];
 					const contentTypeHeader = response.headers?.['content-type'];
 
-					let shouldCache = options?.useCache !== undefined;
+					let shouldCache = useCache !== undefined;
 					let maxAge = 60 * 60 * 24 * 30; // default: 30 days
 
 					// Handle Cache-Control logic
@@ -140,12 +140,20 @@ export function useHttpProxy(): IHttpProxy {
 					// Non-blob response
 					if (shouldCache) {
 						await addItem('proxyCache', cacheKey, {
-							data: res,
+							data: {
+								status: res.status,
+								headers: res.headers,
+								data: res.data,
+							},
 							expiry: now + maxAge,
 						}, 'proxyCache');
 					}
 
-					return res;
+					return {
+						status: res.status,
+						headers: res.headers,
+						data: res.data,
+					};
 
 				} catch (err) {
 					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
