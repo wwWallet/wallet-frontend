@@ -95,14 +95,16 @@ export function useHttpProxy(): IHttpProxy {
 					);
 
 					const res = response.data;
-					const cacheControlHeader = response.headers?.['cache-control'];
-					const contentTypeHeader = response.headers?.['content-type'];
+
+					const sourceHeaders = isBinaryRequest ? response.headers : response.data?.headers;
+					const contentTypeHeader: string | undefined = sourceHeaders?.['content-type'];
+					const cacheControlHeader: string | undefined = sourceHeaders?.['cache-control'];
 
 					let shouldCache = useCache !== undefined;
 					let maxAge = 60 * 60 * 24 * 30; // default: 30 days
 
 					// Handle Cache-Control logic
-					if (typeof cacheControlHeader === 'string') {
+					if (shouldCache && typeof cacheControlHeader === 'string') {
 						const lower = cacheControlHeader.toLowerCase();
 						if (lower.includes('no-store')) shouldCache = false;
 						else if (lower.includes('no-cache')) maxAge = 0;
