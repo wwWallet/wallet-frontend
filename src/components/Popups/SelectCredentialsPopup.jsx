@@ -226,66 +226,68 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					)}
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					{requestedFieldsText && requestedFields.length > 0 && (
-						<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
-							<span>
-								{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
-							</span>
-							&nbsp;
-							<strong>
-								{requestedFieldsText}
-							</strong>
-							{requestedFields.length > 2 && (
-								<>
-									{' '}
-									< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
-										{showAllFields ? `${t('common.showLess')}` : `${t('common.showLess')}`}
-									</button>
-								</>
-							)}
-						</p>
-					)}
-
-					{popupState.options.verifierDomainName && (
-						<p className="pd-2 text-gray-700 text-sm dark:text-white">
-							<span>
-								<Trans
-									i18nKey={"selectCredentialPopup.requestingParty"}
-									values={{ verifierDomainName: popupState.options.verifierDomainName }}
-									components={{ strong: <strong /> }}
-								/>
-							</span>
-						</p>
-					)}
-
-					{popupState.options.verifierPurpose && (() => {
-						const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
-						const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
-
-						return (
-							<p className="pd-2 text-gray-700 text-sm dark:text-white">
+					<div className="flex flex-col gap-[3px]">
+						{requestedFieldsText && requestedFields.length > 0 && (
+							<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
 								<span>
-									<Trans
-										i18nKey="selectCredentialPopup.purpose"
-										values={{ verifierPurpose: textToDisplay }}
-									/>
+									{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
 								</span>
-								{truncated && (
+								&nbsp;
+								<strong>
+									{requestedFieldsText}
+								</strong>
+								{requestedFields.length > 2 && (
 									<>
 										{' '}
-										<button
-											onClick={() => setShowFullPurpose(!showFullPurpose)}
-											className="text-primary dark:text-extra-light hover:underline inline"
-										>
-											{showFullPurpose ? t('common.showLess') : t('common.showMore')}
+										< button onClick={handleToggleFields} className="text-primary dark:text-extra-light font-medium hover:underline inline">
+											{showAllFields ? `${t('common.showLess')}` : `${t('common.showLess')}`}
 										</button>
 									</>
 								)}
 							</p>
-						);
-					})()}
+						)}
 
-					<p className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">
+						{popupState.options.verifierDomainName && (
+							<p className="pd-2 text-gray-700 text-sm dark:text-white">
+								<span>
+									<Trans
+										i18nKey={"selectCredentialPopup.requestingParty"}
+										values={{ verifierDomainName: popupState.options.verifierDomainName }}
+										components={{ strong: <strong /> }}
+									/>
+								</span>
+							</p>
+						)}
+
+						{popupState.options.verifierPurpose && (() => {
+							const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
+							const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
+
+							return (
+								<p className="pd-2 text-gray-700 text-sm dark:text-white">
+									<span>
+										<Trans
+											i18nKey="selectCredentialPopup.purpose"
+											values={{ verifierPurpose: textToDisplay }}
+										/>
+									</span>
+									{truncated && (
+										<>
+											{' '}
+											<button
+												onClick={() => setShowFullPurpose(!showFullPurpose)}
+												className="text-primary dark:text-extra-light font-medium hover:underline inline"
+											>
+												{showFullPurpose ? t('common.showLess') : t('common.showMore')}
+											</button>
+										</>
+									)}
+								</p>
+							);
+						})()}
+					</div>
+
+					<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
 						{t('selectCredentialPopup.descriptionSelect')}
 					</p>
 
