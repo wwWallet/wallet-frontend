@@ -144,7 +144,7 @@
 		"description": "Pesquise e selecione um credencial que deseja emitir",
 		"noFound": "Sem issuers correspondentes.",
 		"popup": {
-			"message": "Se continuar, será redirecionado para <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir uma <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+			"message": "Será redirecionado para <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir uma <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
 			"title": "Selecionado:"
 		},
 		"searchPlaceholder": "Procurar credencial..."
@@ -183,7 +183,7 @@
 		"description": "Pesquise e selecione um verifier para partilhar credenciais",
 		"noFound": "Sem verifiers correspondentes.",
 		"popup": {
-			"message": "Se continuar, será redirecionado para {{verifierName}}.",
+			"message": "Será redirecionado para {{verifierName}}.",
 			"title": "Selecionado:"
 		},
 		"searchPlaceholder": "Procurar verifiers..."
