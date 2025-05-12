@@ -40,6 +40,8 @@
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"refresh": "Refresh",
 		"save": "Save",
+		"showLess": "Show less",
+		"showMore": "Show more",
 		"submit": "Submit",
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
@@ -295,15 +297,14 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"descriptionFieldsMultiple": "Requested fields:",
-		"descriptionFieldsSingle": "Requested field:",
+		"descriptionFieldsMultiple": "Requested Fields:",
+		"descriptionFieldsSingle": "Requested Field:",
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
-		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
-		"purposeNotSpecified": "Purpose not specified by verifier",
-		"requestedFieldsLess": "Show less",
-		"requestedFieldsMore": "Show more",
-		"title": "Select : "
+		"purpose": "Purpose: {{verifierPurpose}}",
+		"purposeNotSpecified": " Not specified by verifier",
+		"requestingParty": "Requesting Party: <strong> {{verifierDomainName}} </strong>",
+		"title": "Select: "
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",

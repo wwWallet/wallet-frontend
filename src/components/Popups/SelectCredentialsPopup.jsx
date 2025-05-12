@@ -11,6 +11,7 @@ import Slider from '../Shared/Slider';
 import CredentialParserContext from '@/context/CredentialParserContext';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
+import { truncateByWords } from '@/functions/truncateWords';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -70,6 +71,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showAllFields, setShowAllFields] = useState(false);
+	const [showFullPurpose, setShowFullPurpose] = useState(false);
+
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
@@ -223,17 +226,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					)}
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					{popupState.options.verifierDomainName && (
-						<p className="pd-2 text-gray-700 text-sm dark:text-white">
-							<span>
-								<Trans
-									i18nKey={"selectCredentialPopup.purpose"}
-									values={{ verifierDomainName: popupState.options.verifierDomainName }}
-									components={{ strong: <strong /> }}
-								/> {popupState.options.verifierPurpose}
-							</span>
-						</p>
-					)}
 					{requestedFieldsText && requestedFields.length > 0 && (
 						<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
 							<span>
@@ -247,12 +239,52 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								<>
 									{' '}
 									< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
-										{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')}`}
+										{showAllFields ? `${t('common.showLess')}` : `${t('common.showLess')}`}
 									</button>
 								</>
-							)}.
+							)}
 						</p>
 					)}
+
+					{popupState.options.verifierDomainName && (
+						<p className="pd-2 text-gray-700 text-sm dark:text-white">
+							<span>
+								<Trans
+									i18nKey={"selectCredentialPopup.requestingParty"}
+									values={{ verifierDomainName: popupState.options.verifierDomainName }}
+									components={{ strong: <strong /> }}
+								/>
+							</span>
+						</p>
+					)}
+
+					{popupState.options.verifierPurpose && (() => {
+						const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
+						const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
+
+						return (
+							<p className="pd-2 text-gray-700 text-sm dark:text-white">
+								<span>
+									<Trans
+										i18nKey="selectCredentialPopup.purpose"
+										values={{ verifierPurpose: textToDisplay }}
+									/>
+								</span>
+								{truncated && (
+									<>
+										{' '}
+										<button
+											onClick={() => setShowFullPurpose(!showFullPurpose)}
+											className="text-primary dark:text-extra-light hover:underline inline"
+										>
+											{showFullPurpose ? t('common.showLess') : t('common.showMore')}
+										</button>
+									</>
+								)}
+							</p>
+						);
+					})()}
+
 					<p className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">
 						{t('selectCredentialPopup.descriptionSelect')}
 					</p>
