@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import Spinner from '../Shared/Spinner';
 import Header from '../Layout/Header';
 
-const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, children }) => {
+const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, children, padding = 'p-4' }) => {
 
 	if (!isOpen) return null;
 
@@ -23,14 +23,14 @@ const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, chi
 		<Modal
 			isOpen={isOpen}
 			onRequestClose={onClose}
-			className={`bg-gray-50 dark:bg-gray-700 relative overflow-y-auto custom-scrollbar overflow-x-hidden ${fullScreen ? 'flex flex-col space-between w-full h-full' : 'p-4 w-full sm:w-1/2 md:w-5/12 lg:w-1/3 max-h-[90vh] rounded-lg shadow-lg m-4'}`}
+			className={`bg-gray-50 dark:bg-gray-700 relative overflow-y-auto custom-scrollbar overflow-x-hidden ${fullScreen ? 'flex flex-col space-between w-full h-full' : 'w-full sm:w-1/2 md:w-5/12 lg:w-1/3 max-h-[90vh] rounded-lg shadow-lg m-4'}`}
 			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50' : 'bg-black bg-opacity-50 backdrop-blur-sm z-50'}`}
 			bodyOpenClassName="overflow-hidden"
 		>
 
 			<div className={`${fullScreen && 'h-full'}`}>
 				{fullScreen && <Header toggleSidebar={() => { }} />}
-				<div className={`${fullScreen && 'px-6 py-6 flex flex-col justify-between'}`}>
+				<div className={`${padding} ${fullScreen && 'px-6 py-6 flex flex-col justify-between'}`}>
 					{children}
 				</div>
 			</div>
