@@ -1,4 +1,21 @@
 {
+	"ConnectionStatusIcon": {
+		"qualityLabels": {
+			"connecting": "Connecting...",
+			"excellent": "Excellent",
+			"fair": "Fair",
+			"good": "Good",
+			"poor": "Poor",
+			"veryPoor": "Very Poor"
+		},
+		"status": "Connection status:"
+	},
+	"PinInputPopup": {
+		"description": "Please enter the PIN which was displayed from the issuer",
+		"errMessage": "You have entered an incorrect pin",
+		"inputPlaceholder": "Pin",
+		"title": "Enter the Pin"
+	},
 	"common": {
 		"cancel": "Cancel",
 		"continue": "Continue",
@@ -24,36 +41,22 @@
 		"platformPasskey": "Passkey on this device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
-		"save": "Save",
 		"refresh": "Refresh",
+		"save": "Save",
 		"submit": "Submit",
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"expiredRibbon": {
+		"expired": "Expired"
+	},
 	"language": {
 		"label": "Language"
 	},
-	"ConnectionStatusIcon": {
-		"status": "Connection status:",
-		"qualityLabels": {
-			"excellent": "Excellent",
-			"good": "Good",
-			"fair": "Fair",
-			"poor": "Poor",
-			"veryPoor": "Very Poor",
-			"connecting": "Connecting..."
-		}
-	},
 	"layout": {
 		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
-		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>.",
-		"messageOffline": "You are currently <strong>offline. Some features may not be available.</strong>"
-	},
-	"loginState": {
-		"confirm": "Confirm",
-		"message": "Use your <strong>passkey</strong> to continue and fetch your credential in your wallet.",
-		"title": "Hi,",
-		"welcomeBackMessage": "Welcome back to <highlight>$t(common.walletName)</highlight>"
+		"messageOffline": "You are currently <strong>offline. Some features may not be available.</strong>",
+		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
@@ -69,8 +72,8 @@
 		"forgetCachedUser": "Click to Forget Cached User {{name}}",
 		"incorrectCredentialsError": "Incorrect username or password",
 		"login": "Login",
-		"loginCache": "Choose your account",
 		"loginAsUser": "Log in as {{name}}",
+		"loginCache": "Choose your account",
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"loginSubmit": "Login",
@@ -89,42 +92,48 @@
 		"passkeySignupPrfNotSupportedAriaLabel": "Learn more about supported browsers or security keys",
 		"passwordLabel": "Password",
 		"passwordLength": "Minimum length: 8 characters",
-		"passwordsNotMatchError": "Passwords do not match",
 		"passwordUnlockFailed": "Failed to unlock wallet with password",
+		"passwordsNotMatchError": "Passwords do not match",
 		"privateDataConflict": "Another session for this account disrupted the login attempt. Please try again.",
+		"reachedLengthLimit": "Length limit exceeded",
 		"signUp": "Sign Up",
 		"signUpSubmit": "Sign Up",
 		"specialCharacter": "At least one special character",
-		"reachedLengthLimit": "Length limit exceeded",
 		"strength": "Strength",
 		"submitting": "Submitting...",
+		"useOtherAccount": "Use other Account",
 		"usernameExistsError": "Failed to create user account, username already exists",
 		"usernameLabel": "Username",
-		"useOtherAccount": "Use other Account",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
+	},
+	"loginState": {
+		"confirm": "Confirm",
+		"message": "Use your <strong>passkey</strong> to continue and fetch your credential in your wallet.",
+		"title": "Hi,",
+		"welcomeBackMessage": "Welcome back to <highlight>$t(common.walletName)</highlight>"
 	},
 	"messagePopup": {
 		"close": "Close",
 		"insufficientCredentials": {
-			"title": "Insufficient Credentials",
-			"description": "One or more of the credentials you want to present do not exist for selection."
-		},
-		"onlyOneInputDescriptor": {
-			"title": "Unsupported protocol version",
-			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time."
+			"description": "One or more of the credentials you want to present do not exist for selection.",
+			"title": "Insufficient Credentials"
 		},
 		"nonTrustedVerifier": {
-			"title": "Verifier is not Trusted",
-			"description": "Verifier did not provide valid data for verification"
+			"description": "Verifier did not provide valid data for verification",
+			"title": "Verifier is not Trusted"
+		},
+		"onlyOneInputDescriptor": {
+			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
+			"title": "Unsupported protocol version"
 		},
 		"sendResponseError": {
-			"title": "Send Response Error",
-			"description": "An error occured during the presentation of the credentials."
+			"description": "An error occured during the presentation of the credentials.",
+			"title": "Send Response Error"
 		},
 		"sendResponseSuccess": {
-			"title": "Presentation was successful",
-			"description": "Credentials were successfully sent."
+			"description": "Credentials were successfully sent.",
+			"title": "Presentation was successful"
 		}
 	},
 	"notFound": {
@@ -143,9 +152,11 @@
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
+		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
+		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialTitle": "Credential",
 		"datasetTitle": "Dataset",
-		"presentationsTitle": "Presentations",
+		"delete": "Delete Credential",
 		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials",
 		"details": {
@@ -153,23 +164,21 @@
 			"description": "View all the information about the chosen credential",
 			"expired": "This Credential has been expired"
 		},
-		"delete": "Delete Credential",
-		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
-		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
-		"slideNext": "next",
-		"slidePrevious": "previous",
-		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
-		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
+		"presentationsTitle": "Presentations",
 		"slideButtonAriaLabelDisable": "No {{direction}} credential",
-		"slideButtonTitleDisable": "No {{direction}} credential available"
+		"slideButtonAriaLabelEnable": "Go to {{direction}} credential",
+		"slideButtonTitleDisable": "No {{direction}} credential available",
+		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
+		"slideNext": "next",
+		"slidePrevious": "previous"
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
+		"noFound": "No presentations found",
+		"popupTitle": "Presented Credentials",
 		"presentationDetails": {
 			"title": "Presentation Details"
-		},
-		"noFound": "No presentations found",
-		"popupTitle": "Presented Credentials"
+		}
 	},
 	"pageSendCredentials": {
 		"description": "Search and choose a verifier to share credentials with",
@@ -183,6 +192,10 @@
 	"pageSettings": {
 		"addPasskey": "Add passkey:",
 		"addPasskeyTitle": "Click to Add passkey",
+		"appVersion": {
+			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
+			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
+		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",
@@ -221,22 +234,22 @@
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
 			"options": {
-				"none": "Always Authenticate",
-				"hour": "1 hour",
 				"day": "1 day",
-				"week": "1 week",
-				"month": "1 month"
+				"hour": "1 hour",
+				"month": "1 month",
+				"none": "Always Authenticate",
+				"week": "1 week"
 			},
 			"successMessage": "Saved"
 		},
 		"title": {
-			"language": "Language",
-			"rememberIssuer": "Remember Issuer",
+			"appVersion": "App Version",
 			"confirmDeletePopup": "Are You Sure?",
+			"language": "Language",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys",
-			"appVersion": "App Version"
+			"rememberIssuer": "Remember Issuer"
 		},
 		"unlockPasskeyManagement": "Unlock management",
 		"unlockPasskeyManagementTitle": "Click to Unlock management",
@@ -250,17 +263,14 @@
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
 			"title": "Upgrading passkey encryption key"
-		},
-		"appVersion": {
-			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
-			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		}
 	},
-	"PinInputPopup": {
-		"description": "Please enter the PIN which was displayed from the issuer",
-		"errMessage": "You have entered an incorrect pin",
-		"inputPlaceholder": "Pin",
-		"title": "Enter the Pin"
+	"pwaInstallPrompt": {
+		"button": {
+			"closeTitle": "Click to close the PWA Installation Prompt",
+			"install": "Install"
+		},
+		"message": "PWA Available"
 	},
 	"qrCodeScanner": {
 		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
@@ -271,29 +281,22 @@
 		"all": "All",
 		"recent": "Recent"
 	},
-	"pwaInstallPrompt": {
-		"message": "PWA Available",
-		"button": {
-			"install": "Install",
-			"closeTitle": "Click to close the PWA Installation Prompt"
-		}
-	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",
-		"nicknameAriaLabel": "Nickname for new credential",
-		"nicknamePlaceholder": "Credential nickname",
-		"messageSuccess": "Success!",
 		"messageDone": "Almost done!",
+		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
 		"messageInteract": "Please interact with your authenticator...",
 		"messageInteractNewPasskey": "Please authenticate with the new passkey...",
-		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
+		"messageSuccess": "Success!",
+		"nicknameAriaLabel": "Nickname for new credential",
+		"nicknamePlaceholder": "Credential nickname",
 		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"descriptionFieldsSingle": "Requested field:",
 		"descriptionFieldsMultiple": "Requested fields:",
+		"descriptionFieldsSingle": "Requested field:",
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
@@ -307,28 +310,25 @@
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
-	"expiredRibbon": {
-		"expired": "Expired"
-	},
 	"tourGuide": {
+		"closeTourButton": "Close Tour",
+		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
 		"tourStep1": "Here, you can view all your stored credentials. Click the 'Add New Credentials' card to get a new VC from an available Issuer",
 		"tourStep2": "The 'Credentials' page is your Home page, where you can manage your credentials.",
 		"tourStep3": "The 'Add Credentials' page allows you to receive credentials from a specific Issuer",
 		"tourStep4": "Click this button to scan a QR code for sending or receiving credentials.",
 		"tourStep5": "Use the 'Send Credentials' page to select a verifier for sharing your credentials.",
 		"tourStep6": "On the 'History' page, you can view details of credential transmissions, including when and to which verifiers they were sent.",
-		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings.",
-		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",
-		"closeTourButton": "Close Tour"
+		"tourStep7": "In the 'Settings' page you can manage your passkeys and account settings."
 	},
 	"updateNotification": {
 		"description": "New Version is available!"
 	},
 	"welcomeModal": {
-		"title": "Welcome to $t(common.walletName)!",
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
-		"question": "Are you ready to explore the features of $t(common.walletName) through a guided tour?",
 		"dismissButton": "Dismiss",
-		"startTourButton": "Start Tour"
+		"question": "Are you ready to explore the features of $t(common.walletName) through a guided tour?",
+		"startTourButton": "Start Tour",
+		"title": "Welcome to $t(common.walletName)!"
 	}
 }

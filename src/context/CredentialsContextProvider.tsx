@@ -4,10 +4,10 @@ import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
 import CredentialParserContext from './CredentialParserContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
-import { CredentialVerificationError } from "core/dist/error";
+import { CredentialVerificationError } from "wallet-common/dist/error";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import CredentialsContext, { ExtendedVcEntity } from "./CredentialsContext";
-import { VerifiableCredentialFormat } from "core/dist/types";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 
 export const CredentialsContextProvider = ({ children }) => {

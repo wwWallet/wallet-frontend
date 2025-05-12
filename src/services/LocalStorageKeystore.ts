@@ -9,6 +9,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
+import { JWK } from "jose";
 
 
 type UserData = {
@@ -79,8 +80,14 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateKeypairs(n: number): Promise<[
+		{ keypairs: keystore.CredentialKeyPair[] },
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
 
+	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -415,8 +422,27 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			})
 		),
 
+		generateKeypairs: async (n: number): Promise<[
+			{ keypairs: keystore.CredentialKeyPair[] },
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => (
+			await editPrivateData(async (originalContainer) => {
+				const [{ keypairs }, newContainer] = await keystore.generateKeypairs(
+					originalContainer,
+					config.DID_KEY_VERSION,
+					n
+				);
+				return [{ keypairs }, newContainer];
+			})
+		),
+
 		generateDeviceResponse: async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> => (
 			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri)
+		),
+
+		generateDeviceResponseWithProximity: async (mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential, presentationDefinition, sessionTranscriptBytes)
 		),
 	};
 }

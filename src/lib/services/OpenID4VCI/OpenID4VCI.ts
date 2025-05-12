@@ -1,5 +1,4 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
-import { CredentialConfigurationSupported } from '../../schemas/CredentialConfigurationSupportedSchema';
 import { OpenID4VCIClientState } from '../../types/OpenID4VCIClientState';
 import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import { StorableCredential } from '../../types/StorableCredential';
@@ -16,9 +15,10 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
+import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
-
+const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
 export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
 
@@ -60,7 +60,25 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				await credentialRequestBuilder.setDpopHeader();
 			}
 
-			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId);
+			const [_credConfId, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
+				id === flowState.credentialConfigurationId
+			)[0];
+
+			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
+			for (const proof_type of openid4vciProofTypePrecedence) {
+				if (proof_type === 'attestation' && credConf?.proof_types_supported?.attestation) {
+					selectedProofType = 'attestation';
+					break;
+				}
+				else if (proof_type === 'jwt' && credConf?.proof_types_supported?.jwt) {
+					selectedProofType = 'jwt';
+					break;
+				}
+			}
+
+			console.log("Selected proof type = ", selectedProofType);
+
+			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId, selectedProofType);
 
 			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 
