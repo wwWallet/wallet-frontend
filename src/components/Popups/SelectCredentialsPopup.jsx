@@ -213,7 +213,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	return (
 		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0">
-			<div className={`${screenType === 'desktop' ? 'p-4' : 'pb-16'}`}>
+			<div className={`${screenType === 'desktop' && 'p-4'}`}>
 				<div>
 					{stepTitles && (
 						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
@@ -292,7 +292,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					</p>
 
 				</div>
-				<div className={`${screenType === 'tablet' ? 'px-28' : 'px-4 xl:px-16'}`}>
+				<div className={`xm:px-4 px-16 sm:px-24 md:px-8`}>
 					{vcEntities ? (
 						<Slider
 							items={vcEntities}
@@ -304,7 +304,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 					)}
 					{vcEntities?.[currentSlide - 1] ? (
-						<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2`}>
+						<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
 							<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} mainClassName={"text-xs w-full"} />
 						</div>
 					) : (
@@ -317,7 +317,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			<div
 				className={`z-10 left-0 right-0 bg-white dark:bg-gray-800 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
 					? 'sticky bottom-0 px-4 py-3'
-					: 'fixed bottom-0 px-6 pb-6 pt-4'
+					: 'fixed bottom-0 px-6 pb-4 pt-4'
 					}`}
 			>
 				<Button
