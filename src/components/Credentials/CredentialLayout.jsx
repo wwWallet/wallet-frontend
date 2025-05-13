@@ -18,7 +18,29 @@ import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
 
-const CredentialLayout = ({ children, title = null }) => {
+const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
+	if (zeroSigCount === null || sigTotal === null) return null;
+
+	const usageClass =
+		zeroSigCount === 0
+			? 'text-orange-600 dark:text-orange-500'
+			: 'text-green-600 dark:text-green-500';
+
+	return (
+		<div
+			className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'
+				}`}
+		>
+			<PiCardsBold size={18} className="mr-1" />
+			<p className="font-base">
+				<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
+				<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
+			</p>
+		</div>
+	);
+};
+
+const CredentialLayout = ({ children, title = null, displayCredentialInfo = null }) => {
 	const { credentialId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -39,21 +61,89 @@ const CredentialLayout = ({ children, title = null }) => {
 		}
 	}, [vcEntity]);
 
-	const UsageStats = ({ zeroSigCount, sigTotal }) => {
-		if (zeroSigCount === null || sigTotal === null) return null;
+	const CredentialImageButton = ({
+		showRibbon,
+		className = "w-full object-cover",
+		onClick = () => setShowFullscreenImgPopup(true),
+		ariaLabel,
+		title,
+	}) => (
+		<button
+			id="show-full-screen-credential"
+			className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+			onClick={onClick}
+			aria-label={ariaLabel ?? credentialFiendlyName}
+			title={title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+		>
+			<CredentialImage
+				vcEntity={vcEntity}
+				parsedCredential={vcEntity.parsedCredential}
+				className={className}
+				showRibbon={showRibbon}
+			/>
+		</button>
+	);
 
-		const usageClass = zeroSigCount === 0 ? 'text-orange-600 dark:text-orange-500' : 'text-green-600 dark:text-green-500';
+	const DesktopLayout = () => (
+		<div className="w-full flex flex-col lg:flex-row gap-4">
+			{/* LEFT COLUMN (always full width, shrinks on lg) */}
+			<div className="w-full lg:w-1/2 flex flex-col gap-4">
+				<CredentialImageButton showRibbon />
+				{zeroSigCount !== null && sigTotal && (
+					<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
-		return (
-			<div className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
-				<PiCardsBold size={18} className=' mr-1' />
-				<p className=' font-base'>
-					<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
-					<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
-				</p>
+				)}
+
+				{/* Show displayCredentialInfo inline when stacked */}
+				<div className="block lg:hidden">
+					{displayCredentialInfo}
+				</div>
+
+				{children}
 			</div>
-		);
-	};
+
+			{/* RIGHT COLUMN (only on wide layout) */}
+			<div className="hidden lg:block w-full lg:w-1/2">
+				{displayCredentialInfo}
+			</div>
+		</div>
+	);
+
+	const MobileLayout = () => (
+		<div className="w-full flex flex-col">
+			<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
+				<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
+					<CredentialImageButton showRibbon={false} />
+					{screenType !== 'mobile' && zeroSigCount !== null && sigTotal && (
+						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+
+					)}
+				</div>
+				{screenType === 'mobile' && (
+					<div className='flex flex-start flex-col gap-1'>
+						<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
+						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+
+					</div>
+				)}
+			</div>
+
+			{screenType === 'mobile' && vcEntity?.isExpired && (
+				<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
+					<div className="mr-2 text-orange-500">
+						<FaExclamationTriangle size={18} />
+					</div>
+					<p>{t('pageCredentials.details.expired')}</p>
+				</div>
+			)}
+			<div className="mb-2">
+				{displayCredentialInfo}
+
+			</div>
+			{children}
+		</div>
+	);
+	if (!vcEntity) return null;
 
 	return (
 		<div className=" sm:px-6">
@@ -65,9 +155,7 @@ const CredentialLayout = ({ children, title = null }) => {
 				>
 					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-primary dark:text-primary-light" />
 
-					{vcEntity && (
-						<H1 heading={credentialFiendlyName} hr={false} />
-					)}
+					<H1 heading={credentialFiendlyName} hr={false} />
 				</H1>
 			) : (
 				<div className='flex'>
@@ -84,56 +172,11 @@ const CredentialLayout = ({ children, title = null }) => {
 			)}
 			<PageDescription description={t('pageCredentials.details.description')} />
 
-			<div className="flex flex-wrap mt-0 lg:mt-5">
-				{/* Block 1: credential */}
-				<div className='flex flex-row w-full lg:w-1/2'>
-					<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
-						{vcEntity && (
-							// Open the modal when the credential is clicked
-							<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
-								<button
-									id="show-full-screen-credential"
-									className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
-									onClick={() => setShowFullscreenImgPopup(true)}
-									aria-label={`${credentialFiendlyName}`}
-									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
-								>
-									<CredentialImage vcEntity={vcEntity} parsedCredential={vcEntity.parsedCredential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
-								</button>
-								{screenType !== 'mobile' && zeroSigCount !== null && sigTotal &&
-									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
-								}
-							</div>
-						)}
-
-						<div>
-							{screenType === 'mobile' && (
-								<div className='flex flex-start flex-col gap-1'>
-									<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
-									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
-
-				{screenType === 'mobile' && (
-					<>
-						{vcEntity?.isExpired && (
-							<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
-								<div className="mr-2 text-orange-500">
-									<FaExclamationTriangle size={18} />
-								</div>
-								<p>{t('pageCredentials.details.expired')}</p>
-							</div>
-						)}
-					</>
-				)}
-
-				{children}
+			<div className={`w-full flex flex-col ${displayCredentialInfo && screenType === 'desktop' ? 'lg:flex-row gap-4' : ''} mt-0 lg:mt-5 px-2`}>
+				{screenType === 'desktop' && displayCredentialInfo ? <DesktopLayout /> : <MobileLayout />}
 			</div>
 			{/* Fullscreen credential Popup*/}
-			{showFullscreenImgPopup && vcEntity && (
+			{showFullscreenImgPopup && (
 				<FullscreenPopup
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
@@ -142,6 +185,7 @@ const CredentialLayout = ({ children, title = null }) => {
 					}
 				/>
 			)}
+
 		</div>
 	);
 };
