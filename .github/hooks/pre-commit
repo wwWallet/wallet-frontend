@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# staged files
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -n "$FILES" ]; then
+  echo "Running format check on wallet-frontend..."
+  docker compose run -T --rm format-checker sh -c "cd wallet-frontend && editorconfig-checker"
+  RESULT=$?
+  if [ $RESULT -ne 0 ]; then
+    echo "Formatting check failed."
+    exit 1
+  fi
+fi
+
+exit 0
