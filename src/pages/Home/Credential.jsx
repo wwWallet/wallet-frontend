@@ -89,6 +89,11 @@ const Credential = () => {
 		setMdocQRStatus(3);
 	}
 
+	const cancelShare = () => {
+		setMdocQRStatus(0);
+		setShowMdocQR(false);
+	}
+
 	useEffect(() => {
 		if (mdocQRStatus === 1) {
 			// Got client
@@ -189,7 +194,12 @@ const Credential = () => {
 								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span>Communicating with verifier...</span>}
 								{mdocQRStatus === 2 && <span className='pb-16'>
 									<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
-										A nearby verifier requested the following fields:
+										A nearby verifier requested the following fields:{' '}
+										<strong>
+											{
+												shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
+											}
+										</strong>
 									</p>
 									<CredentialImage
 										vcEntity={vcEntity}
@@ -199,14 +209,10 @@ const Credential = () => {
 										className="w-full object-cover rounded-xl"
 									/>
 									<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
-										{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} fallbackClaims={shareWithQrFilter.map(
-											key => (
-												{ path: [key], display: [{ lang: 'en', label: key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ") }] }
-											)
-										)}/>}
+										{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential}/>}
 									</div>
 									<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='cancel' onClick={consentToShare}>Cancel</Button>
+										<Button variant='cancel' onClick={cancelShare}>Cancel</Button>
 										<Button variant='primary' onClick={consentToShare}>Send</Button>
 									</div>
 									</span>}
