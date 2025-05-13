@@ -39,6 +39,8 @@
 		"privateDataConflict": "A sua sessão não está sincronizada com o servidor. Por favor, volte a iniciar sessão e tente novamente.",
 		"refresh": "Atualizar",
 		"save": "Guardar",
+		"showLess": "Mostrar menos",
+		"showMore": "Mostrar mais",
 		"submit": "Submeter",
 		"tryAgain": "Tentar novamente",
 		"walletName": "wwWallet"
@@ -294,14 +296,12 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Clique para selecionar a {{friendlyName}}",
-		"descriptionFieldsMultiple": "Campos solicitados:",
-		"descriptionFieldsSingle": "Campo solicitado:",
+		"descriptionFieldsMultiple": "Campos Solicitados:",
+		"descriptionFieldsSingle": "Campo Solicitado:",
 		"descriptionSelect": "Selecione a credencial que deseja apresentar",
 		"nextButtonDisabledTitle": "Precisa de selecionar uma credencial para continuar",
-		"purpose": "Objetivo do <strong> {{verifierDomainName}}: </strong>",
+		"purpose": "Objetivo: {{verifierPurpose}}",
 		"purposeNotSpecified": "Objetivo não especificado pelo verifier",
-		"requestedFieldsLess": "Mostrar menos",
-		"requestedFieldsMore": "Mostrar mais",
 		"title": "Selecionar: "
 	},
 	"sidebar": {
