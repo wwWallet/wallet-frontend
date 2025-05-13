@@ -177,24 +177,21 @@ const Credential = () => {
 					)}
 				</div>
 				<div className='px-2 w-full'>
-				{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode/></span>}Share using QR Code</Button>)}
+				{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode/></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
 					<div className="flex items-start justify-between mb-2">
 						<h2 className="text-lg font-bold text-primary">
-							Share using QRCode
+							{t('qrShareMdoc.shareUsingQR')}
 						</h2>
 						</div>
 						<hr className="mb-2 border-t border-primary/80" />
 						<span>
-								{mdocQRStatus === -1 &&
-									<span>
-										We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app to "Share with QRCode".
-									</span>}
+								{mdocQRStatus === -1 && <span>{t('qrShareMdoc.enablePermissions')}</span>}
 								{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
-								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span>Communicating with verifier...</span>}
+								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span>{t('qrShareMdoc.communicating')}</span>}
 								{mdocQRStatus === 2 && <span className='pb-16'>
 									<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
-										A nearby verifier requested the following fields:{' '}
+										{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
 										<strong>
 											{
 												shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
@@ -212,14 +209,14 @@ const Credential = () => {
 										{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential}/>}
 									</div>
 									<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='cancel' onClick={cancelShare}>Cancel</Button>
-										<Button variant='primary' onClick={consentToShare}>Send</Button>
+										<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
+										<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
 									</div>
 									</span>}
 								{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100}/></span>}
 								{![1,2].includes(mdocQRStatus) &&
 									<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='primary' onClick={() => setShowMdocQR(false)}>Close</Button>
+										<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
 								</div>}
 						</span>
 					</PopupLayout>
