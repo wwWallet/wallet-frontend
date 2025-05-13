@@ -83,7 +83,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		setCurrentSelectionMap({});
 		setRequestedFields([]);
 		setSelectedCredential(null);
-		setPopupState({ isOpen: false });
+		setPopupState((current) => ({ ...current, isOpen: false }));
 	}, [setPopupState]);
 
 	useEffect(() => {

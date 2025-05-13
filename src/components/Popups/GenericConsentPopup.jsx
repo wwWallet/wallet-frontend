@@ -1,16 +1,8 @@
-import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
-import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
-import CredentialImage from '../Credentials/CredentialImage';
-import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
-import SessionContext from '@/context/SessionContext';
 import useScreenType from '../../hooks/useScreenType';
-import Slider from '../Shared/Slider';
-import CredentialParserContext from '@/context/CredentialParserContext';
-import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
-import { CredentialInfoSkeleton } from '../Skeletons';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -23,13 +15,14 @@ const formatTitle = (title) => {
 
 
 function GenericConsentPopup({ popupConsentState, setPopupConsentState, showConsentPopup, hidePopupConsent }) {
+	const { t } = useTranslation();
 
 	const screenType = useScreenType();
 
 	const reinitialize = useCallback(() => {
-		setPopupConsentState({ isOpen: false });
+		setPopupConsentState((current) => ({ ...current, isOpen: false }));
 	}, [setPopupConsentState]);
-  
+
 
 	useEffect(() => {
 		if (popupConsentState?.options) {
@@ -38,12 +31,13 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 
 
 	const consent = () => {
-		popupConsentState.resolve();
+		reinitialize();
+		popupConsentState.resolve(true);
 	}
 
 	const onClose = () => {
 		// setIsOpen(false);
-		popupConsentState.reject();
+		popupConsentState.resolve(false);
 		reinitialize();
 		// navigate('/');
 	}
@@ -55,7 +49,7 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 
 
 	return (
-		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
+		<PopupLayout isOpen={popupConsentState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
 			<div className={`${screenType !== 'desktop' && 'pb-16'}`}>
 				<div>
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
@@ -90,4 +84,4 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 	);
 }
 
-export default SelectCredentialsPopup;
+export default GenericConsentPopup;

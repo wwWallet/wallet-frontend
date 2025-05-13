@@ -42,7 +42,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 			});
 		}), [popupState]);
 
-	const showPopupConsent = useCallback((options): Promise<Map<string, string>> =>
+	const showPopupConsent = useCallback((options): Promise<boolean> =>
 		new Promise((resolve, reject) => {
 			setPopupConsentState({
 				isOpen: true,
@@ -64,7 +64,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 			...prevState,
 			isOpen: false,
 		}));
-	}, []);
+	}, [setPopupConsentState]);
 
 	const showStatusPopup = useCallback(
 		async (message: { title: string, description: string }, type: 'error' | 'success'): Promise<void> => {
@@ -75,8 +75,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 					setMessagePopupState(null);
 				}
 			})
-		}
-	);
+		}, [setMessagePopupState]);
 
 	const showCredentialSelectionPopup = useCallback(
 		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
@@ -85,14 +84,14 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		[showPopup]
 	);
 
-	const showConsentPopup = useCallback(
-		async (): Promise<boolean> => {
-			return showConsentPopup({  });
+	const showTransactionDataConsentPopup = useCallback(
+		async (options: Record<string, unknown>): Promise<boolean> => {
+			return showPopupConsent(options);
 		},
 		[showPopup]
 	);
 
-	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup });
+	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup });
 
 	return (
 		<OpenID4VPContext.Provider value={{ openID4VP }}>
