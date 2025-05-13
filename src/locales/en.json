@@ -280,11 +280,11 @@
 		"title": "Scan the QR Code"
 	},
 	"qrShareMdoc": {
-		"shareUsingQR": "Share using QRCode",
-		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
 		"communicating": "Communicating with verifier...",
+		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
 		"nearbyVerifierRequested": "A nearby verifier requested the following fields:",
-		"send": "Send"
+		"send": "Send",
+		"shareUsingQR": "Share using QRCode"
 	},
 	"queryableList": {
 		"all": "All",
