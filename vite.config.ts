@@ -43,5 +43,8 @@ export default defineConfig(({ mode }) => {
 			port: 3000,
 			open: true,
 		},
+		build: {
+			sourcemap: env.VITE_GENERATE_SOURCEMAP === 'true',
+		},
 	}
 });
