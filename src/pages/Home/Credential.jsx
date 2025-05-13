@@ -89,6 +89,11 @@ const Credential = () => {
 		setMdocQRStatus(3);
 	}
 
+	const cancelShare = () => {
+		setMdocQRStatus(0);
+		setShowMdocQR(false);
+	}
+
 	useEffect(() => {
 		if (mdocQRStatus === 1) {
 			// Got client
@@ -207,7 +212,7 @@ const Credential = () => {
 										{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential}/>}
 									</div>
 									<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='cancel' onClick={consentToShare}>Cancel</Button>
+										<Button variant='cancel' onClick={cancelShare}>Cancel</Button>
 										<Button variant='primary' onClick={consentToShare}>Send</Button>
 									</div>
 									</span>}
