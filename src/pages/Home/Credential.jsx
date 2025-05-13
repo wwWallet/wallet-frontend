@@ -200,7 +200,6 @@ const Credential = () => {
 									</p>
 									<CredentialImage
 										vcEntity={vcEntity}
-										vcEntityInstances={vcEntity.instances}
 										key={vcEntity.credentialIdentifier}
 										parsedCredential={vcEntity.parsedCredential}
 										className="w-full object-cover rounded-xl"
