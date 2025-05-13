@@ -279,6 +279,13 @@
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},
+	"qrShareMdoc": {
+		"shareUsingQR": "Share using QRCode",
+		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
+		"communicating": "Communicating with verifier...",
+		"nearbyVerifierRequested": "A nearby verifier requested the following fields:",
+		"send": "Send"
+	},
 	"queryableList": {
 		"all": "All",
 		"recent": "Recent"
