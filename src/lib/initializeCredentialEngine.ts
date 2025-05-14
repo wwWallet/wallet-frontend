@@ -15,7 +15,7 @@ export async function initializeCredentialEngine(httpProxy: IHttpProxy, helper: 
 	await helper.fetchIssuerMetadataAndCertificates(
 		getIssuers,
 		(pemCerts) => trustedCertificates.push(...pemCerts),
-		true
+		shouldUseCache
 	);
 
 	const credentialParsingEngine = ParsingEngine();
