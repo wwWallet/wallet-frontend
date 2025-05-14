@@ -1,6 +1,5 @@
+import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
 import { MdocIacasResponse } from "../schemas/MdocIacasResponseSchema";
-import { OpenidAuthorizationServerMetadata } from "../schemas/OpenidAuthorizationServerMetadataSchema";
-import { OpenidCredentialIssuerMetadata } from "../schemas/OpenidCredentialIssuerMetadataSchema";
 
 export interface IOpenID4VCIHelper {
 	getClientId(credentialIssuerIdentifier: string): Promise<{ client_id: string } | null>;

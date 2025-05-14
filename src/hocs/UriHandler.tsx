@@ -31,11 +31,18 @@ export const UriHandler = ({ children }) => {
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const { t } = useTranslation();
 
+	const [redirectUri, setRedirectUri] = useState(null);
 	useEffect(() => {
 		setUrl(window.location.href);
 		checkForUpdates();
 		updateOnlineStatus(false);
 	}, [location, updateOnlineStatus]);
+
+	useEffect(() => {
+		if (redirectUri) {
+			window.location.href = redirectUri;
+		}
+	}, [redirectUri]);
 
 	useEffect(() => {
 		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP) {
@@ -101,7 +108,7 @@ export const UriHandler = ({ children }) => {
 
 				}).then((res) => {
 					if (res && 'url' in res && res.url) {
-						window.location.href = res.url;
+						setRedirectUri(res.url);
 					}
 				}).catch(err => {
 					console.log("Failed to handle authorization req");
@@ -122,7 +129,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, t, isLoggedIn, openID4VCI, openID4VP]);
+	}, [url, t, isLoggedIn, openID4VCI, openID4VP, setRedirectUri]);
 
 	return (
 		<>

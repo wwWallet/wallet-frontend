@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import logoClassic from '../../assets/images/logo.png';
-import logoWhite from '../../assets/images/wallet_white.png';
-import logoClassicChristmas from '../../assets/images/logo_christmas.png';
-import logoWhiteChristmas from '../../assets/images/wallet_white_christmas.png';
+import * as config from '../../config';
 import { useTranslation } from 'react-i18next';
+import { env } from 'process';
 
 interface LogoProps {
 	type?: string; // Determines the type of logo (classic or white)
@@ -44,9 +42,13 @@ const Logo: React.FC<LogoProps> = ({
 	// Determine which logo to use
 	const logoSrc = (() => {
 		if (isChristmasSeason) {
-			return type === 'white' ? logoWhiteChristmas : logoClassicChristmas;
+			return type === 'white' ?
+				`/wallet_white_christmas.png` :
+				`/logo_christmas.png`;
 		}
-		return type === 'white' ? logoWhite : logoClassic;
+		return type === 'white' ?
+			`/wallet_white.png` :
+			`/logo.png`;
 	})();
 
 	return (

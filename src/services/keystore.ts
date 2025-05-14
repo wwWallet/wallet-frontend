@@ -1184,6 +1184,21 @@ export async function generateOpenid4vciProofs(
 	return [{ proof_jwts: proof_jwts }, newPrivateData];
 }
 
+
+export async function generateKeypairs(
+	container: OpenedContainer,
+	didKeyVersion: DidKeyVersion,
+	numberOfKeyPairs: number = 1
+): Promise<[{ keypairs: CredentialKeyPair[] }, OpenedContainer]> {
+	const deriveKid = async (publicKey: CryptoKey) => {
+		const pubKey = await crypto.subtle.exportKey("jwk", publicKey);
+		const jwkThumbprint = await jose.calculateJwkThumbprint(pubKey as JWK, "sha256");
+		return jwkThumbprint;
+	};
+	const { newPrivateData, keypairs } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
+	return [{ keypairs }, newPrivateData];
+}
+
 export async function generateDeviceResponse([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
 
 	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
@@ -1240,6 +1255,33 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 
 	const uint8ArrayToHexString = (uint8Array: any) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
+
+	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
+		.usingPresentationDefinition(presentationDefinition)
+		.usingSessionTranscriptBytes(sessionTranscriptBytes)
+		.authenticateWithSignature({ ...privateKeyJwk, alg } as JWK, alg as SupportedAlgs)
+		.sign();
+	return { deviceResponseMDoc };
+}
+
+export async function generateDeviceResponseWithProximity([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+	// extract the COSE device public key from mdoc
+	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
+	const deviceKeyInfo = p.data.get('deviceKeyInfo');
+	const deviceKey = deviceKeyInfo.get('deviceKey');
+
+	const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
+
+	// get the keypair based on the jwk Thumbprint
+	const keypair = privateData.keypairs[kid];
+	if (!keypair) {
+		throw new Error("Key pair not found for kid (key ID): " + kid);
+	}
+
+	const { alg, did, wrappedPrivateKey } = keypair;
+	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
+	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
 		.usingPresentationDefinition(presentationDefinition)

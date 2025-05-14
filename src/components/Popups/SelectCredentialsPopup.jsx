@@ -10,6 +10,7 @@ import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
+import { truncateByWords } from '@/functions/truncateWords';
 
 const formatTitle = (title) => {
 	if (title) {
@@ -68,6 +69,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [requestedFields, setRequestedFields] = useState([]);
 	const [showAllFields, setShowAllFields] = useState(false);
+	const [showFullPurpose, setShowFullPurpose] = useState(false);
+
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
@@ -206,8 +209,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 
 	return (
-		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'}>
-			<div className={`${screenType !== 'desktop' && 'pb-16'}`}>
+		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0">
+			<div className={`${screenType === 'desktop' && 'p-4'}`}>
 				<div>
 					{stepTitles && (
 						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
@@ -220,42 +223,73 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					)}
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					{popupState.options.verifierDomainName && (
-						<p className="pd-2 text-gray-700 text-sm dark:text-white">
-							<span>
-								<Trans
-									i18nKey={"selectCredentialPopup.purpose"}
-									values={{ verifierDomainName: popupState.options.verifierDomainName }}
-									components={{ strong: <strong /> }}
-								/> {popupState.options.verifierPurpose}
-							</span>
-						</p>
-					)}
-					{requestedFieldsText && requestedFields.length > 0 && (
-						<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
-							<span>
-								{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
-							</span>
-							&nbsp;
-							<strong>
-								{requestedFieldsText}
-							</strong>
-							{requestedFields.length > 2 && (
-								<>
-									{' '}
-									< button onClick={handleToggleFields} className="text-primary dark:text-extra-light hover:underline inline">
-										{showAllFields ? `${t('selectCredentialPopup.requestedFieldsLess')}` : `${t('selectCredentialPopup.requestedFieldsMore')}`}
-									</button>
-								</>
-							)}.
-						</p>
-					)}
-					<p className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">
+					<div className="flex flex-col gap-[3px]">
+						{requestedFieldsText && requestedFields.length > 0 && (
+							<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
+								<span>
+									{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
+								</span>
+								&nbsp;
+								<strong>
+									{requestedFieldsText}
+								</strong>
+								{requestedFields.length > 2 && (
+									<>
+										{' '}
+										< button onClick={handleToggleFields} className="text-primary dark:text-extra-light font-medium hover:underline inline">
+											{showAllFields ? `${t('common.showLess')}` : `${t('common.showLess')}`}
+										</button>
+									</>
+								)}
+							</p>
+						)}
+
+						{popupState.options.verifierDomainName && (
+							<p className="pd-2 text-gray-700 text-sm dark:text-white">
+								<span>
+									<Trans
+										i18nKey={"selectCredentialPopup.requestingParty"}
+										values={{ verifierDomainName: popupState.options.verifierDomainName }}
+										components={{ strong: <strong /> }}
+									/>
+								</span>
+							</p>
+						)}
+
+						{popupState.options.verifierPurpose && (() => {
+							const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
+							const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
+
+							return (
+								<p className="pd-2 text-gray-700 text-sm dark:text-white">
+									<span>
+										<Trans
+											i18nKey="selectCredentialPopup.purpose"
+											values={{ verifierPurpose: textToDisplay }}
+										/>
+									</span>
+									{truncated && (
+										<>
+											{' '}
+											<button
+												onClick={() => setShowFullPurpose(!showFullPurpose)}
+												className="text-primary dark:text-extra-light font-medium hover:underline inline"
+											>
+												{showFullPurpose ? t('common.showLess') : t('common.showMore')}
+											</button>
+										</>
+									)}
+								</p>
+							);
+						})()}
+					</div>
+
+					<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
 						{t('selectCredentialPopup.descriptionSelect')}
 					</p>
 
 				</div>
-				<div className={`${screenType === 'tablet' ? 'px-28' : 'px-4 xl:px-16'}`}>
+				<div className={`xm:px-4 px-16 sm:px-24 md:px-8`}>
 					{vcEntities ? (
 						<Slider
 							items={vcEntities}
@@ -267,7 +301,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 					)}
 					{vcEntities?.[currentSlide - 1] ? (
-						<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'}`}>
+						<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
 							<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} mainClassName={"text-xs w-full"} />
 						</div>
 					) : (
@@ -276,41 +310,45 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</div>
 					)}
 				</div>
-				<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-					<Button
-						id="cancel-select-credentials"
-						onClick={onClose}
-						variant="cancel"
-						className="mr-2"
-					>
-						{t('common.cancel')}
-					</Button>
+			</div>
+			<div
+				className={`z-10 left-0 right-0 bg-white dark:bg-gray-800 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
+					? 'sticky bottom-0 px-4 py-3'
+					: 'fixed bottom-0 px-6 pb-4 pt-4'
+					}`}
+			>
+				<Button
+					id="cancel-select-credentials"
+					onClick={onClose}
+					variant="cancel"
+					className="mr-2"
+				>
+					{t('common.cancel')}
+				</Button>
 
-					<div className="flex gap-2">
-						{currentIndex > 0 && (
-							<Button
-								id="previous-select-credentials"
-								variant="secondary"
-								onClick={goToPreviousSelection}>
-								{t('common.previous')}
-							</Button>
-						)}
-
+				<div className="flex gap-2">
+					{currentIndex > 0 && (
 						<Button
-							id={`${currentIndex < keys.length - 1 ? 'next' : 'send'}-select-credentials`}
-							onClick={goToNextSelection}
-							variant="primary"
-							disabled={!selectedCredential}
-							title={!selectedCredential ? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
-						>
-							{currentIndex < keys.length - 1
-								? t('common.next')
-								: t('common.navItemSendCredentialsSimple')}
+							id="previous-select-credentials"
+							variant="secondary"
+							onClick={goToPreviousSelection}>
+							{t('common.previous')}
 						</Button>
-					</div>
+					)}
+
+					<Button
+						id={`${currentIndex < keys.length - 1 ? 'next' : 'send'}-select-credentials`}
+						onClick={goToNextSelection}
+						variant="primary"
+						disabled={!selectedCredential}
+						title={!selectedCredential ? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
+					>
+						{currentIndex < keys.length - 1
+							? t('common.next')
+							: t('common.navItemSendCredentialsSimple')}
+					</Button>
 				</div>
 			</div>
-
 		</PopupLayout >
 	);
 }

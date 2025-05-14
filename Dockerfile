@@ -15,6 +15,7 @@ RUN yarn install && yarn build
 WORKDIR /home/node/app
 # Overwrite wallet-common with the remote master branch
 RUN yarn cache clean -f && yarn add /lib/wallet-common && yarn install
+RUN yarn add https://github.com/wwwallet/mdl.git#deploy
 
 FROM builder-base AS test
 

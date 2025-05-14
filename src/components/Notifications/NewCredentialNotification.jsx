@@ -39,7 +39,7 @@ const NewCredentialNotification = ({ notification, clearNotification }) => {
 	}, [notification, clearNotification]);
 
 	useEffect(() => {
-		if (notification && location.pathname === '/') {
+		if (notification && window.location.pathname === '/') {
 			showToast();
 		}
 	}, [notification, location, showToast]);
