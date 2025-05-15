@@ -95,12 +95,13 @@ const Sidebar = ({ isOpen, toggle }) => {
 					<div className="hidden md:flex justify-center items-center my-5">
 						<a 
 						href={('/')}
-						className="w-full"
+						className="flex items-center justify-center"
 						>
 							<Logo 
-							imgClassName='w-full h-8 object-contain' 
-							isWordmark={true}
+							imgClassName='h-8 w-8 object-contain' 
 							/>
+
+							<h4 className='text-center ml-3 text-c-lm-gray-900 dark:text-c-dm-gray-100 font-semibold' style={{ fontSize: '1.5rem', lineHeight: '1.75rem' }}>wwWallet</h4>
 						</a>
 					</div>
 

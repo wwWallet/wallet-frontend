@@ -16,10 +16,13 @@ const NotFound = () => {
 	return (
 		<section className="bg-c-lm-gray-100 dark:bg-c-dm-gray-900">
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-dvh">
-				<Logo 
-				imgClassName='w-64 h-8 object-contain'
-				isWordmark={true}
-				/>
+				<div className='flex items-center justify-center'>
+					<Logo 
+					imgClassName='h-10 w-10' 
+					/>
+
+					<h4 className='text-center ml-4 text-c-lm-gray-900 dark:text-c-dm-gray-100 font-semibold' style={{ fontSize: '1.75rem', lineHeight: '1.75rem' }}>wwWallet</h4>
+				</div>
 				
 				<h1 className="text-xl md:text-2xl text-center font-semibold leading-tight tracking-tight text-c-lm-gray-900 dark:text-c-dm-gray-100 mt-14">
 					{t('notFound.title')}

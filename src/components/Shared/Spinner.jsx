@@ -50,7 +50,7 @@ const Spinner = ({ size = 'large' }) => {
 				<div className={`absolute inset-0 flex items-center justify-center`}>
 					<img 
 					src={activeTheme === 'dark' ? '/logo_white.png' : '/logo.png'} 
-					alt="Siros ID" 
+					alt="wwWallet" 
 					className={`object-contain ${currentSize.image}`} 
 					/>
 				</div>

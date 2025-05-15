@@ -15,14 +15,12 @@ import { useTheme } from '@/context/ThemeContextProvider';
 interface LogoProps {
 	aClassName?: string; // Class for the <a> element
 	imgClassName?: string; // Class for the <img> element
-	isWordmark?: boolean; // Whether to use the wordmark logo
 	isLeft?: boolean; // Whether to align the logo to the left
 }
 
 const Logo: React.FC<LogoProps> = ({
 	aClassName = '',
 	imgClassName = '',
-	isWordmark = false,
 	isLeft = false,
 }) => {
 	//General
@@ -58,19 +56,6 @@ const Logo: React.FC<LogoProps> = ({
 	//Determine which logo to use
 	const logoSrc = (() => {
 		if (isChristmasSeason) {
-			if (isWordmark) {
-				return (
-					selectedTheme.value === "system" ? 
-						window.matchMedia('(prefers-color-scheme: dark)').matches ? 
-							wordmarkWhiteChristmas 
-						: 
-							wordmarkClassicChristmas
-					: selectedTheme.value === "dark" ? 
-						wordmarkWhiteChristmas 
-					: 
-						wordmarkClassicChristmas
-				);
-			}
 			return (
 				selectedTheme.value === "system" ? 
 					window.matchMedia('(prefers-color-scheme: dark)').matches ? 
@@ -84,20 +69,6 @@ const Logo: React.FC<LogoProps> = ({
 			);
 		}
 
-		if (isWordmark) {
-			return (
-				selectedTheme.value === "system" ? 
-					window.matchMedia('(prefers-color-scheme: dark)').matches ? 
-						wordmarkWhite 
-					: 
-						wordmarkClassic
-				: selectedTheme.value === "dark" ? 
-					wordmarkWhite 
-				: 
-					wordmarkClassic
-			);
-		}
-		
 		return (
 			selectedTheme.value === "system" ? 
 				window.matchMedia('(prefers-color-scheme: dark)').matches ? 
