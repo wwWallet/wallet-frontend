@@ -240,7 +240,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									<>
 										{' '}
 										< button onClick={handleToggleFields} className="text-primary dark:text-extra-light font-medium hover:underline inline">
-											{showAllFields ? `${t('common.showLess')}` : `${t('common.showLess')}`}
+											{showAllFields ? `${t('common.showLess')}` : `${t('common.showMore')}`}
 										</button>
 									</>
 								)}
