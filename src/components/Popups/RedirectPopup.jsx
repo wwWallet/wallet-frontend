@@ -1,38 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import { FaShare } from 'react-icons/fa';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUpRight, faXmark } from '@fortawesome/pro-regular-svg-icons';
+
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 
-const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMessage }) => {
+const RedirectPopup = ({ loading, onClose: onCloseProp, handleContinue, popupTitle, popupMessage }) => {
+	//General
 	const { t } = useTranslation();
 
-	return (
-		<PopupLayout isOpen={true} onClose={onClose} loading={loading}>
-			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-				<FaShare size={20} className="inline mr-1 mb-1" />
-				{popupTitle}
-			</h2>
-			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
-			<p className="mb-2 mt-4 text-gray-700 dark:text-white">
-				{popupMessage}
-			</p>
+	//State
+	const [isClosing, setIsClosing] = useState(false);
 
-			<div className="flex justify-end space-x-2 pt-4">
-				<Button
-					id="cancel-redirect-popup"
-					variant="cancel"
+	//Handlers
+	const onClose = () => {
+		setIsClosing(true);
+		setTimeout(() => {
+			onCloseProp();
+			setIsClosing(false);
+		}, 200);
+	}
+
+	//Render
+	return (
+		<PopupLayout isOpen={true} isClosing={isClosing} onClose={onClose} loading={loading}>
+			<div className="flex items-start justify-between">
+				<div className='flex items-center justify-center w-12 h-12 rounded-full bg-c-lm-gray-300 dark:bg-c-dm-gray-800'>
+					<FontAwesomeIcon icon={faArrowUpRight} className="text-xl text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+				</div>
+
+				<div className='flex-1 ml-4 mr-12'>
+					<h2 className="text-xl font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100">
+						{popupTitle}
+					</h2>
+
+					<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+						{popupMessage}
+					</p>
+
+					<div className="flex items-center space-x-2 mt-4">
+						<Button
+							id="continue-redirect-popup"
+							variant="tertiary"
+							onClick={handleContinue}
+							size='md'
+							textSize='md'
+						>
+							{t('common.continue')}
+						</Button>
+
+						<Button
+							id="cancel-redirect-popup"
+							variant="cancel"
+							onClick={onClose}
+							size='md'
+							textSize='md'
+						>
+							{t('common.cancel')}
+						</Button>
+					</div>
+				</div>
+
+				<button
+					id="dismiss-delete-popup"
+					type="button"
+					className={`
+						absolute top-2 right-2
+						bg-c-lm-gray-300 dark:bg-c-dm-gray-800 rounded-lg w-8 h-8 flex justify-center items-center
+						hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-700 transition-all duration-150
+					`}
 					onClick={onClose}
 				>
-					{t('common.cancel')}
-				</Button>
-				<Button
-					id="continue-redirect-popup"
-					variant="primary"
-					onClick={() => handleContinue()}
-				>
-					{t('common.continue')}
-				</Button>
+					<FontAwesomeIcon icon={faXmark} className="text-lg text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+				</button>
 			</div>
 		</PopupLayout>
 	);

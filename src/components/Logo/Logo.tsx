@@ -16,12 +16,14 @@ interface LogoProps {
 	aClassName?: string; // Class for the <a> element
 	imgClassName?: string; // Class for the <img> element
 	isWordmark?: boolean; // Whether to use the wordmark logo
+	isLeft?: boolean; // Whether to align the logo to the left
 }
 
 const Logo: React.FC<LogoProps> = ({
 	aClassName = '',
 	imgClassName = '',
 	isWordmark = false,
+	isLeft = false,
 }) => {
 	//General
 	const { t } = useTranslation();
@@ -112,7 +114,7 @@ const Logo: React.FC<LogoProps> = ({
 	//Render
 	return (
 		<a href="/" className={aClassName} aria-label={t('common.walletName')}>
-			<div className={`relative ${imgClassName} flex items-center justify-center`}>
+			<div className={`relative flex items-center ${isLeft ? 'justify-start' : 'justify-center'} ${imgClassName}`}>
 				<img src={logoSrc} alt={t('common.walletName')} className={`absolute object-cover object-center`} style={{ height: '160%' }} />
 			</div>
 		</a>

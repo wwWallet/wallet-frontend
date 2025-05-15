@@ -2,24 +2,29 @@ import React, { useState, useEffect, useContext } from 'react';
 import Tour from 'reactour';
 import { useTranslation } from 'react-i18next';
 
-import useScreenType from '../../hooks/useScreenType';
+import useScreenType from '@/hooks/useScreenType';
+
 import SessionContext from '@/context/SessionContext';
 
-import WelcomeModal from './WecomeModal';
 import Button from '../Buttons/Button';
+import WelcomeModal from './WecomeModal';
 
 
 const TourGuide = ({ toggleMenu, isOpen }) => {
-	const [isTourOpen, setIsTourOpen] = useState(false);
-	const [isModalOpen, setIsModalOpen] = useState(true);
-	const [steps, setSteps] = useState([]);
-	const { api } = useContext(SessionContext);
-	const { authenticationType, showWelcome } = api.getSession();
+	//General
 	const { t } = useTranslation();
 	const screenType = useScreenType();
+	const { api } = useContext(SessionContext);
+	const { authenticationType, showWelcome } = api.getSession();
+	
+	//State
+	const [steps, setSteps] = useState([]);
+	const [isClosing, setIsClosing] = useState(false);
+	const [isTourOpen, setIsTourOpen] = useState(false);
+	const [isModalOpen, setIsModalOpen] = useState(true);
 
+	//Effects
 	useEffect(() => {
-
 		const getStepSelectorSmallScreen = (stepName) => {
 			if (screenType !== 'desktop') {
 				return stepName + '-small-screen';
@@ -61,11 +66,14 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 				content: () => (
 					<>
 						<p className='mt-2'>{t("tourGuide.tourComplete")}</p>
-						<div className='flex justify-center mt-2'>
+
+						<div className='flex mt-4'>
 							<Button
 								id="close-tour"
-								variant="primary"
 								onClick={() => setIsTourOpen(false)}
+								variant="tertiary"
+								size='md'
+								textSize='md'
 							>
 								{t("tourGuide.closeTourButton")}
 							</Button>
@@ -94,6 +102,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 		setSteps(updatedSteps);
 	}, [t, toggleMenu, isOpen, screenType]);
 
+	//Handlers
 	const startTour = () => {
 		setIsModalOpen(false);
 		api.updateShowWelcome(false);
@@ -101,16 +110,19 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 	};
 
 	const closeModalAndDisable = () => {
-		setIsModalOpen(false);
-		api.updateShowWelcome(false);
+		setIsClosing(true);
+		setTimeout(() => {
+			setIsModalOpen(false);
+			api.updateShowWelcome(false);
+			setIsClosing(false);
+		}, 200);
 	};
 
 	const renderModal = () => {
-
 		if (authenticationType === 'signup' && showWelcome) {
 			return (
 				<div>
-					<WelcomeModal isOpen={isModalOpen} onStartTour={startTour} onClose={closeModalAndDisable} />
+					<WelcomeModal isOpen={isModalOpen} isClosing={isClosing} onStartTour={startTour} onClose={closeModalAndDisable} />
 				</div>
 			);
 		} else {
@@ -118,6 +130,7 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 		}
 	};
 
+	//Render
 	return (
 		<div>
 			{renderModal()}

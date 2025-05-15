@@ -31,11 +31,14 @@ const Dropdown = ({
 	verticalPosition = 'bottom',
 	horizontalPosition = 'center',
 	listWidthClass = 'min-w-48',
-	listMaxHeightClass = 'max-h-56'
+	listMaxHeightClass = 'max-h-[267px]'
 }: DropdownProps) => {
+
+	//State
 	const [isOpen, setIsOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
+	//Handlers
 	const handleSelect = (option: DropdownOption) => {
 		onSelect(option);
 		setIsOpen(false);
@@ -55,6 +58,7 @@ const Dropdown = ({
 		};
 	}, []);
 
+	//Render
 	return (
 		<div
 			className={`
@@ -67,7 +71,7 @@ const Dropdown = ({
 		>
 			<ul
 				className={`
-					cursor-default absolute z-10 p-1 overflow-auto rounded-lg
+					cursor-default absolute z-50 p-1 overflow-auto rounded-lg
 					bg-c-lm-gray-100 shadow-lg border border-c-lm-gray-300
 					dark:bg-c-dm-gray-800 dark:border-c-dm-gray-700
 					origin-bottom-center transition-all duration-150
@@ -86,15 +90,20 @@ const Dropdown = ({
 							data-selected={selectedOption.value === option.value}
 							className={`
 								group relative cursor-pointer py-2 pl-3 pr-9 rounded-md w-full text-left outline-none
-								text-c-lm-gray-900 dark:text-c-dm-gray-100
+								text-c-lm-gray-900 dark:text-c-dm-gray-100 transition-all duration-150
 								${selectedOption.value === option.value ?
 									'bg-c-lm-blue dark:bg-c-dm-blue text-white'
 								:
 									'hover:bg-c-lm-gray-300 dark:hover:bg-c-dm-gray-700 focus:bg-c-lm-gray-300 dark:focus:bg-c-dm-gray-700'
 								}
+								${option.className ?? ''}
 							`}
 						>
 							<div className="flex items-center">
+								{option.icon &&
+									<FontAwesomeIcon icon={option.icon} className="text-c-lm-gray-900 dark:text-c-dm-gray-100 mr-3" />
+								}
+
 								<span className="block truncate">
 									{option.label} { /* Use generic label */}
 								</span>

@@ -1,12 +1,15 @@
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
-import StatusContext from '@/context/StatusContext';
 import { FaXmark } from "react-icons/fa6";
 
-const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => {
-	const { connectivity } = useContext(StatusContext);
-	const { t } = useTranslation();
+import StatusContext from '@/context/StatusContext';
 
+const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => {
+	//General
+	const { t } = useTranslation();
+	const { connectivity } = useContext(StatusContext);
+
+	//Data
 	const quality = connectivity.speed;
 	const bars = Array.from({ length: 5 }, (_, i) => i < quality);
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
@@ -14,6 +17,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 	const UnFilledColor = backgroundColor === 'light' ? 'bg-gray-300 dark:bg-gray-500' : 'bg-gray-500';
 	const connectingSpinner = backgroundColor === 'light' ? 'border-gray-600 dark:border-gray-100' : 'border-gray-100';
 
+	//Handlers
 	const qualityText = (quality) => {
 		switch (quality) {
 			case 5: return t('ConnectionStatusIcon.qualityLabels.excellent');
@@ -26,8 +30,10 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 		}
 	};
 
+	//Prepare for render
 	const titleText = `${t("ConnectionStatusIcon.status")} ${qualityText(quality)}`;
 
+	//Render
 	return (
 		<div className="relative flex items-end" title={titleText}>
 			{bars.map((filled, i) => (

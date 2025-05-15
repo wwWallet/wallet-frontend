@@ -7,8 +7,6 @@ import * as config from '@/config';
 
 import useScreenType from '@/hooks/useScreenType';
 
-import welcomeImage from '@/assets/images/welcome-image-min.jpg';
-
 import AnimatedArrow from '@/components/Shared/AnimatedArrow';
 
 import Logo from '@/components/Logo/Logo';
@@ -22,6 +20,7 @@ export default function LoginLayout({ children }: { children: React.ReactNode })
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
+	//Render
 	return (
 		<section className="bg-c-lm-gray-100 dark:bg-c-dm-gray-900 min-h-dvh w-full flex flex-row relative">
 			<section className="flex-1 flex flex-col items-center">
@@ -130,27 +129,38 @@ export default function LoginLayout({ children }: { children: React.ReactNode })
 					<p className="hidden">v{config.APP_VERSION}</p>
 				</footer>
 			</section>
+			
+			<a 
+				href="https://github.com/wwWallet" 
+				target="_blank" 
+				rel="noreferrer" 
+				className='flex-1 flex flex-col items-stretch justify-stretch hidden md:flex'
+			>
+				<div className='group cursor-pointer relative flex-1 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 mr-2 my-2 rounded-lg overflow-hidden'>
+					<img 
+					src="/city-lights-small.webp" 
+					alt="wwWallet Welcome Image" 
+					className='absolute top-0 left-0 w-full h-full object-cover object-center group-hover:scale-105 group-hover:opacity-80 transition-all duration-300 ease-out' 
+					/>
 
-			<div className='group cursor-pointer relative flex-1 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 mr-2 my-2 rounded-lg overflow-hidden'>
-				<img src={welcomeImage} alt="wwWallet Welcome Image" className='absolute top-0 left-0 w-full h-full object-cover object-center group-hover:scale-105 group-hover:opacity-80 transition-all duration-300 ease-out' />
-
-				<div className='absolute bottom-0 w-full'>
-					<div className='mx-4 my-4 flex items-center justify-between'>
-						<p className='text-c-lm-gray-100 text-lg opacity-70 mr-8 group-hover:opacity-100 transition-all duration-300 ease-out'>
-							We’re making the internet safer for everyone. Read more.
-						</p>
-						
-						<AnimatedArrow
-							lineClassName='bg-c-lm-gray-100'
-							chevronClassName='text-c-lm-gray-100'
-							className='opacity-70 group-hover:opacity-100 transition-all duration-300 ease-out'
-							size='large'
-							direction='right'
-							customMargin={'-8px'}
-						/>
+					<div className='absolute bottom-0 w-full'>
+						<div className='mx-4 my-4 flex items-center justify-between'>
+							<p className='text-c-lm-gray-100 text-lg opacity-80 mr-8 group-hover:opacity-100 transition-all duration-300 ease-out shadow-lg'>
+								We’re making the internet safer for everyone. Read more.
+							</p>
+							
+							<AnimatedArrow
+								lineClassName='bg-c-lm-gray-100'
+								chevronClassName='text-c-lm-gray-100'
+								className='opacity-80 group-hover:opacity-100 transition-all duration-300 ease-out'
+								size='large'
+								direction='right'
+								customMargin={'-8px'}
+							/>
+						</div>
 					</div>
 				</div>
-			</div>
+			</a>
 		</section>
 	);
 }

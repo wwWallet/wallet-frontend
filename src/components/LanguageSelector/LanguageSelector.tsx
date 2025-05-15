@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faChevronDown, faGlobe } from "@fortawesome/pro-regular-svg-icons";
+import { faChevronDown, faGlobe } from "@fortawesome/pro-regular-svg-icons";
 
 import { languageOptions, LanguageOption } from "./languages";
 
@@ -29,6 +29,7 @@ const LanguageSelector = ({
 	horizontalPosition='center',
 	renderLanguageSelector,
 }: LanguageSelectorProps) => {
+	//General
 	const { i18n } = useTranslation();
 	const { language } = i18n;
 
@@ -71,6 +72,7 @@ const LanguageSelector = ({
 		</button>
 	);
 
+	//Render
 	return (
 		<Dropdown
 			options={dropdownOptions}

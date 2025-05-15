@@ -4,9 +4,13 @@ import ConnectionStatusIcon from './Navigation/ConnectionStatusIcon';
 import Logo from '../Logo/Logo';
 
 const Header = () => {
+	//General
 	const { t } = useTranslation();
+
+	//State
 	const [isScrolled, setIsScrolled] = useState(false);
 
+	//Handlers
 	useEffect(() => {
 		const handleScroll = () => {
 			if (window.scrollY > 35 && !isScrolled) {
@@ -23,15 +27,21 @@ const Header = () => {
 		};
 	}, [isScrolled]);
 
+	//Render
 	return (
-		<header className={`sticky top-0 z-50 w-full bg-primary dark:bg-primary-hover text-white flex items-center justify-between shadow-md md:hidden rounded-b-lg transition-all duration-300 ${isScrolled ? 'p-3' : 'p-4'}`}>
-			<ConnectionStatusIcon size={isScrolled ? 'small' : 'normal'} className="transition-all duration-300" />
-			<div className="flex items-center">
-				<Logo type='white' aClassName='mr-2' imgClassName={`cursor-pointer transition-all duration-300 ${isScrolled ? 'w-7 h-7' : 'w-10 h-10'}`} />
-				<a href="/" className={`text-white font-bold cursor-pointer transition-all duration-300 ${isScrolled ? 'text-sm' : 'text-xl'}`}>
-					{t('common.walletName')}
-				</a>
-			</div>
+		<header className={`sticky top-0 z-50 w-full bg-c-lm-gray-100 dark:bg-c-dm-gray-800 text-c-lm-gray-900 dark:text-c-dm-gray-100 border-b border-c-lm-gray-400 dark:border-c-dm-gray-600 flex items-center justify-between shadow-md md:hidden p-4`}>
+			<a 
+			href={('/')}
+			className=""
+			>
+				<Logo 
+				imgClassName='h-7 my-0.5 w-48' 
+				isWordmark={true}
+				isLeft={true}
+				/>
+			</a>
+			
+			<ConnectionStatusIcon size={'normal'} className="mr-1" />
 		</header>
 	);
 };

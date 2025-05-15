@@ -1,12 +1,14 @@
+// DeletePopup.js
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { faDatabase, faTrash, faXmark } from '@fortawesome/pro-regular-svg-icons';
 
 import Button from '@/components/Buttons/Button';
 import PopupLayout from '@/components/Popups/PopupLayout';
+import CredentialJson from '../Credentials/CredentialJson';
 
-const DeletePopup = ({ isOpen, onConfirm, onClose: onCloseProp, message, title, loading }) => {
+const DatasetPopup = ({ isOpen, onClose: onCloseProp, vcEntity, loading }) => {
 	//General
 	const { t } = useTranslation();
 
@@ -23,32 +25,24 @@ const DeletePopup = ({ isOpen, onConfirm, onClose: onCloseProp, message, title, 
 	}
 
 	return (
-		<PopupLayout isOpen={isOpen} isClosing={isClosing} onClose={onClose} loading={loading}>
+		<PopupLayout isOpen={isOpen} isClosing={isClosing} onClose={onClose} loading={loading} className="w-full sm:w-10/12 md:w-10/12 lg:w-8/12">
 			<div className="flex items-start justify-between">
-				<div className='flex items-center justify-center w-12 h-12 rounded-full bg-c-lm-red-bg dark:bg-c-dm-red-bg-dark'>
-					<FontAwesomeIcon icon={faTrash} className="text-xl text-c-lm-red dark:text-c-dm-red" />
+				<div className='flex items-center justify-center w-12 h-12 rounded-full bg-c-lm-gray-300 dark:bg-c-dm-gray-800'>
+					<FontAwesomeIcon icon={faDatabase} className="text-xl text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 				</div>
 
 				<div className='flex-1 ml-4 mr-12'>
 					<h2 className="text-xl font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100">
-						{title}
+						{"Dataset"}
 					</h2>
 
-					<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
-						{message}
+					<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300 mb-5">
+						{"This is the raw dataset of this credential. You can copy it to your clipboard and use it in your own application."}
 					</p>
 
-					<div className="flex items-center space-x-2 mt-4">
-						<Button
-							id="confirm-delete-popup"
-							variant="tertiary"
-							onClick={onConfirm}
-							size='md'
-							textSize='md'
-						>
-							{t('common.delete')}
-						</Button>
+					<CredentialJson parsedCredential={vcEntity?.parsedCredential} textAreaRows='16' />
 
+					<div className="flex items-center mt-5">
 						<Button
 							id="close-delete-popup"
 							variant="cancel"
@@ -56,7 +50,7 @@ const DeletePopup = ({ isOpen, onConfirm, onClose: onCloseProp, message, title, 
 							size='md'
 							textSize='md'
 						>
-							{t('common.cancel')}
+							{"Close"}
 						</Button>
 					</div>
 				</div>
@@ -78,4 +72,4 @@ const DeletePopup = ({ isOpen, onConfirm, onClose: onCloseProp, message, title, 
 	);
 };
 
-export default DeletePopup;
+export default DatasetPopup;

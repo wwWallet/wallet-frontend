@@ -20,12 +20,12 @@
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
-		"navItemAddCredentials": "Add Credentials",
+		"navItemAddCredentials": "Add credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
 		"navItemHistory": "History",
 		"navItemProfile": "Profile",
-		"navItemSendCredentials": "Send Credentials",
+		"navItemSendCredentials": "Send credentials",
 		"navItemSendCredentialsSimple": "Send",
 		"navItemSettings": "Settings",
 		"navItemFeedback": "Feedback",
@@ -54,9 +54,9 @@
 		"label": "Language"
 	},
 	"layout": {
-		"messageAllowPermission": "To receive real-time updates of <strong>Credentials, allow notifications permission and reload this page</strong>.",
-		"messageOffline": "You are currently <strong>offline. Some features may not be available.</strong>",
-		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
+		"messageAllowPermission": "To receive real-time updates of Credentials, <strong>allow notifications permission and reload this page</strong>.",
+		"messageOffline": "<strong>You are currently offline.</strong> Some features may not be available.",
+		"messageResetPermission": "Something is <strong>not working properly with the notifications</strong>, please reload this page."
 	},
 	"loginSignup": {
 		"alreadyHaveAccountQuestion": "Already have an account? ",
@@ -149,7 +149,7 @@
 	},
 	"pageAddCredentials": {
 		"description": "Search and choose the credential you want to issue",
-		"noFound": "No matching issuers found.",
+		"noFound": "No matching issuers found with the given search criteria.",
 		"popup": {
 			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
 			"title": "Selected:"
@@ -157,6 +157,7 @@
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
+		"noResults": "No matching credentials found with the given search criteria.",
 		"addCardTitle": "Add new credential",
 		"addCredential": "Add new credential",
 		"searchPlaceholder": "Search credential...",
@@ -164,13 +165,13 @@
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialTitle": "Credential",
 		"datasetTitle": "Dataset",
-		"delete": "Delete Credential",
-		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential?<br/> If you delete it, <strong>all the presentations that include this VC will be removed from your history.</strong>",
+		"delete": "Delete credential",
+		"deletePopupMessage": "Are you sure you want to delete the <strong>{{credentialName}}</strong> credential? If you delete it, <strong>all presentations that include this VC will be removed from your history.</strong>",
 		"description": "View all of your credentials. Click one to view the details.",
 		"details": {
 			"availableUsages": "Available Usages",
-			"description": "View all the information about the chosen credential",
-			"expired": "This Credential has been expired"
+			"description": "View all the information about the chosen credential.",
+			"expired": "This credential has been expired."
 		},
 		"presentationsTitle": "Presentations",
 		"slideButtonAriaLabelDisable": "No {{direction}} credential",
@@ -182,7 +183,7 @@
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
-		"noFound": "No presentations found",
+		"noFound": "No history found. As you add and send credentials, they will start to appear here.",
 		"popupTitle": "Presented Credentials",
 		"presentationDetails": {
 			"title": "Presentation Details"
@@ -199,6 +200,7 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add new passkey",
+		"addPasskeyShort": "Add",
 		"addPasskeyTitle": "Click to add a new passkey",
 		"appVersion": {
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}.",
@@ -255,11 +257,12 @@
 		"title": {
 			"preferences": "Preferences",
 			"appVersion": "App version",
-			"confirmDeletePopup": "Delete account",
+			"confirmDeleteAccountPopup": "Delete account",
+			"confirmDeleteCredentialPopup": "Delete credential",
 			"language": "Language",
 			"loggedInPasskey": "Logged in passkey",
 			"manageAcount": "Manage account",
-			"manageOtherPasskeys": "Manage other passkeys",
+			"manageOtherPasskeys": "Manage passkeys",
 			"rememberIssuer": "Remember issuer"
 		},
 		"unlockPasskeyManagement": "Unlock management",
@@ -307,11 +310,11 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"descriptionFieldsMultiple": "Requested fields:",
-		"descriptionFieldsSingle": "Requested field:",
-		"descriptionSelect": "Select the one Credential you want to present.",
+		"descriptionFieldsMultiple": "Requested fields are",
+		"descriptionFieldsSingle": "Requested field is",
+		"descriptionSelect": "Select the credential you want to present to <strong>{{verifierDomainName}}</strong>.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
-		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
+		"purpose": "Purpose: {{verifierPurpose}}.",
 		"purposeNotSpecified": "Purpose not specified by verifier",
 		"requestedFieldsLess": "Show less",
 		"requestedFieldsMore": "Show more",
@@ -337,7 +340,7 @@
 		"description": "New Version is available!"
 	},
 	"welcomeModal": {
-		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
+		"description": "Discover <strong>$t(common.walletName)</strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
 		"dismissButton": "Dismiss",
 		"question": "Are you ready to explore the features of $t(common.walletName) through a guided tour?",
 		"startTourButton": "Start Tour",

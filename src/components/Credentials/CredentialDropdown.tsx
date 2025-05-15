@@ -1,24 +1,21 @@
-'use client'
-
 import React from "react";
-import { useTranslation } from "react-i18next";
 import Dropdown, { DropdownOption } from "../Shared/Dropdown";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/pro-regular-svg-icons";
 
-interface FilterSelectorProps {
+interface CredentialDropdownProps {
     options: DropdownOption[];
-	currentValue: number;
-	onChange: (newValue: number) => void;
-	disabled?: boolean;
-	className?: string;
-	verticalPosition?: "top" | "bottom";
-	horizontalPosition?: "left" | "right";
-	listWidthClass?: string;
+		currentValue: number;
+		onChange: (newValue: number) => void;
+		disabled?: boolean;
+		className?: string;
+		verticalPosition?: "top" | "bottom";
+		horizontalPosition?: "left" | "right";
+		listWidthClass?: string;
 }
 
-const FilterSelector: React.FC<FilterSelectorProps> = ({
-    options,
+const CredentialDropdown: React.FC<CredentialDropdownProps> = ({
+	options,
 	currentValue,
 	onChange,
 	disabled = false,
@@ -68,4 +65,4 @@ const FilterSelector: React.FC<FilterSelectorProps> = ({
 	);
 };
 
-export default FilterSelector; 
+export default CredentialDropdown; 

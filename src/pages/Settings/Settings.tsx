@@ -106,6 +106,7 @@ const WebauthnRegistation = ({
 	size='lg',
 	disabled=false,
 	additionalClassName='',
+	short=false,
 }: {
 	unwrappingKey?: CryptoKey,
 	onSuccess: () => void,
@@ -114,6 +115,7 @@ const WebauthnRegistation = ({
 	size: 'lg' | 'md' | 'sm',
 	disabled?: boolean,
 	additionalClassName?: string,
+	short?: boolean,
 }) => {
 	//General
 	const { t } = useTranslation();
@@ -255,7 +257,7 @@ const WebauthnRegistation = ({
 			>
 				<FontAwesomeIcon icon={faPlus} className="text-md mr-3" />
 
-				{t('pageSettings.addPasskey')}
+				{short ? t('pageSettings.addPasskeyShort') : t('pageSettings.addPasskey')}
 			</Button>
 
 			<Dialog
@@ -467,10 +469,10 @@ const WebauthnCredentialItem = ({
 	//Render
 	return (
 		<form
-			className="mt-12 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600 overflow-x-auto"
+			className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600 overflow-x-auto"
 			onSubmit={onSubmit}
 		>
-			<div className="pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
+			<div className="pl-4 sm:pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
 				<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
 					{t('pageSettings.passkeyItem.title')}
 				</h2>
@@ -555,6 +557,7 @@ const WebauthnCredentialItem = ({
 						isOpen={isDeleteConfirmationOpen}
 						onConfirm={handleDelete}
 						onClose={closeDeleteConfirmation}
+						title={t('pageSettings.title.confirmDeleteAccountPopup')}
 						message={
 							<Trans
 								i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
@@ -566,13 +569,13 @@ const WebauthnCredentialItem = ({
 				</div>
 			</div>
 			
-			<div className="p-6 flex flex-col grow">
-				<div className="flex items-center">
+			<div className="p-4 sm:p-6 flex flex-col grow">
+				<div className="flex flex-col sm:flex-row sm:items-center">
 					<p className="flex-1 text-c-lm-gray-700 dark:text-c-dm-gray-300">
 						{t('pageSettings.passkeyItem.nickname')}
 					</p>
 
-					<div className="flex-5 flex items-center">
+					<div className="flex-5 flex items-center mt-2 sm:mt-0">
 						<p className={`text-c-lm-gray-900 dark:text-c-dm-gray-100 ${editing ? 'opacity-0' : ''}`}>
 							{currentLabel}
 						</p>
@@ -598,32 +601,32 @@ const WebauthnCredentialItem = ({
 					</div>
 				</div>
 				
-				<div className="flex items-center mt-4">
+				<div className="flex flex-col sm:flex-row sm:items-center mt-4">
 					<p className="flex-1 text-c-lm-gray-700 dark:text-c-dm-gray-300">
 						{t('pageSettings.passkeyItem.created')}
 					</p>
 
-					<p className="flex-5 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+					<p className="flex-5 text-c-lm-gray-900 dark:text-c-dm-gray-100 mt-2 sm:mt-0">
 						{formatDate(credential.createTime)}
 					</p>
 				</div>
 				
-				<div className="flex items-center mt-4">
+				<div className="flex flex-col sm:flex-row sm:items-center mt-4">
 					<p className="flex-1 text-c-lm-gray-700 dark:text-c-dm-gray-300">
 						{t('pageSettings.passkeyItem.lastUsed')}
 					</p>
 
-					<p className="flex-5 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+					<p className="flex-5 text-c-lm-gray-900 dark:text-c-dm-gray-100 mt-2 sm:mt-0">
 						{formatDate(credential.lastUseTime)}
 					</p>
 				</div>
 				
-				<div className="flex items-center mt-4">
+				<div className="flex flex-col sm:flex-row sm:items-center mt-4">
 					<p className="flex-1 text-c-lm-gray-700 dark:text-c-dm-gray-300">
 						{t('pageSettings.passkeyItem.canEncrypt')}
 					</p>
 
-					<p className="flex-5 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+					<p className="flex-5 text-c-lm-gray-900 dark:text-c-dm-gray-100 mt-2 sm:mt-0">
 						{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
 						
 						{needsPrfUpgrade && 
@@ -890,400 +893,366 @@ const Settings = () => {
 
 	//Render
 	return (
-		<>
-			<div className='flex space-x-6 justify-end mx-6 my-4'>
-				<Button
-					id="logout"
-					variant="cancel"
-					size='md'
-					textSize='md'
-				>
-					<FontAwesomeIcon icon={faMessageDots} className="text-md mr-3" />
+		<div className="px-4 sm:px-8 lg:px-12 pt-10 pb-20 w-full max-w-[1064px] mx-auto">
+			{userData && 
+				<>
+					<h1 className="text-2xl font-semibold leading-tight tracking-tight text-c-lm-gray-900 md:text-3xl dark:text-c-dm-gray-100">
+						{t('common.navItemSettings')}
+					</h1>
 
-					{t('common.navItemFeedback')}
-				</Button>
-				
-				<Button
-					id="logout"
-					variant="link"
-					size='md'
-					textSize='md'
-				>
-					{t('common.navItemHelp')}
-				</Button>
-				
-				<Button
-					id="logout"
-					variant="link"
-					size='md'
-					textSize='md'
-				>
-					{t('common.navItemDocs')}
-				</Button>
-			</div>
+					<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+						{t('pageSettings.description')}
+					</p>
 
-			<hr className="border-t border-c-lm-gray-400 dark:border-c-dm-gray-700" />
+					<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
+						<div className="pl-4 sm:pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
+							<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
+								{t('pageSettings.title.preferences')}
+							</h2>
 
-			<div className="sm:px-12 pt-10 pb-20 w-full max-w-[1064px] mx-auto">
-				{userData && 
-					<>
-						<h1 className="text-2xl font-semibold leading-tight tracking-tight text-c-lm-gray-900 md:text-3xl dark:text-c-dm-gray-100">
-							{t('common.navItemSettings')}
-						</h1>
+							<div className='h-10' />
+						</div>
 
-						<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
-							{t('pageSettings.description')}
-						</p>
+						<div className="p-4 sm:p-6 flex flex-col items-start">
+							<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300">
+								{"Set your desired langague for the wwWallet website."}
+							</p>
 
-						<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
-							<div className="pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
-								<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
-									{t('pageSettings.title.preferences')}
-								</h2>
+							<LanguageSelector 
+								className='mt-4'
+								verticalPosition='bottom'
+								horizontalPosition='left'
+							/>
+							
+							<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-6">
+								{"Set your desired theme for the wwWallet website."}
+							</p>
 
-								<div className='h-10' />
-							</div>
+							<ThemeSelector 
+								className='mt-4'
+								verticalPosition='bottom'
+								horizontalPosition='left'
+							/>
+						</div>
+					</div>
+					
+					{loggedInPasskey && 
+						<WebauthnCredentialItem
+							key={loggedInPasskey.id}
+							credential={loggedInPasskey}
+							prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
+							onRename={onRenameWebauthnCredential}
+							onUpgradePrfKey={onUpgradePrfKey}
+							unlocked={unlocked}
+						/>
+					}
 
-							<div className="p-6 flex flex-col items-start">
-								<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300">
-									{"Set your desired langague for the wwWallet website."}
-								</p>
+					<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
+						<div className="pl-4 sm:pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
+							<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
+								{t('pageSettings.title.rememberIssuer')}
+							</h2>
 
-								<LanguageSelector 
-									className='mt-4'
-									verticalPosition='bottom'
-									horizontalPosition='left'
+							<div className='h-10' />
+						</div>
+
+						<div className="p-4 sm:p-6 flex flex-col items-start">
+							<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300">
+								{t('pageSettings.rememberIssuer.description')}
+							</p>
+
+							<div className='flex gap-4 items-center mt-4'>
+								<RememberIssuerSelector
+									currentValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
+									onChange={handleRememberIssuerChange}
+									disabled={!isOnline}
 								/>
 								
-								<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-6">
-									{"Set your desired theme for the wwWallet website."}
-								</p>
-
-								<ThemeSelector 
-									className='mt-4'
-									verticalPosition='bottom'
-									horizontalPosition='left'
-								/>
-							</div>
-						</div>
-						
-						{loggedInPasskey && 
-							<WebauthnCredentialItem
-								key={loggedInPasskey.id}
-								credential={loggedInPasskey}
-								prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
-								onRename={onRenameWebauthnCredential}
-								onUpgradePrfKey={onUpgradePrfKey}
-								unlocked={unlocked}
-							/>
-						}
-
-						<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
-							<div className="pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
-								<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
-									{t('pageSettings.title.rememberIssuer')}
-								</h2>
-
-								<div className='h-10' />
-							</div>
-
-							<div className="p-6 flex flex-col items-start">
-								<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300">
-									{t('pageSettings.rememberIssuer.description')}
-								</p>
-
-								<div className='flex gap-4 items-center mt-4'>
-									<RememberIssuerSelector
-										currentValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
-										onChange={handleRememberIssuerChange}
-										disabled={!isOnline}
-									/>
-									
-									<div className={`text-md text-c-lm-green dark:text-c-dm-green ${successMessage ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"} transition-all duration-150`}>
-										{successMessage || "Saved"}
-									</div>
+								<div className={`text-md text-c-lm-green dark:text-c-dm-green ${successMessage ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"} transition-all duration-150`}>
+									{successMessage || "Saved"}
 								</div>
 							</div>
 						</div>
-						
-						<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
-							<div className="pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
-								<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
-									{t('pageSettings.title.manageOtherPasskeys')}
-								</h2>
+					</div>
+					
+					<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
+						<div className="pl-4 sm:pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
+							<h2 className={`truncate mr-4 sm:mr-0 text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
+								{t('pageSettings.title.manageOtherPasskeys')}
+							</h2>
+
+							<WebauthnRegistation
+								unwrappingKey={unwrappingKey}
+								wrappedMainKey={wrappedMainKey}
+								onSuccess={refreshData}
+								ensureUnlocked={ensureUnlocked}
+								size='md'
+								disabled={userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length <= 0}
+								short={window.innerWidth < 640}
+							/>
+						</div>
+
+						{userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length <= 0 &&
+							<div className="px-4 sm:px-6 py-24 flex flex-col items-center">
+								<h3 className="text-center text-lg font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100">
+									{t('pageSettings.noOtherPasskeysTitle')}
+								</h3>
+								
+								<p className="text-center text-c-lm-gray-700 dark:text-c-dm-gray-300 max-w-lg text-center mt-6">
+									{t('pageSettings.noOtherPasskeysDescription')}
+								</p>
 
 								<WebauthnRegistation
 									unwrappingKey={unwrappingKey}
 									wrappedMainKey={wrappedMainKey}
 									onSuccess={refreshData}
 									ensureUnlocked={ensureUnlocked}
-									size='md'
-									disabled={userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length <= 0}
-								/>
-							</div>
-
-							{userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length <= 0 &&
-								<div className="px-6 py-24 flex flex-col items-center">
-									<h3 className="text-lg font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100">
-										{t('pageSettings.noOtherPasskeysTitle')}
-									</h3>
-									
-									<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300 max-w-lg text-center mt-6">
-										{t('pageSettings.noOtherPasskeysDescription')}
-									</p>
-
-									<WebauthnRegistation
-										unwrappingKey={unwrappingKey}
-										wrappedMainKey={wrappedMainKey}
-										onSuccess={refreshData}
-										ensureUnlocked={ensureUnlocked}
-										additionalClassName='mt-8'
-										size='lg'
-									/>
-								</div>
-							}
-							
-							{userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length > 0 &&
-								<div className="p-6">
-									<ul className="">
-										{userData.webauthnCredentials
-										.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
-										.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
-										.map(cred => (
-											<WebauthnCredentialItem
-												key={cred.id}
-												credential={cred}
-												prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
-												onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
-												onRename={onRenameWebauthnCredential}
-												onUpgradePrfKey={onUpgradePrfKey}
-												unlocked={unlocked}
-											/>
-										))}
-									</ul>
-								</div>
-							}
-						</div>
-						
-						<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
-							<div className="pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
-								<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
-									{t('pageSettings.deleteAccount.title')}
-								</h2>
-
-								<div className='h-10' />
-							</div>
-
-							<div className="p-6 flex flex-col items-start">
-								<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300">
-									{t('pageSettings.deleteAccount.description')}
-								</p>
-
-								<Button
-									additionalClassName='mt-4'
-									id="delete-account"
-									onClick={async () => {
-										const isUnlocked = await ensureUnlocked();
-										if (isUnlocked) {
-											// If already unlocked, trigger action immediately
-											openDeleteConfirmation();
-										}
-										// Otherwise, ensureUnlocked will handle triggering via password prompt callback
-									}}
-									variant="delete"
-									disabled={!isOnline}
-									title={!isOnline ? t("common.offlineTitle") : ""}
+									additionalClassName='mt-8'
 									size='lg'
-									textSize='md'
-								>
-									{t('pageSettings.deleteAccount.buttonText')}
-								</Button>
+								/>
 							</div>
+						}
+						
+						{userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length > 0 &&
+							<div className="p-4 sm:p-6">
+								<ul className="">
+									{userData.webauthnCredentials
+									.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+									.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+									.map(cred => (
+										<WebauthnCredentialItem
+											key={cred.id}
+											credential={cred}
+											prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
+											onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+											onRename={onRenameWebauthnCredential}
+											onUpgradePrfKey={onUpgradePrfKey}
+											unlocked={unlocked}
+										/>
+									))}
+								</ul>
+							</div>
+						}
+					</div>
+					
+					<div className="mt-11 rounded-lg border border-c-lm-gray-400 dark:border-c-dm-gray-600">
+						<div className="pl-4 sm:pl-6 py-4 pr-4 flex flex-row items-center justify-between border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
+							<h2 className={`text-xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
+								{t('pageSettings.deleteAccount.title')}
+							</h2>
+
+							<div className='h-10' />
 						</div>
 
-						<div className="relative flex flex-col items-center justify-center mt-20">
-							{updateAvailable && 
-								<div className='mb-6 bg-c-lm-red-bg dark:bg-c-dm-red-bg rounded-full flex items-center justify-center h-12 w-12'>
-									<FontAwesomeIcon
-										fixedWidth
-										icon={faBell}
-										className="text-lg text-c-lm-red dark:text-c-dm-red"
-									/>
-								</div>
-							}
-
-							{updateAvailable ?
-								<p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 text-center text-md'>
-									<Trans
-										i18nKey="pageSettings.appVersion.descriptionOldVersion"
-										values={{ react_app_version: import.meta.env.VITE_APP_VERSION }}
-										components={{
-											reloadButton:
-												<Button
-													id="reload-update-version"
-													variant="link"
-													onClick={() => window.location.reload()}
-												/>,
-											strong: <strong />,
-											br: <br />,
-										}}
-									/>
-								</p>
-							:
-								<p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 text-center text-md'>
-									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: import.meta.env.VITE_APP_VERSION })}
-								</p>
-							}
-
-						</div>
-					</>
-				}
-
-				<DeletePopup
-					isOpen={isDeleteConfirmationOpen}
-					onConfirm={handleDelete}
-					onClose={closeDeleteConfirmation}
-					message={
-						<Trans
-							i18nKey="pageSettings.deleteAccount.message"
-						/>
-					}
-					loading={loading}
-				/>
-
-				<Dialog
-					open={upgradePrfState !== null}
-					onCancel={onCancelUpgradePrfKey}
-				>
-					{upgradePrfState?.state === "authenticate" ? 
-						<>
-							<h3 className="text-2xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100">
-								<Trans
-									i18nKey="pageSettings.upgradePrfKey.title"
-									components={{ br: <br /> }}
-								/>
-							</h3>
-
-							<p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-4'>
-								<Trans
-									i18nKey="pageSettings.upgradePrfKey.description"
-									values={{ passkeyLabel: upgradePrfPasskeyLabel }}
-									components={{ strong: <strong /> }}
-								/>
+						<div className="p-4 sm:p-6 flex flex-col items-start">
+							<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300">
+								{t('pageSettings.deleteAccount.description')}
 							</p>
 
-							<div className='flex justify-center gap-2 mt-6'>
-								<Button
-									onClick={onCancelUpgradePrfKey}
-									variant="cancel"
-									size='md'
-									textSize='md'
-								>
-									{t('common.cancel')}
-								</Button>
-							</div>
-						</>
-					: 
-						<>
-							<h3 className="text-2xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 pb-2">
-								<Trans
-									i18nKey="pageSettings.upgradePrfKey.title"
-									components={{ br: <br /> }}
+							<Button
+								additionalClassName='mt-4'
+								id="delete-account"
+								onClick={async () => {
+									const isUnlocked = await ensureUnlocked();
+									if (isUnlocked) {
+										// If already unlocked, trigger action immediately
+										openDeleteConfirmation();
+									}
+									// Otherwise, ensureUnlocked will handle triggering via password prompt callback
+								}}
+								variant="delete"
+								disabled={!isOnline}
+								title={!isOnline ? t("common.offlineTitle") : ""}
+								size='lg'
+								textSize='md'
+							>
+								{t('pageSettings.deleteAccount.buttonText')}
+							</Button>
+						</div>
+					</div>
+
+					<div className="relative flex flex-col items-center justify-center mt-20 px-4">
+						{updateAvailable && 
+							<div className='mb-6 bg-c-lm-red-bg dark:bg-c-dm-red-bg rounded-full flex items-center justify-center h-12 w-12'>
+								<FontAwesomeIcon
+									fixedWidth
+									icon={faBell}
+									className="text-lg text-c-lm-red dark:text-c-dm-red"
 								/>
-							</h3>
-
-							<Trans
-								i18nKey="pageSettings.upgradePrfKey.error"
-								values={{ passkeyLabel: upgradePrfPasskeyLabel }}
-								components={{ p: <p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-2' />, strong: <strong /> }}
-							/>
-
-							<div className='flex justify-center gap-2 mt-6'>
-								<Button
-									onClick={onCancelUpgradePrfKey}
-									variant="cancel"
-									size='md'
-									textSize='md'
-								>
-									{t('common.cancel')}
-								</Button>
-
-								<Button
-									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-									variant="tertiary"
-									size='md'
-									textSize='md'
-								>
-									{t('common.tryAgain')}
-								</Button>
 							</div>
-						</>
-					}
-				</Dialog>
+						}
 
-				<Dialog
-					open={isPromptingForPassword}
-					onCancel={onCancelPassword}
-				>
-					<form method="dialog" onSubmit={onSubmitPassword}>
+						{updateAvailable ?
+							<p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 text-center text-md'>
+								<Trans
+									i18nKey="pageSettings.appVersion.descriptionOldVersion"
+									values={{ react_app_version: import.meta.env.VITE_APP_VERSION }}
+									components={{
+										reloadButton:
+											<Button
+												id="reload-update-version"
+												variant="link"
+												onClick={() => window.location.reload()}
+											/>,
+										strong: <strong />,
+										br: <br />,
+									}}
+								/>
+							</p>
+						:
+							<p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 text-center text-md'>
+								{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: import.meta.env.VITE_APP_VERSION })}
+							</p>
+						}
+					</div>
+				</>
+			}
+
+			<DeletePopup
+				isOpen={isDeleteConfirmationOpen}
+				onConfirm={handleDelete}
+				onClose={closeDeleteConfirmation}
+				title={t('pageSettings.title.confirmDeleteAccountPopup')}
+				message={
+					<Trans
+						i18nKey="pageSettings.deleteAccount.message"
+					/>
+				}
+				loading={loading}
+			/>
+
+			<Dialog
+				open={upgradePrfState !== null}
+				onCancel={onCancelUpgradePrfKey}
+			>
+				{upgradePrfState?.state === "authenticate" ? 
+					<>
 						<h3 className="text-2xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100">
-							{t('pageSettings.unlockPassword.title')}
+							<Trans
+								i18nKey="pageSettings.upgradePrfKey.title"
+								components={{ br: <br /> }}
+							/>
 						</h3>
 
-						<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-4">
-							{t('pageSettings.unlockPassword.description')}
+						<p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-4'>
+							<Trans
+								i18nKey="pageSettings.upgradePrfKey.description"
+								values={{ passkeyLabel: upgradePrfPasskeyLabel }}
+								components={{ strong: <strong /> }}
+							/>
 						</p>
-						
-						<input
-							type="password"
-							className={`
-								mt-6 border rounded-lg py-1.5 px-3 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 text-center
-								border-c-lm-gray-300 dark:border-c-dm-gray-700 text-c-lm-gray-900 dark:text-c-dm-gray-100 dark:inputDarkModeOverride
-								outline-none focus:ring-2 ring-c-lm-blue dark:ring-c-dm-blue transition-shadow duration-200
-								placeholder:text-c-lm-gray-700 dark:placeholder:text-c-dm-gray-300
-							`}
-							aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
-							autoFocus={true}
-							disabled={isSubmittingPassword}
-							onChange={(event) => setPassword(event.target.value)}
-							placeholder={t('pageSettings.unlockPassword.passwordInputPlaceholder')}
-							value={password}
-						/>
 
-						<div className="flex justify-center gap-2 mt-6">
+						<div className='flex justify-center gap-2 mt-6'>
 							<Button
-								id="cancel-password-management-settings"
-								type="button"
+								onClick={onCancelUpgradePrfKey}
 								variant="cancel"
 								size='md'
 								textSize='md'
-								onClick={onCancelPassword}
-								disabled={isSubmittingPassword}
+							>
+								{t('common.cancel')}
+							</Button>
+						</div>
+					</>
+				: 
+					<>
+						<h3 className="text-2xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 pb-2">
+							<Trans
+								i18nKey="pageSettings.upgradePrfKey.title"
+								components={{ br: <br /> }}
+							/>
+						</h3>
+
+						<Trans
+							i18nKey="pageSettings.upgradePrfKey.error"
+							values={{ passkeyLabel: upgradePrfPasskeyLabel }}
+							components={{ p: <p className='text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-2' />, strong: <strong /> }}
+						/>
+
+						<div className='flex justify-center gap-2 mt-6'>
+							<Button
+								onClick={onCancelUpgradePrfKey}
+								variant="cancel"
+								size='md'
+								textSize='md'
 							>
 								{t('common.cancel')}
 							</Button>
 
-							<Button	
-								id="submit-password-management-settings"
-								type="submit"
+							<Button
+								onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
 								variant="tertiary"
 								size='md'
 								textSize='md'
-								disabled={isSubmittingPassword}
 							>
-								{t('common.submit')}
+								{t('common.tryAgain')}
 							</Button>
 						</div>
+					</>
+				}
+			</Dialog>
 
-						{unlockError &&
-							<p className="text-red-500 mt-2">
-								{unlockError}
-							</p>
-						}
-					</form>
-				</Dialog>
-			</div>
-		</>
+			<Dialog
+				open={isPromptingForPassword}
+				onCancel={onCancelPassword}
+			>
+				<form method="dialog" onSubmit={onSubmitPassword}>
+					<h3 className="text-2xl font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100">
+						{t('pageSettings.unlockPassword.title')}
+					</h3>
+
+					<p className="text-c-lm-gray-700 dark:text-c-dm-gray-300 mt-4">
+						{t('pageSettings.unlockPassword.description')}
+					</p>
+					
+					<input
+						type="password"
+						className={`
+							mt-6 border rounded-lg py-1.5 px-3 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 text-center
+							border-c-lm-gray-300 dark:border-c-dm-gray-700 text-c-lm-gray-900 dark:text-c-dm-gray-100 dark:inputDarkModeOverride
+							outline-none focus:ring-2 ring-c-lm-blue dark:ring-c-dm-blue transition-shadow duration-200
+							placeholder:text-c-lm-gray-700 dark:placeholder:text-c-dm-gray-300
+						`}
+						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
+						autoFocus={true}
+						disabled={isSubmittingPassword}
+						onChange={(event) => setPassword(event.target.value)}
+						placeholder={t('pageSettings.unlockPassword.passwordInputPlaceholder')}
+						value={password}
+					/>
+
+					<div className="flex justify-center gap-2 mt-6">
+						<Button
+							id="cancel-password-management-settings"
+							type="button"
+							variant="cancel"
+							size='md'
+							textSize='md'
+							onClick={onCancelPassword}
+							disabled={isSubmittingPassword}
+						>
+							{t('common.cancel')}
+						</Button>
+
+						<Button	
+							id="submit-password-management-settings"
+							type="submit"
+							variant="tertiary"
+							size='md'
+							textSize='md'
+							disabled={isSubmittingPassword}
+						>
+							{t('common.submit')}
+						</Button>
+					</div>
+
+					{unlockError &&
+						<p className="text-red-500 mt-2">
+							{unlockError}
+						</p>
+					}
+				</form>
+			</Dialog>
+		</div>
 	);
 };
 

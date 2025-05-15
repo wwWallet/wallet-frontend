@@ -1,18 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useScreenType from '../../hooks/useScreenType';
-import { formatDate } from '../../functions/DateFormat';
-import { H3 } from '../Shared/Heading';
-import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
+
 import { extractPresentations } from '@/functions/extractPresentations';
 
+import { formatDate } from '@/functions/DateFormat';
+
+import useScreenType from '@/hooks/useScreenType';
+
+import { H3 } from '@/components/Shared/Heading';
+import HistoryDetailPopup from '@/components/Popups/HistoryDetailPopup';
+
 const HistoryList = ({ credentialId = null, history, title = '', limit = null }) => {
-
-	const [matchingCredentials, setMatchingCredentials] = useState([]);
-	const [isImageModalOpen, setImageModalOpen] = useState(false);
-	const screenType = useScreenType();
+	//General
 	const navigate = useNavigate();
+	const screenType = useScreenType();
 
+	//State
+	const [isImageModalOpen, setImageModalOpen] = useState(false);
+	const [matchingCredentials, setMatchingCredentials] = useState([]);
+
+	//Data
 	const credentialHistory = useMemo(() => {
 		if (credentialId === null) {
 			return limit !== null ? history.slice(0, limit) : history;
@@ -21,6 +28,7 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 		return limit !== null ? filteredHistory.slice(0, limit) : filteredHistory;
 	}, [history, credentialId, limit]);
 
+	//Handlers
 	const handleHistoryItemClick = async (item) => {
 		console.log('extractPresentations', item);
 		setMatchingCredentials(extractPresentations(item));
@@ -30,25 +38,37 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 		setImageModalOpen(true);
 	};
 
+	//Render
 	if (credentialHistory.length === 0) {
 		return null;
 	}
 
 	return (
 		<>
-			<div className="py-2 w-full">
-				{title && <H3 heading={title} />}
-				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
-					{credentialHistory.map(item => (
+			<div className="w-full">
+				{title && 
+					<H3 heading={title} />
+				}
+
+				<div className="overflow-auto">
+					{credentialHistory.map((item, index) => (
 						<button
 							id={`credential-history-item-${item.id}`}
 							key={item.id}
-							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
+							className={`
+								text-sm px-6 py-4 ${index > 0 ? 'border-t border-c-lm-gray-300 dark:border-c-dm-gray-600' : ''}
+								hover:bg-c-lm-gray-300 dark:hover:bg-c-dm-gray-700 transition-all duration-150 cursor-pointer break-words w-full text-left
+							`}
 							style={{ wordBreak: 'break-all' }}
 							onClick={() => handleHistoryItemClick(item)}
 						>
-							<div className="font-bold">{item.audience}</div>
-							<div>{formatDate(item.issuanceDate)}</div>
+							<h5 className="font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100">
+								{item.audience}
+							</h5>
+
+							<p className="mt-0.5 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+								{formatDate(item.issuanceDate)}
+							</p>
 						</button>
 					))}
 				</div>

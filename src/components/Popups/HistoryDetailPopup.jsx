@@ -1,41 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import HistoryDetailContent from '../History/HistoryDetailContent';
-import PopupLayout from './PopupLayout';
+import { faXmark } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const HistoryDetailPopup = ({ isOpen, onClose, matchingCredentials }) => {
+import PopupLayout from './PopupLayout';
+import HistoryDetailContent from '../History/HistoryDetailContent';
+
+const HistoryDetailPopup = ({ isOpen, onClose: onCloseProp, matchingCredentials }) => {
+	//General
 	const { t } = useTranslation();
 
+	//State
+	const [isClosing, setIsClosing] = useState(false);
+
+	//Handlers
+	const onClose = () => {
+		setIsClosing(true);
+		setTimeout(() => {
+			onCloseProp();
+			setIsClosing(false);
+		}, 200);
+	}
+
+	//Render
 	return (
-		<PopupLayout isOpen={isOpen} onClose={onClose}>
-			<div className="flex items-start justify-between mb-2">
-				<h2 className="right text-lg font-bold text-primary dark:text-white">
-					{t('pageHistory.popupTitle')}
-				</h2>
-				<button
-					id="dismiss-history-detail-popup"
-					type="button"
-					className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-					onClick={onClose}
-				>
-					<svg
-						className="w-3 h-3"
-						aria-hidden="true"
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 14 14"
-					>
-						<path
-							stroke="currentColor"
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth="2"
-							d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
-						/>
-					</svg>
-				</button>
-			</div>
-			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+		<PopupLayout isOpen={isOpen} isClosing={isClosing} onClose={onClose}>
+			<h2 className="text-xl font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100 mb-6">
+				{t('pageHistory.popupTitle')}
+			</h2>
+			
+			<button
+				id="dismiss-delete-popup"
+				type="button"
+				className={`
+					absolute top-2 right-2
+					bg-c-lm-gray-300 dark:bg-c-dm-gray-800 rounded-lg w-8 h-8 flex justify-center items-center
+					hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-700 transition-all duration-150
+				`}
+				onClick={onClose}
+			>
+				<FontAwesomeIcon icon={faXmark} className="text-lg text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+			</button>
 
 			<HistoryDetailContent historyItem={matchingCredentials} />
 		</PopupLayout>

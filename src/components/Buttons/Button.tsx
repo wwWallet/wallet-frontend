@@ -40,6 +40,8 @@ export type Props = {
 	disabled?: boolean,
 	ariaLabel?: string,
 	title?: string,
+	linkLineSize?: 'regular-small' | 'small' | 'mid' | 'large',
+	linkClassName?: string,
 };
 
 const Button = ({
@@ -55,6 +57,8 @@ const Button = ({
 	disabled = false,
 	ariaLabel,
 	title,
+	linkLineSize = 'regular-small',
+	linkClassName = 'text-c-lm-gray-900 dark:text-c-dm-gray-100',
 }: Props) => {
 
 	if (variant === 'link') {
@@ -69,8 +73,8 @@ const Button = ({
 			{...(title && { title })}
 			>
 					<AnimatedLinkText
-					className='text-c-lm-gray-900 dark:text-c-dm-gray-100'
-					size="regular-small"
+					className={linkClassName}
+					size={linkLineSize}
 					text={children}
 					/>
 			</button>
@@ -116,7 +120,7 @@ const Button = ({
 			case 'delete':
 				return `${commonClasses} ${sizeClasses} ${!disabled ? "text-c-lm-red dark:text-c-dm-red bg-c-lm-red-bg dark:bg-c-dm-red-bg hover:bg-c-lm-red-bg-hover dark:hover:bg-c-dm-red-bg-hover transition-all duration-150" : "text-c-lm-red dark:text-c-dm-red bg-c-lm-red-bg dark:bg-c-dm-red-bg cursor-not-allowed"}`;
 			case 'outline':
-				return `${sizeClasses} bg-white border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed'}`;
+				return `${sizeClasses} rounded-xl shadow-sm ${!disabled ? 'cursor-pointer text-c-lm-gray-900 dark:text-c-dm-gray-100 bg-c-lm-gray-300 dark:bg-c-dm-gray-700 hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600 transition-all duration-150' : 'text-c-lm-gray-600 dark:text-c-dm-gray-900 bg-c-lm-gray-300 dark:bg-c-dm-gray-700 border border-c-lm-gray-400 dark:border-c-dm-gray-600 cursor-not-allowed'}`;
 			default:
 				return `${commonClasses} ${sizeClasses}`;
 		}

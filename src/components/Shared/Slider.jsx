@@ -8,12 +8,20 @@ import { useTranslation } from 'react-i18next';
 import { EffectCards } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-cards';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft, faArrowRight } from '@fortawesome/pro-regular-svg-icons';
 
 const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) => {
-	const [currentSlide, setCurrentSlide] = useState(initialSlide);
-	const sliderRef = useRef(null);
+	//General
 	const { t } = useTranslation();
 
+	//State
+	const [currentSlide, setCurrentSlide] = useState(initialSlide);
+
+	//Refs
+	const sliderRef = useRef(null);
+
+	//Handlers
 	const handlePrev = () => {
 		if (sliderRef.current) {
 			sliderRef.current.slidePrev();
@@ -26,6 +34,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 		}
 	};
 
+	//Render
 	return (
 		<>
 			<Swiper
@@ -52,27 +61,43 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 
 			{/* Display Slide numbers and Arrows if length >1 */}
 			{items.length > 1 && (
-				<div className="flex items-center justify-end mt-1">
-					<span className="mr-4 dark:text-white">{currentSlide} of {items.length}</span>
+				<div className="flex items-center justify-end space-x-2 mt-2">
+					<span className="text-c-lm-gray-700 dark:text-c-dm-gray-300 mr-1">{currentSlide} of {items.length}</span>
+
 					<button
 						id="previous-slide"
 						onClick={handlePrev}
 						aria-label={currentSlide === 1 ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })}
 						title={currentSlide === 1 ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slidePrevious') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })}
 						disabled={currentSlide === 1}
-						className={`${currentSlide === 1 ? 'opacity-50 cursor-not-allowed text-gray-500 dark:text-gray-200' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+						className={`
+							flex items-center transition-all duration-150
+							bg-c-lm-gray-300 dark:bg-c-dm-gray-700 rounded-lg w-8 h-8 flex justify-center items-center
+							${currentSlide === 1 
+								? 'opacity-50 cursor-not-allowed text-c-lm-gray-700 dark:text-c-dm-gray-300' 
+								: 'text-c-lm-gray-700 dark:text-c-dm-gray-300 hover:text-c-lm-gray-900 dark:hover:text-c-dm-gray-100 hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600'
+							} 
+						`}
 					>
-						<BiLeftArrow size={22} />
+						<FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
 					</button>
+
 					<button
 						id="next-slide"
 						onClick={handleNext}
 						aria-label={currentSlide === items.length ? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })}
 						title={currentSlide === items.length ? t('pageCredentials.slideButtonTitleDisable', { direction: t('pageCredentials.slideNext') }) : t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })}
 						disabled={currentSlide === items.length}
-						className={`${currentSlide === items.length ? 'opacity-50 cursor-not-allowed text-gray-500 dark:text-gray-200' : 'text-primary dark:text-white hover:text-primary-hover dark:hover:text-gray-300'}`}
+						className={`
+							flex items-center transition-all duration-150
+							bg-c-lm-gray-300 dark:bg-c-dm-gray-700 rounded-lg w-8 h-8 flex justify-center items-center
+							${currentSlide === items.length 
+								? 'opacity-50 cursor-not-allowed text-c-lm-gray-700 dark:text-c-dm-gray-300' 
+								: 'text-c-lm-gray-700 dark:text-c-dm-gray-300 hover:text-c-lm-gray-900 dark:hover:text-c-dm-gray-100 hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600'
+							} 
+						`}
 					>
-						<BiRightArrow size={22} />
+						<FontAwesomeIcon icon={faArrowRight} className="text-lg" />
 					</button>
 				</div>
 			)}

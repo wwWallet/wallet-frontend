@@ -8,16 +8,23 @@ import { H1 } from '../../components/Shared/Heading';
 import QueryableList from '../../components/QueryableList/QueryableList';
 import PageDescription from '../../components/Shared/PageDescription';
 import EntityListItem from '@/components/QueryableList/EntityListItem';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleQuestion } from '@fortawesome/pro-solid-svg-icons';
+import Tooltip from '@/components/Shared/Tooltip';
 
 const SendCredentials = () => {
-	const { isOnline } = useContext(StatusContext);
-	const { api } = useContext(SessionContext);
-	const [verifiers, setVerifiers] = useState(null);
-	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
-	const [selectedVerifier, setSelectedVerifier] = useState(null);
-	const [loading, setLoading] = useState(false);
+	//General
 	const { t } = useTranslation();
+	const { api } = useContext(SessionContext);
+	const { isOnline } = useContext(StatusContext);
 
+	//State
+	const [loading, setLoading] = useState(false);
+	const [verifiers, setVerifiers] = useState(null);
+	const [selectedVerifier, setSelectedVerifier] = useState(null);
+	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
+
+	//Effects
 	useEffect(() => {
 		const fetchVerifiers = async () => {
 			try {
@@ -31,6 +38,7 @@ const SendCredentials = () => {
 		fetchVerifiers();
 	}, [api]);
 
+	//Handlers
 	const handleVerifierClick = async (id) => {
 		const clickedVerifier = verifiers.find((verifier) => verifier.id === id);
 		if (clickedVerifier) {
@@ -57,11 +65,37 @@ const SendCredentials = () => {
 		setShowRedirectPopup(false);
 	};
 
+	//Render
 	return (
 		<>
-			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemSendCredentials')} />
-				<PageDescription description={t('pageSendCredentials.description')} />
+			<div className="sm:px-12 pt-10 pb-20 w-full max-w-[1064px] mx-auto">
+				<div className='flex items-center justify-between'>
+					<div className='flex-1'>
+						<h1 className="text-2xl font-semibold leading-tight tracking-tight text-c-lm-gray-900 md:text-3xl dark:text-c-dm-gray-100">
+							{t('common.navItemSendCredentials')}
+						</h1>
+
+						<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+							{t('pageSendCredentials.description')}
+						</p>
+					</div>
+
+					<div 
+						id={`add-credential-tip`}
+					>
+						<FontAwesomeIcon
+							icon={faCircleQuestion} 
+							className="text-c-lm-gray-700 dark:text-c-dm-gray-300 text-lg cursor-pointer hover:text-c-lm-gray-900 dark:hover:text-c-dm-gray-100 transition-all duration-150" 
+						/>
+					</div>
+		
+					<Tooltip
+					offset={8} 
+					text="Use this page to send your credentials to a verifier. You can send credentials to any verifier that supports OpenID for Verifiable Credentials." 
+					id={`add-credential-tip`} 
+					place="bottom"
+					/>
+				</div>
 
 				{verifiers && (
 					<QueryableList

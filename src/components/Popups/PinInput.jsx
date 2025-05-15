@@ -1,19 +1,28 @@
 // PinInput.js
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
-import Button from '../Buttons/Button';
+import { faLock } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import SessionContext from '@/context/SessionContext';
+
+import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 
 function PinInput({ isOpen, setIsOpen }) {
-	const { api } = useContext(SessionContext);
-	const navigate = useNavigate();
-	const [errMessage, setErrMessage] = useState('');
-	const [pin, setPin] = useState(['', '', '', '']);
+	//General
 	const { t } = useTranslation();
+	const navigate = useNavigate();
+	const { api } = useContext(SessionContext);
 
+	//State
+	const [isClosing, setIsClosing] = useState(false);
+
+	const [pin, setPin] = useState(['', '', '', '']);
+	const [errMessage, setErrMessage] = useState('');
+
+	//Refs
 	const inputRefs = [
 		useRef(null),
 		useRef(null),
@@ -22,15 +31,22 @@ function PinInput({ isOpen, setIsOpen }) {
 	];
 	const firstInputRef = inputRefs[0];
 
+	//Effects
 	useEffect(() => {
 		if (firstInputRef.current) {
 			firstInputRef.current.focus();
 		}
 	}, [firstInputRef]);
 
+	//Handlers
 	const handleCancel = () => {
-		setIsOpen(false);
 		navigate('/');
+
+		setIsClosing(true);
+		setTimeout(() => {
+			setIsOpen(false);
+			setIsClosing(false);
+		}, 200);
 	};
 
 	const handleSubmit = async () => {
@@ -105,62 +121,81 @@ function PinInput({ isOpen, setIsOpen }) {
 		}
 	};
 
-	if (!isOpen) {
-		return null;
-	}
-
 	const handleInputKeyPress = (event) => {
 		if (event.key === 'Enter') {
 			handleSubmit();
 		}
 	};
 
+	//Render
+	if (!isOpen) {
+		return null;
+	}
+
 	return (
-		<PopupLayout isOpen={isOpen} onClose={false}>
-			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-				<FaLock size={20} className="inline mr-1 mb-1" />
-				{t('PinInputPopup.title')}
-			</h2>
-			<hr className="mb-2 border-t border-primary/80 border-white/80" />
-			<p className="italic pd-2 text-gray-700 dark:text-white">
-				{t('PinInputPopup.description')}
-			</p>
+		<PopupLayout isOpen={isOpen} isClosing={isClosing} onClose={false}>
+			<div className="flex items-start justify-between">
+				<div className={`flex items-center justify-center w-12 h-12 rounded-full bg-c-lm-gray-300 dark:bg-c-dm-gray-800`}>
+					<FontAwesomeIcon icon={faLock} className={`text-xl text-c-lm-gray-900 dark:text-c-dm-gray-100`} />
+				</div>
 
-			{errMessage && (
-				<p className='text-sm text-red-600'>{errMessage}</p>
-			)}
-			<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
-				{pin.map((digit, index) => (
-					<input
-						type="text"
-						key={index}
-						value={digit}
-						onChange={(e) => handleInputChange(index, e.target.value)}
-						onKeyDown={(e) => handleInputKeyDown(index, e)}
-						onClick={() => handleInputClick(index)}
-						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
-						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride"
-						ref={inputRefs[index]}
-					/>
-				))}
-			</div>
+				<div className='flex-1 ml-4 mr-12'>
+					<h2 className="text-xl font-medium text-c-lm-gray-900 dark:text-c-dm-gray-100">
+						{t('PinInputPopup.title')}
+					</h2>
 
-			<div className="flex justify-end space-x-2 pt-4">
-				<Button
-					id="cancel-pin-input"
-					variant="cancel"
-					onClick={handleCancel}
-				>
-					{t('common.cancel')}
-				</Button>
-				<Button
-					id="submit-pin-input"
-					variant="primary"
-					onClick={handleSubmit}
-				>
-					{t('common.submit')}
-				</Button>
+					<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+						{t('PinInputPopup.description')}
+					</p>
+
+					{errMessage && 
+						<p className='text-sm text-red-600'>{errMessage}</p>
+					}
+
+					<div className='mt-5 flex flex-wrap -ml-1 flex items-center'>
+						{pin.map((digit, index) => (
+							<input
+								type="text"
+								key={index}
+								value={digit}
+								onChange={(e) => handleInputChange(index, e.target.value)}
+								onKeyDown={(e) => handleInputKeyDown(index, e)}
+								onClick={() => handleInputClick(index)}
+								onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
+								onKeyPress={(e) => handleInputKeyPress(e)}
+								className={`
+									text-center font-semibold text-lg w-10 px-3 mx-1 py-2
+									bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-300 dark:border-c-dm-gray-700 
+									dark:inputDarkModeOverride text-c-lm-gray-900 dark:text-c-dm-gray-100 rounded-lg
+									outline-none focus:ring-2 ring-c-lm-blue dark:ring-c-dm-blue transition-shadow duration-200
+								`}
+								ref={inputRefs[index]}
+							/>
+						))}
+					</div>
+
+					<div className="flex items-center space-x-2 mt-7">
+						<Button
+							id="submit-pin-input"
+							variant="tertiary"
+							onClick={handleSubmit}
+							size='md'
+							textSize='md'
+						>
+							{t('common.submit')}
+						</Button>
+
+						<Button
+							id="close-delete-popup"
+							variant="cancel"
+							onClick={handleCancel}
+							size='md'
+							textSize='md'
+						>
+							{t('common.cancel')}
+						</Button>
+					</div>
+				</div>
 			</div>
 		</PopupLayout>
 	);

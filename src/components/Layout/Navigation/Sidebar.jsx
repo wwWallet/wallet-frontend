@@ -1,18 +1,18 @@
 import React, { useContext } from 'react';
-import { AiOutlineLogout } from "react-icons/ai";
-import { FaWallet, FaUserCircle } from "react-icons/fa";
-import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
-import useScreenType from '../../../hooks/useScreenType';
-import Logo from '../../Logo/Logo';
 import { Trans, useTranslation } from 'react-i18next';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBell } from '@fortawesome/pro-solid-svg-icons';
+import { faArrowRightFromBracket, faCirclePlus, faGear, faHistory, faKey, faSend, faUserCircle } from '@fortawesome/pro-regular-svg-icons';
+
+import useScreenType from '@/hooks/useScreenType';
+
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
-import { MdNotifications } from "react-icons/md";
-import ConnectionStatusIcon from './ConnectionStatusIcon';
+
+import Logo from '@/components/Logo/Logo';
 import Button from '@/components/Buttons/Button';
-import { faArrowRightFromBracket, faCirclePlus, faGear, faHistory, faKey, faSend, faUserCircle } from '@fortawesome/pro-regular-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import ConnectionStatusIcon from './ConnectionStatusIcon';
 
 const NavItem = ({ icon, id, label, handleNavigate, location, path, alias, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
@@ -161,7 +161,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							label={t("common.navItemSettings")}
 							notificationIcon={
 								updateAvailable && (
-									<MdNotifications size={22} className="text-green-500" />
+									<FontAwesomeIcon icon={faBell} className="text-c-lm-red dark:text-c-dm-red" />
 								)
 							}
 							className="step-7"

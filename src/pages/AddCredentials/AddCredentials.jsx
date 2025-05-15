@@ -1,36 +1,45 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
+import { faMessageDots } from '@fortawesome/pro-regular-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleQuestion } from '@fortawesome/pro-solid-svg-icons';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
-import RedirectPopup from '../../components/Popups/RedirectPopup';
-import { H1 } from '../../components/Shared/Heading';
-import PageDescription from '../../components/Shared/PageDescription';
-import QueryableList from '../../components/QueryableList/QueryableList';
-import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
+
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
+
+import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+
+import Button from '@/components/Buttons/Button';
+import Tooltip from '@/components/Shared/Tooltip';
+import { H1 } from '@/components/Shared/Heading';
+import RedirectPopup from '@/components/Popups/RedirectPopup';
+import PageDescription from '@/components/Shared/PageDescription';
+import QueryableList from '@/components/QueryableList/QueryableList';
 import { buildCredentialConfiguration, getCredentialType } from '@/components/QueryableList/CredentialsDisplayUtils';
 
 const AddCredentials = () => {
-	const { isOnline } = useContext(StatusContext);
-	const { api, keystore } = useContext(SessionContext);
-	const [issuers, setIssuers] = useState([]);
-	const [recent, setRecent] = useState([]);
-	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
-	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
-
-	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
-	const [loading, setLoading] = useState(false);
-
-	const openID4VCIHelper = useOpenID4VCIHelper();
-	const { openID4VCI } = useContext(OpenID4VCIContext);
-	const { vcEntityList, getData } = useContext(CredentialsContext);
-
+	//General
 	const { t } = useTranslation();
 	const filterItemByLang = useFilterItemByLang();
+	const openID4VCIHelper = useOpenID4VCIHelper();
+	const { isOnline } = useContext(StatusContext);
+	const { api, keystore } = useContext(SessionContext);
+	const { openID4VCI } = useContext(OpenID4VCIContext);
+	const { vcEntityList, getData } = useContext(CredentialsContext);
+	
+	//State
+	const [recent, setRecent] = useState([]);
+	const [issuers, setIssuers] = useState([]);
+	const [loading, setLoading] = useState(false);
+	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
+	const [credentialConfigurations, setCredentialConfigurations] = useState([]);
+	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
 
+	//Effects
 	useEffect(() => {
 		if (vcEntityList === null) {
 			getData();
@@ -60,27 +69,6 @@ const AddCredentials = () => {
 			fetchRecentCredConfigs();
 		}
 	}, [vcEntityList]);
-
-	const getSelectedIssuer = () => {
-		if (selectedCredentialConfiguration) {
-			const { credentialIssuerIdentifier } = selectedCredentialConfiguration;
-			return issuers.filter((issuer) => issuer.credential_issuer === credentialIssuerIdentifier)[0];
-		}
-		return null;
-	}
-
-	const getSelectedIssuerDisplay = () => {
-		const selectedIssuer = getSelectedIssuer();
-
-		if (selectedIssuer) {
-			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
-			if (selectedDisplayBasedOnLang) {
-				const { name, description } = selectedDisplayBasedOnLang;
-				return { name, description };
-			}
-		}
-		return null;
-	}
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -137,6 +125,28 @@ const AddCredentials = () => {
 		}
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
+	//Handlers
+	const getSelectedIssuer = () => {
+		if (selectedCredentialConfiguration) {
+			const { credentialIssuerIdentifier } = selectedCredentialConfiguration;
+			return issuers.filter((issuer) => issuer.credential_issuer === credentialIssuerIdentifier)[0];
+		}
+		return null;
+	}
+
+	const getSelectedIssuerDisplay = () => {
+		const selectedIssuer = getSelectedIssuer();
+
+		if (selectedIssuer) {
+			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
+			if (selectedDisplayBasedOnLang) {
+				const { name, description } = selectedDisplayBasedOnLang;
+				return { name, description };
+			}
+		}
+		return null;
+	}
+
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
 		const [credentialConfigurationId] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId);
@@ -177,11 +187,37 @@ const AddCredentials = () => {
 		setShowRedirectPopup(false);
 	};
 
+	//Render
 	return (
-		<>
-			<div className="sm:px-6 w-full">
-				<H1 heading={t('common.navItemAddCredentials')} />
-				<PageDescription description={t('pageAddCredentials.description')} />
+		<>	
+			<div className="sm:px-12 pt-10 pb-20 w-full max-w-[1064px] mx-auto">
+				<div className='flex items-center justify-between'>
+					<div className='flex-1'>
+						<h1 className="text-2xl font-semibold leading-tight tracking-tight text-c-lm-gray-900 md:text-3xl dark:text-c-dm-gray-100">
+							{t('common.navItemAddCredentials')}
+						</h1>
+
+						<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+							{t('pageAddCredentials.description')}
+						</p>
+					</div>
+
+					<div 
+						id={`add-credential-tip`}
+					>
+						<FontAwesomeIcon 
+							icon={faCircleQuestion} 
+							className="text-c-lm-gray-700 dark:text-c-dm-gray-300 text-lg cursor-pointer hover:text-c-lm-gray-900 dark:hover:text-c-dm-gray-100 transition-all duration-150" 
+						/>
+					</div>
+		
+					<Tooltip 
+					offset={8} 
+					text="Use this page to add credentials to your wallet. You can add credentials from any issuer that supports OpenID for Verifiable Credentials." 
+					id={`add-credential-tip`} 
+					place="bottom"
+					/>
+				</div>
 
 				{credentialConfigurations && recent && (
 					<QueryableList

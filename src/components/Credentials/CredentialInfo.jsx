@@ -1,7 +1,10 @@
 import React from 'react';
-import { formatDate } from '../../functions/DateFormat';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLayerGroup } from '@fortawesome/pro-regular-svg-icons';
+
+import { formatDate } from '@/functions/DateFormat';
 
 const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
 	// Finding the display object based on language or fallback language
@@ -17,10 +20,12 @@ const getValueByPath = (pathArray, source) => {
 	return pathArray.reduce((acc, key) => acc ? acc[key] : undefined, source);
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, fullWidth = false }) => {
+	//General
 	const { i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
 
+	//Data
 	const signedClaims = parsedCredential?.signedClaims;
 	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
 
@@ -69,24 +74,28 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		return null;
 	}).filter(claim => claim !== null);
 
+	//Render
 	return (
-		<div className={mainClassName} data-testid="credential-info">
-			{claimsWithValues.length > 0 && (
-				<table>
+		<div 
+			data-testid="credential-info" 
+		>
+			{claimsWithValues.length > 0 && 
+				<table className={`${fullWidth ? "w-full" : ""}`}>
 					<tbody>
 						{claimsWithValues.map((claim, index) => (
 							<tr key={index}>
-								<td className="py-1 px-2 font-bold text-primary dark:text-primary-light">
-									{claim.label}:
+								<td className={`py-2 font-regular text-c-lm-gray-700 dark:text-c-dm-gray-300`}>
+									{claim.label}
 								</td>
-								<td className="min-w-min max-w-[70%] py-1 px-2 text-gray-700 dark:text-white">
+
+								<td className={`${fullWidth ? "text-right" : "min-w-min max-w-[70%] pl-16"} py-2 font-regular text-c-lm-gray-900 dark:text-c-dm-gray-100`}>
 									{claim.value}
 								</td>
 							</tr>
 						))}
 					</tbody>
 				</table>
-			)}
+			}
 		</div>
 	)
 };

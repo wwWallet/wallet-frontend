@@ -1,19 +1,23 @@
 // App.jsx
 import React, { Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMessageDots } from '@fortawesome/pro-regular-svg-icons';
 
 // Import i18next and set up translations
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 
+import useNewCredentialListener from './hooks/useNewCredentialListener';
+
+import CredentialDetails from './pages/Home/CredentialDetails';
+
+import Button from './components/Buttons/Button';
+import Spinner from './components/Shared/Spinner';
+import Snowfalling from './components/ChristmasAnimation/Snowfalling';
+import UpdateNotification from './components/Notifications/UpdateNotification';
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
-import Snowfalling from './components/ChristmasAnimation/Snowfalling';
-import Spinner from './components/Shared/Spinner';
-
-import UpdateNotification from './components/Notifications/UpdateNotification';
-import CredentialDetails from './pages/Home/CredentialDetails';
-import useNewCredentialListener from './hooks/useNewCredentialListener';
 import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
@@ -94,13 +98,16 @@ function App() {
 				
 				<Suspense fallback={<Spinner />}>
 					<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
+
 					<UpdateNotification />
+
 					<Routes>
 						<Route element={
 							<PrivateRoute>
 								<Layout>
 									<Suspense fallback={<Spinner size='small' />}>
 										<PrivateRoute.NotificationPermissionWarning />
+
 										<FadeInContentTransition appear reanimateKey={location.pathname}>
 											<Outlet />
 										</FadeInContentTransition>
@@ -109,24 +116,37 @@ function App() {
 							</PrivateRoute>
 						}>
 							<Route path="/settings" element={<Settings />} />
+							
 							<Route path="/" element={<Home />} />
+							
 							<Route path="/credential/:credentialId" element={<Credential />} />
-							<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
-							<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
+							
+							<Route path="/credential/:credentialId/history" element={<Credential />} />
+							
+							<Route path="/credential/:credentialId/details" element={<Credential />} />
+							
 							<Route path="/history" element={<History />} />
+							
 							<Route path="/history/:historyId" element={<HistoryDetail />} />
+							
 							<Route path="/add" element={<AddCredentials />} />
+							
 							<Route path="/send" element={<SendCredentials />} />
+							
 							<Route path="/verification/result" element={<VerificationResult />} />
+							
 							<Route path="/cb/*" element={<Home />} />
 						</Route>
+
 						<Route element={
 							<FadeInContentTransition reanimateKey={location.pathname}>
 								<Outlet />
 							</FadeInContentTransition>
 						}>
 							<Route path="/login" element={<Login />} />
+							
 							<Route path="/login-state" element={<LoginState />} />
+							
 							<Route path="*" element={<NotFound />} />
 						</Route>
 					</Routes>

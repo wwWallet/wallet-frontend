@@ -127,9 +127,11 @@ export const UriHandler = ({ children }) => {
 	return (
 		<>
 			{children}
+			
 			{showPinInputPopup &&
 				<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
 			}
+
 			{showMessagePopup &&
 				<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 			}

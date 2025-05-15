@@ -1,27 +1,28 @@
-// External libraries
 import React, { useContext, useEffect, useState } from 'react';
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { CredentialVerificationError } from "wallet-common/dist/error";
 
-// Context
 import CredentialParserContext from '@/context/CredentialParserContext';
 
-// Components
-import Slider from '../Shared/Slider';
-import CredentialImage from '../Credentials/CredentialImage';
-import CredentialInfo from '../Credentials/CredentialInfo';
+import useScreenType from '@/hooks/useScreenType';
 
-import useScreenType from '../../hooks/useScreenType';
-
-import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
-import { CredentialVerificationError } from "wallet-common/dist/error";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { initializeCredentialEngine } from '@/lib/initializeCredentialEngine';
+
+import Slider from '@/components/Shared/Slider';
+import CredentialImage from '@/components/Credentials/CredentialImage';
+import CredentialInfo from '@/components/Credentials/CredentialInfo';
 
 const HistoryDetailContent = ({ historyItem }) => {
-	const [currentSlide, setCurrentSlide] = React.useState(1);
-	const [vcEntities, setVcEntities] = useState([]);
-	const { parseCredential } = useContext(CredentialParserContext);
-	const screenType = useScreenType();
+	//General
 	const httpProxy = useHttpProxy();
+	const screenType = useScreenType();
+	const { parseCredential } = useContext(CredentialParserContext);
+
+	//State
+	const [vcEntities, setVcEntities] = useState([]);
+	const [currentSlide, setCurrentSlide] = useState(1);
+
 	// Parse all the credentials when historyItem changes
 	useEffect(() => {
 		const parseAllCredentials = async () => {
@@ -57,20 +58,22 @@ const HistoryDetailContent = ({ historyItem }) => {
 		}
 	}, [historyItem, parseCredential, httpProxy]);
 
+	// Handlers
 	const renderSlideContent = (vcEntity, index) => (
 		<div
 			key={index}
-			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"
+			className="relative rounded-xl w-full"
 			aria-label={vcEntity.parsedCredential.metadata.credential.name}
 			title={vcEntity.parsedCredential.metadata.credential.name}
 		>
-			<CredentialImage vcEntity={vcEntity} showRibbon={false} className="w-full h-full rounded-xl" />
+			<CredentialImage vcEntity={vcEntity} showRibbon={false} className="w-full h-full rounded-xl" supportHover={false} />
 		</div>
 	);
 
+	// Render
 	return (
-		<div className="py-2 w-full">
-			<div className="px-2">
+		<div className="w-full">
+			<div className="">
 				<Slider
 					items={vcEntities}
 					renderSlideContent={renderSlideContent}
@@ -80,8 +83,8 @@ const HistoryDetailContent = ({ historyItem }) => {
 
 			{/* Render details of the currently selected credential */}
 			{vcEntities[currentSlide - 1] && (
-				<div className={`pt-5 ${screenType !== 'mobile' ? 'overflow-y-auto items-center custom-scrollbar max-h-[30vh]' : ''} `}>
-					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} />
+				<div className='mt-4 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600 pt-2 -mb-2'>
+					<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} fullWidth={true} />
 				</div>
 			)}
 		</div>

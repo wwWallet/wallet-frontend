@@ -22,16 +22,11 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 			color: 'white',
 		};
 
-	const issuerHasBackgroundColor = !!secondaryData?.background_color;
-	const issuerLogoStyle = issuerHasBackgroundColor
-		? { backgroundColor: secondaryData.background_color }
-		: { backgroundColor: 'white' };
-
 	return (
-		<span className="flex flex-col justify-between w-full gap-2 leading-tight break-words">
-			<span className="flex justify-start items-center gap-2 w-full">
+		<span className="flex flex-col justify-between w-full gap-3 leading-tight break-words">
+			<span className="flex justify-start items-center gap-3 w-full">
 				<div
-					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-gray-200 rounded-md shrink-0"
+					className="h-16 w-16 text-2xl flex justify-center items-center rounded-lg shrink-0 relative"
 					style={logoStyle}
 				>
 					{primaryData.logo?.uri ? (
@@ -43,34 +38,26 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 					) : (
 						<p className="font-bold">{primaryData.name?.charAt(0)}</p>
 					)}
+
+					<div className='absolute border border-white/15 rounded-lg w-full h-full' />
 				</div>
-				<span
-					className="line-clamp-2 max-w-full"
-					title={primaryData.name}
-				>
-					{highlightBestSequence(primaryData.name, searchQuery)}
-				</span>
+
+				<div className='grid'>
+					<span
+						className="truncate font-semibold"
+						title={primaryData.name}
+					>
+						{highlightBestSequence(primaryData.name, searchQuery)}
+					</span>
+
+					{secondaryData && 
+						<span className="truncate text-c-lm-gray-700 dark:text-c-dm-gray-300 text-sm mt-1">
+							{highlightBestSequence(secondaryData?.name, searchQuery)}
+						</span>
+					}
+				</div>
 			</span>
 
-			{secondaryData && (
-				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-gray-200 dark:bg-gray-600 whitespace-nowrap">
-					{secondaryData?.logo?.uri && (
-						<div
-							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-gray-200"
-							style={issuerLogoStyle}
-						>
-							<img
-								src={secondaryData.logo.uri}
-								alt={secondaryData.logo.alt_text || secondaryData.name}
-								className="max-h-4 max-w-4 w-auto align-middle inline"
-							/>
-						</div>
-					)}
-					<span className="truncate">
-						{highlightBestSequence(secondaryData?.name, searchQuery)}
-					</span>
-				</span>
-			)}
 		</span>
 	);
 };

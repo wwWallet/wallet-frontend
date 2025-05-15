@@ -1,9 +1,8 @@
 // External libraries
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
-import { PiCardsBold } from "react-icons/pi";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -17,58 +16,66 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
+import Button from '../Buttons/Button';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowRight } from '@fortawesome/pro-solid-svg-icons';
+import { faEllipsis, faLayerGroup } from '@fortawesome/pro-regular-svg-icons';
+import UsageStats from './UsageStats';
 
 const CredentialLayout = ({ children, title = null }) => {
-	const { credentialId } = useParams();
-	const screenType = useScreenType();
-	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
-	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
+	//General
 	const { t } = useTranslation();
 	const navigate = useNavigate();
-	const [zeroSigCount, setZeroSigCount] = useState(null)
-	const [sigTotal, setSigTotal] = useState(null);
-
+	const screenType = useScreenType();
+	const { credentialId } = useParams();
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
 
-	useEffect(() => {
-		if (vcEntity) {
-			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
-			setSigTotal(vcEntity.instances.length);
-			setCredentialFriendlyName(vcEntity.parsedCredential.metadata.credential.name);
-		}
-	}, [vcEntity]);
+	//State
+	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
+	
+	//Variables
+	const credentialFriendlyName = useMemo(() => 
+		vcEntity ? vcEntity.parsedCredential.metadata.credential.name : ""
+	, [vcEntity])
 
-	const UsageStats = ({ zeroSigCount, sigTotal }) => {
-		if (zeroSigCount === null || sigTotal === null) return null;
-
-		const usageClass = zeroSigCount === 0 ? 'text-orange-600 dark:text-orange-500' : 'text-green-600 dark:text-green-500';
-
-		return (
-			<div className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'}`}>
-				<PiCardsBold size={18} className=' mr-1' />
-				<p className=' font-base'>
-					<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
-					<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
-				</p>
-			</div>
-		);
-	};
-
+	//Render
 	return (
-		<div className=" sm:px-6">
+		<div className="sm:px-12 pt-10 pb-20 w-full max-w-[1064px] mx-auto">
 			{screenType !== 'mobile' ? (
-				<H1
-					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
-					flexJustifyContent="start"
-					textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
-				>
-					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-primary dark:text-primary-light" />
+				<div className='flex items-center justify-between'>
+					<div className='flex-1'>
+						<h1 className="text-2xl md:text-3xl font-semibold leading-tight tracking-tight text-c-lm-gray-900 dark:text-c-dm-gray-100">
+							<Link to="/" className='text-c-lm-gray-600 dark:text-c-dm-gray-400'>
+								<Button
+									variant="link"
+									linkLineSize="large"
+									linkClassName="text-c-lm-gray-600 dark:text-c-dm-gray-400"
+								>
+									{t('common.navItemCredentials')}
+								</Button>
+							</Link>
 
-					{vcEntity && (
-						<H1 heading={credentialFiendlyName} hr={false} />
-					)}
-				</H1>
+							<FontAwesomeIcon icon={faArrowRight} className="mx-2 mb-0.5 text-xl text-c-lm-gray-600 dark:text-c-dm-gray-400" />
+							
+							{credentialFriendlyName}
+						</h1>
+
+						<p className="mt-3 text-c-lm-gray-700 dark:text-c-dm-gray-300">
+							{t('pageCredentials.details.description')}
+						</p>
+					</div>
+
+					<Button
+						id="credential-actions"
+						variant="cancel"
+						size='xl'
+						textSize='md'
+						square
+					>
+						<FontAwesomeIcon icon={faEllipsis} className="text-md" />
+					</Button>
+				</div>
 			) : (
 				<div className='flex'>
 					<button
@@ -79,29 +86,37 @@ const CredentialLayout = ({ children, title = null }) => {
 					>
 						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
 					</button>
+
 					{title && <H1 heading={title} hr={false} />}
 				</div>
 			)}
-			<PageDescription description={t('pageCredentials.details.description')} />
 
-			<div className="flex flex-wrap mt-0 lg:mt-5">
+			<div className="flex flex-wrap items-start mt-0 lg:mt-11">
 				{/* Block 1: credential */}
 				<div className='flex flex-row w-full lg:w-1/2'>
-					<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
+					<div className={`flex flex-row items-start gap-5`}>
 						{vcEntity && (
 							// Open the modal when the credential is clicked
-							<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
+							<div className='relative flex items-center justify-center flex-col gap-4 xm:w-4/12'>
 								<button
 									id="show-full-screen-credential"
 									className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer w-full"
 									onClick={() => setShowFullscreenImgPopup(true)}
-									aria-label={`${credentialFiendlyName}`}
-									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+									aria-label={`${credentialFriendlyName}`}
+									title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFriendlyName })}
 								>
-									<CredentialImage vcEntity={vcEntity} parsedCredential={vcEntity.parsedCredential} className={"w-full object-cover"} showRibbon={screenType !== 'mobile'} />
+									<CredentialImage 
+										vcEntity={vcEntity} 
+										parsedCredential={vcEntity.parsedCredential} 
+										className={"w-full object-cover"} 
+										showRibbon={screenType !== 'mobile'} 
+									/>
 								</button>
-								{screenType !== 'mobile' && zeroSigCount !== null && sigTotal &&
-									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
+
+								{screenType !== 'mobile' && 
+									<UsageStats 
+										vcEntity={vcEntity}
+									/>
 								}
 							</div>
 						)}
@@ -109,8 +124,11 @@ const CredentialLayout = ({ children, title = null }) => {
 						<div>
 							{screenType === 'mobile' && (
 								<div className='flex flex-start flex-col gap-1'>
-									<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
-									<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} />
+									<p className='text-xl font-bold text-primary dark:text-white'>{credentialFriendlyName}</p>
+
+									<UsageStats 
+										vcEntity={vcEntity}
+									/>
 								</div>
 							)}
 						</div>
@@ -124,6 +142,7 @@ const CredentialLayout = ({ children, title = null }) => {
 								<div className="mr-2 text-orange-500">
 									<FaExclamationTriangle size={18} />
 								</div>
+
 								<p>{t('pageCredentials.details.expired')}</p>
 							</div>
 						)}
@@ -132,13 +151,19 @@ const CredentialLayout = ({ children, title = null }) => {
 
 				{children}
 			</div>
+
 			{/* Fullscreen credential Popup*/}
 			{showFullscreenImgPopup && vcEntity && (
 				<FullscreenPopup
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage vcEntity={vcEntity} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
+						<CredentialImage 
+							vcEntity={vcEntity} 
+							className={"max-w-full max-h-full rounded-xl"} 
+							showRibbon={false} 
+							supportHover={false}
+						/>
 					}
 				/>
 			)}

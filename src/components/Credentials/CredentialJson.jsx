@@ -1,10 +1,10 @@
-// CredentialJson.js
-
 import React from 'react';
 
 const CredentialJson = ({ parsedCredential, textAreaRows='10' }) => {
-	const MAX_LENGTH = 120;       // string truncation
-	const MAX_ARRAY_LENGTH = 3;   // array truncation
+	// string truncation
+	const MAX_LENGTH = 120;
+	// array truncation
+	const MAX_ARRAY_LENGTH = 3;
 
 	// Truncate long strings or arrays (mainly picture/portrait fields)
 	const replacer = (key, value) => {
@@ -25,10 +25,12 @@ const CredentialJson = ({ parsedCredential, textAreaRows='10' }) => {
 		return value;
 	};
 
+	//Truncate JSON
 	const truncatedJson = parsedCredential
 		? JSON.stringify(parsedCredential.signedClaims, replacer, 2)
 		: '';
 
+	//Render
 	return (
 		<div className='w-full'>
 			{parsedCredential && (
@@ -36,7 +38,11 @@ const CredentialJson = ({ parsedCredential, textAreaRows='10' }) => {
 					<textarea
 						rows={textAreaRows}
 						readOnly
-						className="dark:bg-gray-900 dark:text-white border rounded p-2 text-sm w-full rounded-xl"
+						className={`
+							bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-300 dark:border-c-dm-gray-700 
+							text-c-lm-gray-900 dark:text-c-dm-gray-100 p-4 text-sm w-full rounded-xl
+							dark:inputDarkModeOverride outline-none focus:ring-2 ring-c-lm-blue dark:ring-c-dm-blue transition-shadow duration-200
+						`}
 						value={truncatedJson}
 					/>
 				</div>

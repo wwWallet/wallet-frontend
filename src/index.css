@@ -210,12 +210,12 @@ input:-webkit-autofill {
 	}
 }
 
-.dialog-opening {
-	animation: dialog-opening 200ms ease-out forwards;
+.dialog-layout-opening {
+	animation: dialog-layout-opening 200ms ease-out forwards;
 }
 
-.dialog-closing {
-	animation: dialog-closing 200ms ease-out forwards;
+.dialog-layout-closing {
+	animation: dialog-layout-closing 200ms ease-out forwards;
 }
 
 .dialog-backdrop-opening::backdrop {

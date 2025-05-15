@@ -1,14 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { fetchToken, notificationApiIsSupported } from '../../firebase';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle, faXmark } from '@fortawesome/pro-regular-svg-icons';
 
-import Spinner from '../Shared/Spinner'; // Import your spinner component
-import { useSessionStorage } from '../../hooks/useStorage';
+import { fetchToken, notificationApiIsSupported } from '../../firebase';
+
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
+import { useSessionStorage } from '@/hooks/useStorage';
+
+import Button from '@/components/Buttons/Button';
+import Spinner from '@/components/Shared/Spinner';
 
 type PrivateRouteContextValue = {
 	isPermissionGranted: boolean | null,
@@ -22,16 +26,18 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 
 
 export function NotificationPermissionWarning(): React.ReactNode {
+	//General
 	useTranslation(); // This ensures reactivity to language changes
-
-	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
+	const { isOnline } = useContext(StatusContext);
+	const { isPermissionGranted, tokenSentInSession } = useContext(PrivateRouteContext);
+
+	//State
 	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
 	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
 
-	const { isPermissionGranted, tokenSentInSession } = useContext(PrivateRouteContext);
-
+	//Handlers
 	const handleCloseMessageOffline = () => {
 		setIsMessageOfflineVisible(true);
 	};
@@ -44,6 +50,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 		setIsMessageGrantedVisible(true);
 	};
 
+	//Prepare for render
 	const show = (
 		(isOnline === false && isMessageOfflineVisible === false)
 		|| (
@@ -59,78 +66,89 @@ export function NotificationPermissionWarning(): React.ReactNode {
 			))
 	);
 
+	//Render
 	return (
 		show
 			? (
-				<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
-					<div className="mr-4 text-orange-500">
-						<FaExclamationTriangle size={24} />
-					</div>
+				<div className="bg-c-lm-gray-300 dark:bg-c-dm-gray-700 dark:border-b dark:border-b-c-dm-gray-800 dark:border-t dark:border-t-c-dm-gray-600 dark:shadow-lg rounded-xl p-4 m-4 flex items-center">
+					<FontAwesomeIcon icon={faExclamationTriangle} className='text-2xl text-c-lm-orange dark:text-c-dm-orange mr-4 ml-1' />
 
 					{isOnline === false && isMessageOfflineVisible === false && (
 						<>
 							<div className="flex-grow">
-								<p className='text-sm'>
+								<p className='text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100'>
 									<Trans
 										i18nKey="layout.messageOffline"
 										components={{ strong: <strong /> }}
 									/>
 								</p>
 							</div>
+
 							<button
 								id="close-message-offline"
-								className="ml-2 text-gray-800"
+								className="mx-2 flex items-center justify-center"
 								onClick={handleCloseMessageOffline}
 							>
-								<FaTimes size={24} />
+								<FontAwesomeIcon icon={faXmark} className='text-xl text-c-lm-gray-900 dark:text-c-dm-gray-100 hover:text-c-lm-gray-800 dark:hover:text-c-dm-gray-200 transition-all duration-150' />
 							</button>
 						</>
 					)}
+
 					{isOnline === true && (
 						<>
 							{!isPermissionGranted && (
 								<>
 									<div className="flex-grow">
-										<p className='text-sm'>
+										<p className='text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100'>
 											<Trans
 												i18nKey="layout.messageAllowPermission"
-												components={{ strong: <strong /> }}
-											/>
-										</p>
-									</div>
-									<button
-										id="close-message-no-granted"
-										className="ml-2 text-gray-800"
-										onClick={handleCloseMessageNoGranted}
-									>
-										<FaTimes size={24} />
-									</button>
-								</>
-							)}
-							{isPermissionGranted && tokenSentInSession === false && (
-								<>
-									<div className="flex-grow">
-										<p className='text-sm'>
-											<Trans
-												i18nKey="layout.messageResetPermission"
-												components={{
-													strong: <strong />,
-													reloadButton:
-														<button
-															id="reset-notification-permission"
-															className='text-primary underline'
-															onClick={() => window.location.reload()}
-														/>,
+												components={{ 
+													strong: <strong /> 
 												}}
 											/>
 										</p>
 									</div>
+
+									<button
+										id="close-message-no-granted"
+										className="mx-2 flex items-center justify-center"
+										onClick={handleCloseMessageNoGranted}
+									>
+										<FontAwesomeIcon icon={faXmark} className='text-xl text-c-lm-gray-900 dark:text-c-dm-gray-100 hover:text-c-lm-gray-800 dark:hover:text-c-dm-gray-200 transition-all duration-150' />
+									</button>
+								</>
+							)}
+
+							{isPermissionGranted && tokenSentInSession === false && (
+								<>
+									<div className="flex-grow">
+										<p className='text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100'>
+											<Trans
+												i18nKey="layout.messageResetPermission"
+												components={{
+													strong: <strong />,
+												}}
+											/>
+										</p>
+									</div>
+
+									<Button
+										id="reset-notification-permission"
+										variant="tertiary"
+										onClick={() => window.location.reload()}
+										size='md'
+										textSize='md'
+										additionalClassName='-my-1'
+									>
+										Reload
+									</Button>
+
 									<button
 										id="close-message-granted"
-										className="ml-2 text-gray-800"
+										className="ml-5 mr-2 flex items-center justify-center"
 										onClick={handleCloseMessageGranted}
 									>
-										<FaTimes size={24} />
+										<FontAwesomeIcon icon={faXmark} className='text-xl text-c-lm-gray-900 dark:text-c-dm-gray-100 hover:text-c-lm-gray-800 dark:hover:text-c-dm-gray-200 transition-all duration-150' />
 									</button>
 								</>
 							)}
