@@ -20,7 +20,9 @@ export type Props = {
 	additionalClassName?: string,
 	disabled?: boolean,
 	ariaLabel?: string,
+	name?: string,
 	title?: string,
+	value?: string,
 };
 
 const Button = ({
@@ -32,7 +34,9 @@ const Button = ({
 	additionalClassName = '',
 	disabled = false,
 	ariaLabel,
+	name,
 	title,
+	value,
 }: Props) => {
 
 	const getVariantClassName = () => {
@@ -68,7 +72,9 @@ const Button = ({
 			{...(disabled && { disabled })}
 			className={className}
 			{...(ariaLabel && { 'aria-label': ariaLabel })}
+			{...(name && { name })}
 			{...(title && { title })}
+			{...(value && { value })}
 		>
 			{children}
 		</button>

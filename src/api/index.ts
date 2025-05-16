@@ -11,6 +11,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { useOpenID4VCIHelper } from '@/lib/services/OpenID4VCIHelper';
+import { withHintsFromAllowCredentials } from '@/util-webauthn';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -62,6 +63,7 @@ export interface BackendApi {
 	loginWebauthn(
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
 	): Promise<
 		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
@@ -70,6 +72,7 @@ export interface BackendApi {
 		name: string,
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		webauthnHints: string[],
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>>,
 	updatePrivateData(newPrivateData: EncryptedContainer): Promise<void>,
@@ -388,6 +391,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 	async function loginWebauthn(
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
 	): Promise<
 		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
@@ -422,7 +426,13 @@ export function useApi(isOnline: boolean = true): BackendApi {
 						},
 					}
 					: beginData.getOptions;
-				const credential = await navigator.credentials.get(getOptions) as PublicKeyCredential;
+				const credential = await navigator.credentials.get({
+					...getOptions,
+					publicKey: withHintsFromAllowCredentials({
+						...getOptions.publicKey,
+						hints: webauthnHints,
+					}),
+				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAssertionResponse;
 
 				try {
@@ -512,6 +522,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 		name: string,
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		webauthnHints: string[],
 		retryFrom?: SignupWebauthnRetryParams,
 	): Promise<Result<void, SignupWebauthnError>> {
 		try {
@@ -536,6 +547,7 @@ export function useApi(isOnline: boolean = true): BackendApi {
 								},
 							},
 						},
+						hints: webauthnHints,
 					},
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAttestationResponse;
@@ -550,8 +562,6 @@ export function useApi(isOnline: boolean = true): BackendApi {
 					);
 
 					try {
-
-
 						const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
 							challengeId: beginData.challengeId,
 							displayName: name,
