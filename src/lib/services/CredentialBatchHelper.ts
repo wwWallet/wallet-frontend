@@ -6,11 +6,12 @@ import SessionContext from "@/context/SessionContext";
 export function useCredentialBatchHelper() {
 	const { api } = useContext(SessionContext);
 
+	const { post } = api;
 	const updateCredential = useCallback(async (storableCredential: StorableCredential) => {
-		await api.post("/storage/vc/update", {
+		await post("/storage/vc/update", {
 			credential: storableCredential,
 		});
-	}, [api]);
+	}, [post]);
 
 	const getLeastUsedCredential = useCallback(
 		async (credentialIdentifier: string, cList: StorableCredential[]): Promise<{ credential: StorableCredential }> => {

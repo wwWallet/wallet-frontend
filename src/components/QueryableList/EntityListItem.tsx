@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
 
 type EntityListItemProps = {
@@ -8,6 +9,35 @@ type EntityListItemProps = {
 };
 
 const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItemProps) => {
+	const proxy = useHttpProxy();
+
+	const [primaryLogoSrc, setPrimaryLogoSrc] = useState<string | null>(null);
+	const [secondaryImageSrc, setSecondaryImageSrc] = useState<string | null>(null);
+
+	// Load primary logo
+	useEffect(() => {
+		const url = primaryData?.logo?.uri;
+		if (typeof url === 'string' && url.trim() !== '') {
+			proxy.get(url, {}, { useCache: true }).then(res => {
+				if (typeof res?.data === 'string') {
+					setPrimaryLogoSrc(res.data);
+				}
+			});
+		}
+	}, [primaryData?.logo?.uri]);
+
+	// Load secondary logo
+	useEffect(() => {
+		const url = secondaryData?.logo?.uri;
+		if (typeof url === 'string' && url.trim() !== '') {
+			proxy.get(url, {}, { useCache: true }).then(res => {
+				if (typeof res?.data === 'string') {
+					setSecondaryImageSrc(res.data);
+				}
+			});
+		}
+	}, [secondaryData?.logo?.uri]);
+
 	const hasTextColor = !!primaryData.text_color;
 	const hasBackgroundColor = !!primaryData.background_color;
 	const shouldUseCustomStyle = hasTextColor && hasBackgroundColor;
@@ -34,9 +64,9 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-gray-200 rounded-md shrink-0"
 					style={logoStyle}
 				>
-					{primaryData.logo?.uri ? (
+					{primaryLogoSrc ? (
 						<img
-							src={primaryData.logo.uri}
+							src={primaryLogoSrc}
 							alt={primaryData.logo.alt_text || primaryData.name}
 							className="max-h-8 max-w-8 align-middle inline"
 						/>
@@ -54,13 +84,13 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 
 			{secondaryData && (
 				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-gray-200 dark:bg-gray-600 whitespace-nowrap">
-					{secondaryData?.logo?.uri && (
+					{secondaryImageSrc && (
 						<div
 							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-gray-200"
 							style={issuerLogoStyle}
 						>
 							<img
-								src={secondaryData.logo.uri}
+								src={secondaryImageSrc}
 								alt={secondaryData.logo.alt_text || secondaryData.name}
 								className="max-h-4 max-w-4 w-auto align-middle inline"
 							/>

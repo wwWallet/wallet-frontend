@@ -27,6 +27,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 	const { api } = useContext(SessionContext);
 	const { getData } = useContext<any>(CredentialsContext);
 
+	const {post} =api;
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
 	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
@@ -114,7 +115,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				instanceId: index,
 			}));
 
-			await api.post('/storage/vc', {
+			await post('/storage/vc', {
 				credentials: storableCredentials
 			});
 
@@ -123,7 +124,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			return;
 
 		},
-		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
+		[openID4VCIHelper, post, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
 	);
 
 	const requestCredentials = useCallback(
