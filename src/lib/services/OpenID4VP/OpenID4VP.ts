@@ -31,6 +31,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 	const { t } = useTranslation();
+	const { post, get } = api;
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -55,7 +56,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await api.post('/storage/vp', {
+			await post('/storage/vp', {
 				presentationIdentifier: generateRandomIdentifier(32),
 				presentation,
 				presentationSubmission,
@@ -64,14 +65,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				issuanceDate: new Date().toISOString(),
 			});
 		},
-		[api]
+		[post]
 	);
 
 	const getAllStoredVerifiableCredentials = useCallback(async () => {
-		const fetchAllCredentials = await api.get("/storage/vc");
+		const fetchAllCredentials = await get("/storage/vc");
 		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
 	},
-		[api]
+		[get]
 	);
 
 	const promptForCredentialSelection = useCallback(
@@ -544,7 +545,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				description: "The verification process has been completed",
 			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
+		[httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {

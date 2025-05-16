@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef,useEffect} from "react";
 import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
 import OpenID4VCIContext from "./OpenID4VCIContext";
 

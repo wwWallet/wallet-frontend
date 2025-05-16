@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback } from "react";
+import React, { useState, useContext, useCallback,useRef,useEffect } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
@@ -50,7 +50,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 					setMessagePopupState(null);
 				}
 			})
-		}
+		},[]
 	);
 
 	const showCredentialSelectionPopup = useCallback(

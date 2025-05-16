@@ -22,11 +22,12 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const assumedChunkSize = 512;
 
 	const { keystore, api } = useContext(SessionContext);
+	const { post } = api;
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
 			try {
-				await api.post('/storage/vp', {
+				await post('/storage/vp', {
 					presentationIdentifier: generateRandomIdentifier(32),
 					presentation,
 					presentationSubmission,
@@ -38,7 +39,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				console.log("Failed to reach server: Presentation history not stored");
 			}
 		},
-		[api]
+		[post]
 	);
 
 

@@ -7,15 +7,11 @@ import SessionContext from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacasResponseSchema";
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
+
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
 	const { api } = useContext(SessionContext);
-
-	const apiRef = useRef(api);
-
-	useEffect(() => {
-		apiRef.current = api;
-	}, [api]);
+	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(
 		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true): Promise<T> {
@@ -35,10 +31,9 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const getClientId = useCallback(
 		async (credentialIssuerIdentifier: string) => {
 			console.log('getClientId');
-			const currentApi = apiRef.current;
 
 			try {
-				const issuerResponse = await currentApi.getExternalEntity('/issuer/all', undefined, true);
+				const issuerResponse = await getExternalEntity('/issuer/all', undefined, true);
 				const trustedCredentialIssuers = issuerResponse.data;
 				const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
 				if (issuer) {
@@ -53,7 +48,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return { client_id: "CLIENT123" };
 			}
 		},
-		[]
+		[getExternalEntity]
 	);
 
 	// Fetches authorization server metadata with fallback

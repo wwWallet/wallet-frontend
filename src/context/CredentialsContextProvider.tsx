@@ -25,18 +25,14 @@ export const CredentialsContextProvider = ({ children }) => {
 	const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
 
-	const apiRef = useRef(api);
-
-	useEffect(() => {
-		apiRef.current = api;
-	}, [api]);
+	const { getExternalEntity, getSession, get } = api;
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
 		try {
 			const engine = await initializeCredentialEngine(
 				httpProxy,
 				helper,
-				() => apiRef.current.getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
+				() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
 				[],
 				useCache
 			);
@@ -45,7 +41,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		} catch (err) {
 			console.error("[CredentialsContext] Engine init failed:", err);
 		}
-	}, [httpProxy, helper]);
+	}, [getExternalEntity, httpProxy, helper]);
 
 	useEffect(() => {
 		if (httpProxy && helper) {
@@ -90,7 +86,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		const engine = engineRef.current;
 		if (!engine) return [];
 
-		const response = await api.get('/storage/vc');
+		const response = await get('/storage/vc');
 		const fetchedVcList = response.data.vc_list;
 
 		// Create a map of instances grouped by credentialIdentifier
@@ -146,7 +142,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api, parseCredential]);
+	}, [get, parseCredential]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
@@ -168,7 +164,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		let attempts = 0;
 		intervalRef.current = setInterval(async () => {
 			attempts += 1;
-			const userId = api.getSession().uuid;
+			const userId = getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
 			const previousSize = previousVcList.vc_list.length;
 
@@ -184,11 +180,11 @@ export const CredentialsContextProvider = ({ children }) => {
 				stopPolling();
 			}
 		}, 1000);
-	}, [api, fetchVcData, isPollingActive, stopPolling]);
+	}, [getSession, fetchVcData, isPollingActive, stopPolling]);
 
 	const getData = useCallback(async (shouldPoll = false) => {
 		try {
-			const userId = api.getSession().uuid;
+			const userId = getSession().uuid;
 			const previousVcList = await getItem("vc", userId);
 			const uniqueIdentifiers = new Set(previousVcList?.vc_list.map(vc => vc.credentialIdentifier));
 			const previousSize = uniqueIdentifiers.size;
@@ -212,7 +208,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	}, [api, fetchVcData, pollForCredentials, stopPolling]);
+	}, [getSession, fetchVcData, pollForCredentials, stopPolling]);
 
 	if (isLoggedIn && !credentialEngineReady) {
 		return (
@@ -221,7 +217,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential,credentialEngine: engineRef.current }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine: engineRef.current }}>
 				{children}
 			</CredentialsContext.Provider>
 		);
