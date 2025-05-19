@@ -1,7 +1,6 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
-import type { HasherAndAlg } from "@sd-jwt/types";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
@@ -305,14 +304,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				return new Uint8Array(hashBuffer);
 			}
 
-			const hasherAndAlgorithm: HasherAndAlg = {
-				hasher: (data: string | ArrayBuffer, alg: string) => {
-					const encoded =
-						typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+			const hasher = (data: string | ArrayBuffer, alg: string) => {
+				const encoded =
+					typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
 
-					return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
-				},
-				alg: 'sha-256',
+				return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
 			};
 
 			/**
@@ -405,8 +401,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						.map((field) => field.path)
 						.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
 					let presentationFrame = generatePresentationFrameForPaths(allPaths);
-					const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasherAndAlgorithm.hasher);
-					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame, hasherAndAlgorithm.hasher) : vcEntity.credential;
+					const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
+					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame, hasher) : vcEntity.credential;
 					let transactionDataResponseParams = undefined;
 					if (transaction_data) {
 						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)

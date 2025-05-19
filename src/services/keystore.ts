@@ -10,7 +10,6 @@ import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SDJwt } from "@sd-jwt/core";
-import type { HasherAndAlg } from "@sd-jwt/types";
 import { cborEncode, cborDecode, DataItem } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
@@ -1117,17 +1116,14 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 }
 
 export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
-	const hasherAndAlgorithm: HasherAndAlg = {
-		hasher: (data: string | ArrayBuffer, alg: string) => {
-			const encoded =
-				typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+	const hasher = (data: string | ArrayBuffer, alg: string) => {
+		const encoded =
+			typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
 
-			return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
-		},
-		alg: 'sha-256',
-	};
+		return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
+	}
 
-	const inputJwt = await SDJwt.fromEncode(verifiableCredentials[0], hasherAndAlgorithm.hasher);
+	const inputJwt = await SDJwt.fromEncode(verifiableCredentials[0], hasher);
 	const { cnf } = inputJwt.jwt.payload as { cnf?: { jwk?: JWK } };
 
 	if (!cnf?.jwk) {
