@@ -84,7 +84,6 @@ export function useTokenRequest() {
 		const dpop = await generateDPoP(
 			dpopPrivateKey,
 			dpopPublicKeyJwk,
-			jti,
 			"POST",
 			tokenEndpointURL.current,
 			httpHeaders.current.get('dpop-nonce')
