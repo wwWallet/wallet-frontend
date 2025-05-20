@@ -38,7 +38,7 @@ const Credential = () => {
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
 	const [activeTab, setActiveTab] = useState(0);
-	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse } = useMdocAppCommunication();
+	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
 	const [shareWithQr, setShareWithQr] = useState(false);
@@ -92,6 +92,7 @@ const Credential = () => {
 	const cancelShare = () => {
 		setMdocQRStatus(0);
 		setShowMdocQR(false);
+		terminateSession();
 	}
 
 	useEffect(() => {
