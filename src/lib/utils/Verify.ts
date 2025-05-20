@@ -118,7 +118,7 @@ export class Verify {
 		// console.log("Json = ", vcJSON)
 		const vcValueByPath = JSONPath({ path: path, json: vcJSON })[0];
 		console.log(`Extracted value for path ${path} : ${vcValueByPath}`);
-		if (!vcValueByPath) {
+		if (vcValueByPath === undefined) {
 			return false;
 		}
 		if (!filter) { // if filter is undefined
