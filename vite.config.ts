@@ -37,6 +37,32 @@ export default defineConfig(({ mode }) => {
 			host: true,
 			port: 3000,
 			open: true,
+			headers: {
+				"Strict-Transport-Security": "max-age=86400; includeSubDomains",
+				"X-Content-Type-Options": "nosniff",
+				"X-Frame-Options": "DENY",
+				"X-XSS-Protection": "1; mode=block",
+
+				"Cross-Origin-Opener-Policy": "same-origin",
+				"Cross-Origin-Embedder-Policy": "require-corp",
+				"Cross-Origin-Resource-Policy": "same-origin",
+
+				// Merged CSP
+				"Content-Security-Policy": [
+					"base-uri 'none'",
+					// "default-src 'self'",
+					// "object-src 'none'",
+					// "frame-src 'self' https: blob: data:",
+					// "connect-src 'self' https: wss: blob: data:",
+					// "script-src 'self' 'wasm-unsafe-eval'",
+					"img-src 'self' https: blob: data:",
+					"media-src 'self' https: blob: data:",
+					"font-src 'self' blob: data:",
+					"style-src 'self' 'unsafe-inline'",
+					// "require-trusted-types-for 'script'",
+					"frame-ancestors 'self'"
+				].join("; "),
+			}
 		},
 		preview: {
 			host: true,
