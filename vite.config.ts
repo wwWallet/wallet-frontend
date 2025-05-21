@@ -51,9 +51,9 @@ export default defineConfig(({ mode }) => {
 				"Content-Security-Policy": [
 					"base-uri 'none'",
 					// "default-src 'self'",
-					// "object-src 'none'",
-					// "frame-src 'self' https: blob: data:",
-					// "connect-src 'self' https: wss: blob: data:",
+					"object-src 'none'",
+					"frame-src 'self' https: blob: data:",
+					"connect-src 'self' https: wss: blob: data:",
 					// "script-src 'self' 'wasm-unsafe-eval'",
 					"img-src 'self' https: blob: data:",
 					"media-src 'self' https: blob: data:",
