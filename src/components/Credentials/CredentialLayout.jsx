@@ -18,7 +18,7 @@ import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
 
-const CredentialLayout = ({ children, title = null }) => {
+const CredentialLayout = ({ children, title = null, accent = null }) => {
 	const { credentialId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -56,7 +56,10 @@ const CredentialLayout = ({ children, title = null }) => {
 	};
 
 	return (
-		<div className=" sm:px-6">
+		<div className=" sm:px-6" style={{
+  background: `radial-gradient(circle at center, ${accent}11 0%, transparent 70%)`
+}}
+>
 			{screenType !== 'mobile' ? (
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}

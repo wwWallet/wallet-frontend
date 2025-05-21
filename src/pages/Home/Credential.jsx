@@ -139,7 +139,7 @@ const Credential = () => {
 	];
 
 	return (
-		<CredentialLayout title={t('pageCredentials.credentialTitle')}>
+		<CredentialLayout title={t('pageCredentials.credentialTitle')} accent={vcEntity?.parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.display?.[0]?.rendering?.simple?.background_color}>
 			<>
 				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
 
