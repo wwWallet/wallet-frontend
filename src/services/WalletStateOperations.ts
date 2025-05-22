@@ -23,7 +23,6 @@ export type WalletSessionEvent = {
 	data: string,
 	batchId: number,
 	instanceId: number,
-	sigCount: number,
 	credentialIssuerIdentifier: string,
 } | {
 	type: "delete_credential",
@@ -39,6 +38,7 @@ export type WalletSessionEvent = {
 	type: "new_presentation",
 	presentationId: number,
 	data: string,
+	usedCredentialIds: number[],
 } | {
 	type: "delete_presentation",
 	presentationId: number,
@@ -55,7 +55,6 @@ export type WalletBaseState = {
 		data: string,
 		instanceId: number,
 		batchId: number,
-		sigCount: number,
 		credentialIssuerIdentifier: string,
 	}[],
 	keypairs: {
@@ -65,6 +64,7 @@ export type WalletBaseState = {
 	presentations: {
 		presentationId: number,
 		data: string,
+		usedCredentialIds: number[],
 	}[],
 }
 
@@ -84,7 +84,6 @@ function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: Wa
 				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
 				instanceId: newEvent.instanceId,
 				batchId: newEvent.batchId,
-				sigCount: newEvent.sigCount,
 			}]);
 		case "delete_credential":
 			return state.filter((cred) => cred.credentialId !== newEvent.credentialId);
@@ -114,6 +113,7 @@ function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent
 			return state.concat([{
 				presentationId: newEvent.presentationId,
 				data: newEvent.data,
+				usedCredentialIds: newEvent.usedCredentialIds,
 			}]);
 		case "delete_presentation":
 			return state.filter((k) => k.presentationId !== newEvent.presentationId);
@@ -299,7 +299,7 @@ export namespace WalletStateOperations {
 		return true;
 	}
 
-	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, batchId: number = 0, credentialIssuerIdentifier: string = "", instanceId: number = 0, sigCount: number = 0): Promise<WalletSessionEvent> {
+	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, batchId: number = 0, credentialIssuerIdentifier: string = "", instanceId: number = 0): Promise<WalletSessionEvent> {
 		return {
 			...await createWalletSessionEvent(container),
 			type: "new_credential",
@@ -309,7 +309,6 @@ export namespace WalletStateOperations {
 			batchId,
 			credentialIssuerIdentifier,
 			instanceId,
-			sigCount,
 		}
 	}
 
@@ -341,12 +340,13 @@ export namespace WalletStateOperations {
 	}
 
 
-	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, presentationId: number, data: string): Promise<WalletSessionEvent> {
+	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, presentationId: number, data: string, usedCredentialIds: number[]): Promise<WalletSessionEvent> {
 		return {
 			...await createWalletSessionEvent(container),
 			type: "new_presentation",
 			presentationId,
 			data,
+			usedCredentialIds,
 		}
 	}
 
