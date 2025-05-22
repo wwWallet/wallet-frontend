@@ -1,9 +1,10 @@
 import { JWK, KeyLike, SignJWT } from "jose";
 import * as config from "../../config";
+import { generateRandomIdentifier } from "./generateRandomIdentifier";
 
-export async function generateDPoP(privateKey: KeyLike, publicKeyJwk: JWK, jti: string, targetMethod: string, targetUri: string, nonce?: string, access_token?: string) {
+export async function generateDPoP(privateKey: KeyLike, publicKeyJwk: JWK, targetMethod: string, targetUri: string, nonce?: string, access_token?: string) {
 	return new SignJWT({
-		"jti": jti,
+		"jti": generateRandomIdentifier(8),
 		"htm": targetMethod,
 		"htu": targetUri,
 		"nonce": nonce,

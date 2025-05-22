@@ -93,14 +93,10 @@ export function useCredentialRequest() {
 			throw new Error("CredentialRequest: dpopPublicKeyJwk was not defined");
 		}
 
-		if (!jti) {
-			throw new Error("CredentialRequest: jti was not defined");
-		}
 
 		const credentialEndpointDPoP = await generateDPoP(
 			dpopPrivateKeyRef.current,
 			dpopPublicKeyJwk,
-			jti,
 			"POST",
 			credentialEndpointURL,
 			dpopNonce,
@@ -120,9 +116,9 @@ export function useCredentialRequest() {
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
 
-		const [credentialIssuerMetadata, clientId] = await Promise.all([
+		const [credentialIssuerMetadata, clientId ] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
-			openID4VCIHelper.getClientId(credentialIssuerIdentifier)
+			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
 
 		const credentialEndpointBody = {
@@ -209,8 +205,8 @@ export function useCredentialRequest() {
 		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
 
 		if (credentialResponse.status !== 200) {
-			console.log("Error: Credential response = ", JSON.stringify(credentialResponse));
-			if ((credentialResponse.headers["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
+			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
+			if (credentialResponse.headers?.["www-authenticate"] && (credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
 				console.log("Calling credentialRequest with new dpop-nonce....")
 
 				setDpopNonce(credentialResponse.headers?.["dpop-nonce"] as string);
