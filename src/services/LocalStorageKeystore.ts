@@ -10,7 +10,7 @@ import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
 import { JWK } from "jose";
-import { WalletBaseState, WalletBaseStateCredential, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { WalletBaseState, WalletBaseStateCredential, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 
 
 type UserData = {
@@ -108,7 +108,7 @@ export interface LocalStorageKeystore {
 	]>,
 
 	getAllCredentials(): Promise<WalletBaseStateCredential[]>,
-
+	getAllPresentations(): Promise<WalletBaseStatePresentation[]>,
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -551,6 +551,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
 				return [{}, newContainer];
 			})
+		},
+
+		getAllPresentations: async (): Promise<WalletBaseStatePresentation[]> => {
+			return calculatedWalletState.presentations;
 		},
 	};
 }
