@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../hooks/useStorage";
@@ -10,6 +10,7 @@ import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
 import { JWK } from "jose";
+import { WalletBaseState, WalletBaseStateCredential, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 
 
 type UserData = {
@@ -72,7 +73,12 @@ export interface LocalStorageKeystore {
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
 	getUserHandleB64u(): string | null,
-
+	getCalculatedWalletState(): WalletBaseState | null,
+	emitWalletSessionEvents(getNewEventsCallback: (walletStateContainer: WalletStateContainer) => Promise<WalletSessionEvent[]>): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
 	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
@@ -87,7 +93,22 @@ export interface LocalStorageKeystore {
 	]>,
 
 	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
-	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>
+	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
+
+	addCredentials(credentials: { data: string, format: string, credentialIssuerIdentifier: string, instanceId: number, sigCount: number, }[]): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
+
+	deleteCredentialsByBatchId(batchId: number): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
+
+	getAllCredentials(): Promise<WalletBaseStateCredential[]>,
+
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -98,6 +119,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
 	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
+	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletBaseState | null>(null);
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
 
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
@@ -175,7 +197,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[closeSessionTabLocal, privateData],
 	);
 
-	const openPrivateData = async (): Promise<[PrivateData, CryptoKey]> => {
+	const openPrivateData = async (): Promise<[PrivateData, CryptoKey, WalletBaseState]> => {
 		if (mainKey && privateData) {
 			return await keystore.openPrivateData(mainKey, privateData)
 		} else {
@@ -193,10 +215,13 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					await keystore.importMainKey(mainKey),
 				],
 			);
+			// after private data update, the calculated wallet state must be re-computed
+			const [, , newCalculatedWalletState] = await keystore.openPrivateData(await keystore.exportMainKey(newMainKey), newPrivateData);
 			return [
 				result,
 				newPrivateData,
 				async () => {
+					setCalculatedWalletState(newCalculatedWalletState);
 					setPrivateData(newPrivateData);
 					setMainKey(await keystore.exportMainKey(newMainKey));
 				},
@@ -241,6 +266,18 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		setMainKey(exportedMainKey);
 		setPrivateData(privateData);
 	};
+
+
+	useEffect(() => {
+		// initialize calculated wallet state
+		if (mainKey && privateData && calculatedWalletState === null) {
+			openPrivateData().then(([, , newCalculatedWalletState]) => {
+				console.log("Calculated wallet state = ", newCalculatedWalletState);
+
+				setCalculatedWalletState(newCalculatedWalletState);
+			});
+		}
+	}, [mainKey, privateData, calculatedWalletState]);
 
 	const init = async (
 		mainKey: CryptoKey,
@@ -399,6 +436,28 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return (userHandleB64u);
 		},
 
+		getCalculatedWalletState: (): WalletBaseState | null => {
+			return (calculatedWalletState);
+		},
+
+		emitWalletSessionEvents: async (getNewEventsCallback: (walletStateContainer: WalletStateContainer) => Promise<WalletSessionEvent[]>): Promise<[
+			{},
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => {
+			const [privateData, ,] = await openPrivateData();
+			const newEvents = await getNewEventsCallback(JSON.parse(JSON.stringify(privateData)));
+			privateData.events.push(...newEvents);
+			if (!WalletStateOperations.validateEventHistoryContinuity(privateData.events)) {
+				throw new Error("History continuity is not mainted after call of emitWalletSessionEvents()");
+			}
+
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(originalContainer, privateData.S, privateData.events);
+				return [{}, newContainer];
+			})
+		},
+
 		signJwtPresentation: async (nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> => (
 			await keystore.signJwtPresentation(await openPrivateData(), nonce, audience, verifiableCredentials, transactionDataResponseParams)
 		),
@@ -444,5 +503,54 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		generateDeviceResponseWithProximity: async (mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
 			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential, presentationDefinition, sessionTranscriptBytes)
 		),
+
+		addCredentials: async (credentials: { data: string, format: string, batchId: number, credentialIssuerIdentifier: string, instanceId: number, sigCount: number, }[]): Promise<[
+			{},
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => {
+			const [walletStateContainer, ,] = await openPrivateData();
+			const newEvents: WalletSessionEvent[] = [];
+			for (const { data, format, batchId, credentialIssuerIdentifier, instanceId, sigCount } of credentials) {
+				const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, batchId, credentialIssuerIdentifier, instanceId, sigCount);
+				newEvents.push(e);
+			}
+			walletStateContainer.events.push(...newEvents);
+			if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+				throw new Error("History continuity is not maintained after call of emitWalletSessionEvents()");
+			}
+
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+				return [{}, newContainer];
+			})
+		},
+
+		getAllCredentials: async (): Promise<WalletBaseStateCredential[]> => {
+			return calculatedWalletState.credentials;
+		},
+
+		deleteCredentialsByBatchId: async (batchId: number): Promise<[
+			{},
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => {
+			const [walletStateContainer, ,] = await openPrivateData();
+			const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
+			const newEvents: WalletSessionEvent[] = [];
+			for (const cred of credentialsToBeDeleted) {
+				const e = await WalletStateOperations.createDeleteCredentialWalletSessionEvent(walletStateContainer, cred.credentialId);
+				newEvents.push(e);
+			}
+			walletStateContainer.events.push(...newEvents);
+			if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+				throw new Error("History continuity is not maintained after call of emitWalletSessionEvents()");
+			}
+
+			return editPrivateData(async (originalContainer) => {
+				const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+				return [{}, newContainer];
+			})
+		},
 	};
 }
