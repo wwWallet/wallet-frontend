@@ -21,6 +21,7 @@ import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
+import CredentialsContext from "@/context/CredentialsContext";
 
 export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
 
@@ -30,6 +31,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 	const { parseCredential } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
+	const { vcEntityList } = useContext(CredentialsContext);
+
 	const { t } = useTranslation();
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
@@ -67,12 +70,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 		[api]
 	);
 
-	const getAllStoredVerifiableCredentials = useCallback(async () => {
-		const fetchAllCredentials = await api.get("/storage/vc");
-		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
-	},
-		[api]
-	);
 
 	const promptForCredentialSelection = useCallback(
 		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
@@ -189,8 +186,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				return { error: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
 			}
 
-			const vcList = (await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials))
-				.filter((vc) => vc.instanceId === 0);
+			console.log("VC entity list = ", vcEntityList)
+			const vcList = vcEntityList.filter((cred) => cred.instanceId === 0);
 
 			await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
 				presentation_definition,
@@ -213,18 +210,18 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 					try {
 
 						if (vc.format === VerifiableCredentialFormat.SD_JWT_VC && (descriptor.format === undefined || VerifiableCredentialFormat.SD_JWT_VC in descriptor.format)) {
-							const result = await parseCredential(vc.credential);
+							const result = await parseCredential(vc.data);
 							if ('error' in result) {
 								throw new Error('Could not parse credential');
 							}
 							if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
-								conformingVcList.push(vc.credentialIdentifier);
+								conformingVcList.push(vc.batchId);
 								continue;
 							}
 						}
 
 						if (vc.format == VerifiableCredentialFormat.MSO_MDOC && (VerifiableCredentialFormat.MSO_MDOC in descriptor.format)) {
-							const credentialBytes = base64url.decode(vc.credential);
+							const credentialBytes = base64url.decode(vc.data);
 							const issuerSigned = cborDecode(credentialBytes);
 							// According to ISO 23220-4: The value of input descriptor id should be the doctype
 							const m = {
@@ -253,7 +250,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 								continue; // there is at least one field missing from the requirements
 							}
 
-							conformingVcList.push(vc.credentialIdentifier);
+							conformingVcList.push(vc.batchId);
 							continue;
 						}
 					}
@@ -280,11 +277,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			}
 			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName, verifierPurpose: descriptorPurpose };
 		},
-		[httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
+		[httpProxy, parseCredential, openID4VPRelyingPartyStateRepository, vcEntityList]
 	);
 
 	const sendAuthorizationResponse = useCallback(
-		async (selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
+		async (selectionMap: Map<string, number>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
 			const S = await openID4VPRelyingPartyStateRepository.retrieve();
 			console.log("send AuthorizationResponse: S = ", S)
 			console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
@@ -371,19 +368,17 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			let apu = undefined;
 			let apv = undefined;
 
-			let { verifiableCredentials } = await getAllStoredVerifiableCredentials();
 			const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
 
 			// returns the credentials with the minimum usages for each credential identifier
-			const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (credentialIdentifier) => {
-				const result = await credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials)
-				return result.credential;
-			}));
+			const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (batchId) =>
+				credentialBatchHelper.getLeastUsedCredential(batchId, vcEntityList)
+			));
 			console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
 
 			const filteredVCEntities = credentialsFilteredByUsage
 				.filter((vc) =>
-					allSelectedCredentialIdentifiers.includes(vc.credentialIdentifier),
+					allSelectedCredentialIdentifiers.includes(vc.batchId),
 				);
 
 			let selectedVCs = [];
@@ -391,8 +386,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			let originalVCs = [];
 			const descriptorMap = [];
 			let i = 0;
-			for (const [descriptor_id, credentialIdentifier] of selectionMap) {
-				const vcEntity = filteredVCEntities.filter((vc) => vc.credentialIdentifier === credentialIdentifier)[0];
+			for (const [descriptor_id, batchId] of selectionMap) {
+				const vcEntity = filteredVCEntities.filter((vc) => vc.batchId === batchId)[0];
 				if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC) {
 					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 					const allPaths = descriptor.constraints.fields
@@ -400,9 +395,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 						.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
 					let presentationFrame = generatePresentationFrameForPaths(allPaths);
 					const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
-						vcEntity.credential
+						vcEntity.data
 					).withHasher(hasherAndAlgorithm);
-					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame) : vcEntity.credential;
+					const presentation = (vcEntity.data.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame) : vcEntity.data;
 					let transactionDataResponseParams = undefined;
 					if (transaction_data) {
 						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)
@@ -436,7 +431,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
 					console.log("Response uri = ", response_uri);
 					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
-					const credentialBytes = base64url.decode(vcEntity.credential);
+					const credentialBytes = base64url.decode(vcEntity.data);
 					const issuerSigned = cborDecode(credentialBytes);
 
 					// According to ISO 23220-4: The value of input descriptor id should be the doctype
@@ -506,10 +501,10 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 			}
 
 
-			const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
+			const batchIdList = originalVCs.map((vc) => vc.batchId);
 
 			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
-			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, credentialIdentifiers, client_id);
+			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, batchIdList, client_id);
 			const updateCredentialPromise = filteredVCEntities.map(async (cred) => credentialBatchHelper.useCredential(cred))
 
 			const updateRepositoryPromise = openID4VPRelyingPartyStateRepository.store(S);
@@ -544,7 +539,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				description: "The verification process has been completed",
 			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {

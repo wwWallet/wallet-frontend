@@ -2,10 +2,14 @@ import { JWK, KeyLike } from "jose";
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
-import { useContext, useCallback, useMemo, useRef } from "react";
+import { useContext, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import SessionContext from "@/context/SessionContext";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 import { OPENID4VCI_PROOF_TYPE_PRECEDENCE } from "../../../config";
+import { OpenidCredentialIssuerMetadata } from "wallet-common";
+import CredentialsContext from "@/context/CredentialsContext";
+import { WalletStateOperations } from "@/services/WalletStateOperations";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -20,6 +24,11 @@ export function useCredentialRequest() {
 	const dpopPublicKeyJwkRef = useRef<JWK | null>(null);
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
+	const credentialConfigurationIdRef = useRef<string | null>(null);
+	const [receivedCredentialsArray, setReceivedCredentialsArray] = useState<string[] | null>(null);
+	const { getData } = useContext<any>(CredentialsContext);
+
+	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
 	const requestKeyAttestation = async (jwks: JWK[], nonce: string) => {
 		try {
@@ -73,6 +82,10 @@ export function useCredentialRequest() {
 
 	const setDpopJti = useCallback((id: string) => {
 		jtiRef.current = id;
+	}, []);
+
+	const setCredentialConfigurationId = useCallback((id: string) => {
+		credentialConfigurationIdRef.current = id;
 	}, []);
 
 	const setDpopHeader = useCallback(async () => {
@@ -195,7 +208,7 @@ export function useCredentialRequest() {
 
 
 		const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
-
+		credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 
 		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
 			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
@@ -220,8 +233,55 @@ export function useCredentialRequest() {
 			}
 			throw new Error("Credential Request failed");
 		}
+
+		const credentialResponseData = credentialResponse.data as Record<string, unknown>;
+		if (!('credential' in credentialResponseData) && !('credentials' in credentialResponseData)) {
+			return;
+		}
+
+		const credentialArray: string[] = credentialResponseData.credential ?
+			[credentialResponseData.credential as string] :
+			[...(credentialResponseData as { credentials: string[] }).credentials];
+
+		setReceivedCredentialsArray(credentialArray);
+		// receivedCredentialsArrayRef.current = credentialArray;
+		console.log("Received credentials array = ", credentialArray)
+		console.log("Credential response: ", credentialResponse);
 		return { credentialResponse };
 	}, [api, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
+
+	useEffect(() => {
+		if (!receivedCredentialsArray || !keystore) {
+			return;
+		}
+
+		const batchId = WalletStateUtils.getRandomUint32();
+		// wait for keystore update before commiting the new credentials
+		(async () => {
+			try {
+				const [, privateData, keystoreCommit] = await keystore.addCredentials(receivedCredentialsArray.map((credential, index) => {
+					return {
+						data: credential,
+						format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
+						credentialConfigurationId: credentialConfigurationIdRef.current,
+						credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+						batchId: batchId,
+						sigCount: 0,
+						instanceId: index,
+					}
+				}));
+				console.log("Private data len = ", privateData.jwe.length)
+
+				await api.updatePrivateData(privateData);
+				await keystoreCommit();
+				getData(false);
+				setReceivedCredentialsArray(null);
+			}
+			catch (err) {
+				throw err;
+			}
+		})();
+	}, [keystore, receivedCredentialsArray, getData])
 
 	return useMemo(() => ({
 		setCredentialEndpoint,
@@ -231,6 +291,7 @@ export function useCredentialRequest() {
 		setDpopPrivateKey,
 		setDpopPublicKeyJwk,
 		setDpopJti,
+		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
 		execute,
@@ -242,6 +303,7 @@ export function useCredentialRequest() {
 		setDpopPrivateKey,
 		setDpopPublicKeyJwk,
 		setDpopJti,
+		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
 		execute,

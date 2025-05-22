@@ -1,7 +1,7 @@
 export interface IOpenID4VP {
-	handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string } | { error: HandleAuthorizationRequestError }>;
-	promptForCredentialSelection(conformantCredentialsMap: { [x: string]: string[] }, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>>;
-	sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }>;
+	handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { error: HandleAuthorizationRequestError }>;
+	promptForCredentialSelection(conformantCredentialsMap: { [x: string]: number[] }, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, number>>;
+	sendAuthorizationResponse(selectionMap: Map<string, number>): Promise<{ url?: string } | { presentation_during_issuance_session: string }>;
 }
 
 export enum HandleAuthorizationRequestError {

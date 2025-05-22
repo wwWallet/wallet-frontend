@@ -31,9 +31,9 @@ import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 
 
 const Credential = () => {
-	const { credentialId } = useParams();
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api, credentialId, null);
+	const { batchId } = useParams();
+	const { api, keystore } = useContext(SessionContext);
+	const history = useFetchPresentations(api, batchId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
@@ -48,15 +48,14 @@ const Credential = () => {
 	const { t } = useTranslation();
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 
 	const handleSureDelete = async () => {
 		setLoading(true);
-		try {
-			await api.del(`/storage/vc/${vcEntity.credentialIdentifier}`);
-		} catch (error) {
-			console.error('Failed to delete data', error);
-		}
+		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId));
+		await api.updatePrivateData(newPrivateData);
+		await keystoreCommit();
+
 		setLoading(false);
 		setShowDeletePopup(false);
 		window.location.href = '/';
@@ -155,7 +154,7 @@ const Credential = () => {
 							<Button
 								id="navigate-credential-history"
 								variant="primary"
-								onClick={() => navigate(`/credential/${credentialId}/history`)}
+								onClick={() => navigate(`/credential/${batchId}/history`)}
 								additionalClassName='w-full my-2'
 							>
 								{t('pageCredentials.presentationsTitle')}
@@ -163,7 +162,7 @@ const Credential = () => {
 							<Button
 								id="navigate-credential-details"
 								variant="primary"
-								onClick={() => navigate(`/credential/${credentialId}/details`)}
+								onClick={() => navigate(`/credential/${batchId}/details`)}
 								additionalClassName='w-full my-2'
 							>
 								{t('pageCredentials.datasetTitle')}
@@ -194,7 +193,7 @@ const Credential = () => {
 									<CredentialImage
 										vcEntity={vcEntity}
 										vcEntityInstances={vcEntity.instances}
-										key={vcEntity.credentialIdentifier}
+										key={vcEntity.batchId}
 										parsedCredential={vcEntity.parsedCredential}
 										className="w-full object-cover rounded-xl"
 									/>

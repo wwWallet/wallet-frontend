@@ -109,9 +109,9 @@ function App() {
 						}>
 							<Route path="/settings" element={<Settings />} />
 							<Route path="/" element={<Home />} />
-							<Route path="/credential/:credentialId" element={<Credential />} />
-							<Route path="/credential/:credentialId/history" element={<CredentialHistory />} />
-							<Route path="/credential/:credentialId/details" element={<CredentialDetails />} />
+							<Route path="/credential/:batchId" element={<Credential />} />
+							<Route path="/credential/:batchId/history" element={<CredentialHistory />} />
+							<Route path="/credential/:batchId/details" element={<CredentialDetails />} />
 							<Route path="/history" element={<History />} />
 							<Route path="/history/:historyId" element={<HistoryDetail />} />
 							<Route path="/add" element={<AddCredentials />} />

@@ -50,6 +50,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			credentialRequestBuilder.setCNonce(c_nonce);
 			credentialRequestBuilder.setAccessToken(access_token);
 			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
+			credentialRequestBuilder.setCredentialConfigurationId(flowState.credentialConfigurationId);
 
 			if (flowState?.dpop) {
 				const privateKey = await jose.importJWK(flowState?.dpop.dpopPrivateKeyJwk, flowState?.dpop.dpopAlg)
@@ -102,24 +103,6 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			}
 
 			await openID4VCIClientStateRepository.cleanupExpired();
-
-			const identifier = generateRandomIdentifier(32);
-			const storableCredentials: StorableCredential[] = credentialArray.map((credential, index) => ({
-				credentialIdentifier: identifier,
-				credential: credential,
-				format: credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
-				credentialConfigurationId: flowState.credentialConfigurationId,
-				credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-				sigCount: 0,
-				instanceId: index,
-			}));
-
-			await api.post('/storage/vc', {
-				credentials: storableCredentials
-			});
-
-			getData(true);
-
 			return;
 
 		},

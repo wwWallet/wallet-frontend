@@ -19,7 +19,7 @@ import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
 
 const CredentialLayout = ({ children, title = null }) => {
-	const { credentialId } = useParams();
+	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
@@ -29,7 +29,7 @@ const CredentialLayout = ({ children, title = null }) => {
 	const [sigTotal, setSigTotal] = useState(null);
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 
 	useEffect(() => {
 		if (vcEntity) {
