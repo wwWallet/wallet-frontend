@@ -139,14 +139,8 @@ const Credential = () => {
 	];
 
 	return (
-		<CredentialLayout title={t('pageCredentials.credentialTitle')}>
+		<CredentialLayout title={t('pageCredentials.credentialTitle')} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
 			<>
-				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
-
-					{/* Block 2: Information List */}
-					{vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />} {/* Use the CredentialInfo component */}
-				</div>
-
 				<div className="w-full pt-2 px-2">
 					{screenType !== 'mobile' ? (
 						<>
