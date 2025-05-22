@@ -5,11 +5,13 @@ import { useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
+import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
 
 export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
+	const _ = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, api.isLoggedIn() && keystore.isOpen());
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
