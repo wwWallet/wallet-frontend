@@ -30,6 +30,7 @@ interface ImportMetaEnv {
 	readonly VITE_STATIC_NAME: string;
 	readonly VITE_I18N_WALLET_NAME_OVERRIDE: string;
 	readonly VITE_OPENID4VCI_PROOF_TYPE_PRECEDENCE: string;
+	readonly VITE_FOLD_EVENT_HISTORY_AFTER: string;
 }
 
 interface ImportMeta {
