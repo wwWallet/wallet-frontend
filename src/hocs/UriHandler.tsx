@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
+import CredentialsContext from "@/context/CredentialsContext";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -32,6 +33,8 @@ export const UriHandler = ({ children }) => {
 	const { t } = useTranslation();
 
 	const [redirectUri, setRedirectUri] = useState(null);
+	const { vcEntityList } = useContext(CredentialsContext);
+
 	useEffect(() => {
 		setUrl(window.location.href);
 		checkForUpdates();
@@ -45,7 +48,7 @@ export const UriHandler = ({ children }) => {
 	}, [redirectUri]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP) {
+		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP || !vcEntityList) {
 			return;
 		}
 
@@ -80,7 +83,7 @@ export const UriHandler = ({ children }) => {
 			}
 			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
 				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
-				await openID4VP.handleAuthorizationRequest(u.toString()).then((result) => {
+				await openID4VP.handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
 					console.log("Result = ", result);
 					if ('error' in result) {
 						if (result.error === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
@@ -104,7 +107,7 @@ export const UriHandler = ({ children }) => {
 						return;
 					}
 					console.log("Selection = ", selection);
-					return openID4VP.sendAuthorizationResponse(selection);
+					return openID4VP.sendAuthorizationResponse(selection, vcEntityList);
 
 				}).then((res) => {
 					if (res && 'url' in res && res.url) {
@@ -129,7 +132,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, t, isLoggedIn, openID4VCI, openID4VP, setRedirectUri]);
+	}, [url, t, isLoggedIn, openID4VCI, openID4VP, setRedirectUri, vcEntityList]);
 
 	return (
 		<>

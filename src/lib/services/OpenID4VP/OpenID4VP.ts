@@ -21,7 +21,7 @@ import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
-import CredentialsContext from "@/context/CredentialsContext";
+import CredentialsContext, { ExtendedVcEntity } from "@/context/CredentialsContext";
 
 export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
 
@@ -31,7 +31,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	const { parseCredential } = useContext(CredentialParserContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
-	const { vcEntityList } = useContext(CredentialsContext);
 
 	const { t } = useTranslation();
 
@@ -79,7 +78,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	);
 
 	const handleAuthorizationRequest = useCallback(
-		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { error: HandleAuthorizationRequestError }> => {
+		async (url: string, vcEntityList: ExtendedVcEntity[]): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { error: HandleAuthorizationRequestError }> => {
 			const authorizationRequest = new URL(url);
 			let client_id = authorizationRequest.searchParams.get('client_id');
 			let response_uri = authorizationRequest.searchParams.get('response_uri');
@@ -277,11 +276,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			}
 			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName, verifierPurpose: descriptorPurpose };
 		},
-		[httpProxy, parseCredential, openID4VPRelyingPartyStateRepository, vcEntityList]
+		[httpProxy, parseCredential, openID4VPRelyingPartyStateRepository]
 	);
 
 	const sendAuthorizationResponse = useCallback(
-		async (selectionMap: Map<string, number>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
+		async (selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
 			const S = await openID4VPRelyingPartyStateRepository.retrieve();
 			console.log("send AuthorizationResponse: S = ", S)
 			console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
@@ -505,11 +504,10 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
 			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, batchIdList, client_id);
-			const updateCredentialPromise = filteredVCEntities.map(async (cred) => credentialBatchHelper.useCredential(cred))
 
 			const updateRepositoryPromise = openID4VPRelyingPartyStateRepository.store(S);
 
-			await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
+			await Promise.all([storePresentationPromise, updateRepositoryPromise]);
 
 			let res = null;
 			try {
