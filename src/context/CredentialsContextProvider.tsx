@@ -19,19 +19,8 @@ export const CredentialsContextProvider = ({ children }) => {
 	const httpProxy = useHttpProxy();
 	const helper = useOpenID4VCIHelper();
 
-	const [issuers, setIssuers] = useState<Record<string, unknown>[] | null>(null);
-
 	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
 	const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-	useEffect(() => {
-		api
-			.getExternalEntity("/issuer/all", undefined, true)
-			.then((res) =>
-				setIssuers(res.data)
-			)
-			.catch(() => null);
-	}, [api]);
 
 	const stopPolling = useCallback(() => {
 		if (intervalRef.current) {
@@ -58,6 +47,13 @@ export const CredentialsContextProvider = ({ children }) => {
 			return acc;
 		}, {});
 
+		const issuers = await api
+		.getExternalEntity("/issuer/all", undefined, true)
+		.then((res) => res.data)
+		.catch((err) => {
+			console.error("Failed to fetch issuers", err);
+			return [];
+		});
 		const { sdJwtVerifier, msoMdocVerifier } = await initializeCredentialEngine(httpProxy, helper, issuers, []);
 
 		// Filter and map the fetched list in one go
@@ -100,7 +96,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [api, parseCredential, httpProxy, issuers, helper]);
+	}, [api, parseCredential, httpProxy, helper]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
