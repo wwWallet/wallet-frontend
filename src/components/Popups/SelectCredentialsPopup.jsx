@@ -1,17 +1,17 @@
 import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
-import { FaShare, FaRegCircle, FaCheckCircle } from 'react-icons/fa';
+import { FaRegCircle, FaCheckCircle, FaInfo, FaIdCard } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
 import Button from '../Buttons/Button';
-import SessionContext from '@/context/SessionContext';
 import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
 import CredentialParserContext from '@/context/CredentialParserContext';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
 import { truncateByWords } from '@/functions/truncateWords';
+import { MdFactCheck } from "react-icons/md";
 
 const formatTitle = (title) => {
 	if (title) {
@@ -24,7 +24,7 @@ const formatTitle = (title) => {
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 
 	return (
-		<div className="flex items-center justify-center w-full my-4">
+		<div className="flex items-center justify-center w-full mb-2">
 			{Array.from({ length: totalSteps }, (_, index) => {
 				const isActive = index + 1 < currentStep;
 				const isCurrent = index + 1 === currentStep;
@@ -32,17 +32,21 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 					<React.Fragment key={index}>
 						<div className="flex flex-col items-center">
 							<div
-								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive ? 'text-white bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light' : isCurrent ? 'text-primary dark:text-white dark:bg-gray-700 border-2 border-primary dark:border-primary-light' : 'text-gray-400 border-2 border-gray-400 dark:border-gray-400'
+								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive
+									? 'text-white bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light'
+									: isCurrent
+										? 'text-primary dark:text-white dark:bg-gray-700 border-2 border-primary dark:border-primary-light'
+										: 'text-gray-400 border-2 border-gray-400 dark:border-gray-400'
 									}`}
 							>
-								{index + 1}
+								{index === 0 ? (
+									<FaInfo className="text-sm" />
+								) : index === totalSteps - 1 ? (
+									<MdFactCheck className="text-lg" />
+								) : (
+									<FaIdCard className="text-base" />
+								)}
 							</div>
-							<p
-								className={`text-xs font-bold mt-1 ${isActive ? 'text-primary dark:text-primary-light' : isCurrent ? 'text-primary dark:text-white' : 'text-gray-400'} max-w-[60px] sm:max-w-[100px] text-center overflow-hidden whitespace-nowrap overflow-ellipsis`}
-								title={formatTitle(stepTitles[index])}
-							>
-								{formatTitle(stepTitles[index])}
-							</p>
 						</div>
 						{index < totalSteps - 1 && (
 							<div className="flex-auto h-[2px] bg-gray-400">
@@ -61,46 +65,61 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 
 function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
-	const { api } = useContext(SessionContext);
 	const credentialParserContext = useContext(CredentialParserContext);
 	const [vcEntities, setVcEntities] = useState(null);
 	const { t } = useTranslation();
-	const keys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : null, [popupState]);
-	const stepTitles = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap).map(key => key) : null, [popupState]);
+	const rawKeys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : [], [popupState]);
+	const keys = useMemo(() => ['preview', ...rawKeys, 'summary'], [rawKeys]);
+	const stepTitles = useMemo(() => keys, [keys]);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
-	const [requestedFields, setRequestedFields] = useState([]);
-	const [showAllFields, setShowAllFields] = useState(false);
 	const [showFullPurpose, setShowFullPurpose] = useState(false);
+	const [showAllPreviewFields, setShowAllPreviewFields] = useState({});
 
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
+	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
+
+	const requestedFieldsPerCredential = useMemo(() => {
+		console.log('!popupState', popupState)
+
+		if (!popupState?.options) return {};
+		const map = popupState.options.conformantCredentialsMap;
+		console.log('!map', map)
+		const result = {};
+		for (const [descriptorId, entry] of Object.entries(map)) {
+			const seen = new Set();
+			result[descriptorId] = (entry.requestedFields || []).filter(field => {
+				const key = field.name || field.path?.join('.');
+				if (seen.has(key)) return false;
+				seen.add(key);
+				return true;
+			});
+		}
+		console.log('result', result)
+		return result;
+	}, [popupState]);
 
 	const reinitialize = useCallback(() => {
 		setCurrentIndex(0);
 		setCurrentSlide(1);
 		setCurrentSelectionMap({});
-		setRequestedFields([]);
 		setSelectedCredential(null);
 		setPopupState((current) => ({ ...current, isOpen: false }));
 	}, [setPopupState]);
 
 	useEffect(() => {
 		const getData = async () => {
-			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length) {
+			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length + 2) {
 				reinitialize();
 				popupState.resolve(new Map(Object.entries(currentSelectionMap)));
 				return;
 			}
-
 			try {
 				const filteredVcEntities = vcEntityList.filter(vcEntity =>
 					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
 				);
-
-				setRequestedFields(popupState.options.conformantCredentialsMap[keys[currentIndex]].requestedFields);
-				console.log('filteredVcEntities', filteredVcEntities)
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -112,7 +131,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			getData();
 		}
 	}, [
-		api,
 		currentIndex,
 		currentSelectionMap,
 		keys,
@@ -130,14 +148,27 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		}
 	}, [currentIndex, currentSelectionMap, keys, popupState]);
 
+	const selectedVcEntities = useMemo(() => {
+		if (!vcEntityList || !currentSelectionMap) return [];
+
+		return Object.values(currentSelectionMap)
+			.map((selectedId) =>
+				vcEntityList.find((vc) => vc.credentialIdentifier === selectedId)
+			)
+			.filter(Boolean);
+	}, [currentSelectionMap, vcEntityList]);
+
 	const goToNextSelection = () => {
-		setShowAllFields(false);
-		setCurrentIndex((i) => i + 1);
+		if (keys[currentIndex] === 'summary') {
+			popupState.resolve(new Map(Object.entries(currentSelectionMap)));
+			reinitialize();
+		} else {
+			setCurrentIndex(i => i + 1);
+		}
 	}
 
 	const goToPreviousSelection = () => {
 		if (currentIndex > 0) {
-			setShowAllFields(false);
 			setCurrentIndex(currentIndex - 1);
 		}
 	};
@@ -194,67 +225,50 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		</button>
 	);
 
-	const handleToggleFields = () => {
-		setShowAllFields(!showAllFields);
-	};
-
-	const requestedFieldsText = (() => {
-		const fieldNames = requestedFields.map(field => field.name || field.path[0]);
-
-		if (fieldNames.length === 2 && !showAllFields) {
-			return `${fieldNames[0]} & ${fieldNames[1]}`;
-		} else if (showAllFields) {
-			return fieldNames.slice(0, -1).join(', ') + (fieldNames.length > 1 ? ' & ' : '') + fieldNames.slice(-1);
-		} else {
-			return fieldNames.slice(0, 2).join(', ') + (fieldNames.length > 2 ? '...' : '');
-		}
-	})();
-
-
 	return (
 		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0">
 			<div className={`${screenType === 'desktop' && 'p-4'}`}>
-				<div>
-					{stepTitles && (
-						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-							<FaShare size={20} className="inline mr-1 mb-1" />
-							{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
-						</h2>
-					)}
-					{keys.length > 1 && (
-						<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
-					)}
-					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-					<div className="flex flex-col gap-[3px]">
-						{requestedFieldsText && requestedFields.length > 0 && (
-							<p className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
-								<span>
-									{requestedFields.length === 1 ? `${t('selectCredentialPopup.descriptionFieldsSingle')}` : `${t('selectCredentialPopup.descriptionFieldsMultiple')}`}
-								</span>
-								&nbsp;
-								<strong>
-									{requestedFieldsText}
-								</strong>
-								{requestedFields.length > 2 && (
-									<>
-										{' '}
-										< button onClick={handleToggleFields} className="text-primary dark:text-extra-light font-medium hover:underline inline">
-											{showAllFields ? `${t('common.showLess')}` : `${t('common.showMore')}`}
-										</button>
-									</>
-								)}
-							</p>
+				{keys.length > 1 && (
+					<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
+				)}
+				{stepTitles && (
+					<h2 className="text-lg font-bold mb-2 text-primary dark:text-white flex items-center gap-2">
+						{keys[currentIndex] === 'preview' ? (
+							<>
+								<FaInfo size={22} />
+								{t('selectCredentialPopup.previewTitle')}
+							</>
+						) : keys[currentIndex] === 'summary' ? (
+							<>
+								<MdFactCheck size={24} />
+								{t('selectCredentialPopup.summaryTitle')}
+							</>
+						) : (
+							<>
+								<FaIdCard size={24} />
+								{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
+							</>
 						)}
+					</h2>
+				)}
+				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
+				{/* Preview step */}
+				{keys[currentIndex] === 'preview' && (
+					<>
+						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-2">
+							{t('selectCredentialPopup.introDescription')}
+						</p>
 						{popupState.options.verifierDomainName && (
-							<p className="pd-2 text-gray-700 text-sm dark:text-white">
-								<span>
+							<p className="pd-2 text-gray-700 text-sm dark:text-white mb">
+								<span className="text-primary text-sm font-bold dark:text-white">
 									<Trans
 										i18nKey={"selectCredentialPopup.requestingParty"}
-										values={{ verifierDomainName: popupState.options.verifierDomainName }}
-										components={{ strong: <strong /> }}
 									/>
+								</span>
+								<span className="font-medium">
+									{popupState.options.verifierDomainName}
 								</span>
 							</p>
 						)}
@@ -265,11 +279,13 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 							return (
 								<p className="pd-2 text-gray-700 text-sm dark:text-white">
-									<span>
+									<span className="text-primary text-sm font-bold dark:text-white">
 										<Trans
 											i18nKey="selectCredentialPopup.purpose"
-											values={{ verifierPurpose: textToDisplay }}
 										/>
+									</span>
+									<span className="font-medium">
+										{textToDisplay}
 									</span>
 									{truncated && (
 										<>
@@ -285,34 +301,117 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								</p>
 							);
 						})()}
-					</div>
+						<div className="mt-4">
+							<p className="text-primary dark:text-white text-sm font-bold mt-3">
+								Requested Credential(s)/Fields:
+							</p>
+							{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
+								const names = fields.map(f => f.name || f.path?.[0]);
+								const showAll = showAllPreviewFields[descriptorId];
 
-					<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
-						{t('selectCredentialPopup.descriptionSelect')}
-					</p>
-
-				</div>
-				<div className={`xm:px-4 px-16 sm:px-24 md:px-8`}>
-					{vcEntities ? (
-						<Slider
-							items={vcEntities}
-							renderSlideContent={renderSlideContent}
-							onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
-						/>
-					) : (
-						<CredentialCardSkeleton />
-
-					)}
-					{vcEntities?.[currentSlide - 1] ? (
-						<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
-							<CredentialInfo parsedCredential={vcEntities[currentSlide - 1].parsedCredential} mainClassName={"text-xs w-full"} />
+								return (
+									<div key={descriptorId} className="my">
+										<span className="flex items-center gap-1 text-gray-700 dark:text-white text-sm font-bold my-1">
+											<FaIdCard className="text-primary dark:text-primary-light" />
+											{formatTitle(descriptorId)}
+										</span>
+										<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
+											{(showAll ? names : names.slice(0, 2)).map((name, i) => (
+												<li key={i}>{name}</li>
+											))}
+										</ul>
+										{names.length > 2 && (
+											<button
+												onClick={() =>
+													setShowAllPreviewFields(prev => ({
+														...prev,
+														[descriptorId]: !prev[descriptorId]
+													}))
+												}
+												className="ml-1 text-primary text-sm dark:text-extra-light font-medium hover:underline"
+											>
+												{showAll ? t('common.showLess') : t('common.showMore')}
+											</button>
+										)}
+									</div>
+								);
+							})}
 						</div>
-					) : (
-						<div className="mt-2">
-							<CredentialInfoSkeleton />
+					</>
+				)}
+
+				{/* Selection step */}
+				{keys[currentIndex] !== 'preview' && keys[currentIndex] !== 'summary' && (
+					<>
+						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
+							{t('selectCredentialPopup.descriptionSelect')}
+						</p>
+						<div>
 						</div>
-					)}
-				</div>
+						<div className={`xm:px-4 px-16 sm:px-24 md:px-8`}>
+							{vcEntities ? (
+								<Slider
+									items={vcEntities}
+									renderSlideContent={renderSlideContent}
+									onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+								/>
+							) : (
+								<CredentialCardSkeleton />
+
+							)}
+							{vcEntities?.[currentSlide - 1] ? (
+								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
+									<CredentialInfo
+										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
+										mainClassName={"text-xs w-full"}
+									/>
+								</div>
+							) : (
+								<div className="mt-2">
+									<CredentialInfoSkeleton />
+								</div>
+							)}
+						</div>
+					</>
+				)}
+
+				{/* Summary step */}
+				{keys[currentIndex] === 'summary' && (
+					<>
+						<h2 className="text-lg font-bold text-primary dark:text-white">{t('selectCredentialPopup.summary')}</h2>
+						<p className="text-sm dark:text-white mt-2">{t('selectCredentialPopup.selectedCredentialsReview')}</p>
+
+						<div className={`xm:px-4 px-16 sm:px-24 md:px-8`}>
+							<Slider
+								items={selectedVcEntities}
+								renderSlideContent={(vc, idx) => (
+									<div key={vc.id} className="rounded-xl overflow-hidden shadow">
+										<CredentialImage
+											vcEntity={vc}
+											parsedCredential={vc.parsedCredential}
+											className="w-full object-cover rounded-xl"
+											showRibbon
+										/>
+									</div>
+								)}
+								onSlideChange={(index) => setCurrentSummarySlide(index)}
+							/>
+
+							{selectedVcEntities?.[currentSummarySlide] ? (
+								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
+									<CredentialInfo
+										parsedCredential={selectedVcEntities[currentSummarySlide].parsedCredential}
+										mainClassName="text-xs w-full"
+									/>
+								</div>
+							) : (
+								<CredentialInfoSkeleton />
+							)}
+						</div>
+					</>
+				)}
+
+
 			</div>
 			<div
 				className={`z-10 left-0 right-0 bg-white dark:bg-gray-800 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
@@ -340,15 +439,16 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					)}
 
 					<Button
-						id={`${currentIndex < keys.length - 1 ? 'next' : 'send'}-select-credentials`}
+						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
 						variant="primary"
-						disabled={!selectedCredential}
-						title={!selectedCredential ? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
+						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && !selectedCredential}
+						title={!selectedCredential && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
+							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
 					>
-						{currentIndex < keys.length - 1
-							? t('common.next')
-							: t('common.navItemSendCredentialsSimple')}
+						{keys[currentIndex] === 'summary'
+							? t('common.navItemSendCredentialsSimple')
+							: t('common.next')}
 					</Button>
 				</div>
 			</div>
