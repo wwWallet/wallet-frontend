@@ -1,6 +1,6 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
-import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
+import { SDJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
@@ -23,7 +23,7 @@ import { parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
 import CredentialsContext from "@/context/CredentialsContext";
 
-export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
@@ -301,10 +301,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				return new Uint8Array(hashBuffer);
 			}
 
-			const hasherAndAlgorithm: HasherAndAlgorithm = {
-				hasher: async (input: string) => hashSHA256(input),
-				algorithm: HasherAlgorithm.Sha256
-			}
+			const hasher = (data: string | ArrayBuffer, alg: string) => {
+				const encoded =
+					typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+
+				return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
+			};
 
 			/**
 			*
@@ -394,10 +396,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 						.map((field) => field.path)
 						.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
 					let presentationFrame = generatePresentationFrameForPaths(allPaths);
-					const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
-						vcEntity.data
-					).withHasher(hasherAndAlgorithm);
-					const presentation = (vcEntity.data.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame) : vcEntity.data;
+					const sdJwt = await SDJwt.fromEncode(vcEntity.data, hasher);
+					const presentation = (vcEntity.data.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame, hasher) : vcEntity.data;
 					let transactionDataResponseParams = undefined;
 					if (transaction_data) {
 						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)

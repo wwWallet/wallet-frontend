@@ -16,6 +16,7 @@ interface ImportMetaEnv {
 	readonly VITE_FIREBASE_MEASUREMENT_ID: string;
 	readonly VITE_DID_KEY_VERSION: string;
 	readonly VITE_APP_VERSION: string;
+	readonly VITE_GENERATE_SOURCEMAP: string;
 	readonly VITE_DISPLAY_CONSOLE: string;
 	readonly VITE_INACTIVE_LOGOUT_SECONDS: string;
 	readonly VITE_WEBAUTHN_RPID: string;

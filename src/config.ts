@@ -23,7 +23,7 @@ export const WEBAUTHN_RPID = import.meta.env.VITE_WEBAUTHN_RPID ?? "localhost";
 export const WS_URL = import.meta.env.VITE_WS_URL;
 export const OPENID4VP_SAN_DNS_CHECK = import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK ? import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK === 'true' : false;
 export const OPENID4VP_SAN_DNS_CHECK_SSL_CERTS = import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS ? import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS === 'true' : false;
-export const VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS = import.meta.env.VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS ? import.meta.env.VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS : false;
+export const VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS = import.meta.env.VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS ? import.meta.env.VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS  === 'true' : false;
 export const OPENID4VCI_REDIRECT_URI = import.meta.env.VITE_OPENID4VCI_REDIRECT_URI ?  import.meta.env.VITE_OPENID4VCI_REDIRECT_URI : "http://localhost:3000/";
 export const CLOCK_TOLERANCE = import.meta.env.VITE_CLOCK_TOLERANCE && !isNaN(parseInt(import.meta.env.VITE_CLOCK_TOLERANCE)) ? parseInt(import.meta.env.VITE_CLOCK_TOLERANCE) : 60;
 export const VITE_STATIC_PUBLIC_URL = import.meta.env.VITE_STATIC_PUBLIC_URL || 'https://demo.wwwallet.org';

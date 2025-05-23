@@ -39,6 +39,8 @@
 		"privateDataConflict": "Η συνεδρία σας δεν είναι συγχρονισμένη με τον server. Παρακαλώ αποσυνδεθείτε, συνδεθείτε ξανά και δοκιμάστε ξανά.",
 		"refresh": "Ανανέωση",
 		"save": "Αποθήκευση",
+		"showLess": "Εμφάνιση λιγότερων",
+		"showMore": "Εμφάνιση περισσότερων",
 		"submit": "Υποβολή",
 		"tryAgain": "Δοκιμάστε ξανά",
 		"walletName": "wwWallet"
@@ -144,7 +146,7 @@
 		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
 		"popup": {
-			"message": "Αν συνεχίσετε, θα μεταφερθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+			"message": "Θα ανακατευθυνθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
 			"title": "Επιλεγμένο:"
 		},
 		"searchPlaceholder": "Αναζήτηση credential..."
@@ -183,7 +185,7 @@
 		"description": "Αναζητήστε και επιλέξτε ένα verifier για να μοιραστείτε πιστοποιητικά",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι verifiers.",
 		"popup": {
-			"message": "Αν συνεχίσετε, θα ανακατευθυνθείτε στo {{verifierName}}.",
+			"message": "Θα ανακατευθυνθείτε στo {{verifierName}}.",
 			"title": "Επιλεγμένο:"
 		},
 		"searchPlaceholder": "Αναζήτηση verifiers..."
@@ -276,6 +278,13 @@
 		"description": "Στοχεύστε στον QR Κωδικό και θα ανακατευθυνθείτε για να προχωρήσετε στη διαδικασία",
 		"title": "Σαρώστε τον QR Κωδικό"
 	},
+	"qrShareMdoc": {
+		"communicating": "Επικοινωνία με τον verifier...",
+		"enablePermissions": "Δεν ήταν δυνατή η πρόσβαση στις λειτουργίες κοντινών συσκευών. Παρακαλώ ενεργοποιήστε τα δικαιώματα για εύρεση κοντινών συσκευών στις ρυθμίσεις σας και επανεκκινήστε την εφαρμογή.",
+		"nearbyVerifierRequested": "Ένας κοντινός verifier ζήτησε τα εξής πεδία:",
+		"send": "Αποστολή",
+		"shareUsingQR": "Αποστολή με κωδικό QR"
+	},
 	"queryableList": {
 		"all": "Όλα",
 		"recent": "Πρόσφατα"
@@ -294,15 +303,13 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Κάντε κλικ για να επιλέξετε το {{friendlyName}}",
-		"descriptionFieldsMultiple": "Ζητούμενα πεδία:",
-		"descriptionFieldsSingle": "Ζητούμενο πεδίο:",
+		"descriptionFieldsMultiple": "Ζητούμενα Πεδία:",
+		"descriptionFieldsSingle": "Ζητούμενο Πεδίο:",
 		"descriptionSelect": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
-		"purpose": "Purpose του <strong> {{verifierDomainName}}: </strong>",
+		"purpose": "Purpose: {{verifierPurpose}}",
 		"purposeNotSpecified": "Μη ορισμένο purpose από τον verifier.",
-		"requestedFieldsLess": "Εμφάνιση λιγότερων",
-		"requestedFieldsMore": "Εμφάνιση περισσότερων",
-		"title": "Επιλογή : "
+		"title": "Επιλογή: "
 	},
 	"sidebar": {
 		"navItemLogout": "Αποσύνδεση",

@@ -9,7 +9,7 @@ import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
-import { SdJwt } from "@sd-jwt/core";
+import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
@@ -1178,8 +1178,15 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 }
 
 export async function signJwtPresentation([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletBaseState], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
-	const inputJwt = SdJwt.fromCompact(verifiableCredentials[0]);
-	const { cnf } = inputJwt.payload as { cnf?: { jwk?: JWK } };
+	const hasher = (data: string | ArrayBuffer, alg: string) => {
+		const encoded =
+			typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+
+		return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
+	}
+
+	const inputJwt = await SDJwt.fromEncode(verifiableCredentials[0], hasher);
+	const { cnf } = inputJwt.jwt.payload as { cnf?: { jwk?: JWK } };
 
 	if (!cnf?.jwk) {
 		throw new Error("Holder public key could not be resolved from cnf.jwk attribute");
