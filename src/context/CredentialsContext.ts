@@ -1,6 +1,13 @@
 // CredentialsContext.ts
 import { createContext } from 'react';
 import { ParsedCredential } from 'wallet-common/dist/types';
+import { ParsingEngineI,CredentialVerifier } from 'wallet-common/dist/interfaces';
+
+type CredentialEngine = {
+	credentialParsingEngine:ParsingEngineI ;
+	sdJwtVerifier: CredentialVerifier;
+	msoMdocVerifier: CredentialVerifier;
+};
 
 type Instance = {
 	instanceId: number;
@@ -22,14 +29,15 @@ export type ExtendedVcEntity = {
 	instances: Instance[];
 }
 
-type CredentialsContextValue = {
+export type CredentialsContextValue = {
 	vcEntityList: ExtendedVcEntity[];
 	latestCredentials: Set<number>;
 	fetchVcData: (credentialId?: string) => Promise<ExtendedVcEntity[]>;
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (credential: string) => Promise<ParsedCredential>;
+	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
+	credentialEngine: CredentialEngine | null;
 };
 
 const defaultContextValue: CredentialsContextValue = {
@@ -39,7 +47,8 @@ const defaultContextValue: CredentialsContextValue = {
 	getData: async () => { },
 	currentSlide: 1,
 	setCurrentSlide: () => { },
-	parseCredential: async () => ({}),
+	parseCredential: async () => null,
+	credentialEngine: null,
 };
 const CredentialsContext = createContext<CredentialsContextValue>(defaultContextValue);
 

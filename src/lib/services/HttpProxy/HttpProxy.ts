@@ -1,72 +1,195 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { IHttpProxy } from '../../interfaces/IHttpProxy';
-
+import StatusContext from '@/context/StatusContext';
+import { addItem, getItem, removeItem } from '@/indexedDB';
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
+const inFlightRequests = new Map<string, Promise<any>>();
 
-const parseCacheControl = (header: string) => Object.fromEntries(
-	header.split(',').map(d => d
-		.trim()
-		.split('=')
-		.map((v, i) => i === 0 ? v : Number(v) || v)
-	)
-);
+const parseCacheControl = (header: string) =>
+	Object.fromEntries(
+		header
+			.split(',')
+			.map(d => {
+				const [key, value] = d.trim().split('=').map(v => v.trim());
+				const num = Number(value);
+				return [key, isNaN(num) ? value : num];
+			})
+	);
 
 export function useHttpProxy(): IHttpProxy {
-	const cachedResponses = useRef<Map<string, { status: number, headers: Record<string, unknown>, data: unknown }>>(new Map());
+	const { isOnline } = useContext(StatusContext);
+	const isOnlineRef = useRef(isOnline);
 
-	const cachedResponsesTimestamp = useRef<Map<string, number>>(new Map());
+	useEffect(() => {
+		isOnlineRef.current = isOnline;
+	}, [isOnline]);
 
 	const proxy = useMemo(() => ({
-		async get(url: string, headers: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }> {
-			try {
-				if ((url.endsWith(".svg") || url.endsWith(".png")) && cachedResponses.current.get(url)) {
-					return cachedResponses.current.get(url);
-				}
-				else if (cachedResponses.current.get(url) && cachedResponsesTimestamp.current.get(url)) {
-					const r = cachedResponses.current.get(url);
-					const cacheControl = r.headers["cache-control"] && typeof r.headers["cache-control"] === 'string' ?
-						parseCacheControl(r.headers["cache-control"]) :
-						null;
-					if (cacheControl && cacheControl['max-age'] && typeof cacheControl['max-age'] === 'number') {
-						const maxAge = cacheControl['max-age'];
-						if (Math.floor(new Date().getTime() / 1000) + maxAge > cachedResponsesTimestamp.current.get(url)) {
-							return cachedResponses.current.get(url);
+		async get(
+			url: string,
+			headers: Record<string, string> = {},
+			options?: { useCache?: boolean; }
+		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
+			const useCache = options?.useCache;
+			const now = Math.floor(Date.now() / 1000);
+			const online = isOnlineRef.current;
+			const isBinaryRequest = /\.(png|jpe?g|gif|webp|bmp|tiff?|ico)(\?.*)?(#.*)?$/i.test(url);
+			const cacheKey = isBinaryRequest ? `blob:${url}` : `data:${url}`;
+
+			if (useCache && online !== false) {
+				try {
+					const cached = await getItem('proxyCache', cacheKey, 'proxyCache');
+
+					const cachedData = cached?.data;
+					const expiry = cached?.expiry;
+					const isInCache = !!cachedData && !!expiry;
+
+					if (isInCache) {
+						const isFresh = now < expiry;
+
+						if (online === null || isFresh) {
+							return cachedData;
 						}
 					}
-				}
-				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
-					headers: headers,
-					url: url,
-					method: 'get',
-				}, {
-					timeout: 2500,
-					headers: {
-						Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
-					}
-				});
-				if (url.endsWith(".svg") || url.endsWith(".png")) {
-					cachedResponses.current.set(url, response.data as { status: number, headers: Record<string, unknown>, data: unknown });
-					cachedResponsesTimestamp.current.set(url, Math.floor(new Date().getTime() / 1000))
-				}
-				else if (response.data.headers["cache-control"] && typeof response.data.headers["cache-control"] === 'string') {
-					cachedResponses.current.set(url, response.data as { status: number, headers: Record<string, unknown>, data: unknown });
-					cachedResponsesTimestamp.current.set(url, Math.floor(new Date().getTime() / 1000));
-				}
-				return response.data;
-			}
-			catch (err) {
-				return {
-					data: err.response.data.data,
-					headers: err.response.data.headers,
-					status: err.response.data.status
+
+				} catch (err) {
+					console.warn('[Proxy] Failed cache read', err);
 				}
 			}
 
+			// If offline is false, do not attempt network request
+			if (online === false) {
+				const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
+
+				if (fallback?.data) {
+					return fallback.data;
+				}
+
+				return {
+					data: 'No cached response available and offline',
+					headers: {},
+					status: 504,
+				};
+			}
+
+			// Fallback to backend `/proxy`
+			if (inFlightRequests.has(cacheKey)) {
+				return inFlightRequests.get(cacheKey);
+			}
+
+			const requestPromise = (async () => {
+				try {
+					const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
+						headers,
+						url,
+						method: 'get',
+					}, {
+						timeout: 2500,
+						headers: {
+							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
+						},
+						...(isBinaryRequest && { responseType: 'arraybuffer' }),
+					}
+					);
+
+					const res = response.data;
+
+					const sourceHeaders = isBinaryRequest ? response.headers : response.data?.headers;
+					const contentTypeHeader: string | undefined = sourceHeaders?.['content-type'];
+					const cacheControlHeader: string | undefined = sourceHeaders?.['cache-control'];
+
+					let shouldCache = useCache !== undefined;
+					let maxAge = 60 * 60 * 24 * 30; // default: 30 days
+
+					// Handle Cache-Control logic
+					if (shouldCache && typeof cacheControlHeader === 'string') {
+						const lower = cacheControlHeader.toLowerCase();
+						if (lower.includes('no-store')) shouldCache = false;
+						else if (lower.includes('no-cache')) maxAge = 0;
+						else {
+							const parsed = parseCacheControl(lower);
+							if (typeof parsed['max-age'] === 'number') {
+								maxAge = parsed['max-age'];
+								if (maxAge < 0) shouldCache = false;
+							}
+						}
+					}
+
+					// blob response
+					if (isBinaryRequest && typeof contentTypeHeader === 'string') {
+						const arrayBuffer = res as ArrayBuffer;
+						const blob = new Blob([new Uint8Array(arrayBuffer)], { type: contentTypeHeader });
+						const blobUrl = URL.createObjectURL(blob);
+
+						const responseToCache = {
+							status: response.status,
+							headers: response.headers,
+							data: blobUrl,
+						};
+
+						if (shouldCache) {
+							await addItem('proxyCache', cacheKey, {
+								data: responseToCache,
+								expiry: now + maxAge,
+							}, 'proxyCache');
+						}
+
+						return responseToCache;
+					}
+
+					// Non-blob response
+					if (shouldCache) {
+						await addItem('proxyCache', cacheKey, {
+							data: {
+								status: res.status,
+								headers: res.headers,
+								data: res.data,
+							},
+							expiry: now + maxAge,
+						}, 'proxyCache');
+					}
+
+					return {
+						status: res.status,
+						headers: res.headers,
+						data: res.data,
+					};
+
+				} catch (err) {
+					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
+					if (fallback?.data) {
+						return {
+							status: 200,
+							headers: {},
+							data: fallback.data,
+						};
+					}
+
+					if (isOnlineRef.current) {
+						await removeItem('proxyCache', cacheKey, 'proxyCache');
+					}
+
+					return {
+						status: err.response?.status || 500,
+						headers: err.response?.headers || {},
+						data: err.response?.data || 'GET proxy failed',
+					};
+				} finally {
+					inFlightRequests.delete(cacheKey);
+				}
+			})();
+
+			inFlightRequests.set(cacheKey, requestPromise);
+			return requestPromise;
 		},
 
-		async post(url: string, body: any, headers: any): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }> {
+		async post(
+			url: string,
+			body: any,
+			headers: Record<string, string>
+		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
 			try {
 				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 					headers: headers,
@@ -80,15 +203,14 @@ export function useHttpProxy(): IHttpProxy {
 					}
 				});
 				return response.data;
-			}
-			catch (err) {
+			} catch (err) {
 				return {
-					data: err.response.data.data,
-					headers: err.response.data.headers,
-					status: err.response.data.status
-				}
+					data: err.response?.data || 'POST proxy failed',
+					headers: err.response?.headers || {},
+					status: err.response?.status || 500,
+				};
 			}
-		}
+		},
 	}), []);
 
 	return proxy;

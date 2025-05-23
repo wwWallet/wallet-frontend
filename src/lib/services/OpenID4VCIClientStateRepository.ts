@@ -8,6 +8,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	const key = "openid4vci_client_state";
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 
+	const {get} = api;
 	const data = localStorage.getItem(key);
 	if (!data || !(JSON.parse(data) instanceof Array)) {
 		localStorage.setItem(key, JSON.stringify([]));
@@ -17,11 +18,11 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (!api || !isLoggedIn) {
 			return null;
 		}
-		return api.get('/user/session/account-info').then((response) => {
+		return get('/user/session/account-info').then((response) => {
 			const userData = response.data;
 			return userData.settings.openidRefreshTokenMaxAgeInSeconds as number;
 		});
-	}, [api, isLoggedIn]);
+	}, [get, isLoggedIn]);
 
 	const getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle = useCallback(async (
 		credentialIssuer: string,
@@ -32,7 +33,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		const res = array.filter((s) => s.credentialIssuerIdentifier === credentialIssuer && s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === keystore.getUserHandleB64u())[0];
 		return res ? res : null;
 	},
-		[keystore]
+		[]
 	);
 
 	const getByStateAndUserHandle = useCallback(
@@ -41,7 +42,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			const res = array.filter((s) => s.state === state && s.userHandleB64U === keystore.getUserHandleB64u())[0];
 			return res ? res : null;
 		},
-		[keystore]
+		[]
 	);
 
 	const cleanupExpired = useCallback(async (): Promise<void> => {
@@ -64,7 +65,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		console.log("Cleanup states = ", statesToBeRemoved)
 		const filteredArray = array.filter((s) => !statesToBeRemoved.includes(s.state));
 		localStorage.setItem(key, JSON.stringify(filteredArray));
-	}, [keystore, getRememberIssuerAge]);
+	}, [ getRememberIssuerAge]);
 
 	const create = useCallback(
 		async (state: OpenID4VCIClientState): Promise<void> => {
