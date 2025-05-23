@@ -95,7 +95,7 @@ export interface LocalStorageKeystore {
 	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
-	addCredentials(credentials: { data: string, format: string, credentialIssuerIdentifier: string, instanceId: number, sigCount: number, }[]): Promise<[
+	addCredentials(credentials: { data: string, format: string, credentialIssuerIdentifier: string, instanceId: number, }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -527,7 +527,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		},
 
 		getAllCredentials: async (): Promise<WalletBaseStateCredential[]> => {
-			return calculatedWalletState.credentials;
+			return calculatedWalletState ? calculatedWalletState.credentials : [];
 		},
 
 		deleteCredentialsByBatchId: async (batchId: number): Promise<[
@@ -554,7 +554,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		},
 
 		getAllPresentations: async (): Promise<WalletBaseStatePresentation[]> => {
-			return calculatedWalletState.presentations;
+			return calculatedWalletState ? calculatedWalletState.presentations : [];
 		},
 	};
 }

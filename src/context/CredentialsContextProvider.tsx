@@ -126,17 +126,12 @@ export const CredentialsContextProvider = ({ children }) => {
 
 	useEffect(() => {
 		getData();
-	}, [getData, setVcEntityList]);
+	}, [getData, setVcEntityList, keystore]);
 
-	if (vcEntityList) {
-		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>
-				{children}
-			</CredentialsContext.Provider>
-		);
-	}
-	else {
-		return <></>
-	}
+	return (
+		<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential }}>
+			{children}
+		</CredentialsContext.Provider>
+	);
 }
 
