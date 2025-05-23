@@ -38,7 +38,7 @@ const Credential = () => {
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
 	const [activeTab, setActiveTab] = useState(0);
-	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse } = useMdocAppCommunication();
+	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
 	const [shareWithQr, setShareWithQr] = useState(false);
@@ -92,6 +92,7 @@ const Credential = () => {
 	const cancelShare = () => {
 		setMdocQRStatus(0);
 		setShowMdocQR(false);
+		terminateSession();
 	}
 
 	useEffect(() => {
@@ -139,14 +140,8 @@ const Credential = () => {
 	];
 
 	return (
-		<CredentialLayout title={t('pageCredentials.credentialTitle')}>
+		<CredentialLayout title={t('pageCredentials.credentialTitle')} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
 			<>
-				<div className="flex flex-col lg:flex-row w-full md:w-1/2 lg:mt-5 mt-0">
-
-					{/* Block 2: Information List */}
-					{vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />} {/* Use the CredentialInfo component */}
-				</div>
-
 				<div className="w-full pt-2 px-2">
 					{screenType !== 'mobile' ? (
 						<>
@@ -180,15 +175,15 @@ const Credential = () => {
 				{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode/></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
 					<div className="flex items-start justify-between mb-2">
-						<h2 className="text-lg font-bold text-primary">
+						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
 							{t('qrShareMdoc.shareUsingQR')}
 						</h2>
 						</div>
-						<hr className="mb-2 border-t border-primary/80" />
+						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
-								{mdocQRStatus === -1 && <span>{t('qrShareMdoc.enablePermissions')}</span>}
+								{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
 								{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
-								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span>{t('qrShareMdoc.communicating')}</span>}
+								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
 								{mdocQRStatus === 2 && <span className='pb-16'>
 									<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
 										{t('qrShareMdoc.nearbyVerifierRequested')}{' '}

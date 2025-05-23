@@ -96,14 +96,10 @@ export function useCredentialRequest() {
 			throw new Error("CredentialRequest: dpopPublicKeyJwk was not defined");
 		}
 
-		if (!jti) {
-			throw new Error("CredentialRequest: jti was not defined");
-		}
 
 		const credentialEndpointDPoP = await generateDPoP(
 			dpopPrivateKeyRef.current,
 			dpopPublicKeyJwk,
-			jti,
 			"POST",
 			credentialEndpointURL,
 			dpopNonce,

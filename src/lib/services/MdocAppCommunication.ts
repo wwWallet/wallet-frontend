@@ -251,18 +251,35 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return ;
 	}, []);
 
+	const terminateSession = useCallback(async (): Promise<void> => {
+		const sessionData = {
+			data: new Uint8Array([]),
+			status: 20
+		}
+
+		const sessionDataEncoded = cborEncode(sessionData);
+		/* @ts-ignore */
+		const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+
+		/* @ts-ignore */
+		await nativeWrapper.bluetoothTerminate();
+
+	});
+
 	return useMemo(
 		() => ({
 			generateEngagementQR,
 			startClient,
 			getMdocRequest,
-			sendMdocResponse
+			sendMdocResponse,
+			terminateSession
 		}),
 		[
 			generateEngagementQR,
 			startClient,
 			getMdocRequest,
-			sendMdocResponse
+			sendMdocResponse,
+			terminateSession
 		]
 	);
 }
