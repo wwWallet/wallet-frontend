@@ -18,9 +18,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	const [currentSlide, setCurrentSlide] = useState<number>(1);
 	const httpProxy = useHttpProxy();
 	const helper = useOpenID4VCIHelper();
-
-	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
-	const intervalRef = useRef<NodeJS.Timeout | null>(null);
+	const credentialNumber = useRef<number | null>(null)
 
 	const [credentialEngineReady, setCredentialEngineReady] = useState<any>(false);
 	const engineRef = useRef<any>(null);
@@ -75,11 +73,15 @@ export const CredentialsContextProvider = ({ children }) => {
 
 	}, []);
 
-	const fetchVcData = useCallback(async (batchId?: number): Promise<ExtendedVcEntity[]> => {
+	const fetchVcData = useCallback(async (batchId?: number): Promise<ExtendedVcEntity[] | null> => {
 		const engine = engineRef.current;
-		if (!engine) return [];
+		if (!engine) return null;
 
 		const credentials = await keystore.getAllCredentials();
+		console.log("Creds = ", credentials)
+		if (!credentials) {
+			return null;
+		}
 		const presentations = await keystore.getAllPresentations();
 		// Create a map of instances grouped by credentialIdentifier
 		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletBaseStateCredential) => {
@@ -139,17 +141,35 @@ export const CredentialsContextProvider = ({ children }) => {
 
 	const getData = useCallback(async (shouldPoll = false) => {
 		try {
-			const vcEntityList = await fetchVcData();
-			console.log("Vc entity list = ", vcEntityList)
-			setVcEntityList(vcEntityList);
+			const storedCredentials = await fetchVcData();
+			if (storedCredentials != null && (credentialNumber.current === null || storedCredentials.length > credentialNumber.current)) {
+				setLatestCredentials(new Set([storedCredentials[0].batchId]));
+				setTimeout(() => {
+					setLatestCredentials(new Set());
+				}, 2000);
+				setVcEntityList((current) => {
+					if (!current || current.length != storedCredentials.length) {
+						return storedCredentials;
+					}
+					else {
+						return current;
+					}
+				});
+			}
+
+			credentialNumber.current = storedCredentials.length;
+
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
 	}, [getSession, fetchVcData, setVcEntityList]);
 
 	useEffect(() => {
+		if (!keystore || !credentialEngineReady) {
+			return;
+		}
 		getData();
-	}, [getData, setVcEntityList, keystore]);
+	}, [getData, keystore, credentialEngineReady]);
 
 	if (isLoggedIn && !credentialEngineReady) {
 		return (

@@ -137,7 +137,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, t, isLoggedIn, openID4VCI, openID4VP, setRedirectUri, vcEntityList]);
+	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList]);
 
 	return (
 		<>

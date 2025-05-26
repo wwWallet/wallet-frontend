@@ -249,7 +249,7 @@ export function useCredentialRequest() {
 		return { credentialResponse };
 	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
 
-	useEffect(() => {		
+	useEffect(() => {
 		if (!receivedCredentialsArray || !keystore) {
 			return;
 		}
@@ -266,7 +266,6 @@ export function useCredentialRequest() {
 						credentialConfigurationId: credentialConfigurationIdRef.current,
 						credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
 						batchId: batchId,
-						sigCount: 0,
 						instanceId: index,
 					}
 				}));
@@ -274,7 +273,6 @@ export function useCredentialRequest() {
 
 				await updatePrivateData(privateData);
 				await keystoreCommit();
-				getData(false);
 			}
 			catch (err) {
 				throw err;

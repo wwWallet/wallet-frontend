@@ -102,8 +102,8 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	getAllCredentials(): Promise<WalletBaseStateCredential[]>,
-	getAllPresentations(): Promise<WalletBaseStatePresentation[]>,
+	getAllCredentials(): Promise<WalletBaseStateCredential[] | null>,
+	getAllPresentations(): Promise<WalletBaseStatePresentation[] | null>,
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -554,8 +554,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [editPrivateData, openPrivateData])
 
 
-	const getAllCredentials = useCallback(async (): Promise<WalletBaseStateCredential[]> => {
-		return calculatedWalletState ? calculatedWalletState.credentials : [];
+	const getAllCredentials = useCallback(async (): Promise<WalletBaseStateCredential[] | null> => {
+		return calculatedWalletState ? calculatedWalletState.credentials : null;
 	}, [calculatedWalletState]);
 
 
@@ -584,8 +584,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [editPrivateData, getAllCredentials, calculatedWalletState]);
 
 
-	const getAllPresentations = useCallback(async (): Promise<WalletBaseStatePresentation[]> => {
-		return calculatedWalletState ? calculatedWalletState.presentations : [];
+	const getAllPresentations = useCallback(async (): Promise<WalletBaseStatePresentation[] | null> => {
+		return calculatedWalletState ? calculatedWalletState.presentations : null;
 	}, [calculatedWalletState]);
 
 

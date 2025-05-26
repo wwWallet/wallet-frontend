@@ -27,9 +27,6 @@ const Home = () => {
 
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	useEffect(() => {
-		getData();
-	}, [getData]);
 
 	const handleAddCredential = () => {
 		navigate('/add');
