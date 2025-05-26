@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 
 // Context
-import CredentialParserContext from '@/context/CredentialParserContext';
+import CredentialsContext from '@/context/CredentialsContext';
 
 // Components
 import Slider from '../Shared/Slider';
@@ -11,7 +11,6 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 
 import useScreenType from '../../hooks/useScreenType';
 
-import { initializeCredentialEngine } from '../../lib/initializeCredentialEngine';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { CredentialVerificationError } from "wallet-common/dist/error";
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
@@ -19,7 +18,7 @@ import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
 	const [vcEntities, setVcEntities] = useState([]);
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential, credentialEngine } = useContext(CredentialsContext);
 	const screenType = useScreenType();
 	const httpProxy = useHttpProxy();
 	// Parse all the credentials when historyItem changes
@@ -28,7 +27,6 @@ const HistoryDetailContent = ({ historyItem }) => {
 			Promise.all(
 				historyItem.map(async (credential) => {
 					const parsedCredential = await parseCredential(credential);
-					const credentialEngine = await initializeCredentialEngine(httpProxy);
 
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
@@ -55,7 +53,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 		if (historyItem.length > 0) {
 			parseAllCredentials();
 		}
-	}, [historyItem, parseCredential, httpProxy]);
+	}, [historyItem, parseCredential, httpProxy, credentialEngine]);
 
 	const renderSlideContent = (vcEntity, index) => (
 		<div

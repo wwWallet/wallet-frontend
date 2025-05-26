@@ -14,7 +14,7 @@ import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
-import CredentialParserContext from "@/context/CredentialParserContext";
+import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
@@ -27,10 +27,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialsContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 	const { t } = useTranslation();
+	const { post, get } = api;
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -55,7 +56,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await api.post('/storage/vp', {
+			await post('/storage/vp', {
 				presentationIdentifier: generateRandomIdentifier(32),
 				presentation,
 				presentationSubmission,
@@ -64,14 +65,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				issuanceDate: new Date().toISOString(),
 			});
 		},
-		[api]
+		[post]
 	);
 
 	const getAllStoredVerifiableCredentials = useCallback(async () => {
-		const fetchAllCredentials = await api.get("/storage/vc");
+		const fetchAllCredentials = await get("/storage/vc");
 		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
 	},
-		[api]
+		[get]
 	);
 
 	const promptForCredentialSelection = useCallback(
@@ -544,7 +545,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				description: "The verification process has been completed",
 			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
+		[httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {

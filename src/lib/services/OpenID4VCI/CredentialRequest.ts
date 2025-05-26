@@ -21,9 +21,11 @@ export function useCredentialRequest() {
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
 
-	const requestKeyAttestation = async (jwks: JWK[], nonce: string) => {
+	const { post ,updatePrivateData } = api;
+
+	const requestKeyAttestation = useCallback( async (jwks: JWK[], nonce: string) => {
 		try {
-			const response = await api.post("/wallet-provider/key-attestation/generate", {
+			const response = await post("/wallet-provider/key-attestation/generate", {
 				jwks,
 				openid4vci: {
 					nonce: nonce,
@@ -40,7 +42,8 @@ export function useCredentialRequest() {
 			console.log(err);
 			return null;
 		}
-	}
+	},[[post]]
+);
 
 	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/json',
@@ -147,7 +150,7 @@ export function useCredentialRequest() {
 			else if (proofType === "attestation") {
 				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
-				await api.updatePrivateData(newPrivateData);
+				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				const publicKeys = keypairs.map(kp => kp.publicKey);
 
@@ -160,7 +163,7 @@ export function useCredentialRequest() {
 
 			if (proofs) {
 				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
-				await api.updatePrivateData(newPrivateData);
+				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
 					credentialEndpointBody.proofs = {
@@ -217,7 +220,7 @@ export function useCredentialRequest() {
 			throw new Error("Credential Request failed");
 		}
 		return { credentialResponse };
-	}, [api, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
+	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
 
 	return useMemo(() => ({
 		setCredentialEndpoint,
