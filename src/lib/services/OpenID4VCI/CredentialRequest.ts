@@ -30,7 +30,7 @@ export function useCredentialRequest() {
 
 	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
-	const { post ,updatePrivateData } = api;
+	const { post, updatePrivateData } = api;
 
 	const requestKeyAttestation = useCallback( async (jwks: JWK[], nonce: string) => {
 		try {
@@ -249,16 +249,17 @@ export function useCredentialRequest() {
 		return { credentialResponse };
 	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
 
-	useEffect(() => {
+	useEffect(() => {		
 		if (!receivedCredentialsArray || !keystore) {
 			return;
 		}
-
+		const temp = [ ...receivedCredentialsArray ];
+		setReceivedCredentialsArray(null);
 		const batchId = WalletStateUtils.getRandomUint32();
 		// wait for keystore update before commiting the new credentials
 		(async () => {
 			try {
-				const [, privateData, keystoreCommit] = await keystore.addCredentials(receivedCredentialsArray.map((credential, index) => {
+				const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
 					return {
 						data: credential,
 						format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
@@ -271,16 +272,15 @@ export function useCredentialRequest() {
 				}));
 				console.log("Private data len = ", privateData.jwe.length)
 
-				await api.updatePrivateData(privateData);
+				await updatePrivateData(privateData);
 				await keystoreCommit();
 				getData(false);
-				setReceivedCredentialsArray(null);
 			}
 			catch (err) {
 				throw err;
 			}
 		})();
-	}, [keystore, receivedCredentialsArray, getData])
+	}, [keystore, receivedCredentialsArray, getData, updatePrivateData])
 
 	return useMemo(() => ({
 		setCredentialEndpoint,

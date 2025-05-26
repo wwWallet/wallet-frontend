@@ -87,7 +87,7 @@ const Home = () => {
 											{/* Update HistoryList based on current slide */}
 											{vcEntityList[currentSlide - 1] && (
 												<HistoryList
-													credentialId={vcEntityList[currentSlide - 1].batchIdentifier}
+													credentialId={vcEntityList[currentSlide - 1].batchId}
 													history={history}
 													title="Recent History"
 													limit={3}
