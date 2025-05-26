@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback, useRef } from 'react';
+import React, { useContext, useEffect, useCallback, useRef, useMemo } from 'react';
 
 import StatusContext from './StatusContext';
 import { useApi } from '../api';
@@ -50,12 +50,12 @@ export const SessionContextProvider = ({ children }) => {
 		};
 	}, []);
 
-	const value: SessionContextValue = {
+	const value: SessionContextValue = useMemo(() => ({
 		api,
 		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
 		keystore,
 		logout,
-	};
+	}), [api, keystore, logout]);
 
 	return (
 		<SessionContext.Provider value={value}>

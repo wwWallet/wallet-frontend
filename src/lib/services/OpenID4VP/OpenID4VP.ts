@@ -14,25 +14,26 @@ import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
-import CredentialParserContext from "@/context/CredentialParserContext";
+import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
-import CredentialsContext, { ExtendedVcEntity } from "@/context/CredentialsContext";
+import { ExtendedVcEntity } from "@/context/CredentialsContext";
 
 export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialsContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 
 	const { t } = useTranslation();
+	const { post } = api;
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -57,7 +58,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await api.post('/storage/vp', {
+			await post('/storage/vp', {
 				presentationIdentifier: generateRandomIdentifier(32),
 				presentation,
 				presentationSubmission,
@@ -66,7 +67,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				issuanceDate: new Date().toISOString(),
 			});
 		},
-		[api]
+		[post]
 	);
 
 

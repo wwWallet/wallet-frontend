@@ -1,21 +1,18 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
 import { OpenID4VCIClientState } from '../../types/OpenID4VCIClientState';
 import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
-import { StorableCredential } from '../../types/StorableCredential';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useCallback, useContext, useMemo, useEffect, useRef } from 'react';
-import SessionContext from '@/context/SessionContext';
-import CredentialsContext from '@/context/CredentialsContext';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
-import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import type { CredentialConfigurationSupported } from 'wallet-common';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
@@ -24,8 +21,6 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
-	const { api } = useContext(SessionContext);
-	const { getData } = useContext<any>(CredentialsContext);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
@@ -106,7 +101,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			return;
 
 		},
-		[openID4VCIHelper, api, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
+		[openID4VCIHelper, openID4VCIClientStateRepository, credentialRequestBuilder]
 	);
 
 	const requestCredentials = useCallback(

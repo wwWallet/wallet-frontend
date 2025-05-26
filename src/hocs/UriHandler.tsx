@@ -25,6 +25,7 @@ export const UriHandler = ({ children }) => {
 	const { openID4VCI } = useContext(OpenID4VCIContext);
 	const { openID4VP } = useContext(OpenID4VPContext);
 
+	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse } = openID4VCI;
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
@@ -53,28 +54,31 @@ export const UriHandler = ({ children }) => {
 		}
 
 		async function handle(urlToCheck: string) {
-
 			const u = new URL(urlToCheck);
 			if (u.searchParams.size === 0) return;
-			setUrl(window.location.origin);
+			// setUrl(window.location.origin);
+			console.log('[Uri Handler]: check', url);
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				openID4VCI.handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
+				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
 					console.log("Generating authorization request...");
-					return openID4VCI.generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
+					return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
 				}).then((res) => {
 					if ('url' in res && res.url) {
 						window.location.href = res.url;
 					}
 				})
-					.catch((err) => console.error(err));
+					.catch(err => {
+						window.history.replaceState({}, '', `${window.location.pathname}`);
+						console.error(err);
+					})
 				return;
 			}
 			else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code'))) {
 				setUsedAuthorizationCodes((codes) => [...codes, u.searchParams.get('code')]);
 
 				console.log("Handling authorization response...");
-				openID4VCI.handleAuthorizationResponse(u.toString()).then(() => {
+				handleAuthorizationResponse(u.toString()).then(() => {
 				}).catch(err => {
 					console.log("Error during the handling of authorization response")
 					window.history.replaceState({}, '', `${window.location.pathname}`);
@@ -115,6 +119,7 @@ export const UriHandler = ({ children }) => {
 					}
 				}).catch(err => {
 					console.log("Failed to handle authorization req");
+					window.history.replaceState({}, '', `${window.location.pathname}`);
 					console.error(err);
 				})
 				return;
