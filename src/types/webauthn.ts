@@ -1,3 +1,6 @@
+export type PublicKeyCredentialCreation = PublicKeyCredential & { response: AuthenticatorAttestationResponse };
+export type PublicKeyCredentialAssertion = PublicKeyCredential & { response: AuthenticatorAssertionResponse };
+
 export interface AuthenticationExtensionsPRFInputs {
 	eval?: AuthenticationExtensionsPRFValues;
 	evalByCredential?: { [credIdB64u: string]: AuthenticationExtensionsPRFValues };

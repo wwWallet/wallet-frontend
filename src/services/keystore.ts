@@ -16,7 +16,7 @@ import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { toArrayBuffer } from "../types/webauthn";
-import type { AuthenticationExtensionsPRFInputs } from "../types/webauthn";
+import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -141,6 +141,11 @@ export function isAsymmetricPasswordKeyInfo(passwordKeyInfo: PasswordKeyInfo): p
 			? false
 			: isAsymmetricWrappedKeyInfo(passwordKeyInfo)
 	);
+}
+
+export type PrecreatedPublicKeyCredential = {
+	credential: PublicKeyCredentialCreation,
+	prfSalt: Uint8Array,
 }
 
 export type WebauthnPrfSaltInfo = {
@@ -645,6 +650,30 @@ async function derivePrfKey(
 	);
 }
 
+function addWebauthnRegistrationExtensionInputs(options: CredentialCreationOptions): [
+	CredentialCreationOptions,
+	Uint8Array,
+] {
+	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
+	return [
+		{
+			...options,
+			publicKey: {
+				...options.publicKey,
+				extensions: {
+					...options.publicKey.extensions,
+					prf: {
+						eval: {
+							first: prfSalt,
+						},
+					},
+				}
+			},
+		},
+		prfSalt,
+	];
+}
+
 function makeRegistrationPrfExtensionInputs(credential: PublicKeyCredential, prfSalt: BufferSource): {
 	allowCredentials: PublicKeyCredentialDescriptor[],
 	prfInput: AuthenticationExtensionsPRFInputs,
@@ -838,19 +867,24 @@ export async function upgradePrfKey(
 	return newPrivateData;
 };
 
-export async function addPrf(
+export async function beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> {
+	const [options, prfSalt] = addWebauthnRegistrationExtensionInputs(createOptions)
+	const credential = await navigator.credentials.create(options) as PublicKeyCredentialCreation;
+	return { credential, prfSalt };
+}
+
+export async function finishAddPrf(
 	privateData: EncryptedContainer,
-	credential: PublicKeyCredential,
+	credential: PrecreatedPublicKeyCredential,
 	[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
-	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
 	const mainKey = await unwrapKey(existingUnwrapKey, privateData.mainKey, wrappedMainKey, true);
 	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
 
 	const keyInfo = await createPrfKey(
-		credential,
-		prfSalt,
+		credential.credential,
+		credential.prfSalt,
 		mainKeyInfo,
 		mainKey,
 		promptForPrfRetry,
@@ -987,11 +1021,30 @@ export async function initPassword(
 	};
 }
 
+async function createPublicKeyCredentialIfNeeded(
+	credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
+): Promise<PrecreatedPublicKeyCredential> {
+	if ("credential" in credentialOrCreateOptions) {
+		return credentialOrCreateOptions;
+
+	} else {
+		const [createOptions, prfSalt] = addWebauthnRegistrationExtensionInputs(credentialOrCreateOptions)
+		return {
+			credential: await navigator.credentials.create(createOptions) as PublicKeyCredentialCreation,
+			prfSalt,
+		};
+	}
+}
+
 export async function initPrf(
-	credential: PublicKeyCredential,
-	prfSalt: Uint8Array,
+	credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
-): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
+): Promise<{
+	credential: PublicKeyCredentialCreation,
+	mainKey: CryptoKey,
+	keyInfo: AsymmetricEncryptedContainerKeys,
+}> {
+	const { credential, prfSalt } = await createPublicKeyCredentialIfNeeded(credentialOrCreateOptions);
 	const mainKeyInfo = await createAsymmetricMainKey();
 	const keyInfo = await createPrfKey(
 		credential,
@@ -1001,6 +1054,7 @@ export async function initPrf(
 		promptForPrfRetry,
 	);
 	return {
+		credential,
 		mainKey: mainKeyInfo.mainKey,
 		keyInfo: {
 			mainKey: mainKeyInfo.keyInfo,
