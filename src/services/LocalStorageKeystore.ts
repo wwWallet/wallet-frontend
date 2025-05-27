@@ -139,6 +139,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		async (): Promise<void> => {
 			console.log('Keystore Close');
 			await idb.destroy();
+			setCalculatedWalletState(null);
 			clearPrivateData();
 			clearGlobalUserHandleB64u();
 		},

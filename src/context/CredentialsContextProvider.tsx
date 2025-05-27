@@ -143,7 +143,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		try {
 			const storedCredentials = await fetchVcData();
 			if (storedCredentials != null && (credentialNumber.current === null || storedCredentials.length > credentialNumber.current)) {
-				setLatestCredentials(new Set([storedCredentials[0].batchId]));
+				setLatestCredentials(storedCredentials.length > 0 ? new Set([storedCredentials[0].batchId]) : new Set());
 				setTimeout(() => {
 					setLatestCredentials(new Set());
 				}, 2000);
