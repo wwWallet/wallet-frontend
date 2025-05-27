@@ -75,7 +75,7 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		user: CachedUser | UserData,
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
-	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
+	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo | undefined,
 	getPasswordOrPrfKeyFromSession(
 		promptForPassword: () => Promise<string | null>,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
@@ -264,7 +264,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const init = useCallback(async (
 		mainKey: CryptoKey,
 		keyInfo: AsymmetricEncryptedContainerKeys,
-		user: UserData,
+		user: UserData | null,
 	): Promise<EncryptedContainer> => {
 		const unlocked = await keystore.init(mainKey, keyInfo);
 		await finishUnlock(unlocked, user);
