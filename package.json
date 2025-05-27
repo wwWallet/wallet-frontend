@@ -80,8 +80,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
-    "vitest": "VITE_CJS_IGNORE_WARNING=true vitest run src/",
-    "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest src/",
+    "test-start": "VITE_CJS_IGNORE_WARNING=true vitest src/",
     "translations": "node translation_coverage/translations.js"
   },
   "repository": "https://github.com/wwwallet/wallet-frontend",
