@@ -13,7 +13,7 @@ import useScreenType from '../../hooks/useScreenType';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
-import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
+import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
@@ -95,7 +95,7 @@ const WebauthnRegistation = ({
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
-	const [pendingCredential, setPendingCredential] = useState(null);
+	const [pendingCredential, setPendingCredential] = useState<PrecreatedPublicKeyCredential | null>(null);
 	const [nickname, setNickname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
@@ -120,7 +120,7 @@ const WebauthnRegistation = ({
 				setBeginData(beginData);
 
 				try {
-					const credential = await navigator.credentials.create(beginData.createOptions);
+					const credential = await keystore.beginAddPrf(beginData.createOptions);
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
@@ -131,7 +131,7 @@ const WebauthnRegistation = ({
 				setIsSubmitting(false);
 			}
 		},
-		[api],
+		[api, keystore],
 	);
 
 	const onCancel = () => {
@@ -149,7 +149,7 @@ const WebauthnRegistation = ({
 
 		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
 			try {
-				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
+				const [newPrivateData, keystoreCommit] = await keystore.finishAddPrf(
 					pendingCredential,
 					[unwrappingKey, wrappedMainKey],
 					async () => {
@@ -162,21 +162,23 @@ const WebauthnRegistation = ({
 					},
 				);
 
+				const { credential } = pendingCredential;
+
 				setIsSubmitting(true);
 				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
 					nickname,
 					credential: {
-						type: pendingCredential.type,
-						id: pendingCredential.id,
-						rawId: pendingCredential.rawId,
+						type: credential.type,
+						id: credential.id,
+						rawId: credential.rawId,
 						response: {
-							attestationObject: pendingCredential.response.attestationObject,
-							clientDataJSON: pendingCredential.response.clientDataJSON,
-							transports: pendingCredential.response.getTransports(),
+							attestationObject: credential.response.attestationObject,
+							clientDataJSON: credential.response.clientDataJSON,
+							transports: credential.response.getTransports(),
 						},
-						authenticatorAttachment: pendingCredential.authenticatorAttachment,
-						clientExtensionResults: pendingCredential.getClientExtensionResults(),
+						authenticatorAttachment: credential.authenticatorAttachment,
+						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 					privateData: serializePrivateData(newPrivateData),
 				}));
