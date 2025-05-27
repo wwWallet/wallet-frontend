@@ -571,36 +571,24 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			console.log("begin", beginData);
 
 			try {
-				const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-				const credential = retryFrom?.credential || await navigator.credentials.create({
-					...beginData.createOptions,
-					publicKey: {
-						...beginData.createOptions.publicKey,
-						user: {
-							...beginData.createOptions.publicKey.user,
-							name,
-							displayName: name,
-						},
-						extensions: {
-							prf: {
-								eval: {
-									first: prfSalt,
+				try {
+					const [credential, privateData] = await keystore.initPrf(
+						retryFrom?.credential ?? {
+							...beginData.createOptions,
+							publicKey: {
+								...beginData.createOptions.publicKey,
+								user: {
+									...beginData.createOptions.publicKey.user,
+									name,
+									displayName: name,
 								},
+								hints: webauthnHints,
 							},
 						},
-						hints: webauthnHints,
-					},
-				}) as PublicKeyCredential;
-				const response = credential.response as AuthenticatorAttestationResponse;
-				console.log("created", credential);
-
-				try {
-					const privateData = await keystore.initPrf(
-						credential,
-						prfSalt,
 						promptForPrfRetry,
 						{ displayName: name, userHandle: beginData.createOptions.publicKey.user.id },
 					);
+					const response = credential.response;
 
 					try {
 						const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
@@ -633,7 +621,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 							return Err('canceled');
 
 						case "prf_retry_failed":
-							return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
+							return Err({ errorId: 'prfRetryFailed', retryFrom: { credential: e.cause.credential, beginData } });
 
 						case "prf_not_supported":
 							return Err('passkeySignupPrfNotSupported');

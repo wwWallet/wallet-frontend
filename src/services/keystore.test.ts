@@ -6,6 +6,7 @@ import * as util from '@cef-ebsi/key-did-resolver/dist/util.js';
 import * as keystore from "./keystore.js";
 import { byteArrayEquals, fromBase64, jsonParseTaggedBinary, toBase64, toBase64Url } from "../util";
 import { DidKeyVersion } from "../config.js";
+import { PublicKeyCredentialCreation } from "../types/webauthn.js";
 
 
 async function asyncAssertThrows(fn: () => Promise<any>, message: string): Promise<unknown> {
@@ -19,15 +20,16 @@ async function asyncAssertThrows(fn: () => Promise<any>, message: string): Promi
 
 function mockPrfCredential(
 	{ id, prfOutput }: { id: Uint8Array, prfOutput: Uint8Array },
-): PublicKeyCredential {
+): PublicKeyCredentialCreation {
 	return {
+		type: "public-key",
 		id: toBase64Url(id),
 		rawId: id.buffer,
 		getClientExtensionResults: () => ({ prf: { results: { first: prfOutput.buffer } } }),
 		response: {
 			getTransports: () => [],
 		},
-	} as unknown as PublicKeyCredential;
+	} as unknown as PublicKeyCredentialCreation;
 }
 
 
@@ -56,14 +58,12 @@ function formatContainerTestCaseCode(containerJson: string): string {
 
 describe("The keystore", () => {
 	it("can initialize the key store with a PRF key.", async () => {
-		const prfSalt = fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0=");
 		const mockCredential = mockPrfCredential({
 			id: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 			prfOutput: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
 		});
 		const { mainKey, keyInfo } = await keystore.initPrf(
-			mockCredential,
-			prfSalt,
+			{ credential: mockCredential, prfSalt: null },
 			async () => false,
 		);
 		const { privateData } = await keystore.init(mainKey, keyInfo);
@@ -769,12 +769,15 @@ describe("The keystore", () => {
 		const [passwordKey,] = await keystore.getPasswordKey(privateData, "Asdf123!");
 
 		const credentialId = fromBase64("iy755++V64pc9quxa20eVs2mwwwsJcbmlql0OKHMpA1w/hWAlMIPjosYmgJuh0Y+");
-		const newPrivateData = await keystore.addPrf(
+		const newPrivateData = await keystore.finishAddPrf(
 			privateData,
-			mockPrfCredential({
-				id: credentialId,
-				prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
-			}),
+			{
+				credential: mockPrfCredential({
+					id: credentialId,
+					prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
+				}),
+				prfSalt: null,
+			},
 			[passwordKey, privateData.passwordKey],
 			async () => false,
 		);
@@ -843,12 +846,15 @@ describe("The keystore", () => {
 		);
 
 		const newCredentialId = fromBase64("iy755++V64pc9quxa20eVs2mwwwsJcbmlql0OKHMpA1w/hWAlMIPjosYmgJuh0Y+");
-		const newPrivateData = await keystore.addPrf(
+		const newPrivateData = await keystore.finishAddPrf(
 			privateData,
-			mockPrfCredential({
-				id: newCredentialId,
-				prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
-			}),
+			{
+				credential: mockPrfCredential({
+					id: newCredentialId,
+					prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
+				}),
+				prfSalt: null,
+			},
 			[prfKey, keyInfo as keystore.WebauthnPrfEncryptionKeyInfoV2],
 			async () => false,
 		);
