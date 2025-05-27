@@ -64,6 +64,7 @@
     "@types/reflect-metadata": "^0.1.0",
     "@sd-jwt/core": "^0.10.0",
     "@vitejs/plugin-react": "^4.3.3",
+    "cbor-web": "^9.0.2",
     "depcheck": "^1.4.7",
     "eslint": "^8.56.0",
     "eslint-config-react-app": "^7.0.1",
