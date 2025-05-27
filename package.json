@@ -11,6 +11,7 @@
     "asn1js": "^3.0.5",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
+    "cbor-web": "^9.0.2",
     "dcql": "^0.4.2",
     "wallet-common": "./lib/wallet-common",
     "cose-kit": "^1.7.1",
