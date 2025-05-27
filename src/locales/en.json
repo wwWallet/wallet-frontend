@@ -43,6 +43,8 @@
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"refresh": "Refresh",
 		"save": "Save",
+		"showLess": "Show less",
+		"showMore": "Show more",
 		"submit": "Submit",
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
@@ -145,7 +147,7 @@
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
 		"popup": {
-			"message": "If you continue, you will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+			"message": "You will be redirected to <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> to issue a <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
 			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search credential..."
@@ -184,7 +186,7 @@
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
 		"popup": {
-			"message": "If you continue, you will be redirected to <strong>{{verifierName}}</strong>.",
+			"message": "You will be redirected to <strong>{{verifierName}}</strong>.",
 			"title": "Selected:"
 		},
 		"searchPlaceholder": "Search verifiers..."
@@ -277,6 +279,13 @@
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
 		"title": "Scan the QR Code"
 	},
+	"qrShareMdoc": {
+		"communicating": "Communicating with verifier...",
+		"enablePermissions": "We couldn't access nearby device features. Please enable nearby devices permissions in your settings and restart the app.",
+		"nearbyVerifierRequested": "A nearby verifier requested the following fields:",
+		"send": "Send",
+		"shareUsingQR": "Share using QRCode"
+	},
 	"queryableList": {
 		"all": "All",
 		"recent": "Recent"
@@ -295,15 +304,14 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"descriptionFieldsMultiple": "Requested fields:",
-		"descriptionFieldsSingle": "Requested field:",
+		"descriptionFieldsMultiple": "Requested Fields:",
+		"descriptionFieldsSingle": "Requested Field:",
 		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
-		"purpose": "Purpose of <strong> {{verifierDomainName}}: </strong>",
-		"purposeNotSpecified": "Purpose not specified by verifier",
-		"requestedFieldsLess": "Show less",
-		"requestedFieldsMore": "Show more",
-		"title": "Select : "
+		"purpose": "Purpose: {{verifierPurpose}}",
+		"purposeNotSpecified": " Not specified by verifier",
+		"requestingParty": "Requesting Party: <strong> {{verifierDomainName}} </strong>",
+		"title": "Select: "
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",

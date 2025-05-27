@@ -21,9 +21,11 @@ export function useCredentialRequest() {
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
 
-	const requestKeyAttestation = async (jwks: JWK[], nonce: string) => {
+	const { post ,updatePrivateData } = api;
+
+	const requestKeyAttestation = useCallback( async (jwks: JWK[], nonce: string) => {
 		try {
-			const response = await api.post("/wallet-provider/key-attestation/generate", {
+			const response = await post("/wallet-provider/key-attestation/generate", {
 				jwks,
 				openid4vci: {
 					nonce: nonce,
@@ -40,7 +42,8 @@ export function useCredentialRequest() {
 			console.log(err);
 			return null;
 		}
-	}
+	},[[post]]
+);
 
 	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/json',
@@ -93,14 +96,10 @@ export function useCredentialRequest() {
 			throw new Error("CredentialRequest: dpopPublicKeyJwk was not defined");
 		}
 
-		if (!jti) {
-			throw new Error("CredentialRequest: jti was not defined");
-		}
 
 		const credentialEndpointDPoP = await generateDPoP(
 			dpopPrivateKeyRef.current,
 			dpopPublicKeyJwk,
-			jti,
 			"POST",
 			credentialEndpointURL,
 			dpopNonce,
@@ -120,9 +119,9 @@ export function useCredentialRequest() {
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
 
-		const [credentialIssuerMetadata, clientId] = await Promise.all([
+		const [credentialIssuerMetadata, clientId ] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
-			openID4VCIHelper.getClientId(credentialIssuerIdentifier)
+			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
 
 		const credentialEndpointBody = {
@@ -151,7 +150,7 @@ export function useCredentialRequest() {
 			else if (proofType === "attestation") {
 				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
-				await api.updatePrivateData(newPrivateData);
+				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				const publicKeys = keypairs.map(kp => kp.publicKey);
 
@@ -164,7 +163,7 @@ export function useCredentialRequest() {
 
 			if (proofs) {
 				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
-				await api.updatePrivateData(newPrivateData);
+				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
 					credentialEndpointBody.proofs = {
@@ -209,8 +208,8 @@ export function useCredentialRequest() {
 		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
 
 		if (credentialResponse.status !== 200) {
-			console.log("Error: Credential response = ", JSON.stringify(credentialResponse));
-			if ((credentialResponse.headers["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
+			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
+			if (credentialResponse.headers?.["www-authenticate"] && (credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
 				console.log("Calling credentialRequest with new dpop-nonce....")
 
 				setDpopNonce(credentialResponse.headers?.["dpop-nonce"] as string);
@@ -221,7 +220,7 @@ export function useCredentialRequest() {
 			throw new Error("Credential Request failed");
 		}
 		return { credentialResponse };
-	}, [api, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
+	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
 
 	return useMemo(() => ({
 		setCredentialEndpoint,

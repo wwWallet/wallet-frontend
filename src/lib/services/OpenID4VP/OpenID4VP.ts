@@ -1,6 +1,6 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
-import { HasherAlgorithm, HasherAndAlgorithm, SdJwt } from "@sd-jwt/core";
+import { SDJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "../../schemas/vc";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
@@ -14,7 +14,7 @@ import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
-import CredentialParserContext from "@/context/CredentialParserContext";
+import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
@@ -22,15 +22,16 @@ import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
 
-export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialsContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 	const { t } = useTranslation();
+	const { post, get } = api;
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -55,7 +56,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await api.post('/storage/vp', {
+			await post('/storage/vp', {
 				presentationIdentifier: generateRandomIdentifier(32),
 				presentation,
 				presentationSubmission,
@@ -64,14 +65,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				issuanceDate: new Date().toISOString(),
 			});
 		},
-		[api]
+		[post]
 	);
 
 	const getAllStoredVerifiableCredentials = useCallback(async () => {
-		const fetchAllCredentials = await api.get("/storage/vc");
+		const fetchAllCredentials = await get("/storage/vc");
 		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
 	},
-		[api]
+		[get]
 	);
 
 	const promptForCredentialSelection = useCallback(
@@ -304,10 +305,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				return new Uint8Array(hashBuffer);
 			}
 
-			const hasherAndAlgorithm: HasherAndAlgorithm = {
-				hasher: async (input: string) => hashSHA256(input),
-				algorithm: HasherAlgorithm.Sha256
-			}
+			const hasher = (data: string | ArrayBuffer, alg: string) => {
+				const encoded =
+					typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+
+				return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
+			};
 
 			/**
 			*
@@ -399,10 +402,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 						.map((field) => field.path)
 						.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
 					let presentationFrame = generatePresentationFrameForPaths(allPaths);
-					const sdJwt = SdJwt.fromCompact<Record<string, unknown>, any>(
-						vcEntity.credential
-					).withHasher(hasherAndAlgorithm);
-					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame) : vcEntity.credential;
+					const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
+					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame, hasher) : vcEntity.credential;
 					let transactionDataResponseParams = undefined;
 					if (transaction_data) {
 						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)
@@ -544,7 +545,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup }: 
 				description: "The verification process has been completed",
 			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
+		[httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {

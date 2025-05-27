@@ -3,4 +3,5 @@ export interface IMdocAppCommunication {
 	startClient() :Promise<boolean>;
 	getMdocRequest() :Promise<string[]>;
 	sendMdocResponse() :Promise<void>;
+	terminateSession() :Promise<void>;
 }
