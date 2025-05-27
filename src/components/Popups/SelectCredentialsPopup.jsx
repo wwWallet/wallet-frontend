@@ -80,11 +80,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
 
 	const requestedFieldsPerCredential = useMemo(() => {
-		console.log('!popupState', popupState)
 
 		if (!popupState?.options) return {};
 		const map = popupState.options.conformantCredentialsMap;
-		console.log('!map', map)
 		const result = {};
 		for (const [descriptorId, entry] of Object.entries(map)) {
 			const seen = new Set();
@@ -95,7 +93,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				return true;
 			});
 		}
-		console.log('result', result)
 		return result;
 	}, [popupState]);
 
@@ -109,14 +106,20 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	useEffect(() => {
 		const getData = async () => {
+			const currentKey = keys[currentIndex];
 			if (currentIndex === Object.keys(popupState.options.conformantCredentialsMap).length + 2) {
 				reinitialize();
 				popupState.resolve(new Map(Object.entries(currentSelectionMap)));
 				return;
 			}
+
+			if (currentKey === 'preview' || currentKey === 'summary') {
+				setVcEntities([]);
+				return;
+			}
 			try {
 				const filteredVcEntities = vcEntityList.filter(vcEntity =>
-					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.credentialIdentifier)
+					popupState.options.conformantCredentialsMap[currentKey].credentials.includes(vcEntity.credentialIdentifier)
 				);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
@@ -244,7 +247,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						) : (
 							<>
 								<FaIdCard size={24} />
-								{t('selectCredentialPopup.title') + formatTitle(stepTitles[currentIndex])}
+								{t('selectCredentialPopup.selectTitle') + formatTitle(stepTitles[currentIndex])}
 							</>
 						)}
 					</h2>
@@ -255,14 +258,12 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{keys[currentIndex] === 'preview' && (
 					<>
 						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-2">
-							{t('selectCredentialPopup.introDescription')}
+							{t('selectCredentialPopup.previewDescription')}
 						</p>
 						{popupState.options.verifierDomainName && (
 							<p className="pd-2 text-gray-700 text-sm dark:text-white mb">
 								<span className="text-primary text-sm font-bold dark:text-white">
-									<Trans
-										i18nKey={"selectCredentialPopup.requestingParty"}
-									/>
+									{t('selectCredentialPopup.requestingParty')}
 								</span>
 								<span className="font-medium">
 									{popupState.options.verifierDomainName}
@@ -277,9 +278,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							return (
 								<p className="pd-2 text-gray-700 text-sm dark:text-white">
 									<span className="text-primary text-sm font-bold dark:text-white">
-										<Trans
-											i18nKey="selectCredentialPopup.purpose"
-										/>
+										{t('selectCredentialPopup.purpose')}
 									</span>
 									<span className="font-medium">
 										{textToDisplay}
@@ -300,7 +299,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						})()}
 						<div className="mt-4">
 							<p className="text-primary dark:text-white text-sm font-bold mt-3">
-								Requested Credential(s)/Fields:
+								{t('selectCredentialPopup.requestedCredentialsFieldsTitle')}
 							</p>
 							{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
 								const names = fields.map(f => f.name || f.path?.[0]);
@@ -341,7 +340,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{keys[currentIndex] !== 'preview' && keys[currentIndex] !== 'summary' && (
 					<>
 						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
-							{t('selectCredentialPopup.descriptionSelect')}
+							{t('selectCredentialPopup.selectDescription')}
 						</p>
 						<div>
 						</div>
@@ -375,35 +374,34 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Summary step */}
 				{keys[currentIndex] === 'summary' && (
 					<>
-						<h2 className="text-lg font-bold text-primary dark:text-white">{t('selectCredentialPopup.summary')}</h2>
-						<p className="text-sm dark:text-white mt-2">{t('selectCredentialPopup.selectedCredentialsReview')}</p>
-
-						<div className={`xm:px-4 px-16 sm:px-24 md:px-8`}>
-							<Slider
-								items={selectedVcEntities}
-								renderSlideContent={(vc, idx) => (
-									<div key={vc.id} className="rounded-xl overflow-hidden shadow">
-										<CredentialImage
-											vcEntity={vc}
-											parsedCredential={vc.parsedCredential}
-											className="w-full object-cover rounded-xl"
-											showRibbon
-										/>
-									</div>
-								)}
-								onSlideChange={(index) => setCurrentSummarySlide(index)}
+						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
+							<Trans
+								i18nKey="selectCredentialPopup.summaryDescription"
+								components={{ strong: <strong /> }}
 							/>
-
-							{selectedVcEntities?.[currentSummarySlide] ? (
-								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
-									<CredentialInfo
-										parsedCredential={selectedVcEntities[currentSummarySlide].parsedCredential}
-										mainClassName="text-xs w-full"
-									/>
-								</div>
-							) : (
-								<CredentialInfoSkeleton />
-							)}
+						</p>
+						<div className="flex flex-col gap-4">
+							{selectedVcEntities.map((vcEntity) => {
+								const descriptorId = Object.keys(currentSelectionMap).find(
+									(key) => currentSelectionMap[key] === vcEntity.credentialIdentifier
+								);
+								return (
+									<div
+										key={vcEntity.credentialIdentifier}
+										className="flex flex-row items-center gap-2 mt-2"
+									>
+										<CredentialImage
+											vcEntity={vcEntity}
+											parsedCredential={vcEntity.parsedCredential}
+											className="w-32 rounded-md"
+											showRibbon={false}
+										/>
+										<p className="text-md font-semibold text-gray-800 dark:text-white">
+											{formatTitle(descriptorId)}
+										</p>
+									</div>
+								);
+							})}
 						</div>
 					</>
 				)}
