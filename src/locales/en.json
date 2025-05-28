@@ -305,13 +305,13 @@
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
-		"previewDescription": "You will be asked to select credentials that match the below requirements",
+		"previewDescription": "You will be asked to select credentials that match the requirements below.",
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
 		"requestedCredentialsFieldsTitle": "Requested Credentials/Fields:",
 		"requestingParty": "Requesting Party: ",
-		"selectDescription": "Select the one Credential you want to present.",
+		"selectDescription": "Select the Credential you want to present.",
 		"selectTitle": "Select: ",
 		"summaryDescription": "You are about to share the selected credential(s) below, <strong>including only the requested fields</strong>.",
 		"summaryTitle": "Summary"
