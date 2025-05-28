@@ -30,10 +30,15 @@ export default {
 					'0%': { transform: 'translateY(-100%)' },
 					'100%': { transform: 'translateY(0)' },
 				},
+				'quick-blur': {
+					'0%': { filter: 'blur(2px)' },
+					'100%': { filter: 'blur(0)' },
+				},
 			},
 			animation: {
 				'slide-in-up': 'slide-in-up 0.5s ease-out forwards',
 				'slide-in-down': 'slide-in-down 0.5s ease-out forwards',
+				'quick-blur': 'quick-blur 0.3s ease-in'
 			},
 		},
 	},
