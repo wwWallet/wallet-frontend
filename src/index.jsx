@@ -20,6 +20,9 @@ initializeDataSource()
 	.then(() => console.log('Database initialized'))
 	.catch((err) => console.error('Error initializing database', err));
 
+navigator.registerProtocolHandler("web+openidvp", "https://toast.noc.uoa.gr/%s");
+console.log("Protocol set");
+
 // Create root and render app
 const root = createRoot(document.getElementById('root'));
 root.render(
