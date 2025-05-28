@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const MAX_STRING_LENGTH = 100;
 
 const JsonViewer = ({ name, value, depth = 0 }) => {
+	const { t } = useTranslation();
 	const [expanded, setExpanded] = useState(depth === 0);
 	const [showFullString, setShowFullString] = useState(false);
 
@@ -59,7 +61,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 						onClick={toggleString}
 						className="ml-2 text-xs text-blue-700 dark:text-blue-300 underline"
 					>
-						{showFullString ? 'Show less' : 'Show more'}
+						{showFullString ? `${t('common.showLess')}` : `${t('common.showMore')}`}
 					</button>
 				)}
 			</div>
