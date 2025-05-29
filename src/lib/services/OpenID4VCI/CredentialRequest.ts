@@ -193,14 +193,7 @@ export function useCredentialRequest() {
 		}
 
 
-		const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
-
-		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.DC_SDJWT && credentialConfigurationSupported.vct) {
-			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
-		}
-		else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
-			credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
-		}
+		credentialEndpointBody.credential_configuration_id = credentialConfigurationId;
 
 		console.log("Credential endpoint body = ", credentialEndpointBody);
 
