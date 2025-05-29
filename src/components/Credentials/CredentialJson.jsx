@@ -15,10 +15,9 @@ const CredentialJson = ({ parsedCredential }) => {
 
 		const container = e.target.closest('.json-container');
 		if (container) {
-			container.classList.remove('blur-[2px]');
+			container.classList.remove('animate-quick-blur');
 			void container.offsetWidth;
-			container.classList.add('blur-[2px]');
-			setTimeout(() => container.classList.remove('blur-[2px]'), 200);
+			container.classList.add('animate-quick-blur');
 		}
 	};
 
