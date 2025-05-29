@@ -226,7 +226,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	);
 
 	return (
-		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0">
+		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0" shouldCloseOnOverlayClick={false}>
 			<div className={`${screenType === 'desktop' && 'p-4'}`}>
 
 				{keys.length > 1 && (
