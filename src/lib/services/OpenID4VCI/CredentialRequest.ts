@@ -4,7 +4,7 @@ import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { OPENID4VCI_PROOF_TYPE_PRECEDENCE } from "../../../config";
 
 export function useCredentialRequest() {
@@ -195,8 +195,7 @@ export function useCredentialRequest() {
 
 		const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
 
-
-		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
+		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.DC_SDJWT && credentialConfigurationSupported.vct) {
 			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
 		}
 		else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {

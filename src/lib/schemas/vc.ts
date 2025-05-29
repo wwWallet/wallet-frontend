@@ -1,8 +1,4 @@
-export enum VerifiableCredentialFormat {
-	SD_JWT_VC = "vc+sd-jwt",
-	VC_JWT = "vc_jwt",
-	MSO_MDOC = "mso_mdoc"
-}
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 
 export enum VerifiablePresentationFormat {
 	VP_JWT = "vp_jwt"
