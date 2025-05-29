@@ -303,6 +303,7 @@
 		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
+		"baseTitle": "Send Credentials",
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
 		"previewDescription": "You will be asked to select credentials that match the requirements below.",

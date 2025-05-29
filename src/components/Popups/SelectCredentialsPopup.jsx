@@ -237,17 +237,17 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						{keys[currentIndex] === 'preview' ? (
 							<>
 								<FaInfo size={22} />
-								{t('selectCredentialPopup.previewTitle')}
+								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.previewTitle')}
 							</>
 						) : keys[currentIndex] === 'summary' ? (
 							<>
 								<MdFactCheck size={24} />
-								{t('selectCredentialPopup.summaryTitle')}
+								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.summaryTitle')}
 							</>
 						) : (
 							<>
 								<FaIdCard size={24} />
-								{t('selectCredentialPopup.selectTitle') + formatTitle(stepTitles[currentIndex])}
+								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.selectTitle') + formatTitle(stepTitles[currentIndex])}
 							</>
 						)}
 					</h2>
