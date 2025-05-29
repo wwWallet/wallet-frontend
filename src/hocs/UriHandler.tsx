@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import checkForUpdates from "../offlineUpdateSW";
 import StatusContext from "../context/StatusContext";
@@ -8,6 +8,7 @@ import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
+import { CachedUser } from "@/services/LocalStorageKeystore";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -18,7 +19,7 @@ export const UriHandler = ({ children }) => {
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore } = useContext(SessionContext);
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
@@ -36,11 +37,37 @@ export const UriHandler = ({ children }) => {
 	const [redirectUri, setRedirectUri] = useState(null);
 	const { vcEntityList } = useContext(CredentialsContext);
 
+	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
+	const [synced, setSynced] = useState(false);
+
 	useEffect(() => {
-		setUrl(window.location.href);
-		checkForUpdates();
-		updateOnlineStatus(false);
-	}, [location, updateOnlineStatus]);
+		if (!keystore) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === keystore.getUserHandleB64u())[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
+
+	useEffect(() => {
+		if (!keystore || !cachedUser || !api) {
+			return;
+		}
+		console.log("Location changed..")
+		if (synced === false) {
+			api.syncPrivateData(keystore, async () => false, cachedUser).then((r) => {
+				if (!r.ok) {
+					return;
+				}
+				setSynced(true);
+				setUrl(window.location.href);
+				checkForUpdates();
+				updateOnlineStatus(false);
+			});
+		}
+
+	}, [location, updateOnlineStatus, api, keystore, cachedUser, synced, setSynced]);
 
 	useEffect(() => {
 		if (redirectUri) {
@@ -49,7 +76,7 @@ export const UriHandler = ({ children }) => {
 	}, [redirectUri]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP || !vcEntityList) {
+		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP || !vcEntityList || !synced) {
 			return;
 		}
 
@@ -137,7 +164,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList]);
+	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList, synced]);
 
 	return (
 		<>

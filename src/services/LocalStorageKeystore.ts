@@ -261,12 +261,16 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 		setMainKey(exportedMainKey);
 		setPrivateData(privateData);
+		// after private data update, the calculated wallet state must be re-computed
+		const [, , newCalculatedWalletState] = await keystore.openPrivateData(exportedMainKey, privateData);
+		setCalculatedWalletState(newCalculatedWalletState);
 	}, [
 		setUserHandleB64u,
 		setGlobalUserHandleB64u,
 		setCachedUsers,
 		setMainKey,
-		setPrivateData
+		setPrivateData,
+		setCalculatedWalletState
 	]);
 
 

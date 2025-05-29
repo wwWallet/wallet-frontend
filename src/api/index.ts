@@ -6,7 +6,7 @@ import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
-import { useEffect, useCallback, useMemo,useRef } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
@@ -79,6 +79,19 @@ export interface BackendApi {
 	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
 	/** Register a storage hook handle to be cleared when `useApi().clearSession()` is invoked. */
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
+
+	syncPrivateData(
+		keystore: LocalStorageKeystore,
+		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>>;
 }
 
 export function useApi(isOnline: boolean | null): BackendApi {
@@ -415,6 +428,35 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		}
 	}, [post]);
 
+	const syncPrivateData = useCallback(async (
+		keystore: LocalStorageKeystore,
+		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>> => {
+
+		try {
+			const getPrivateDataResponse = await get('/user/session/private-data');
+			if (privateDataEtag && getPrivateDataResponse.headers['x-private-data-etag'] && getPrivateDataResponse.headers['x-private-data-etag'] === privateDataEtag) {
+				return Ok.EMPTY; // already synced
+			}
+			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
+			return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+		}
+		catch (err) {
+			console.error(err);
+			return Err('syncFailed');
+		}
+
+	}, [privateDataEtag, get]);
+
+
 	const loginWebauthn = useCallback(async (
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
@@ -680,6 +722,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 		addEventListener,
 		removeEventListener,
+
+		syncPrivateData,
 	}), [
 		del,
 		get,
@@ -706,6 +750,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 		addEventListener,
 		removeEventListener,
+
+		syncPrivateData,
 	]);
 
 	return {
