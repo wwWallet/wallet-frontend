@@ -154,6 +154,7 @@
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
+		"copyDatasetToClipboard": "Copy Dataset (JSON) to clipboard",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialTitle": "Credential",
