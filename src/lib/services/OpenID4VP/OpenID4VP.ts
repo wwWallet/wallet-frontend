@@ -1,7 +1,7 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
@@ -213,7 +213,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				for (const vc of vcList) {
 					try {
 
-						if (vc.format === VerifiableCredentialFormat.SD_JWT_VC && (descriptor.format === undefined || VerifiableCredentialFormat.SD_JWT_VC in descriptor.format)) {
+						if (vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) {
 							const result = await parseCredential(vc.credential);
 							if ('error' in result) {
 								throw new Error('Could not parse credential');
@@ -396,7 +396,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			let i = 0;
 			for (const [descriptor_id, credentialIdentifier] of selectionMap) {
 				const vcEntity = filteredVCEntities.filter((vc) => vc.credentialIdentifier === credentialIdentifier)[0];
-				if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC) {
+				if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT) {
 					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 					const allPaths = descriptor.constraints.fields
 						.map((field) => field.path)
@@ -420,14 +420,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					if (selectionMap.size > 1) {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.SD_JWT_VC,
+							format: VerifiableCredentialFormat.DC_SDJWT,
 							path: `$[${i++}]`
 						});
 					}
 					else {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.SD_JWT_VC,
+							format: VerifiableCredentialFormat.DC_SDJWT,
 							path: `$`
 						});
 					}

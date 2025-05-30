@@ -4,8 +4,6 @@ import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
-import { OPENID4VCI_PROOF_TYPE_PRECEDENCE } from "../../../config";
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -42,7 +40,7 @@ export function useCredentialRequest() {
 			console.log(err);
 			return null;
 		}
-	},[[post]]
+	},[post]
 );
 
 	const httpHeaders = useMemo(() => ({
@@ -193,15 +191,7 @@ export function useCredentialRequest() {
 		}
 
 
-		const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
-
-
-		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
-			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
-		}
-		else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
-			credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
-		}
+		credentialEndpointBody.credential_configuration_id = credentialConfigurationId;
 
 		console.log("Credential endpoint body = ", credentialEndpointBody);
 
@@ -220,7 +210,7 @@ export function useCredentialRequest() {
 			throw new Error("Credential Request failed");
 		}
 		return { credentialResponse };
-	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
+	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
 
 	return useMemo(() => ({
 		setCredentialEndpoint,
