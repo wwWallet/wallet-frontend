@@ -108,7 +108,7 @@ const QueryableList = <T extends object>({
 				</p>
 			) : (
 				<div
-					className="max-h-screen-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
+					className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
 					style={{ maxHeight: "80vh" }}
 				>
 					{filteredList.map((el) => (
