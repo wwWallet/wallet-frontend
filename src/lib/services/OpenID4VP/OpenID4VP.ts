@@ -108,7 +108,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const requestObject = requestUriResponse.data as string; // jwt
 				const [header, payload] = requestObject.split('.');
 				const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
-
+				if (parsedHeader.typ !== "oauth-authz-req+jwt") {
+					return { error: HandleAuthorizationRequestError.INVALID_TYP };
+				}
 				const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
 				const verificationResult = await jwtVerify(requestObject, publicKey).catch(() => null);
 				if (verificationResult == null) {
