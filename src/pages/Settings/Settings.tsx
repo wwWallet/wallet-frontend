@@ -21,6 +21,7 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
+import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -108,7 +109,7 @@ const WebauthnRegistation = ({
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
 	const onBegin = useCallback(
-		async () => {
+		async (webauthnHint) => {
 			setBeginData(null);
 			setIsSubmitting(true);
 			setPendingCredential(null);
@@ -120,8 +121,16 @@ const WebauthnRegistation = ({
 			if (beginData.challengeId) {
 				setBeginData(beginData);
 
+				const createOptions = {
+					...beginData.createOptions,
+					publicKey: {
+						...beginData.createOptions.publicKey,
+						hints: [webauthnHint],
+					},
+				};
+
 				try {
-					const credential = await navigator.credentials.create(beginData.createOptions);
+					const credential = await navigator.credentials.create(createOptions);
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
@@ -206,24 +215,32 @@ const WebauthnRegistation = ({
 	const registrationInProgress = Boolean(beginData || pendingCredential);
 
 	return (
-		<>
-			<Button
-				id="add-passkey-settings"
-				onClick={onBegin}
-				variant="primary"
-				disabled={registrationInProgress || !unlocked || !isOnline}
-				// title={!unlocked ? t("pageSettings.deletePasskeyButtonTitleLocked") : ""}
-
-				ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-				title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-			>
-				<div className="flex items-center">
-					<BsPlusCircle size={20} />
-					<span className='hidden md:block ml-2'>
-						{t('pageSettings.addPasskey')}
-					</span>
-				</div>
-			</Button>
+		<div className="flex flex-row flex-wrap items-baseline gap-2">
+			<span className="flex-grow">{t('pageSettings.addPasskey')}</span>
+			{
+				[
+					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
+					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
+					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
+				].map(({ Icon, hint, btnLabel }) => (
+					<Button
+						key={hint}
+						id={`add-passkey-settings-${hint}`}
+						onClick={() => onBegin(hint)}
+						variant="primary"
+						disabled={registrationInProgress || !unlocked || !isOnline}
+						ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+						title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+					>
+						<div className="flex items-center">
+							<Icon size={20} />
+							<span className='hidden md:block ml-2'>
+								{btnLabel}
+							</span>
+						</div>
+					</Button>
+				))
+			}
 
 			<Dialog
 				open={stateChooseNickname}
@@ -323,7 +340,7 @@ const WebauthnRegistation = ({
 					</Button>
 				</div>
 			</Dialog>
-		</>
+		</div>
 	);
 };
 
@@ -948,12 +965,12 @@ const Settings = () => {
 							<div className='mb-2'>
 								<div className="pt-4">
 									<H3 heading={t('pageSettings.title.manageOtherPasskeys')}>
-										<WebauthnRegistation
-											unwrappingKey={unwrappingKey}
-											wrappedMainKey={wrappedMainKey}
-											onSuccess={() => refreshData()}
-										/>
 									</H3>
+									<WebauthnRegistation
+										unwrappingKey={unwrappingKey}
+										wrappedMainKey={wrappedMainKey}
+										onSuccess={() => refreshData()}
+									/>
 									<ul className="mt-4">
 
 										{userData.webauthnCredentials

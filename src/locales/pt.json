@@ -74,7 +74,6 @@
 		"loginCache": "Escolha a sua conta",
 		"loginKeystoreFailed": "Não foi possível aceder ao armazenamento de chaves da carteira. Por favor, tente novamente.",
 		"loginLocalKeystoreFailed": "Não foi possível iniciar o armazenamento de chaves da carteira. Por favor, tente novamente.",
-		"loginPasskey": "Iniciar sessão com chave de acesso",
 		"loginSubmit": "Iniciar sessão",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
 		"newHereQuestion": "Ainda não tem conta? ",
@@ -96,9 +95,7 @@
 		"privateDataConflict": "Outra sessão associada a esta conta interrompeu a tentativa de início de sessão. Por favor, tente novamente.",
 		"reachedLengthLimit": "Tamanho máximo excedido",
 		"signUp": "Registar",
-		"signUpPasskey": "Registar com chave de acesso",
 		"signUpSubmit": "Registar",
-		"signupPasskey": "Registar com chave de acesso",
 		"specialCharacter": "Pelo menos, um carácter especial",
 		"strength": "Força",
 		"submitting": "A submeter...",
@@ -191,7 +188,7 @@
 		"searchPlaceholder": "Procurar verifiers..."
 	},
 	"pageSettings": {
-		"addPasskey": "Adicionar chave de acesso",
+		"addPasskey": "Adicionar chave de acesso:",
 		"addPasskeyTitle": "Clique para adicionar chave de acesso",
 		"appVersion": {
 			"descriptionLatestVersion": "Está, neste momento, a usar a versão mais recente ({{react_app_version}}) da $t(common.walletName).",
