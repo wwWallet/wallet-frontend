@@ -205,9 +205,9 @@ export function useHttpProxy(): IHttpProxy {
 				return response.data;
 			} catch (err) {
 				return {
-					data: err.response?.data || 'POST proxy failed',
-					headers: err.response?.headers || {},
-					status: err.response?.status || 500,
+					data: err.response.data.data,
+					headers: err.response.data.headers,
+					status: err.response.data.status || 500,
 				};
 			}
 		},
