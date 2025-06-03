@@ -423,14 +423,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					if (selectionMap.size > 1) {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.DC_SDJWT,
+							format: vcEntity.format,
 							path: `$[${i++}]`
 						});
 					}
 					else {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.DC_SDJWT,
+							format: vcEntity.format,
 							path: `$`
 						});
 					}
