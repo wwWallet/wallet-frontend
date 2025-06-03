@@ -81,17 +81,8 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId, selectedProofType);
 
-			const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
-
 			console.log("Response = ", credentialResponse)
-			const credentialArray = [];
-			if (numberOfProofs === 1 && credentialResponse.data.credential) {
-				const { credential } = credentialResponse.data;
-				credentialArray.push(credential);
-			}
-			else {
-				credentialArray.push(...credentialResponse.data.credentials);
-			}
+			const credentialArray = credentialResponse.data.credentials.map(c => c.credential);
 
 			const new_c_nonce = credentialResponse.data.c_nonce;
 			const new_c_nonce_expires_in = credentialResponse.data.c_nonce_expires_in;
