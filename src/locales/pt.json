@@ -297,7 +297,7 @@
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Clique para selecionar a {{friendlyName}}",
 		"nextButtonDisabledTitle": "Precisa de selecionar uma credencial para continuar",
-		"purpose": "Objetivo: {{verifierPurpose}}",
+		"purpose": "Objetivo: ",
 		"purposeNotSpecified": "Objetivo não especificado pelo verifier",
 		"selectDescription": "Selecione a credencial que deseja apresentar",
 		"selectTitle": "Selecionar: "
