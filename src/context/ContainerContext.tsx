@@ -269,6 +269,7 @@ export const ContainerContextProvider = ({ children }) => {
 
 							if (isOpenBadgeCredential) return beautifiedForm.credentialSubject.achievement.name;
 							if (t.includes('SupportCredential') || t.includes('ExamEnrollmentCredential')) return beautifiedForm.credentialSubject.title;
+							if (t.includes('AcademicEnrollmentCredential')) return beautifiedForm.credentialSubject.name;
 							if (storedCredentialConfigurationId === 'EduID') return 'eduID'
 
 							return result.beautifiedForm.name || credentialConfiguration?.display?.[0]?.name || 'Credential';

@@ -60,6 +60,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 	const { isOnline } = useContext(StatusContext);
 	const [parsedCredential, setParsedCredential] = useState(null);
 	const [credentialFormat, setCredentialFormat] = useState('');
+	const [issuerName, setIssuerName] = useState('');
 	const [credentialSubjectRows, setCredentialSubjectRows] = useState([]);
 	const container = useContext(ContainerContext);
 	const { api } = useContext(SessionContext);
@@ -84,6 +85,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 			}
 
 			setParsedCredential(c.beautifiedForm);
+			setIssuerName(c.beautifiedForm.issuer?.name || '');
 
 			let iss = c.beautifiedForm.iss;
 
@@ -212,7 +214,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 								{!credentialSubjectRows.some(row => row.name === 'institution') && renderRow('institution', 'Institution', parsedCredential?.vc?.credentialSubject?.institution, screenType)}
 								{!credentialSubjectRows.some(row => row.name === 'valid_from') && renderRow('valid_from', 'Valid from', parsedCredential?.vc?.credentialSubject?.valid_from, screenType)}
 								{!credentialSubjectRows.some(row => row.name === 'valid_until') && renderRow('valid_until', 'Valid until', parsedCredential?.vc?.credentialSubject?.valid_until, screenType)}
-								{!credentialSubjectRows.some(row => row.name === 'issuer') && renderRow('issuer', 'Issuer', parsedCredential?.vc?.credentialSubject?.issuer, screenType)}
+								{!credentialSubjectRows.some(row => row.name === 'issuer') && renderRow('issuer', 'Issuer', parsedCredential?.vc?.credentialSubject?.issuer || issuerName, screenType)}
 							</>
 						)
 					}
