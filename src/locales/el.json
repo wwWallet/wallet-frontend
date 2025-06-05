@@ -306,7 +306,7 @@
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
 		"previewDescription": "Θα σας ζητηθεί να επιλέξετε credentials που πληρούν τις παρακάτω απαιτήσεις.",
 		"previewTitle": "Προεπισκόπηση",
-		"purpose": "Purpose: {{verifierPurpose}}",
+		"purpose": "Purpose: ",
 		"purposeNotSpecified": "Μη ορισμένο purpose από τον verifier.",
 		"requestedCredentialsFieldsTitle": "Ζητούμενα credentials/πεδία:",
 		"requestingParty": "Requesting Party: ",
