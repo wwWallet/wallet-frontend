@@ -300,13 +300,17 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Κάντε κλικ για να επιλέξετε το {{friendlyName}}",
-		"descriptionFieldsMultiple": "Ζητούμενα Πεδία:",
-		"descriptionFieldsSingle": "Ζητούμενο Πεδίο:",
-		"descriptionSelect": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
+		"previewDescription": "Θα σας ζητηθεί να επιλέξετε credentials που πληρούν τις παρακάτω απαιτήσεις.",
+		"previewTitle": "Προεπισκόπηση",
 		"purpose": "Purpose: {{verifierPurpose}}",
 		"purposeNotSpecified": "Μη ορισμένο purpose από τον verifier.",
-		"title": "Επιλογή: "
+		"requestedCredentialsFieldsTitle": "Ζητούμενα credentials/πεδία:",
+		"requestingParty": "Requesting Party: ",
+		"selectDescription": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
+		"selectTitle": "Επιλογή: ",
+		"summaryDescription": "Πρόκειται να μοιραστείτε τα παρακάτω επιλεγμένα credentials, <strong>συμπεριλαμβάνοντας μόνο τα αιτούμενα πεδία</strong>.",
+		"summaryTitle": "Σύνοψη"
 	},
 	"sidebar": {
 		"navItemLogout": "Αποσύνδεση",

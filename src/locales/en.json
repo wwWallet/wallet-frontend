@@ -154,6 +154,7 @@
 	},
 	"pageCredentials": {
 		"addCardTitle": "Add New Credential",
+		"copyDatasetToClipboard": "Copy Dataset (JSON) to clipboard",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
 		"credentialTitle": "Credential",
@@ -303,15 +304,19 @@
 		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
+		"baseTitle": "Send Credentials",
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
-		"descriptionFieldsMultiple": "Requested Fields:",
-		"descriptionFieldsSingle": "Requested Field:",
-		"descriptionSelect": "Select the one Credential you want to present.",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
-		"purpose": "Purpose: {{verifierPurpose}}",
+		"previewDescription": "You will be asked to select credentials that match the requirements below.",
+		"previewTitle": "Preview",
+		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
-		"requestingParty": "Requesting Party: <strong> {{verifierDomainName}} </strong>",
-		"title": "Select: "
+		"requestedCredentialsFieldsTitle": "Requested Credentials/Fields:",
+		"requestingParty": "Requesting Party: ",
+		"selectDescription": "Select the Credential you want to present.",
+		"selectTitle": "Select: ",
+		"summaryDescription": "You are about to share the selected credential(s) below, <strong>including only the requested fields</strong>.",
+		"summaryTitle": "Summary"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",

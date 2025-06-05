@@ -8,7 +8,7 @@ import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { toBase64 } from "@/util";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
-import { VerifiableCredentialFormat } from "../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
 	let ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
