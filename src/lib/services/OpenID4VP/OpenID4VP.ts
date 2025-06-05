@@ -1,7 +1,7 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
@@ -17,7 +17,7 @@ import SessionContext from "@/context/SessionContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
-import {DcqlQuery, DcqlPresentationResult} from 'dcql';
+import { DcqlQuery, DcqlPresentationResult } from 'dcql';
 import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
@@ -123,6 +123,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		const [header, payload] = jwt.split('.');
 		const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
 
+		if (parsedHeader.typ !== "oauth-authz-req+jwt") {
+			return { error: HandleAuthorizationRequestError.INVALID_TYP };
+		}
 		const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
 		const verificationResult = await jwtVerify(jwt, publicKey).catch(() => null);
 		if (verificationResult == null) {
@@ -148,11 +151,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			for (const vc of vcList) {
 				try {
-					if (
-						(vc.format === VerifiableCredentialFormat.SD_JWT_VC || vc.format === VerifiableCredentialFormat.SD_JWT_VC) &&
-						(descriptor.format === undefined || VerifiableCredentialFormat.SD_JWT_VC in descriptor.format ||
-							VerifiableCredentialFormat.SD_JWT_DC in descriptor.format)
-					) {
+					if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
+						(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
 						const result = await parseCredential(vc.credential);
 						if ('error' in result) continue;
 						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
@@ -271,7 +271,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						for (const claim of credReq.claims) {
 							for (const p of claim.path) {
 								console.log('claim of requested claims: ', claim)
-								console.log('path of claim: ',  p)
+								console.log('path of claim: ', p)
 								const v = p.split('.').reduce((o, k) => o?.[k], signedClaims);
 								console.log('v: ', v)
 								if (v !== undefined) {
@@ -432,7 +432,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		for (const [descriptor_id, credentialIdentifier] of selectionMap) {
 			const vcEntity = filteredVCEntities.find(vc => vc.credentialIdentifier === credentialIdentifier);
 			console.log('vcEntity: ', vcEntity)
-			if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC || vcEntity.format === 'dc+sd-jwt') {
+			if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT || vcEntity.format === VerifiableCredentialFormat.VC_SDJWT) {
 				const descriptor = presentationDefinition.input_descriptors.find(desc => desc.id === descriptor_id);
 				const allPaths = descriptor.constraints.fields
 					.map(field => field.path)
@@ -465,14 +465,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				if (selectionMap.size > 1) {
 					descriptorMap.push({
 						id: descriptor_id,
-						format: VerifiableCredentialFormat.SD_JWT_VC,
+						format: vcEntity.format,
 						path: `$[${i++}]`
 					});
 				}
 				else {
 					descriptorMap.push({
 						id: descriptor_id,
-						format: VerifiableCredentialFormat.SD_JWT_VC,
+						format: vcEntity.format,
 						path: `$`
 					});
 				}
@@ -643,7 +643,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const { signedClaims, error } = await parseCredential(vcEntity.credential);
 
 				const shaped = {
-					credential_format: 'dc+sd-jwt' as const,
+					credential_format: signedClaims.format,
 					vct: signedClaims.vct,
 					claims: Object.fromEntries(
 						Object.entries(signedClaims).filter(([k, v]) =>
@@ -661,8 +661,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					throw new Error(`Presentation for '${dcqlId}' did not satisfy DCQL`);
 				}
 
+				const { vpjwt } = await keystore.signJwtPresentation(
+					S.nonce,
+					S.client_id,
+					[presentation]
+				);
+
 				selectedVCs.push(presentation);
-				generatedVPs.push(presentation);
+				generatedVPs.push(vpjwt);
 				originalVCs.push(vcEntity);
 
 			} else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
@@ -935,4 +941,3 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		handleAuthorizationRequest,
 		sendAuthorizationResponse,
 	]);
-}

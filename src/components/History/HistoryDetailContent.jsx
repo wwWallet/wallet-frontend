@@ -32,6 +32,8 @@ const HistoryDetailContent = ({ historyItem }) => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
 								return credentialEngine.sdJwtVerifier.verify({ rawCredential: credential, opts: {} });
+							case VerifiableCredentialFormat.DC_SDJWT:
+								return credentialEngine.sdJwtVerifier.verify({ rawCredential: credential, opts: {} });
 							case VerifiableCredentialFormat.MSO_MDOC:
 								return credentialEngine.msoMdocVerifier.verify({ rawCredential: credential, opts: {} });
 							default:

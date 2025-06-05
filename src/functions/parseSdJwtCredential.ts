@@ -4,10 +4,6 @@ import {
 	SdJwt,
 } from '@sd-jwt/core'
 
-export enum CredentialFormat {
-	VC_SD_JWT = "vc+sd-jwt",
-	JWT_VC_JSON = "jwt_vc_json"
-}
 
 const encoder = new TextEncoder();
 
