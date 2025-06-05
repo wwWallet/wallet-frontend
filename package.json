@@ -75,7 +75,7 @@
   },
   "scripts": {
     "start": "vite",
-    "start-docker": "npx vite",
+    "start-docker": "npx vite --no-open",
     "build": "vite build",
     "preview": "vite preview",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
