@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
-import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash } from 'react-icons/go';
+import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash, GoChevronDown } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -222,6 +222,9 @@ const WebauthnSignupLogin = ({
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
+	const [selectedButtonMethod, setSelectedButtonMethod] = useState('client-device');
+	const [additionalMethodsOpen, setAdditionalMethodsOpen] = useState(false);
+
 	const navigate = useNavigate();
 	const location = useLocation();
 	const from = location.search || '/';
@@ -556,27 +559,77 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && (
-							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
-							].map(({ Icon, hint, btnLabel }) => (
-								<Button
-									key={hint}
-									id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
-									type="submit"
-									variant="primary"
-									additionalClassName="w-full mt-2"
-									title={!isLogin && !isOnline && t("common.offlineTitle")}
-									value={hint}
-								>
-									<Icon className="inline text-xl mr-2 shrink-0" />
-									{isSubmitting
-										? t('loginSignup.submitting')
-										: btnLabel
-									}
-								</Button>
-							))
+							<div className='relative'>
+								<div className='flex items-center'>
+									{selectedButtonMethod === 'client-device' && (
+										<>
+										<Button
+											id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-client-device-submit-loginsignup`}
+											type="submit"
+											variant="primary"
+											additionalClassName={`w-full mt-2 flex-5 rounded-r-none ${additionalMethodsOpen ? 'rounded-b-none' : ''}`}
+											title={!isLogin && !isOnline && t("common.offlineTitle")}
+											value="client-device"
+										>
+											<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
+											{isSubmitting ? t('loginSignup.submitting') : t('common.platformPasskey')}
+										</Button>
+										<Button onClick={() => setAdditionalMethodsOpen(!additionalMethodsOpen)} variant="primary" additionalClassName={`mt-2 flex-1 rounded-l-none border-l border-l-gray-400 ${additionalMethodsOpen ? 'rounded-b-none' : ''}`}><GoChevronDown className="inline text-xl shrink-0" /></Button>
+										</>
+									)}
+
+									{selectedButtonMethod === 'security-key' && (
+										<>
+											<Button
+												id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-security-key-submit-loginsignup`}
+												type="submit"
+												variant="primary"
+												additionalClassName={`w-full mt-2 flex-5 rounded-r-none ${additionalMethodsOpen ? 'rounded-b-none' : ''}`}
+												title={!isLogin && !isOnline && t("common.offlineTitle")}
+												value="security-key"
+											>
+												<GoKey className="inline text-xl mr-2 shrink-0" />
+												{isSubmitting ? t('loginSignup.submitting') : t('common.externalPasskey')}
+											</Button>
+											<Button onClick={() => setAdditionalMethodsOpen(!additionalMethodsOpen)} variant="primary" additionalClassName={`mt-2 flex-1 rounded-l-none border-l border-l-gray-400 ${additionalMethodsOpen ? 'rounded-b-none' : ''}`}><GoChevronDown className="inline text-xl shrink-0" /></Button>
+										</>
+									)}
+
+									{selectedButtonMethod === 'hybrid' && (
+										<>
+											<Button
+												id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-hybrid-submit-loginsignup`}
+												type="submit"
+												variant="primary"
+												additionalClassName={`w-full mt-2 flex-5 rounded-r-none ${additionalMethodsOpen ? 'rounded-b-none' : ''}`}
+												title={!isLogin && !isOnline && t("common.offlineTitle")}
+												value="hybrid"
+											>
+												<GoDeviceMobile className="inline text-xl mr-2 shrink-0" />
+												{isSubmitting ? t('loginSignup.submitting') : t('common.hybridPasskey')}
+											</Button>
+											<Button onClick={() => setAdditionalMethodsOpen(!additionalMethodsOpen)} variant="primary" additionalClassName={`mt-2 flex-1 rounded-l-none border-l border-l-gray-400 ${additionalMethodsOpen ? 'rounded-b-none' : ''}`}><GoChevronDown className="inline text-xl shrink-0" /></Button>
+										</>
+									)}
+								</div>
+								{additionalMethodsOpen && (
+								<div className='text-gray-700 bg-gray-100 text-sm flex text-center absolute w-full rounded-b-lg'>
+									<ul className='flex-auto text-center w-full cursor-pointer px-0 py-0'>
+										{selectedButtonMethod != 'client-device' && (
+											<li onClick={() => {setSelectedButtonMethod('client-device'); setAdditionalMethodsOpen(false)}} className='px-4 py-1 hover:bg-gray-200'><GoPasskeyFill className="inline text-xl mr-2 shrink-0" /> {t('common.platformPasskey')}</li>
+										)}
+										{selectedButtonMethod != 'security-key' && (
+											<li onClick={() => {setSelectedButtonMethod('security-key'); setAdditionalMethodsOpen(false)}} className='px-4 py-1 hover:bg-gray-200'><GoKey className="inline text-xl mr-2 shrink-0" /> {t('common.externalPasskey')}</li>
+										)}
+										{selectedButtonMethod != 'hybrid' && (
+											<li onClick={() => {setSelectedButtonMethod('hybrid'); setAdditionalMethodsOpen(false)}} className='px-4 py-1 hover:bg-gray-200'><GoDeviceMobile className="inline text-xl mr-2 shrink-0" /> {t('common.hybridPasskey')}</li>
+										)}
+									</ul>
+									<div className='flex-1'></div>
+								</div>
+								)}
+
+							</div>
 						)}
 						{error && <div className="text-red-500 pt-2">{error}</div>}
 					</>
