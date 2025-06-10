@@ -1,5 +1,5 @@
 import * as cbor from 'cbor-web';
-import { COSE_ALG_ARKG_P256ADD_ECDH, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from './coseConstants';
+import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from './coseConstants';
 
 
 export type ParsedCOSEKey = {
@@ -256,11 +256,11 @@ export function parseCoseKeyArkgPubSeed(cose: cbor.Map): ParsedCOSEKeyArkgPubSee
 			let alg = cose.get(3);
 			switch (alg) {
 				case COSE_ALG_ESP256_ARKG:
-					console.warn(`WARNING: Wrong alg (3) value in ARKG-pub COSE_Key: ${alg}; should probably be ${COSE_ALG_ARKG_P256ADD_ECDH}`);
-					alg = COSE_ALG_ARKG_P256ADD_ECDH;
+					console.warn(`WARNING: Wrong alg (3) value in ARKG-pub COSE_Key: ${alg}; should probably be ${COSE_ALG_ARKG_P256}`);
+					alg = COSE_ALG_ARKG_P256;
 					break;
 
-				case COSE_ALG_ARKG_P256ADD_ECDH:
+				case COSE_ALG_ARKG_P256:
 					// OK; do nothing
 					break;
 

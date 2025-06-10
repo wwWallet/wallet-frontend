@@ -1,5 +1,6 @@
-import { concat, fromBase64Url, I2OSP, OS2IP, toBase64Url } from "../util";
+import { concat, fromBase64Url, I2OSP, OS2IP, toBase64Url, toU8 } from "../util";
 import { ParsedCOSEKeyEc2Public } from "../webauthn";
+import { bigIntFromBinary } from "./util";
 
 
 export type Curve = {
@@ -9,6 +10,7 @@ export type Curve = {
 	order: bigint,
 	generator: NonzeroPoint,
 	webCryptoName: string,
+	coordinateByteLength: number,
 };
 
 export type NonzeroPoint = { x: bigint, y: bigint };
@@ -16,7 +18,7 @@ export type ZeroPoint = "zero";
 export type Point = ZeroPoint | NonzeroPoint;
 
 
-export function newCurve(a: bigint, b: bigint, modulus: bigint, order: bigint, generator: NonzeroPoint, webCryptoName: string): Curve {
+export function newCurve(a: bigint, b: bigint, modulus: bigint, order: bigint, generator: NonzeroPoint, webCryptoName: string, coordinateByteLength: number): Curve {
 	const discriminant: bigint = 4n * a * a * a + 27n * b;
 	if (discriminant === 0n) {
 		throw Error("Discriminant is zero");
@@ -28,6 +30,7 @@ export function newCurve(a: bigint, b: bigint, modulus: bigint, order: bigint, g
 			order,
 			generator,
 			webCryptoName,
+			coordinateByteLength,
 		};
 	}
 }
@@ -46,6 +49,7 @@ export function curveSecp256r1(): Curve {
 			y: BigInt("0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5"),
 		},
 		"P-256",
+		32,
 	);
 }
 
@@ -62,7 +66,8 @@ export function curveSecp521r1(): Curve {
 			x: BigInt("0x00c6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66"),
 			y: BigInt("0x011839296A789A3BC0045C8A5FB42C7D1BD998F54449579B446817AFBD17273E662C97EE72995EF42640C550B9013FAD0761353C7086A272C24088BE94769FD16650"),
 		},
-		"P-256",
+		"P-521",
+		66,
 	);
 }
 
@@ -226,7 +231,7 @@ export async function publicKeyFromPoint(alg: string, namedCurve: "P-256", p: Po
 		concat(new Uint8Array([0x04]), I2OSP(p.x, L), I2OSP(p.y, L)),
 		{ name: alg, namedCurve },
 		true,
-		[alg === "ECDSA" ? "verify" : "deriveBits"],
+		alg === "ECDSA" ? ["verify"] : [],
 	);
 }
 
@@ -259,6 +264,22 @@ export async function privateKeyFromScalar(alg: string, namedCurve: "P-256", d: 
 		d: toBase64Url(I2OSP(d, L)),
 	};
 	return await crypto.subtle.importKey("jwk", jwk, { name: alg, namedCurve }, extractable, keyUsages);
+}
+
+export async function scalarFromPrivateKey(privateKey: CryptoKey): Promise<bigint> {
+	return bigIntFromBinary(fromBase64Url((await crypto.subtle.exportKey("jwk", privateKey)).d));
+}
+
+export async function pointFromRaw(crv: Curve, pubk: BufferSource): Promise<Point> {
+	const pk = toU8(pubk);
+	if (pubk[0] === 0x04) {
+		return assertIsOnCurve(crv, {
+			x: OS2IP(pk.slice(1, 33)),
+			y: OS2IP(pk.slice(33, 65)),
+		});
+	} else {
+		throw new Error("Unsupported point encoding", { cause: { point: pubk } });
+	}
 }
 
 export async function pointFromPublicKey(crv: Curve, pubk: CryptoKey): Promise<Point> {
