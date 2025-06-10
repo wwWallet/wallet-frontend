@@ -283,15 +283,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						}
 
 					}
-
 					const result = await DcqlQuery.query(parsed, [shaped]);
-					console.log('RESULT:', result);
 
 					const match = result.credential_matches[credReq.id];
 					if (match?.success) {
 						conforming.push(vc.credentialIdentifier);
 					}
-					console.log('shaped VC for DCQL:', shaped);
 					console.log('match:', match);
 				} catch (e) {
 					console.error('DCQL eval error for this VC:', e);
@@ -609,8 +606,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			console.log('dcqlId: ', dcqlId);
 
 			if (
-				vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC ||
-				vcEntity.format === 'dc+sd-jwt'
+				vcEntity.format === VerifiableCredentialFormat.VC_SDJWT ||
+				vcEntity.format === VerifiableCredentialFormat.DC_SDJWT
 			) {
 				const descriptor = dcql_query.credentials.find(c => c.id === dcqlId);
 				if (!descriptor) {
@@ -643,7 +640,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const { signedClaims, error } = await parseCredential(vcEntity.credential);
 
 				const shaped = {
-					credential_format: signedClaims.format,
+					credential_format: vcEntity.format,
 					vct: signedClaims.vct,
 					claims: Object.fromEntries(
 						Object.entries(signedClaims).filter(([k, v]) =>
@@ -651,7 +648,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						)
 					)
 				};
-
 				const presResult = DcqlPresentationResult.fromDcqlPresentation(
 					{ [dcqlId]: shaped },
 					{ dcqlQuery: dcql_query }
@@ -710,7 +706,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 				}
 				console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
-				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
+				const encodedDeviceResponse = deviceResponseMDoc.encode();
 
 				selectedVCs.push(encodedDeviceResponse);
 				generatedVPs.push(encodedDeviceResponse);
@@ -941,3 +937,4 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		handleAuthorizationRequest,
 		sendAuthorizationResponse,
 	]);
+}
