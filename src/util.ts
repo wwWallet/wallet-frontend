@@ -12,6 +12,39 @@ export function toHex(b: BufferSource): string {
 	return toU8(b).reduce((s, byte) => s + byte.toString(16).padStart(2, '0'), '');
 }
 
+export const HEX_ERR_LENGTH_ODD = 'LENGTH_ODD';
+export const HEX_ERR_INVALID_DIGITS = 'INVALID_DIGITS';
+
+export function fromHex(hex: string): BufferSource {
+	/* eslint-disable no-bitwise */
+
+	const normalized = hex.replaceAll(' ', '');
+
+	if (normalized.length % 2 !== 0) {
+		throw Error(`Invalid hex string: ${hex}`, { cause: HEX_ERR_LENGTH_ODD });
+
+	} else if (!normalized.match(/^[a-fA-F0-9]*$/u)) {
+		throw Error(`Invalid hex string: ${hex}`, { cause: HEX_ERR_INVALID_DIGITS });
+
+	} else {
+		return new Uint8Array(
+			normalized
+				.split('')
+				.reduce(
+					(bytes, digit, i) => {
+						if (i % 2 === 0) {
+							bytes.push(parseInt(digit, 16) << 4);
+						} else {
+							bytes[bytes.length - 1] |= parseInt(digit, 16);
+						}
+						return bytes;
+					},
+					[],
+				)
+		);
+	}
+};
+
 export function concat(...b: BufferSource[]): ArrayBuffer {
 	return b.map(toU8).reduce((a, b) => new Uint8Array([...a, ...b]), new Uint8Array([])).buffer;
 }
