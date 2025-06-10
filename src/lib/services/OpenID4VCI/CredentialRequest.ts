@@ -147,7 +147,9 @@ export function useCredentialRequest() {
 			}
 			else if (proofType === "attestation") {
 				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+				console.log("before generateKeypairs");
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
+				console.log("after generateKeypairs", keypairs);
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				const publicKeys = keypairs.map(kp => kp.publicKey);
@@ -160,7 +162,9 @@ export function useCredentialRequest() {
 			}
 
 			if (proofs) {
+				console.log("before generateOpenid4vciProofs");
 				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
+				console.log("after generateOpenid4vciProofs");
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
