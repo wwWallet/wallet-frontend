@@ -2,7 +2,7 @@ import { assert, describe, it } from "vitest";
 
 import { EcInstanceId, getEcInstance } from '.';
 import * as ec from './ec';
-import { byteArrayEquals, concat, toBase64, toHex } from '../util';
+import { byteArrayEquals, concat, fromHex, toBase64, toHex } from '../util';
 import { asyncAssertThrows } from '../testutil';
 
 
@@ -135,6 +135,55 @@ describe("ARKG", async () => {
 						);
 					}
 				}, { timeout: 60000 });
+
+				describe("passes test vectors:", async () => {
+					async function runTestVector(
+						info: string,
+						skBlHex: string,
+						skKemHex: string,
+						khHex: string,
+						expectDerivedSkHex: string,
+					) {
+						it(info, async () => {
+							const infoBytes = new TextEncoder().encode(info);
+							const sk = {
+								prik_bl: BigInt("0x" + skBlHex),
+								prik_kem: await ec.privateKeyFromScalar("ECDH", "P-256", BigInt("0x" + skKemHex), false, ["deriveBits"]),
+							};
+							const kh = fromHex(khHex);
+
+							const arkgInstance = getEcInstance('ARKG-P256ADD-ECDH');
+							const derivedPrivateKey = await arkgInstance.derivePrivateKey(sk, kh, infoBytes);
+
+							assert.equal(
+								derivedPrivateKey,
+								BigInt("0x" + expectDerivedSkHex),
+							);
+						});
+					}
+
+					await runTestVector(
+						"ARKG-P256ADD-ECDH.test vectors",
+						"a23d8fee87b11ebf9e15b306125bfbaec4cfb8f7ceb9fac21d6418e08de2fffa",
+						"8da3fbb332338675bf510f271c3849e5acdc8ff3c70896431b7ff867b687fa61",
+						"26729571445735ce3ef812c34d8fa4b4041de87c951ce50d774877aa126d51ef770adc85f65cb3735d437110a4b1ffe0c9a6b93dc98b395e61a9a30f4eb46dd2358beec7a7b6ee47f7357994c11d96ae71",
+						"75c04746a8234749152131fa778b909bb0bbd0542f25d311643361dce9fdccdc",
+					);
+					await runTestVector(
+						"ARKG-P256ADD-ECDH.test vectors.0",
+						"944d2b4d5cadad3a7eccdb83c8f5755403d94d782c600ec414d2f339c4568bd4",
+						"8118182368db06e9861cf421f26d579efcdd68448d502c0282a4b657a350d988",
+						"08f3f65abe207116aca477b5655e076a04f33b68d15e544c707eeb7e3361af94f80d305adf339dc79e9032a3f695a793decbfc3174c254698358bb82b66f2787809c7d705526332c70f111662adbac7a44",
+						"cc9fd36b23d2fae3f340ce208946ed8a009b761886105199b453dabe353da6fb",
+					);
+					await runTestVector(
+						"ARKG-P256ADD-ECDH.test vectors.1",
+						"91f31cdeddfc29c6cf57e03f49cf3c66624ad14026062868339a8aab59be5620",
+						"49b10d5bf91c04255c8007e0fa30d3b815dd50be0c42532cabd5b4010db1c551",
+						"95ecfb538565f77383de363a7884dcfd04e1079a5bc34ea830a96e18db1987d58f56e831894daddeb1e7e8803a1070eedaf80acc138fac948dacb7315d8c1aebe71897e35173cafba15c939f95aae53550",
+						"b8b9da66d862a7aa411e466d1fbe5b134c09f24cfc6b3b017a50bf8ffabf98c6",
+					);
+				});
 			});
 		});
 	}
