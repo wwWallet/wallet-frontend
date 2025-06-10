@@ -1291,7 +1291,7 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
 
 	const options = getCborEncodeDecodeOptions();
-  options.variableMapSize = true;
+	options.variableMapSize = true;
 	setCborEncodeDecodeOptions(options);
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
