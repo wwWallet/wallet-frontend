@@ -1190,11 +1190,13 @@ export async function initPassword(
 async function createPublicKeyCredentialIfNeeded(
 	credentialOrCreateOptions: PrecreatedPublicKeyCredential | CredentialCreationOptions,
 ): Promise<PrecreatedPublicKeyCredential> {
+	console.log("createPublicKeyCredentialIfNeeded", "credential" in credentialOrCreateOptions, credentialOrCreateOptions);
 	if ("credential" in credentialOrCreateOptions) {
 		return credentialOrCreateOptions;
 
 	} else {
 		const [createOptions, prfSalt] = addWebauthnRegistrationExtensionInputs(credentialOrCreateOptions)
+		console.log("createOptions", createOptions);
 		return {
 			credential: await navigator.credentials.create(createOptions) as PublicKeyCredentialCreation,
 			prfSalt,
@@ -1210,7 +1212,9 @@ export async function initWebauthn(
 	mainKey: CryptoKey,
 	keyInfo: AsymmetricEncryptedContainerKeys,
 }> {
+	console.log("initWebauthn", credentialOrCreateOptions);
 	const { credential, prfSalt } = await createPublicKeyCredentialIfNeeded(credentialOrCreateOptions);
+	console.log("initWebauthn", credential);
 	const mainKeyInfo = await createAsymmetricMainKey();
 	const keyInfo = await createPrfKey(
 		credential,

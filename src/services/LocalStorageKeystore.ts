@@ -464,6 +464,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const signJwtPresentation = useCallback(
 		async (nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> => {
+			console.log("signJwtPresentation", webauthnInteractionCtx);
 			const moveUiStateMachine = webauthnInteractionCtx.setup(
 				t("Sign credential presentation"),
 				state => {
