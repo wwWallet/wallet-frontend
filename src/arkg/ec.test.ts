@@ -43,7 +43,7 @@ function randomScalar(crv: Curve): bigint {
 }
 
 describe("EC", () => {
-	const testCurve = { name: "test", ...newCurve(0n, 7n, 37n, 3n * 13n, "zero" as unknown as NonzeroPoint, "") };
+	const testCurve = { name: "test", ...newCurve(0n, 7n, 37n, 3n * 13n, "zero" as unknown as NonzeroPoint, "", 1) };
 	const realCurves = [
 		{ name: "secp256r1", ...curveSecp256r1() },
 		{ name: "secp521r1", ...curveSecp521r1() },

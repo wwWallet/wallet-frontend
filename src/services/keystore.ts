@@ -1273,10 +1273,12 @@ async function generateCredentialKeypair(
 
 		const [arkgSeed] = arkgSeeds;
 		const arkgInstance = arkg.getCoseEcInstance(arkgSeed.publicSeed.alg);
-		const arkgInfo = new TextEncoder().encode('wwwallet credential');
+		const arkgIkm = crypto.getRandomValues(new Uint8Array(32));
+		const arkgCtx = new TextEncoder().encode('wwwallet credential');
 		const [pkPoint, arkgKeyHandle] = await arkgInstance.derivePublicKey(
 			await arkg.ecPublicKeyFromCose(arkgSeed.publicSeed),
-			arkgInfo,
+			arkgIkm,
+			arkgCtx,
 		);
 		const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
 		const externalPrivateKey: WebauthnSignArkgDerivedKeyRef = {
@@ -1286,7 +1288,7 @@ async function generateCredentialKeypair(
 				kid: arkgSeed.publicSeed.kid,
 				alg: COSE_ALG_ESP256_ARKG,
 				kh: new Uint8Array(arkgKeyHandle),
-				info: arkgInfo,
+				info: arkgCtx,
 			})),
 		};
 		return [publicKey, [null /* TODO: Remove assumption that private key will be returned */, { externalPrivateKey }]];
