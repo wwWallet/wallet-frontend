@@ -1,5 +1,5 @@
 /// Implementation of ARKG
-/// https://datatracker.ietf.org/doc/draft-bradleylundberg-cfrg-arkg/05/
+/// https://datatracker.ietf.org/doc/draft-bradleylundberg-cfrg-arkg/08/
 
 import * as ec from './ec';
 import * as hash_to_curve from './hash_to_curve';
@@ -62,18 +62,18 @@ type ArkgDerivePrivateKeyFunction<BlPrivateKey, KemPrivateKey, DerivedPrivateKey
 	) => Promise<DerivedPrivateKey>
 );
 type ArkgInstance<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey, DerivedPublicKey, DerivedPrivateKey> = {
-	/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-function-arkg-generate- */
+	/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-the-function-arkg-derive-se */
 	deriveSeed: ArkgDeriveSeedFunction<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey>,
 
-	/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-function-arkg-derive-pu */
+	/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-the-function-arkg-derive-pu */
 	derivePublicKey: ArkgDerivePublicKeyFunction<BlPublicKey, KemPublicKey, DerivedPublicKey>,
 
-	/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-function-arkg-derive-pr */
+	/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-the-function-arkg-derive-pr */
 	derivePrivateKey: ArkgDerivePrivateKeyFunction<BlPrivateKey, KemPrivateKey, DerivedPrivateKey>,
 }
 
 
-/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-the-asynchronous-remote-key */
+/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-the-asynchronous-remote-key */
 function arkg<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey, DerivedPublicKey, DerivedPrivateKey>(
 	bl: BlScheme<BlPublicKey, BlPrivateKey, DerivedPublicKey, DerivedPrivateKey>,
 	kem: KemScheme<KemPublicKey, KemPrivateKey>,
@@ -122,7 +122,7 @@ function arkg<BlPublicKey, BlPrivateKey, KemPublicKey, KemPrivateKey, DerivedPub
 	};
 }
 
-/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-using-elliptic-curve-additi */
+/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-using-elliptic-curve-additi */
 function arkgBlEcAdd(
 	hashToCurveSuiteId: hash_to_curve.SuiteId,
 	dst_ext: BufferSource,
@@ -168,7 +168,7 @@ function arkgBlEcAdd(
 	};
 }
 
-/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-using-hmac-to-adapt-a-kem-w */
+/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-using-hmac-to-adapt-a-kem-w */
 function arkgHmacKem<PublicKey, PrivateKey>(
 	hash: "SHA-256",
 	dst_ext: BufferSource,
@@ -255,7 +255,7 @@ function arkgHmacKem<PublicKey, PrivateKey>(
 	};
 }
 
-/** @see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-using-ecdh-as-the-kem */
+/** @see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-using-ecdh-as-the-kem */
 function arkgEcdhKem(
 	namedCurve: "P-256",
 	hash: "SHA-256",
@@ -267,8 +267,10 @@ function arkgEcdhKem(
 		throw new Error("Unknown curve: " + namedCurve);
 	}
 
+	const dst_aug = concat(new TextEncoder().encode('ARKG-ECDH.'), dst_ext);
+
 	const deriveKeypair = async (ikm: BufferSource): Promise<[CryptoKey, CryptoKey]> => {
-		const DST = concat(new TextEncoder().encode('ARKG-KEM-ECDH-KG.'), dst_ext);
+		const DST = concat(new TextEncoder().encode('ARKG-KEM-ECDH-KG.'), dst_aug);
 		const { hashToScalarField } = hash_to_curve.hashToCurve(hashToCurveSuiteId, DST);
 		const [[sk]] = await hashToScalarField(ikm, 1);
 		const pk = ec.vartimeMul(crv, crv.generator, sk);
@@ -278,7 +280,7 @@ function arkgEcdhKem(
 		];
 	};
 
-	return arkgHmacKem(hash, concat(new TextEncoder().encode('ARKG-ECDH.'), dst_ext), {
+	return arkgHmacKem(hash, dst_aug, {
 		deriveKeypair,
 
 		encaps: async (pubk: CryptoKey, ikm: BufferSource, _ctx: BufferSource): Promise<[ArrayBuffer, ArrayBuffer]> => {
@@ -297,7 +299,7 @@ function arkgEcdhKem(
 }
 
 /**
-	@see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-arkg-p256add-ecdh
+	@see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-arkg-p256
 	*/
 export type EcInstanceId = (
 	'ARKG-P256'
@@ -314,7 +316,7 @@ const ecInstances: { [id in EcInstanceId]: () => ArkgInstance<ec.Point, bigint, 
 /**
 	Instantiate an EC-based ARKG instance.
 
-	@see https://yubico.github.io/arkg-rfc/draft-bradleylundberg-cfrg-arkg.html#name-concrete-arkg-instantiation
+	@see https://www.ietf.org/archive/id/draft-bradleylundberg-cfrg-arkg-08.html#name-concrete-arkg-instantiation
 	*/
 export function getEcInstance(id: EcInstanceId): ArkgInstance<ec.Point, bigint, CryptoKey, CryptoKey, ec.Point, bigint> {
 	return ecInstances[id]();
