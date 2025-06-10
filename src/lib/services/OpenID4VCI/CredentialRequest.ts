@@ -4,11 +4,8 @@ import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import SessionContext from "@/context/SessionContext";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
-import { OPENID4VCI_PROOF_TYPE_PRECEDENCE } from "../../../config";
 import { OpenidCredentialIssuerMetadata } from "wallet-common";
 import CredentialsContext from "@/context/CredentialsContext";
-import { WalletStateOperations } from "@/services/WalletStateOperations";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 
 export function useCredentialRequest() {
@@ -51,7 +48,7 @@ export function useCredentialRequest() {
 			console.log(err);
 			return null;
 		}
-	},[[post]]
+	},[post]
 );
 
 	const httpHeaders = useMemo(() => ({
@@ -205,16 +202,9 @@ export function useCredentialRequest() {
 			throw new Error("Failed to generate proof");
 		}
 
-
-		const credentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
 		credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 
-		if (credentialConfigurationSupported.format === VerifiableCredentialFormat.SD_JWT_VC && credentialConfigurationSupported.vct) {
-			credentialEndpointBody.vct = credentialConfigurationSupported.vct;
-		}
-		else if (credentialConfigurationSupported.format === VerifiableCredentialFormat.MSO_MDOC && credentialConfigurationSupported.doctype) {
-			credentialEndpointBody.doctype = credentialConfigurationSupported.doctype;
-		}
+		credentialEndpointBody.credential_configuration_id = credentialConfigurationId;
 
 		console.log("Credential endpoint body = ", credentialEndpointBody);
 
@@ -233,21 +223,17 @@ export function useCredentialRequest() {
 			throw new Error("Credential Request failed");
 		}
 
-		const credentialResponseData = credentialResponse.data as Record<string, unknown>;
-		if (!('credential' in credentialResponseData) && !('credentials' in credentialResponseData)) {
-			return;
-		}
+		const credentialResponseData = credentialResponse.data as { credentials: { credential: string }[] };
 
-		const credentialArray: string[] = credentialResponseData.credential ?
-			[credentialResponseData.credential as string] :
-			[...(credentialResponseData as { credentials: string[] }).credentials];
+
+		const credentialArray: string[] = credentialResponseData.credentials.map((c) => c.credential);
 
 		setReceivedCredentialsArray(credentialArray);
 		// receivedCredentialsArrayRef.current = credentialArray;
 		console.log("Received credentials array = ", credentialArray)
 		console.log("Credential response: ", credentialResponse);
 		return { credentialResponse };
-	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders]);
+	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
 
 	useEffect(() => {
 		if (!receivedCredentialsArray || !keystore) {

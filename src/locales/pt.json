@@ -296,13 +296,11 @@
 	},
 	"selectCredentialPopup": {
 		"credentialSelectTitle": "Clique para selecionar a {{friendlyName}}",
-		"descriptionFieldsMultiple": "Campos Solicitados:",
-		"descriptionFieldsSingle": "Campo Solicitado:",
-		"descriptionSelect": "Selecione a credencial que deseja apresentar",
 		"nextButtonDisabledTitle": "Precisa de selecionar uma credencial para continuar",
-		"purpose": "Objetivo: {{verifierPurpose}}",
+		"purpose": "Objetivo: ",
 		"purposeNotSpecified": "Objetivo não especificado pelo verifier",
-		"title": "Selecionar: "
+		"selectDescription": "Selecione a credencial que deseja apresentar",
+		"selectTitle": "Selecionar: "
 	},
 	"sidebar": {
 		"navItemLogout": "Sair",

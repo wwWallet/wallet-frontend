@@ -1,7 +1,7 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
@@ -104,7 +104,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const requestObject = requestUriResponse.data as string; // jwt
 				const [header, payload] = requestObject.split('.');
 				const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
-
+				if (parsedHeader.typ !== "oauth-authz-req+jwt") {
+					return { error: HandleAuthorizationRequestError.INVALID_TYP };
+				}
 				const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
 				const verificationResult = await jwtVerify(requestObject, publicKey).catch(() => null);
 				if (verificationResult == null) {
@@ -209,7 +211,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				for (const vc of vcList) {
 					try {
 
-						if (vc.format === VerifiableCredentialFormat.SD_JWT_VC && (descriptor.format === undefined || VerifiableCredentialFormat.SD_JWT_VC in descriptor.format)) {
+						if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
+								(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
 							const result = await parseCredential(vc.data);
 							if ('error' in result) {
 								throw new Error('Could not parse credential');
@@ -390,7 +393,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			let i = 0;
 			for (const [descriptor_id, batchId] of selectionMap) {
 				const vcEntity = filteredVCEntities.filter((vc) => vc.batchId === batchId)[0];
-				if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC) {
+				if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT || vcEntity.format === VerifiableCredentialFormat.VC_SDJWT) {
 					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 					const allPaths = descriptor.constraints.fields
 						.map((field) => field.path)
@@ -414,14 +417,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					if (selectionMap.size > 1) {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.SD_JWT_VC,
+							format: vcEntity.format,
 							path: `$[${i++}]`
 						});
 					}
 					else {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.SD_JWT_VC,
+							format: vcEntity.format,
 							path: `$`
 						});
 					}
