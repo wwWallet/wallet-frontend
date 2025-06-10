@@ -292,7 +292,7 @@ function makeWebauthnSignFunction(
 											keyHandleByCredential: {
 												[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
 											},
-											phData: await crypto.subtle.digest("SHA-256", data),
+											tbs: await crypto.subtle.digest("SHA-256", data),
 										},
 									},
 								} as AuthenticationExtensionsClientInputs,
