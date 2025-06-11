@@ -234,7 +234,7 @@ type WebauthnSignArkgPublicSeed = {
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
 }
 
-type WebauthnSignArkgDerivedKeyRef = {
+type WebauthnSignKeyRef = {
 	credentialId: Uint8Array,
 	keyRef: Uint8Array,
 }
@@ -249,7 +249,7 @@ export type CredentialKeyPairWithWrappedPrivateKey = CredentialKeyPairCommon & {
 	wrappedPrivateKey: WrappedPrivateKey,
 }
 type CredentialKeyPairWithExternalPrivateKey = CredentialKeyPairCommon & {
-	externalPrivateKey: WebauthnSignArkgDerivedKeyRef,
+	externalPrivateKey: WebauthnSignKeyRef,
 }
 export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey | CredentialKeyPairWithExternalPrivateKey;
 
@@ -1267,7 +1267,7 @@ async function generateCredentialKeypair(
 	[encryptedContainer, mainKey]: OpenedContainer,
 ): Promise<[
 	CryptoKey,
-	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignArkgDerivedKeyRef }],
+	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignKeyRef }],
 ]> {
 	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
 	if (privateData?.arkgSeeds?.length > 0) {
@@ -1286,7 +1286,7 @@ async function generateCredentialKeypair(
 			arkgCtx,
 		);
 		const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
-		const externalPrivateKey: WebauthnSignArkgDerivedKeyRef = {
+		const externalPrivateKey: WebauthnSignKeyRef = {
 			credentialId: arkgSeed.credentialId,
 			keyRef: new Uint8Array(webauthn.encodeCoseKeyRefArkgDerived({
 				kty: COSE_KTY_ARKG_DERIVED,
