@@ -25,9 +25,9 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { api } = useContext(SessionContext);
-	const { getData } = useContext<any>(CredentialsContext);
+	const { getData, credentialEngine } = useContext<any>(CredentialsContext);
 
-	const {post} =api;
+	const { post } = api;
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
 	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
@@ -105,6 +105,21 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				sigCount: 0,
 				instanceId: index,
 			}));
+
+			for (const storableCredential of storableCredentials) {
+				const rawCredential = storableCredential.credential;
+				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
+				console.log('result', result);
+				if (result.success) {
+					console.log(`Credential parsed successfully:`, result.value);
+
+					if (result.value.warnings && result.value.warnings.length > 0) {
+						console.warn(`Credential had warnings:`, result.value.warnings);
+					}
+				} else {
+					console.error(`Credential failed to parse:`, result.error, result.message);
+				}
+			}
 
 			await post('/storage/vc', {
 				credentials: storableCredentials
