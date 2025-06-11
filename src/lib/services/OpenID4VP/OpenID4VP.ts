@@ -699,14 +699,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				// Convert dcql_query to presentation_definition
 				const presentationDefinition = convertDcqlToPresentationDefinition(dcql_query);
-
+				console.log('converted: ', presentationDefinition)
 				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, apu, apv, client_id, response_uri);
 				function uint8ArrayToHexString(uint8Array) {
 					// @ts-ignore
 					return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 				}
 				console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
-				const encodedDeviceResponse = deviceResponseMDoc.encode();
+				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
 
 				selectedVCs.push(encodedDeviceResponse);
 				generatedVPs.push(encodedDeviceResponse);
