@@ -193,6 +193,30 @@ function getEcKeyImportParams(cose: ParsedCOSEKeyEc2Public): [EcKeyImportParams,
 	}
 }
 
+function getCoseCurveCoordinateByteLength(crv: number): number {
+	switch (crv) {
+		case 1: // P-256
+			return 32;
+
+		default:
+			throw new Error(`Unsupported COSE elliptic curve: ${crv}`, { cause: { crv } })
+	}
+}
+
+export function parseCoseKey(cose: cbor.Map): ParsedCOSEKeyEc2Public | ParsedCOSEKeyArkgPubSeed {
+	const kty = cose.get(1);
+	switch (kty) {
+		case 2: // EC2
+			return parseCoseKeyEc2Public(cose);
+
+		case COSE_KTY_ARKG_PUB:
+			return parseCoseKeyArkgPubSeed(cose);
+
+		default:
+			throw new Error(`Unsupported COSE key type: ${kty}`, { cause: { kty } });
+	}
+}
+
 export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 	const kty = cose.get(1);
 	switch (kty) {
@@ -205,6 +229,7 @@ export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 				case -9: // ESP256
 				case -25: // ECDH-ES w/ HKDF
 					const crv = cose.get(-1);
+					const expectLen = getCoseCurveCoordinateByteLength(crv);
 					switch (crv) {
 
 						case 1: // P-256
@@ -220,6 +245,18 @@ export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 								if (!(y instanceof Uint8Array)) {
 									throw new Error(
 										`Incorrect type of "y (-3)" attribute of EC2 COSE_Key: ${typeof y} ${y}`,
+										{ cause: { y } },
+									);
+								}
+								if (x.length !== expectLen) {
+									throw new Error(
+										`Incorrect length of "x (-2)" attribute of EC2 COSE_Key: expected ${expectLen} bytes, got ${x.length} bytes`,
+										{ cause: { x } },
+									);
+								}
+								if (y.length !== expectLen) {
+									throw new Error(
+										`Incorrect length of "y (-3)" attribute of EC2 COSE_Key: expected ${expectLen} bytes, got ${y.length} bytes`,
 										{ cause: { y } },
 									);
 								}
