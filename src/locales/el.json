@@ -74,7 +74,6 @@
 		"loginCache": "Επιλέξτε τον λογαριασμό σας",
 		"loginKeystoreFailed": "Απέτυχε η προσπέλαση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"loginLocalKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
-		"loginPasskey": "Σύνδεση με κλειδί πρόσβασης",
 		"loginSubmit": "Σύνδεση",
 		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
 		"newHereQuestion": "Πρώτη φορά εδώ; ",
@@ -96,9 +95,7 @@
 		"privateDataConflict": "Μια άλλη συνεδρία για αυτόν τον λογαριασμό διέκοψε την προσπάθεια σύνδεσης, δοκιμάστε ξανά.",
 		"reachedLengthLimit": "Υπερβαίνει το όριο μήκους",
 		"signUp": "Εγγραφή",
-		"signUpPasskey": "Εγγραφή με κλειδί πρόσβασης",
 		"signUpSubmit": "Εγγραφή",
-		"signupPasskey": "Εγγραφή με κλειδί πρόσβασης",
 		"specialCharacter": "Τουλάχιστον ένας ειδικός χαρακτήρας",
 		"strength": "Ισχύς",
 		"submitting": "Υποβολή...",
@@ -191,7 +188,7 @@
 		"searchPlaceholder": "Αναζήτηση verifiers..."
 	},
 	"pageSettings": {
-		"addPasskey": "Προσθήκη κλειδιού πρόσβασης",
+		"addPasskey": "Προσθήκη κλειδιού πρόσβασης:",
 		"addPasskeyTitle": "Κάντε κλικ για να προσθέσετε κλειδί πρόσβασης",
 		"appVersion": {
 			"descriptionLatestVersion": "Χρησιμοποιείτε την τελευταία έκδοση του $t(common.walletName) {{react_app_version}}",
