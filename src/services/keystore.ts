@@ -959,6 +959,31 @@ export async function getPrfKey(
 	return [await derivePrfKey(prfOutput, keyInfo), keyInfo, prfCredential];
 }
 
+async function addNewArkgSeedKeypair(
+	credential: PublicKeyCredential | null,
+	prfCredential: PublicKeyCredential | null,
+	mainKey: CryptoKey,
+	privateData: EncryptedContainer,
+): Promise<EncryptedContainer> {
+	const newArkgSeed = parseArkgSeedKeypair(credential) ?? parseArkgSeedKeypair(prfCredential);
+	if (newArkgSeed) {
+		const [newPrivateData,] = await updatePrivateData(
+			[privateData as AsymmetricEncryptedContainer, mainKey],
+			async (privateData: PrivateData, _updateWrappedPrivateKey) => ({
+				...privateData,
+				arkgSeeds: [
+					...(privateData.arkgSeeds ?? []),
+					newArkgSeed,
+				],
+			}),
+		);
+		return newPrivateData;
+
+	} else {
+		return privateData;
+	}
+}
+
 export async function upgradePrfKey(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential | null,
@@ -998,23 +1023,7 @@ export async function upgradePrfKey(
 		})),
 	};
 
-	const newArkgSeed = parseArkgSeedKeypair(credential) ?? parseArkgSeedKeypair(prfCredential);
-	if (newArkgSeed) {
-		const [newNewPrivateData,] = await updatePrivateData(
-			[newPrivateData as AsymmetricEncryptedContainer, mainKey],
-			async (privateData: PrivateData, _updateWrappedPrivateKey) => ({
-				...privateData,
-				arkgSeeds: [
-					...(privateData.arkgSeeds ?? []),
-					newArkgSeed,
-				],
-			}),
-		);
-		return newNewPrivateData;
-
-	} else {
-		return newPrivateData;
-	}
+	return addNewArkgSeedKeypair(credential, prfCredential, mainKey, newPrivateData);
 };
 
 export async function beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> {
