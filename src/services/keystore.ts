@@ -1048,13 +1048,15 @@ export async function finishAddPrf(
 		mainKey,
 		promptForPrfRetry,
 	);
-	return {
+
+	const newPrivateData = {
 		...privateData,
 		prfKeys: [
 			...privateData.prfKeys,
 			keyInfo,
 		],
 	};
+	return addNewArkgSeedKeypair(credential.credential, null, mainKey, newPrivateData);
 }
 
 export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Array): EncryptedContainer {
