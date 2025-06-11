@@ -1,3 +1,4 @@
+# Keep these in sync with wallet-ecosystem/docker/wallet-frontend.development.Dockerfile.dockerignore
 node_modules
 build
 dist
