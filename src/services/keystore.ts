@@ -18,11 +18,11 @@ import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { toArrayBuffer } from "../types/webauthn";
 import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKeyArkgPubSeed, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
+import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
-import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED } from "../coseConstants";
+import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "../coseConstants";
 import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 
 
@@ -234,6 +234,12 @@ type WebauthnSignArkgPublicSeed = {
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
 }
 
+type WebauthnSignSplitBbsKeypair = {
+	credentialId: Uint8Array,
+	/** Contains kid used to construct reference to private key */
+	publicKey: webauthn.ParsedCOSEKeyEc2Public,
+}
+
 type WebauthnSignKeyRef = {
 	credentialId: Uint8Array,
 	keyRef: Uint8Array,
@@ -264,6 +270,7 @@ export type PrivateData = {
 		[kid: string]: CredentialKeyPair,
 	},
 	arkgSeeds?: WebauthnSignArkgPublicSeed[],
+	splitBbsKeypairs?: WebauthnSignSplitBbsKeypair[],
 }
 
 
@@ -806,7 +813,10 @@ function addWebauthnRegistrationExtensionInputs(options: CredentialCreationOptio
 					},
 					sign: {
 						generateKey: {
-							algorithms: [COSE_ALG_ESP256_ARKG],
+							algorithms: [
+								COSE_ALG_SPLIT_BBS,
+								COSE_ALG_ESP256_ARKG,
+							],
 						},
 					},
 				}
@@ -968,23 +978,33 @@ export async function getPrfKey(
 	return [await derivePrfKey(prfOutput, keyInfo), keyInfo, prfCredential];
 }
 
-async function addNewArkgSeedKeypair(
+async function addWebauthnSignKeypair(
 	credential: PublicKeyCredential | null,
 	prfCredential: PublicKeyCredential | null,
 	mainKey: CryptoKey,
 	privateData: EncryptedContainer,
 ): Promise<EncryptedContainer> {
-	const newArkgSeed = parseArkgSeedKeypair(credential) ?? parseArkgSeedKeypair(prfCredential);
-	if (newArkgSeed) {
+	const newKeypair = parseWebauthnSignGeneratedKey(credential) ?? parseWebauthnSignGeneratedKey(prfCredential);
+	if (newKeypair) {
 		const [newPrivateData,] = await updatePrivateData(
 			[privateData as AsymmetricEncryptedContainer, mainKey],
-			async (privateData: PrivateData, _updateWrappedPrivateKey) => ({
-				...privateData,
-				arkgSeeds: [
+			async (privateData: PrivateData, _updateWrappedPrivateKey) => {
+				const arkgSeeds = (newKeypair && "arkg" in newKeypair) ? [
 					...(privateData.arkgSeeds ?? []),
-					newArkgSeed,
-				],
-			}),
+					newKeypair.arkg,
+				] : privateData.arkgSeeds;
+
+				const splitBbsKeypairs = (newKeypair && "splitBbs" in newKeypair) ? [
+					...(privateData.splitBbsKeypairs ?? []),
+					newKeypair.splitBbs,
+				] : privateData.splitBbsKeypairs;
+
+				return {
+					...privateData,
+					arkgSeeds,
+					splitBbsKeypairs,
+				};
+			},
 		);
 		return newPrivateData;
 
@@ -1032,7 +1052,7 @@ export async function upgradePrfKey(
 		})),
 	};
 
-	return addNewArkgSeedKeypair(credential, prfCredential, mainKey, newPrivateData);
+	return await addWebauthnSignKeypair(credential, prfCredential, mainKey, newPrivateData);
 };
 
 export async function beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> {
@@ -1065,7 +1085,7 @@ export async function finishAddPrf(
 			keyInfo,
 		],
 	};
-	return addNewArkgSeedKeypair(credential.credential, null, mainKey, newPrivateData);
+	return addWebauthnSignKeypair(credential.credential, null, mainKey, newPrivateData);
 }
 
 export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Array): EncryptedContainer {
@@ -1153,12 +1173,15 @@ export async function init(
 	keyInfo: AsymmetricEncryptedContainerKeys,
 	credential: PublicKeyCredentialCreation | null,
 ): Promise<UnlockSuccess> {
-	const arkgSeed = credential ? parseArkgSeedKeypair(credential) : null;
+	const webauthnSignGeneratedKey = credential ? parseWebauthnSignGeneratedKey(credential) : null;
+	const arkgSeed = (webauthnSignGeneratedKey && "arkg" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.arkg : null;
+	const splitBbsKeypair = (webauthnSignGeneratedKey && "splitBbs" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.splitBbs : null;
 	const privateData: EncryptedContainer = {
 		...keyInfo,
 		jwe: await encryptPrivateData({
 			keypairs: {},
 			arkgSeeds: (arkgSeed ? [arkgSeed] : []),
+			splitBbsKeypairs: (splitBbsKeypair ? [splitBbsKeypair] : []),
 		}, mainKey),
 	};
 	return await unlock(mainKey, privateData);
@@ -1621,13 +1644,46 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	return { deviceResponseMDoc };
 }
 
-function parseArkgSeedKeypair(credential: PublicKeyCredential | null): WebauthnSignArkgPublicSeed | null {
+function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
+	: { arkg: WebauthnSignArkgPublicSeed }
+	| { splitBbs: WebauthnSignSplitBbsKeypair }
+	| null {
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
-		return {
-			credentialId: new Uint8Array(credential.rawId),
-			publicSeed: parseCoseKeyArkgPubSeed(cbor.decodeFirstSync(generatedKey.publicKey)),
-		};
+		try {
+			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
+			const credentialId = new Uint8Array(credential.rawId);
+			switch (key.kty) {
+				case 2:
+					switch (key.alg) {
+						case COSE_ALG_SPLIT_BBS:
+							return {
+								splitBbs: {
+									credentialId,
+									publicKey: key,
+								},
+							};
+						default:
+							console.log("Unsupported alg (3) in COSE_Key: " + key.alg);
+							return null;
+					}
+
+				case COSE_KTY_ARKG_PUB:
+					return {
+						arkg: {
+							credentialId,
+							publicSeed: key,
+						},
+					};
+
+				default:
+					console.log(`Unsupported COSE key type: ${key.kty}`);
+					return null;
+			}
+		} catch (e) {
+			console.error("Failed to parse sign extension generated key", e);
+			return null;
+		}
 	} else {
 		return null;
 	}
