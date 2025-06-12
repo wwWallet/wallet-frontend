@@ -555,35 +555,42 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	}
 
 	function convertDcqlToPresentationDefinition(dcql_query) {
-		const id = crypto.randomUUID(); // or any other unique ID generator
+		const pdId = crypto.randomUUID();
 		const input_descriptors = dcql_query.credentials.map(cred => {
-			const format = {};
+			const descriptorId = cred.meta!.doctype_value!;
+
+			const format: Record<string, any> = {}
 			if (cred.format === "mso_mdoc") {
-				format.mso_mdoc = {
-					alg: ["ES256", "ES384", "EdDSA"]
-				};
+				format.mso_mdoc = { alg: ["ES256", "ES384", "EdDSA"] }
 			}
+
+			// build fields paths against the mdoc namespace
 			const fields = cred.claims.map(claim => ({
-				path: [`$['${cred.meta?.doctype_value}']['${claim.id}']`],
-				intent_to_retain: claim.intent_to_retain || false
-			}));
+				path: [
+					// this still points at the docType in the CBOR->JSON form
+					`$['${cred.meta?.doctype_value}']['${claim.id}']`
+				],
+				intent_to_retain: claim.intent_to_retain ?? false
+			}))
+
 			return {
-				id: cred.meta?.doctype_value || cred.id,
+				id: descriptorId,
 				format,
 				constraints: {
 					limit_disclosure: "required",
 					fields
 				}
-			};
-		});
+			}
+		})
 
 		return {
-			id,
+			id: pdId,
 			name: `DCQL-converted Presentation Definition`,
-			purpose: dcql_query.credential_sets?.[0]?.purpose || "No purpose defined",
+			purpose: dcql_query.credential_sets?.[0]?.purpose ?? "No purpose defined",
 			input_descriptors
-		};
+		}
 	}
+
 
 	async function handleDCQLFlow(S, selectionMap, verifiableCredentials) {
 		console.log("S: ", S)
@@ -669,6 +676,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			} else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
 				const credentialBytes = base64url.decode(vcEntity.credential);
+
 				const issuerSignedPayload = cborDecode(credentialBytes);
 				const descriptor = dcql_query.credentials.find(c => c.id === dcqlId);
 				if (!descriptor) {
@@ -683,6 +691,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				const mdocStructure = {
 					version: '1.0',
+					documentErrors: [],
 					documents: [new Map([
 						['docType', docTypeFromDescriptor],
 						['issuerSigned', issuerSignedPayload]
@@ -706,6 +715,20 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 				}
 				console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
+
+				// DEBUG
+				const parsed = parse(deviceResponseMDoc.encode());
+				console.log('parsed mdoc:' , parsed)
+				const [doc] = parsed.documents;
+				console.log("DeviceResponse docType:", doc.docType);
+				console.log("DeviceResponse namespaces:", doc.issuerSignedNameSpaces);
+				console.log("DeviceResponse payload:",
+					JSON.stringify(
+						doc.getIssuerNameSpace(doc.issuerSignedNameSpaces[0]),
+						null, 2
+					)
+				);
+				//
 				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
 
 				selectedVCs.push(encodedDeviceResponse);
@@ -728,7 +751,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				([id], idx) => ({ id, path: `$[${idx}]` })
 			)
 		};
-		console.log('vpTokenObject: ', vpTokenObject)
 		console.log('presentationSubmission: ', presentationSubmission)
 		const formData = new URLSearchParams();
 
@@ -736,10 +758,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			const { rp_eph_pub_jwk } = await retrieveKeys(S);
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 
-			const jwe = await new EncryptJWT({
+			const jwePayload = {
 				vp_token: vpTokenObject,
 				state: S.state ?? undefined
-			})
+			}
+			console.log("DCQL JWE payload (pre-encryption):", JSON.stringify(jwePayload, null, 2));
+			const jwe = await new EncryptJWT(jwePayload)
 				.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
 				.setProtectedHeader({
 					alg: S.client_metadata.authorization_encrypted_response_alg,
@@ -751,7 +775,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			formData.append('response', jwe);
 		} else {
 			formData.append('vp_token', JSON.stringify(vpTokenObject));
-			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
+			// formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 			if (S.state) formData.append('state', S.state);
 		}
 
@@ -900,6 +924,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 		await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
+		const bodyString = formData.toString();
+		console.log('bodyString: ', bodyString)
 		try {
 			const res = await httpProxy.post(S.response_uri, formData.toString(), {
 				'Content-Type': 'application/x-www-form-urlencoded'
