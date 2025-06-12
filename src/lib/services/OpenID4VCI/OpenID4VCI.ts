@@ -20,7 +20,7 @@ import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
-export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback, showPopupConsent }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
@@ -106,6 +106,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				instanceId: index,
 			}));
 
+			let warnings = [];
 			for (const storableCredential of storableCredentials) {
 				const rawCredential = storableCredential.credential;
 				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
@@ -115,22 +116,39 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 					if (result.value.warnings && result.value.warnings.length > 0) {
 						console.warn(`Credential had warnings:`, result.value.warnings);
+						warnings = result.value.warnings;
 					}
 				} else {
 					console.error(`Credential failed to parse:`, result.error, result.message);
 				}
 			}
 
-			await post('/storage/vc', {
-				credentials: storableCredentials
-			});
+			let userConsent = true;
+			if (warnings.length > 0) {
+				userConsent = await showPopupConsent({
+					title: "Credential Issuance",
+					warnings: warnings
+				});
+			}
 
-			getData(true);
+			if (userConsent) {
+				credentialStore(storableCredentials);
+			}
 
 			return;
 
 		},
 		[openID4VCIHelper, post, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
+	);
+
+	const credentialStore = useCallback(
+		async (credentialsToStore: StorableCredential[]) => {
+			await post('/storage/vc', {
+				credentials: credentialsToStore
+			});
+
+			getData(true);
+		}, []
 	);
 
 	const requestCredentials = useCallback(

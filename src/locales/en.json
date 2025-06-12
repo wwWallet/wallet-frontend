@@ -52,6 +52,10 @@
 	"expiredRibbon": {
 		"expired": "Expired"
 	},
+	"issuance": {
+		"credentialsHaveErrors": "Errors have been found while verifying the credential you are trying to receive.",
+		"proceed": "Do you want to receive this credential?"
+	},
 	"language": {
 		"label": "Language"
 	},
