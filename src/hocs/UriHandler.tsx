@@ -44,7 +44,12 @@ export const UriHandler = ({ children }) => {
 		if (!keystore) {
 			return;
 		}
-		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === keystore.getUserHandleB64u())[0];
+
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
 		if (u) {
 			setCachedUser(u);
 		}

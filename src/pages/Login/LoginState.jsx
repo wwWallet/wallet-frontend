@@ -128,7 +128,7 @@ const LoginState = () => {
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
 	} else if (isLoggedIn) {
-		return <Navigate to="/" replace />;
+		return <Navigate to={`/${window.location.search}`} replace />;
 	}
 
 	return (
