@@ -16,16 +16,20 @@ import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import { useTranslation } from 'react-i18next';
+
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
-export function useOpenID4VCI({ errorCallback, showPopupConsent }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: {title: string, description: string}) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { api } = useContext(SessionContext);
 	const { getData, credentialEngine } = useContext<any>(CredentialsContext);
+
+	const { t } = useTranslation();
 
 	const { post } = api;
 	const openID4VCIHelper = useOpenID4VCIHelper();
@@ -120,13 +124,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent }: { errorCallba
 					}
 				} else {
 					console.error(`Credential failed to parse:`, result.error, result.message);
+					showMessagePopup({title: t('issuance.error'), description: t(`parsing.error${result.error}`)});
+					return;
 				}
 			}
 
 			let userConsent = true;
 			if (warnings.length > 0) {
 				userConsent = await showPopupConsent({
-					title: "Credential Issuance",
+					title: t("issuance.title"),
 					warnings: warnings
 				});
 			}

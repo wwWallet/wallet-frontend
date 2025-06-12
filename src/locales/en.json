@@ -53,8 +53,10 @@
 		"expired": "Expired"
 	},
 	"issuance": {
+		"title": "Credential Issuance",
 		"credentialsHaveErrors": "Errors have been found while verifying the credential you are trying to receive.",
-		"proceed": "Do you want to receive this credential?"
+		"proceed": "Do you want to receive this credential?",
+		"error": "Issuance Error"
 	},
 	"language": {
 		"label": "Language"
@@ -271,6 +273,12 @@
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
 			"title": "Upgrading passkey encryption key"
 		}
+	},
+	"parsing": {
+		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
+		"errorCouldNotParse": "Credential could not be parsed.",
+		"errorInvalidDatatype": "Credential could not be parsed.",
+		"errorNotSupportedCredentialType": "This type of credential is not supported."
 	},
 	"pwaInstallPrompt": {
 		"button": {
