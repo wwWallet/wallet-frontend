@@ -9,7 +9,6 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
-import { JWK } from "jose";
 import { WalletBaseState, WalletBaseStateCredential, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 
 
@@ -109,7 +108,7 @@ export interface LocalStorageKeystore {
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
 export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
-	const [privateData, setPrivateData, clearPrivateData] = useLocalStorage<EncryptedContainer | null>("privateData", null);
+	const [privateData, setPrivateData] = useState<EncryptedContainer | null>(null);
 	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
 	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
@@ -125,7 +124,47 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		if (prevVersion < 2) {
 			db.deleteObjectStore("keys");
 		}
+
+		if (!db.objectStoreNames.contains("privateData")) {
+			db.createObjectStore("privateData", { keyPath: "userHandle" });
+		}
 	}, []));
+
+	useEffect(() => {
+		if (userHandleB64u) {
+			readPrivateDataFromIdb(userHandleB64u).then((val) => {
+				if (val) {
+					setPrivateData(val);
+				}
+			})
+		}
+	}, [userHandleB64u]);
+
+	useEffect(() => { // constantly update indexdb privateData
+		if (privateData && userHandleB64u) {
+			writePrivateDataOnIdb(privateData, userHandleB64u);
+		}
+	}, [privateData, userHandleB64u]);
+
+	const writePrivateDataOnIdb = async (privateData: EncryptedContainer | null, userHandleB64u: string) => {
+		await idb.write(["privateData"], (tx) => {
+			const store = tx.objectStore("privateData");
+			return store.put({ userHandle: userHandleB64u, content: privateData });
+		})
+	}
+
+	const readPrivateDataFromIdb = async (userHandleB64u: string): Promise<EncryptedContainer | null> => {
+		const result = await idb.read(['privateData'], (tx) => {
+			const store = tx.objectStore("privateData");
+			return store.get(userHandleB64u);
+		});
+		return result ? result.content : null;
+	}
+
+	const clearPrivateData = async (userHandleB64u: string) => {
+		setPrivateData(null);
+		await writePrivateDataOnIdb(null, userHandleB64u);
+	}
 
 	const closeSessionTabLocal = useCallback(
 		async (): Promise<void> => {
@@ -138,12 +177,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const close = useCallback(
 		async (): Promise<void> => {
 			console.log('Keystore Close');
+			await clearPrivateData(userHandleB64u);
 			await idb.destroy();
 			setCalculatedWalletState(null);
-			clearPrivateData();
 			clearGlobalUserHandleB64u();
 		},
-		[idb, clearGlobalUserHandleB64u, clearPrivateData],
+		[idb, clearGlobalUserHandleB64u, clearPrivateData, userHandleB64u],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
@@ -185,12 +224,16 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	useEffect(
 		() => {
-			if (!privateData) {
-				// When user logs out in any tab, log out in all tabs
-				closeSessionTabLocal();
+			if (userHandleB64u) {
+				readPrivateDataFromIdb(userHandleB64u).then((privateData) => {
+					// When user logs out in any tab, log out in all tabs
+					if (!privateData) {
+						closeSessionTabLocal();
+					}
+				})
 			}
 		},
-		[closeSessionTabLocal, privateData],
+		[closeSessionTabLocal, userHandleB64u],
 	);
 
 	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletBaseState]> => {
