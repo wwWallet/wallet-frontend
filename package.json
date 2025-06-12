@@ -6,6 +6,7 @@
   "dependencies": {
     "@auth0/mdl": "^2.2.0",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
+    "@noble/curves": "^1.9.2",
     "@sd-jwt/core": "^0.10.0",
     "ajv": "^8.17.1",
     "asn1js": "^3.0.5",
