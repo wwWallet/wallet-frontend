@@ -216,7 +216,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -224,7 +224,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -255,9 +255,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>MacOS</td>
       <td>iOS</td>
       <td>Hybrid</td>
+      <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>MacOS</td>
@@ -265,7 +265,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>USB</td>
       <td>✅</td>
       <td>❌</td>
-      <td>✅</td>
+      <td>❌</td>
     </tr>
     <tr>
       <td>Android</td>
@@ -327,9 +327,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>iOS</td>
       <td>Hybrid</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>iOS</td>
