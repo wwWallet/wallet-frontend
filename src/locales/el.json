@@ -49,10 +49,10 @@
 		"expired": "Ληγμένο"
 	},
 	"issuance": {
-		"title": "Έκδοση Credential",
 		"credentialsHaveErrors": "Βρέθηκαν σφάλματα κατα την επαλήθευση του credential που προσπαθήσατε να λάβετε.",
+		"error": "Σφάλμα έκδοσης",
 		"proceed": "Θέλετε να αποθηκεύσετε αυτό το credential;",
-		"error": "Σφάλμα έκδοσης"
+		"title": "Έκδοση Credential"
 	},
 	"language": {
 		"label": "Γλώσσα"
@@ -270,9 +270,9 @@
 		}
 	},
 	"parsing": {
-		"errorMissingIssuerIdentifier": "Δεν βρέθηκε αναγνωριστικό του issuer.",
 		"errorCouldNotParse": "Δεν ήταν δυνατή η ανάγνωση του credential.",
 		"errorInvalidDatatype": "Δεν ήταν δυνατή η ανάγνωση του credential.",
+		"errorMissingIssuerIdentifier": "Δεν βρέθηκε αναγνωριστικό του issuer.",
 		"errorNotSupportedCredentialType": "Αυτός ο τύπος credential δεν υποστηρίζεται."
 	},
 	"pwaInstallPrompt": {

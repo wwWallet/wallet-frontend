@@ -53,10 +53,10 @@
 		"expired": "Expired"
 	},
 	"issuance": {
-		"title": "Credential Issuance",
 		"credentialsHaveErrors": "Errors have been found while verifying the credential you are trying to receive.",
+		"error": "Issuance Error",
 		"proceed": "Do you want to receive this credential?",
-		"error": "Issuance Error"
+		"title": "Credential Issuance"
 	},
 	"language": {
 		"label": "Language"
@@ -275,9 +275,9 @@
 		}
 	},
 	"parsing": {
-		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorCouldNotParse": "Credential could not be parsed.",
 		"errorInvalidDatatype": "Credential could not be parsed.",
+		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorNotSupportedCredentialType": "This type of credential is not supported."
 	},
 	"pwaInstallPrompt": {
