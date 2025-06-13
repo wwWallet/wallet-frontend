@@ -45,8 +45,17 @@ export function fromHex(hex: string): BufferSource {
 	}
 };
 
-export function concat(...b: BufferSource[]): ArrayBuffer {
-	return b.map(toU8).reduce((a, b) => new Uint8Array([...a, ...b]), new Uint8Array([])).buffer;
+export function concat(...bs: BufferSource[]): ArrayBuffer {
+	const bu8 = bs.map(toU8);
+	const result = new Uint8Array(bu8.reduce((len, b) => len + b.length, 0));
+	bu8.reduce(
+		(offset, b) => {
+			result.set(b, offset);
+			return offset + b.length;
+		},
+		0,
+	);
+	return result.buffer;
 }
 
 /**
