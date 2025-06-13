@@ -15,7 +15,7 @@ function toSec1Uncompressed(p: PointG1): ArrayBuffer {
 	);
 }
 
-type PointG1 = typeof G1.BASE;
+export type PointG1 = typeof G1.BASE;
 type PointG2 = typeof bls12_381.curves.G2.BASE;
 
 type HasKey = {
