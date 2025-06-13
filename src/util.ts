@@ -3,9 +3,10 @@ export function toU8(b: BufferSource): Uint8Array {
 		return b;
 	} else if (b instanceof ArrayBuffer) {
 		return new Uint8Array(b);
-	} else {
+	} else if ("buffer" in b) {
 		return new Uint8Array(b.buffer);
 	}
+	throw new Error(`Unknown binary type: ${typeof b} ${b}`, { cause: b })
 }
 
 export function toHex(b: BufferSource): string {
