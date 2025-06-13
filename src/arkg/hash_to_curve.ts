@@ -98,6 +98,7 @@ type HashToFieldParams = SuiteParams & {
 export type SuiteId = (
 	'P256_XMD:SHA-256_SSWU_RO_'
 	| 'P521_XMD:SHA-512_SSWU_RO_'
+	| 'BLS12381G1_XMD:SHA-256_SSWU_RO_'
 )
 
 /** Suites defined in https://www.rfc-editor.org/rfc/rfc9380#name-suites-for-hashing */
@@ -125,6 +126,19 @@ const suites: { [suiteId in SuiteId]: SuiteParams } = {
 			H: sha512,
 			b_in_bytes: 64,
 			s_in_bytes: 128,
+		}),
+	},
+
+	'BLS12381G1_XMD:SHA-256_SSWU_RO_': {
+		curve: null,
+		p: 0x1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaabn,
+		m: 1,
+		prime_subgroup_order: 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001n,
+		L: 64,
+		expand_message: make_expand_message_xmd({
+			H: sha256,
+			b_in_bytes: 32,
+			s_in_bytes: 64,
 		}),
 	},
 };
