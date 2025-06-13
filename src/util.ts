@@ -1,10 +1,13 @@
 export function toU8(b: BufferSource): Uint8Array {
 	if (b instanceof Uint8Array) {
 		return b;
-	} else if (b instanceof ArrayBuffer) {
-		return new Uint8Array(b);
 	} else if ("buffer" in b) {
 		return new Uint8Array(b.buffer);
+	} else if ("byteLength" in b) {
+		const u = new Uint8Array(b);
+		if (u.length === b.byteLength) {
+			return u;
+		}
 	}
 	throw new Error(`Unknown binary type: ${typeof b} ${b}`, { cause: b })
 }
