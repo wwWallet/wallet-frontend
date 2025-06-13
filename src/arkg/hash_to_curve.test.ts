@@ -129,12 +129,14 @@ describe("hashToCurve", () => {
 								assert.equal(u_scalar.length, 2);
 								assert.equal(u_scalar[0].length, 1);
 								assert.notEqual(u_scalar[0][0], u_coordinate[0][0]);
+								assert.notEqual(u_scalar[0][0], 0n);
 							});
 
 							it("gives different u[1] results from hashToCoordinateField and hashToScalarField", async () => {
 								assert.equal(u_scalar.length, 2);
 								assert.equal(u_scalar[1].length, 1);
 								assert.notEqual(u_scalar[1][0], u_coordinate[1][0]);
+								assert.notEqual(u_scalar[1][0], 0n);
 							});
 						}
 					});
