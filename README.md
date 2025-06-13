@@ -92,6 +92,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_STATIC_PUBLIC_URL: The installation's public url
   - VITE_STATIC_NAME: The installation's public name
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
+  - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
 
 
 - Set up Firebase (optional)
