@@ -1,7 +1,8 @@
 /** Implementation of https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures/08/ */
 
-import { ProjPointType } from "@noble/curves/abstract/weierstrass";
+import { IField } from "@noble/curves/abstract/modular";
 import { Fp12, Fp2 } from "@noble/curves/abstract/tower";
+import { ProjConstructor, ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { bls12_381 } from "@noble/curves/bls12-381";
 
 import { concat, fromHex, I2OSP, OS2IP, toHex, toU8 } from "../util";
@@ -9,7 +10,7 @@ import { hashToCurve, HashToCurveSuite } from "../arkg/hash_to_curve";
 
 
 function createSuite(suite: SuiteParams): CipherSuite {
-	const { expand_len, hash_to_curve_g1 } = suite;
+	const { Fr, G1, G2, P1, expand_len, hash_to_curve_g1, octet_scalar_length } = suite;
 	const {
 		sig_generator_seed,
 		sig_generator_dst,
@@ -28,6 +29,49 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const uniform_bytes = await expand_message(msg_octets, dst, suite.expand_len);
 		return OS2IP(uniform_bytes) % prime_subgroup_order;
 	};
+
+	async function calculate_domain(
+		PK: BufferSource,
+		Q_1: PointG1,
+		H_Points: PointG1[],
+		header: BufferSource | null,
+		api_id: BufferSource | null,
+	): Promise<bigint> {
+		header = header ?? new Uint8Array([]);
+		api_id = api_id ?? new Uint8Array([]);
+		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
+		const two64min1 = (1n << 64n) - 1n;
+		const L = H_Points.length;
+		if (header.byteLength > two64min1) {
+			throw new Error(`header too long: expected length max ${two64min1}, got: ${header.byteLength}`, { cause: { header } });
+		}
+		if (H_Points.length > two64min1) {
+			throw new Error(`H_Points too long: expected length max ${two64min1}, got: ${H_Points.length}`, { cause: { H_Points } });
+		}
+
+		const dom_array = [L, Q_1, ...H_Points];
+		const dom_octs = concat(serialize(dom_array), api_id);
+		const dom_input = concat(PK, dom_octs, I2OSP(BigInt(header.byteLength), 8), header);
+		return hash_to_scalar(dom_input, hash_to_scalar_dst);
+	}
+
+	function serialize(input_array: (PointG1 | PointG2 | bigint | number)[]): BufferSource {
+		return concat(...input_array.map(el => {
+			switch (typeof el) {
+				case 'number':
+					return I2OSP(el, 8);
+
+				case 'bigint':
+					return I2OSP(el, octet_scalar_length);
+
+				case 'object':
+					return el.toBytes();
+
+				default:
+					throw new Error(`Invalid type of value: ${el}`, { cause: { el } });
+			}
+		}));
+	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#messages-to-scalars */
 	function messages_to_scalars(
@@ -64,19 +108,73 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#secret-key */
 	async function KeyGen(key_material: BufferSource, key_info: BufferSource | null, key_dst: BufferSource | null): Promise<bigint> {
-		const ikm = toU8(key_material);
-		const info = key_info ? toU8(key_info) : new Uint8Array([]);
-		const dst = key_dst = key_dst ? toU8(key_dst) : new TextEncoder().encode(suite.id + "KEYGEN_DST_");
+		key_material = key_material ?? new Uint8Array([]);
+		key_info = key_info ?? new Uint8Array([]);
+		const dst = key_dst = key_dst ?? new TextEncoder().encode(suite.id + "KEYGEN_DST_");
 
-		if (ikm.length < 32) {
+		if (key_material.byteLength < 32) {
 			throw new Error(`key_material too short: ${toHex(key_material)}`, { cause: { key_material } });
 		}
-		if (info.length > 65535) {
-			throw new Error(`key_info too long: expected length max 65535, got: ${info.length}`, { cause: { key_info } });
+		if (key_info.byteLength > 65535) {
+			throw new Error(`key_info too long: expected length max 65535, got: ${key_info.byteLength}`, { cause: { key_info } });
 		}
-		const derive_input = concat(ikm, I2OSP(BigInt(info.length), 2), info);
+		const derive_input = concat(key_material, I2OSP(BigInt(key_info.byteLength), 2), key_info);
 		const SK = await hash_to_scalar(derive_input, dst);
 		return SK;
+	}
+
+	function SkToPk(SK: bigint): BufferSource {
+		return G2.BASE.multiply(SK).toBytes();
+	}
+
+	function signature_to_octets(A: PointG1, e: bigint): BufferSource {
+		return serialize([A, e]);
+	}
+
+	async function CoreSign(
+		SK: bigint,
+		PK: BufferSource,
+		generators: PointG1[],
+		header: BufferSource | null,
+		messages: bigint[] | null,
+		api_id: BufferSource | null,
+	): Promise<BufferSource> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
+
+		const L = messages.length;
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
+		}
+		const Q_1 = generators[0];
+		const H_Points = generators.slice(1);
+
+		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
+		const e = await hash_to_scalar(serialize([SK, ...messages, domain]), hash_to_scalar_dst);
+		const B = P1.add(Q_1.multiply(domain)).add(
+			H_Points.reduce(
+				(sum, H_i, i) => sum.add(H_i.multiply(messages[i])),
+				G1.ZERO,
+			)
+		);
+		const A = B.multiply(Fr.inv(SK + e));
+		return signature_to_octets(A, e);
+	}
+
+	async function Sign(
+		SK: bigint,
+		PK: BufferSource,
+		header: BufferSource | null,
+		messages: BufferSource[] | null,
+	): Promise<BufferSource> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		const message_scalars = await messages_to_scalars(messages, api_id);
+		const generators = await create_generators(messages.length + 1, api_id);
+		const signature = await CoreSign(SK, PK, generators, header, message_scalars, api_id);
+		return signature;
 	}
 
 	return {
@@ -86,6 +184,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		messages_to_scalars,
 		create_generators,
 		KeyGen,
+		Sign,
 	};
 }
 
@@ -96,6 +195,7 @@ type MessagesToScalarsFunc = (messages: BufferSource[], api_id: BufferSource | n
 type CreateGeneratorsFunc = (count: number, api_id: BufferSource | null) => Promise<PointG1[]>;
 type KeyGenFunction = (key_material: BufferSource, key_info: BufferSource | null, key_dst: BufferSource | null) => Promise<bigint>;
 type PairingFunction = (P: PointG1, Q: PointG2) => Fp12;
+type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<BufferSource>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
@@ -113,6 +213,9 @@ type SuiteParams = {
 	hash_to_curve_suite: HashToCurveSuite,
 	hash_to_curve_g1: (msg: BufferSource, DST: BufferSource) => PointG1,
 	expand_len: number,
+	Fr: IField<bigint>,
+	G1: ProjConstructor<bigint>,
+	G2: ProjConstructor<Fp2>,
 	P1: PointG1,
 	h: PairingFunction,
 	create_generators_dsts?: CreateGeneratorsDsts,
@@ -125,6 +228,7 @@ type CipherSuite = {
 	messages_to_scalars: MessagesToScalarsFunc,
 	create_generators: CreateGeneratorsFunc,
 	KeyGen: KeyGenFunction,
+	Sign: SignFunction,
 }
 
 
@@ -140,6 +244,9 @@ export function getCipherSuite(suiteId: SuiteId, DST: BufferSource, create_gener
 				hash_to_curve_g1: (msg: BufferSource, DST: BufferSource) =>
 					(bls12_381.G1.hashToCurve(toU8(msg), { DST: toU8(DST) }) as PointG1),
 				expand_len: 48,
+				Fr: bls12_381.fields.Fr,
+				G1: bls12_381.curves.G1,
+				G2: bls12_381.curves.G2,
 				P1: bls12_381.curves.G1.fromBytes(toU8(fromHex("a8ce256102840821a3e94ea9025e4662b205762f9776b3a766c872b948f1fd225e7c59698588e70d11406d161b4e28c9"))),
 				h: bls12_381.pairing,
 				create_generators_dsts,
