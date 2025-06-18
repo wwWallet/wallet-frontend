@@ -1,7 +1,7 @@
 /** Implementation of https://datatracker.ietf.org/doc/draft-irtf-cfrg-bbs-signatures/08/ */
 
 import { IField } from "@noble/curves/abstract/modular";
-import { Fp12, Fp2 } from "@noble/curves/abstract/tower";
+import { Fp12, Fp12Bls, Fp2 } from "@noble/curves/abstract/tower";
 import { ProjConstructor, ProjPointType } from "@noble/curves/abstract/weierstrass";
 import { bls12_381 } from "@noble/curves/bls12-381";
 
@@ -10,7 +10,18 @@ import { hashToCurve, HashToCurveSuite } from "../arkg/hash_to_curve";
 
 
 function createSuite(suite: SuiteParams): CipherSuite {
-	const { Fr, G1, G2, P1, expand_len, hash_to_curve_g1, octet_scalar_length } = suite;
+	const {
+		Fr,
+		Fp12,
+		G1,
+		G2,
+		P1,
+		expand_len,
+		h,
+		hash_to_curve_g1,
+		octet_point_length,
+		octet_scalar_length,
+	} = suite;
 	const {
 		sig_generator_seed,
 		sig_generator_dst,
@@ -131,6 +142,36 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return serialize([A, e]);
 	}
 
+	function octets_to_signature(signature_octets: BufferSource): [PointG1, bigint] {
+		const expected_len = octet_point_length + octet_scalar_length;
+		if (signature_octets.byteLength !== expected_len) {
+			throw new Error(`Invalid length: expected ${expand_len}, got ${signature_octets.byteLength}`, { cause: { signature_octets } });
+		}
+		const signature_octets_u8 = toU8(signature_octets);
+		const A_octets = signature_octets_u8.slice(0, octet_point_length);
+		const A = G1.fromBytes(A_octets);
+		A.assertValidity();
+		if (A.is0()) {
+			throw new Error("A must not be the zero (infinity) point", { cause: { signature_octets, A } });
+		}
+
+		const e = OS2IP(signature_octets_u8.slice(octet_point_length));
+		if (e === 0n || e >= Fr.ORDER) {
+			throw new Error("e must be nonzero and less than curve order", { cause: { signature_octets, e } });
+		}
+
+		return [A, e];
+	}
+
+	function octets_to_pubkey(PK: BufferSource): PointG2 {
+		const W = G2.fromBytes(toU8(PK));
+		W.assertValidity();
+		if (W.is0()) {
+			throw new Error("Public key must not be the zero (infinity) point", { cause: { PK } });
+		}
+		return W;
+	}
+
 	async function CoreSign(
 		SK: bigint,
 		PK: BufferSource,
@@ -177,6 +218,56 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return signature;
 	}
 
+	async function CoreVerify(
+		PK: BufferSource,
+		signature: BufferSource,
+		generators: PointG1[],
+		header: BufferSource | null,
+		messages: bigint[] | null,
+		api_id: BufferSource | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+		const [A, e] = octets_to_signature(signature);
+		const W = octets_to_pubkey(PK);
+		const L = messages.length;
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
+		}
+		const Q_1 = generators[0];
+		const H_Points = generators.slice(1);
+
+		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
+		const B = P1.add(Q_1.multiply(domain)).add(
+			H_Points.reduce(
+				(sum, H_i, i) => sum.add(H_i.multiply(messages[i])),
+				G1.ZERO,
+			),
+		);
+		if (!Fp12.eql(
+			Fp12.mul(h(A, W.add(G2.BASE.multiply(e))), h(B, G2.BASE.negate())),
+			Fp12.ONE,
+		)) {
+			throw new Error("Invalid signature", { cause: { PK, signature, header, messages } });
+		}
+		return true;
+	}
+
+	async function Verify(
+		PK: BufferSource,
+		signature: BufferSource,
+		header: BufferSource | null,
+		messages: BufferSource[] | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		const message_scalars = await messages_to_scalars(messages, api_id);
+		const generators = await create_generators(messages.length + 1, api_id);
+		const result = await CoreVerify(PK, signature, generators, header, message_scalars, api_id);
+		return result;
+	}
+
 	return {
 		params: suite,
 		api_id,
@@ -185,6 +276,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		create_generators,
 		KeyGen,
 		Sign,
+		Verify,
 	};
 }
 
@@ -196,6 +288,7 @@ type CreateGeneratorsFunc = (count: number, api_id: BufferSource | null) => Prom
 type KeyGenFunction = (key_material: BufferSource, key_info: BufferSource | null, key_dst: BufferSource | null) => Promise<bigint>;
 type PairingFunction = (P: PointG1, Q: PointG2) => Fp12;
 type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<BufferSource>;
+type VerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<true>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
@@ -214,6 +307,7 @@ type SuiteParams = {
 	hash_to_curve_g1: (msg: BufferSource, DST: BufferSource) => PointG1,
 	expand_len: number,
 	Fr: IField<bigint>,
+	Fp12: Fp12Bls,
 	G1: ProjConstructor<bigint>,
 	G2: ProjConstructor<Fp2>,
 	P1: PointG1,
@@ -229,6 +323,7 @@ type CipherSuite = {
 	create_generators: CreateGeneratorsFunc,
 	KeyGen: KeyGenFunction,
 	Sign: SignFunction,
+	Verify: VerifyFunction,
 }
 
 
@@ -245,6 +340,7 @@ export function getCipherSuite(suiteId: SuiteId, DST: BufferSource, create_gener
 					(bls12_381.G1.hashToCurve(toU8(msg), { DST: toU8(DST) }) as PointG1),
 				expand_len: 48,
 				Fr: bls12_381.fields.Fr,
+				Fp12: bls12_381.fields.Fp12,
 				G1: bls12_381.curves.G1,
 				G2: bls12_381.curves.G2,
 				P1: bls12_381.curves.G1.fromBytes(toU8(fromHex("a8ce256102840821a3e94ea9025e4662b205762f9776b3a766c872b948f1fd225e7c59698588e70d11406d161b4e28c9"))),

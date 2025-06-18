@@ -1,6 +1,7 @@
 import { assert, describe, it } from "vitest";
 
-import { concat, fromHex, toHex } from "../util";
+import { concat, fromHex, toHex, toU8 } from "../util";
+import { asyncAssertThrows } from "../testutil";
 import { getCipherSuite } from "./ietf-bbs";
 
 
@@ -108,12 +109,12 @@ describe("Suite:", () => {
 			});
 		});
 
-		describe("Sign", () => {
-			describe("passes test vectors:", async () => {
+		describe("Sign and Verify", () => {
+			describe("pass test vectors:", async () => {
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-fixtures-2
 				it("Valid Single Message Signature", async () => {
 					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-single-message-signatu
-					const { Sign } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
 
 					const m_1 = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
 					const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
@@ -121,14 +122,24 @@ describe("Suite:", () => {
 					const header = fromHex("11223344556677889900aabbccddeeff");
 					const expectSignature = fromHex("84773160b824e194073a57493dac1a20b667af70cd2352d8af241c77658da5253aa8458317cca0eae615690d55b1f27164657dcafee1d5c1973947aa70e2cfbb4c892340be5969920d0916067b4565a0");
 
-					const signature = await Sign(SK, PK, header, [m_1]);
+					const signature = toU8(await Sign(SK, PK, header, [m_1]));
 
 					assert.equal(toHex(signature), toHex(expectSignature));
+
+					const valid = await Verify(PK, signature, header, [m_1]);
+					assert.equal(valid, true);
+
+					await asyncAssertThrows(() => Verify(PK, signature, header, null), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, header, [m_1, m_1]), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, null, [m_1]), "Expected signature verification to fail with wrong header")
+					await asyncAssertThrows(() => Verify(PK, signature, concat(header, header), [m_1]), "Expected signature verification to fail with wrong header")
+					const modSig = concat(new Uint8Array([signature[0] ^ 0x01]), signature.slice(1));
+					await asyncAssertThrows(() => Verify(PK, modSig, header, [m_1]), "Expected signature verification to fail with wrong signature")
 				});
 
 				it("Valid Multi-Message Signature", async () => {
 					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-multi-message-signatur
-					const { Sign } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
 
 					const messages = [
 						"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
@@ -147,9 +158,21 @@ describe("Suite:", () => {
 					const header = fromHex("11223344556677889900aabbccddeeff");
 					const expectSignature = fromHex("8339b285a4acd89dec7777c09543a43e3cc60684b0a6f8ab335da4825c96e1463e28f8c5f4fd0641d19cec5920d3a8ff4bedb6c9691454597bbd298288abed3632078557b2ace7d44caed846e1a0a1e8");
 
-					const signature = await Sign(SK, PK, header, messages);
+					const signature = toU8(await Sign(SK, PK, header, messages));
 
 					assert.equal(toHex(signature), toHex(expectSignature));
+
+					const valid = await Verify(PK, signature, header, messages);
+					assert.equal(valid, true);
+
+					const reverseMessages = [...messages].reverse();
+					await asyncAssertThrows(() => Verify(PK, signature, header, null), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, header, messages.slice(0, 9)), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, header, reverseMessages), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, null, messages), "Expected signature verification to fail with wrong header")
+					await asyncAssertThrows(() => Verify(PK, signature, concat(header, header), messages), "Expected signature verification to fail with wrong header")
+					const modSig = concat(new Uint8Array([signature[0] ^ 0x01]), signature.slice(1));
+					await asyncAssertThrows(() => Verify(PK, modSig, header, messages), "Expected signature verification to fail with wrong signature")
 				});
 			});
 		});
