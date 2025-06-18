@@ -109,19 +109,48 @@ describe("Suite:", () => {
 		});
 
 		describe("Sign", () => {
-			it("passes test vectors", async () => {
+			describe("passes test vectors:", async () => {
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-fixtures-2
-				const { Sign } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+				it("Valid Single Message Signature", async () => {
+					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-single-message-signatu
+					const { Sign } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
 
-				const m_1 = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
-				const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
-				const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
-				const header = fromHex("11223344556677889900aabbccddeeff");
-				const expectSignature = fromHex("84773160b824e194073a57493dac1a20b667af70cd2352d8af241c77658da5253aa8458317cca0eae615690d55b1f27164657dcafee1d5c1973947aa70e2cfbb4c892340be5969920d0916067b4565a0");
+					const m_1 = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
+					const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
+					const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+					const header = fromHex("11223344556677889900aabbccddeeff");
+					const expectSignature = fromHex("84773160b824e194073a57493dac1a20b667af70cd2352d8af241c77658da5253aa8458317cca0eae615690d55b1f27164657dcafee1d5c1973947aa70e2cfbb4c892340be5969920d0916067b4565a0");
 
-				const signature = await Sign(SK, PK, header, [m_1]);
+					const signature = await Sign(SK, PK, header, [m_1]);
 
-				assert.equal(toHex(signature), toHex(expectSignature));
+					assert.equal(toHex(signature), toHex(expectSignature));
+				});
+
+				it("Valid Multi-Message Signature", async () => {
+					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-multi-message-signatur
+					const { Sign } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+
+					const messages = [
+						"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
+						"c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80",
+						"7372e9daa5ed31e6cd5c825eac1b855e84476a1d94932aa348e07b73",
+						"77fe97eb97a1ebe2e81e4e3597a3ee740a66e9ef2412472c",
+						"496694774c5604ab1b2544eababcf0f53278ff50",
+						"515ae153e22aae04ad16f759e07237b4",
+						"d183ddc6e2665aa4e2f088af",
+						"ac55fb33a75909ed",
+						"96012096",
+						"",
+					].map(fromHex);
+					const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
+					const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+					const header = fromHex("11223344556677889900aabbccddeeff");
+					const expectSignature = fromHex("8339b285a4acd89dec7777c09543a43e3cc60684b0a6f8ab335da4825c96e1463e28f8c5f4fd0641d19cec5920d3a8ff4bedb6c9691454597bbd298288abed3632078557b2ace7d44caed846e1a0a1e8");
+
+					const signature = await Sign(SK, PK, header, messages);
+
+					assert.equal(toHex(signature), toHex(expectSignature));
+				});
 			});
 		});
 	});
