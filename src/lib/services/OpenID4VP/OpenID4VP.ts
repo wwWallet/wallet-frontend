@@ -216,17 +216,13 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		| { error: HandleAuthorizationRequestError }
 	> {
 
-		const descriptorPurpose =
-			dcqlJson.credential_sets?.[0]?.purpose ||
-			t('selectCredentialPopup.purposeNotSpecified');
+		const descriptorPurpose = dcqlJson.credential_sets?.[0]?.purpose || t('selectCredentialPopup.purposeNotSpecified');
 
-		console.log('dcqlJson: ', dcqlJson)
 		const mapping = new Map<string, { credentials: string[]; requestedFields: { name: string; purpose: string }[] }>();
 
 		for (const credReq of dcqlJson.credentials) {
 			const mini = { credential_sets: dcqlJson.credential_sets, credentials: [credReq] };
 			const parsed = DcqlQuery.parse(mini);
-			console.log('parsed DCQL descriptor:', parsed);
 			DcqlQuery.validate(parsed);
 
 			const conforming: string[] = [];
@@ -241,16 +237,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						const credentialBytes = base64url.decode(vc.credential);
 						const issuerSigned = cborDecode(credentialBytes);
 
+						const docType = credReq.meta?.doctype_value!;
 						const envelope = {
 							version: "1.0",
 							documents: [new Map([
-								["docType", credReq.meta!.doctype_value!],
+								["docType", docType],
 								["issuerSigned", issuerSigned],
 							])],
 							status: 0,
 						};
-						const encodedEnvelope = cborEncode(envelope);
-						const mdoc = parse(encodedEnvelope);
+						const mdoc = parse(cborEncode(envelope));
 						const [document] = mdoc.documents;
 
 						const nsName = document.issuerSignedNameSpaces[0];
@@ -258,7 +254,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 						shaped = {
 							credential_format: vc.format,
-							doctype: credReq.meta!.doctype_value!,
+							doctype: docType,
 							namespaces: {
 								[nsName]: nsObject
 							}
@@ -270,18 +266,13 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						shaped.claims = {};
 						for (const claim of credReq.claims) {
 							for (const p of claim.path) {
-								console.log('claim of requested claims: ', claim)
-								console.log('path of claim: ', p)
 								const v = p.split('.').reduce((o, k) => o?.[k], signedClaims);
-								console.log('v: ', v)
 								if (v !== undefined) {
 									shaped.claims[p] = v;
-									console.log('v !== undefined, shaped.claims[p]', shaped.claims[p])
 									break;
 								}
 							}
 						}
-
 					}
 					const result = await DcqlQuery.query(parsed, [shaped]);
 
@@ -289,7 +280,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					if (match?.success) {
 						conforming.push(vc.credentialIdentifier);
 					}
-					console.log('match:', match);
 				} catch (e) {
 					console.error('DCQL eval error for this VC:', e);
 				}
@@ -301,10 +291,10 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			mapping.set(credReq.id, {
 				credentials: conforming,
-				requestedFields: credReq.claims.map((cl) => ({
-					name: cl.id ? cl.id : cl.path,
+				requestedFields: credReq.claims.map(cl => ({
+					name: cl.id || cl.path.join('.'),
 					purpose: descriptorPurpose,
-				})),
+				}))
 			});
 		}
 
@@ -495,9 +485,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const encoded = cborEncode(m);
 				const mdoc = parse(encoded);
 
-				const mdocGeneratedNonce = generateRandomIdentifier(8); // mdoc generated nonce
-				apu = mdocGeneratedNonce; // no need to base64url encode. jose library handles it
-				apv = nonce;  // no need to base64url encode. jose library handles it
+				const mdocGeneratedNonce = generateRandomIdentifier(8);
+				apu = mdocGeneratedNonce;
+				apv = nonce;
 
 				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, mdocGeneratedNonce, nonce, client_id, response_uri);
 				function uint8ArrayToHexString(uint8Array) {
@@ -557,7 +547,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	function convertDcqlToPresentationDefinition(dcql_query) {
 		const pdId = crypto.randomUUID();
 		const input_descriptors = dcql_query.credentials.map(cred => {
-			const descriptorId = cred.meta!.doctype_value!;
+			const descriptorId = cred.meta?.doctype_value!;
 
 			const format: Record<string, any> = {}
 			if (cred.format === "mso_mdoc") {
@@ -593,9 +583,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 
 	async function handleDCQLFlow(S, selectionMap, verifiableCredentials) {
-		console.log("S: ", S)
 		const { dcql_query, client_id, nonce, response_uri } = S;
-		console.log('dcql_query: ', dcql_query)
 		let apu = undefined;
 		let apv = undefined;
 		let selectedVCs = [];
@@ -607,128 +595,88 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			allIds.includes(vc.credentialIdentifier)
 		);
 
-		for (const [dcqlId, credId] of selectionMap.entries()) {
+		for (const [selectionKey, credId] of selectionMap.entries()) {
 			const vcEntity = filtered.find(v => v.credentialIdentifier === credId);
 			if (!vcEntity) continue;
-			console.log('dcqlId: ', dcqlId);
 
 			if (
 				vcEntity.format === VerifiableCredentialFormat.VC_SDJWT ||
 				vcEntity.format === VerifiableCredentialFormat.DC_SDJWT
 			) {
-				const descriptor = dcql_query.credentials.find(c => c.id === dcqlId);
+				const descriptor = dcql_query.credentials.find(c => c.id === selectionKey);
 				if (!descriptor) {
-					throw new Error(`No DCQL descriptor for id ${dcqlId}`);
+					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
 
-				// Flatten all the claim paths into a simple array of strings
-				// e.g. [['first_name'], ['address','street']] → ['first_name','address.street']
-				const paths = descriptor.claims
-					.flatMap(cl => cl.path.map(p =>
-						// join with '.' so our frame builder can split it back
-						typeof p === 'string' ? p : p.join('.')
-					));
+				const paths = descriptor.claims.flatMap(cl =>
+					cl.path.map(p => (typeof p === 'string' ? p : p.join('.')))
+				);
 
 				const frame = generatePresentationFrameForPaths(paths);
-				console.log('FRAME: ', frame);
 				const hasher = (data, alg) => {
 					const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
-					return crypto.subtle.digest(alg, bytes)
-						.then(buf => new Uint8Array(buf));
+					return crypto.subtle.digest(alg, bytes).then(buf => new Uint8Array(buf));
 				};
 
 				const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
-				const presentation = (vcEntity.credential.split("~").length - 1) > 1 ?
-					await sdJwt.present(frame, hasher) : vcEntity.credential;
-				console.log('presentation: ', presentation);
-
 				// TODO handle transaction data
+				const presentation = (vcEntity.credential.split("~").length - 1) > 1
+					? await sdJwt.present(frame, hasher)
+					: vcEntity.credential;
 
-				const { signedClaims, error } = await parseCredential(vcEntity.credential);
+				const { signedClaims } = await parseCredential(vcEntity.credential);
 
 				const shaped = {
 					credential_format: vcEntity.format,
 					vct: signedClaims.vct,
 					claims: Object.fromEntries(
-						Object.entries(signedClaims).filter(([k, v]) =>
+						Object.entries(signedClaims).filter(([k]) =>
 							descriptor.claims.some(cl => cl.path.includes(k))
 						)
 					)
 				};
 				const presResult = DcqlPresentationResult.fromDcqlPresentation(
-					{ [dcqlId]: shaped },
+					{ [selectionKey]: shaped },
 					{ dcqlQuery: dcql_query }
 				);
-				if (!presResult.valid_matches[dcqlId]?.success) {
-					console.error('Client‐side DCQL validation failed', presResult);
-					throw new Error(`Presentation for '${dcqlId}' did not satisfy DCQL`);
+				if (!presResult.valid_matches[selectionKey]?.success) {
+					throw new Error(`Presentation for '${selectionKey}' did not satisfy DCQL`);
 				}
 
-				const { vpjwt } = await keystore.signJwtPresentation(
-					S.nonce,
-					S.client_id,
-					[presentation]
-				);
+				const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation]);
 
 				selectedVCs.push(presentation);
 				generatedVPs.push(vpjwt);
 				originalVCs.push(vcEntity);
+			}
 
-			} else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
-				const credentialBytes = base64url.decode(vcEntity.credential);
-
-				const issuerSignedPayload = cborDecode(credentialBytes);
-				const descriptor = dcql_query.credentials.find(c => c.id === dcqlId);
+			else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
+				// Use DCQL ID (`selectionKey`) to find the descriptor
+				const descriptor = dcql_query.credentials.find(c => c.id === selectionKey);
 				if (!descriptor) {
-					throw new Error(`No DCQL descriptor for id ${dcqlId}`);
+					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-
-				// Retrieve docType from the descriptor's metadata
-				const docTypeFromDescriptor = descriptor.meta?.doctype_value;
-				if (!docTypeFromDescriptor) {
-					throw new Error(`DCQL descriptor for '${dcqlId}' is missing meta.doctype_value for MSO_MDOC`);
-				}
+				const descriptorId = descriptor.meta?.doctype_value!;
+				const credentialBytes = base64url.decode(vcEntity.credential);
+				const issuerSignedPayload = cborDecode(credentialBytes);
 
 				const mdocStructure = {
 					version: '1.0',
 					documentErrors: [],
 					documents: [new Map([
-						['docType', docTypeFromDescriptor],
+						['docType', descriptorId],
 						['issuerSigned', issuerSignedPayload]
 					])],
 					status: 0
 				};
 				const encoded = cborEncode(mdocStructure);
-				console.log('Attempting to parse MSO_MDOC with docType:', docTypeFromDescriptor);
 				const mdoc = parse(encoded);
-				console.log('MSO_MDOC parsed successfully for DCQL flow.');
 				const mdocGeneratedNonce = generateRandomIdentifier(8);
-				const apu = mdocGeneratedNonce;
-				const apv = nonce;
+				apu = mdocGeneratedNonce;
+				apv = nonce;
 
-				// Convert dcql_query to presentation_definition
 				const presentationDefinition = convertDcqlToPresentationDefinition(dcql_query);
-				console.log('converted: ', presentationDefinition)
 				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, apu, apv, client_id, response_uri);
-				function uint8ArrayToHexString(uint8Array) {
-					// @ts-ignore
-					return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
-				}
-				console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
-
-				// DEBUG
-				const parsed = parse(deviceResponseMDoc.encode());
-				console.log('parsed mdoc:' , parsed)
-				const [doc] = parsed.documents;
-				console.log("DeviceResponse docType:", doc.docType);
-				console.log("DeviceResponse namespaces:", doc.issuerSignedNameSpaces);
-				console.log("DeviceResponse payload:",
-					JSON.stringify(
-						doc.getIssuerNameSpace(doc.issuerSignedNameSpaces[0]),
-						null, 2
-					)
-				);
-				//
 				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
 
 				selectedVCs.push(encodedDeviceResponse);
@@ -737,21 +685,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			}
 		}
 
-		const vpTokenObject: Record<string, string> = {};
-		for (let i = 0; i < generatedVPs.length; i++) {
-			const dcqlId = Array.from(selectionMap.keys())[i];
-			console.log('dcqlId: ', dcqlId)
-			vpTokenObject[dcqlId as string] = generatedVPs[i];
-		}
+		// Always use DCQL query ID (selectionKey) as the key
+		const vpTokenObject = Object.fromEntries(
+			Array.from(selectionMap.keys()).map((key, idx) => [key, generatedVPs[idx]])
+		);
 
-		console.log('vpTokenObject: ', vpTokenObject)
 		const presentationSubmission = {
 			id: generateRandomIdentifier(8),
-			descriptor_map: Object.entries(vpTokenObject).map(
-				([id], idx) => ({ id, path: `$[${idx}]` })
-			)
+			descriptor_map: Array.from(selectionMap.keys()).map((id, idx) => ({ id, path: `$[${idx}]` }))
 		};
-		console.log('presentationSubmission: ', presentationSubmission)
+
 		const formData = new URLSearchParams();
 
 		if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
@@ -761,8 +704,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			const jwePayload = {
 				vp_token: vpTokenObject,
 				state: S.state ?? undefined
-			}
-			console.log("DCQL JWE payload (pre-encryption):", JSON.stringify(jwePayload, null, 2));
+			};
+
 			const jwe = await new EncryptJWT(jwePayload)
 				.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
 				.setProtectedHeader({
@@ -775,7 +718,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			formData.append('response', jwe);
 		} else {
 			formData.append('vp_token', JSON.stringify(vpTokenObject));
-			// formData.append('presentation_submission', JSON.stringify(presentationSubmission));
 			if (S.state) formData.append('state', S.state);
 		}
 
@@ -869,6 +811,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		);
 
 		let matchResult;
+		console.log('Presentation Definition: ', presentation_definition);
+		console.log('DCQL Query: ', dcql_query);
 		if (presentation_definition) {
 			matchResult = await matchCredentialsToDefinition(vcList, presentation_definition, parseCredential, t);
 		} else if (dcql_query) {
