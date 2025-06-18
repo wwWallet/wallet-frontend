@@ -21,6 +21,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	};
 
 	const { expand_message, prime_subgroup_order } = suite.hash_to_curve_suite.suiteParams;
+	const api_id = new TextEncoder().encode(suite.id + "H2G_HM2S_");
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-hash-to-scalar */
 	async function hash_to_scalar(msg_octets: BufferSource, dst: BufferSource): Promise<bigint> {
@@ -80,6 +81,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 	return {
 		params: suite,
+		api_id,
 		hash_to_scalar,
 		messages_to_scalars,
 		create_generators,
@@ -118,6 +120,7 @@ type SuiteParams = {
 
 type CipherSuite = {
 	params: SuiteParams,
+	api_id: BufferSource,
 	hash_to_scalar: HashToScalarFunc,
 	messages_to_scalars: MessagesToScalarsFunc,
 	create_generators: CreateGeneratorsFunc,

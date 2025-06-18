@@ -1,12 +1,13 @@
 import { assert, describe, it } from "vitest";
 
-import { fromHex, toHex } from "../util";
+import { concat, fromHex, toHex } from "../util";
 import { getCipherSuite } from "./ietf-bbs";
 
 
 describe("Suite:", () => {
 
 	const suiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
+
 	describe(suiteId, () => {
 		describe("hash_to_scalar", () => {
 			it("passes test vectors", async () => {
@@ -20,13 +21,14 @@ describe("Suite:", () => {
 
 		describe("keyGen", () => {
 			it("passes test vectors", async () => {
-				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-03.html#name-key-pair-2
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-key-pair-2
 				const key_material = fromHex("746869732d49532d6a7573742d616e2d546573742d494b4d2d746f2d67656e65726174652d246528724074232d6b6579");
 				const key_info = fromHex("746869732d49532d736f6d652d6b65792d6d657461646174612d746f2d62652d757365642d696e2d746573742d6b65792d67656e");
 				const dst = new TextEncoder().encode('irrelevant, this is not used in expand_message');
-				const { KeyGen } = getCipherSuite(suiteId, dst);
+				const { api_id, KeyGen } = getCipherSuite(suiteId, dst);
+				const key_dst = concat(api_id, new TextEncoder().encode("KEYGEN_DST_"));
+				const SK = await KeyGen(key_material, key_info, key_dst);
 
-				const SK = await KeyGen(key_material, key_info, new TextEncoder().encode("BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_HM2S_" + "KEYGEN_DST_"));
 				assert.equal(SK, 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn);
 			});
 		});
@@ -35,8 +37,8 @@ describe("Suite:", () => {
 			it("passes test vectors", async () => {
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-map-messages-to-scalars-2
 				const dst = fromHex('4242535f424c53313233383147315f584d443a5348412d3235365f535357555f524f5f4832475f484d32535f4d41505f4d53475f544f5f5343414c41525f41535f484153485f');
-				const { messages_to_scalars } = getCipherSuite(suiteId, dst);
-
+				const { api_id, messages_to_scalars } = getCipherSuite(suiteId, dst);
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-messages-2
 				const messages = [
 					"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
 					"c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80",
@@ -49,9 +51,8 @@ describe("Suite:", () => {
 					"96012096",
 					"",
 				].map(fromHex);
-
-				const api_id = new TextEncoder().encode("BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_HM2S_");
 				const scalars = await messages_to_scalars(messages, api_id);
+
 				assert.equal(scalars.length, 10);
 				assert.equal(scalars[0], 0x1cb5bb86114b34dc438a911617655a1db595abafac92f47c5001799cf624b430n);
 				assert.equal(scalars[1], 0x154249d503c093ac2df516d4bb88b510d54fd97e8d7121aede420a25d9521952n);
@@ -68,9 +69,8 @@ describe("Suite:", () => {
 
 		describe("create_generators", () => {
 			it("passes test vectors", async () => {
-				const { create_generators } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+				const { api_id, create_generators } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
 				const count = 11;
-				const api_id = new TextEncoder().encode("BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_H2G_HM2S_");
 				const generators = await create_generators(count, api_id);
 
 				assert.equal(generators.length, count);
