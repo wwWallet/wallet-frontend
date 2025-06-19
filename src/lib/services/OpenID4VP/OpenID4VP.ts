@@ -349,9 +349,15 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				// Use the matchAll method to get all matches
 				let matches = [...path.matchAll(/\['(.*?)'\]/g)];
 
-				// Initialize an empty object to build the result
+				// grab any dot-keys before the first bracket
+				let prefix = path.replace(/\['.*$/, '').replace(/^\$\./, '');
 				let current = result;
-
+				if (prefix) {
+					prefix.split('.').forEach(key => {
+						current[key] = current[key] || {};
+						current = current[key];
+					});
+				}
 				// Iterate over each match and build the nested object
 				for (let i = 0; i < matches.length; i++) {
 					let key = matches[i][1];
