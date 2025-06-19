@@ -437,7 +437,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)
+					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
 						.generateTransactionDataResponseParameters(transaction_data);
 					if (err) {
 						throw err;
@@ -583,7 +583,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 
 	async function handleDCQLFlow(S, selectionMap, verifiableCredentials) {
-		const { dcql_query, client_id, nonce, response_uri } = S;
+		const { dcql_query, client_id, nonce, response_uri, transaction_data } = S;
 		let apu = undefined;
 		let apv = undefined;
 		let selectedVCs = [];
@@ -643,7 +643,17 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					throw new Error(`Presentation for '${selectionKey}' did not satisfy DCQL`);
 				}
 
-				const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation]);
+				let transactionDataResponseParams;
+				if (transaction_data) {
+					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
+						.generateTransactionDataResponseParameters(transaction_data);
+					if (err) {
+						throw err;
+					}
+					transactionDataResponseParams = { ...res };
+				}
+
+				const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation], transactionDataResponseParams);
 
 				selectedVCs.push(presentation);
 				generatedVPs.push(vpjwt);
@@ -765,7 +775,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					console.log("Received transaction data");
 					console.log('Transaction data = ', payload.transaction_data)
 					transaction_data = payload.transaction_data;
-					const result = parseTransactionData(transaction_data, presentation_definition);
+					const result = parseTransactionData(transaction_data, presentation_definition, dcql_query);
 					if (result === "invalid_transaction_data") {
 						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
 					}
