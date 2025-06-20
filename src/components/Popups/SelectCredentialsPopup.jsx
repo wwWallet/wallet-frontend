@@ -153,7 +153,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 		return Object.values(currentSelectionMap)
 			.map((selectedId) =>
-				vcEntityList.find((vc) => vc.credentialIdentifier === selectedId)
+				vcEntityList.find((vc) => vc.batchId === selectedId)
 			)
 			.filter(Boolean);
 	}, [currentSelectionMap, vcEntityList]);
@@ -383,11 +383,11 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						<div className="flex flex-col gap-4">
 							{selectedVcEntities.map((vcEntity) => {
 								const descriptorId = Object.keys(currentSelectionMap).find(
-									(key) => currentSelectionMap[key] === vcEntity.credentialIdentifier
+									(key) => currentSelectionMap[key] === vcEntity.batchId
 								);
 								return (
 									<div
-										key={vcEntity.credentialIdentifier}
+										key={vcEntity.batchId}
 										className="flex flex-row items-center gap-2 mt-2"
 									>
 										<CredentialImage
