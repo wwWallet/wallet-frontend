@@ -14,7 +14,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 	const toggleExpanded = () => setExpanded((prev) => !prev);
 	const toggleString = () => setShowFullString((prev) => !prev);
 
-	const indentClass = depth === 0 ? '' : 'pl-2';
+	const indentClass = depth === 0 ? '' : 'pl-4';
 
 	if (isArray(value)) {
 		return (
