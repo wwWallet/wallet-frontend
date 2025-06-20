@@ -255,7 +255,6 @@ export function useCredentialRequest() {
 						instanceId: index,
 					}
 				}));
-				console.log("Private data len = ", privateData.jwe.length)
 
 				await updatePrivateData(privateData);
 				await keystoreCommit();

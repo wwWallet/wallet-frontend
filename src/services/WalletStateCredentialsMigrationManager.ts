@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { WalletBaseStateCredential, WalletSessionEvent, WalletStateOperations } from "./WalletStateOperations";
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
@@ -61,7 +61,5 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 		}
 	}, [api, keystore, isOnline]);
 
-
-	return {};
-
+	return useMemo(() => ({ }), []);
 }

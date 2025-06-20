@@ -13,6 +13,7 @@ import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import type { CredentialConfigurationSupported } from 'wallet-common';
+import { WalletBaseStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
@@ -24,14 +25,14 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
-	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
-	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications();
+	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository);
+	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openID4VCIClientStateRepository);
 
 	const tokenRequestBuilder = useTokenRequest();
 	const credentialRequestBuilder = useCredentialRequest();
 
 	const credentialRequest = useCallback(
-		async (response: any, flowState: OpenID4VCIClientState) => {
+		async (response: any, flowState: WalletBaseStateCredentialIssuanceSession) => {
 			console.log('credentialRequest')
 			const {
 				data: { access_token, c_nonce },
@@ -121,7 +122,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			if (requestCredentialsParams.usingActiveAccessToken) {
 				console.log("Attempting with active access token")
 
-				const flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(credentialIssuerIdentifier, requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId)
+				const flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(credentialIssuerIdentifier, requestCredentialsParams.usingActiveAccessToken.credentialConfigurationId)
 				if (!flowState) {
 					throw new Error("Using active access token: No flowstate");
 				}
@@ -157,14 +158,14 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			const tokenEndpoint = authzServerMetadata.authzServeMetadata.token_endpoint;
 
 
-			let flowState: OpenID4VCIClientState | null = null;
+			let flowState: WalletBaseStateCredentialIssuanceSession | null = null;
 
 			if (requestCredentialsParams?.authorizationCodeGrant) {
 
-				flowState = await openID4VCIClientStateRepository.getByStateAndUserHandle(requestCredentialsParams.authorizationCodeGrant.state)
+				flowState = await openID4VCIClientStateRepository.getByState(requestCredentialsParams.authorizationCodeGrant.state)
 			}
 			else if (requestCredentialsParams?.refreshTokenGrant) {
-				flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(credentialIssuerIdentifier, requestCredentialsParams.refreshTokenGrant.credentialConfigurationId)
+				flowState = await openID4VCIClientStateRepository.getByCredentialIssuerIdentifierAndCredentialConfigurationId(credentialIssuerIdentifier, requestCredentialsParams.refreshTokenGrant.credentialConfigurationId)
 			}
 
 
@@ -281,7 +282,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				return;
 			}
 
-			const s = await openID4VCIClientStateRepository.getByStateAndUserHandle(state);
+			const s = await openID4VCIClientStateRepository.getByState(state);
 			console.log("S = ", s)
 			if (!s || !s.credentialIssuerIdentifier) {
 				console.log("No credential issuer identifier was found in the issuance flow state");

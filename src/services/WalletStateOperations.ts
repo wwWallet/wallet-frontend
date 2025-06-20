@@ -1,6 +1,7 @@
 import { FOLD_EVENT_HISTORY_AFTER } from "@/config";
 import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
+import { JWK } from "jose";
 
 const SCHEMA_VERSION = 1;
 const WALLET_SESSION_EVENT_SCHEMA_VERSION = 1;
@@ -45,6 +46,36 @@ export type WalletSessionEvent = {
 } | {
 	type: "alter_settings",
 	settings: Record<string, string>;
+} | {
+	type: "save_credential_issuance_session",
+	sessionId: number,
+
+	credentialIssuerIdentifier: string,
+	state: string,
+	code_verifier: string,
+	credentialConfigurationId: string,
+	tokenResponse?: {
+		data: {
+			access_token: string,
+			expiration_timestamp: number,
+			c_nonce: string,
+			c_nonce_expiration_timestamp: number,
+			refresh_token?: string,
+		},
+		headers: {
+			"dpop-nonce"?: string,
+		}
+	},
+	dpop?: {
+		dpopJti: string,
+		dpopPrivateKeyJwk: JWK,
+		dpopPublicKeyJwk?: JWK,
+		dpopAlg: string,
+	},
+	firstPartyAuthorization?: {
+		auth_session: string,
+	},
+	created: number,
 })
 
 export type WalletBaseState = {
@@ -66,13 +97,44 @@ export type WalletBaseState = {
 		data: string,
 		usedCredentialIds: number[],
 	}[],
+	settings: Record<string, string>,
+	credentialIssuanceSessions: {
+		sessionId: number, // unique
+
+		credentialIssuerIdentifier: string,
+		state: string,
+		code_verifier: string,
+		credentialConfigurationId: string,
+		tokenResponse?: {
+			data: {
+				access_token: string,
+				expiration_timestamp: number,
+				c_nonce: string,
+				c_nonce_expiration_timestamp: number,
+				refresh_token?: string,
+			},
+			headers: {
+				"dpop-nonce"?: string,
+			}
+		},
+		dpop?: {
+			dpopJti: string,
+			dpopPrivateKeyJwk: JWK,
+			dpopPublicKeyJwk?: JWK,
+			dpopAlg: string,
+		},
+		firstPartyAuthorization?: {
+			auth_session: string,
+		},
+		created: number,
+	}[],
 }
 
 export type WalletBaseStateCredential = WalletBaseState['credentials'][number];
 export type WalletBaseStateKeypair = WalletBaseState['keypairs'][number];
 export type WalletBaseStatePresentation = WalletBaseState['presentations'][number];
-
-
+export type WalletBaseStateSettings = WalletBaseState['settings'];
+export type WalletBaseStateCredentialIssuanceSession = WalletBaseState['credentialIssuanceSessions'][number];
 
 function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
@@ -122,8 +184,33 @@ function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent
 	}
 }
 
+function credentialIssuanceSessionReducer(state: WalletBaseStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
+	switch (newEvent.type) {
+		case "save_credential_issuance_session":
+			return state.filter((s) => s.sessionId !== newEvent.sessionId).concat([{
+				sessionId: newEvent.sessionId,
+				state: newEvent.state,
+				code_verifier: newEvent.code_verifier,
+				credentialConfigurationId: newEvent.credentialConfigurationId,
+				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
+				tokenResponse: newEvent.tokenResponse,
+				dpop: newEvent.dpop,
+				firstPartyAuthorization: newEvent.firstPartyAuthorization,
+				created: newEvent.created,
+			}]);
+		default:
+			return state;
+	}
+}
 
-
+function settingsReducer(state: WalletBaseStateSettings = {}, newEvent: WalletSessionEvent) {
+	switch (newEvent.type) {
+		case "alter_settings":
+			return { ...newEvent.settings };
+		default:
+			return state;
+	}
+}
 
 async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
 	return events.length > 0 ? WalletStateUtils.calculateEventHash(events[events.length - 1]) : "";
@@ -188,6 +275,11 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		settingsEvents.sort((a, b) => a.timestamp - b.timestamp);
 		return settingsEvents.length > 0 ? [settingsEvents[settingsEvents.length - 1]] : [];
 	},
+	save_credential_issuance_session: (a, b) => {
+		const map = new Map<number, WalletSessionEvent>();
+		[...a, ...b].map((event: WalletSessionEvent) => event.type === "save_credential_issuance_session" && map.set(event.eventId, event));
+		return [...map.values()];
+	},
 };
 
 async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSessionEvent[]> {
@@ -199,6 +291,7 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 		new_presentation: [[], []],
 		delete_presentation: [[], []],
 		alter_settings: [[], []],
+		save_credential_issuance_session: [[], []],
 	};
 
 	for (const event of historyA) {
@@ -280,7 +373,7 @@ export namespace WalletStateOperations {
 
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
-			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [] },
+			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { } },
 			events: [],
 		}
 	}
@@ -359,13 +452,69 @@ export namespace WalletStateOperations {
 		}
 	}
 
+	export async function createAlterSettingsWalletSessionEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletSessionEvent> {
+		return {
+			...await createWalletSessionEvent(container),
+			type: "alter_settings",
+			settings: settings,
+		}
+	}
 
-	export function walletStateReducer(state: WalletBaseState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], }, newEvent: WalletSessionEvent): WalletBaseState {
+
+	export async function createSaveCredentialIssuanceSessionWalletSessionEvent(container: WalletStateContainer,
+		sessionId: number,
+		credentialIssuerIdentifier: string,
+		state: string,
+		code_verifier: string,
+		credentialConfigurationId: string,
+		tokenResponse?: {
+			data: {
+				access_token: string,
+				expiration_timestamp: number,
+				c_nonce: string,
+				c_nonce_expiration_timestamp: number,
+				refresh_token?: string,
+			},
+			headers: {
+				"dpop-nonce"?: string,
+			}
+		},
+		dpop?: {
+			dpopJti: string,
+			dpopPrivateKeyJwk: JWK,
+			dpopPublicKeyJwk?: JWK,
+			dpopAlg: string,
+		},
+		firstPartyAuthorization?: {
+			auth_session: string,
+		},
+		created?: number
+	): Promise<WalletSessionEvent> {
+		return {
+			...await createWalletSessionEvent(container),
+			type: "save_credential_issuance_session",
+			sessionId: sessionId,
+
+			credentialIssuerIdentifier,
+			state,
+			code_verifier,
+			credentialConfigurationId,
+			tokenResponse,
+			dpop,
+			firstPartyAuthorization,
+			created: created ?? Math.floor(Date.now() / 1000),
+		}
+	}
+
+
+	export function walletStateReducer(state: WalletBaseState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletBaseState {
 		return {
 			schemaVersion: SCHEMA_VERSION,
 			credentials: credentialReducer(state.credentials, newEvent),
 			keypairs: keypairReducer(state.keypairs, newEvent),
 			presentations: presentationReducer(state.presentations, newEvent),
+			credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
+			settings: settingsReducer(state.settings, newEvent)
 		}
 	}
 

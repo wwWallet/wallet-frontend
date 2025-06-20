@@ -56,23 +56,32 @@ export const UriHandler = ({ children }) => {
 	}, [keystore, setCachedUser]);
 
 	useEffect(() => {
+		setSynced(false);
+	}, [location]);
+
+	useEffect(() => {
 		if (!keystore || !cachedUser || !api) {
 			return;
 		}
-		console.log("Location changed..")
 		if (synced === false) {
+			console.log("Actually syncing...");
 			api.syncPrivateData(keystore, async () => false, cachedUser).then((r) => {
 				if (!r.ok) {
 					return;
 				}
-				setSynced(true);
-				setUrl(window.location.href);
-				checkForUpdates();
-				updateOnlineStatus(false);
+				setSynced(true);			
+				// checkForUpdates();
+				// updateOnlineStatus(false);
 			});
 		}
 
-	}, [location, updateOnlineStatus, api, keystore, cachedUser, synced, setSynced]);
+	}, [api, keystore, cachedUser, synced, setSynced]);
+
+	useEffect(() => {
+		if (synced === true && window.location.search !== '') {
+			setUrl(window.location.href);
+		}
+	}, [synced, setUrl, location]);
 
 	useEffect(() => {
 		if (redirectUri) {

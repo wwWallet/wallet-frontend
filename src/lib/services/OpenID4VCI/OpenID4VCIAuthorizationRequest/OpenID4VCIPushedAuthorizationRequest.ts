@@ -8,11 +8,12 @@ import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "@/context/SessionContext";
+import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
 
-export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizationRequest {
+export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
-	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { keystore } = useContext(SessionContext);
 
 	const generate = useCallback(
@@ -74,10 +75,18 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 			const { request_uri } = res.data;
 			const authorizationRequestURL = `${config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${config.clientId}`
 
-			await openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
+			await openID4VCIClientStateRepository.create({
+				sessionId: WalletStateUtils.getRandomUint32(),
+				credentialIssuerIdentifier: config.credentialIssuerIdentifier,
+				state,
+				code_verifier,
+				credentialConfigurationId,
+				created: Math.floor(Date.now() / 1000),
+			});
+			await openID4VCIClientStateRepository.commitStateChanges();
 			return { authorizationRequestURL };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore]
+		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);

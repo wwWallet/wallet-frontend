@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../hooks/useStorage";
@@ -9,7 +10,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
-import { WalletBaseState, WalletBaseStateCredential, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { WalletBaseState, WalletBaseStateCredential, WalletBaseStateCredentialIssuanceSession, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 
 
 type UserData = {
@@ -103,6 +104,19 @@ export interface LocalStorageKeystore {
 
 	getAllCredentials(): Promise<WalletBaseStateCredential[] | null>,
 	getAllPresentations(): Promise<WalletBaseStatePresentation[] | null>,
+
+	saveCredentialIssuanceSessions(issuanceSessions: WalletBaseStateCredentialIssuanceSession[]): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
+	getCredentialIssuanceSessionByState(state: string): Promise<WalletBaseStateCredentialIssuanceSession | null>,
+
+	alterSettings(settings: Record<string, string>): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
 }
 
 /** A stateful wrapper around the keystore module, storing state in the browser's localStorage and sessionStorage. */
@@ -115,6 +129,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
 	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletBaseState | null>(null);
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
+
+	const navigate = useNavigate();
+	const location = useLocation();
+
+	const from = location.search || '/';
+
 
 	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
@@ -238,11 +258,20 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletBaseState]> => {
 		if (mainKey && privateData) {
-			return await keystore.openPrivateData(mainKey, privateData)
+			try {
+				return await keystore.openPrivateData(mainKey, privateData);
+			}
+			catch (err) {
+				console.error(err);
+				console.log("Navigating to login-state to handle JWE decryption failure");
+				const queryParams = new URLSearchParams(from);
+				queryParams.append('user', userHandleB64u);
+				navigate(`/login-state?${queryParams.toString()}`, { replace: true });
+			}
 		} else {
 			throw new Error("Private data not present in storage.");
 		}
-	}, [mainKey, privateData]);
+	}, [mainKey, privateData, from]);
 
 	const editPrivateData = useCallback(async <T>(
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
@@ -627,7 +656,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return editPrivateData(async (originalContainer) => {
 			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
 			return [{}, newContainer];
-		})
+		});
 
 	}, [editPrivateData, getAllCredentials, calculatedWalletState]);
 
@@ -636,6 +665,58 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return calculatedWalletState ? calculatedWalletState.presentations : null;
 	}, [calculatedWalletState]);
 
+
+	const saveCredentialIssuanceSessions = useCallback(async (issuanceSessions: WalletBaseStateCredentialIssuanceSession[]): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]> => {
+		const [walletStateContainer, ,] = await openPrivateData();
+		for (const issuanceSession of issuanceSessions) {
+			const e = await WalletStateOperations.createSaveCredentialIssuanceSessionWalletSessionEvent(walletStateContainer,
+				issuanceSession.sessionId,
+				issuanceSession.credentialIssuerIdentifier,
+				issuanceSession.state,
+				issuanceSession.code_verifier,
+				issuanceSession.credentialConfigurationId,
+				issuanceSession.tokenResponse,
+				issuanceSession.dpop,
+				issuanceSession.firstPartyAuthorization,
+				issuanceSession.created
+			);
+			walletStateContainer.events.push(e);
+		}
+
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+			throw new Error("History continuity is not maintained");
+		}
+		return editPrivateData(async (originalContainer) => {
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			return [{}, newContainer];
+		});
+	}, [editPrivateData, openPrivateData]);
+
+	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<WalletBaseStateCredentialIssuanceSession | null> => {
+		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletBaseStateCredentialIssuanceSession) => s.state === state)[0] : null;
+	}, [editPrivateData, openPrivateData]);
+
+	const alterSettings = useCallback(async (settings: Record<string, string>): Promise<[
+		{},
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]> => {
+		const [walletStateContainer, ,] = await openPrivateData();
+		const e = await WalletStateOperations.createAlterSettingsWalletSessionEvent(walletStateContainer, settings);
+		walletStateContainer.events.push(e);
+
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+			throw new Error("History continuity is not maintained");
+		}
+		return editPrivateData(async (originalContainer) => {
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			return [{}, newContainer];
+		});
+	}, [editPrivateData, openPrivateData]);
 
 	return useMemo(() => ({
 		isOpen,
@@ -662,6 +743,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		addCredentials,
 		deleteCredentialsByBatchId,
 		getAllPresentations,
+		saveCredentialIssuanceSessions,
+		getCredentialIssuanceSessionByState,
+		alterSettings,
 	}), [
 		isOpen,
 		close,
@@ -687,5 +771,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		addCredentials,
 		deleteCredentialsByBatchId,
 		getAllPresentations,
+		saveCredentialIssuanceSessions,
+		getCredentialIssuanceSessionByState,
+		alterSettings,
 	]);
 }
