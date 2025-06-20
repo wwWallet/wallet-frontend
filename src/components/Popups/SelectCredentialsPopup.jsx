@@ -197,8 +197,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	const renderSlideContent = (vcEntity) => (
 		<button
-			id={`slider-select-credentials-${vcEntity.id}`}
-			key={vcEntity.id}
+			id={`slider-select-credentials-${vcEntity.batchId}`}
+			key={vcEntity.batchId}
 			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
 			onClick={() => handleClick(vcEntity.batchId)}
