@@ -149,7 +149,9 @@
 		"searchPlaceholder": "Procurar credencial..."
 	},
 	"pageCredentials": {
-		"addCardTitle": "Adicionar Nova Credencial",
+		"addCard": {
+			"text": "Adicionar Nova Credencial"
+		},
 		"credentialDetailsTitle": "Clique para ver detalhes sobre {{friendlyName}}",
 		"credentialFullScreenTitle": "Clique para ver em tela cheia o {{friendlyName}}",
 		"credentialTitle": "Credencial",

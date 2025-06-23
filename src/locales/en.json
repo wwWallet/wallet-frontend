@@ -159,7 +159,10 @@
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
-		"addCardTitle": "Add New Credential",
+		"addCard": {
+			"text": "Add New Credential",
+			"title": "Verifable Credential"
+		},
 		"copyDatasetToClipboard": "Copy Dataset (JSON) to clipboard",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
