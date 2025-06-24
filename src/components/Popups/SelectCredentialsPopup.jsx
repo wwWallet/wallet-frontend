@@ -437,8 +437,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
 						variant="primary"
-						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && !selectedCredential}
-						title={!selectedCredential && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
+						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential == undefined}
+						title={selectedCredential == undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
 							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
 					>
 						{keys[currentIndex] === 'summary'
