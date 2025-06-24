@@ -10,7 +10,7 @@ type CredentialEngine = {
 	msoMdocVerifier: CredentialVerifier;
 };
 
-type Instance = {
+export type Instance = {
 	instanceId: number;
 	sigCount: number;
 }

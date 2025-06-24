@@ -9,7 +9,6 @@ import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPart
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../../config";
-import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
@@ -22,14 +21,15 @@ import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
+import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
 
-export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, number>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
 
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { parseCredential } = useContext(CredentialsContext);
-	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 
 	const { t } = useTranslation();
@@ -72,7 +72,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 
 	const promptForCredentialSelection = useCallback(
-		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
+		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, number>> => {
 			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose);
 		},
 		[showCredentialSelectionPopup]
@@ -212,7 +212,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					try {
 
 						if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
-								(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
+							(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
 							const result = await parseCredential(vc.data);
 							if ('error' in result) {
 								throw new Error('Could not parse credential');
@@ -373,17 +373,17 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			let apu = undefined;
 			let apv = undefined;
 
-			const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
+			const allSelectedCredentialBatchIds = Array.from(selectionMap.values());
 
 			// returns the credentials with the minimum usages for each credential identifier
-			const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (batchId) =>
-				credentialBatchHelper.getLeastUsedCredential(batchId, vcEntityList)
+			const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialBatchIds.map(async (batchId) =>
+				getLeastUsedCredentialInstance(batchId, vcEntityList)
 			));
 			console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
 
 			const filteredVCEntities = credentialsFilteredByUsage
 				.filter((vc) =>
-					allSelectedCredentialIdentifiers.includes(vc.batchId),
+					allSelectedCredentialBatchIds.includes(vc.batchId),
 				);
 
 			let selectedVCs = [];
@@ -503,15 +503,23 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				}
 			}
 
+			// const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, batchIdList, client_id);
+			const transactionId = WalletStateUtils.getRandomUint32();
+			const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations(generatedVPs.map((vpData, index) => {
+				console.log("Presentation: ")
 
-			const batchIdList = originalVCs.map((vc) => vc.batchId);
+				return {
+					transactionId: transactionId,
+					data: vpData,
+					usedCredentialIds: [originalVCs[index].credentialId],
+					audience: client_id,
+				}
+			}));
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+			console.log("Presentations added")
 
-			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
-			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, batchIdList, client_id);
-
-			const updateRepositoryPromise = openID4VPRelyingPartyStateRepository.store(S);
-
-			await Promise.all([storePresentationPromise, updateRepositoryPromise]);
+			await openID4VPRelyingPartyStateRepository.store(S);
 
 			let res = null;
 			try {
@@ -541,7 +549,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				description: "The verification process has been completed",
 			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, storeVerifiablePresentation, showStatusPopup]
+		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {

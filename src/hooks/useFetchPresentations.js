@@ -1,42 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { compareBy, reverse } from '../util';
 
-const useFetchPresentations = (api, credentialId = "", historyId = "") => {
-	const [history, setHistory] = useState([]);
+// Context
+import CredentialsContext from '@/context/CredentialsContext';
+
+import { CredentialVerificationError } from "wallet-common/dist/error";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+
+const useFetchPresentations = (keystore, batchId = null, transactionId = null) => {
+	const [history, setHistory] = useState({});
+	const { parseCredential, credentialEngine } = useContext(CredentialsContext);
 
 	useEffect(() => {
 		const fetchPresentations = async () => {
 			console.log('FetchPresentations');
 			try {
-				const fetchedPresentations = await api.getAllPresentations();
-				let vpListFromApi = fetchedPresentations.vp_list
-					.sort(reverse(compareBy(vp => vp.issuanceDate)))
-					.map((item) => ({
-						id: item.id,
-						presentation: item.presentation,
-						ivci: item.includedVerifiableCredentialIdentifiers,
-						audience: item.audience,
-						issuanceDate: item.issuanceDate,
-					}));
+				let presentations = await keystore.getAllPresentations();
 
-				if (credentialId) {
-					vpListFromApi = vpListFromApi.filter(item =>
-						item.ivci && item.ivci.includes(credentialId)
+				if (batchId) {
+					const credentials = await keystore.getAllCredentials();
+					const instances = credentials.filter((credential) => credential.batchId === parseInt(batchId));
+					const credentialsIds = instances.map((instance) => instance.credentialId);
+
+					const transactionIds = presentations.filter((p) =>
+						credentialsIds.reduce((acc, val) => acc || p.usedCredentialIds.includes(val), false)
+					).map(p => p.transactionId);
+
+					presentations = presentations.filter((p) => 
+						transactionIds.includes(p.transactionId)
 					);
+					console.log("Presentations = ", presentations)
 				}
 
-				if (historyId) {
-					vpListFromApi = vpListFromApi.filter(item => item.id.toString() === historyId);
+				if (transactionId) {
+					presentations = presentations.filter((p) => p.transactionId === parseInt(transactionId));
 				}
 
-				setHistory(Array.isArray(vpListFromApi) ? vpListFromApi : [vpListFromApi]);
+				const presentationsTransformed = await Promise.all(presentations
+					.sort(reverse(compareBy(presentation => presentation.timestamp)))
+					.map(async (presentation) => {
+						const parsedCredential = await parseCredential(presentation.data);
+						const result = await (async () => {
+							switch (parsedCredential.metadata.credential.format) {
+								case VerifiableCredentialFormat.VC_SDJWT:
+									return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
+								case VerifiableCredentialFormat.DC_SDJWT:
+									return credentialEngine.sdJwtVerifier.verify({ rawCredential: presentation.data, opts: {} });
+								case VerifiableCredentialFormat.MSO_MDOC:
+									return credentialEngine.msoMdocVerifier.verify({ rawCredential: presentation.data, opts: {} });
+								default:
+									return null;
+							}
+						})();
+
+						return {
+							presentation,
+							parsedCredential,
+							result,
+							isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
+						}
+					})
+				);
+				const presentationsGroupedByTransactionId = presentationsTransformed.reduce((acc, p) => {
+					acc[p.presentation.transactionId] = acc[p.presentation.transactionId] ? [...acc[p.presentation.transactionId], p] : [p];
+					return acc;
+				}, {});
+				setHistory(presentationsGroupedByTransactionId);
 			} catch (error) {
 				console.error('Error fetching presentations:', error);
 			}
 		};
 
 		fetchPresentations();
-	}, [api, credentialId, historyId]);
+	}, [keystore, batchId, transactionId]);
 
 	return history;
 };

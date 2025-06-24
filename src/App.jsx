@@ -113,7 +113,7 @@ function App() {
 							<Route path="/credential/:batchId/history" element={<CredentialHistory />} />
 							<Route path="/credential/:batchId/details" element={<CredentialDetails />} />
 							<Route path="/history" element={<History />} />
-							<Route path="/history/:historyId" element={<HistoryDetail />} />
+							<Route path="/history/:transactionId" element={<HistoryDetail />} />
 							<Route path="/add" element={<AddCredentials />} />
 							<Route path="/send" element={<SendCredentials />} />
 							<Route path="/verification/result" element={<VerificationResult />} />

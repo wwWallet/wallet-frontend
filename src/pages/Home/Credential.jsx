@@ -33,7 +33,7 @@ import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
-	const history = useFetchPresentations(api, batchId, null);
+	const history = useFetchPresentations(keystore, batchId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
@@ -132,7 +132,7 @@ const Credential = () => {
 							{t('pageHistory.noFound')}
 						</p>
 					) : (
-						<HistoryList history={history} />
+						<HistoryList batchId={batchId} />
 					)}
 				</>
 		}

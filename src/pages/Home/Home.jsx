@@ -21,8 +21,7 @@ import { CredentialCardSkeleton } from '@/components/Skeletons';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api);
+	const { keystore } = useContext(SessionContext);
 	const screenType = useScreenType();
 
 	const navigate = useNavigate();
@@ -84,8 +83,7 @@ const Home = () => {
 											{/* Update HistoryList based on current slide */}
 											{vcEntityList[currentSlide - 1] && (
 												<HistoryList
-													credentialId={vcEntityList[currentSlide - 1].batchId}
-													history={history}
+													batchId={vcEntityList[currentSlide - 1].batchId}
 													title="Recent History"
 													limit={3}
 												/>

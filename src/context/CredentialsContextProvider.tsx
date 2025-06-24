@@ -5,7 +5,7 @@ import { compareBy, reverse } from '../util';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from "wallet-common/dist/error";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
-import CredentialsContext, { ExtendedVcEntity } from "./CredentialsContext";
+import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsContext";
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { WalletBaseStateCredential } from '@/services/WalletStateOperations';
@@ -131,6 +131,9 @@ export const CredentialsContextProvider = ({ children }) => {
 						instances: instancesMap[vcEntity.batchId],
 						parsedCredential,
 						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
+						sigCount: instancesMap[vcEntity.batchId].reduce((acc: number, curr: Instance) =>
+							acc + curr.sigCount
+						, 0),
 					};
 				})
 		);
