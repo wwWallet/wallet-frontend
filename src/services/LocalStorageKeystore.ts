@@ -203,7 +203,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			setCalculatedWalletState(null);
 			clearGlobalUserHandleB64u();
 		},
-		[idb, clearGlobalUserHandleB64u, clearPrivateData, userHandleB64u],
+		[idb, clearGlobalUserHandleB64u, clearPrivateData, setCalculatedWalletState, userHandleB64u],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);

@@ -133,7 +133,7 @@ export const CredentialsContextProvider = ({ children }) => {
 						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
 						sigCount: instancesMap[vcEntity.batchId].reduce((acc: number, curr: Instance) =>
 							acc + curr.sigCount
-						, 0),
+							, 0),
 					};
 				})
 		);
@@ -152,15 +152,8 @@ export const CredentialsContextProvider = ({ children }) => {
 				setTimeout(() => {
 					setLatestCredentials(new Set());
 				}, 2000);
-				setVcEntityList((current) => {
-					if (!current || current.length != storedCredentials.length) {
-						return storedCredentials;
-					}
-					else {
-						return current;
-					}
-				});
 			}
+			setVcEntityList(storedCredentials);
 
 			credentialNumber.current = storedCredentials.length;
 
@@ -170,11 +163,12 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [getSession, fetchVcData, setVcEntityList]);
 
 	useEffect(() => {
-		if (!keystore || !credentialEngineReady) {
+		if (!keystore || !credentialEngineReady || !isLoggedIn) {
 			return;
 		}
+		console.log("Triggerring getData()", keystore.getCalculatedWalletState())
 		getData();
-	}, [getData, keystore, credentialEngineReady]);
+	}, [getData, keystore, credentialEngineReady, isLoggedIn]);
 
 	if (isLoggedIn && !credentialEngineReady) {
 		return (
