@@ -3,6 +3,7 @@ import { WalletBaseStateCredential, WalletBaseStatePresentation, WalletSessionEv
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
 import { WalletStateUtils } from "./WalletStateUtils";
+import { fromBase64 } from "@/util";
 
 
 
@@ -43,9 +44,22 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 		let transformedVpEntities: WalletBaseStatePresentation[] = []
 		vpEntityList.map(({ presentationIdentifier, presentation, presentationSubmission, includedVerifiableCredentialIdentifiers, audience, issuanceDate }) => {
 			const transactionId = WalletStateUtils.getRandomUint32();
-			includedVerifiableCredentialIdentifiers.map((identifier) => {
+			let parsedPresentationsArray = null;
+			if (presentation.startsWith("b64:")) {
+				const decoded = new TextDecoder().decode(fromBase64(presentation.split("b64:")[1]));
+				if (decoded.startsWith('[')) {
+					parsedPresentationsArray = [...JSON.parse(decoded)];
+				}
+				else {
+					parsedPresentationsArray = [decoded];
+				}
+			}
+			if (!parsedPresentationsArray) {
+				return;
+			}
+			includedVerifiableCredentialIdentifiers.map((identifier, index) => {
 				transformedVpEntities.push({
-					data: presentation,
+					data: parsedPresentationsArray[index],
 					presentationId: WalletStateUtils.getRandomUint32(),
 					transactionId: transactionId,
 					usedCredentialIds: [getCredentialIdByCredentialIdentifier(identifier, vcEntityList)],
