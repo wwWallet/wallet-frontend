@@ -38,8 +38,11 @@ export type WalletSessionEvent = {
 } | {
 	type: "new_presentation",
 	presentationId: number,
+	transactionId: number,
 	data: string,
 	usedCredentialIds: number[],
+	timestamp: number,
+	audience: string,
 } | {
 	type: "delete_presentation",
 	presentationId: number,
@@ -94,8 +97,11 @@ export type WalletBaseState = {
 	}[],
 	presentations: {
 		presentationId: number,
+		transactionId: number, // one transaction can be associated with more than one presentations
 		data: string,
 		usedCredentialIds: number[],
+		timestamp: number,
+		audience: string,
 	}[],
 	settings: Record<string, string>,
 	credentialIssuanceSessions: {
@@ -176,6 +182,9 @@ function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent
 				presentationId: newEvent.presentationId,
 				data: newEvent.data,
 				usedCredentialIds: newEvent.usedCredentialIds,
+				transactionId: newEvent.transactionId,
+				timestamp: newEvent.timestamp,
+				audience: newEvent.audience,
 			}]);
 		case "delete_presentation":
 			return state.filter((k) => k.presentationId !== newEvent.presentationId);
@@ -433,13 +442,16 @@ export namespace WalletStateOperations {
 	}
 
 
-	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, presentationId: number, data: string, usedCredentialIds: number[]): Promise<WalletSessionEvent> {
+	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], timestamp: number, audience: string): Promise<WalletSessionEvent> {
 		return {
 			...await createWalletSessionEvent(container),
 			type: "new_presentation",
-			presentationId,
+			presentationId: WalletStateUtils.getRandomUint32(),
+			transactionId: transactionId,
 			data,
 			usedCredentialIds,
+			timestamp,
+			audience,
 		}
 	}
 
