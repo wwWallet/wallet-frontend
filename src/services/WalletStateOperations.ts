@@ -401,11 +401,11 @@ export namespace WalletStateOperations {
 		return true;
 	}
 
-	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, batchId: number = 0, credentialIssuerIdentifier: string = "", instanceId: number = 0): Promise<WalletSessionEvent> {
+	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, batchId: number = 0, credentialIssuerIdentifier: string = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletSessionEvent> {
 		return {
 			...await createWalletSessionEvent(container),
 			type: "new_credential",
-			credentialId: WalletStateUtils.getRandomUint32(),
+			credentialId: credentialId,
 			data,
 			format,
 			batchId,

@@ -90,7 +90,7 @@ export interface LocalStorageKeystore {
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletBaseState | null,
-	addCredentials(credentials: { data: string, format: string, credentialIssuerIdentifier: string, instanceId: number, }[]): Promise<[
+	addCredentials(credentials: { data: string, format: string, batchId: number, credentialIssuerIdentifier: string, instanceId: number, credentialId?: number }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -609,15 +609,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return (calculatedWalletState);
 	}, [calculatedWalletState]);
 
-	const addCredentials = useCallback(async (credentials: { data: string, format: string, batchId: number, credentialIssuerIdentifier: string, instanceId: number, }[]): Promise<[
+	const addCredentials = useCallback(async (credentials: { data: string, format: string, batchId: number, credentialIssuerIdentifier: string, instanceId: number, credentialId?: number, }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
 		const [walletStateContainer, ,] = await openPrivateData();
 		const newEvents: WalletSessionEvent[] = [];
-		for (const { data, format, batchId, credentialIssuerIdentifier, instanceId } of credentials) {
-			const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, batchId, credentialIssuerIdentifier, instanceId);
+		for (const { data, format, batchId, credentialIssuerIdentifier, instanceId, credentialId } of credentials) {
+			const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, batchId, credentialIssuerIdentifier, instanceId, credentialId);
 			newEvents.push(e);
 		}
 		walletStateContainer.events.push(...newEvents);

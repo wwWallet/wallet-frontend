@@ -34,14 +34,14 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 				stringToIdMap.set(credentialIdentifier, id++);
 			}
 		}
-		const transformedVcEntities: WalletBaseStateCredential[] = vcEntityList.map(({ credential, credentialIdentifier, credentialIssuerIdentifier, format, instanceId, sigCount }) => {
+		const transformedVcEntities: WalletBaseStateCredential[] = vcEntityList.map(({ credential, credentialIdentifier, credentialIssuerIdentifier, format, instanceId, }, index) => {
 			return {
 				data: credential,
 				format: format,
 				credentialIssuerIdentifier: credentialIssuerIdentifier,
 				instanceId: instanceId,
-				sigCount: sigCount,
 				batchId: stringToIdMap.get(credentialIdentifier),
+				credentialId: index,
 			}
 		});
 		console.log("Transformed credentials = ", transformedVcEntities)
@@ -49,6 +49,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
+		console.log("Successfully migrated credentials");
 		// receive all stored credentials from wallet-backend-server
 		// update WalletStateContainer (PrivateData)
 		// after successful update, delete all stored credentials from wallet-backend-server

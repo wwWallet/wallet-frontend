@@ -31,6 +31,7 @@ export function useWalletStateSettingsMigrationManager(keystore: LocalStorageKey
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
+		console.log("Successfully migrated settings");
 		// receive all stored credentials from wallet-backend-server
 		// update WalletStateContainer (PrivateData)
 		// after successful update, delete all stored credentials from wallet-backend-server
