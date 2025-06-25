@@ -7,6 +7,7 @@ import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, 
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
 import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
@@ -81,8 +82,6 @@ export interface BackendApi {
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 
 	syncPrivateData(
-		keystore: LocalStorageKeystore,
-		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined
 	): Promise<Result<void,
 		| 'syncFailed'
@@ -100,6 +99,10 @@ export function useApi(isOnline: boolean | null): BackendApi {
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 	const onlineRef = useRef<boolean>(isOnline !== false);
 
+	const navigate = useNavigate();
+	const location = useLocation();
+
+	const from = location.search || '/';
 	useEffect(() => {
 		onlineRef.current = isOnline !== false;
 	}, [isOnline]);
@@ -429,8 +432,6 @@ export function useApi(isOnline: boolean | null): BackendApi {
 	}, [post]);
 
 	const syncPrivateData = useCallback(async (
-		keystore: LocalStorageKeystore,
-		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		cachedUser: CachedUser | undefined
 	): Promise<Result<void,
 		| 'syncFailed'
@@ -446,8 +447,11 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			if (privateDataEtag && getPrivateDataResponse.headers['x-private-data-etag'] && getPrivateDataResponse.headers['x-private-data-etag'] === privateDataEtag) {
 				return Ok.EMPTY; // already synced
 			}
+			const queryParams = new URLSearchParams(from);
+			queryParams.append('user', cachedUser.userHandleB64u);
+			navigate(`/login-state?${queryParams.toString()}`, { replace: true });
 			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
-			return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		}
 		catch (err) {
 			console.error(err);

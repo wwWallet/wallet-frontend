@@ -6,7 +6,7 @@ import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useCallback, useMemo, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
@@ -14,6 +14,8 @@ import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import type { CredentialConfigurationSupported } from 'wallet-common';
 import { WalletBaseStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
+import { CachedUser } from '@/services/LocalStorageKeystore';
+import SessionContext from '@/context/SessionContext';
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
@@ -22,6 +24,8 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
+	const { api, keystore } = useContext(SessionContext);
+	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
@@ -30,6 +34,21 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const tokenRequestBuilder = useTokenRequest();
 	const credentialRequestBuilder = useCredentialRequest();
+
+	useEffect(() => {
+		if (!keystore) {
+			return;
+		}
+
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
 
 	const credentialRequest = useCallback(
 		async (response: any, flowState: WalletBaseStateCredentialIssuanceSession) => {
@@ -371,6 +390,11 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const generateAuthorizationRequest = useCallback(
 		async (credentialIssuerIdentifier: string, credentialConfigurationId: string, issuer_state?: string) => {
+			await api.syncPrivateData(cachedUser).then((r) => {
+				if (!r.ok) {
+					return;
+				}
+			});
 			console.log('generateAuthorizationRequest')
 			await openID4VCIClientStateRepository.cleanupExpired();
 
@@ -380,7 +404,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 						credentialConfigurationId
 					}
 				});
-				return { };
+				return {};
 			}
 			catch (err) { console.error(err) }
 
@@ -427,7 +451,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				return {}
 			}
 		},
-		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials]
+		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials, api, cachedUser]
 	);
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function

@@ -65,11 +65,11 @@ export const UriHandler = ({ children }) => {
 		}
 		if (synced === false && keystore.getCalculatedWalletState()) {
 			console.log("Actually syncing...");
-			api.syncPrivateData(keystore, async () => false, cachedUser).then((r) => {
+			api.syncPrivateData(cachedUser).then((r) => {
 				if (!r.ok) {
 					return;
 				}
-				setSynced(true);			
+				setSynced(true);
 				// checkForUpdates();
 				// updateOnlineStatus(false);
 			});
