@@ -1,6 +1,6 @@
 import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
 import { DataItem, MDoc, parse } from "@auth0/mdl";
-import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
+import { cborDecode, cborEncode, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { v4 as uuidv4 } from 'uuid';
 import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
@@ -68,6 +68,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		const deviceEngagement = getDeviceEngagement(uuid, publicKeyJWK);
 
+		const options = getCborEncodeDecodeOptions();
+		options.variableMapSize = true;
+		setCborEncodeDecodeOptions(options);
 		const cbor = cborEncode(deviceEngagement);
 
 		deviceEngagementBytesRef.current = DataItem.fromData(deviceEngagement);
@@ -205,6 +208,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			])],
 			status: 0
 		};
+		const options = getCborEncodeDecodeOptions();
+		options.variableMapSize = true;
+		setCborEncodeDecodeOptions(options);
 		const encoded = cborEncode(m);
 		const mdoc = parse(encoded);
 
@@ -265,6 +271,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			status: 20
 		}
 
+		const options = getCborEncodeDecodeOptions();
+		options.variableMapSize = true;
+		setCborEncodeDecodeOptions(options);
 		const sessionDataEncoded = cborEncode(sessionData);
 		/* @ts-ignore */
 		const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));

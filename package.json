@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@auth0/mdl": "^2.1.0",
+    "@auth0/mdl": "^2.2.0",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
     "@sd-jwt/core": "^0.10.0",
     "ajv": "^8.17.1",

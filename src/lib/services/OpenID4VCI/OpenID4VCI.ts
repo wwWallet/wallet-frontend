@@ -12,20 +12,28 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
-import type { CredentialConfigurationSupported } from 'wallet-common';
 import { WalletBaseStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
 import { CachedUser } from '@/services/LocalStorageKeystore';
 import SessionContext from '@/context/SessionContext';
+import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import { useTranslation } from 'react-i18next';
+import CredentialsContext from "@/context/CredentialsContext";
+import { WalletStateUtils } from '@/services/WalletStateUtils';
+
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
-export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { api, keystore } = useContext(SessionContext);
+	const { getData, credentialEngine } = useContext<any>(CredentialsContext);
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
+
+	const { t } = useTranslation();
+	const [receivedCredentialsArray, setReceivedCredentialsArray] = useState<string[] | null>(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
@@ -34,6 +42,39 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 
 	const tokenRequestBuilder = useTokenRequest();
 	const credentialRequestBuilder = useCredentialRequest();
+
+	const credentialConfigurationIdRef = useRef(null);
+	const credentialIssuerMetadataRef = useRef(null);
+
+	useEffect(() => {
+		if (!receivedCredentialsArray || !keystore) {
+			return;
+		}
+		const temp = [...receivedCredentialsArray];
+		setReceivedCredentialsArray(null);
+		const batchId = WalletStateUtils.getRandomUint32();
+		// wait for keystore update before commiting the new credentials
+		(async () => {
+			try {
+				const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
+					return {
+						data: credential,
+						format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
+						credentialConfigurationId: credentialConfigurationIdRef.current,
+						credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+						batchId: batchId,
+						instanceId: index,
+					}
+				}));
+
+				await api.updatePrivateData(privateData);
+				await keystoreCommit();
+			}
+			catch (err) {
+				throw err;
+			}
+		})();
+	}, [keystore, receivedCredentialsArray, getData, api])
 
 	useEffect(() => {
 		if (!keystore) {
@@ -60,6 +101,10 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
 			]);
+
+			// store as refs
+			credentialIssuerMetadataRef.current = credentialIssuerMetadata
+			credentialConfigurationIdRef.current = flowState.credentialConfigurationId;
 
 			credentialRequestBuilder.setCredentialEndpoint(credentialIssuerMetadata.metadata.credential_endpoint);
 			credentialRequestBuilder.setCNonce(c_nonce);
@@ -108,6 +153,40 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 			}
 
 			await openID4VCIClientStateRepository.cleanupExpired();
+
+			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
+
+
+			let warnings = [];
+			for (const rawCredential of credentialArray) {
+				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
+				console.log('result', result);
+				if (result.success) {
+					console.log(`Credential parsed successfully:`, result.value);
+
+					if (result.value.warnings && result.value.warnings.length > 0) {
+						console.warn(`Credential had warnings:`, result.value.warnings);
+						warnings = result.value.warnings;
+					}
+				} else {
+					console.error(`Credential failed to parse:`, result.error, result.message);
+					showMessagePopup({ title: t('issuance.error'), description: t(`parsing.error${result.error}`) });
+					return;
+				}
+			}
+
+			let userConsent = true;
+			if (warnings.length > 0 && config.VITE_DISPLAY_ISSUANCE_WARNINGS === true) {
+				userConsent = await showPopupConsent({
+					title: t("issuance.title"),
+					warnings: warnings
+				});
+			}
+
+			if (userConsent) {
+				setReceivedCredentialsArray(credentialArray);
+			}
+
 			return;
 
 		},

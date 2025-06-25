@@ -20,6 +20,8 @@
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
+		"externalPasskey": "Passkey on a security key",
+		"hybridPasskey": "Passkey on another device",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
@@ -36,6 +38,7 @@
 		"passwordHideTitle": "Click to hide password",
 		"passwordShowAriaLabel": "Show password",
 		"passwordShowTitle": "Click to show password",
+		"platformPasskey": "Passkey on this device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"refresh": "Refresh",
@@ -48,6 +51,12 @@
 	},
 	"expiredRibbon": {
 		"expired": "Expired"
+	},
+	"issuance": {
+		"credentialsHaveErrors": "Errors have been found while verifying the credential you are trying to receive.",
+		"error": "Issuance Error",
+		"proceed": "Do you want to receive this credential?",
+		"title": "Credential Issuance"
 	},
 	"language": {
 		"label": "Language"
@@ -75,7 +84,6 @@
 		"loginCache": "Choose your account",
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
-		"loginPasskey": "Login with passkey",
 		"loginSubmit": "Login",
 		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "New here? ",
@@ -97,9 +105,7 @@
 		"privateDataConflict": "Another session for this account disrupted the login attempt. Please try again.",
 		"reachedLengthLimit": "Length limit exceeded",
 		"signUp": "Sign Up",
-		"signUpPasskey": "Sign up with passkey",
 		"signUpSubmit": "Sign Up",
-		"signupPasskey": "Sign up with passkey",
 		"specialCharacter": "At least one special character",
 		"strength": "Strength",
 		"submitting": "Submitting...",
@@ -153,7 +159,10 @@
 		"searchPlaceholder": "Search credential..."
 	},
 	"pageCredentials": {
-		"addCardTitle": "Add New Credential",
+		"addCard": {
+			"text": "Add New Credential",
+			"title": "Verifable Credential"
+		},
 		"copyDatasetToClipboard": "Copy Dataset (JSON) to clipboard",
 		"credentialDetailsTitle": "Click to view details for {{friendlyName}}",
 		"credentialFullScreenTitle": "Click to view fullscreen the {{friendlyName}}",
@@ -193,7 +202,7 @@
 		"searchPlaceholder": "Search verifiers..."
 	},
 	"pageSettings": {
-		"addPasskey": "Add passkey",
+		"addPasskey": "Add passkey:",
 		"addPasskeyTitle": "Click to Add passkey",
 		"appVersion": {
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
@@ -267,6 +276,12 @@
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
 			"title": "Upgrading passkey encryption key"
 		}
+	},
+	"parsing": {
+		"errorCouldNotParse": "Credential could not be parsed.",
+		"errorInvalidDatatype": "Credential could not be parsed.",
+		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
+		"errorNotSupportedCredentialType": "This type of credential is not supported."
 	},
 	"pwaInstallPrompt": {
 		"button": {
