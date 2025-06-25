@@ -46,7 +46,8 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		credentialIssuer: string,
 		credentialConfigurationId: string
 	): Promise<WalletBaseStateCredentialIssuanceSession | null> => {
-		const res = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer)[0];
+		const r = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer);
+		const res = r[r.length-1];
 		return res ? res : null;
 	},
 		[]
@@ -54,7 +55,8 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 
 	const getByState = useCallback(
 		async (state: string): Promise<WalletBaseStateCredentialIssuanceSession | null> => {
-			const res = Array.from(sessions.current.values()).filter((S) => S.state === state)[0];
+			const r = Array.from(sessions.current.values()).filter((S) => S.state === state);
+			const res = r[r.length-1];
 			return res ? res : null;
 		},
 		[]

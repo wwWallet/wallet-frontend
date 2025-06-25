@@ -380,7 +380,7 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 						credentialConfigurationId
 					}
 				});
-				return { url: "/" };
+				return { };
 			}
 			catch (err) { console.error(err) }
 
