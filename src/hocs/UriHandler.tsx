@@ -56,7 +56,9 @@ export const UriHandler = ({ children }) => {
 	}, [keystore, setCachedUser]);
 
 	useEffect(() => {
-		setSynced(false);
+		if (window.location.search !== '' && window.location.pathname !== '/login-state') {
+			setSynced(false);
+		}
 	}, [location]);
 
 	useEffect(() => {
