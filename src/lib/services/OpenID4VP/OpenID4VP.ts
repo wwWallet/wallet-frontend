@@ -342,7 +342,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		* @param paths example: [ '$.credentialSubject.image', '$.credentialSubject.grade', '$.credentialSubject.val.x' ]
 		* @returns example: { credentialSubject: { image: true, grade: true, val: { x: true } } }
 		*/
-	function generatePresentationFrameForPaths(paths) {
+	function generatePresentationFrameForPEXPaths(paths) {
 		let result = {};
 		paths.forEach(path => {
 			if (path.includes("[")) {
@@ -430,7 +430,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const allPaths = descriptor.constraints.fields
 					.map(field => field.path)
 					.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
-				let presentationFrame = generatePresentationFrameForPaths(allPaths);
+				let presentationFrame = generatePresentationFrameForPEXPaths(allPaths);
 
 				const hasher = (data, alg) => {
 					const encoded = typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
@@ -562,10 +562,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			// build fields paths against the mdoc namespace
 			const fields = cred.claims.map(claim => ({
-				path: [
-					// this still points at the docType in the CBOR->JSON form
-					`$['${cred.meta?.doctype_value}']['${claim.id}']`
-				],
+				path: [`$['${cred.meta?.doctype_value}']${claim.path.slice(1).map(p => `['${p}']`).join('')}`],
 				intent_to_retain: claim.intent_to_retain ?? false
 			}))
 
@@ -587,6 +584,23 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		}
 	}
 
+	function generatePresentationFrameForDCQLPaths(paths: string[][]): any {
+		const frame = {};
+
+		for (const rawSegments of paths) {
+			let current = frame;
+			for (let i = 0; i < rawSegments.length; i++) {
+				const segment = rawSegments[i];
+					if (i === rawSegments.length - 1) {
+						current[segment] = true;
+					} else {
+						current[segment] = current[segment] || {};
+						current = current[segment];
+					}
+			}
+		}
+		return frame;
+	}
 
 	async function handleDCQLFlow(S, selectionMap, verifiableCredentials) {
 		const { dcql_query, client_id, nonce, response_uri, transaction_data } = S;
@@ -613,12 +627,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
+				const paths = descriptor.claims.map(cl => cl.path);
 
-				const paths = descriptor.claims.flatMap(cl =>
-					cl.path.map(p => (typeof p === 'string' ? p : p.join('.')))
-				);
-
-				const frame = generatePresentationFrameForPaths(paths);
+				const frame = generatePresentationFrameForDCQLPaths(paths);
 				const hasher = (data, alg) => {
 					const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
 					return crypto.subtle.digest(alg, bytes).then(buf => new Uint8Array(buf));
