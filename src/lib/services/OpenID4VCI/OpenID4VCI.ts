@@ -16,18 +16,22 @@ import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import { useTranslation } from 'react-i18next';
+
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
-export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string, message: string) => void }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: {title: string, description: string}) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { api } = useContext(SessionContext);
-	const { getData } = useContext<any>(CredentialsContext);
+	const { getData, credentialEngine } = useContext<any>(CredentialsContext);
 
-	const {post} =api;
+	const { t } = useTranslation();
+
+	const { post } = api;
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
 	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest();
@@ -106,16 +110,51 @@ export function useOpenID4VCI({ errorCallback }: { errorCallback: (title: string
 				instanceId: index,
 			}));
 
-			await post('/storage/vc', {
-				credentials: storableCredentials
-			});
+			let warnings = [];
+			for (const storableCredential of storableCredentials) {
+				const rawCredential = storableCredential.credential;
+				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
+				console.log('result', result);
+				if (result.success) {
+					console.log(`Credential parsed successfully:`, result.value);
 
-			getData(true);
+					if (result.value.warnings && result.value.warnings.length > 0) {
+						console.warn(`Credential had warnings:`, result.value.warnings);
+						warnings = result.value.warnings;
+					}
+				} else {
+					console.error(`Credential failed to parse:`, result.error, result.message);
+					showMessagePopup({title: t('issuance.error'), description: t(`parsing.error${result.error}`)});
+					return;
+				}
+			}
+
+			let userConsent = true;
+			if (warnings.length > 0 && config.VITE_DISPLAY_ISSUANCE_WARNINGS === true) {
+				userConsent = await showPopupConsent({
+					title: t("issuance.title"),
+					warnings: warnings
+				});
+			}
+
+			if (userConsent) {
+				credentialStore(storableCredentials);
+			}
 
 			return;
 
 		},
 		[openID4VCIHelper, post, openID4VCIClientStateRepository, credentialRequestBuilder, getData]
+	);
+
+	const credentialStore = useCallback(
+		async (credentialsToStore: StorableCredential[]) => {
+			await post('/storage/vc', {
+				credentials: credentialsToStore
+			});
+
+			getData(true);
+		}, []
 	);
 
 	const requestCredentials = useCallback(

@@ -1187,7 +1187,7 @@ export async function generateOpenid4vciProofs(
 			.setProtectedHeader({
 				alg: keypair.alg,
 				typ: "openid4vci-proof+jwt",
-				jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+				jwk: { ...keypair.publicKey, kid: keypair.kid, key_ops: ['verify'] } as JWK,
 			})
 			.sign(privateKey);
 		return jws;
@@ -1271,7 +1271,7 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
 		.usingPresentationDefinition(presentationDefinition)
 		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg } as JWK, alg as SupportedAlgs)
+		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
 	return { deviceResponseMDoc };
 }
@@ -1302,7 +1302,7 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
 		.usingPresentationDefinition(presentationDefinition)
 		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg } as JWK, alg as SupportedAlgs)
+		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
 	return { deviceResponseMDoc };
 }

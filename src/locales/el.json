@@ -48,6 +48,12 @@
 	"expiredRibbon": {
 		"expired": "Ληγμένο"
 	},
+	"issuance": {
+		"credentialsHaveErrors": "Βρέθηκαν σφάλματα κατα την επαλήθευση του credential που προσπαθήσατε να λάβετε.",
+		"error": "Σφάλμα έκδοσης",
+		"proceed": "Θέλετε να αποθηκεύσετε αυτό το credential;",
+		"title": "Έκδοση Credential"
+	},
 	"language": {
 		"label": "Γλώσσα"
 	},
@@ -149,7 +155,9 @@
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
-		"addCardTitle": "Προσθήκη Νέου Πιστοποιητικού",
+		"addCard": {
+			"text": "Προσθήκη Νέου Πιστοποιητικού"
+		},
 		"credentialDetailsTitle": "Κάντε κλικ για να δείτε λεπτομέρειες για το {{friendlyName}}",
 		"credentialFullScreenTitle": "Κάντε κλικ για πλήρη οθόνη στο {{friendlyName}}",
 		"credentialTitle": "Πιστοποιητικό",
@@ -262,6 +270,12 @@
 			"error": "<p>Κάτι πήγε στραβά, δοκιμάστε ξανά.</p><p>Σημειώστε ότι πρέπει να αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\".</p>",
 			"title": "Αναβάθμιση κλειδιού κρυπτογράφησης"
 		}
+	},
+	"parsing": {
+		"errorCouldNotParse": "Δεν ήταν δυνατή η ανάγνωση του credential.",
+		"errorInvalidDatatype": "Δεν ήταν δυνατή η ανάγνωση του credential.",
+		"errorMissingIssuerIdentifier": "Δεν βρέθηκε αναγνωριστικό του issuer.",
+		"errorNotSupportedCredentialType": "Αυτός ο τύπος credential δεν υποστηρίζεται."
 	},
 	"pwaInstallPrompt": {
 		"button": {

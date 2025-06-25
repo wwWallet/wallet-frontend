@@ -591,12 +591,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			let current = frame;
 			for (let i = 0; i < rawSegments.length; i++) {
 				const segment = rawSegments[i];
-					if (i === rawSegments.length - 1) {
-						current[segment] = true;
-					} else {
-						current[segment] = current[segment] || {};
-						current = current[segment];
-					}
+				if (i === rawSegments.length - 1) {
+					current[segment] = true;
+				} else {
+					current[segment] = current[segment] || {};
+					current = current[segment];
+				}
 			}
 		}
 		return frame;
