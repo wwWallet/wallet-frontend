@@ -22,7 +22,6 @@ export function useCredentialRequest() {
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
 	const credentialConfigurationIdRef = useRef<string | null>(null);
-	const [receivedCredentialsArray, setReceivedCredentialsArray] = useState<string[] | null>(null);
 	const { getData } = useContext<any>(CredentialsContext);
 
 	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
@@ -223,47 +222,16 @@ export function useCredentialRequest() {
 			throw new Error("Credential Request failed");
 		}
 
-		const credentialResponseData = credentialResponse.data as { credentials: { credential: string }[] };
+		// const credentialResponseData = credentialResponse.data as { credentials: { credential: string }[] };
 
 
-		const credentialArray: string[] = credentialResponseData.credentials.map((c) => c.credential);
 
-		setReceivedCredentialsArray(credentialArray);
 		// receivedCredentialsArrayRef.current = credentialArray;
-		console.log("Received credentials array = ", credentialArray)
 		console.log("Credential response: ", credentialResponse);
 		return { credentialResponse };
 	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
 
-	useEffect(() => {
-		if (!receivedCredentialsArray || !keystore) {
-			return;
-		}
-		const temp = [ ...receivedCredentialsArray ];
-		setReceivedCredentialsArray(null);
-		const batchId = WalletStateUtils.getRandomUint32();
-		// wait for keystore update before commiting the new credentials
-		(async () => {
-			try {
-				const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
-					return {
-						data: credential,
-						format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
-						credentialConfigurationId: credentialConfigurationIdRef.current,
-						credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
-						batchId: batchId,
-						instanceId: index,
-					}
-				}));
 
-				await updatePrivateData(privateData);
-				await keystoreCommit();
-			}
-			catch (err) {
-				throw err;
-			}
-		})();
-	}, [keystore, receivedCredentialsArray, getData, updatePrivateData])
 
 	return useMemo(() => ({
 		setCredentialEndpoint,
