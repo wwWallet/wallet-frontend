@@ -63,7 +63,7 @@ export const UriHandler = ({ children }) => {
 		if (!keystore || !cachedUser || !api) {
 			return;
 		}
-		if (synced === false && window.location.search !== '') {
+		if (synced === false && keystore.getCalculatedWalletState()) {
 			console.log("Actually syncing...");
 			api.syncPrivateData(keystore, async () => false, cachedUser).then((r) => {
 				if (!r.ok) {
