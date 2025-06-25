@@ -26,6 +26,11 @@ export type PresentationDefinitionType = {
 	input_descriptors: InputDescriptorType[]
 }
 
+export type DcqlQueryType = {
+	credentials: [];
+	credential_sets?: [];
+}
+
 export type PresentationSubmission = {
 	id: string;
 	definition_id: string;
