@@ -1,7 +1,7 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
-import { VerifiableCredentialFormat } from "../../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
@@ -14,7 +14,7 @@ import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
-import CredentialParserContext from "@/context/CredentialParserContext";
+import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { JSONPath } from "jsonpath-plus";
@@ -27,10 +27,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
-	const { parseCredential } = useContext(CredentialParserContext);
+	const { parseCredential } = useContext(CredentialsContext);
 	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
 	const { t } = useTranslation();
+	const { post, get } = api;
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -55,7 +56,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await api.post('/storage/vp', {
+			await post('/storage/vp', {
 				presentationIdentifier: generateRandomIdentifier(32),
 				presentation,
 				presentationSubmission,
@@ -64,14 +65,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				issuanceDate: new Date().toISOString(),
 			});
 		},
-		[api]
+		[post]
 	);
 
 	const getAllStoredVerifiableCredentials = useCallback(async () => {
-		const fetchAllCredentials = await api.get("/storage/vc");
+		const fetchAllCredentials = await get("/storage/vc");
 		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
 	},
-		[api]
+		[get]
 	);
 
 	const promptForCredentialSelection = useCallback(
@@ -107,7 +108,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const requestObject = requestUriResponse.data as string; // jwt
 				const [header, payload] = requestObject.split('.');
 				const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
-
+				if (parsedHeader.typ !== "oauth-authz-req+jwt") {
+					return { error: HandleAuthorizationRequestError.INVALID_TYP };
+				}
 				const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
 				const verificationResult = await jwtVerify(requestObject, publicKey).catch(() => null);
 				if (verificationResult == null) {
@@ -212,7 +215,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				for (const vc of vcList) {
 					try {
 
-						if (vc.format === VerifiableCredentialFormat.SD_JWT_VC && (descriptor.format === undefined || VerifiableCredentialFormat.SD_JWT_VC in descriptor.format)) {
+						if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
+								(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
 							const result = await parseCredential(vc.credential);
 							if ('error' in result) {
 								throw new Error('Could not parse credential');
@@ -324,8 +328,15 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						// Use the matchAll method to get all matches
 						let matches = [...path.matchAll(/\['(.*?)'\]/g)];
 
-						// Initialize an empty object to build the result
+						// grab any dot-keys before the first bracket
+						let prefix = path.replace(/\['.*$/, '').replace(/^\$\./, '');
 						let current = result;
+						if (prefix) {
+							prefix.split('.').forEach(key => {
+								current[key] = current[key] || {};
+								current = current[key];
+							});
+						}
 
 						// Iterate over each match and build the nested object
 						for (let i = 0; i < matches.length; i++) {
@@ -395,7 +406,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			let i = 0;
 			for (const [descriptor_id, credentialIdentifier] of selectionMap) {
 				const vcEntity = filteredVCEntities.filter((vc) => vc.credentialIdentifier === credentialIdentifier)[0];
-				if (vcEntity.format === VerifiableCredentialFormat.SD_JWT_VC) {
+				if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT || vcEntity.format === VerifiableCredentialFormat.VC_SDJWT) {
 					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 					const allPaths = descriptor.constraints.fields
 						.map((field) => field.path)
@@ -419,14 +430,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					if (selectionMap.size > 1) {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.SD_JWT_VC,
+							format: vcEntity.format,
 							path: `$[${i++}]`
 						});
 					}
 					else {
 						descriptorMap.push({
 							id: descriptor_id,
-							format: VerifiableCredentialFormat.SD_JWT_VC,
+							format: vcEntity.format,
 							path: `$`
 						});
 					}
@@ -544,7 +555,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				description: "The verification process has been completed",
 			}, 'success');
 		},
-		[httpProxy, keystore, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
+		[httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
 	);
 
 	return useMemo(() => {

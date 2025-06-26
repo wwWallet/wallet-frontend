@@ -10,10 +10,11 @@ import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SDJwt } from "@sd-jwt/core";
-import { cborEncode, cborDecode, DataItem } from "@auth0/mdl/lib/cbor";
+import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
+import { withHintsFromAllowCredentials } from "@/util-webauthn";
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
@@ -649,7 +650,11 @@ function makeRegistrationPrfExtensionInputs(credential: PublicKeyCredential, prf
 	prfInput: PrfExtensionInput,
 } {
 	return {
-		allowCredentials: [{ type: "public-key", id: credential.rawId }],
+		allowCredentials: [{
+			type: "public-key",
+			id: credential.rawId,
+			transports: (credential.response as AuthenticatorAttestationResponse).getTransports() as AuthenticatorTransport[],
+		}],
 		prfInput: { eval: { first: prfSalt } },
 	};
 }
@@ -720,12 +725,12 @@ async function getPrfOutput(
 				const filteredPrfInputs = filterPrfAllowCredentials(credential, prfInputs);
 
 				const retryCred = await navigator.credentials.get({
-					publicKey: {
+					publicKey: withHintsFromAllowCredentials({
 						rpId: config.WEBAUTHN_RPID,
 						challenge: crypto.getRandomValues(new Uint8Array(32)),
 						allowCredentials: filteredPrfInputs?.allowCredentials,
 						extensions: { prf: filteredPrfInputs.prfInput } as AuthenticationExtensionsClientInputs,
-					},
+					}),
 					signal: retryOrAbortSignal === true ? undefined : retryOrAbortSignal,
 				}) as PublicKeyCredential;
 				return await getPrfOutput(retryCred, prfInputs, async () => false);
@@ -1182,7 +1187,7 @@ export async function generateOpenid4vciProofs(
 			.setProtectedHeader({
 				alg: keypair.alg,
 				typ: "openid4vci-proof+jwt",
-				jwk: { ...keypair.publicKey, key_ops: ['verify'] } as JWK,
+				jwk: { ...keypair.publicKey, kid: keypair.kid, key_ops: ['verify'] } as JWK,
 			})
 			.sign(privateKey);
 		return jws;
@@ -1266,7 +1271,7 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
 		.usingPresentationDefinition(presentationDefinition)
 		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg } as JWK, alg as SupportedAlgs)
+		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
 	return { deviceResponseMDoc };
 }
@@ -1290,10 +1295,14 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
 	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
 
+	const options = getCborEncodeDecodeOptions();
+	options.variableMapSize = true;
+	setCborEncodeDecodeOptions(options);
+
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
 		.usingPresentationDefinition(presentationDefinition)
 		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg } as JWK, alg as SupportedAlgs)
+		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
 	return { deviceResponseMDoc };
 }

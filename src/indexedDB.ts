@@ -28,7 +28,13 @@ const stores = {
 		name: 'AppDataSource',
 		storeName: 'accountInfo',
 	}),
+	proxyCache: localforage.createInstance({
+		name: 'AppDataSource',
+		storeName: 'proxyCache',
+	}),
 };
+
+const PROXY_DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
@@ -58,6 +64,7 @@ export async function initializeDataSource(): Promise<void> {
 		await stores.vc.ready();
 		await stores.vp.ready();
 		await stores.externalEntities.ready();
+		await stores.proxyCache.ready();
 
 		await migrateDataSource();
 
@@ -149,5 +156,14 @@ export async function getAllItems(storeName: string): Promise<any[]> {
 	} catch (err) {
 		console.error('Error retrieving all items', err);
 		return [];
+	}
+}
+
+export async function removeItem(storeName: string, key: any, forceMappedStoreName?: string): Promise<void> {
+	try {
+		const mappedStoreName = forceMappedStoreName ?? getMappedStoreName(storeName);
+		await stores[mappedStoreName].removeItem(key);
+	} catch (err) {
+		console.error('Error removing item', err);
 	}
 }

@@ -107,10 +107,7 @@ const QueryableList = <T extends object>({
 					{t(translationPrefix + ".noFound")}
 				</p>
 			) : (
-				<div
-					className="max-h-screen-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2"
-					style={{ maxHeight: "80vh" }}
-				>
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
 					{filteredList.map((el) => (
 						<Button
 							id={`querylist-all-${sanitizeId(getElementPropValue(el, identifierField as string) as string)}`}

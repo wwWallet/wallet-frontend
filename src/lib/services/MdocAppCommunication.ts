@@ -1,6 +1,6 @@
 import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
 import { DataItem, MDoc, parse } from "@auth0/mdl";
-import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
+import { cborDecode, cborEncode, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { v4 as uuidv4 } from 'uuid';
 import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
@@ -8,7 +8,7 @@ import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { toBase64 } from "@/util";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
-import { VerifiableCredentialFormat } from "../schemas/vc";
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
 	let ephemeralKeyRef = useRef<CryptoKeyPair | null>(null);
@@ -22,11 +22,12 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const assumedChunkSize = 512;
 
 	const { keystore, api } = useContext(SessionContext);
+	const { post } = api;
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
 			try {
-				await api.post('/storage/vp', {
+				await post('/storage/vp', {
 					presentationIdentifier: generateRandomIdentifier(32),
 					presentation,
 					presentationSubmission,
@@ -38,7 +39,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				console.log("Failed to reach server: Presentation history not stored");
 			}
 		},
-		[api]
+		[post]
 	);
 
 
@@ -59,6 +60,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 		const deviceEngagement = getDeviceEngagement(uuid, publicKeyJWK);
 
+		const options = getCborEncodeDecodeOptions();
+		options.variableMapSize = true;
+		setCborEncodeDecodeOptions(options);
 		const cbor = cborEncode(deviceEngagement);
 
 		deviceEngagementBytesRef.current = DataItem.fromData(deviceEngagement);
@@ -196,6 +200,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			])],
 			status: 0
 		};
+		const options = getCborEncodeDecodeOptions();
+		options.variableMapSize = true;
+		setCborEncodeDecodeOptions(options);
 		const encoded = cborEncode(m);
 		const mdoc = parse(encoded);
 
@@ -250,18 +257,38 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return ;
 	}, []);
 
+	const terminateSession = useCallback(async (): Promise<void> => {
+		const sessionData = {
+			data: new Uint8Array([]),
+			status: 20
+		}
+
+		const options = getCborEncodeDecodeOptions();
+		options.variableMapSize = true;
+		setCborEncodeDecodeOptions(options);
+		const sessionDataEncoded = cborEncode(sessionData);
+		/* @ts-ignore */
+		const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+
+		/* @ts-ignore */
+		await nativeWrapper.bluetoothTerminate();
+
+	});
+
 	return useMemo(
 		() => ({
 			generateEngagementQR,
 			startClient,
 			getMdocRequest,
-			sendMdocResponse
+			sendMdocResponse,
+			terminateSession
 		}),
 		[
 			generateEngagementQR,
 			startClient,
 			getMdocRequest,
-			sendMdocResponse
+			sendMdocResponse,
+			terminateSession
 		]
 	);
 }

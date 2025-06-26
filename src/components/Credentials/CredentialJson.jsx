@@ -1,46 +1,40 @@
-// CredentialJson.js
-
 import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { FaCopy } from 'react-icons/fa';
+import JsonViewer from '../JsonViewer/JsonViewer';
 
-const CredentialJson = ({ parsedCredential, textAreaRows='10' }) => {
-	const MAX_LENGTH = 120;       // string truncation
-	const MAX_ARRAY_LENGTH = 3;   // array truncation
+const CredentialJson = ({ parsedCredential }) => {
+	const { t } = useTranslation();
 
-	// Truncate long strings or arrays (mainly picture/portrait fields)
-	const replacer = (key, value) => {
-		// picture (sd-jwt)
-		if (typeof value === 'string' && value.length > MAX_LENGTH) {
-			return value.slice(0, MAX_LENGTH) + '...';
+	if (!parsedCredential?.signedClaims) return null;
+
+	const handleCopy = (e) => {
+		navigator.clipboard.writeText(
+			JSON.stringify(parsedCredential.signedClaims, null, 2)
+		);
+
+		const container = e.target.closest('.json-container');
+		if (container) {
+			container.classList.remove('animate-quick-blur');
+			void container.offsetWidth;
+			container.classList.add('animate-quick-blur');
 		}
-		// portrait (mdoc)
-		if (value instanceof Uint8Array) {
-			const arr = Array.from(value);
-			if (arr.length > MAX_ARRAY_LENGTH) {
-				const truncated = arr.slice(0, MAX_ARRAY_LENGTH);
-				truncated.push('...');
-				return truncated;
-			}
-			return arr;
-		}
-		return value;
 	};
 
-	const truncatedJson = parsedCredential
-		? JSON.stringify(parsedCredential.signedClaims, replacer, 2)
-		: '';
-
 	return (
-		<div className='w-full'>
-			{parsedCredential && (
-				<div>
-					<textarea
-						rows={textAreaRows}
-						readOnly
-						className="dark:bg-gray-900 dark:text-white border rounded p-2 text-sm w-full rounded-xl"
-						value={truncatedJson}
-					/>
-				</div>
-			)}
+		<div className="w-full py-2 relative">
+			<div className="json-container h-80 resize-y overflow-auto min-h-32 bg-white dark:bg-gray-800 dark:text-white border rounded p-2 text-sm rounded-xl transition filter duration-200 relative">
+				<button
+					id="copy-dataset"
+					onClick={handleCopy}
+					title={t("pageCredentials.copyDatasetToClipboard")}
+					aria-label={t("pageCredentials.copyDatasetToClipboard")}
+					className="sticky float-right top-0 z-10 text-primary-light hover:text-primary-light-hover dark:text-white hover:dark:text-gray-200 px-2 py-1"
+				>
+					<FaCopy size={18} />
+				</button>
+				<JsonViewer value={parsedCredential.signedClaims} />
+			</div>
 		</div>
 	);
 };
