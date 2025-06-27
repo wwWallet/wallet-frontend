@@ -748,7 +748,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	 *
 	 * The differences from draft-irtf-cfrg-bbs-signatures-08 are:
 	 * - The proof includes an additional scalar dpk_commitment (called sa1 in Daniluk-Lehmann's proposal)
-	 * - The proof includes an additional scalar n
+	 * - The proof includes an additional octet string n
 	 * - SplitProofHostChallengeCalculate and SplitProofDeviceChallengeCalculate are used instead of ProofChallengeCalculate
 	 */
 	async function SplitCoreProofVerify(
