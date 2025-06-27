@@ -55,6 +55,11 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const getAuthorizationServerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null> => {
 			const pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
+			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
+				`${metadata.authorization_servers[0]}/.well-known/oauth-authorization-server` :
+				null;
+
 			const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 			console.log('getAuthorizationServerMetadata');
 			try {
@@ -71,7 +76,14 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				).catch(() => null);
 
 				if (!authzServeMetadata) {
-					return null;
+					const authzMetadataFromCredentialIssuerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+						pathAuthorizationServerFromCredentialIssuerMetadata,
+						OpenidAuthorizationServerMetadataSchema,
+					).catch(() => null);
+					if (!authzMetadataFromCredentialIssuerMetadata) {
+						return null;
+					}
+					return { authzServeMetadata: authzMetadataFromCredentialIssuerMetadata };
 				}
 				return { authzServeMetadata };
 			}
