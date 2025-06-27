@@ -173,15 +173,33 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return [A, e];
 	}
 
+	function octets_to_point_E1(ostr: BufferSource): PointG1 {
+		return G1.fromBytes(toU8(ostr));
+	}
+
+	function subgroup_check_G1(P: PointG1): void {
+		P.assertValidity();
+	}
+
+	function octets_to_point_E2(ostr: BufferSource): PointG2 {
+		return G2.fromBytes(toU8(ostr));
+	}
+
+	function subgroup_check_G2(Q: PointG2): void {
+		Q.assertValidity();
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-octets-to-public-key */
 	function octets_to_pubkey(PK: BufferSource): PointG2 {
-		const W = G2.fromBytes(toU8(PK));
-		W.assertValidity();
+		const W = octets_to_point_E2(PK);
+		subgroup_check_G2(W);
 		if (W.is0()) {
 			throw new Error("Public key must not be the zero (infinity) point", { cause: { PK } });
 		}
 		return W;
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coresign */
 	async function CoreSign(
 		SK: bigint,
 		PK: BufferSource,
@@ -209,6 +227,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return signature_to_octets(A, e);
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-generation-sign */
 	async function Sign(
 		SK: bigint,
 		PK: BufferSource,
@@ -223,6 +242,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return signature;
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreverify */
 	async function CoreVerify(
 		PK: BufferSource,
 		signature: BufferSource,
@@ -254,6 +274,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return true;
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-verification-veri */
 	async function Verify(
 		PK: BufferSource,
 		signature: BufferSource,
