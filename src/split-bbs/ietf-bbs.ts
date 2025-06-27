@@ -35,6 +35,13 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	const { expand_message, prime_subgroup_order } = suite.hash_to_curve_suite.suiteParams;
 	const api_id = new TextEncoder().encode(suite.id + "H2G_HM2S_");
 
+	function sumprod(points: PointG1[], scalars: bigint[]): PointG1 {
+		return points.reduce(
+			(sum, Hi, i) => sum.add(Hi.multiply(scalars[i])),
+			G1.ZERO,
+		);
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-hash-to-scalar */
 	async function hash_to_scalar(msg_octets: BufferSource, dst: BufferSource): Promise<bigint> {
 		const uniform_bytes = await expand_message(msg_octets, dst, suite.expand_len);
@@ -194,12 +201,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
 		const e = await hash_to_scalar(serialize([SK, ...messages, domain]), hash_to_scalar_dst);
-		const B = P1.add(Q_1.multiply(domain)).add(
-			H_Points.reduce(
-				(sum, H_i, i) => sum.add(H_i.multiply(messages[i])),
-				G1.ZERO,
-			)
-		);
+		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
 		const A = B.multiply(Fr.inv(SK + e));
 		return signature_to_octets(A, e);
 	}
@@ -239,12 +241,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const H_Points = generators.slice(1);
 
 		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
-		const B = P1.add(Q_1.multiply(domain)).add(
-			H_Points.reduce(
-				(sum, H_i, i) => sum.add(H_i.multiply(messages[i])),
-				G1.ZERO,
-			),
-		);
+		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
 		if (!Fp12.eql(
 			Fp12.mul(h(A, W.add(G2.BASE.multiply(e))), h(B, G2.BASE.negate())),
 			Fp12.ONE,
