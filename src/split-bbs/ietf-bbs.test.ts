@@ -27,6 +27,7 @@ describe("Suite:", () => {
 
 		describe("hash_to_scalar", () => {
 			it("passes test vectors", async () => {
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-hash-to-scalar-test-vectors-2
 				const msg = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
 				const dst = fromHex("4242535f424c53313233383147315f584d443a5348412d3235365f535357555f524f5f4832475f484d32535f4832535f");
 				const { hash_to_scalar } = getCipherSuite(suiteId, dst);
@@ -54,10 +55,10 @@ describe("Suite:", () => {
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-map-messages-to-scalars-2
 				const dst = fromHex('4242535f424c53313233383147315f584d443a5348412d3235365f535357555f524f5f4832475f484d32535f4d41505f4d53475f544f5f5343414c41525f41535f484153485f');
 				const { api_id, messages_to_scalars } = getCipherSuite(suiteId, dst);
-				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-messages-2
 				const scalars = await messages_to_scalars(messages, api_id);
 
 				assert.equal(scalars.length, 10);
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-messages-2
 				assert.equal(scalars[0], 0x1cb5bb86114b34dc438a911617655a1db595abafac92f47c5001799cf624b430n);
 				assert.equal(scalars[1], 0x154249d503c093ac2df516d4bb88b510d54fd97e8d7121aede420a25d9521952n);
 				assert.equal(scalars[2], 0x0c7c4c85cdab32e6fdb0de267b16fa3212733d4e3a3f0d0f751657578b26fe22n);
