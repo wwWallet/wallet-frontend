@@ -12,6 +12,7 @@ import { hashToCurve, HashToCurveSuite } from "../arkg/hash_to_curve";
 function createSuite(suite: SuiteParams): CipherSuite {
 	const {
 		Fr,
+		Fp,
 		Fp12,
 		G1,
 		G2,
@@ -22,6 +23,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		octet_point_length,
 		octet_scalar_length,
 		mocked_random_scalars_params,
+		device_hash,
 	} = suite;
 	const {
 		sig_generator_seed,
@@ -255,6 +257,14 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function point_to_octets_E1(P: PointG1): BufferSource {
 		return P.toBytes();
+	}
+
+	/**
+	 * Elliptic-Curve-Point-to-Octet-String as defined in SEC 1 https://www.secg.org/sec1-v2.pdf
+	 * without point compression.
+	 */
+	function point_to_octets_E1_sec1(P: PointG1): BufferSource {
+		return concat(new Uint8Array([0x04]), Fp.toBytes(P.x), Fp.toBytes(P.y));
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
@@ -1046,9 +1056,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		T2: PointG1,
 		c_host: bigint,
 	): Promise<bigint> {
-		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
-		const c_octs = serialize([n, T2, c_host]);
-		return await hash_to_scalar(c_octs, hash_to_scalar_dst);
+		const c_octs = concat(I2OSP(n, octet_scalar_length), point_to_octets_E1_sec1(T2), I2OSP(c_host, octet_scalar_length));
+		return Fr.create(OS2IP(await device_hash(c_octs)));
 	}
 
 	return {
@@ -1106,6 +1115,7 @@ type SuiteParams = {
 	hash_to_curve_g1: (msg: BufferSource, DST: BufferSource) => PointG1,
 	expand_len: number,
 	Fr: IField<bigint>,
+	Fp: IField<bigint>,
 	Fp12: Fp12Bls,
 	G1: ProjConstructor<bigint>,
 	G2: ProjConstructor<Fp2>,
@@ -1113,6 +1123,7 @@ type SuiteParams = {
 	h: PairingFunction,
 	create_generators_dsts?: CreateGeneratorsDsts,
 	mocked_random_scalars_params?: { SEED: BufferSource, DST: BufferSource },
+	device_hash: (msg: BufferSource) => Promise<BufferSource>,
 }
 
 type CipherSuite = {
@@ -1156,6 +1167,7 @@ export function getCipherSuite(
 					(bls12_381.G1.hashToCurve(toU8(msg), { DST: toU8(DST) }) as PointG1),
 				expand_len: 48,
 				Fr: bls12_381.fields.Fr,
+				Fp: bls12_381.fields.Fp,
 				Fp12: bls12_381.fields.Fp12,
 				G1: bls12_381.curves.G1,
 				G2: bls12_381.curves.G2,
@@ -1163,6 +1175,7 @@ export function getCipherSuite(
 				h: bls12_381.pairing,
 				create_generators_dsts: overrides?.create_generators_dsts,
 				mocked_random_scalars_params: overrides?.mocked_random_scalars_params,
+				device_hash: (data: BufferSource) => crypto.subtle.digest("SHA-256", data),
 			});
 
 		default:
