@@ -487,9 +487,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
 	async function SplitProofVerify(
 		PK: BufferSource,
-		proof: BufferSource,
-		dpk_commitment: bigint,
-		n: BufferSource,
+		[proof, dpk_commitment, n]: [BufferSource, bigint, BufferSource],
 		dpk_generator: PointG1,
 		header: BufferSource | null,
 		ph: BufferSource | null,
@@ -510,7 +508,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 		const message_scalars = await messages_to_scalars(disclosed_messages, api_id);
 		const generators = await create_generators(U + R + 1, api_id);
-		const result = await SplitCoreProofVerify(PK, proof, dpk_commitment, n, dpk_generator, generators, header, ph, message_scalars, disclosed_indexes, api_id);
+		const result = await SplitCoreProofVerify(PK, [proof, dpk_commitment, n], dpk_generator, generators, header, ph, message_scalars, disclosed_indexes, api_id);
 		return result;
 	}
 
@@ -753,9 +751,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	 */
 	async function SplitCoreProofVerify(
 		PK: BufferSource,
-		proof: BufferSource,
-		dpk_commitment: bigint,
-		n: BufferSource,
+		[proof, dpk_commitment, n]: [BufferSource, bigint, BufferSource],
 		dpk_generator: PointG1,
 		generators: PointG1[],
 		header: BufferSource,
@@ -769,7 +765,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const W = octets_to_pubkey(PK);
 
 		const init_res = await SplitProofVerifyInit(PK, proof_result, generators, header, dpk_generator, dpk_commitment, disclosed_messages, disclosed_indexes, api_id);
-		const [, , , , T2, ] = init_res;
+		const [, , , , T2,] = init_res;
 		const c_host = await SplitProofHostChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
 		const challenge = await SplitProofDeviceChallengeCalculate(n, T2, c_host);
 		if (cp !== challenge) {
@@ -1116,7 +1112,7 @@ type SplitVerifyFunction = (PK: BufferSource, signature: BufferSource, header: B
 type SplitProofGenBeginFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<[[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint]>;
 type SplitProofGenDeviceFunction = (dsk: bigint, dpk_generator: PointG1, c_host: bigint, T2bar: PointG1) => Promise<BufferSource>;
 type SplitProofGenFinishFunction = (begin_res: [[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint], device_resp: BufferSource) => Promise<[BufferSource, bigint, BufferSource]>;
-type SplitProofVerifyFunction = (PK: BufferSource, proof: BufferSource, dpk_commitment: bigint, n: BufferSource, dpk_generator: PointG1, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
+type SplitProofVerifyFunction = (PK: BufferSource, proof: [BufferSource, bigint, BufferSource], dpk_generator: PointG1, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';

@@ -400,10 +400,10 @@ describe("Suite:", () => {
 				const begin_resp = await SplitProofGenBegin(PK, signature, header, ph, dpk, dpk_generator, messages, disclose_indexes);
 				const [[Abar, Bbar, D, T1, T2bar, domain], e, random_scalars, , undisclosed_messages, , , c_host] = begin_resp;
 				const device_resp = await SplitProofGenDevice(dsk, dpk_generator, c_host, T2bar);
-				const [proof, dpk_commitment, n] = await SplitProofGenFinish(begin_resp, device_resp);
+				const proof = await SplitProofGenFinish(begin_resp, device_resp);
 
 				const disclosed_messages = disclose_indexes.map(i => messages[i]);
-				const proofValid = await SplitProofVerify(PK, proof, dpk_commitment, n, dpk_generator, header, ph, disclosed_messages, disclose_indexes);
+				const proofValid = await SplitProofVerify(PK, proof, dpk_generator, header, ph, disclosed_messages, disclose_indexes);
 				assert.equal(proofValid, true);
 			});
 		});
