@@ -398,7 +398,7 @@ describe("Suite:", () => {
 
 				const disclose_indexes = [0, 2, 4, 6];
 				const begin_resp = await SplitProofGenBegin(PK, signature, header, ph, dpk, dpk_generator, messages, disclose_indexes);
-				const [[Abar, Bbar, D, T1, T2bar, domain], e, random_scalars, , undisclosed_messages, , , c_host] = begin_resp;
+				const [, , T2bar, c_host] = begin_resp;
 				const device_resp = await SplitProofGenDevice(dsk, dpk_generator, c_host, T2bar);
 				const proof = await SplitProofGenFinish(begin_resp, device_resp);
 

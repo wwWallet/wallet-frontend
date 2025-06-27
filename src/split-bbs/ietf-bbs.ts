@@ -428,8 +428,9 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		messages: BufferSource[] | null,
 		disclosed_indexes: number[] | null,
 	): Promise<[
-		[PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-		bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint,
+		[PointG1, PointG1, PointG1, PointG1, bigint],
+		[bigint, bigint[], bigint[], bigint[], PointG1, PointG1],
+		PointG1, bigint,
 	]> {
 		header = header ?? new Uint8Array([]);
 		ph = ph ?? new Uint8Array([]);
@@ -437,8 +438,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		disclosed_indexes = disclosed_indexes ?? [];
 		const message_scalars = await messages_to_scalars(messages, api_id);
 		const generators = await create_generators(messages.length + 1, api_id);
-		const proof = await SplitCoreProofGenBegin(PK, signature, generators, header, ph, dpk, dpk_generator, message_scalars, disclosed_indexes, api_id);
-		return proof;
+		const begin_res = await SplitCoreProofGenBegin(PK, signature, generators, header, ph, dpk, dpk_generator, message_scalars, disclosed_indexes, api_id);
+		return begin_res;
 	}
 
 	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
@@ -460,8 +461,9 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
 	async function SplitProofGenFinish(
 		begin_res: [
-			[PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-			bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint,
+			[PointG1, PointG1, PointG1, PointG1, bigint],
+			[bigint, bigint[], bigint[], bigint[], PointG1, PointG1],
+			PointG1, bigint,
 		],
 		device_resp: BufferSource,
 	): Promise<[BufferSource, bigint, BufferSource]> {
@@ -469,8 +471,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 			throw new Error(`Incorrect device response length: expected ${3 * octet_scalar_length}, got ${device_resp.byteLength}`, { cause: { device_resp } });
 		}
 
-		const [init_res, e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator, c_host] = begin_res;
-		const [Abar, Bbar, D, T1, T2bar, domain] = init_res;
+		const [init_res, [e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator], T2bar, c_host] = begin_res;
+		const [Abar, Bbar, D, T1, domain] = init_res;
 		const device_resp_u8 = toU8(device_resp);
 		const [sa_dpk, c] = [0, 1].map(i => Fr.create(OS2IP(device_resp_u8.slice(i * octet_scalar_length, (i + 1) * octet_scalar_length))));
 		const n = device_resp_u8.slice(2 * octet_scalar_length);
@@ -480,7 +482,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		if (challenge !== c) {
 			throw new Error(`Incorrect device challenge: expected ${challenge}, was ${c}`, { cause: { begin_res, device_resp, challenge, c } });
 		}
-		const proof = ProofFinalize(init_res, challenge, e, random_scalars, undisclosed_messages);
+		const proof = ProofFinalize([Abar, Bbar, D, T1, T2, domain], challenge, e, random_scalars, undisclosed_messages);
 		return [proof, sa_dpk, n];
 	}
 
@@ -685,8 +687,9 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		disclosed_indexes: number[],
 		api_id: BufferSource,
 	): Promise<[
-		[PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-		bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint,
+		[PointG1, PointG1, PointG1, PointG1, bigint],
+		[bigint, bigint[], bigint[], bigint[], PointG1, PointG1],
+		PointG1, bigint,
 	]> {
 		const signature_result = octets_to_signature(signature);
 		const [A, e] = signature_result;
@@ -707,9 +710,9 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const undisclosed_messages = undisclosed_indexes.map(i => messages[i]);
 
 		const random_scalars = await calculate_random_scalars(5 + U);
-		const init_res = await SplitProofInit(PK, signature_result, generators, random_scalars, header, dpk, dpk_generator, messages, undisclosed_indexes, api_id);
+		const [init_res, T2bar] = await SplitProofInit(PK, signature_result, generators, random_scalars, header, dpk, dpk_generator, messages, undisclosed_indexes, api_id);
 		const c_host = await SplitProofHostChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
-		return [init_res, e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator, c_host];
+		return [init_res, [e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator], T2bar, c_host];
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreproofverify */
@@ -765,8 +768,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const W = octets_to_pubkey(PK);
 
 		const init_res = await SplitProofVerifyInit(PK, proof_result, generators, header, dpk_generator, dpk_commitment, disclosed_messages, disclosed_indexes, api_id);
-		const [, , , , T2,] = init_res;
-		const c_host = await SplitProofHostChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
+		const [, , , T1, T2, domain] = init_res;
+		const c_host = await SplitProofHostChallengeCalculate([Abar, Bbar, D, T1, domain], disclosed_messages, disclosed_indexes, ph, api_id);
 		const challenge = await SplitProofDeviceChallengeCalculate(n, T2, c_host);
 		if (cp !== challenge) {
 			throw new Error(`Invalid proof: incorrect challenge: expected ${challenge}, was ${cp}`, { cause: { proof } })
@@ -846,7 +849,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		messages: bigint[],
 		undisclosed_indexes: number[],
 		api_id: BufferSource,
-	): Promise<[PointG1, PointG1, PointG1, PointG1, PointG1, bigint]> {
+	): Promise<[[PointG1, PointG1, PointG1, PointG1, bigint], PointG1]> {
 		const [A, e] = signature;
 		const L = messages.length;
 		const U = undisclosed_indexes.length;
@@ -880,7 +883,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 		const T1 = Abar.multiply(etil).add(D.multiply(r1til));
 		const T2bar = D.multiply(r3til).add(sumprod(Hj, mtilj));
-		return [Abar, Bbar, D, T1, T2bar, domain];
+		return [[Abar, Bbar, D, T1, domain], T2bar];
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-finalization */
@@ -1037,7 +1040,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	 * The difference from draft-irtf-cfrg-bbs-signatures-08 is that T2 is omitted from the hash.
 	 */
 	async function SplitProofHostChallengeCalculate(
-		init_res: [PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
+		init_res: [PointG1, PointG1, PointG1, PointG1, bigint],
 		disclosed_messages: bigint[],
 		disclosed_indexes: number[],
 		ph: BufferSource,
@@ -1049,7 +1052,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		if (disclosed_messages.length !== R) {
 			throw new Error("Disclosed messages and indexes not of matching lengths", { cause: { disclosed_messages, disclosed_indexes } });
 		}
-		const [Abar, Bbar, D, T1, T2, domain] = init_res;
+		const [Abar, Bbar, D, T1, domain] = init_res;
 
 		if (R > Math.pow(2, 64) - 1) {
 			throw new Error("Too many disclosed indexes", { cause: { disclosed_indexes } });
@@ -1109,9 +1112,9 @@ type ProofGenFunction = (PK: BufferSource, signature: BufferSource, header: Buff
 type ProofVerifyFunction = (PK: BufferSource, proof: BufferSource, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
 type SplitSignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null) => Promise<BufferSource>;
 type SplitVerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null) => Promise<true>;
-type SplitProofGenBeginFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<[[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint]>;
+type SplitProofGenBeginFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<[[PointG1, PointG1, PointG1, PointG1, bigint], [bigint, bigint[], bigint[], bigint[], PointG1, PointG1], PointG1, bigint]>;
 type SplitProofGenDeviceFunction = (dsk: bigint, dpk_generator: PointG1, c_host: bigint, T2bar: PointG1) => Promise<BufferSource>;
-type SplitProofGenFinishFunction = (begin_res: [[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint], device_resp: BufferSource) => Promise<[BufferSource, bigint, BufferSource]>;
+type SplitProofGenFinishFunction = (begin_res: [[PointG1, PointG1, PointG1, PointG1, bigint], [bigint, bigint[], bigint[], bigint[], PointG1, PointG1], PointG1, bigint], device_resp: BufferSource) => Promise<[BufferSource, bigint, BufferSource]>;
 type SplitProofVerifyFunction = (PK: BufferSource, proof: [BufferSource, bigint, BufferSource], dpk_generator: PointG1, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
 
 
