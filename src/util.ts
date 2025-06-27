@@ -19,7 +19,7 @@ export function toHex(b: BufferSource): string {
 export const HEX_ERR_LENGTH_ODD = 'LENGTH_ODD';
 export const HEX_ERR_INVALID_DIGITS = 'INVALID_DIGITS';
 
-export function fromHex(hex: string): BufferSource {
+export function fromHex(hex: string): Uint8Array {
 	/* eslint-disable no-bitwise */
 
 	const normalized = hex.replaceAll(' ', '');
