@@ -622,6 +622,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		messages_to_scalars,
 		create_generators,
 		KeyGen,
+		SkToPk,
 		Sign,
 		Verify,
 		ProofGen,
@@ -635,6 +636,7 @@ type HashToScalarFunc = (msg_octets: BufferSource, dst: BufferSource) => Promise
 type MessagesToScalarsFunc = (messages: BufferSource[], api_id: BufferSource) => Promise<bigint[]>;
 type CreateGeneratorsFunc = (count: number, api_id: BufferSource) => Promise<PointG1[]>;
 type KeyGenFunction = (key_material: BufferSource, key_info: BufferSource | null, key_dst: BufferSource | null) => Promise<bigint>;
+type SkToPkFunction = (SK: bigint) => BufferSource;
 type PairingFunction = (P: PointG1, Q: PointG2) => Fp12;
 type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<BufferSource>;
 type VerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<true>;
@@ -674,6 +676,7 @@ type CipherSuite = {
 	messages_to_scalars: MessagesToScalarsFunc,
 	create_generators: CreateGeneratorsFunc,
 	KeyGen: KeyGenFunction,
+	SkToPk: SkToPkFunction,
 	Sign: SignFunction,
 	Verify: VerifyFunction,
 	ProofGen: ProofGenFunction,

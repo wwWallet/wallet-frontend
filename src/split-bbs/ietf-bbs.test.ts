@@ -42,11 +42,13 @@ describe("Suite:", () => {
 				const key_material = fromHex("746869732d49532d6a7573742d616e2d546573742d494b4d2d746f2d67656e65726174652d246528724074232d6b6579");
 				const key_info = fromHex("746869732d49532d736f6d652d6b65792d6d657461646174612d746f2d62652d757365642d696e2d746573742d6b65792d67656e");
 				const dst = new TextEncoder().encode('irrelevant, this is not used in expand_message');
-				const { api_id, KeyGen } = getCipherSuite(suiteId, dst);
+				const { api_id, KeyGen, SkToPk } = getCipherSuite(suiteId, dst);
 				const key_dst = concat(api_id, new TextEncoder().encode("KEYGEN_DST_"));
 				const SK = await KeyGen(key_material, key_info, key_dst);
+				const PK = SkToPk(SK);
 
 				assert.equal(SK, 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn);
+				assert.equal(toHex(PK), "a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
 			});
 		});
 
