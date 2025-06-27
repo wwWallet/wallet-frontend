@@ -149,7 +149,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	}
 
 	function SkToPk(SK: bigint): BufferSource {
-		return G2.BASE.multiply(SK).toBytes();
+		return point_to_octets_E2(G2.BASE.multiply(SK));
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-serialize */
@@ -184,7 +184,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		}
 		const signature_octets_u8 = toU8(signature_octets);
 		const A_octets = signature_octets_u8.slice(0, octet_point_length);
-		const A = G1.fromBytes(A_octets);
+		const A = octets_to_point_E1(A_octets);
 		A.assertValidity();
 		if (A.is0()) {
 			throw new Error("A must not be the zero (infinity) point", { cause: { signature_octets, A } });
@@ -252,6 +252,11 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
+	function point_to_octets_E1(P: PointG1): BufferSource {
+		return P.toBytes();
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function subgroup_check_G1(P: PointG1): void {
 		P.assertValidity();
 	}
@@ -259,6 +264,11 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function octets_to_point_E2(ostr: BufferSource): PointG2 {
 		return G2.fromBytes(toU8(ostr));
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
+	function point_to_octets_E2(Q: PointG2): BufferSource {
+		return Q.toBytes();
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
