@@ -7,6 +7,7 @@ export interface IOpenID4VP {
 }
 
 export enum HandleAuthorizationRequestError {
+	NON_SUPPORTED_CLIENT_ID_SCHEME = "non_supported_client_id_scheme",
 	INSUFFICIENT_CREDENTIALS = "insufficient_credentials",
 	MISSING_PRESENTATION_DEFINITION = "missing_presentation_definition",
 	MISSING_PRESENTATION_DEFINITION_URI = "missing_presentation_definition_uri",

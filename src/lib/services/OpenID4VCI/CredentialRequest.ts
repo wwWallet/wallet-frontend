@@ -149,7 +149,7 @@ export function useCredentialRequest() {
 				const inputs = [];
 				for (let i = 0; i < numberOfProofs; i++) {
 					inputs.push({
-						nonce: c_nonce,
+						nonce: c_nonce ?? undefined,
 						issuer: clientId.client_id,
 						audience: credentialIssuerMetadata.metadata.credential_issuer
 					})

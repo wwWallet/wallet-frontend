@@ -98,6 +98,10 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			const request_uri = authorizationRequest.searchParams.get('request_uri');
 
+			const client_id_scheme = client_id.split(':')[0];
+			if (client_id_scheme !== 'x509_san_dns') {
+				return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
+			}
 
 			if (request_uri) {
 				const requestUriResponse = await httpProxy.get(request_uri, {});

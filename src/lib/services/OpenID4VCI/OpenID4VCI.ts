@@ -95,7 +95,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		async (response: any, flowState: WalletBaseStateCredentialIssuanceSession) => {
 			console.log('credentialRequest')
 			const {
-				data: { access_token, c_nonce },
+				data: { access_token },
 			} = response;
 
 			const [credentialIssuerMetadata] = await Promise.all([
@@ -105,9 +105,13 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			// store as refs
 			credentialIssuerMetadataRef.current = credentialIssuerMetadata
 			credentialConfigurationIdRef.current = flowState.credentialConfigurationId;
+			if (credentialIssuerMetadata.metadata.nonce_endpoint) {
+				const nonceEndpointResp = await httpProxy.post(credentialIssuerMetadata.metadata.nonce_endpoint, {});
+				const { c_nonce } = nonceEndpointResp.data as { c_nonce: string };
+				credentialRequestBuilder.setCNonce(c_nonce);
+			}
 
 			credentialRequestBuilder.setCredentialEndpoint(credentialIssuerMetadata.metadata.credential_endpoint);
-			credentialRequestBuilder.setCNonce(c_nonce);
 			credentialRequestBuilder.setAccessToken(access_token);
 			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
 			credentialRequestBuilder.setCredentialConfigurationId(flowState.credentialConfigurationId);
