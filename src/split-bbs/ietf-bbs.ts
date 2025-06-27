@@ -135,7 +135,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	async function KeyGen(key_material: BufferSource, key_info: BufferSource | null, key_dst: BufferSource | null): Promise<bigint> {
 		key_material = key_material ?? new Uint8Array([]);
 		key_info = key_info ?? new Uint8Array([]);
-		const dst = key_dst = key_dst ?? new TextEncoder().encode(suite.id + "KEYGEN_DST_");
+		const dst = key_dst ?? new TextEncoder().encode(suite.id + "KEYGEN_DST_");
 
 		if (key_material.byteLength < 32) {
 			throw new Error(`key_material too short: ${toHex(key_material)}`, { cause: { key_material } });
