@@ -81,11 +81,9 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		Q_1: PointG1,
 		H_Points: PointG1[],
-		header: BufferSource | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		api_id: BufferSource,
 	): Promise<bigint> {
-		header = header ?? new Uint8Array([]);
-		api_id = api_id ?? new Uint8Array([]);
 		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
 		const two64min1 = (1n << 64n) - 1n;
 		const L = H_Points.length;
@@ -105,24 +103,22 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#messages-to-scalars */
 	function messages_to_scalars(
 		messages: BufferSource[],
-		api_id: BufferSource | null,
+		api_id: BufferSource,
 	): Promise<bigint[]> {
 		if (messages.length >= Math.pow(2, 64)) {
 			throw new Error(`Too many messages: ${messages.length} >= 2^64`, { cause: { length: messages.length } });
 		}
 		const map_msg_to_scalar_as_hash = new TextEncoder().encode("MAP_MSG_TO_SCALAR_AS_HASH_");
-		api_id = api_id ?? new Uint8Array([]);
 		const map_dst = concat(api_id, map_msg_to_scalar_as_hash);
 
 		return Promise.all(messages.map(message => hash_to_scalar(message, map_dst)));
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-generators-calculation */
-	async function create_generators(count: number, api_id: BufferSource | null): Promise<PointG1[]> {
+	async function create_generators(count: number, api_id: BufferSource): Promise<PointG1[]> {
 		if (count >= Math.pow(2, 64)) {
 			throw new Error(`count too high: ${count} >= 2^64`, { cause: { count } });
 		}
-		api_id = api_id ?? new Uint8Array([]);
 		const seed_dst = concat(api_id, sig_generator_seed);
 		const generator_dst = concat(api_id, sig_generator_dst);
 		const generator_seed = concat(api_id, message_generator_seed);
@@ -361,13 +357,10 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		SK: bigint,
 		PK: BufferSource,
 		generators: PointG1[],
-		header: BufferSource | null,
-		messages: bigint[] | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		messages: bigint[],
+		api_id: BufferSource,
 	): Promise<BufferSource> {
-		header = header ?? new Uint8Array([]);
-		messages = messages ?? [];
-		api_id = api_id ?? new Uint8Array([]);
 		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
 
 		const L = messages.length;
@@ -389,13 +382,10 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		signature: BufferSource,
 		generators: PointG1[],
-		header: BufferSource | null,
-		messages: bigint[] | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		messages: bigint[],
+		api_id: BufferSource,
 	): Promise<true> {
-		header = header ?? new Uint8Array([]);
-		messages = messages ?? [];
-		api_id = api_id ?? new Uint8Array([]);
 		const [A, e] = octets_to_signature(signature);
 		const W = octets_to_pubkey(PK);
 		const L = messages.length;
@@ -421,18 +411,12 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		signature: BufferSource,
 		generators: PointG1[],
-		header: BufferSource | null,
-		ph: BufferSource | null,
-		messages: bigint[] | null,
-		disclosed_indexes: number[] | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		ph: BufferSource,
+		messages: bigint[],
+		disclosed_indexes: number[],
+		api_id: BufferSource,
 	): Promise<BufferSource> {
-		header = header ?? new Uint8Array([]);
-		ph = ph ?? new Uint8Array([]);
-		messages = messages ?? [];
-		disclosed_indexes = disclosed_indexes ?? [];
-		api_id = api_id ?? new Uint8Array([]);
-
 		const signature_result = octets_to_signature(signature);
 		const [A, e] = signature_result;
 		const L = messages.length;
@@ -463,18 +447,12 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		proof: BufferSource,
 		generators: PointG1[],
-		header: BufferSource | null,
-		ph: BufferSource | null,
-		disclosed_messages: bigint[] | null,
-		disclosed_indexes: number[] | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		ph: BufferSource,
+		disclosed_messages: bigint[],
+		disclosed_indexes: number[],
+		api_id: BufferSource,
 	): Promise<true> {
-		header = header ?? new Uint8Array([]);
-		ph = ph ?? new Uint8Array([]);
-		disclosed_messages = disclosed_messages ?? [];
-		disclosed_indexes = disclosed_indexes ?? [];
-		api_id = api_id ?? new Uint8Array([]);
-
 		const proof_result = octets_to_proof(proof);
 		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, cp] = proof_result;
 		const W = octets_to_pubkey(PK);
@@ -499,15 +477,11 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		signature: [PointG1, bigint],
 		generators: PointG1[],
 		random_scalars: bigint[],
-		header: BufferSource | null,
-		messages: bigint[] | null,
-		undisclosed_indexes: number[] | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		messages: bigint[],
+		undisclosed_indexes: number[],
+		api_id: BufferSource,
 	): Promise<[PointG1, PointG1, PointG1, PointG1, PointG1, bigint]> {
-		header = header ?? new Uint8Array([]);
-		messages = messages ?? [];
-		undisclosed_indexes = undisclosed_indexes ?? [];
-		api_id = api_id ?? new Uint8Array([]);
 		const [A, e] = signature;
 		const L = messages.length;
 		const U = undisclosed_indexes.length;
@@ -550,9 +524,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		challenge: bigint,
 		e_value: bigint,
 		random_scalars: bigint[],
-		undisclosed_messages: bigint[] | null,
+		undisclosed_messages: bigint[],
 	): BufferSource {
-		undisclosed_messages = undisclosed_messages ?? [];
 		const U = undisclosed_messages.length;
 		if (random_scalars.length !== U + 5) {
 			throw new Error(`Wrong number of random scalars: expected ${U + 5}, got ${random_scalars.length}`, { cause: { random_scalars, undisclosed_messages } });
@@ -575,10 +548,10 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		proof: [PointG1, PointG1, PointG1, bigint, bigint, bigint, bigint[], bigint],
 		generators: PointG1[],
-		header: BufferSource | null,
-		disclosed_messages: bigint[] | null,
-		disclosed_indexes: number[] | null,
-		api_id: BufferSource | null,
+		header: BufferSource,
+		disclosed_messages: bigint[],
+		disclosed_indexes: number[],
+		api_id: BufferSource,
 	): Promise<[PointG1, PointG1, PointG1, PointG1, PointG1, bigint]> {
 		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, c] = proof;
 		const U = commitments.length;
@@ -616,14 +589,11 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-challenge-calculation */
 	async function ProofChallengeCalculate(
 		init_res: [PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-		disclosed_messages: bigint[] | null,
+		disclosed_messages: bigint[],
 		disclosed_indexes: number[],
-		ph: BufferSource | null,
-		api_id: BufferSource | null,
+		ph: BufferSource,
+		api_id: BufferSource,
 	): Promise<bigint> {
-		disclosed_messages = disclosed_messages ?? [];
-		ph = ph ?? new Uint8Array([]);
-		api_id = api_id ?? new Uint8Array([]);
 		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
 
 		const R = disclosed_indexes.length;
@@ -662,8 +632,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 type PointG1 = ProjPointType<bigint>;
 type PointG2 = ProjPointType<Fp2>;
 type HashToScalarFunc = (msg_octets: BufferSource, dst: BufferSource) => Promise<bigint>;
-type MessagesToScalarsFunc = (messages: BufferSource[], api_id: BufferSource | null) => Promise<bigint[]>;
-type CreateGeneratorsFunc = (count: number, api_id: BufferSource | null) => Promise<PointG1[]>;
+type MessagesToScalarsFunc = (messages: BufferSource[], api_id: BufferSource) => Promise<bigint[]>;
+type CreateGeneratorsFunc = (count: number, api_id: BufferSource) => Promise<PointG1[]>;
 type KeyGenFunction = (key_material: BufferSource, key_info: BufferSource | null, key_dst: BufferSource | null) => Promise<bigint>;
 type PairingFunction = (P: PointG1, Q: PointG2) => Fp12;
 type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<BufferSource>;
