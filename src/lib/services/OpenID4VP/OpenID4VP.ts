@@ -204,6 +204,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
 				name: field.name || field.path[0],
 				purpose: field.purpose || descriptorPurpose,
+				path: field.path[0]
 			}));
 			mapping.set(descriptor.id, { credentials: conformingVcList, requestedFields: requestedFieldDetails });
 		}
@@ -294,6 +295,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				requestedFields: credReq.claims.map(cl => ({
 					name: cl.id || cl.path.join('.'),
 					purpose: descriptorPurpose,
+					path: cl.path
 				}))
 			});
 		}
