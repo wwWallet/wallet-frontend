@@ -280,34 +280,6 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return W;
 	}
 
-	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coresign */
-	async function CoreSign(
-		SK: bigint,
-		PK: BufferSource,
-		generators: PointG1[],
-		header: BufferSource | null,
-		messages: bigint[] | null,
-		api_id: BufferSource | null,
-	): Promise<BufferSource> {
-		header = header ?? new Uint8Array([]);
-		messages = messages ?? [];
-		api_id = api_id ?? new Uint8Array([]);
-		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
-
-		const L = messages.length;
-		if (generators.length !== L + 1) {
-			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
-		}
-		const Q_1 = generators[0];
-		const H_Points = generators.slice(1);
-
-		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
-		const e = await hash_to_scalar(serialize([SK, ...messages, domain]), hash_to_scalar_dst);
-		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
-		const A = B.multiply(Fr.inv(SK + e));
-		return signature_to_octets(A, e);
-	}
-
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-generation-sign */
 	async function Sign(
 		SK: bigint,
@@ -321,38 +293,6 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const generators = await create_generators(messages.length + 1, api_id);
 		const signature = await CoreSign(SK, PK, generators, header, message_scalars, api_id);
 		return signature;
-	}
-
-	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreverify */
-	async function CoreVerify(
-		PK: BufferSource,
-		signature: BufferSource,
-		generators: PointG1[],
-		header: BufferSource | null,
-		messages: bigint[] | null,
-		api_id: BufferSource | null,
-	): Promise<true> {
-		header = header ?? new Uint8Array([]);
-		messages = messages ?? [];
-		api_id = api_id ?? new Uint8Array([]);
-		const [A, e] = octets_to_signature(signature);
-		const W = octets_to_pubkey(PK);
-		const L = messages.length;
-		if (generators.length !== L + 1) {
-			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
-		}
-		const Q_1 = generators[0];
-		const H_Points = generators.slice(1);
-
-		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
-		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
-		if (!Fp12.eql(
-			Fp12.mul(h(A, W.add(G2.BASE.multiply(e))), h(B, G2.BASE.negate())),
-			Fp12.ONE,
-		)) {
-			throw new Error("Invalid signature", { cause: { PK, signature, header, messages } });
-		}
-		return true;
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-verification-veri */
@@ -387,6 +327,93 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const generators = await create_generators(messages.length + 1, api_id);
 		const proof = await CoreProofGen(PK, signature, generators, header, ph, message_scalars, disclosed_indexes, api_id);
 		return proof;
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-verification-proofver */
+	async function ProofVerify(
+		PK: BufferSource,
+		proof: BufferSource,
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		disclosed_messages: BufferSource[] | null,
+		disclosed_indexes: number[] | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		disclosed_messages = disclosed_messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+
+		const proof_len_floor = 3 * octet_point_length + 4 * octet_scalar_length;
+		if (proof.byteLength < proof_len_floor) {
+			throw new Error(`Proof too short: expected at least ${proof_len_floor} octets, was ${proof.byteLength}`, { cause: { proof, proof_len_floor } });
+		}
+		const U = Math.floor((proof.byteLength - proof_len_floor) / octet_scalar_length);
+		const R = disclosed_indexes.length;
+
+		const message_scalars = await messages_to_scalars(disclosed_messages, api_id);
+		const generators = await create_generators(U + R + 1, api_id);
+		const result = await CoreProofVerify(PK, proof, generators, header, ph, message_scalars, disclosed_indexes, api_id);
+		return result;
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coresign */
+	async function CoreSign(
+		SK: bigint,
+		PK: BufferSource,
+		generators: PointG1[],
+		header: BufferSource | null,
+		messages: bigint[] | null,
+		api_id: BufferSource | null,
+	): Promise<BufferSource> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
+
+		const L = messages.length;
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
+		}
+		const Q_1 = generators[0];
+		const H_Points = generators.slice(1);
+
+		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
+		const e = await hash_to_scalar(serialize([SK, ...messages, domain]), hash_to_scalar_dst);
+		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
+		const A = B.multiply(Fr.inv(SK + e));
+		return signature_to_octets(A, e);
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreverify */
+	async function CoreVerify(
+		PK: BufferSource,
+		signature: BufferSource,
+		generators: PointG1[],
+		header: BufferSource | null,
+		messages: bigint[] | null,
+		api_id: BufferSource | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+		const [A, e] = octets_to_signature(signature);
+		const W = octets_to_pubkey(PK);
+		const L = messages.length;
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
+		}
+		const Q_1 = generators[0];
+		const H_Points = generators.slice(1);
+
+		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
+		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
+		if (!Fp12.eql(
+			Fp12.mul(h(A, W.add(G2.BASE.multiply(e))), h(B, G2.BASE.negate())),
+			Fp12.ONE,
+		)) {
+			throw new Error("Invalid signature", { cause: { PK, signature, header, messages } });
+		}
+		return true;
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreproofgen */
@@ -429,33 +456,6 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const challenge = await ProofChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
 		const proof = ProofFinalize(init_res, challenge, e, random_scalars, undisclosed_messages);
 		return proof;
-	}
-
-	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-verification-proofver */
-	async function ProofVerify(
-		PK: BufferSource,
-		proof: BufferSource,
-		header: BufferSource | null,
-		ph: BufferSource | null,
-		disclosed_messages: BufferSource[] | null,
-		disclosed_indexes: number[] | null,
-	): Promise<true> {
-		header = header ?? new Uint8Array([]);
-		ph = ph ?? new Uint8Array([]);
-		disclosed_messages = disclosed_messages ?? [];
-		disclosed_indexes = disclosed_indexes ?? [];
-
-		const proof_len_floor = 3 * octet_point_length + 4 * octet_scalar_length;
-		if (proof.byteLength < proof_len_floor) {
-			throw new Error(`Proof too short: expected at least ${proof_len_floor} octets, was ${proof.byteLength}`, { cause: { proof, proof_len_floor } });
-		}
-		const U = Math.floor((proof.byteLength - proof_len_floor) / octet_scalar_length);
-		const R = disclosed_indexes.length;
-
-		const message_scalars = await messages_to_scalars(disclosed_messages, api_id);
-		const generators = await create_generators(U + R + 1, api_id);
-		const result = await CoreProofVerify(PK, proof, generators, header, ph, message_scalars, disclosed_indexes, api_id);
-		return result;
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreproofverify */
