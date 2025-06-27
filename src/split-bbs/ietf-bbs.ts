@@ -229,7 +229,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		});
 
 		const scalar_octets = proof_octets_u8.slice(octet_point_length * 3);
-		const sj = new Array(scalar_octets.length / octet_scalar_length).map((_, j) => {
+		const sj = new Array(scalar_octets.length / octet_scalar_length).fill(0).map((_, j) => {
 			const index = j * octet_scalar_length;
 			const end_index = index + octet_scalar_length;
 			const sj = OS2IP(scalar_octets.slice(index, end_index));
@@ -431,6 +431,68 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return proof;
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-verification-proofver */
+	async function ProofVerify(
+		PK: BufferSource,
+		proof: BufferSource,
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		disclosed_messages: BufferSource[] | null,
+		disclosed_indexes: number[] | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		disclosed_messages = disclosed_messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+
+		const proof_len_floor = 3 * octet_point_length + 4 * octet_scalar_length;
+		if (proof.byteLength < proof_len_floor) {
+			throw new Error(`Proof too short: expected at least ${proof_len_floor} octets, was ${proof.byteLength}`, { cause: { proof, proof_len_floor } });
+		}
+		const U = Math.floor((proof.byteLength - proof_len_floor) / octet_scalar_length);
+		const R = disclosed_indexes.length;
+
+		const message_scalars = await messages_to_scalars(disclosed_messages, api_id);
+		const generators = await create_generators(U + R + 1, api_id);
+		const result = await CoreProofVerify(PK, proof, generators, header, ph, message_scalars, disclosed_indexes, api_id);
+		return result;
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreproofverify */
+	async function CoreProofVerify(
+		PK: BufferSource,
+		proof: BufferSource,
+		generators: PointG1[],
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		disclosed_messages: bigint[] | null,
+		disclosed_indexes: number[] | null,
+		api_id: BufferSource | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		disclosed_messages = disclosed_messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+
+		const proof_result = octets_to_proof(proof);
+		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, cp] = proof_result;
+		const W = octets_to_pubkey(PK);
+
+		const init_res = await ProofVerifyInit(PK, proof_result, generators, header, disclosed_messages, disclosed_indexes, api_id);
+		const challenge = await ProofChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
+		if (cp !== challenge) {
+			throw new Error(`Invalid proof: incorrect challenge: expected ${challenge}, was ${cp}`, { cause: { proof } })
+		}
+		if (!Fp12.eql(
+			Fp12.mul(h(Abar, W), h(Bbar, G2.BASE.negate())),
+			Fp12.ONE,
+		)) {
+			throw new Error("Invalid proof: incorrect pairing", { cause: { proof } })
+		}
+		return true;
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-initialization */
 	async function ProofInit(
 		PK: BufferSource,
@@ -508,6 +570,49 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return proof_to_octets(proof);
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-verification-initiali */
+	async function ProofVerifyInit(
+		PK: BufferSource,
+		proof: [PointG1, PointG1, PointG1, bigint, bigint, bigint, bigint[], bigint],
+		generators: PointG1[],
+		header: BufferSource | null,
+		disclosed_messages: bigint[] | null,
+		disclosed_indexes: number[] | null,
+		api_id: BufferSource | null,
+	): Promise<[PointG1, PointG1, PointG1, PointG1, PointG1, bigint]> {
+		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, c] = proof;
+		const U = commitments.length;
+		const R = disclosed_indexes.length;
+		const L = R + U;
+		for (let i of disclosed_indexes) {
+			if (i < 0 || i > L - 1) {
+				throw new Error(`Invalid disclosed index: ${i}`, { cause: { disclosed_indexes, i } });
+			}
+		}
+		const disclosed_indexes_set = new Set(disclosed_indexes);
+		const undisclosed_indexes = [...commitments, ...disclosed_messages].map((_, j) => j).filter(j => !disclosed_indexes_set.has(j));
+		if (disclosed_messages.length !== R) {
+			throw new Error("Disclosed messages and indexes not of matching lengths", { cause: { disclosed_messages, disclosed_indexes } });
+		}
+
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { proof, generators } });
+		}
+		const Q1 = generators[0];
+		const MsgGenerators = generators.slice(1);
+		const H_Points = MsgGenerators;
+		const Hi_Points = disclosed_indexes.map(i => MsgGenerators[i]);
+		const Hj_Points = undisclosed_indexes.map(j => MsgGenerators[j]);
+
+		const domain = await calculate_domain(PK, Q1, H_Points, header, api_id);
+
+		const T1 = Bbar.multiply(c).add(Abar.multiply(ehat)).add(D.multiply(r1hat));
+		const Bv = P1.add(Q1.multiply(domain)).add(sumprod(Hi_Points, disclosed_messages));
+		const T2 = Bv.multiply(c).add(D.multiply(r3hat)).add(sumprod(Hj_Points, commitments));
+
+		return [Abar, Bbar, D, T1, T2, domain];
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-challenge-calculation */
 	async function ProofChallengeCalculate(
 		init_res: [PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
@@ -550,6 +655,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		Sign,
 		Verify,
 		ProofGen,
+		ProofVerify,
 	};
 }
 
@@ -563,6 +669,7 @@ type PairingFunction = (P: PointG1, Q: PointG2) => Fp12;
 type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<BufferSource>;
 type VerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<true>;
 type ProofGenFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, messages: BufferSource[] | null, disclosed_indexes: number[] | null,) => Promise<BufferSource>;
+type ProofVerifyFunction = (PK: BufferSource, proof: BufferSource, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null,) => Promise<true>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
@@ -600,6 +707,7 @@ type CipherSuite = {
 	Sign: SignFunction,
 	Verify: VerifyFunction,
 	ProofGen: ProofGenFunction,
+	ProofVerify: ProofVerifyFunction,
 }
 
 

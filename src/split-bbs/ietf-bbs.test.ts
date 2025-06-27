@@ -180,15 +180,16 @@ describe("Suite:", () => {
 		});
 
 		describe("ProofGen and ProofVerify", () => {
+			// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-fixtures-2
 			describe("pass test vectors:", async () => {
-				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-fixtures-2
+
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-single-message-proof-2
 				it("Valid Single Message Proof", async () => {
-					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-single-message-proof-2
 					const defaultSuite = getCipherSuite(
 						suiteId,
 						new TextEncoder().encode("irrelevant, this is not used in expand_message"),
 					);
-					const { ProofGen } = getCipherSuite(
+					const { ProofGen, ProofVerify } = getCipherSuite(
 						suiteId,
 						new TextEncoder().encode("irrelevant, this is not used in expand_message"),
 						{
@@ -208,13 +209,30 @@ describe("Suite:", () => {
 					const expectProof = fromHex("94916292a7a6bade28456c601d3af33fcf39278d6594b467e128a3f83686a104ef2b2fcf72df0215eeaf69262ffe8194a19fab31a82ddbe06908985abc4c9825788b8a1610942d12b7f5debbea8985296361206dbace7af0cc834c80f33e0aadaeea5597befbb651827b5eed5a66f1a959bb46cfd5ca1a817a14475960f69b32c54db7587b5ee3ab665fbd37b506830a49f21d592f5e634f47cee05a025a2f8f94e73a6c15f02301d1178a92873b6e8634bafe4983c3e15a663d64080678dbf29417519b78af042be2b3e1c4d08b8d520ffab008cbaaca5671a15b22c239b38e940cfeaa5e72104576a9ec4a6fad78c532381aeaa6fb56409cef56ee5c140d455feeb04426193c57086c9b6d397d9418");
 
 					const proof = await ProofGen(public_key, signature, header, presentation_header, [m_0], revealed_indexes);
-
 					assert.equal(toHex(proof), toHex(expectProof));
+
+					const valid = await ProofVerify(public_key, proof, header, presentation_header, [m_0], revealed_indexes);
+					assert.equal(valid, true);
+
+					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, [], []), "Expected proof verification to fail with fewer revealed messages")
 				});
 
-				it("Valid Multi-Message Signature", async () => {
-					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-multi-message-signatur
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-multi-message-all-mess
+				it("Valid Multi-Message, All Messages Disclosed Proof", async () => {
+					const defaultSuite = getCipherSuite(
+						suiteId,
+						new TextEncoder().encode("irrelevant, this is not used in expand_message"),
+					);
+					const { ProofGen, ProofVerify } = getCipherSuite(
+						suiteId,
+						new TextEncoder().encode("irrelevant, this is not used in expand_message"),
+						{
+							mocked_random_scalars_params: {
+								SEED: fromHex("332e313431353932363533353839373933323338343632363433333833323739"),
+								DST: concat(defaultSuite.api_id, new TextEncoder().encode("MOCK_RANDOM_SCALARS_DST_")),
+							},
+						},
+					);
 
 					const messages = [
 						"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
@@ -228,26 +246,24 @@ describe("Suite:", () => {
 						"96012096",
 						"",
 					].map(fromHex);
-					const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
-					const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+					const public_key = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+					const signature = fromHex("8339b285a4acd89dec7777c09543a43e3cc60684b0a6f8ab335da4825c96e1463e28f8c5f4fd0641d19cec5920d3a8ff4bedb6c9691454597bbd298288abed3632078557b2ace7d44caed846e1a0a1e8");
 					const header = fromHex("11223344556677889900aabbccddeeff");
-					const expectSignature = fromHex("8339b285a4acd89dec7777c09543a43e3cc60684b0a6f8ab335da4825c96e1463e28f8c5f4fd0641d19cec5920d3a8ff4bedb6c9691454597bbd298288abed3632078557b2ace7d44caed846e1a0a1e8");
+					const presentation_header = fromHex("bed231d880675ed101ead304512e043ade9958dd0241ea70b4b3957fba941501");
+					const revealed_indexes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+					const expectProof = fromHex("b1f468aec2001c4f54cb56f707c6222a43e5803a25b2253e67b2210ab2ef9eab52db2d4b379935c4823281eaf767fd37b08ce80dc65de8f9769d27099ae649ad4c9b4bd2cc23edcba52073a298087d2495e6d57aaae051ef741adf1cbce65c64a73c8c97264177a76c4a03341956d2ae45ed3438ce598d5cda4f1bf9507fecef47855480b7b30b5e4052c92a4360110c67327365763f5aa9fb85ddcbc2975449b8c03db1216ca66b310f07d0ccf12ab460cdc6003b677fed36d0a23d0818a9d4d098d44f749e91008cf50e8567ef936704c8277b7710f41ab7e6e16408ab520edc290f9801349aee7b7b4e318e6a76e028e1dea911e2e7baec6a6a174da1a22362717fbae1cd961d7bf4adce1d31c2ab");
 
-					const signature = toU8(await Sign(SK, PK, header, messages));
+					const proof = await ProofGen(public_key, signature, header, presentation_header, messages, revealed_indexes);
+					assert.equal(toHex(proof), toHex(expectProof));
 
-					assert.equal(toHex(signature), toHex(expectSignature));
-
-					const valid = await Verify(PK, signature, header, messages);
+					const valid = await ProofVerify(public_key, proof, header, presentation_header, messages, revealed_indexes);
 					assert.equal(valid, true);
 
 					const reverseMessages = [...messages].reverse();
-					await asyncAssertThrows(() => Verify(PK, signature, header, null), "Expected signature verification to fail with wrong messages")
-					await asyncAssertThrows(() => Verify(PK, signature, header, messages.slice(0, 9)), "Expected signature verification to fail with wrong messages")
-					await asyncAssertThrows(() => Verify(PK, signature, header, reverseMessages), "Expected signature verification to fail with wrong messages")
-					await asyncAssertThrows(() => Verify(PK, signature, null, messages), "Expected signature verification to fail with wrong header")
-					await asyncAssertThrows(() => Verify(PK, signature, concat(header, header), messages), "Expected signature verification to fail with wrong header")
-					const modSig = concat(new Uint8Array([signature[0] ^ 0x01]), signature.slice(1));
-					await asyncAssertThrows(() => Verify(PK, modSig, header, messages), "Expected signature verification to fail with wrong signature")
+					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, [], []), "Expected proof verification to fail with no revealed messages")
+					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, messages.slice(0, 9), revealed_indexes.slice(0, 9)), "Expected proof verification to fail with fewer revealed messages")
+					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, reverseMessages, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]), "Expected proof verification to fail with reversed messages")
+					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, reverseMessages, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].reverse()), "Expected proof verification to fail with reversed messages")
 				});
 			});
 		});
