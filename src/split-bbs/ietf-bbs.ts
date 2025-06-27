@@ -36,11 +36,12 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	const { expand_message, prime_subgroup_order } = suite.hash_to_curve_suite.suiteParams;
 	const api_id = new TextEncoder().encode(suite.id + "H2G_HM2S_");
 
+	function sum(points: PointG1[]): PointG1 {
+		return points.reduce((sum, P) => sum.add(P), G1.ZERO);
+	}
+
 	function sumprod(points: PointG1[], scalars: bigint[]): PointG1 {
-		return points.reduce(
-			(sum, Hi, i) => sum.add(Hi.multiply(scalars[i])),
-			G1.ZERO,
-		);
+		return sum(points.map((Hi, i) => Hi.multiply(scalars[i])));
 	}
 
 	function get_random(n: number): BufferSource {
