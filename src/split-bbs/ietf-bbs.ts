@@ -21,6 +21,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		hash_to_curve_g1,
 		octet_point_length,
 		octet_scalar_length,
+		mocked_random_scalars_params,
 	} = suite;
 	const {
 		sig_generator_seed,
@@ -41,6 +42,34 @@ function createSuite(suite: SuiteParams): CipherSuite {
 			G1.ZERO,
 		);
 	}
+
+	function get_random(n: number): BufferSource {
+		return crypto.getRandomValues(new Uint8Array(n));
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-random-scalars */
+	async function real_calculate_random_scalars(count: number): Promise<bigint[]> {
+		return Array(count).fill(0n).map(() => Fr.create(OS2IP(get_random(expand_len))));
+	};
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-random-scalars */
+	async function seeded_random_scalars(
+		{ SEED, DST }: { SEED: BufferSource, DST: BufferSource },
+		count: number,
+	): Promise<bigint[]> {
+		const out_len = expand_len * count;
+		if (out_len > 65536) {
+			throw new Error("Output length too high", { cause: { count, expand_len, out_len } });
+		}
+		const v = toU8(await expand_message(SEED, DST, out_len));
+		return Array(count).fill(0n).map((_, i) => Fr.create(OS2IP(v.slice(i * expand_len, (i + 1) * expand_len))));
+	};
+
+	const calculate_random_scalars: (count: number) => Promise<bigint[]> = (
+		mocked_random_scalars_params
+			? (count: number) => seeded_random_scalars(mocked_random_scalars_params, count)
+			: real_calculate_random_scalars
+	);
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-hash-to-scalar */
 	async function hash_to_scalar(msg_octets: BufferSource, dst: BufferSource): Promise<bigint> {
@@ -173,6 +202,54 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return [A, e];
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-to-octets */
+	function proof_to_octets(proof: [PointG1, PointG1, PointG1, bigint, bigint, bigint, bigint[], bigint]) {
+		const [Abar, Bbar, D, ehat, r1hat, r3hat, mhatj, challenge] = proof;
+		return serialize([Abar, Bbar, D, ehat, r1hat, r3hat, ...mhatj, challenge]);
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-octets-to-proof */
+	function octets_to_proof(proof_octets: BufferSource): [PointG1, PointG1, PointG1, bigint, bigint, bigint, bigint[], bigint] {
+		const proof_len_floor = 3 * octet_point_length + 4 * octet_scalar_length;
+		if (proof_octets.byteLength < proof_len_floor) {
+			throw new Error(`Proof too short: expected at least ${proof_len_floor} octets, was ${proof_octets.byteLength}`, { cause: { proof_octets, proof_len_floor } });
+		}
+
+		const proof_octets_u8 = toU8(proof_octets);
+
+		const Ai = [0, 1, 2].map(i => {
+			const index = i * octet_point_length;
+			const end_index = index + octet_point_length;
+			const Ai = octets_to_point_E1(proof_octets_u8.slice(index, end_index));
+			if (Ai.is0()) {
+				throw new Error("Proof point must not be the identity point", { cause: { index, proof_octets } });
+			}
+			subgroup_check_G1(Ai);
+			return Ai;
+		});
+
+		const scalar_octets = proof_octets_u8.slice(octet_point_length * 3);
+		const sj = new Array(scalar_octets.length / octet_scalar_length).map((_, j) => {
+			const index = j * octet_scalar_length;
+			const end_index = index + octet_scalar_length;
+			const sj = OS2IP(scalar_octets.slice(index, end_index));
+			if (sj === 0n || sj >= Fr.ORDER) {
+				throw new Error(`Scalar out of range: ${sj}`, { cause: { r: Fr.ORDER, sj } });
+			}
+			return sj;
+		});
+
+		if (scalar_octets.length !== sj.length * octet_scalar_length) {
+			throw new Error("Trailing proof octets", { cause: { proof_octets, octet_point_length, octet_scalar_length } });
+		}
+		const msg_commitments = (
+			sj.length > 4
+				? sj.slice(3, sj.length - 1)
+				: []
+		);
+		return [Ai[0], Ai[1], Ai[2], sj[0], sj[1], sj[2], msg_commitments, sj[sj.length - 1]];
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function octets_to_point_E1(ostr: BufferSource): PointG1 {
 		return G1.fromBytes(toU8(ostr));
@@ -293,6 +370,176 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return result;
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-generation-proofgen */
+	async function ProofGen(
+		PK: BufferSource,
+		signature: BufferSource,
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		messages: BufferSource[] | null,
+		disclosed_indexes: number[] | null,
+	): Promise<BufferSource> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		messages = messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+		const message_scalars = await messages_to_scalars(messages, api_id);
+		const generators = await create_generators(messages.length + 1, api_id);
+		const proof = await CoreProofGen(PK, signature, generators, header, ph, message_scalars, disclosed_indexes, api_id);
+		return proof;
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreproofgen */
+	async function CoreProofGen(
+		PK: BufferSource,
+		signature: BufferSource,
+		generators: PointG1[],
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		messages: bigint[] | null,
+		disclosed_indexes: number[] | null,
+		api_id: BufferSource | null,
+	): Promise<BufferSource> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		messages = messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+
+		const signature_result = octets_to_signature(signature);
+		const [A, e] = signature_result;
+		const L = messages.length;
+		const R = disclosed_indexes.length;
+		if (R > L) {
+			throw new Error("Too many disclosed indexes", { cause: { messages, disclosed_indexes } });
+		}
+		const U = L - R;
+		for (let i of disclosed_indexes) {
+			if (i < 0 || i > L - 1) {
+				throw new Error(`Invalid disclosed index: ${i}`, { cause: { messages, disclosed_indexes, i } });
+			}
+		}
+		const disclosed_set = new Set(disclosed_indexes);
+		const undisclosed_indexes = messages.map((msg, i) => i).filter(i => !disclosed_set.has(i));
+		const disclosed_messages = disclosed_indexes.map(i => messages[i]);
+		const undisclosed_messages = undisclosed_indexes.map(i => messages[i]);
+
+		const random_scalars = await calculate_random_scalars(5 + U);
+		const init_res = await ProofInit(PK, signature_result, generators, random_scalars, header, messages, undisclosed_indexes, api_id);
+		const challenge = await ProofChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
+		const proof = ProofFinalize(init_res, challenge, e, random_scalars, undisclosed_messages);
+		return proof;
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-initialization */
+	async function ProofInit(
+		PK: BufferSource,
+		signature: [PointG1, bigint],
+		generators: PointG1[],
+		random_scalars: bigint[],
+		header: BufferSource | null,
+		messages: bigint[] | null,
+		undisclosed_indexes: number[] | null,
+		api_id: BufferSource | null,
+	): Promise<[PointG1, PointG1, PointG1, PointG1, PointG1, bigint]> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		undisclosed_indexes = undisclosed_indexes ?? [];
+		api_id = api_id ?? new Uint8Array([]);
+		const [A, e] = signature;
+		const L = messages.length;
+		const U = undisclosed_indexes.length;
+		if (random_scalars.length !== U + 5) {
+			throw new Error(`Wrong number of random scalars: expected ${U + 5}, got ${random_scalars.length}`, { cause: { random_scalars, undisclosed_indexes } });
+		}
+		const [r1, r2, etil, r1til, r3til] = random_scalars.slice(0, 5);
+		const mtilj = random_scalars.slice(5);
+
+		if (generators.length !== L + 1) {
+			throw new Error(`Wrong number of generators: expected ${L + 1}, got ${generators.length}`, { cause: { generators, messages } });
+		}
+		const Q1 = generators[0];
+		const MsgGenerators = generators.slice(1);
+		const Hi = MsgGenerators;
+		const Hj = undisclosed_indexes.map(j => MsgGenerators[j]);
+
+		for (let i of undisclosed_indexes) {
+			if (i < 0 || i > L - 1) {
+				throw new Error(`Invalid undisclosed index: ${i}`, { cause: { messages, undisclosed_indexes, i } });
+			}
+		}
+		if (U > L) {
+			throw new Error("Invalid number of undisclosed indexes", { cause: { messages, undisclosed_indexes, L, U } });
+		}
+		const domain = await calculate_domain(PK, Q1, Hi, header, api_id);
+		const B = P1.add(Q1.multiply(domain)).add(sumprod(Hi, messages));
+		const D = B.multiply(r2);
+		const Abar = A.multiply(Fr.mul(r1, r2));
+		const Bbar = D.multiply(r1).subtract(Abar.multiply(e));
+
+		const T1 = Abar.multiply(etil).add(D.multiply(r1til));
+		const T2 = D.multiply(r3til).add(sumprod(Hj, mtilj));
+		return [Abar, Bbar, D, T1, T2, domain];
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-finalization */
+	function ProofFinalize(
+		init_res: [PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
+		challenge: bigint,
+		e_value: bigint,
+		random_scalars: bigint[],
+		undisclosed_messages: bigint[] | null,
+	): BufferSource {
+		undisclosed_messages = undisclosed_messages ?? [];
+		const U = undisclosed_messages.length;
+		if (random_scalars.length !== U + 5) {
+			throw new Error(`Wrong number of random scalars: expected ${U + 5}, got ${random_scalars.length}`, { cause: { random_scalars, undisclosed_messages } });
+		}
+		const [r1, r2, etil, r1til, r3til] = random_scalars.slice(0, 5);
+		const mtilj = random_scalars.slice(5);
+		const [Abar, Bbar, D] = init_res;
+
+		const r3 = Fr.inv(r2);
+		const ehat = Fr.add(etil, Fr.mul(e_value, challenge));
+		const r1hat = Fr.sub(r1til, Fr.mul(r1, challenge));
+		const r3hat = Fr.sub(r3til, Fr.mul(r3, challenge));
+		const mhatj = mtilj.map((mtilj, j) => Fr.add(mtilj, Fr.mul(undisclosed_messages[j], challenge)));
+		const proof: [PointG1, PointG1, PointG1, bigint, bigint, bigint, bigint[], bigint] = [Abar, Bbar, D, ehat, r1hat, r3hat, mhatj, challenge];
+		return proof_to_octets(proof);
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-challenge-calculation */
+	async function ProofChallengeCalculate(
+		init_res: [PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
+		disclosed_messages: bigint[] | null,
+		disclosed_indexes: number[],
+		ph: BufferSource | null,
+		api_id: BufferSource | null,
+	): Promise<bigint> {
+		disclosed_messages = disclosed_messages ?? [];
+		ph = ph ?? new Uint8Array([]);
+		api_id = api_id ?? new Uint8Array([]);
+		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
+
+		const R = disclosed_indexes.length;
+		if (disclosed_messages.length !== R) {
+			throw new Error("Disclosed messages and indexes not of matching lengths", { cause: { disclosed_messages, disclosed_indexes } });
+		}
+		const [Abar, Bbar, D, T1, T2, domain] = init_res;
+
+		if (R > Math.pow(2, 64) - 1) {
+			throw new Error("Too many disclosed indexes", { cause: { disclosed_indexes } });
+		}
+		if (ph.byteLength > Math.pow(2, 64) - 1) {
+			throw new Error("Presentation header too long", { cause: { ph } });
+		}
+
+		const i_msg = disclosed_indexes.map((i, j) => [i, disclosed_messages[j]]).flat(1);
+		const c_arr = [R, ...i_msg, Abar, Bbar, D, T1, T2, domain];
+		const c_octs = concat(serialize(c_arr), I2OSP(ph.byteLength, 8), ph);
+		return await hash_to_scalar(c_octs, hash_to_scalar_dst);
+	}
+
 	return {
 		params: suite,
 		api_id,
@@ -302,6 +549,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		KeyGen,
 		Sign,
 		Verify,
+		ProofGen,
 	};
 }
 
@@ -314,6 +562,7 @@ type KeyGenFunction = (key_material: BufferSource, key_info: BufferSource | null
 type PairingFunction = (P: PointG1, Q: PointG2) => Fp12;
 type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<BufferSource>;
 type VerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<true>;
+type ProofGenFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, messages: BufferSource[] | null, disclosed_indexes: number[] | null,) => Promise<BufferSource>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
@@ -338,6 +587,7 @@ type SuiteParams = {
 	P1: PointG1,
 	h: PairingFunction,
 	create_generators_dsts?: CreateGeneratorsDsts,
+	mocked_random_scalars_params?: { SEED: BufferSource, DST: BufferSource },
 }
 
 type CipherSuite = {
@@ -349,10 +599,19 @@ type CipherSuite = {
 	KeyGen: KeyGenFunction,
 	Sign: SignFunction,
 	Verify: VerifyFunction,
+	ProofGen: ProofGenFunction,
 }
 
 
-export function getCipherSuite(suiteId: SuiteId, DST: BufferSource, create_generators_dsts?: CreateGeneratorsDsts): CipherSuite {
+export function getCipherSuite(
+	suiteId: SuiteId,
+	DST: BufferSource,
+	overrides?: {
+		mocked_random_scalars_params?: { SEED: BufferSource, DST: BufferSource },
+		create_generators_dsts?: CreateGeneratorsDsts,
+	},
+): CipherSuite {
+
 	switch (suiteId) {
 		case 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_':
 			// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-bls12-381-sha-256
@@ -370,7 +629,8 @@ export function getCipherSuite(suiteId: SuiteId, DST: BufferSource, create_gener
 				G2: bls12_381.curves.G2,
 				P1: bls12_381.curves.G1.fromBytes(toU8(fromHex("a8ce256102840821a3e94ea9025e4662b205762f9776b3a766c872b948f1fd225e7c59698588e70d11406d161b4e28c9"))),
 				h: bls12_381.pairing,
-				create_generators_dsts,
+				create_generators_dsts: overrides?.create_generators_dsts,
+				mocked_random_scalars_params: overrides?.mocked_random_scalars_params,
 			});
 
 		default:

@@ -94,9 +94,11 @@ describe("Suite:", () => {
 					suiteId,
 					new TextEncoder().encode("irrelevant, this is not used in expand_message"),
 					{
-						sig_generator_seed: new TextEncoder().encode("H2G_HM2S_SIG_GENERATOR_SEED_"),
-						sig_generator_dst: new TextEncoder().encode("H2G_HM2S_SIG_GENERATOR_DST_"),
-						message_generator_seed: new TextEncoder().encode("H2G_HM2S_BP_MESSAGE_GENERATOR_SEED"),
+						create_generators_dsts: {
+							sig_generator_seed: new TextEncoder().encode("H2G_HM2S_SIG_GENERATOR_SEED_"),
+							sig_generator_dst: new TextEncoder().encode("H2G_HM2S_SIG_GENERATOR_DST_"),
+							message_generator_seed: new TextEncoder().encode("H2G_HM2S_BP_MESSAGE_GENERATOR_SEED"),
+						},
 					}
 				);
 
@@ -135,6 +137,79 @@ describe("Suite:", () => {
 					await asyncAssertThrows(() => Verify(PK, signature, concat(header, header), [m_1]), "Expected signature verification to fail with wrong header")
 					const modSig = concat(new Uint8Array([signature[0] ^ 0x01]), signature.slice(1));
 					await asyncAssertThrows(() => Verify(PK, modSig, header, [m_1]), "Expected signature verification to fail with wrong signature")
+				});
+
+				it("Valid Multi-Message Signature", async () => {
+					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-multi-message-signatur
+					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+
+					const messages = [
+						"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
+						"c344136d9ab02da4dd5908bbba913ae6f58c2cc844b802a6f811f5fb075f9b80",
+						"7372e9daa5ed31e6cd5c825eac1b855e84476a1d94932aa348e07b73",
+						"77fe97eb97a1ebe2e81e4e3597a3ee740a66e9ef2412472c",
+						"496694774c5604ab1b2544eababcf0f53278ff50",
+						"515ae153e22aae04ad16f759e07237b4",
+						"d183ddc6e2665aa4e2f088af",
+						"ac55fb33a75909ed",
+						"96012096",
+						"",
+					].map(fromHex);
+					const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
+					const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+					const header = fromHex("11223344556677889900aabbccddeeff");
+					const expectSignature = fromHex("8339b285a4acd89dec7777c09543a43e3cc60684b0a6f8ab335da4825c96e1463e28f8c5f4fd0641d19cec5920d3a8ff4bedb6c9691454597bbd298288abed3632078557b2ace7d44caed846e1a0a1e8");
+
+					const signature = toU8(await Sign(SK, PK, header, messages));
+
+					assert.equal(toHex(signature), toHex(expectSignature));
+
+					const valid = await Verify(PK, signature, header, messages);
+					assert.equal(valid, true);
+
+					const reverseMessages = [...messages].reverse();
+					await asyncAssertThrows(() => Verify(PK, signature, header, null), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, header, messages.slice(0, 9)), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, header, reverseMessages), "Expected signature verification to fail with wrong messages")
+					await asyncAssertThrows(() => Verify(PK, signature, null, messages), "Expected signature verification to fail with wrong header")
+					await asyncAssertThrows(() => Verify(PK, signature, concat(header, header), messages), "Expected signature verification to fail with wrong header")
+					const modSig = concat(new Uint8Array([signature[0] ^ 0x01]), signature.slice(1));
+					await asyncAssertThrows(() => Verify(PK, modSig, header, messages), "Expected signature verification to fail with wrong signature")
+				});
+			});
+		});
+
+		describe("ProofGen and ProofVerify", () => {
+			describe("pass test vectors:", async () => {
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-fixtures-2
+				it("Valid Single Message Proof", async () => {
+					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-single-message-proof-2
+					const defaultSuite = getCipherSuite(
+						suiteId,
+						new TextEncoder().encode("irrelevant, this is not used in expand_message"),
+					);
+					const { ProofGen } = getCipherSuite(
+						suiteId,
+						new TextEncoder().encode("irrelevant, this is not used in expand_message"),
+						{
+							mocked_random_scalars_params: {
+								SEED: fromHex("332e313431353932363533353839373933323338343632363433333833323739"),
+								DST: concat(defaultSuite.api_id, new TextEncoder().encode("MOCK_RANDOM_SCALARS_DST_")),
+							},
+						},
+					);
+
+					const m_0 = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
+					const public_key = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+					const signature = fromHex("84773160b824e194073a57493dac1a20b667af70cd2352d8af241c77658da5253aa8458317cca0eae615690d55b1f27164657dcafee1d5c1973947aa70e2cfbb4c892340be5969920d0916067b4565a0");
+					const header = fromHex("11223344556677889900aabbccddeeff");
+					const presentation_header = fromHex("bed231d880675ed101ead304512e043ade9958dd0241ea70b4b3957fba941501");
+					const revealed_indexes = [0];
+					const expectProof = fromHex("94916292a7a6bade28456c601d3af33fcf39278d6594b467e128a3f83686a104ef2b2fcf72df0215eeaf69262ffe8194a19fab31a82ddbe06908985abc4c9825788b8a1610942d12b7f5debbea8985296361206dbace7af0cc834c80f33e0aadaeea5597befbb651827b5eed5a66f1a959bb46cfd5ca1a817a14475960f69b32c54db7587b5ee3ab665fbd37b506830a49f21d592f5e634f47cee05a025a2f8f94e73a6c15f02301d1178a92873b6e8634bafe4983c3e15a663d64080678dbf29417519b78af042be2b3e1c4d08b8d520ffab008cbaaca5671a15b22c239b38e940cfeaa5e72104576a9ec4a6fad78c532381aeaa6fb56409cef56ee5c140d455feeb04426193c57086c9b6d397d9418");
+
+					const proof = await ProofGen(public_key, signature, header, presentation_header, [m_0], revealed_indexes);
+
+					assert.equal(toHex(proof), toHex(expectProof));
 				});
 
 				it("Valid Multi-Message Signature", async () => {
