@@ -335,6 +335,32 @@ describe("Suite:", () => {
 					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, revealed_messages.slice(0, 3), revealed_indexes.slice(0, 3)), "Expected proof verification to fail with fewer revealed messages");
 					await asyncAssertThrows(() => ProofVerify(public_key, proof, header, presentation_header, reverseMessages, [0, 2, 4, 6]), "Expected proof verification to fail with reversed messages");
 				});
+
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-no-header-valid-proof-2
+				it("No Header Valid Proof", async () => {
+					const revealed_indexes = [0, 2, 4, 6];
+					const header = fromHex("");
+					const signature = fromHex("8c87e2080859a97299c148427cd2fcf390d24bea850103a9748879039262ecf4f42206f6ef767f298b6a96b424c1e86c26f8fba62212d0e05b95261c2cc0e5fdc63a32731347e810fd12e9c58355aa0d");
+					const expectProof = fromHex("81925c2e525d9fbb0ba95b438b5a13fff5874c7c0515c193628d7d143ddc3bb487771ad73658895997a88dd5b254ed29abc019bfca62c09b8dafb37e5f09b1d380e084ec3623d071ec38d6b8602af93aa0ddbada307c9309cca86be16db53dc7ac310574f509c712bb1a181d64ea3c1ee075c018a2bc773e2480b5c033ccb9bfea5af347a88ab83746c9342ba76db3675ff70ce9006d166fd813a81b448a632216521c864594f3f92965974914992f8d1845230915b11680cf44b25886c5670904ac2d88255c8c31aea7b072e9c4eb7e4c3fdd38836ae9d2e9fa271c8d9fd42f669a9938aeeba9d8ae613bf11f489ce947616f5cbaee95511dfaa5c73d85e4ddd2f29340f821dc2fb40db3eae5f5bc08467eb195e38d7d436b63e556ea653168282a23b53d5792a107f85b1203f82aab46f6940650760e5b320261ffc0ca5f15917b51e7d2ad4bcbec94de792e229db663abff23af392a5e73ce115c27e8492ec24a0815091c69874dbd9dae2d2eed000810c748a798a78a804a39034c6e745cee455812cc982eea7105948b2cb55b82278a77237fcbec4748e2d2255af0994dd09dba8ac60515a39b24632a2c1c840c4a70506add5b2eb0be9ff66e3ea8deae666f198edfbb1391c6834e6df4f1026d");
+
+					const revealed_messages = [messages[0], messages[2], messages[4], messages[6]];
+					const proof = await ProofGen(public_key, signature, header, presentation_header, messages, revealed_indexes);
+					assert.equal(toHex(proof), toHex(expectProof));
+					assert.equal(await ProofVerify(public_key, proof, header, presentation_header, revealed_messages, revealed_indexes), true);
+				});
+
+				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-no-presentation-header-valid
+				it("No Presentation Header Valid Proof", async () => {
+					const revealed_indexes = [0, 2, 4, 6];
+					const presentation_header = fromHex("");
+					const signature = fromHex("8339b285a4acd89dec7777c09543a43e3cc60684b0a6f8ab335da4825c96e1463e28f8c5f4fd0641d19cec5920d3a8ff4bedb6c9691454597bbd298288abed3632078557b2ace7d44caed846e1a0a1e8");
+					const expectProof = fromHex("a2ed608e8e12ed21abc2bf154e462d744a367c7f1f969bdbf784a2a134c7db2d340394223a5397a3011b1c340ebc415199462ba6f31106d8a6da8b513b37a47afe93c9b3474d0d7a354b2edc1b88818b063332df774c141f7a07c48fe50d452f897739228c88afc797916dca01e8f03bd9c5375c7a7c59996e514bb952a436afd24457658acbaba5ddac2e693ac48135672556358e78b5398f1a547a2a98dfe16230f244ba742dea737e4f810b4d94e03ac068ef840aaadf12b2ed51d3fb774c2a0a620019fd1f39c52c6f89a0e6067e3039413a91129791b2af215a82ad2356b6bc305c1d7a828fe519619dd026eaaf07ea81cee52b21aab3e8320519bf37c2bb228a8b580f899d84327bdc5e84a66000e8bac17d2fa039bb2246c8eacc623ccd9eb26e184a96a9e3a6702e1dbafe194772394b05251f72bcd2d20f542b15b2406f899791f6f285c7b469e7c7b9624147f305c38c903273a949f6e85b9774aeeccfafa432e2cdd7c8f97d1687741ed30d725444428dd87d9884711d9a46baaf0c04b03a2a228b7033be0841880134b03b15f698756eca5f37503a0411a9586d3027a8b8b9118e95a9949b2719e85e4a669d9e4b7bb6d4544c8cc558c30d79f9c85a87e1a95611400b7c7dac5673d800");
+
+					const revealed_messages = [messages[0], messages[2], messages[4], messages[6]];
+					const proof = await ProofGen(public_key, signature, header, presentation_header, messages, revealed_indexes);
+					assert.equal(toHex(proof), toHex(expectProof));
+					assert.equal(await ProofVerify(public_key, proof, header, presentation_header, revealed_messages, revealed_indexes), true);
+				});
 			});
 		});
 	});
