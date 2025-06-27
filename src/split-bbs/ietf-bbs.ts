@@ -264,7 +264,8 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	 * without point compression.
 	 */
 	function point_to_octets_E1_sec1(P: PointG1): BufferSource {
-		return concat(new Uint8Array([0x04]), Fp.toBytes(P.x), Fp.toBytes(P.y));
+		const Paff = P.toAffine();
+		return concat(new Uint8Array([0x04]), Fp.toBytes(Paff.x), Fp.toBytes(Paff.y));
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
@@ -428,7 +429,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		disclosed_indexes: number[] | null,
 	): Promise<[
 		[PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-		bigint, bigint[], any, bigint[], PointG1, PointG1, bigint,
+		bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint,
 	]> {
 		header = header ?? new Uint8Array([]);
 		ph = ph ?? new Uint8Array([]);
@@ -441,13 +442,29 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	}
 
 	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitProofGenDevice(
+		dsk: bigint,
+		dpk_generator: PointG1,
+		c_host: bigint,
+		T2bar: PointG1,
+	): Promise<BufferSource> {
+		const n = get_random(octet_scalar_length);
+		const [rdsk] = await calculate_random_scalars(1); // Will compute same scalar as first message in tests, that's okay
+		const tdsk = dpk_generator.multiply(rdsk);
+		const T2 = T2bar.add(tdsk);
+		const c = await SplitProofDeviceChallengeCalculate(n, T2, c_host);
+		const sa_dpk = Fr.add(rdsk, Fr.mul(dsk, c));
+		return concat(I2OSP(sa_dpk, octet_scalar_length), I2OSP(c, octet_scalar_length), n);
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
 	async function SplitProofGenFinish(
 		begin_res: [
 			[PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-			bigint, bigint[], any, bigint[], PointG1, PointG1, bigint,
+			bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint,
 		],
 		device_resp: BufferSource,
-	): Promise<BufferSource> {
+	): Promise<[BufferSource, bigint, BufferSource]> {
 		if (device_resp.byteLength !== 3 * octet_scalar_length) {
 			throw new Error(`Incorrect device response length: expected ${3 * octet_scalar_length}, got ${device_resp.byteLength}`, { cause: { device_resp } });
 		}
@@ -455,15 +472,16 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const [init_res, e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator, c_host] = begin_res;
 		const [Abar, Bbar, D, T1, T2bar, domain] = init_res;
 		const device_resp_u8 = toU8(device_resp);
-		const [sa_dpk, n, c] = [0, 1, 2].map(i => Fr.create(OS2IP(device_resp_u8.slice(i * octet_scalar_length, (i + 1) * octet_scalar_length))));
-		const tdsk = dpk_generator.multiply(sa_dpk).add(dpk.multiply(c));
+		const [sa_dpk, c] = [0, 1].map(i => Fr.create(OS2IP(device_resp_u8.slice(i * octet_scalar_length, (i + 1) * octet_scalar_length))));
+		const n = device_resp_u8.slice(2 * octet_scalar_length);
+		const tdsk = dpk_generator.multiply(sa_dpk).subtract(dpk.multiply(c));
 		const T2 = T2bar.add(tdsk);
 		const challenge = await SplitProofDeviceChallengeCalculate(n, T2, c_host);
 		if (challenge !== c) {
 			throw new Error(`Incorrect device challenge: expected ${challenge}, was ${c}`, { cause: { begin_res, device_resp, challenge, c } });
 		}
 		const proof = ProofFinalize(init_res, challenge, e, random_scalars, undisclosed_messages);
-		return proof;
+		return [proof, sa_dpk, n];
 	}
 
 	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
@@ -471,7 +489,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		proof: BufferSource,
 		dpk_commitment: bigint,
-		n: bigint,
+		n: BufferSource,
 		dpk_generator: PointG1,
 		header: BufferSource | null,
 		ph: BufferSource | null,
@@ -670,7 +688,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		api_id: BufferSource,
 	): Promise<[
 		[PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
-		bigint, bigint[], any, bigint[], PointG1, PointG1, bigint,
+		bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint,
 	]> {
 		const signature_result = octets_to_signature(signature);
 		const [A, e] = signature_result;
@@ -737,7 +755,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PK: BufferSource,
 		proof: BufferSource,
 		dpk_commitment: bigint,
-		n: bigint,
+		n: BufferSource,
 		dpk_generator: PointG1,
 		generators: PointG1[],
 		header: BufferSource,
@@ -1052,11 +1070,11 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
 	async function SplitProofDeviceChallengeCalculate(
-		n: bigint,
+		n: BufferSource,
 		T2: PointG1,
 		c_host: bigint,
 	): Promise<bigint> {
-		const c_octs = concat(I2OSP(n, octet_scalar_length), point_to_octets_E1_sec1(T2), I2OSP(c_host, octet_scalar_length));
+		const c_octs = concat(n, point_to_octets_E1_sec1(T2), I2OSP(c_host, octet_scalar_length));
 		return Fr.create(OS2IP(await device_hash(c_octs)));
 	}
 
@@ -1075,6 +1093,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		SplitSign,
 		SplitVerify,
 		SplitProofGenBegin,
+		SplitProofGenDevice,
 		SplitProofGenFinish,
 		SplitProofVerify,
 	};
@@ -1094,9 +1113,10 @@ type ProofGenFunction = (PK: BufferSource, signature: BufferSource, header: Buff
 type ProofVerifyFunction = (PK: BufferSource, proof: BufferSource, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
 type SplitSignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null) => Promise<BufferSource>;
 type SplitVerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null) => Promise<true>;
-type SplitProofGenBeginFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<[[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], any, bigint[], PointG1, PointG1, bigint]>;
-type SplitProofGenFinishFunction = (begin_res: [[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], any, bigint[], PointG1, PointG1, bigint,], device_resp: BufferSource) => Promise<BufferSource>;
-type SplitProofVerifyFunction = (PK: BufferSource, proof: BufferSource, dpk_commitment: bigint, n: bigint, dpk_generator: PointG1, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
+type SplitProofGenBeginFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<[[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint]>;
+type SplitProofGenDeviceFunction = (dsk: bigint, dpk_generator: PointG1, c_host: bigint, T2bar: PointG1) => Promise<BufferSource>;
+type SplitProofGenFinishFunction = (begin_res: [[PointG1, PointG1, PointG1, PointG1, PointG1, bigint], bigint, bigint[], bigint[], bigint[], PointG1, PointG1, bigint], device_resp: BufferSource) => Promise<[BufferSource, bigint, BufferSource]>;
+type SplitProofVerifyFunction = (PK: BufferSource, proof: BufferSource, dpk_commitment: bigint, n: BufferSource, dpk_generator: PointG1, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
@@ -1141,6 +1161,7 @@ type CipherSuite = {
 	SplitSign: SplitSignFunction,
 	SplitVerify: SplitVerifyFunction,
 	SplitProofGenBegin: SplitProofGenBeginFunction,
+	SplitProofGenDevice: SplitProofGenDeviceFunction,
 	SplitProofGenFinish: SplitProofGenFinishFunction,
 	SplitProofVerify: SplitProofVerifyFunction,
 }
