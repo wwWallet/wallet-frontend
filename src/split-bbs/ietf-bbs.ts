@@ -173,18 +173,22 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return [A, e];
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function octets_to_point_E1(ostr: BufferSource): PointG1 {
 		return G1.fromBytes(toU8(ostr));
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function subgroup_check_G1(P: PointG1): void {
 		P.assertValidity();
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function octets_to_point_E2(ostr: BufferSource): PointG2 {
 		return G2.fromBytes(toU8(ostr));
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function subgroup_check_G2(Q: PointG2): void {
 		Q.assertValidity();
 	}
