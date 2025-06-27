@@ -73,24 +73,6 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return hash_to_scalar(dom_input, hash_to_scalar_dst);
 	}
 
-	function serialize(input_array: (PointG1 | PointG2 | bigint | number)[]): BufferSource {
-		return concat(...input_array.map(el => {
-			switch (typeof el) {
-				case 'number':
-					return I2OSP(el, 8);
-
-				case 'bigint':
-					return I2OSP(el, octet_scalar_length);
-
-				case 'object':
-					return el.toBytes();
-
-				default:
-					throw new Error(`Invalid type of value: ${el}`, { cause: { el } });
-			}
-		}));
-	}
-
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#messages-to-scalars */
 	function messages_to_scalars(
 		messages: BufferSource[],
@@ -145,10 +127,31 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return G2.BASE.multiply(SK).toBytes();
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-serialize */
+	function serialize(input_array: (PointG1 | PointG2 | bigint | number)[]): BufferSource {
+		return concat(...input_array.map(el => {
+			switch (typeof el) {
+				case 'number':
+					return I2OSP(el, 8);
+
+				case 'bigint':
+					return I2OSP(el, octet_scalar_length);
+
+				case 'object':
+					return el.toBytes();
+
+				default:
+					throw new Error(`Invalid type of value: ${el}`, { cause: { el } });
+			}
+		}));
+	}
+
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-signature-to-octets */
 	function signature_to_octets(A: PointG1, e: bigint): BufferSource {
 		return serialize([A, e]);
 	}
 
+	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#section-4.2.4.3 */
 	function octets_to_signature(signature_octets: BufferSource): [PointG1, bigint] {
 		const expected_len = octet_point_length + octet_scalar_length;
 		if (signature_octets.byteLength !== expected_len) {
