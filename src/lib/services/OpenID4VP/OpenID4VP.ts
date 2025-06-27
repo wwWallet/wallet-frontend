@@ -8,7 +8,7 @@ import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "..
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
 import axios from "axios";
-import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../../config";
+import { OPENID4VP_SAN_DNS_CHECK } from "../../../config";
 import { useCredentialBatchHelper } from "../CredentialBatchHelper";
 import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
@@ -162,23 +162,6 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
 				}
 
-				if (OPENID4VP_SAN_DNS_CHECK_SSL_CERTS) { // get x5c from SSL
-					const response = await axios.post(`${BACKEND_URL}/helper/get-cert`, {
-						url: request_uri
-					}, {
-						timeout: 2500,
-						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
-						}
-					}).catch(() => null);
-					if (response === null) {
-						throw new Error("Could not get SSL certificate for " + new URL(request_uri).hostname);
-					}
-					const { x5c } = response.data;
-					if (x5c[0] !== parsedHeader.x5c[0]) {
-						throw new Error("x509 SAN DNS: Invalid signer certificate");
-					}
-				}
 			}
 
 

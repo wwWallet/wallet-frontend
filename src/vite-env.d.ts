@@ -22,7 +22,6 @@ interface ImportMetaEnv {
 	readonly VITE_WEBAUTHN_RPID: string;
 	readonly VITE_OPENID4VCI_REDIRECT_URI: string;
 	readonly VITE_OPENID4VP_SAN_DNS_CHECK: string;
-	readonly VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: string;
 	readonly VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: string;
 	readonly VITE_MULTI_LANGUAGE_DISPLAY: string;
 	readonly VITE_MULTI_LANGUAGE_DISPLAY: string;
