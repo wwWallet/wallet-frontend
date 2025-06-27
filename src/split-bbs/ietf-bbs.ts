@@ -431,7 +431,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 			}
 		}
 		const disclosed_set = new Set(disclosed_indexes);
-		const undisclosed_indexes = messages.map((msg, i) => i).filter(i => !disclosed_set.has(i));
+		const undisclosed_indexes = messages.map((_, i) => i).filter(i => !disclosed_set.has(i));
 		const disclosed_messages = disclosed_indexes.map(i => messages[i]);
 		const undisclosed_messages = undisclosed_indexes.map(i => messages[i]);
 
