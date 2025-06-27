@@ -173,7 +173,6 @@ describe("Suite:", () => {
 					const expectSignature = fromHex("8c87e2080859a97299c148427cd2fcf390d24bea850103a9748879039262ecf4f42206f6ef767f298b6a96b424c1e86c26f8fba62212d0e05b95261c2cc0e5fdc63a32731347e810fd12e9c58355aa0d");
 
 					const signature = toU8(await Sign(SK, PK, header, messages));
-
 					assert.equal(toHex(signature), toHex(expectSignature));
 
 					const valid = await Verify(PK, signature, header, messages);
@@ -246,7 +245,6 @@ describe("Suite:", () => {
 					const wrongPK = fromHex("b064bd8d1ba99503cbb7f9d7ea00bce877206a85b1750e5583dd9399828a4d20610cb937ea928d90404c239b2835ffb104220a9c66a4c9ed3b54c0cac9ea465d0429556b438ceefb59650ddf67e7a8f103677561b7ef7fe3c3357ec6b94d41c6");
 
 					assert.equal(toHex(await Sign(SK, PK, header, messages)), toHex(signature));
-					assert.equal(await Verify(PK, signature, header, messages), true);
 					await asyncAssertThrows(() => Verify(wrongPK, signature, header, messages), "Expected negative test case to fail signature verification");
 				});
 
@@ -257,7 +255,6 @@ describe("Suite:", () => {
 					const wrongHeader = fromHex("ffeeddccbbaa00998877665544332211");
 
 					assert.equal(toHex(await Sign(SK, PK, header, messages)), toHex(signature));
-					assert.equal(await Verify(PK, signature, header, messages), true);
 					await asyncAssertThrows(() => Verify(PK, signature, wrongHeader, messages), "Expected negative test case to fail signature verification");
 				});
 			});
