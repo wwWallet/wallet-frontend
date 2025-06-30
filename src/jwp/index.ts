@@ -21,6 +21,7 @@ type JwpHeader = {
 	iss?: string,
 	aud?: string,
 	nonce?: string | string[],
+	[key: string]: any,
 }
 
 type IssuedJwp = {
@@ -39,7 +40,7 @@ type PresentedJwp = {
 function toBase64u(data: JoseBytes | JwpHeader): string {
 	if (typeof data === 'string') {
 		return data;
-	} else if ("byteLength" in data) {
+	} else if ("byteLength" in data && !("alg" in data)) {
 		if (data.byteLength === 0) {
 			return '_';
 		} else {
