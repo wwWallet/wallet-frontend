@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
-export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: {title: string, description: string}) => void }): IOpenID4VCI {
+export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }) => void }): IOpenID4VCI {
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
@@ -44,15 +44,20 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		async (response: any, flowState: OpenID4VCIClientState) => {
 			console.log('credentialRequest')
 			const {
-				data: { access_token, c_nonce },
+				data: { access_token },
 			} = response;
 
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
 			]);
 
+			if (credentialIssuerMetadata.metadata.nonce_endpoint) {
+				const nonceEndpointResp = await httpProxy.post(credentialIssuerMetadata.metadata.nonce_endpoint, {});
+				const { c_nonce } = nonceEndpointResp.data as { c_nonce: string };
+				credentialRequestBuilder.setCNonce(c_nonce);
+			}
+
 			credentialRequestBuilder.setCredentialEndpoint(credentialIssuerMetadata.metadata.credential_endpoint);
-			credentialRequestBuilder.setCNonce(c_nonce);
 			credentialRequestBuilder.setAccessToken(access_token);
 			credentialRequestBuilder.setCredentialIssuerIdentifier(flowState.credentialIssuerIdentifier);
 
@@ -124,7 +129,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					}
 				} else {
 					console.error(`Credential failed to parse:`, result.error, result.message);
-					showMessagePopup({title: t('issuance.error'), description: t(`parsing.error${result.error}`)});
+					showMessagePopup({ title: t('issuance.error'), description: t(`parsing.error${result.error}`) });
 					return;
 				}
 			}
