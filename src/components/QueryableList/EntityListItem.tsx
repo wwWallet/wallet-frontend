@@ -19,7 +19,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 		const url = primaryData?.logo?.uri;
 		if (typeof url === 'string' && url.trim() !== '') {
 			proxy.get(url, {}, { useCache: true }).then(res => {
-				if (typeof res?.data === 'string') {
+				if (typeof res?.data === 'string' && res.status === 200) {
 					setPrimaryLogoSrc(res.data);
 				}
 			});
@@ -31,7 +31,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 		const url = secondaryData?.logo?.uri;
 		if (typeof url === 'string' && url.trim() !== '') {
 			proxy.get(url, {}, { useCache: true }).then(res => {
-				if (typeof res?.data === 'string') {
+				if (typeof res?.data === 'string' && res.status === 200) {
 					setSecondaryImageSrc(res.data);
 				}
 			});
