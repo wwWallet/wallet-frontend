@@ -774,6 +774,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			presentation_definition = await resolvePresentationDefinition(presentation_definition_uri, httpProxy);
 		}
 
+		const client_id_scheme = client_id.split(':')[0];
+		if (client_id_scheme !== 'x509_san_dns') {
+			return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
+		}
+
 		if (request_uri) {
 			try {
 				const result = await handleRequestUri(request_uri, httpProxy);
