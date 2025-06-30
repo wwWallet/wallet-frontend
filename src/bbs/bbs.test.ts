@@ -31,7 +31,7 @@ describe("Suite:", () => {
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-hash-to-scalar-test-vectors-2
 				const msg = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
 				const dst = fromHex("4242535f424c53313233383147315f584d443a5348412d3235365f535357555f524f5f4832475f484d32535f4832535f");
-				const { hash_to_scalar } = getCipherSuite(suiteId, dst);
+				const { hash_to_scalar } = getCipherSuite(suiteId);
 				const scalar = await hash_to_scalar(msg, dst);
 				assert.equal(scalar, 0x0f90cbee27beb214e6545becb8404640d3612da5d6758dffeccd77ed7169807cn);
 			});
@@ -43,7 +43,7 @@ describe("Suite:", () => {
 				const key_material = fromHex("746869732d49532d6a7573742d616e2d546573742d494b4d2d746f2d67656e65726174652d246528724074232d6b6579");
 				const key_info = fromHex("746869732d49532d736f6d652d6b65792d6d657461646174612d746f2d62652d757365642d696e2d746573742d6b65792d67656e");
 				const dst = new TextEncoder().encode('irrelevant, this is not used in expand_message');
-				const { api_id, KeyGen, SkToPk } = getCipherSuite(suiteId, dst);
+				const { api_id, KeyGen, SkToPk } = getCipherSuite(suiteId);
 				const key_dst = concat(api_id, new TextEncoder().encode("KEYGEN_DST_"));
 				const SK = await KeyGen(key_material, key_info, key_dst);
 				const PK = SkToPk(SK);
@@ -57,7 +57,7 @@ describe("Suite:", () => {
 			it("passes test vectors", async () => {
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-map-messages-to-scalars-2
 				const dst = fromHex('4242535f424c53313233383147315f584d443a5348412d3235365f535357555f524f5f4832475f484d32535f4d41505f4d53475f544f5f5343414c41525f41535f484153485f');
-				const { api_id, messages_to_scalars } = getCipherSuite(suiteId, dst);
+				const { api_id, messages_to_scalars } = getCipherSuite(suiteId);
 				const scalars = await messages_to_scalars(messages, api_id);
 
 				assert.equal(scalars.length, 10);
@@ -77,7 +77,7 @@ describe("Suite:", () => {
 
 		describe("create_generators", () => {
 			it("passes test vectors", async () => {
-				const { api_id, create_generators } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+				const { api_id, create_generators } = getCipherSuite(suiteId);
 				const count = 11;
 				const generators = await create_generators(count, api_id);
 
@@ -99,7 +99,6 @@ describe("Suite:", () => {
 				// See: https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-bls12-381-ciphersuites
 				const { params: { P1 }, create_generators } = getCipherSuite(
 					suiteId,
-					new TextEncoder().encode("irrelevant, this is not used in expand_message"),
 					{
 						create_generators_dsts: {
 							sig_generator_seed: new TextEncoder().encode("H2G_HM2S_SIG_GENERATOR_SEED_"),
@@ -130,7 +129,7 @@ describe("Suite:", () => {
 
 				it("Valid Single Message Signature", async () => {
 					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-single-message-signatu
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const m_1 = fromHex("9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02");
 					const expectSignature = fromHex("84773160b824e194073a57493dac1a20b667af70cd2352d8af241c77658da5253aa8458317cca0eae615690d55b1f27164657dcafee1d5c1973947aa70e2cfbb4c892340be5969920d0916067b4565a0");
@@ -152,7 +151,7 @@ describe("Suite:", () => {
 
 				it("Valid Multi-Message Signature", async () => {
 					// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-valid-multi-message-signatur
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					assert.equal(toHex(await Sign(SK, PK, header, messages)), toHex(signature));
 
@@ -171,7 +170,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-no-header-valid-signature-2
 				it("No Header Valid Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const header = fromHex("");
 					const expectSignature = fromHex("8c87e2080859a97299c148427cd2fcf390d24bea850103a9748879039262ecf4f42206f6ef767f298b6a96b424c1e86c26f8fba62212d0e05b95261c2cc0e5fdc63a32731347e810fd12e9c58355aa0d");
@@ -185,7 +184,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-modified-message-signature-2
 				it("Modified Message Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const modifiedMessages = [""].map(fromHex);
 					const signature = fromHex("84773160b824e194073a57493dac1a20b667af70cd2352d8af241c77658da5253aa8458317cca0eae615690d55b1f27164657dcafee1d5c1973947aa70e2cfbb4c892340be5969920d0916067b4565a0");
@@ -196,7 +195,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-extra-unsigned-message-signa
 				it("Extra Unsigned Message Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const modifiedMessages = [
 						"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
@@ -210,7 +209,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-missing-message-signature-2
 				it("Missing Message Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const modifiedMessages = [
 						"9872ad089e452c7b6e283dfac2a80d58e8d0ff71cc4d5e310a1debdda4a45f02",
@@ -223,7 +222,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-reordered-message-signature-2
 				it("Reordered Message Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const modifiedMessages = [
 						"",
@@ -244,7 +243,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-wrong-public-key-signature-2
 				it("Wrong Public Key Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const wrongPK = fromHex("b064bd8d1ba99503cbb7f9d7ea00bce877206a85b1750e5583dd9399828a4d20610cb937ea928d90404c239b2835ffb104220a9c66a4c9ed3b54c0cac9ea465d0429556b438ceefb59650ddf67e7a8f103677561b7ef7fe3c3357ec6b94d41c6");
 
@@ -254,7 +253,7 @@ describe("Suite:", () => {
 
 				// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-wrong-header-signature-2
 				it("Wrong Header Signature", async () => {
-					const { Sign, Verify } = getCipherSuite(suiteId, new TextEncoder().encode("irrelevant, this is not used in expand_message"));
+					const { Sign, Verify } = getCipherSuite(suiteId);
 
 					const wrongHeader = fromHex("ffeeddccbbaa00998877665544332211");
 
@@ -268,13 +267,9 @@ describe("Suite:", () => {
 			// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-fixtures-2
 			describe("pass test vectors:", async () => {
 
-				const defaultSuite = getCipherSuite(
-					suiteId,
-					new TextEncoder().encode("irrelevant, this is not used in expand_message"),
-				);
+				const defaultSuite = getCipherSuite(suiteId);
 				const { ProofGen, ProofVerify } = getCipherSuite(
 					suiteId,
-					new TextEncoder().encode("irrelevant, this is not used in expand_message"),
 					{
 						// https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-mocked-random-scalars
 						mocked_random_scalars_params: {
@@ -378,10 +373,7 @@ describe("Suite:", () => {
 				SplitProofGenFinish,
 				SplitProofVerify,
 				params: { Fr },
-			} = getCipherSuite(
-				suiteId,
-				new TextEncoder().encode("irrelevant, this is not used in expand_message"),
-			);
+			} = getCipherSuite(suiteId);
 
 			const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
 			const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
