@@ -2,8 +2,10 @@
 // and https://www.ietf.org/archive/id/draft-ietf-jose-json-proof-algorithms-09.html
 
 import { JWK } from "jose";
-import { getCipherSuite } from "../bbs";
-import { fromBase64Url, toBase64Url } from "../util";
+import { bls12_381 } from "@noble/curves/bls12-381";
+
+import { getCipherSuite, PointG1 } from "../bbs";
+import { fromBase64Url, I2OSP, OS2IP, toBase64Url, toU8 } from "../util";
 
 
 /** Base64url-encoded binary string or raw binary data */
@@ -150,14 +152,49 @@ export async function issueBbs(SK: bigint, PK: BufferSource, header: JwpHeader, 
 	return assembleIssuedJwp(header, payloads, [proof]);
 }
 
+export async function issueSplitBbs(
+	SK: bigint,
+	PK: BufferSource,
+	header: JwpHeader,
+	dpk: BufferSource,
+	payloads: BufferSource[],
+): Promise<string> {
+	const { SplitSign } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+	const jwpHeader = {
+		...header,
+		alg: 'experimental/SplitBBSv2.1',
+	};
+	const dpkPoint = bls12_381.curves.G1.fromBytes(toU8(dpk));
+	const proof = await SplitSign(
+		SK,
+		PK,
+		new TextEncoder().encode(JSON.stringify(jwpHeader)),
+		dpkPoint,
+		bls12_381.curves.G1.BASE,
+		payloads,
+	);
+	return assembleIssuedJwp(header, payloads, [proof]);
+}
+
 export async function confirm(PK: BufferSource, issuedJwp: string): Promise<true> {
 	const { raw: { header }, parsed: { header: { alg }, payloads, proof } } = parseIssuedJwp(issuedJwp);
 	switch (alg) {
 		case 'BBS':
-			// https://www.ietf.org/archive/id/draft-ietf-jose-json-proof-algorithms-09.html#name-bbs-using-sha-256-algorithm
-			const { Verify } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
-			const valid = await Verify(PK, proof[0], header, payloads);
-			return valid;
+			{
+				// https://www.ietf.org/archive/id/draft-ietf-jose-json-proof-algorithms-09.html#name-bbs-using-sha-256-algorithm
+				const { Verify } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+				const valid = await Verify(PK, proof[0], header, payloads);
+				return valid;
+			}
+
+		case 'experimental/SplitBBSv2.1':
+			{
+				const { SplitVerify } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+				const issuerPK = toU8(PK).slice(0, 96);
+				const dpkPoint = bls12_381.curves.G1.fromBytes(toU8(PK).slice(96));
+				const valid = await SplitVerify(issuerPK, proof[0], header, dpkPoint, bls12_381.curves.G1.BASE, payloads);
+				return valid;
+			}
 
 		default:
 			throw new Error(`Unknown JPA: ${alg}`, { cause: { jwp: issuedJwp, alg } });
@@ -184,6 +221,33 @@ export async function presentBbs(
 	return assemblePresentationJwp(issuedJwp, presentationHeader, discloseIndexes, [proof]);
 }
 
+export async function presentSplitBbs(
+	PK: BufferSource,
+	dpk: BufferSource,
+	issuedJwp: string,
+	presentationHeader: JwpHeader,
+	discloseIndexes: number[],
+	deviceSign: (T2bar: PointG1, c_host: bigint) => Promise<BufferSource>,
+): Promise<string> {
+	const { raw: { header }, parsed: { payloads, proof: [signature] } } = parseIssuedJwp(issuedJwp);
+	const { SplitProofGenBegin, SplitProofGenFinish } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+	const encodedPresentationHeader = new TextEncoder().encode(JSON.stringify(presentationHeader));
+	const dpkPoint = bls12_381.curves.G1.fromBytes(toU8(dpk));
+	const [init_res, begin_res, T2bar, c_host] = await SplitProofGenBegin(
+		PK,
+		signature,
+		header,
+		encodedPresentationHeader,
+		dpkPoint,
+		bls12_381.curves.G1.BASE,
+		payloads,
+		discloseIndexes,
+	);
+	const deviceResp = await deviceSign(T2bar, c_host);
+	const [p, sa_dpk, n] = await SplitProofGenFinish([init_res, begin_res, T2bar, c_host], deviceResp);
+	return assemblePresentationJwp(issuedJwp, presentationHeader, discloseIndexes, [p, I2OSP(sa_dpk, 32), n]);
+}
+
 export async function verify(PK: BufferSource, presentedJwp: string): Promise<true> {
 	const {
 		raw: { presentationHeader, issuerHeader },
@@ -192,16 +256,34 @@ export async function verify(PK: BufferSource, presentedJwp: string): Promise<tr
 	switch (alg) {
 		case 'BBS':
 			// https://www.ietf.org/archive/id/draft-ietf-jose-json-proof-algorithms-09.html#name-bbs-using-sha-256-algorithm
-			const { ProofVerify } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
-			const valid = await ProofVerify(
-				PK,
-				proof[0],
-				issuerHeader,
-				presentationHeader,
-				payloads.filter(p => p !== null),
-				payloads.map((p, i) => p === null ? null : i).filter(i => i !== null),
-			);
-			return valid;
+			{
+				const { ProofVerify } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+				const valid = await ProofVerify(
+					PK,
+					proof[0],
+					issuerHeader,
+					presentationHeader,
+					payloads.filter(p => p !== null),
+					payloads.map((p, i) => p === null ? null : i).filter(i => i !== null),
+				);
+				return valid;
+			}
+
+		case 'experimental/SplitBBSv2.1':
+			{
+				const { SplitProofVerify } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+				const [p, sa_dpk, n] = proof;
+				const valid = await SplitProofVerify(
+					PK,
+					[p, OS2IP(sa_dpk), n],
+					bls12_381.curves.G1.BASE,
+					issuerHeader,
+					presentationHeader,
+					payloads.filter(p => p !== null),
+					payloads.map((p, i) => p === null ? null : i).filter(i => i !== null),
+				);
+				return valid;
+			}
 
 		default:
 			throw new Error(`Unknown JPA: ${alg}`, { cause: { jwp: presentedJwp, alg } });

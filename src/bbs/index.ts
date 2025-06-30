@@ -1099,7 +1099,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 	};
 }
 
-type PointG1 = ProjPointType<bigint>;
+export type PointG1 = ProjPointType<bigint>;
 type PointG2 = ProjPointType<Fp2>;
 type HashToScalarFunc = (msg_octets: BufferSource, dst: BufferSource) => Promise<bigint>;
 type MessagesToScalarsFunc = (messages: BufferSource[], api_id: BufferSource) => Promise<bigint[]>;
