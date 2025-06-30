@@ -186,14 +186,16 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					}
 				}
 
-				// Fetch logos
-				for (const uri of logoUris) {
-					try {
-						await httpProxy.get(uri, {}, { useCache: shouldUseCache });
-					} catch (err) {
-						console.error(`Failed to fetch logo from ${uri}`, err);
+				// Fetch logos in background (non-blocking)
+				void (async () => {
+					for (const uri of logoUris) {
+						try {
+							await httpProxy.get(uri, {}, { useCache: shouldUseCache });
+						} catch (err) {
+							console.error(`Failed to fetch logo from ${uri}`, err);
+						}
 					}
-				}
+				})();
 
 				if (r.mdoc_iacas_uri) {
 					try {
