@@ -471,7 +471,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 			throw new Error(`Incorrect device response length: expected ${3 * octet_scalar_length}, got ${device_resp.byteLength}`, { cause: { device_resp } });
 		}
 
-		const [init_res, [e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator], T2bar, c_host] = begin_res;
+		const [init_res, [e, random_scalars, _disclosed_messages, undisclosed_messages, dpk, dpk_generator], T2bar, c_host] = begin_res;
 		const [Abar, Bbar, D, T1, domain] = init_res;
 		const device_resp_u8 = toU8(device_resp);
 		const [sa_dpk, c] = [0, 1].map(i => Fr.create(OS2IP(device_resp_u8.slice(i * octet_scalar_length, (i + 1) * octet_scalar_length))));
@@ -650,7 +650,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		api_id: BufferSource,
 	): Promise<BufferSource> {
 		const signature_result = octets_to_signature(signature);
-		const [A, e] = signature_result;
+		const [_A, e] = signature_result;
 		const L = messages.length;
 		const R = disclosed_indexes.length;
 		if (R > L) {
@@ -692,7 +692,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		PointG1, bigint,
 	]> {
 		const signature_result = octets_to_signature(signature);
-		const [A, e] = signature_result;
+		const [_A, e] = signature_result;
 		const L = messages.length;
 		const R = disclosed_indexes.length;
 		if (R > L) {
@@ -727,7 +727,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		api_id: BufferSource,
 	): Promise<true> {
 		const proof_result = octets_to_proof(proof);
-		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, cp] = proof_result;
+		const [Abar, Bbar, _D, _ehat, _r1hat, _r3hat, _commitments, cp] = proof_result;
 		const W = octets_to_pubkey(PK);
 
 		const init_res = await ProofVerifyInit(PK, proof_result, generators, header, disclosed_messages, disclosed_indexes, api_id);
@@ -765,7 +765,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		api_id: BufferSource,
 	): Promise<true> {
 		const proof_result = octets_to_proof(proof);
-		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, cp] = proof_result;
+		const [Abar, Bbar, D, _ehat, _r1hat, _r3hat, _commitments, cp] = proof_result;
 		const W = octets_to_pubkey(PK);
 
 		const init_res = await SplitProofVerifyInit(PK, proof_result, generators, header, dpk_generator, dpk_commitment, disclosed_messages, disclosed_indexes, api_id);
