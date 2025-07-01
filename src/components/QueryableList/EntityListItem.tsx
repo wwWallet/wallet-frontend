@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
-
+import { useProxiedImage } from '@/hooks/useProxiedImage'
 type EntityListItemProps = {
 	primaryData: any;
 	secondaryData?: any;
@@ -11,32 +11,8 @@ type EntityListItemProps = {
 const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItemProps) => {
 	const proxy = useHttpProxy();
 
-	const [primaryLogoSrc, setPrimaryLogoSrc] = useState<string | null>(null);
-	const [secondaryImageSrc, setSecondaryImageSrc] = useState<string | null>(null);
-
-	// Load primary logo
-	useEffect(() => {
-		const url = primaryData?.logo?.uri;
-		if (typeof url === 'string' && url.trim() !== '') {
-			proxy.get(url, {}, { useCache: true }).then(res => {
-				if (typeof res?.data === 'string' && res.status === 200) {
-					setPrimaryLogoSrc(res.data);
-				}
-			});
-		}
-	}, [primaryData?.logo?.uri]);
-
-	// Load secondary logo
-	useEffect(() => {
-		const url = secondaryData?.logo?.uri;
-		if (typeof url === 'string' && url.trim() !== '') {
-			proxy.get(url, {}, { useCache: true }).then(res => {
-				if (typeof res?.data === 'string' && res.status === 200) {
-					setSecondaryImageSrc(res.data);
-				}
-			});
-		}
-	}, [secondaryData?.logo?.uri]);
+	const primaryLogoSrc = useProxiedImage(primaryData?.logo?.uri);
+	const secondaryImageSrc = useProxiedImage(secondaryData?.logo?.uri);
 
 	const hasTextColor = !!primaryData.text_color;
 	const hasBackgroundColor = !!primaryData.background_color;
