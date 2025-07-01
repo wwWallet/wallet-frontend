@@ -21,9 +21,9 @@ FROM builder-base AS test
 COPY . .
 COPY .env.prod .env
 # Run tests during Docker build
-RUN npm run vitest
+RUN npm run test
 # Run tests if image is run as container
-CMD ["npm", "run", "vitest"]
+CMD ["npm", "run", "test"]
 
 
 FROM builder-base AS builder
