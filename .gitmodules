@@ -1,0 +1,3 @@
+[submodule "lib/wallet-common"]
+	path = lib/wallet-common
+	url = https://github.com/wwWallet/wallet-common.git
