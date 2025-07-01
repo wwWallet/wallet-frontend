@@ -21,7 +21,7 @@ RUN yarn cache clean -f && yarn add /lib/wallet-common && yarn install
 FROM builder-base AS test
 
 COPY . .
-RUN npm run vitest
+RUN npm run test
 
 
 FROM builder-base AS builder
