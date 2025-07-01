@@ -11,9 +11,9 @@ jobs:
       contents: read
       packages: read
 
-    uses: wwwallet/wallet-ecosystem/.github/workflows/docker-build-push.yml@master
+    uses: wwwallet/wallet-ecosystem/.github/workflows/docker-build-push.yml@a15f0fc1208fc00546ea73b4f21651f1c8bd8b27
     secrets: inherit
     with:
       image-tag: ghcr.io/wwwallet/wallet-frontend:latest
       docker-push: false
-      dockerfile-path: ./tests.Dockerfile
+      dockerfile-target: test

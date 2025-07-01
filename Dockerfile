@@ -4,7 +4,6 @@ WORKDIR /home/node/app
 
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY package.json yarn.lock .
-COPY .env.prod .env
 
 RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/* && git clone --branch master --single-branch --depth 1 https://github.com/wwWallet/wallet-common.git /lib/wallet-common
 
@@ -16,10 +15,10 @@ WORKDIR /home/node/app
 # Overwrite wallet-common with the remote master branch
 RUN yarn cache clean -f && yarn add /lib/wallet-common && yarn install
 
+
 FROM builder-base AS test
 
 COPY . .
-COPY .env.prod .env
 RUN npm run vitest
 
 
