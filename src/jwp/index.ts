@@ -100,7 +100,7 @@ export function parsePresentedJwp(jwp: string): {
 	const rawIssuerHeader = fromBase64u(jwpIssuerHeader);
 	const presentationHeader = JSON.parse(new TextDecoder().decode(rawPresentationHeader));
 	const issuerHeader = JSON.parse(new TextDecoder().decode(rawIssuerHeader));
-	const payloads = jwpPayloads === '' ? [] : jwpPayloads.split("~").map(fromBase64u);
+	const payloads = jwpPayloads.split("~").map(fromBase64u);
 	const proof = jwpProof === '' ? [] : jwpProof.split("~").map(fromBase64u);
 	return {
 		raw: {
@@ -144,6 +144,9 @@ export function assemblePresentationJwp(issuedJwp: string, presentationHeader: J
 }
 
 export async function issueBbs(SK: bigint, PK: BufferSource, header: JwpHeader, payloads: BufferSource[]): Promise<string> {
+	if (payloads.length === 0) {
+		throw new Error('Cannot issue JWP with zero payloads');
+	}
 	const { Sign } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
 	const jwpHeader = {
 		...header,
@@ -160,6 +163,9 @@ export async function issueSplitBbs(
 	dpk: BufferSource,
 	payloads: BufferSource[],
 ): Promise<string> {
+	if (payloads.length === 0) {
+		throw new Error('Cannot issue JWP with zero payloads');
+	}
 	const { SplitSign } = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
 	const jwpHeader = {
 		...header,

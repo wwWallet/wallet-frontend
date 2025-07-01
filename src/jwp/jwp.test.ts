@@ -20,15 +20,6 @@ describe("JWP", () => {
 		assert.equal(parsed.proof[0].byteLength, 0);
 	});
 
-	it("preserves absent payloads and proofs in issued JWPs.", () => {
-		const jwp = assembleIssuedJwp({ alg: '' }, [], []);
-		const { parsed } = parseIssuedJwp(jwp);
-		assert.exists(parsed.payloads);
-		assert.equal(parsed.payloads.length, 0);
-		assert.exists(parsed.proof);
-		assert.equal(parsed.proof.length, 0);
-	});
-
 	describe("preserves zero-length payloads and proofs in presented JWPs", () => {
 		it("when issued JWP has one payload.", () => {
 			const issuedJwp = assembleIssuedJwp({ alg: '' }, [new Uint8Array([])], [new Uint8Array([])]);
@@ -58,34 +49,15 @@ describe("JWP", () => {
 	});
 
 	describe("preserves absent payloads and proofs in presented JWPs", () => {
-		it("preserves absent payloads and proofs in presented JWPs.", () => {
-			const issuedJwp = assembleIssuedJwp({ alg: '' }, [], []);
-			const jwp = assemblePresentationJwp(issuedJwp, { alg: '' }, [], []);
-			const { parsed } = parsePresentedJwp(jwp);
-			assert.exists(parsed.payloads);
-			assert.equal(parsed.payloads.length, 0);
-			assert.exists(parsed.proof);
-			assert.equal(parsed.proof.length, 0);
-		});
-
-		it("when issued JWP has no payloads.", () => {
-			const issuedJwp = assembleIssuedJwp({ alg: '' }, [], []);
-			const jwp = assemblePresentationJwp(issuedJwp, { alg: '' }, [], []);
-			const { parsed } = parsePresentedJwp(jwp);
-			assert.exists(parsed.payloads);
-			assert.equal(parsed.payloads.length, 0);
-			assert.exists(parsed.proof);
-			assert.equal(parsed.proof.length, 0);
-		});
-
 		it("when issued JWP has one payload which is not disclosed.", () => {
 			const issuedJwp = assembleIssuedJwp({ alg: '' }, [new Uint8Array([])], [new Uint8Array([])]);
 			const jwp = assemblePresentationJwp(issuedJwp, { alg: '' }, [], []);
 			const { parsed } = parsePresentedJwp(jwp);
 			assert.exists(parsed.payloads);
-			assert.equal(parsed.payloads.length, 0); // This should really be 1 (`[null]`), but these cases are indistinguishable
+			assert.equal(parsed.payloads.length, 1);
+			assert.equal(parsed.payloads[0], null);
 			assert.exists(parsed.proof);
-			assert.equal(parsed.proof.length, 0); // This should really be 1 (`[null]`), but these cases are indistinguishable
+			assert.equal(parsed.proof.length, 0);
 		});
 
 		it("when issued JWP has two payloads and one is disclosed.", () => {
@@ -109,18 +81,6 @@ describe("JWP", () => {
 		const PK = SkToPk(SK);
 
 		describe("can issue and confirm a JWP", () => {
-			it("with no payloads.", async () => {
-				const issuedJwp = await issueBbs(
-					SK, PK,
-					{ alg: 'BBS', aud: 'JWP test' },
-					[],
-				);
-
-				const valid = await confirm(PK, issuedJwp);
-				assert.equal(valid, true);
-				assert.equal(issuedJwp.split(".")[1], '');
-			});
-
 			it("with a single payload.", async () => {
 				const issuedJwp = await issueBbs(
 					SK, PK,
@@ -157,6 +117,20 @@ describe("JWP", () => {
 			});
 		});
 
+		describe("refuses to issue a JWP", () => {
+			it("with no payloads.", async () => {
+				await asyncAssertThrows(
+					() =>
+						issueBbs(
+							SK, PK,
+							{ alg: 'BBS', aud: 'JWP test' },
+							[],
+						),
+					"",
+				);
+			});
+		});
+
 		describe("rejects an issued JWP", async () => {
 			const issuedJwp = await issueBbs(
 				SK, PK,
@@ -186,24 +160,6 @@ describe("JWP", () => {
 		});
 
 		describe("can create and verify a JWP presentation", () => {
-			it("with no payloads.", async () => {
-				const issuedJwp = await issueBbs(
-					SK, PK,
-					{ alg: 'BBS', aud: 'JWP test' },
-					[],
-				);
-				const presentedJwp = await presentBbs(
-					PK,
-					issuedJwp,
-					{ alg: 'BBS', nonce: toBase64Url(crypto.getRandomValues(new Uint8Array(32))) },
-					[],
-				);
-
-				const valid = await verify(PK, presentedJwp);
-				assert.equal(valid, true);
-				assert.equal(presentedJwp.split(".")[2], '');
-			});
-
 			it("with a single payload, disclosed.", async () => {
 				const issuedJwp = await issueBbs(
 					SK, PK,
@@ -376,19 +332,6 @@ describe("JWP", () => {
 		const deviceSign = (T2bar: PointG1, c_host: bigint) => SplitProofGenDevice(dsk, bls12_381.curves.G1.BASE, c_host, T2bar);
 
 		describe("can issue and confirm a JWP", () => {
-			it("with no payloads.", async () => {
-				const issuedJwp = await issueSplitBbs(
-					SK, PK,
-					{ alg: 'experimental/SplitBBSv2.1', aud: 'JWP test' },
-					dpk,
-					[],
-				);
-
-				const valid = await confirm(concat(PK, dpk), issuedJwp);
-				assert.equal(valid, true);
-				assert.equal(issuedJwp.split(".")[1], '');
-			});
-
 			it("with a single payload.", async () => {
 				const issuedJwp = await issueSplitBbs(
 					SK, PK,
@@ -417,6 +360,22 @@ describe("JWP", () => {
 				assert.equal(valid, true);
 			});
 		});
+
+		describe("refuses to issue a JWP", () => {
+			it("with no payloads.", async () => {
+				await asyncAssertThrows(
+					() =>
+						issueSplitBbs(
+							SK, PK,
+							{ alg: 'BBS', aud: 'JWP test' },
+							dpk,
+							[],
+						),
+					"",
+				);
+			});
+		});
+
 
 		describe("rejects an issued JWP", async () => {
 			const issuedJwp = await issueSplitBbs(
@@ -448,27 +407,6 @@ describe("JWP", () => {
 		});
 
 		describe("can create and verify a JWP presentation", () => {
-			it("with no payloads.", async () => {
-				const issuedJwp = await issueSplitBbs(
-					SK, PK,
-					{ alg: 'experimental/SplitBBSv2.1', aud: 'JWP test' },
-					dpk,
-					[],
-				);
-				const presentedJwp = await presentSplitBbs(
-					PK,
-					dpk,
-					issuedJwp,
-					{ alg: 'experimental/SplitBBSv2.1', nonce: toBase64Url(crypto.getRandomValues(new Uint8Array(32))) },
-					[],
-					deviceSign,
-				);
-
-				const valid = await verify(PK, presentedJwp);
-				assert.equal(valid, true);
-				assert.equal(presentedJwp.split(".")[2], '');
-			});
-
 			it("with a single payload, disclosed.", async () => {
 				const issuedJwp = await issueSplitBbs(
 					SK, PK,
