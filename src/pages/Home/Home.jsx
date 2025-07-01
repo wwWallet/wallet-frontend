@@ -69,7 +69,7 @@ const Home = () => {
 				{vcEntityList ? (
 					<div className='my-4 p-2 overflow-x-hidden'>
 						{vcEntityList.length === 0 ? (
-							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-20">
+							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-20">
 								<AddCredentialCard onClick={handleAddCredential} />
 							</div>
 						) : (

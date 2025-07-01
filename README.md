@@ -92,6 +92,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_STATIC_PUBLIC_URL: The installation's public url
   - VITE_STATIC_NAME: The installation's public name
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
+  - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
 
 
 - Set up Firebase (optional)
@@ -215,7 +216,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -223,7 +224,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -254,9 +255,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>MacOS</td>
       <td>iOS</td>
       <td>Hybrid</td>
+      <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>MacOS</td>
@@ -264,7 +265,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>USB</td>
       <td>✅</td>
       <td>❌</td>
-      <td>✅</td>
+      <td>❌</td>
     </tr>
     <tr>
       <td>Android</td>
@@ -326,9 +327,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>iOS</td>
       <td>Hybrid</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>iOS</td>
