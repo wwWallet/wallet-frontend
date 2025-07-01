@@ -79,11 +79,15 @@ export function OS2IP(binary: BufferSource): bigint {
 
 	@see https://www.rfc-editor.org/rfc/rfc8017.html#section-4.1
 	*/
-export function I2OSP(a: bigint, length: number): ArrayBuffer {
-	return new Uint8Array(length).map(
-		(_, i: number): number =>
-			Number(BigInt.asUintN(8, a >> (BigInt(length - 1 - i) * 8n)))
-	).buffer;
+export function I2OSP(a: bigint | number, length: number): ArrayBuffer {
+	if (typeof a === 'number') {
+		return I2OSP(BigInt(a), length);
+	} else {
+		return new Uint8Array(length).map(
+			(_, i: number): number =>
+				Number(BigInt.asUintN(8, a >> (BigInt(length - 1 - i) * 8n)))
+		).buffer;
+	}
 }
 
 export function toBase64(binary: BufferSource): string {
