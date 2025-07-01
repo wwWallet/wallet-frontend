@@ -1,4 +1,5 @@
 import { assert, describe, it } from "vitest";
+import { bls12_381 } from "@noble/curves/bls12-381";
 
 import { concat, fromHex, toHex, toU8 } from "../util";
 import { asyncAssertThrows } from "../testutil";
@@ -364,6 +365,78 @@ describe("Suite:", () => {
 					assert.equal(toHex(proof), toHex(expectProof));
 					assert.equal(await ProofVerify(public_key, proof, header, presentation_header, revealed_messages, revealed_indexes), true);
 				});
+			});
+		});
+
+		describe("Split-BBS", () => {
+
+			const {
+				SplitSign,
+				SplitVerify,
+				SplitProofGenBegin,
+				SplitProofGenDevice,
+				SplitProofGenFinish,
+				SplitProofVerify,
+				params: { Fr },
+			} = getCipherSuite(
+				suiteId,
+				new TextEncoder().encode("irrelevant, this is not used in expand_message"),
+			);
+
+			const SK = 0x60e55110f76883a13d030b2f6bd11883422d5abde717569fc0731f51237169fcn;
+			const PK = fromHex("a820f230f6ae38503b86c70dc50b61c58a77e45c39ab25c0652bbaa8fa136f2851bd4781c9dcde39fc9d1d52c9e60268061e7d7632171d91aa8d460acee0e96f1e7c4cfb12d3ff9ab5d5dc91c277db75c845d649ef3c4f63aebc364cd55ded0c");
+			const header = fromHex("11223344556677889900aabbccddeeff");
+			const ph = new TextEncoder().encode("Split-BBS as proposed by Daniluk/Lehmann and adjusted by Lundberg");
+
+			const dsk = Fr.create(0x615098cda1ee08a973fc45df4fecd7e56482642634262dcd3dd7b6cdec1306c9n); // Randomly generated
+			const dpk_generator = bls12_381.curves.G1.BASE;
+			const dpk = dpk_generator.multiply(dsk);
+
+			it("is correct.", async () => {
+				const signature = await SplitSign(SK, PK, header, dpk, dpk_generator, messages);
+				const valid = await SplitVerify(PK, signature, header, dpk, dpk_generator, messages);
+				assert.equal(valid, true);
+
+				const disclose_indexes = [0, 2, 4, 6];
+				const begin_resp = await SplitProofGenBegin(PK, signature, header, ph, dpk, dpk_generator, messages, disclose_indexes);
+				const [, , T2bar, c_host] = begin_resp;
+				const device_resp = await SplitProofGenDevice(dsk, dpk_generator, c_host, T2bar);
+				const proof = await SplitProofGenFinish(begin_resp, device_resp);
+
+				const disclosed_messages = disclose_indexes.map(i => messages[i]);
+				const proofValid = await SplitProofVerify(PK, proof, dpk_generator, header, ph, disclosed_messages, disclose_indexes);
+				assert.equal(proofValid, true);
+			});
+
+			it("rejects proof if dpk_commitment is edited.", async () => {
+				const signature = await SplitSign(SK, PK, header, dpk, dpk_generator, messages);
+				const valid = await SplitVerify(PK, signature, header, dpk, dpk_generator, messages);
+				assert.equal(valid, true);
+
+				const disclose_indexes = [0, 2, 4, 6];
+				const begin_resp = await SplitProofGenBegin(PK, signature, header, ph, dpk, dpk_generator, messages, disclose_indexes);
+				const [, , T2bar, c_host] = begin_resp;
+				const device_resp = await SplitProofGenDevice(dsk, dpk_generator, c_host, T2bar);
+				const [proof, dpk_commitment, n] = await SplitProofGenFinish(begin_resp, device_resp);
+
+				const disclosed_messages = disclose_indexes.map(i => messages[i]);
+				await asyncAssertThrows(() => SplitProofVerify(PK, [proof, Fr.add(dpk_commitment, 1n), n], dpk_generator, header, ph, disclosed_messages, disclose_indexes), "Expected proof verification to fail with modified dpk_commitment");
+			});
+
+			it("rejects proof if n is edited.", async () => {
+				const signature = await SplitSign(SK, PK, header, dpk, dpk_generator, messages);
+				const valid = await SplitVerify(PK, signature, header, dpk, dpk_generator, messages);
+				assert.equal(valid, true);
+
+				const disclose_indexes = [0, 2, 4, 6];
+				const begin_resp = await SplitProofGenBegin(PK, signature, header, ph, dpk, dpk_generator, messages, disclose_indexes);
+				const [, , T2bar, c_host] = begin_resp;
+				const device_resp = await SplitProofGenDevice(dsk, dpk_generator, c_host, T2bar);
+				const [proof, dpk_commitment, n] = await SplitProofGenFinish(begin_resp, device_resp);
+
+				const disclosed_messages = disclose_indexes.map(i => messages[i]);
+				const nu = toU8(n);
+				await asyncAssertThrows(() => SplitProofVerify(PK, [proof, dpk_commitment, new Uint8Array([nu[0] ^ 0x01, ...nu.slice(1)])], dpk_generator, header, ph, disclosed_messages, disclose_indexes), "Expected proof verification to fail with modified n");
 			});
 		});
 	});

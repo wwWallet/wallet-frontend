@@ -12,6 +12,7 @@ import { hashToCurve, HashToCurveSuite } from "../arkg/hash_to_curve";
 function createSuite(suite: SuiteParams): CipherSuite {
 	const {
 		Fr,
+		Fp,
 		Fp12,
 		G1,
 		G2,
@@ -22,6 +23,7 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		octet_point_length,
 		octet_scalar_length,
 		mocked_random_scalars_params,
+		device_hash,
 	} = suite;
 	const {
 		sig_generator_seed,
@@ -257,6 +259,15 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return P.toBytes();
 	}
 
+	/**
+	 * Elliptic-Curve-Point-to-Octet-String as defined in SEC 1 https://www.secg.org/sec1-v2.pdf
+	 * without point compression.
+	 */
+	function point_to_octets_E1_sec1(P: PointG1): BufferSource {
+		const Paff = P.toAffine();
+		return concat(new Uint8Array([0x04]), Fp.toBytes(Paff.x), Fp.toBytes(Paff.y));
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-notation */
 	function subgroup_check_G1(P: PointG1): void {
 		P.assertValidity();
@@ -363,6 +374,146 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return result;
 	}
 
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitSign(
+		SK: bigint,
+		PK: BufferSource,
+		header: BufferSource | null,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		messages: BufferSource[] | null,
+	): Promise<BufferSource> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		const message_scalars = await messages_to_scalars(messages, api_id);
+		const generators = await create_generators(messages.length + 1, api_id);
+		const signature = await SplitCoreSign(
+			SK,
+			PK,
+			header,
+			dpk,
+			dpk_generator,
+			generators,
+			message_scalars,
+			api_id,
+		);
+		return signature;
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitVerify(
+		PK: BufferSource,
+		signature: BufferSource,
+		header: BufferSource | null,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		messages: BufferSource[] | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		messages = messages ?? [];
+		const message_scalars = await messages_to_scalars(messages, api_id);
+		const generators = await create_generators(messages.length + 1, api_id);
+		const result = await SplitCoreVerify(PK, signature, dpk, dpk_generator, generators, header, message_scalars, api_id);
+		return result;
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitProofGenBegin(
+		PK: BufferSource,
+		signature: BufferSource,
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		messages: BufferSource[] | null,
+		disclosed_indexes: number[] | null,
+	): Promise<[
+		[PointG1, PointG1, PointG1, PointG1, bigint],
+		[bigint, bigint[], bigint[], bigint[], PointG1, PointG1],
+		PointG1, bigint,
+	]> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		messages = messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+		const message_scalars = await messages_to_scalars(messages, api_id);
+		const generators = await create_generators(messages.length + 1, api_id);
+		const begin_res = await SplitCoreProofGenBegin(PK, signature, generators, header, ph, dpk, dpk_generator, message_scalars, disclosed_indexes, api_id);
+		return begin_res;
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitProofGenDevice(
+		dsk: bigint,
+		dpk_generator: PointG1,
+		c_host: bigint,
+		T2bar: PointG1,
+	): Promise<BufferSource> {
+		const n = get_random(octet_scalar_length);
+		const [rdsk] = await calculate_random_scalars(1); // Will compute same scalar as first message in tests, that's okay
+		const tdsk = dpk_generator.multiply(rdsk);
+		const T2 = T2bar.add(tdsk);
+		const c = await SplitProofDeviceChallengeCalculate(n, T2, c_host);
+		const sa_dpk = Fr.sub(rdsk, Fr.mul(dsk, c));
+		return concat(I2OSP(sa_dpk, octet_scalar_length), I2OSP(c, octet_scalar_length), n);
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitProofGenFinish(
+		begin_res: [
+			[PointG1, PointG1, PointG1, PointG1, bigint],
+			[bigint, bigint[], bigint[], bigint[], PointG1, PointG1],
+			PointG1, bigint,
+		],
+		device_resp: BufferSource,
+	): Promise<[BufferSource, bigint, BufferSource]> {
+		if (device_resp.byteLength !== 3 * octet_scalar_length) {
+			throw new Error(`Incorrect device response length: expected ${3 * octet_scalar_length}, got ${device_resp.byteLength}`, { cause: { device_resp } });
+		}
+
+		const [init_res, [e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator], T2bar, c_host] = begin_res;
+		const [Abar, Bbar, D, T1, domain] = init_res;
+		const device_resp_u8 = toU8(device_resp);
+		const [sa_dpk, c] = [0, 1].map(i => Fr.create(OS2IP(device_resp_u8.slice(i * octet_scalar_length, (i + 1) * octet_scalar_length))));
+		const n = device_resp_u8.slice(2 * octet_scalar_length);
+		const tdsk = dpk_generator.multiply(sa_dpk).add(dpk.multiply(c));
+		const T2 = T2bar.add(tdsk);
+		const challenge = await SplitProofDeviceChallengeCalculate(n, T2, c_host);
+		if (challenge !== c) {
+			throw new Error(`Incorrect device challenge: expected ${challenge}, was ${c}`, { cause: { begin_res, device_resp, challenge, c } });
+		}
+		const proof = ProofFinalize([Abar, Bbar, D, T1, T2, domain], Fr.neg(challenge), e, random_scalars, undisclosed_messages);
+		return [proof, sa_dpk, n];
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitProofVerify(
+		PK: BufferSource,
+		[proof, dpk_commitment, n]: [BufferSource, bigint, BufferSource],
+		dpk_generator: PointG1,
+		header: BufferSource | null,
+		ph: BufferSource | null,
+		disclosed_messages: BufferSource[] | null,
+		disclosed_indexes: number[] | null,
+	): Promise<true> {
+		header = header ?? new Uint8Array([]);
+		ph = ph ?? new Uint8Array([]);
+		disclosed_messages = disclosed_messages ?? [];
+		disclosed_indexes = disclosed_indexes ?? [];
+
+		const proof_len_floor = 3 * octet_point_length + 4 * octet_scalar_length;
+		if (proof.byteLength < proof_len_floor) {
+			throw new Error(`Proof too short: expected at least ${proof_len_floor} octets, was ${proof.byteLength}`, { cause: { proof, proof_len_floor } });
+		}
+		const U = Math.floor((proof.byteLength - proof_len_floor) / octet_scalar_length);
+		const R = disclosed_indexes.length;
+
+		const message_scalars = await messages_to_scalars(disclosed_messages, api_id);
+		const generators = await create_generators(U + R + 1, api_id);
+		const result = await SplitCoreProofVerify(PK, [proof, dpk_commitment, n], dpk_generator, generators, header, ph, message_scalars, disclosed_indexes, api_id);
+		return result;
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coresign */
 	async function CoreSign(
 		SK: bigint,
@@ -388,6 +539,39 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return signature_to_octets(A, e);
 	}
 
+	/**
+	 * Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg
+	 *
+	 * The differences from draft-irtf-cfrg-bbs-signatures-08 are:
+	 * - The domain includes dpk_generator prepended to the H points
+	 * - dpk is added into B
+	 */
+	async function SplitCoreSign(
+		SK: bigint,
+		PK: BufferSource,
+		header: BufferSource,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		generators: PointG1[],
+		messages: bigint[],
+		api_id: BufferSource,
+	): Promise<BufferSource> {
+		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
+
+		const L = messages.length;
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
+		}
+		const Q_1 = generators[0];
+		const H_Points = generators.slice(1);
+
+		const domain = await calculate_domain(PK, Q_1, [dpk_generator, ...H_Points], header, api_id);
+		const e = await hash_to_scalar(serialize([SK, ...messages, domain]), hash_to_scalar_dst);
+		const B = P1.add(Q_1.multiply(domain)).add(dpk).add(sumprod(H_Points, messages));
+		const A = B.multiply(Fr.inv(SK + e));
+		return signature_to_octets(A, e);
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreverify */
 	async function CoreVerify(
 		PK: BufferSource,
@@ -408,6 +592,43 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 		const domain = await calculate_domain(PK, Q_1, H_Points, header, api_id);
 		const B = P1.add(Q_1.multiply(domain)).add(sumprod(H_Points, messages));
+		if (!Fp12.eql(
+			Fp12.mul(h(A, W.add(G2.BASE.multiply(e))), h(B, G2.BASE.negate())),
+			Fp12.ONE,
+		)) {
+			throw new Error("Invalid signature", { cause: { PK, signature, header, messages } });
+		}
+		return true;
+	}
+
+	/**
+	 * Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg
+	 *
+	 * The differences from draft-irtf-cfrg-bbs-signatures-08 are:
+	 * - The domain includes dpk_generator prepended to the H points
+	 * - dpk is added into B
+	 */
+	async function SplitCoreVerify(
+		PK: BufferSource,
+		signature: BufferSource,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		generators: PointG1[],
+		header: BufferSource,
+		messages: bigint[],
+		api_id: BufferSource,
+	): Promise<true> {
+		const [A, e] = octets_to_signature(signature);
+		const W = octets_to_pubkey(PK);
+		const L = messages.length;
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { messages, generators } });
+		}
+		const Q_1 = generators[0];
+		const H_Points = generators.slice(1);
+
+		const domain = await calculate_domain(PK, Q_1, [dpk_generator, ...H_Points], header, api_id);
+		const B = P1.add(Q_1.multiply(domain)).add(dpk).add(sumprod(H_Points, messages));
 		if (!Fp12.eql(
 			Fp12.mul(h(A, W.add(G2.BASE.multiply(e))), h(B, G2.BASE.negate())),
 			Fp12.ONE,
@@ -453,6 +674,47 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return proof;
 	}
 
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitCoreProofGenBegin(
+		PK: BufferSource,
+		signature: BufferSource,
+		generators: PointG1[],
+		header: BufferSource,
+		ph: BufferSource,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		messages: bigint[],
+		disclosed_indexes: number[],
+		api_id: BufferSource,
+	): Promise<[
+		[PointG1, PointG1, PointG1, PointG1, bigint],
+		[bigint, bigint[], bigint[], bigint[], PointG1, PointG1],
+		PointG1, bigint,
+	]> {
+		const signature_result = octets_to_signature(signature);
+		const [A, e] = signature_result;
+		const L = messages.length;
+		const R = disclosed_indexes.length;
+		if (R > L) {
+			throw new Error("Too many disclosed indexes", { cause: { messages, disclosed_indexes } });
+		}
+		const U = L - R;
+		for (let i of disclosed_indexes) {
+			if (i < 0 || i > L - 1) {
+				throw new Error(`Invalid disclosed index: ${i}`, { cause: { messages, disclosed_indexes, i } });
+			}
+		}
+		const disclosed_set = new Set(disclosed_indexes);
+		const undisclosed_indexes = messages.map((_, i) => i).filter(i => !disclosed_set.has(i));
+		const disclosed_messages = disclosed_indexes.map(i => messages[i]);
+		const undisclosed_messages = undisclosed_indexes.map(i => messages[i]);
+
+		const random_scalars = await calculate_random_scalars(5 + U);
+		const [init_res, T2bar] = await SplitProofInit(PK, signature_result, generators, random_scalars, header, dpk, dpk_generator, messages, undisclosed_indexes, api_id);
+		const c_host = await SplitProofHostChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
+		return [init_res, [e, random_scalars, disclosed_messages, undisclosed_messages, dpk, dpk_generator], T2bar, c_host];
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-coreproofverify */
 	async function CoreProofVerify(
 		PK: BufferSource,
@@ -470,6 +732,46 @@ function createSuite(suite: SuiteParams): CipherSuite {
 
 		const init_res = await ProofVerifyInit(PK, proof_result, generators, header, disclosed_messages, disclosed_indexes, api_id);
 		const challenge = await ProofChallengeCalculate(init_res, disclosed_messages, disclosed_indexes, ph, api_id);
+		if (cp !== challenge) {
+			throw new Error(`Invalid proof: incorrect challenge: expected ${challenge}, was ${cp}`, { cause: { proof } })
+		}
+		if (!Fp12.eql(
+			Fp12.mul(h(Abar, W), h(Bbar, G2.BASE.negate())),
+			Fp12.ONE,
+		)) {
+			throw new Error("Invalid proof: incorrect pairing", { cause: { proof } })
+		}
+		return true;
+	}
+
+	/**
+	 * Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg
+	 *
+	 * The differences from draft-irtf-cfrg-bbs-signatures-08 are:
+	 * - The proof includes an additional scalar dpk_commitment (called sa1 in Daniluk-Lehmann's proposal)
+	 * - The proof includes an additional octet string n
+	 * - SplitProofHostChallengeCalculate and SplitProofDeviceChallengeCalculate are used instead of ProofChallengeCalculate
+	 * - The SplitProofDeviceChallengeCalculate result is negated to match the signature value computed by the secure device.
+	 */
+	async function SplitCoreProofVerify(
+		PK: BufferSource,
+		[proof, dpk_commitment, n]: [BufferSource, bigint, BufferSource],
+		dpk_generator: PointG1,
+		generators: PointG1[],
+		header: BufferSource,
+		ph: BufferSource,
+		disclosed_messages: bigint[],
+		disclosed_indexes: number[],
+		api_id: BufferSource,
+	): Promise<true> {
+		const proof_result = octets_to_proof(proof);
+		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, cp] = proof_result;
+		const W = octets_to_pubkey(PK);
+
+		const init_res = await SplitProofVerifyInit(PK, proof_result, generators, header, dpk_generator, dpk_commitment, disclosed_messages, disclosed_indexes, api_id);
+		const [, , , T1, T2, domain] = init_res;
+		const c_host = await SplitProofHostChallengeCalculate([Abar, Bbar, D, T1, domain], disclosed_messages, disclosed_indexes, ph, api_id);
+		const challenge = Fr.neg(await SplitProofDeviceChallengeCalculate(n, T2, c_host));
 		if (cp !== challenge) {
 			throw new Error(`Invalid proof: incorrect challenge: expected ${challenge}, was ${cp}`, { cause: { proof } })
 		}
@@ -527,6 +829,62 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		const T1 = Abar.multiply(etil).add(D.multiply(r1til));
 		const T2 = D.multiply(r3til).add(sumprod(Hj, mtilj));
 		return [Abar, Bbar, D, T1, T2, domain];
+	}
+
+	/**
+	 * Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg
+	 *
+	 * The differences from draft-irtf-cfrg-bbs-signatures-08 are:
+	 * - The domain includes dpk_generator prepended to the H points
+	 * - dpk is added into D
+	 * - The T2 output is renamed to T2bar and does not include dpk
+	 */
+	async function SplitProofInit(
+		PK: BufferSource,
+		signature: [PointG1, bigint],
+		generators: PointG1[],
+		random_scalars: bigint[],
+		header: BufferSource,
+		dpk: PointG1,
+		dpk_generator: PointG1,
+		messages: bigint[],
+		undisclosed_indexes: number[],
+		api_id: BufferSource,
+	): Promise<[[PointG1, PointG1, PointG1, PointG1, bigint], PointG1]> {
+		const [A, e] = signature;
+		const L = messages.length;
+		const U = undisclosed_indexes.length;
+		if (random_scalars.length !== U + 5) {
+			throw new Error(`Wrong number of random scalars: expected ${U + 5}, got ${random_scalars.length}`, { cause: { random_scalars, undisclosed_indexes } });
+		}
+		const [r1, r2, etil, r1til, r3til] = random_scalars.slice(0, 5);
+		const mtilj = random_scalars.slice(5);
+
+		if (generators.length !== L + 1) {
+			throw new Error(`Wrong number of generators: expected ${L + 1}, got ${generators.length}`, { cause: { generators, messages } });
+		}
+		const Q1 = generators[0];
+		const MsgGenerators = generators.slice(1);
+		const Hi = MsgGenerators;
+		const Hj = undisclosed_indexes.map(j => MsgGenerators[j]);
+
+		for (let i of undisclosed_indexes) {
+			if (i < 0 || i > L - 1) {
+				throw new Error(`Invalid undisclosed index: ${i}`, { cause: { messages, undisclosed_indexes, i } });
+			}
+		}
+		if (U > L) {
+			throw new Error("Invalid number of undisclosed indexes", { cause: { messages, undisclosed_indexes, L, U } });
+		}
+		const domain = await calculate_domain(PK, Q1, [dpk_generator, ...Hi], header, api_id);
+		const B = P1.add(Q1.multiply(domain)).add(dpk).add(sumprod(Hi, messages));
+		const D = B.multiply(r2);
+		const Abar = A.multiply(Fr.mul(r1, r2));
+		const Bbar = D.multiply(r1).subtract(Abar.multiply(e));
+
+		const T1 = Abar.multiply(etil).add(D.multiply(r1til));
+		const T2bar = D.multiply(r3til).add(sumprod(Hj, mtilj));
+		return [[Abar, Bbar, D, T1, domain], T2bar];
 	}
 
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-proof-finalization */
@@ -597,6 +955,57 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return [Abar, Bbar, D, T1, T2, domain];
 	}
 
+	/**
+	 * Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg
+	 *
+	 * The differences from draft-irtf-cfrg-bbs-signatures-08 are:
+	 * - The domain includes dpk_generator prepended to the H points
+	 * - dpk_generator * dpk_commitment is added into T2
+	 */
+	async function SplitProofVerifyInit(
+		PK: BufferSource,
+		proof: [PointG1, PointG1, PointG1, bigint, bigint, bigint, bigint[], bigint],
+		generators: PointG1[],
+		header: BufferSource,
+		dpk_generator: PointG1,
+		dpk_commitment: bigint,
+		disclosed_messages: bigint[],
+		disclosed_indexes: number[],
+		api_id: BufferSource,
+	): Promise<[PointG1, PointG1, PointG1, PointG1, PointG1, bigint]> {
+		const [Abar, Bbar, D, ehat, r1hat, r3hat, commitments, c] = proof;
+		const U = commitments.length;
+		const R = disclosed_indexes.length;
+		const L = R + U;
+		for (let i of disclosed_indexes) {
+			if (i < 0 || i > L - 1) {
+				throw new Error(`Invalid disclosed index: ${i}`, { cause: { disclosed_indexes, i } });
+			}
+		}
+		const disclosed_indexes_set = new Set(disclosed_indexes);
+		const undisclosed_indexes = [...commitments, ...disclosed_messages].map((_, j) => j).filter(j => !disclosed_indexes_set.has(j));
+		if (disclosed_messages.length !== R) {
+			throw new Error("Disclosed messages and indexes not of matching lengths", { cause: { disclosed_messages, disclosed_indexes } });
+		}
+
+		if (generators.length !== L + 1) {
+			throw new Error("Messages and generators not of matching lengths", { cause: { proof, generators } });
+		}
+		const Q1 = generators[0];
+		const MsgGenerators = generators.slice(1);
+		const H_Points = MsgGenerators;
+		const Hi_Points = disclosed_indexes.map(i => MsgGenerators[i]);
+		const Hj_Points = undisclosed_indexes.map(j => MsgGenerators[j]);
+
+		const domain = await calculate_domain(PK, Q1, [dpk_generator, ...H_Points], header, api_id);
+
+		const T1 = Bbar.multiply(c).add(Abar.multiply(ehat)).add(D.multiply(r1hat));
+		const Bv = P1.add(Q1.multiply(domain)).add(sumprod(Hi_Points, disclosed_messages));
+		const T2 = Bv.multiply(c).add(D.multiply(r3hat)).add(dpk_generator.multiply(dpk_commitment)).add(sumprod(Hj_Points, commitments));
+
+		return [Abar, Bbar, D, T1, T2, domain];
+	}
+
 	/** https://www.ietf.org/archive/id/draft-irtf-cfrg-bbs-signatures-08.html#name-challenge-calculation */
 	async function ProofChallengeCalculate(
 		init_res: [PointG1, PointG1, PointG1, PointG1, PointG1, bigint],
@@ -626,6 +1035,49 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		return await hash_to_scalar(c_octs, hash_to_scalar_dst);
 	}
 
+	/**
+	 * Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg
+	 *
+	 * The difference from draft-irtf-cfrg-bbs-signatures-08 is that T2 is omitted from the hash.
+	 */
+	async function SplitProofHostChallengeCalculate(
+		init_res: [PointG1, PointG1, PointG1, PointG1, bigint],
+		disclosed_messages: bigint[],
+		disclosed_indexes: number[],
+		ph: BufferSource,
+		api_id: BufferSource,
+	): Promise<bigint> {
+		const hash_to_scalar_dst = concat(api_id, new TextEncoder().encode("H2S_"));
+
+		const R = disclosed_indexes.length;
+		if (disclosed_messages.length !== R) {
+			throw new Error("Disclosed messages and indexes not of matching lengths", { cause: { disclosed_messages, disclosed_indexes } });
+		}
+		const [Abar, Bbar, D, T1, domain] = init_res;
+
+		if (R > Math.pow(2, 64) - 1) {
+			throw new Error("Too many disclosed indexes", { cause: { disclosed_indexes } });
+		}
+		if (ph.byteLength > Math.pow(2, 64) - 1) {
+			throw new Error("Presentation header too long", { cause: { ph } });
+		}
+
+		const i_msg = disclosed_indexes.map((i, j) => [i, disclosed_messages[j]]).flat(1);
+		const c_arr = [R, ...i_msg, Abar, Bbar, D, T1, domain];
+		const c_octs = concat(serialize(c_arr), I2OSP(ph.byteLength, 8), ph);
+		return await hash_to_scalar(c_octs, hash_to_scalar_dst);
+	}
+
+	/** Split-BBS as proposed by Daniluk-Lehmann and adjusted by Lundberg */
+	async function SplitProofDeviceChallengeCalculate(
+		n: BufferSource,
+		T2: PointG1,
+		c_host: bigint,
+	): Promise<bigint> {
+		const c_octs = concat(n, point_to_octets_E1_sec1(T2), I2OSP(c_host, octet_scalar_length));
+		return Fr.create(OS2IP(await device_hash(c_octs)));
+	}
+
 	return {
 		params: suite,
 		api_id,
@@ -638,6 +1090,12 @@ function createSuite(suite: SuiteParams): CipherSuite {
 		Verify,
 		ProofGen,
 		ProofVerify,
+		SplitSign,
+		SplitVerify,
+		SplitProofGenBegin,
+		SplitProofGenDevice,
+		SplitProofGenFinish,
+		SplitProofVerify,
 	};
 }
 
@@ -653,6 +1111,12 @@ type SignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, 
 type VerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, messages: BufferSource[] | null) => Promise<true>;
 type ProofGenFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<BufferSource>;
 type ProofVerifyFunction = (PK: BufferSource, proof: BufferSource, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
+type SplitSignFunction = (SK: bigint, PK: BufferSource, header: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null) => Promise<BufferSource>;
+type SplitVerifyFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null) => Promise<true>;
+type SplitProofGenBeginFunction = (PK: BufferSource, signature: BufferSource, header: BufferSource | null, ph: BufferSource | null, dpk: PointG1, dpk_generator: PointG1, messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<[[PointG1, PointG1, PointG1, PointG1, bigint], [bigint, bigint[], bigint[], bigint[], PointG1, PointG1], PointG1, bigint]>;
+type SplitProofGenDeviceFunction = (dsk: bigint, dpk_generator: PointG1, c_host: bigint, T2bar: PointG1) => Promise<BufferSource>;
+type SplitProofGenFinishFunction = (begin_res: [[PointG1, PointG1, PointG1, PointG1, bigint], [bigint, bigint[], bigint[], bigint[], PointG1, PointG1], PointG1, bigint], device_resp: BufferSource) => Promise<[BufferSource, bigint, BufferSource]>;
+type SplitProofVerifyFunction = (PK: BufferSource, proof: [BufferSource, bigint, BufferSource], dpk_generator: PointG1, header: BufferSource | null, ph: BufferSource | null, disclosed_messages: BufferSource[] | null, disclosed_indexes: number[] | null) => Promise<true>;
 
 
 export type SuiteId = 'BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_';
@@ -671,6 +1135,7 @@ type SuiteParams = {
 	hash_to_curve_g1: (msg: BufferSource, DST: BufferSource) => PointG1,
 	expand_len: number,
 	Fr: IField<bigint>,
+	Fp: IField<bigint>,
 	Fp12: Fp12Bls,
 	G1: ProjConstructor<bigint>,
 	G2: ProjConstructor<Fp2>,
@@ -678,6 +1143,7 @@ type SuiteParams = {
 	h: PairingFunction,
 	create_generators_dsts?: CreateGeneratorsDsts,
 	mocked_random_scalars_params?: { SEED: BufferSource, DST: BufferSource },
+	device_hash: (msg: BufferSource) => Promise<BufferSource>,
 }
 
 type CipherSuite = {
@@ -692,6 +1158,12 @@ type CipherSuite = {
 	Verify: VerifyFunction,
 	ProofGen: ProofGenFunction,
 	ProofVerify: ProofVerifyFunction,
+	SplitSign: SplitSignFunction,
+	SplitVerify: SplitVerifyFunction,
+	SplitProofGenBegin: SplitProofGenBeginFunction,
+	SplitProofGenDevice: SplitProofGenDeviceFunction,
+	SplitProofGenFinish: SplitProofGenFinishFunction,
+	SplitProofVerify: SplitProofVerifyFunction,
 }
 
 
@@ -716,6 +1188,7 @@ export function getCipherSuite(
 					(bls12_381.G1.hashToCurve(toU8(msg), { DST: toU8(DST) }) as PointG1),
 				expand_len: 48,
 				Fr: bls12_381.fields.Fr,
+				Fp: bls12_381.fields.Fp,
 				Fp12: bls12_381.fields.Fp12,
 				G1: bls12_381.curves.G1,
 				G2: bls12_381.curves.G2,
@@ -723,6 +1196,7 @@ export function getCipherSuite(
 				h: bls12_381.pairing,
 				create_generators_dsts: overrides?.create_generators_dsts,
 				mocked_random_scalars_params: overrides?.mocked_random_scalars_params,
+				device_hash: (data: BufferSource) => crypto.subtle.digest("SHA-256", data),
 			});
 
 		default:
