@@ -1,16 +1,22 @@
 import { parseTransactionData, TransactionDataResponse } from "./parseTransactionData";
 import { toBase64Url } from "@/util";
 
+type ExampleTypeParams = {
+	descriptor_id: string;
+	presentation_definition?: Record<string, unknown>;
+	dcql_query?: Record<string, unknown>;
+};
+
 /**
  * format: sdjwt vc
  * transaction_data type: urn:wwwallet:example_transaction_data_type
  * @param descriptor_id
  * @returns
  */
-export const ExampleTypeSdJwtVcTransactionDataResponse = (presentation_definition: Record<string, unknown>, descriptor_id: string): TransactionDataResponse => {
+export const ExampleTypeSdJwtVcTransactionDataResponse = ({ descriptor_id,  presentation_definition, dcql_query }: ExampleTypeParams): TransactionDataResponse => {
 	return {
 		generateTransactionDataResponseParameters: async (transaction_data: string[]) => {
-			const parsedTd = parseTransactionData(transaction_data, presentation_definition);
+			const parsedTd = parseTransactionData(transaction_data, presentation_definition, dcql_query);
 			if (parsedTd === "invalid_transaction_data") {
 				return [null, new Error("invalid_transaction_data")];
 			}
