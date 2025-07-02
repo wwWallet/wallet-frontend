@@ -21,29 +21,29 @@ export const CredentialsContextProvider = ({ children }) => {
 	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
 	const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-	const [credentialEngineReady, setCredentialEngineReady] = useState<any>(false);
-	const engineRef = useRef<any>(null);
+	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
+	// const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
 
 	const { getExternalEntity, getSession, get } = api;
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
-		try {
-			const engine = await initializeCredentialEngine(
-				httpProxy,
-				helper,
-				() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
-				[],
-				useCache
-			);
-			setCredentialEngineReady(true);
-			engineRef.current = engine;
-		} catch (err) {
-			console.error("[CredentialsContext] Engine init failed:", err);
-		}
-	}, [getExternalEntity, httpProxy, helper]);
+		const trustedCertificates: string[] = [];
 
-	useEffect(() => {
+		const engine = await initializeCredentialEngine(
+			httpProxy,
+			helper,
+			() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
+			trustedCertificates,
+			useCache,
+			(issuerIdentifier: string) => {
+				console.log(`[CredentialsContext] Issuer metadata resolved for: ${issuerIdentifier}`);
+			}
+		);
+		setCredentialEngine(engine);
+	}, [httpProxy, helper, getExternalEntity]);
+
+		useEffect(() => {
 		if (httpProxy && helper) {
 			if (prevIsLoggedIn.current === false && isLoggedIn === true) {
 				console.log("[CredentialsContext] Detected login transition, initializing without cache");
@@ -54,7 +54,7 @@ export const CredentialsContextProvider = ({ children }) => {
 			}
 		}
 		prevIsLoggedIn.current = isLoggedIn;
-	}, [isLoggedIn, httpProxy, helper, initializeEngine]);
+	}, [isLoggedIn, httpProxy, helper]);
 
 	const stopPolling = useCallback(() => {
 		if (intervalRef.current) {
@@ -66,7 +66,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, []);
 
 	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
-		const engine = engineRef.current;
+		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
 			const result = await engine.credentialParsingEngine.parse({ rawCredential });
@@ -80,10 +80,10 @@ export const CredentialsContextProvider = ({ children }) => {
 			return null;
 		}
 
-	}, []);
+	}, [credentialEngine]);
 
 	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
-		const engine = engineRef.current;
+		const engine = credentialEngine;
 		if (!engine) return [];
 
 		const response = await get('/storage/vc');
@@ -144,7 +144,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
 		return filteredVcEntityList;
-	}, [get, parseCredential]);
+	}, [get, parseCredential, credentialEngine]);
 
 	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
 		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
@@ -212,14 +212,14 @@ export const CredentialsContextProvider = ({ children }) => {
 		}
 	}, [getSession, fetchVcData, pollForCredentials, stopPolling]);
 
-	if (isLoggedIn && !credentialEngineReady) {
+	if (isLoggedIn && !credentialEngine) {
 		return (
 			<></>
 		);
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine: engineRef.current }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine }}>
 				{children}
 			</CredentialsContext.Provider>
 		);

@@ -32,6 +32,11 @@ export function useHttpProxy(): IHttpProxy {
 			headers: Record<string, string> = {},
 			options?: { useCache?: boolean; }
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
+
+			if (url.startsWith("https://qa-issuer.wwwallet.org")) {
+				console.log("[HttpProxy] Simulating delay for QA issuer...");
+				await new Promise(resolve => setTimeout(resolve, 1000)); // 3-second delay
+			}
 			const useCache = options?.useCache;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;
