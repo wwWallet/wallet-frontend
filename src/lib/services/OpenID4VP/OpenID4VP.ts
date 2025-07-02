@@ -123,7 +123,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				}
 				const p = JSON.parse(new TextDecoder().decode(base64url.decode(payload)));
 				client_id = p.client_id;
-				presentation_definition = p.presentation_definition;
+				if (p.presentation_definition) {
+					presentation_definition = p.presentation_definition;
+				} else if (p.presentation_definition_uri) {
+					const presentationDefinitionFetch = await httpProxy.get(p.presentation_definition_uri, {});
+					presentation_definition = presentationDefinitionFetch.data;
+				}
 				response_uri = p.response_uri ?? p.redirect_uri;
 				client_metadata = p.client_metadata;
 				if (p.response_mode) {
