@@ -528,8 +528,17 @@ export interface VerifyOptions extends CritOption {
   algorithms?: string[]
 }
 
+/** A function that may be used as a {@link SignOptions.signFunction} argument. */
+export type SignFunction = (alg: string, key: CryptoKey | Uint8Array, data: Uint8Array) => Promise<Uint8Array>;
+
 /** JWS Signing options. */
-export interface SignOptions extends CritOption {}
+export interface SignOptions extends CritOption {
+  /**
+   * Override the default signing operation. For example, this may be used to sign with a private
+   * key held in remote or secure storage rather than in application memory.
+   */
+  signFunction?: SignFunction,
+}
 
 /** Recognized JWT Claims Set members, any other members may also be present. */
 export interface JWTPayload {

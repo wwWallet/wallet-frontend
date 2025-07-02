@@ -65,6 +65,18 @@ test('FlattenedSign', async (t) => {
       })
     }
   }
+  {
+    const jws = await new FlattenedSign(t.context.payload)
+      .setUnprotectedHeader({ alg: 'HS256' })
+      .sign(t.context.secret, { signFunction: async () => new Uint8Array([1, 2, 3]) })
+    t.deepEqual(jws, {
+      header: {
+        alg: 'HS256',
+      },
+      payload: 'SXTigJlzIGEgZGFuZ2Vyb3VzIGJ1c2luZXNzLCBGcm9kbywgZ29pbmcgb3V0IHlvdXIgZG9vci4',
+      signature: 'AQID',
+    })
+  }
 })
 
 test('FlattenedSign.prototype.setProtectedHeader', (t) => {

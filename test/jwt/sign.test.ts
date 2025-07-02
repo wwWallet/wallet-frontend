@@ -30,6 +30,13 @@ test('SignJWT with default (empty) payload', async (t) => {
   t.is(jwt, 'eyJhbGciOiJIUzI1NiJ9.e30.4E_Bsx-pJi3kOW9wVXN8CgbATwP09D9V5gxh9-9zSZ0')
 })
 
+test('SignJWT with custom SignFunction', async (t) => {
+  const jwt = await new SignJWT()
+    .setProtectedHeader({ alg: 'HS256' })
+    .sign(t.context.secret, { signFunction: async () => new Uint8Array([1, 2, 3]) })
+  t.is(jwt, 'eyJhbGciOiJIUzI1NiJ9.e30.AQID')
+})
+
 test('SignJWT w/crit', async (t) => {
   const expected =
     'eyJhbGciOiJIUzI1NiIsImNyaXQiOlsiaHR0cDovL29wZW5iYW5raW5nLm9yZy51ay9pYXQiXSwiaHR0cDovL29wZW5iYW5raW5nLm9yZy51ay9pYXQiOjB9.eyJ1cm46ZXhhbXBsZTpjbGFpbSI6dHJ1ZX0.YzOrPZaNql7PpCo43HAJdj-LASP8lOmtb-Bzj9OrNAk'

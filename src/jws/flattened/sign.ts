@@ -147,7 +147,7 @@ export class FlattenedSign {
     const data = concat(protectedHeader, encoder.encode('.'), payload)
 
     const k = await normalizeKey(key, alg)
-    const signature = await sign(alg, k, data)
+    const signature = await (options?.signFunction ?? sign)(alg, k, data)
 
     const jws: types.FlattenedJWS = {
       signature: b64u(signature),

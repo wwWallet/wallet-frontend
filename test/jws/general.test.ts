@@ -152,3 +152,22 @@ test('sign empty data', async (t) => {
   const { payload } = await generalVerify(jws, new Uint8Array(32))
   t.is(payload.byteLength, 0)
 })
+
+test('sign using custom SignFunction', async (t) => {
+  const key = new Uint8Array(32);
+  const data = new Uint8Array([1, 2, 3]);
+  const jws = await new GeneralSign(data)
+    .addSignature(key, {
+      signFunction: async (alg, sfKey, sfData) => {
+        t.is(alg, 'HS256');
+        t.is(sfKey, key);
+        t.deepEqual(sfData, new TextEncoder().encode('eyJhbGciOiJIUzI1NiJ9.AQID'))
+        return new Uint8Array([4, 5, 6]);
+      },
+    })
+    .setProtectedHeader({ alg: 'HS256' })
+    .sign()
+
+  t.is(jws.payload, 'AQID')
+  t.deepEqual(jws.signatures, [{ protected: 'eyJhbGciOiJIUzI1NiJ9', signature: 'BAUG' }])
+})

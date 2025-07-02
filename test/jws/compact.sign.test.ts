@@ -41,3 +41,13 @@ test('CompactSign.prototype.sign JOSE header have an alg', async (t) => {
     },
   )
 })
+
+test('CompactSign with custom SignFunction', async (t) => {
+  const jws = await new CompactSign(t.context.payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .sign(t.context.secret, { signFunction: async () => new Uint8Array([1, 2, 3]) })
+  t.is(
+    jws,
+    'eyJhbGciOiJIUzI1NiJ9.SXTigJlzIGEgZGFuZ2Vyb3VzIGJ1c2luZXNzLCBGcm9kbywgZ29pbmcgb3V0IHlvdXIgZG9vci4.AQID',
+  )
+})
