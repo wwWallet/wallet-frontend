@@ -151,7 +151,7 @@ export function useCredentialRequest() {
 				proofs = inputs;
 			}
 			else if (proofType === "attestation") {
-				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+				const numberOfKeypairsToGenerate = numberOfProofs;
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
