@@ -4,6 +4,7 @@ import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
+import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -125,7 +126,9 @@ export function useCredentialRequest() {
 		const credentialEndpointBody = {
 			"format": credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId].format,
 		} as any;
-		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size && credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE ?
+			OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE :
+			credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 		let proofs: {
 			nonce: string,
 			issuer: string,
