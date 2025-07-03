@@ -45,6 +45,13 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			sourcemap: env.VITE_GENERATE_SOURCEMAP === 'true',
+			rollupOptions: {
+				output: {
+					manualChunks: {
+						keystore: ['@/services/keystore', '@/services/LocalStorageKeystore'],
+					},
+				},
+			},
 		},
 	}
 });
