@@ -147,7 +147,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	const getData = useCallback(async (shouldPoll = false) => {
 		try {
 			const storedCredentials = await fetchVcData();
-			if (storedCredentials != null && (credentialNumber.current === null || storedCredentials.length > credentialNumber.current)) {
+			if (storedCredentials != null && (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current)) {
 				setLatestCredentials(storedCredentials.length > 0 ? new Set([storedCredentials[0].batchId]) : new Set());
 				setTimeout(() => {
 					setLatestCredentials(new Set());
