@@ -19,9 +19,9 @@ export function useCredentialRequest() {
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
 
-	const { post ,updatePrivateData } = api;
+	const { post, updatePrivateData } = api;
 
-	const requestKeyAttestation = useCallback( async (jwks: JWK[], nonce: string) => {
+	const requestKeyAttestation = useCallback(async (jwks: JWK[], nonce: string) => {
 		try {
 			const response = await post("/wallet-provider/key-attestation/generate", {
 				jwks,
@@ -40,8 +40,8 @@ export function useCredentialRequest() {
 			console.log(err);
 			return null;
 		}
-	},[post]
-);
+	}, [post]
+	);
 
 	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ export function useCredentialRequest() {
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
 
-		const [credentialIssuerMetadata, clientId ] = await Promise.all([
+		const [credentialIssuerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
@@ -132,6 +132,8 @@ export function useCredentialRequest() {
 			audience: string
 		}[] | null = null;
 		let keyAttestation: string | null = null;
+
+		let proofsToSend: string[] = [];
 
 		try {
 			if (proofType === "jwt") {
@@ -159,19 +161,26 @@ export function useCredentialRequest() {
 				keyAttestation = requestKeyAttestationResponse.key_attestation;
 			}
 
-			if (proofs) {
-				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
-				await updatePrivateData(newPrivateData);
-				await keystoreCommit();
+			if (cachedProofs || proofs) {
+				if (cachedProofs) {
+					proofsToSend = cachedProofs as string[];
+				}
+				else if (!cachedProofs && proofs) {
+					const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
+					await updatePrivateData(newPrivateData);
+					await keystoreCommit();
+					proofsToSend = proof_jwts;
+				}
+
 				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
 					credentialEndpointBody.proofs = {
-						jwt: proof_jwts
+						jwt: proofsToSend
 					}
 				}
 				else {
 					credentialEndpointBody.proof = {
 						proof_type: "jwt",
-						jwt: proof_jwts[0]
+						jwt: proofsToSend[0]
 					};
 				}
 			}
@@ -199,13 +208,16 @@ export function useCredentialRequest() {
 
 		if (credentialResponse.status !== 200) {
 			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
-			if (credentialResponse.headers?.["www-authenticate"] && (credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
+			if (credentialResponse.headers?.["www-authenticate"] && (
+				(credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") ||
+				(credentialResponse.headers?.["www-authenticate"] as string).includes("use_dpop_nonce")
+			) && "dpop-nonce" in credentialResponse.headers) {
 				console.log("Calling credentialRequest with new dpop-nonce....")
 
 				setDpopNonce(credentialResponse.headers?.["dpop-nonce"] as string);
 				await setDpopHeader();
 				// response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-				return await execute(credentialConfigurationId, proofType, proofs);
+				return await execute(credentialConfigurationId, proofType, proofsToSend);
 			}
 			throw new Error("Credential Request failed");
 		}
