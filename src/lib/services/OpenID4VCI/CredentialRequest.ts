@@ -1,4 +1,4 @@
-import { JWK, KeyLike } from "jose";
+import { compactDecrypt, CompactDecryptResult, exportJWK, generateKeyPair, JWK, KeyLike } from "jose";
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
@@ -123,9 +123,7 @@ export function useCredentialRequest() {
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
 
-		const credentialEndpointBody = {
-			"format": credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId].format,
-		} as any;
+		const credentialEndpointBody = { } as any;
 		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size && credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE ?
 			OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE :
 			credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
@@ -207,8 +205,36 @@ export function useCredentialRequest() {
 
 		console.log("Credential endpoint body = ", credentialEndpointBody);
 
-		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
+		let encryptionRequested = false;
+		const ephemeralKeypair = await generateKeyPair('ECDH-ES');
 
+		if (credentialIssuerMetadata.metadata.credential_response_encryption) {
+			encryptionRequested = true;
+			if (!credentialIssuerMetadata.metadata.credential_response_encryption.alg_values_supported.includes('ECDH-ES')) {
+				throw new Error("Unsupported credential_response_encryption.alg_values_supported. ['ECDH-ES'] are supported");
+			}
+			if (!credentialIssuerMetadata.metadata.credential_response_encryption.enc_values_supported.includes('A128CBC-HS256')) {
+				throw new Error("Unsupported credential_response_encryption.enc_values_supported. ['A128CBC-HS256'] are supported");
+			}
+
+			const ephemeralPublicKeyJwk = await exportJWK(ephemeralKeypair.publicKey);
+			credentialEndpointBody.credential_response_encryption = {
+				alg: 'ECDH-ES',
+				enc: 'A128CBC-HS256',
+				jwk: { ...ephemeralPublicKeyJwk, "use": "enc", },
+			};
+		}
+
+		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
+		if (encryptionRequested && credentialResponse.headers['content-type'] === 'application/jwt') {
+			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
+			if (result.err) {
+				throw new Error("Credential Response decryption failed");
+			}
+			const { protectedHeader, plaintext } = result.data as CompactDecryptResult;
+			const payload = JSON.parse(new TextDecoder().decode(plaintext));
+			credentialResponse.data = payload;
+		}
 		if (credentialResponse.status !== 200) {
 			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
 			if (credentialResponse.headers?.["www-authenticate"] && (
