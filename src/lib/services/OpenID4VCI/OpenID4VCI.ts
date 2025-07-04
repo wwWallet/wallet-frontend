@@ -116,7 +116,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}));
 
 			let warnings = [];
-			for (const storableCredential of storableCredentials) {
+
+			const uniqueStorableCredentials = storableCredentials.filter(
+				(cred) => cred.instanceId === 0
+			);
+
+			for (const storableCredential of uniqueStorableCredentials) {
 				const rawCredential = storableCredential.credential;
 				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
 				console.log('result', result);
