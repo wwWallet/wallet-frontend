@@ -13,7 +13,18 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
-	const { keystore } = useContext(SessionContext);
+	const { keystore, api, isLoggedIn } = useContext(SessionContext);
+
+	const { get } = api;
+	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
+		if (!api || !isLoggedIn) {
+			return null;
+		}
+		return get('/user/session/account-info').then((response) => {
+			const userData = response.data;
+			return userData.settings.openidRefreshTokenMaxAgeInSeconds as number;
+		});
+	}, [get, isLoggedIn]);
 
 	const generate = useCallback(
 		async (
@@ -72,10 +83,16 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 				throw new Error("Pushed Authorization request failed. Reason: " + JSON.stringify(res.data))
 			}
 			const { request_uri } = res.data;
-			const authorizationRequestURL = `${config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${config.clientId}`
+			const authorizationRequestURL = new URL(config.authorizationServerMetadata.authorization_endpoint);
+			authorizationRequestURL.searchParams.set('request_uri', request_uri);
+			authorizationRequestURL.searchParams.set('client_id', config.clientId);
+			const age = await getRememberIssuerAge();
+			if (age != null && age == 0) {
+				authorizationRequestURL.searchParams.set('prompt', 'login');
+			}
 
 			await openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
-			return { authorizationRequestURL };
+			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
 		[httpProxy, openID4VCIClientStateRepository, keystore]
 	);
