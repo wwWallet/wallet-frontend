@@ -54,7 +54,9 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			if (typeof rawValue === 'boolean') {
 				formattedValue = String(rawValue);
 			}
-			else if (typeof rawValue === 'object') {
+			else if (Array.isArray(rawValue)) {
+				formattedValue = rawValue.join(', ');
+			} else if (typeof rawValue === 'object') {
 				formattedValue =
 					<div className="w-full">
 						<div className="max-h-40 resize-y overflow-auto border rounded px-2 py-1 rounded-xl">
