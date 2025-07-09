@@ -33,6 +33,7 @@ interface ImportMetaEnv {
 	readonly VITE_OPENID4VCI_PROOF_TYPE_PRECEDENCE: string;
 	readonly VITE_FOLD_EVENT_HISTORY_AFTER: string;
 	readonly VITE_DISPLAY_ISSUANCE_WARNINGS: string;
+	readonly VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: string;
 }
 
 interface ImportMeta {

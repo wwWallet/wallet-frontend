@@ -31,3 +31,4 @@ export const VITE_STATIC_NAME = import.meta.env.VITE_STATIC_NAME || 'wwWallet';
 export const OPENID4VCI_PROOF_TYPE_PRECEDENCE = import.meta.env.VITE_OPENID4VCI_PROOF_TYPE_PRECEDENCE || 'jwt';
 export const FOLD_EVENT_HISTORY_AFTER = import.meta.env.VITE_FOLD_EVENT_HISTORY_AFTER && !isNaN(parseInt(import.meta.env.VITE_FOLD_EVENT_HISTORY_AFTER)) ? parseInt(import.meta.env.VITE_FOLD_EVENT_HISTORY_AFTER) : 2592000; // 30-days in seconds
 export const VITE_DISPLAY_ISSUANCE_WARNINGS: boolean = import.meta.env.VITE_DISPLAY_ISSUANCE_WARNINGS ? JSON.parse(import.meta.env.VITE_DISPLAY_ISSUANCE_WARNINGS) : false;
+export const OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: number = import.meta.env.VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE && !isNaN(parseInt(import.meta.env.VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE)) ? parseInt(import.meta.env.VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE) : 10;

@@ -20,29 +20,29 @@ export const CredentialsContextProvider = ({ children }) => {
 	const helper = useOpenID4VCIHelper();
 	const credentialNumber = useRef<number | null>(null)
 
-	const [credentialEngineReady, setCredentialEngineReady] = useState<any>(false);
-	const engineRef = useRef<any>(null);
+	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
+	// const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
 
 	const { getExternalEntity, getSession, get } = api;
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
-		try {
-			const engine = await initializeCredentialEngine(
-				httpProxy,
-				helper,
-				() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
-				[],
-				useCache
-			);
-			setCredentialEngineReady(true);
-			engineRef.current = engine;
-		} catch (err) {
-			console.error("[CredentialsContext] Engine init failed:", err);
-		}
-	}, [getExternalEntity, httpProxy, helper]);
+		const trustedCertificates: string[] = [];
 
-	useEffect(() => {
+		const engine = await initializeCredentialEngine(
+			httpProxy,
+			helper,
+			() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
+			trustedCertificates,
+			useCache,
+			(issuerIdentifier: string) => {
+				console.log(`[CredentialsContext] Issuer metadata resolved for: ${issuerIdentifier}`);
+			}
+		);
+		setCredentialEngine(engine);
+	}, [httpProxy, helper, getExternalEntity]);
+
+		useEffect(() => {
 		if (httpProxy && helper) {
 			if (prevIsLoggedIn.current === false && isLoggedIn === true) {
 				console.log("[CredentialsContext] Detected login transition, initializing without cache");
@@ -53,11 +53,11 @@ export const CredentialsContextProvider = ({ children }) => {
 			}
 		}
 		prevIsLoggedIn.current = isLoggedIn;
-	}, [isLoggedIn, httpProxy, helper, initializeEngine]);
+	}, [isLoggedIn, httpProxy, helper]);
 
 
 	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
-		const engine = engineRef.current;
+		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
 			const result = await engine.credentialParsingEngine.parse({ rawCredential });
@@ -71,10 +71,10 @@ export const CredentialsContextProvider = ({ children }) => {
 			return null;
 		}
 
-	}, []);
+	}, [credentialEngine]);
 
 	const fetchVcData = useCallback(async (batchId?: number): Promise<ExtendedVcEntity[] | null> => {
-		const engine = engineRef.current;
+		const engine = credentialEngine;
 		if (!engine) return null;
 
 		const credentials = await keystore.getAllCredentials();
@@ -142,7 +142,17 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.reverse();
 		return filteredVcEntityList;
-	}, [parseCredential, httpProxy, helper, keystore]);
+	}, [parseCredential, httpProxy, helper, keystore, get, parseCredential, credentialEngine]);
+
+	// const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
+	// 	setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
+
+	// 	setTimeout(() => {
+	// 		setLatestCredentials(new Set());
+	// 	}, 2000);
+
+	// 	setVcEntityList(vcEntityList);
+	// };
 
 	const getData = useCallback(async (shouldPoll = false) => {
 		try {
@@ -163,21 +173,21 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [getSession, fetchVcData, setVcEntityList]);
 
 	useEffect(() => {
-		if (!keystore || !credentialEngineReady || !isLoggedIn) {
+		if (!keystore || !credentialEngine || !isLoggedIn) {
 			return;
 		}
 		console.log("Triggerring getData()", keystore.getCalculatedWalletState())
 		getData();
-	}, [getData, keystore, credentialEngineReady, isLoggedIn]);
+	}, [getData, keystore, credentialEngine, isLoggedIn]);
 
-	if (isLoggedIn && !credentialEngineReady) {
+	if (isLoggedIn && !credentialEngine) {
 		return (
 			<></>
 		);
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine: engineRef.current }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine }}>
 				{children}
 			</CredentialsContext.Provider>
 		);

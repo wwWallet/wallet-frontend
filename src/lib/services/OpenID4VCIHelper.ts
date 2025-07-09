@@ -55,6 +55,11 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const getAuthorizationServerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null> => {
 			const pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
+			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
+			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
+				`${metadata.authorization_servers[0]}/.well-known/oauth-authorization-server` :
+				null;
+
 			const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 			console.log('getAuthorizationServerMetadata');
 			try {
@@ -71,7 +76,14 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				).catch(() => null);
 
 				if (!authzServeMetadata) {
-					return null;
+					const authzMetadataFromCredentialIssuerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+						pathAuthorizationServerFromCredentialIssuerMetadata,
+						OpenidAuthorizationServerMetadataSchema,
+					).catch(() => null);
+					if (!authzMetadataFromCredentialIssuerMetadata) {
+						return null;
+					}
+					return { authzServeMetadata: authzMetadataFromCredentialIssuerMetadata };
 				}
 				return { authzServeMetadata };
 			}
@@ -145,72 +157,41 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		async (
 			getIssuers: () => Promise<Record<string, unknown>[]>,
 			onCertificates: (pemCertificates: string[]) => void,
-			shouldUseCache: boolean
-		): Promise<void> => {
-			console.log('fetchIssuerMetadataAndCertificates - shouldUseCache', shouldUseCache);
+			shouldUseCache: boolean,
+			onIssuerMetadataResolved?: (issuerIdentifier: string, metadata: OpenidCredentialIssuerMetadata) => void
+		) => {
+			const issuerEntities = await getIssuers().catch(() => []);
 
+			issuerEntities.forEach(async (entity: any) => {
+				if (!entity.credentialIssuerIdentifier) return;
 
-			const credentialIssuerEntities = await getIssuers().catch(() => []);
-			const result = await Promise.all(credentialIssuerEntities.map(async (issuerEntity) =>
-				"credentialIssuerIdentifier" in issuerEntity && typeof issuerEntity.credentialIssuerIdentifier === "string" ?
-					getCredentialIssuerMetadata(issuerEntity.credentialIssuerIdentifier, shouldUseCache).then((result =>
-						result?.metadata
-					)).catch((err) => { console.error(err); return null; }) : null
-			));
+				try {
+					const metadataResult = await getCredentialIssuerMetadata(entity.credentialIssuerIdentifier, shouldUseCache);
+					const metadata = metadataResult?.metadata;
+					if (!metadata) return;
 
-			for (const r of result) {
-				if (!r) continue;
+					// Call a callback to update state when metadata resolves.
+					onIssuerMetadataResolved?.(entity.credentialIssuerIdentifier, metadata);
 
-				const logoUris: string[] = [];
+					const logoUris = metadata.display?.map(d => d.logo?.uri).filter(Boolean) || [];
+					Object.values(metadata.credential_configurations_supported || {}).forEach((config: any) => {
+						config.display?.forEach(d => d.logo?.uri && logoUris.push(d.logo.uri));
+					});
 
-				// Issuer display array
-				if (Array.isArray(r.display)) {
-					for (const entry of r.display) {
-						if (entry?.logo?.uri) {
-							logoUris.push(entry.logo.uri);
+					logoUris.forEach(uri => httpProxy.get(uri, {}, { useCache: shouldUseCache }).catch(console.error));
+
+					if (metadata.mdoc_iacas_uri) {
+						const response = await getMdocIacas(metadata.credential_issuer, metadata, shouldUseCache);
+						if (response?.iacas?.length) {
+							onCertificates(response.iacas.map(cert =>
+								`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
+							));
 						}
 					}
+				} catch (error) {
+					console.error(`Failed to fetch metadata for ${entity.credentialIssuerIdentifier}:`, error);
 				}
-
-				// credential_configurations_supported.*.display[]
-				if (r.credential_configurations_supported && typeof r.credential_configurations_supported === 'object') {
-					for (const config of Object.values(r.credential_configurations_supported)) {
-						const configObj = config as Record<string, any>;
-						if (Array.isArray(configObj.display)) {
-							for (const entry of configObj.display) {
-								if (entry?.logo?.uri) {
-									logoUris.push(entry.logo.uri);
-								}
-							}
-						}
-					}
-				}
-
-				// Fetch logos
-				for (const uri of logoUris) {
-					try {
-						await httpProxy.get(uri, {}, { useCache: shouldUseCache });
-					} catch (err) {
-						console.error(`Failed to fetch logo from ${uri}`, err);
-					}
-				}
-
-				if (r.mdoc_iacas_uri) {
-					try {
-						const response = await getMdocIacas(r.credential_issuer, r, shouldUseCache);
-						if (!response.iacas) {
-							continue;
-						}
-						const pemCertificates = response.iacas.map((cert) =>
-							`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
-						)
-						onCertificates(pemCertificates);
-					}
-					catch (err) {
-						continue;
-					}
-				}
-			}
+			});
 		},
 		[getCredentialIssuerMetadata, getMdocIacas, httpProxy]
 	);

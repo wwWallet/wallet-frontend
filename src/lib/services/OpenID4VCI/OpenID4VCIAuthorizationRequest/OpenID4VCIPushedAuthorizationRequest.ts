@@ -3,9 +3,7 @@ import { OpenidAuthorizationServerMetadata } from "../../../schemas/OpenidAuthor
 import pkce from 'pkce-challenge';
 import { OpenidCredentialIssuerMetadata } from "../../../schemas/OpenidCredentialIssuerMetadataSchema";
 import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
-import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "@/context/SessionContext";
 import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
@@ -14,7 +12,18 @@ import { WalletStateUtils } from "@/services/WalletStateUtils";
 export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
-	const { keystore } = useContext(SessionContext);
+	const { keystore, api, isLoggedIn } = useContext(SessionContext);
+
+	const { get } = api;
+	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
+		if (!api || !isLoggedIn) {
+			return null;
+		}
+		return get('/user/session/account-info').then((response) => {
+			const userData = response.data;
+			return userData.settings.openidRefreshTokenMaxAgeInSeconds as number;
+		});
+	}, [get, isLoggedIn]);
 
 	const generate = useCallback(
 		async (
@@ -73,7 +82,13 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 				throw new Error("Pushed Authorization request failed. Reason: " + JSON.stringify(res.data))
 			}
 			const { request_uri } = res.data;
-			const authorizationRequestURL = `${config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${config.clientId}`
+			const authorizationRequestURL = new URL(config.authorizationServerMetadata.authorization_endpoint);
+			authorizationRequestURL.searchParams.set('request_uri', request_uri);
+			authorizationRequestURL.searchParams.set('client_id', config.clientId);
+			const age = await getRememberIssuerAge();
+			if (age != null && age == 0) {
+				authorizationRequestURL.searchParams.set('prompt', 'login');
+			}
 
 			await openID4VCIClientStateRepository.create({
 				sessionId: WalletStateUtils.getRandomUint32(),
@@ -84,7 +99,7 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 				created: Math.floor(Date.now() / 1000),
 			});
 			await openID4VCIClientStateRepository.commitStateChanges();
-			return { authorizationRequestURL };
+			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
 		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository]
 	);

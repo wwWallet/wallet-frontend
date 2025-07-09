@@ -163,6 +163,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			let warnings = [];
 			for (const rawCredential of credentialArray) {
+
 				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
 				console.log('result', result);
 				if (result.success) {
