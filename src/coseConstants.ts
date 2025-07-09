@@ -17,3 +17,8 @@ export type COSE_ALG_ARKG_P256 = typeof COSE_ALG_ARKG_P256; // eslint-disable-li
 // Modified Split-BBS with SHA-256 (no spec yet)
 export const COSE_ALG_SPLIT_BBS = -65602;
 export type COSE_ALG_SPLIT_BBS = typeof COSE_ALG_SPLIT_BBS; // eslint-disable-line @typescript-eslint/no-redeclare
+
+// The curve BLS12-381 (duplicate of requested standardization 13: https://www.ietf.org/archive/id/draft-ietf-cose-bls-key-representations-07.html#name-curve-parameter-registratio)
+// Defined in: https://yubicolabs.github.io/cose-two-party-signing-algs-rfc/split-bbs/draft-lundberg-cose-two-party-signing-algs.html#name-split-bbs
+export const COSE_CRV_BLS12_381 = -65601;
+export type COSE_CRV_BLS12_381 = typeof COSE_CRV_BLS12_381; // eslint-disable-line @typescript-eslint/no-redeclare

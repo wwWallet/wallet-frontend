@@ -101,7 +101,7 @@ export const CredentialsContextProvider = ({ children }) => {
 			return acc;
 		}, {});
 
-		const { sdJwtVerifier, msoMdocVerifier } = engine;
+		const { jptVerifier, sdJwtVerifier, msoMdocVerifier } = engine;
 		// Filter and map the fetched list in one go
 		let filteredVcEntityList = await Promise.all(
 			fetchedVcList
@@ -121,6 +121,9 @@ export const CredentialsContextProvider = ({ children }) => {
 					}
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
+							case VerifiableCredentialFormat.DC_JPT:
+								return jptVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return { success: true };
 							case VerifiableCredentialFormat.VC_SDJWT:
 								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
 							case VerifiableCredentialFormat.DC_SDJWT:

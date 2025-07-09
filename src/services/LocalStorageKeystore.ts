@@ -24,6 +24,8 @@ import { JWK } from "jose";
 import { PublicKeyCredentialCreation } from "../types/webauthn";
 import WebauthnInteractionDialogContext, { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 import { useTranslation } from "react-i18next";
+import { StorableCredential } from "@/lib/types/StorableCredential";
+import { PointG1 } from "wallet-common/dist/bbs/index";
 
 
 type UserData = {
@@ -88,6 +90,7 @@ export interface LocalStorageKeystore {
 	getUserHandleB64u(): string | null,
 
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
+	signSplitBbs(vcEntity: StorableCredential, t2bar: PointG1, c_host: bigint): Promise<BufferSource>,
 	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
@@ -96,6 +99,11 @@ export interface LocalStorageKeystore {
 
 	generateKeypairs(n: number): Promise<[
 		{ keypairs: keystore.CredentialKeyPair[] },
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>,
+	generateBbsKeypair(): Promise<[
+		{ publicJwk: JWK },
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
@@ -513,7 +521,71 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				nonce,
 				audience,
 				verifiableCredentials,
+				async event => {
+					if (event.id === "success") {
+						moveUiStateMachine(event);
+						return { id: "success:ok" };
+					} else {
+						return moveUiStateMachine(event);
+					}
+				},
 				transactionDataResponseParams,
+			);
+		},
+		[openPrivateData]
+	);
+
+	const signSplitBbs = useCallback(
+		async (vcEntity: StorableCredential, t2bar: PointG1, c_host: bigint, uiStateMachine: UiStateMachineFunction): Promise<BufferSource> => {
+			console.log("signSplitBbs", vcEntity, t2bar, c_host);
+			const moveUiStateMachine = webauthnInteractionCtx.setup(
+				t("Sign credential presentation"),
+				state => {
+					switch (state.id) {
+						case 'intro':
+							return {
+								bodyText: t('To proceed, please authenticate with your passkey.'),
+								buttons: {
+									continue: 'intro:ok',
+								},
+							};
+
+						case 'webauthn-begin':
+							return {
+								bodyText: t("Please interact with your authenticator..."),
+							};
+
+						case 'err':
+							return {
+								bodyText: t("An error occurred!"),
+								buttons: {
+									retry: true,
+								},
+							};
+
+						case 'err:ext:sign:signature-not-found':
+							return {
+								bodyText: t("An error occurred: Signature not found."),
+								buttons: {
+									retry: true,
+								},
+							};
+
+						case 'success':
+							return {
+								bodyText: t("Success! Please wait..."),
+							};
+
+						default:
+							throw new Error('Unknown WebAuthn interaction state:', { cause: state });
+					}
+				},
+			);
+			return await keystore.signSplitBbs(
+				await openPrivateData(),
+				vcEntity,
+				t2bar,
+				c_host,
 				async event => {
 					if (event.id === "success") {
 						moveUiStateMachine(event);
@@ -628,6 +700,23 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[editPrivateData]
 	);
 
+	const generateBbsKeypair = useCallback(
+		async (): Promise<[
+			{ publicJwk: JWK },
+			AsymmetricEncryptedContainer,
+			CommitCallback,
+		]> => (
+			await editPrivateData(async (originalContainer) => {
+				const [{ publicJwk }, newContainer] = await keystore.generateBbsKeypair(
+					originalContainer,
+					config.DID_KEY_VERSION,
+				);
+				return [{ publicJwk }, newContainer];
+			})
+		),
+		[editPrivateData]
+	);
+
 	return useMemo(() => ({
 		isOpen,
 		close,
@@ -645,8 +734,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		forgetCachedUser,
 		getUserHandleB64u,
 		signJwtPresentation,
+		signSplitBbs,
 		generateOpenid4vciProofs,
 		generateKeypairs,
+		generateBbsKeypair,
 		generateDeviceResponse,
 		generateDeviceResponseWithProximity,
 	}), [
@@ -666,8 +757,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		forgetCachedUser,
 		getUserHandleB64u,
 		signJwtPresentation,
+		signSplitBbs,
 		generateOpenid4vciProofs,
 		generateKeypairs,
+		generateBbsKeypair,
 		generateDeviceResponse,
 		generateDeviceResponseWithProximity,
 	]);

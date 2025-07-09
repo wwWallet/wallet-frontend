@@ -6,10 +6,12 @@ import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
 import * as cbor from 'cbor-web';
+import { bls12_381 } from '@noble/curves/bls12-381';
+import { ALG_SPLIT_BBS, CRV_BLS12381G1, exportHolderPrivateJwk, exportHolderPublicJwk, importHolderPublicJwk, importPrivateJwk } from 'wallet-common/dist/jwp/.';
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, filterObject, fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, sequentialAll, toBase64Url } from "../util";
+import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toHex, toU8 } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
@@ -22,8 +24,10 @@ import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
-import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "../coseConstants";
+import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS, COSE_CRV_BLS12_381, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "../coseConstants";
 import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
+import { StorableCredential } from "@/lib/types/StorableCredential";
+import { getCipherSuite, PointG1 } from "wallet-common/dist/bbs/index";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -237,12 +241,13 @@ type WebauthnSignArkgPublicSeed = {
 type WebauthnSignSplitBbsKeypair = {
 	credentialId: Uint8Array,
 	/** Contains kid used to construct reference to private key */
-	publicKey: webauthn.ParsedCOSEKeyEc2Public,
+	publicKey: webauthn.ParsedCOSEKeyEc2Public & { kid: any },
 }
 
 type WebauthnSignKeyRef = {
 	credentialId: Uint8Array,
 	keyRef: Uint8Array,
+	bbsBlindingFactor?: Uint8Array,
 }
 
 type CredentialKeyPairCommon = {
@@ -259,11 +264,17 @@ type CredentialKeyPairWithExternalPrivateKey = CredentialKeyPairCommon & {
 }
 export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey | CredentialKeyPairWithExternalPrivateKey;
 
-type WrappedPrivateKey = {
+type WrappedPrivateKeyJwk = {
 	privateKey: BufferSource,
 	aesGcmParams: AesGcmParams,
+}
+
+type WrappedPrivateCryptoKey = WrappedPrivateKeyJwk & {
 	unwrappedKeyAlgo: EcKeyImportParams,
 }
+
+type WrappedPrivateKey = WrappedPrivateCryptoKey | WrappedPrivateKeyJwk;
+
 
 export type PrivateData = {
 	keypairs: {
@@ -413,7 +424,7 @@ export async function updatePrivateData(
 	[privateData, currentMainKey]: OpenedContainer,
 	update: (
 		privateData: PrivateData,
-		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
+		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey | JWK>,
 	) => Promise<PrivateData>,
 ): Promise<OpenedContainer> {
 	if (!isAsymmetricEncryptedContainer(privateData)) {
@@ -427,7 +438,7 @@ export async function updatePrivateData(
 	} = await createAsymmetricMainKey();
 
 	const privateDataContent = await decryptPrivateData(privateData.jwe, currentMainKey);
-	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey>) => {
+	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey | JWK>) => {
 		const privateKey = await unwrapPrivateKey(wrappedPrivateKey, currentMainKey, true);
 		const newPrivateKey = await update(privateKey);
 		return await wrapPrivateKey(newPrivateKey, currentMainKey);
@@ -481,7 +492,7 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 		exportedMainKey,
 		"AES-GCM",
 		false,
-		["decrypt", "wrapKey", "unwrapKey"],
+		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
 	);
 }
 
@@ -641,35 +652,48 @@ export async function unwrapKey(
 			keyInfo.unwrapAlgo,
 			keyInfo.unwrappedKeyAlgo,
 			extractable,
-			["decrypt", "wrapKey", "unwrapKey"],
+			["encrypt", "decrypt", "wrapKey", "unwrapKey"],
 		);
 	}
 }
 
-async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
-	return await crypto.subtle.unwrapKey(
-		"jwk",
-		wrappedPrivateKey.privateKey,
-		wrappingKey,
-		wrappedPrivateKey.aesGcmParams,
-		wrappedPrivateKey.unwrappedKeyAlgo,
-		extractable,
-		["sign"],
-	);
+async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey | JWK> {
+	if ("unwrappedKeyAlgo" in wrappedPrivateKey) {
+		return await crypto.subtle.unwrapKey(
+			"jwk",
+			wrappedPrivateKey.privateKey,
+			wrappingKey,
+			wrappedPrivateKey.aesGcmParams,
+			wrappedPrivateKey.unwrappedKeyAlgo,
+			extractable,
+			["sign"],
+		);
+	} else {
+		const privateKeyData = await crypto.subtle.decrypt(wrappedPrivateKey.aesGcmParams, wrappingKey, wrappedPrivateKey.privateKey);
+		return JSON.parse(new TextDecoder().decode(privateKeyData));
+	}
 };
 
-async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
+async function wrapPrivateKey(privateKey: CryptoKey | JWK, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
 	const privateKeyAesGcmParams: AesGcmParams = {
 		name: "AES-GCM",
 		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
 		additionalData: new Uint8Array([]),
 		tagLength: 128,
 	};
-	return {
-		privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
-		aesGcmParams: privateKeyAesGcmParams,
-		unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-	};
+	if (privateKey instanceof CryptoKey) {
+		return {
+			privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
+			aesGcmParams: privateKeyAesGcmParams,
+			unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
+		};
+	} else {
+		const privateKeyData = new TextEncoder().encode(JSON.stringify(privateKey));
+		return {
+			privateKey: await crypto.subtle.encrypt(privateKeyAesGcmParams, wrappingKey, privateKeyData),
+			aesGcmParams: privateKeyAesGcmParams,
+		};
+	}
 };
 
 async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
@@ -729,12 +753,13 @@ async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInf
 		["deriveKey"],
 	);
 
+	const algParams = keyInfo.algorithm || { name: "AES-KW", length: 256 };
 	return await crypto.subtle.deriveKey(
 		keyInfo.pbkdf2Params,
 		keyMaterial,
-		keyInfo.algorithm || { name: "AES-KW", length: 256 },
+		algParams,
 		true,
-		["wrapKey", "unwrapKey"],
+		algParams?.name === "AES-KW" ? ["wrapKey", "unwrapKey"] : ["wrapKey", "unwrapKey", "encrypt", "decrypt"],
 	);
 };
 
@@ -784,13 +809,14 @@ async function derivePrfKey(
 		["deriveKey"],
 	);
 	const { hkdfSalt, hkdfInfo, algorithm } = deriveKeyParams;
+	const algParams = algorithm || { name: "AES-KW", length: 256 };
 
 	return await crypto.subtle.deriveKey(
 		{ name: "HKDF", hash: "SHA-256", salt: hkdfSalt, info: hkdfInfo },
 		hkdfKey,
-		algorithm || { name: "AES-KW", length: 256 },
+		algParams,
 		true,
-		["wrapKey", "unwrapKey"],
+		algParams?.name === "AES-KW" ? ["wrapKey", "unwrapKey"] : ["wrapKey", "unwrapKey", "encrypt", "decrypt"],
 	);
 }
 
@@ -1418,9 +1444,119 @@ async function addNewCredentialKeypairs(
 	};
 }
 
+async function addNewBbsKeypair(
+	[privateData, mainKey]: OpenedContainer,
+	didKeyVersion: DidKeyVersion,
+	deriveKid: (publicKey: JWK, did: string) => Promise<string>,
+): Promise<{
+	publicJwk: JWK,
+	newPrivateData: OpenedContainer,
+}> {
+	const [privateDataContents] = await openPrivateData(mainKey, privateData);
+	if (privateDataContents.splitBbsKeypairs && privateDataContents.splitBbsKeypairs.length > 0) {
+		const bbsKeypair = privateDataContents.splitBbsKeypairs[0];
+		const blindingFactor = bls12_381.utils.randomSecretKey();
+		const publicKey = bls12_381.G1.Point.fromBytes(
+			importHolderPublicJwk({
+				kty: 'EC',
+				alg: 'experimental/SplitBBSv2.1',
+				crv: 'BLS12381G1',
+				x: toBase64Url(bbsKeypair.publicKey.x),
+				y: toBase64Url(bbsKeypair.publicKey.y),
+			}, "experimental/SplitBBSv2.1").toBytes()
+			// toBytes and fromBytes to work around `instanceof ProjectivePoint` check in `Point.add`, which fails because of diverged JavaScript contexts
+		).add(bls12_381.G1.Point.BASE.multiply(bls12_381.fields.Fr.fromBytes(blindingFactor)));
+		const publicJwk = exportHolderPublicJwk(publicKey, "experimental/SplitBBSv2.1");
+
+		const did = await createDid(publicJwk as JWK, didKeyVersion);
+		const kid = await deriveKid(publicJwk as JWK, did);
+
+		const publicKeyWithKid = { ...publicJwk, kid };
+		const keypair: CredentialKeyPair = {
+			kid,
+			did,
+			alg: "experimental/SplitBBSv2.1",
+			publicKey: publicKeyWithKid,
+			externalPrivateKey: {
+				credentialId: bbsKeypair.credentialId,
+				keyRef: cbor.encodeCanonical(new cbor.Map([ // Can't use object literal because that turns integer keys into strings
+					[1, -2], // kty: Ref-EC2 TODO: update to 2 (EC2) in sign-ext version 4
+					[2, bbsKeypair.publicKey.kid.buffer],
+					[3, bbsKeypair.publicKey.alg],
+				])),
+				bbsBlindingFactor: blindingFactor,
+			},
+		};
+
+		console.log("addNewBbsKeypair: Before update private data")
+		return {
+			publicJwk: publicKeyWithKid,
+			newPrivateData: await updatePrivateData(
+				[privateData, mainKey],
+				async (privateData: PrivateData) => {
+
+					const combinedKeypairs = {
+						...privateData.keypairs,
+						[kid]: keypair,
+					};
+
+					return {
+						...privateData,
+						keypairs: {
+							...combinedKeypairs
+						},
+					}
+				}
+			),
+		};
+
+	} else {
+		const privateKey = bls12_381.fields.Fr.fromBytes(bls12_381.utils.randomSecretKey());
+		const publicKey = bls12_381.G1.Point.BASE.multiply(privateKey);
+		const privateJwk = exportHolderPrivateJwk(privateKey, "experimental/SplitBBSv2.1");
+		const publicJwk = exportHolderPublicJwk(publicKey, "experimental/SplitBBSv2.1");
+
+		const did = await createDid(publicJwk as JWK, didKeyVersion);
+		const kid = await deriveKid(publicJwk as JWK, did);
+
+		const wrappedPrivateKey = await wrapPrivateKey(privateJwk as JWK, mainKey);
+
+		const publicKeyWithKid = { ...publicJwk, kid };
+		const keypair: CredentialKeyPair = {
+			kid,
+			did,
+			alg: "experimental/SplitBBSv2.1",
+			publicKey: publicKeyWithKid,
+			wrappedPrivateKey,
+		};
+
+		console.log("addNewBbsKeypair: Before update private data")
+		return {
+			publicJwk: publicKeyWithKid,
+			newPrivateData: await updatePrivateData(
+				[privateData, mainKey],
+				async (privateData: PrivateData) => {
+
+					const combinedKeypairs = {
+						...privateData.keypairs,
+						[kid]: keypair,
+					};
+
+					return {
+						...privateData,
+						keypairs: {
+							...combinedKeypairs
+						},
+					}
+				}
+			),
+		};
+	}
+}
+
 async function createDid(publicKey: CryptoKey | JWK, didKeyVersion: DidKeyVersion): Promise<string> {
 	if (didKeyVersion === "p256-pub") {
-		const { didKeyString } = await createW3CDID(await toUncompressedRaw(publicKey));
+		const { didKeyString } = await createW3CDID(publicKey);
 		return didKeyString;
 	} else if (didKeyVersion === "jwk_jcs-pub") {
 		const publicKeyJwk = await toJwk(publicKey);
@@ -1433,8 +1569,8 @@ export async function signJwtPresentation(
 	nonce: string,
 	audience: string,
 	verifiableCredentials: any[],
-	transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] },
 	uiStateMachine: UiStateMachineFunction,
+	transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] },
 ): Promise<{ vpjwt: string }> {
 	const hasher = (data: string | ArrayBuffer, alg: string) => {
 		const encoded =
@@ -1465,7 +1601,11 @@ export async function signJwtPresentation(
 		if ("wrappedPrivateKey" in keypair) {
 			const { wrappedPrivateKey } = keypair;
 			const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
-			return signJwt.sign(privateKey);
+			if (privateKey instanceof CryptoKey) {
+				return signJwt.sign(privateKey);
+			} else {
+				throw new Error("Unexpected unwrapped private key: expected CryptoKey, was: " + (typeof privateKey));
+			}
 
 		} else {
 			return signJwt.sign(
@@ -1489,6 +1629,66 @@ export async function signJwtPresentation(
 
 	const jws = sdJwt + kbJWT;
 	return { vpjwt: jws };
+}
+
+export async function signSplitBbs(
+	[privateData, mainKey]: [PrivateData, CryptoKey],
+	vcEntity: StorableCredential,
+	t2bar: PointG1,
+	c_host: bigint,
+	uiStateMachine: UiStateMachineFunction,
+): Promise<BufferSource> {
+	console.log("signSplitBbs", vcEntity);
+	const credParts = vcEntity.credential.split('.');
+	const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
+
+	const keypair = privateData.keypairs[dpkJwk.kid];
+	if (keypair) {
+		const bbs = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
+		if ("wrappedPrivateKey" in keypair) {
+			const privateKey = await unwrapPrivateKey(keypair.wrappedPrivateKey, mainKey);
+			const dsk = importPrivateJwk(privateKey as any, CRV_BLS12381G1, ALG_SPLIT_BBS);
+			return bbs.SplitProofGenDevice(dsk, bls12_381.G1.Point.BASE.toBytes(), c_host, t2bar.toBytes());
+		} else {
+			const t2aff = t2bar.toAffine();
+			const keyRef = cbor.decode(keypair.externalPrivateKey.keyRef);
+			keyRef.set(-10, new cbor.Map([ // Can't use object literal because that turns integer keys into strings
+				[1, 2], // kty: EC2
+				[-1, COSE_CRV_BLS12_381], // crv: BLS12-381
+				[-2, bls12_381.fields.Fp.toBytes(t2aff.x).buffer],
+				[-3, bls12_381.fields.Fp.toBytes(t2aff.y).buffer],
+			]));
+			const signFunc = makeWebauthnSignFunction(
+				config.WEBAUTHN_RPID,
+				{
+					...keypair,
+					externalPrivateKey: {
+						...keypair.externalPrivateKey,
+						keyRef: toU8(cbor.encodeCanonical(keyRef)),
+					},
+				},
+				uiStateMachine,
+			);
+
+			const sig = await signFunc("experimental/SplitBBSv2.1", null, toU8(I2OSP(c_host, 32)));
+			if (keypair.externalPrivateKey.bbsBlindingFactor) {
+				const sa1 = sig.slice(0, 32);
+				const c = sig.slice(32, 64);
+				const n = sig.slice(64, 96);
+				const sa1Int = OS2IP(sa1);
+				const cInt = OS2IP(c);
+				const Fr = bls12_381.fields.Fr;
+				const b = OS2IP(keypair.externalPrivateKey.bbsBlindingFactor)
+				const sa1bar = Fr.sub(sa1Int, Fr.mul(cInt, b));
+				return concat(I2OSP(sa1bar, 32), c, n);
+			} else {
+				return sig;
+			}
+		}
+
+	} else {
+		throw new Error("Keypair not found");
+	}
 }
 
 export async function generateOpenid4vciProofs(
@@ -1561,6 +1761,18 @@ export async function generateKeypairs(
 	};
 	const { newPrivateData, keypairs } = await addNewCredentialKeypairs(container, didKeyVersion, deriveKid, numberOfKeyPairs);
 	return [{ keypairs }, newPrivateData];
+}
+
+export async function generateBbsKeypair(
+	container: OpenedContainer,
+	didKeyVersion: DidKeyVersion,
+): Promise<[{ publicJwk: JWK }, OpenedContainer]> {
+	const deriveKid = async (publicKey: JWK) => {
+		const jwkThumbprint = await jose.calculateJwkThumbprint(publicKey, "sha256");
+		return jwkThumbprint;
+	};
+	const { newPrivateData, publicJwk } = await addNewBbsKeypair(container, didKeyVersion, deriveKid)
+	return [{ publicJwk }, newPrivateData];
 }
 
 export async function generateDeviceResponse([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {

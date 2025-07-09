@@ -92,7 +92,7 @@ const AddCredentials = () => {
 						if (!issuer.visible) {
 							return;
 						}
-						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier)).metadata;
+						const metadata = (await openID4VCIHelper.getCredentialIssuerMetadata(issuer.credentialIssuerIdentifier, false)).metadata;
 						const configs = await openID4VCI.getAvailableCredentialConfigurations(issuer.credentialIssuerIdentifier);
 
 
