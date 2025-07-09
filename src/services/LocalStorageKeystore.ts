@@ -243,19 +243,21 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[closeSessionTabLocal, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
-	useEffect(
-		() => {
-			if (userHandleB64u) {
-				readPrivateDataFromIdb(userHandleB64u).then((privateData) => {
-					// When user logs out in any tab, log out in all tabs
-					if (!privateData) {
-						closeSessionTabLocal();
-					}
-				})
+	useEffect(() => {
+		const checkPrivateData = async () => {
+			if (!globalUserHandleB64u) {
+				closeSessionTabLocal();
+				return;
 			}
-		},
-		[closeSessionTabLocal, userHandleB64u],
-	);
+
+			const privateData = await readPrivateDataFromIdb(globalUserHandleB64u);
+			if (!privateData) {
+				closeSessionTabLocal();
+			}
+		};
+
+		checkPrivateData();
+	}, [closeSessionTabLocal, globalUserHandleB64u]);
 
 	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletBaseState]> => {
 		if (mainKey && privateData) {

@@ -23,7 +23,7 @@ export const SessionContextProvider = ({ children }) => {
 	// Memoize clearSession using useCallback
 	const clearSession = useCallback(async () => {
 		window.history.replaceState({}, '', `${window.location.pathname}`);
-		console.log('Clear Session');
+		console.log('[Session Context] Clear Session');
 		api.clearSession();
 	}, [api]);
 
@@ -33,9 +33,10 @@ export const SessionContextProvider = ({ children }) => {
 	}, [clearSession]);
 
 	// The close() will dispatch Event CloseSessionTabLocal in order to call the clearSession
-	const logout = async () => {
+	const logout = useCallback(async () => {
+		console.log('[Session Context] Close Keystore');
 		await keystore.close();
-	};
+	}, [keystore]);
 
 	useEffect(() => {
 		// Handler function that calls the current clearSession function
@@ -61,6 +62,10 @@ export const SessionContextProvider = ({ children }) => {
 		logout,
 	}), [api, keystore, logout]);
 
+
+	if (api.isLoggedIn() === true && keystore.isOpen() === false) {
+		return <></>
+	}
 	return (
 		<SessionContext.Provider value={value}>
 			{children}
