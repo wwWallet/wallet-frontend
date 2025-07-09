@@ -10,12 +10,12 @@ export default {
 				'55': 55,
 			},
 			colors: {
-				'primary': '#003476',
-				'primary-hover': '#002b62',
-				'primary-light': '#4169E1',
-				'primary-light-hover': '#0F52BA',
+				'primary': '#0750AF',
+				'primary-hover': '#004195',
+				'primary-light': '#1D6FDB',
+				'primary-light-hover': '#0F59BA',
 				'extra-light': '#42B6E9',
-				'extra-light-hover': '#5DB5D8',
+				'extra-light-hover': '#2CABE3',
 			},
 			screens: {
 				'2xs': '360px',
