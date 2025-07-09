@@ -44,5 +44,9 @@ export function useWalletStateSettingsMigrationManager(keystore: LocalStorageKey
 		}
 	}, [api, keystore, isOnline]);
 
+	useEffect(() => {
+		migrated.current = false;
+	}, [isLoggedIn]);
+
 	return useMemo(() => ({ }), []);
 }

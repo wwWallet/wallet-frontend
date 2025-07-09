@@ -45,7 +45,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			}
 		});
 		console.log("Transformed credentials = ", transformedVcEntities)
-		const [{}, newPrivateData, keystoreCommit] = await keystore.addCredentials(transformedVcEntities);
+		const [{ }, newPrivateData, keystoreCommit] = await keystore.addCredentials(transformedVcEntities);
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
@@ -62,5 +62,9 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 		}
 	}, [api, keystore, isOnline]);
 
-	return useMemo(() => ({ }), []);
+	useEffect(() => {
+		migrated.current = false;
+	}, [isLoggedIn]);
+
+	return useMemo(() => ({}), []);
 }

@@ -89,5 +89,9 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 		}
 	}, [api, keystore, isOnline]);
 
+	useEffect(() => {
+		migrated.current = false;
+	}, [isLoggedIn]);
+
 	return useMemo(() => ({}), []);
 }
