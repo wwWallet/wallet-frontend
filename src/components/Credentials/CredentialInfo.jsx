@@ -121,19 +121,19 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const existingCustomClaims = customClaims.filter(field => getValueByPath(field.path, signedClaims) !== undefined);
 
-	const filteredClaims = Array.isArray(claims)
-		? claims.filter(c => {
+	const displayClaims = claims && Array.isArray(claims) ? claims : existingCustomClaims;
+
+	const filteredClaims = Array.isArray(displayClaims)
+		? displayClaims.filter(c => {
 			const valid = isValidClaim(c);
 			if (!valid) console.warn('Invalid claim metadata:', c);
 			return valid;
 		})
 		: [];
 
-	const displayClaims = filteredClaims.length > 0 ? filteredClaims : existingCustomClaims;
-
 	const nestedClaims = {};
 
-	const expandedDisplayClaims = expandDisplayClaims(displayClaims, signedClaims);
+	const expandedDisplayClaims = expandDisplayClaims(filteredClaims, signedClaims);
 
 	expandedDisplayClaims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
