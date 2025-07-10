@@ -92,7 +92,7 @@ const formatClaimValue = (value) => {
 	if (typeof value === 'object') {
 		return (
 			<div className="w-full">
-				<div className="max-h-40 resize-y overflow-auto border rounded px-2 rounded-xl">
+				<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
 					<JsonViewer value={value} />
 				</div>
 			</div>
@@ -162,11 +162,11 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
 					<div key={key} className="w-full">
-						<details className="px-2 py-1 bg-gray-800 rounded-md">
+						<details className="px-2 py-1 bg-white dark:bg-gray-800 rounded-md">
 							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
 								{label}
 							</summary>
-							<div className="ml-4 my-1 border-l border-w-1 border-gray-600 text-primary dark:text-primary-light">
+							<div className="ml-4 my-1 border-l border-w-1 border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
 								{renderClaims(value)}
 							</div>
 						</details>
