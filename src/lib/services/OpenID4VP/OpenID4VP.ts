@@ -264,13 +264,19 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						const { signedClaims, error } = await parseCredential(vc.credential);
 						if (error) throw error;
 						shaped.vct = signedClaims.vct;
-						shaped.claims = {};
-						for (const claim of credReq.claims) {
-							for (const p of claim.path) {
-								const v = p.split('.').reduce((o, k) => o?.[k], signedClaims);
-								if (v !== undefined) {
-									shaped.claims[p] = v;
-									break;
+						if (!credReq.claims || credReq.claims.length === 0) {
+							// No claims specified in dcql_query, include all signed claims
+							shaped.claims = signedClaims;
+						} else {
+							// include only requested claims
+							shaped.claims = {};
+							for (const claim of credReq.claims) {
+								for (const p of claim.path) {
+									const v = p.split('.').reduce((o, k) => o?.[k], signedClaims);
+									if (v !== undefined) {
+										shaped.claims[p] = v;
+										break;
+									}
 								}
 							}
 						}
@@ -292,11 +298,13 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 			mapping.set(credReq.id, {
 				credentials: conforming,
-				requestedFields: credReq.claims.map(cl => ({
-					name: cl.id || cl.path.join('.'),
-					purpose: descriptorPurpose,
-					path: cl.path
-				}))
+				requestedFields: !credReq.claims || credReq.claims.length === 0
+					? [{ name: t('selectCredentialPopup.allClaimsRequested'), purpose: descriptorPurpose, path: ['*'] }]
+					: credReq.claims.map(cl => ({
+						name: cl.id || cl.path.join('.'),
+						purpose: descriptorPurpose,
+						path: cl.path
+					}))
 			});
 		}
 
@@ -629,7 +637,17 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-				const paths = descriptor.claims.map(cl => cl.path);
+				const { signedClaims } = await parseCredential(vcEntity.credential);
+
+				let paths: string[][];
+
+				if (!descriptor.claims || descriptor.claims.length === 0) {
+					// All claims are requested, get keys from signedClaims
+					paths = Object.keys(signedClaims).map(key => [key]);
+				} else {
+					// Specific claims requested
+					paths = descriptor.claims.map(cl => cl.path);
+				}
 
 				const frame = generatePresentationFrameForDCQLPaths(paths);
 				const hasher = (data, alg) => {
@@ -643,16 +661,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					? await sdJwt.present(frame, hasher)
 					: vcEntity.credential;
 
-				const { signedClaims } = await parseCredential(vcEntity.credential);
-
 				const shaped = {
 					credential_format: vcEntity.format,
 					vct: signedClaims.vct,
-					claims: Object.fromEntries(
-						Object.entries(signedClaims).filter(([k]) =>
-							descriptor.claims.some(cl => cl.path.includes(k))
+					claims: !descriptor.claims || descriptor.claims.length === 0
+						? signedClaims // include all claims
+						: Object.fromEntries(
+							Object.entries(signedClaims).filter(([k]) =>
+								descriptor.claims.some(cl => cl.path.includes(k))
+							)
 						)
-					)
 				};
 				const presResult = DcqlPresentationResult.fromDcqlPresentation(
 					{ [selectionKey]: shaped },
