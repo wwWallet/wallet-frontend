@@ -1261,7 +1261,7 @@ export async function initWebauthn(
 	};
 }
 
-async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<Uint8Array> {
+function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Uint8Array {
 	// Check if the uncompressed public key has the correct length
 	if (uncompressedRawPublicKey.length !== 65 || uncompressedRawPublicKey[0] !== 0x04) {
 		throw new Error('Invalid uncompressed public key format');
@@ -1281,7 +1281,7 @@ async function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Promise<
 
 async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: string }> {
 	const rawPublicKey = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
-	const compressedPublicKeyBytes = await compressPublicKey(rawPublicKey)
+	const compressedPublicKeyBytes = compressPublicKey(rawPublicKey)
 	// Concatenate keyType and publicKey Uint8Arrays
 	const multicodecPublicKey = new Uint8Array(2 + compressedPublicKeyBytes.length);
 	varint.encodeTo(0x1200, multicodecPublicKey, 0);
