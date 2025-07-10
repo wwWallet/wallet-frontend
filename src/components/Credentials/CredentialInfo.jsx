@@ -161,7 +161,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
 					<div key={key} className="w-full">
-						<details className="px-2 py-1 bg-white dark:bg-gray-800 rounded-md">
+						<details className="px-2 py-1 rounded-md">
 							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
 								{label}
 							</summary>
