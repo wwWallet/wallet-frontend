@@ -722,7 +722,24 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				apu = mdocGeneratedNonce;
 				apv = nonce;
 
-				const presentationDefinition = convertDcqlToPresentationDefinition(dcql_query);
+				let dcqlQueryWithClaims;
+				if (!descriptor.claims || descriptor.claims.length === 0) {
+					dcqlQueryWithClaims = JSON.parse(JSON.stringify(dcql_query));
+					const nsName = mdoc.documents[0].issuerSignedNameSpaces[0];
+					const ns = mdoc.documents[0].getIssuerNameSpace(nsName);
+
+					const descriptorIndex = dcqlQueryWithClaims.credentials.findIndex(c => c.id === selectionKey);
+					if (descriptorIndex !== -1) {
+						dcqlQueryWithClaims.credentials[descriptorIndex].claims = Object.keys(ns).map(key => ({
+							id: key,
+							path: [descriptorId, key]
+						}));
+					}
+				} else {
+					dcqlQueryWithClaims = dcql_query
+				}
+
+				const presentationDefinition = convertDcqlToPresentationDefinition(dcqlQueryWithClaims);
 				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, apu, apv, client_id, response_uri);
 				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
 
