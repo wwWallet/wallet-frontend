@@ -81,7 +81,7 @@ const expandDisplayClaims = (claims, signedClaims) => {
 	return expanded;
 };
 
-const isValidClaim = (claim) => {
+const isDisplayClaim = (claim) => {
 	if (!Array.isArray(claim.path)) return false;
 	if (!Array.isArray(claim.display)) return false;
 	return claim.display.some(d => d.lang && d.label);
@@ -125,8 +125,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const filteredClaims = Array.isArray(displayClaims)
 		? displayClaims.filter(c => {
-			const valid = isValidClaim(c);
-			if (!valid) console.warn('Invalid claim metadata:', c);
+			const valid = isDisplayClaim(c);
 			return valid;
 		})
 		: [];
