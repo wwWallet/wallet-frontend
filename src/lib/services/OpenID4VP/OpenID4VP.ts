@@ -788,6 +788,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const { payload, parsedHeader } = result;
 				client_id = payload.client_id;
 				presentation_definition = payload.presentation_definition;
+				if (payload.presentation_definition) {
+					presentation_definition = payload.presentation_definition;
+				} else if (payload.presentation_definition_uri) {
+					const presentationDefinitionFetch = await httpProxy.get(payload.presentation_definition_uri, {});
+					presentation_definition = presentationDefinitionFetch.data;
+				}
 				dcql_query = payload.dcql_query ?? dcql_query;
 				response_uri = payload.response_uri ?? payload.redirect_uri;
 				if (response_uri && !response_uri.startsWith("http")) {
