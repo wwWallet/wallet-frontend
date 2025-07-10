@@ -9,7 +9,7 @@ import * as cbor from 'cbor-web';
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, sequentialAll, toBase64Url } from "../util";
+import { byteArrayEquals, filterObject, fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, sequentialAll, toBase64Url } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
@@ -1279,9 +1279,24 @@ function compressPublicKey(uncompressedRawPublicKey: Uint8Array): Uint8Array {
 	return compressedPublicKey;
 }
 
-async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: string }> {
-	const rawPublicKey = new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
-	const compressedPublicKeyBytes = compressPublicKey(rawPublicKey)
+async function toUncompressedRaw(publicKey: CryptoKey | JWK): Promise<Uint8Array> {
+	if (publicKey instanceof CryptoKey) {
+		return new Uint8Array(await crypto.subtle.exportKey("raw", publicKey));
+	} else {
+		return new Uint8Array([0x04, ...fromBase64Url(publicKey.x), ...fromBase64Url(publicKey.y)]);
+	}
+}
+
+async function toJwk(publicKey: CryptoKey | JWK): Promise<JWK> {
+	if (publicKey instanceof CryptoKey) {
+		return (await crypto.subtle.exportKey("jwk", publicKey)) as JWK;
+	} else {
+		return publicKey;
+	}
+}
+
+async function createW3CDID(publicKey: CryptoKey | JWK): Promise<{ didKeyString: string }> {
+	const compressedPublicKeyBytes = compressPublicKey(await toUncompressedRaw(publicKey));
 	// Concatenate keyType and publicKey Uint8Arrays
 	const multicodecPublicKey = new Uint8Array(2 + compressedPublicKeyBytes.length);
 	varint.encodeTo(0x1200, multicodecPublicKey, 0);
@@ -1360,7 +1375,7 @@ async function addNewCredentialKeypairs(
 
 	const keypairsWithPrivateKeys = await Promise.all(Array.from({ length: numberOfKeyPairs }).map(async () => {
 		const [publicKey, [privateKey, wrappedPrivateKeyOrRef]] = await generateCredentialKeypair([privateData, mainKey]);
-		const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
+		const publicKeyJwk: JWK = await toJwk(publicKey);
 		const did = await createDid(publicKey, didKeyVersion);
 		const kid = await deriveKid(publicKey, did);
 
@@ -1403,12 +1418,12 @@ async function addNewCredentialKeypairs(
 	};
 }
 
-async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Promise<string> {
+async function createDid(publicKey: CryptoKey | JWK, didKeyVersion: DidKeyVersion): Promise<string> {
 	if (didKeyVersion === "p256-pub") {
-		const { didKeyString } = await createW3CDID(publicKey);
+		const { didKeyString } = await createW3CDID(await toUncompressedRaw(publicKey));
 		return didKeyString;
 	} else if (didKeyVersion === "jwk_jcs-pub") {
-		const publicKeyJwk = await crypto.subtle.exportKey("jwk", publicKey);
+		const publicKeyJwk = await toJwk(publicKey);
 		return didUtil.createDid(publicKeyJwk as JWK);
 	}
 }
