@@ -319,6 +319,7 @@
 		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
+		"allClaimsRequested": "The verifier has requested all claims of the credential.",
 		"baseTitle": "Send Credentials",
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",

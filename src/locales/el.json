@@ -313,6 +313,7 @@
 		"passkeyCreated": "Το κλειδί πρόσβασής σας δημιουργήθηκε."
 	},
 	"selectCredentialPopup": {
+		"allClaimsRequested": "Ο verifier έχει ζητήσει όλα τα πεδία του πιστοποιητικού.",
 		"credentialSelectTitle": "Κάντε κλικ για να επιλέξετε το {{friendlyName}}",
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
 		"previewDescription": "Θα σας ζητηθεί να επιλέξετε credentials που πληρούν τις παρακάτω απαιτήσεις.",

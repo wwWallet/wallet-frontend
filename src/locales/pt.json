@@ -294,6 +294,7 @@
 		"passkeyCreated": "A sua chave de acesso foi criada."
 	},
 	"selectCredentialPopup": {
+		"allClaimsRequested": "O verificador solicitou todas as declarações da credencial.",
 		"credentialSelectTitle": "Clique para selecionar a {{friendlyName}}",
 		"nextButtonDisabledTitle": "Precisa de selecionar uma credencial para continuar",
 		"purpose": "Objetivo: ",
