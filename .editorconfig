@@ -5,17 +5,20 @@ charset = utf-8
 # Type of newline is managed by git in .gitattributes
 insert_final_newline = true
 trim_trailing_whitespace = true
-
-[*.{Dockerfile,css,js,json,jsx,ts,tsx}]
 indent_style = tab
 
-[Dockerfile]
-indent_style = tab
-
-[{package.json,tsconfig.json,.vscode/settings.json}]
+[LICENSE]
 indent_style = space
 
 # YAML does not allow tab indentation
-[*.{yml,yaml}]
+[*.{md,yml,yaml}]
 indent_style = space
 indent_size = 2
+
+[{package.json,tsconfig.json,.vscode/settings.json}]
+indent_style = space
+indent_size = 2
+
+[nginx.conf]
+indent_style = space
+indent_size = 4
