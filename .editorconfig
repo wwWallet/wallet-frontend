@@ -2,7 +2,8 @@
 
 [*]
 charset = utf-8
-insert_final_newline = true # Type of newline is managed by git in .gitattributes
+# Type of newline is managed by git in .gitattributes
+insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.{Dockerfile,css,js,json,jsx,ts,tsx}]
