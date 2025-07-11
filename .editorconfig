@@ -5,7 +5,10 @@ charset = utf-8
 insert_final_newline = true # Type of newline is managed by git in .gitattributes
 trim_trailing_whitespace = true
 
-[{*.{Dockerfile,css,js,json,jsx,ts,tsx},Dockerfile}]
+[*.{Dockerfile,css,js,json,jsx,ts,tsx}]
+indent_style = tab
+
+[Dockerfile]
 indent_style = tab
 
 [{package.json,tsconfig.json,.vscode/settings.json}]
