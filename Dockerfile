@@ -9,6 +9,7 @@ COPY .env.prod .env
 RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/* && git clone --branch master --single-branch --depth 1 https://github.com/wwWallet/wallet-common.git /lib/wallet-common
 
 WORKDIR /lib/wallet-common
+RUN git checkout 22897828ec42f951410c6250cb0d1ea246ca4db1
 RUN yarn install && yarn build
 
 
