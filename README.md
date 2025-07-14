@@ -169,7 +169,6 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 			<th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
       <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
     </tr>
-	</th>
   </thead>
   <tbody>
     <tr>
