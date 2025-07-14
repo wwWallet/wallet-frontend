@@ -41,7 +41,7 @@ const HistoryList = ({ batchId = null, title = '', limit = null }) => {
 	return (
 		<>
 			<div className="py-2 w-full">
-				{title && <H3 heading={title} />}
+				{title && Object.values(history).length > 0 && <H3 heading={title} />}
 				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
 					{Object.values(history).map(item => ( // note: an item is an array of presentations (see useFetchPresentations hook)
 						<button
