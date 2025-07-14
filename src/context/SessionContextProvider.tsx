@@ -13,9 +13,10 @@ export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
-	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, api.isLoggedIn() && keystore.isOpen());
-	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, api.isLoggedIn() && keystore.isOpen());
-	const _settingslMigrationManager = useWalletStateSettingsMigrationManager(keystore, api, isOnline, api.isLoggedIn() && keystore.isOpen());
+	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
+	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	const _settingslMigrationManager = useWalletStateSettingsMigrationManager(keystore, api, isOnline, isLoggedIn);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
@@ -57,10 +58,10 @@ export const SessionContextProvider = ({ children }) => {
 
 	const value: SessionContextValue = useMemo(() => ({
 		api,
-		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
+		isLoggedIn: isLoggedIn,
 		keystore,
 		logout,
-	}), [api, keystore, logout]);
+	}), [api, keystore, logout, isLoggedIn]);
 
 
 	if (api.isLoggedIn() === true && keystore.isOpen() === false) {
