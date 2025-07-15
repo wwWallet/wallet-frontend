@@ -3,7 +3,7 @@ import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
-import { base64url, EncryptJWT, importJWK, importX509, JWK, jwtVerify } from "jose";
+import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
@@ -17,6 +17,7 @@ import SessionContext from "@/context/SessionContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
+import { DcqlQuery, DcqlPresentationResult } from 'dcql';
 import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
 import { parseTransactionData } from "./TransactionData/parseTransactionData";
@@ -82,129 +83,796 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		[showCredentialSelectionPopup]
 	);
 
-	const handleAuthorizationRequest = useCallback(
-		async (url: string): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { error: HandleAuthorizationRequestError }> => {
-			const authorizationRequest = new URL(url);
-			let client_id = authorizationRequest.searchParams.get('client_id');
-			let response_uri = authorizationRequest.searchParams.get('response_uri');
-			let nonce = authorizationRequest.searchParams.get('nonce');
-			let state = authorizationRequest.searchParams.get('state') as string;
-			let presentation_definition = authorizationRequest.searchParams.get('presentation_definition') ? JSON.parse(authorizationRequest.searchParams.get('presentation_definition')) : null;
-			let presentation_definition_uri = authorizationRequest.searchParams.get('presentation_definition_uri');
-			let client_metadata = authorizationRequest.searchParams.get('client_metadata') ? JSON.parse(authorizationRequest.searchParams.get('client_metadata')) : null;
-			let response_mode = authorizationRequest.searchParams.get('response_mode') ? JSON.parse(authorizationRequest.searchParams.get('response_mode')) : null;
-			let transaction_data = authorizationRequest.searchParams.get('transaction_data') ? JSON.parse(authorizationRequest.searchParams.get('transaction_data')) : null;
+	function parseAuthorizationParams(url: string) {
+		const authorizationRequest = new URL(url);
+		const searchParams = authorizationRequest.searchParams;
 
-			if (presentation_definition_uri) {
-				const presentationDefinitionFetch = await httpProxy.get(presentation_definition_uri, {});
-				presentation_definition = presentationDefinitionFetch.data;
+		return {
+			client_id: searchParams.get('client_id'),
+			response_uri: searchParams.get('response_uri'),
+			nonce: searchParams.get('nonce'),
+			state: searchParams.get('state') as string,
+			presentation_definition: searchParams.get('presentation_definition')
+				? JSON.parse(searchParams.get('presentation_definition'))
+				: null,
+			presentation_definition_uri: searchParams.get('presentation_definition_uri'),
+			client_metadata: searchParams.get('client_metadata')
+				? JSON.parse(searchParams.get('client_metadata'))
+				: null,
+			response_mode: searchParams.get('response_mode')
+				? JSON.parse(searchParams.get('response_mode'))
+				: null,
+			transaction_data: searchParams.get('transaction_data')
+				? JSON.parse(searchParams.get('transaction_data'))
+				: null,
+			request_uri: searchParams.get('request_uri'),
+			dcql_query: searchParams.get('dcql_query')
+				? JSON.parse(searchParams.get('dcql_query'))
+				: null
+		};
+	}
+
+	async function resolvePresentationDefinition(presentation_definition_uri: string, httpProxy: any) {
+		const result = await httpProxy.get(presentation_definition_uri, {});
+		return result.data;
+	}
+
+	async function handleRequestUri(request_uri: string, httpProxy: any): Promise<any> {
+		const requestUriResponse = await httpProxy.get(request_uri, {});
+		const jwt = requestUriResponse.data;
+		const [header, payload] = jwt.split('.');
+		const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
+
+		if (parsedHeader.typ !== "oauth-authz-req+jwt") {
+			return { error: HandleAuthorizationRequestError.INVALID_TYP };
+		}
+		const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
+		const verificationResult = await jwtVerify(jwt, publicKey).catch(() => null);
+		if (verificationResult == null) {
+			console.log("Signature verification of request_uri failed");
+			return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER };
+		}
+		const decodedPayload = JSON.parse(new TextDecoder().decode(base64url.decode(payload)));
+		return { payload: decodedPayload, parsedHeader };
+	}
+
+	async function matchCredentialsToDefinition(
+		vcList: any[],
+		presentation_definition: any,
+		parseCredential: any,
+		t: any
+	) {
+		const mapping = new Map<string, { credentials: string[]; requestedFields: string[] }>();
+		let descriptorPurpose;
+
+		for (const descriptor of presentation_definition.input_descriptors) {
+			const conformingVcList = [];
+			descriptorPurpose = descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
+
+			for (const vc of vcList) {
+				try {
+					if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
+						(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
+						const result = await parseCredential(vc.credential);
+						if ('error' in result) continue;
+						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
+							conformingVcList.push(vc.credentialIdentifier);
+							continue;
+						}
+					}
+
+					if (vc.format === VerifiableCredentialFormat.MSO_MDOC && VerifiableCredentialFormat.MSO_MDOC in descriptor.format) {
+						const credentialBytes = base64url.decode(vc.credential);
+						const issuerSigned = cborDecode(credentialBytes);
+						console.log('issuerSigned: ', issuerSigned)
+
+						const m = {
+							version: '1.0',
+							documents: [
+								new Map([
+									['docType', descriptor.id],
+									['issuerSigned', issuerSigned],
+								]),
+							],
+							status: 0,
+						};
+						const encoded = cborEncode(m);
+						const mdoc = parse(encoded);
+						const [document] = mdoc.documents;
+						const ns = document.getIssuerNameSpace(document.issuerSignedNameSpaces[0]);
+						const json = { [descriptor.id]: ns };
+
+						const fieldsWithValue = descriptor.constraints.fields.map((field) => {
+							const values = field.path.map((possiblePath) => JSONPath({ path: possiblePath, json: json })[0]);
+							const val = values.find((v) => v !== undefined && v !== null);
+							return { field, val };
+						});
+
+						if (fieldsWithValue.some((fwv) => fwv.val === undefined)) continue;
+
+						conformingVcList.push(vc.credentialIdentifier);
+					}
+				} catch (err) {
+					console.error("Descriptor matching error", err);
+				}
 			}
 
-			const request_uri = authorizationRequest.searchParams.get('request_uri');
-
-			const client_id_scheme = client_id.split(':')[0];
-			if (client_id_scheme !== 'x509_san_dns') {
-				return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
+			if (conformingVcList.length === 0) {
+				return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
 			}
 
-			if (request_uri) {
-				const requestUriResponse = await httpProxy.get(request_uri, {});
-				const requestObject = requestUriResponse.data as string; // jwt
-				const [header, payload] = requestObject.split('.');
-				const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
-				if (parsedHeader.typ !== "oauth-authz-req+jwt") {
-					return { error: HandleAuthorizationRequestError.INVALID_TYP };
+			const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
+				name: field.name || field.path[0],
+				purpose: field.purpose || descriptorPurpose,
+				path: field.path[0]
+			}));
+			mapping.set(descriptor.id, { credentials: conformingVcList, requestedFields: requestedFieldDetails });
+		}
+
+		return { mapping, descriptorPurpose };
+	}
+
+	async function matchCredentialsToDCQL(vcList: Array<{ credentialIdentifier: string; credential: string; format: string }>, dcqlJson: any, t: any): Promise<
+		| { mapping: Map<string, { credentials: string[]; requestedFields: { name: string; purpose: string }[] }>; descriptorPurpose: string }
+		| { error: HandleAuthorizationRequestError }
+	> {
+
+		const descriptorPurpose = dcqlJson.credential_sets?.[0]?.purpose || t('selectCredentialPopup.purposeNotSpecified');
+
+		const mapping = new Map<string, { credentials: string[]; requestedFields: { name: string; purpose: string }[] }>();
+
+		for (const credReq of dcqlJson.credentials) {
+			const mini = { credential_sets: dcqlJson.credential_sets, credentials: [credReq] };
+			const parsed = DcqlQuery.parse(mini);
+			DcqlQuery.validate(parsed);
+
+			const conforming: string[] = [];
+
+			for (const vc of vcList) {
+				if (vc.format !== credReq.format) continue;
+
+				let shaped: any = { credential_format: vc.format };
+
+				try {
+					if (vc.format === VerifiableCredentialFormat.MSO_MDOC) {
+						const credentialBytes = base64url.decode(vc.credential);
+						const issuerSigned = cborDecode(credentialBytes);
+
+						const docType = credReq.meta?.doctype_value!;
+						const envelope = {
+							version: "1.0",
+							documents: [new Map([
+								["docType", docType],
+								["issuerSigned", issuerSigned],
+							])],
+							status: 0,
+						};
+						const mdoc = parse(cborEncode(envelope));
+						const [document] = mdoc.documents;
+
+						const nsName = document.issuerSignedNameSpaces[0];
+						const nsObject = document.getIssuerNameSpace(nsName);
+
+						shaped = {
+							credential_format: vc.format,
+							doctype: docType,
+							namespaces: {
+								[nsName]: nsObject
+							}
+						};
+					} else {
+						const { signedClaims, error } = await parseCredential(vc.credential);
+						if (error) throw error;
+						shaped.vct = signedClaims.vct;
+						if (!credReq.claims || credReq.claims.length === 0) {
+							// No claims specified in dcql_query, include all signed claims
+							shaped.claims = signedClaims;
+						} else {
+							// include only requested claims
+							shaped.claims = {};
+							for (const claim of credReq.claims) {
+								for (const p of claim.path) {
+									const v = p.split('.').reduce((o, k) => o?.[k], signedClaims);
+									if (v !== undefined) {
+										shaped.claims[p] = v;
+										break;
+									}
+								}
+							}
+						}
+					}
+					const result = await DcqlQuery.query(parsed, [shaped]);
+
+					const match = result.credential_matches[credReq.id];
+					if (match?.success) {
+						conforming.push(vc.credentialIdentifier);
+					}
+				} catch (e) {
+					console.error('DCQL eval error for this VC:', e);
 				}
-				const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
-				const verificationResult = await jwtVerify(requestObject, publicKey).catch(() => null);
-				if (verificationResult == null) {
-					console.log("Signature verification of request_uri failed");
-					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
+			}
+
+			if (conforming.length === 0) {
+				return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
+			}
+
+			mapping.set(credReq.id, {
+				credentials: conforming,
+				requestedFields: !credReq.claims || credReq.claims.length === 0
+					? [{ name: t('selectCredentialPopup.allClaimsRequested'), purpose: descriptorPurpose, path: ['*'] }]
+					: credReq.claims.map(cl => ({
+						name: cl.id || cl.path.join('.'),
+						purpose: descriptorPurpose,
+						path: cl.path
+					}))
+			});
+		}
+
+		return { mapping, descriptorPurpose };
+	}
+
+	async function verifyHostnameAndCerts(request_uri: string, response_uri: string, parsedHeader: any) {
+		if (new URL(request_uri).hostname !== new URL(response_uri).hostname) {
+			throw new Error("NONTRUSTED_VERIFIER: Hostname mismatch");
+		}
+
+		const altNames = await extractSAN('-----BEGIN CERTIFICATE-----\n' + parsedHeader.x5c[0] + '\n-----END CERTIFICATE-----');
+
+		if (OPENID4VP_SAN_DNS_CHECK && (!altNames || altNames.length === 0)) {
+			throw new Error("NONTRUSTED_VERIFIER: SAN not found");
+		}
+
+		if (OPENID4VP_SAN_DNS_CHECK && !altNames.includes(new URL(response_uri).hostname)) {
+			throw new Error("NONTRUSTED_VERIFIER: Hostname not in SAN");
+		}
+
+		if (OPENID4VP_SAN_DNS_CHECK_SSL_CERTS) {
+			const response = await axios.post(`${BACKEND_URL}/helper/get-cert`, {
+				url: request_uri
+			}, {
+				timeout: 2500,
+				headers: {
+					Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!)
 				}
-				const p = JSON.parse(new TextDecoder().decode(base64url.decode(payload)));
-				client_id = p.client_id;
-				if (p.presentation_definition) {
-					presentation_definition = p.presentation_definition;
-				} else if (p.presentation_definition_uri) {
-					const presentationDefinitionFetch = await httpProxy.get(p.presentation_definition_uri, {});
+			}).catch(() => null);
+
+			if (!response) {
+				throw new Error("Could not get SSL certificate for " + new URL(request_uri).hostname);
+			}
+			const { x5c } = response.data;
+			if (x5c[0] !== parsedHeader.x5c[0]) {
+				throw new Error("x509 SAN DNS: Invalid signer certificate");
+			}
+		}
+	}
+
+
+	/**
+		*
+		* @param paths example: [ '$.credentialSubject.image', '$.credentialSubject.grade', '$.credentialSubject.val.x' ]
+		* @returns example: { credentialSubject: { image: true, grade: true, val: { x: true } } }
+		*/
+	function generatePresentationFrameForPEXPaths(paths) {
+		let result = {};
+		paths.forEach(path => {
+			if (path.includes("[")) {
+				// Use the matchAll method to get all matches
+				let matches = [...path.matchAll(/\['(.*?)'\]/g)];
+
+				// grab any dot-keys before the first bracket
+				let prefix = path.replace(/\['.*$/, '').replace(/^\$\./, '');
+				let current = result;
+				if (prefix) {
+					prefix.split('.').forEach(key => {
+						current[key] = current[key] || {};
+						current = current[key];
+					});
+				}
+				// Iterate over each match and build the nested object
+				for (let i = 0; i < matches.length; i++) {
+					let key = matches[i][1];
+					// If this is the last key, set its value to true
+					if (i === matches.length - 1) {
+						current[key] = true;
+					} else {
+						// Otherwise, create a new nested object if it doesn't exist
+						current[key] = current[key] || {};
+						current = current[key];
+					}
+				}
+			} else {
+				let keys = path.replace(/^\$\./, '').split('.');
+				// Initialize an empty object to build the result
+				let current = result;
+				// Iterate over each key and build the nested object
+				for (let i = 0; i < keys.length; i++) {
+					let key = keys[i];
+
+					// If this is the last key, set its value to true
+					if (i === keys.length - 1) {
+						current[key] = true;
+					} else {
+						// Otherwise, create a new nested object if it doesn't exist
+						current[key] = current[key] || {};
+						current = current[key];
+					}
+				}
+			}
+		});
+		return result;
+	}
+
+	async function handlePresentationExchangeFlow(S, selectionMap, verifiableCredentials) {
+		const presentationDefinition = S.presentation_definition;
+		const response_uri = S.response_uri;
+		const client_id = S.client_id;
+		const nonce = S.nonce;
+		const transaction_data = S.transaction_data;
+		let apu = undefined;
+		let apv = undefined;
+
+		const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
+
+		// returns the credentials with the minimum usages for each credential identifier
+		const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (credentialIdentifier) => {
+			const result = await credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials);
+			return result.credential;
+		}));
+		console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
+
+
+		const filteredVCEntities = credentialsFilteredByUsage.filter((vc) =>
+			allSelectedCredentialIdentifiers.includes(vc.credentialIdentifier)
+		);
+
+		let selectedVCs = [];
+		let generatedVPs = [];
+		let originalVCs = [];
+		const descriptorMap = [];
+
+		let i = 0;
+
+		for (const [descriptor_id, credentialIdentifier] of selectionMap) {
+			const vcEntity = filteredVCEntities.find(vc => vc.credentialIdentifier === credentialIdentifier);
+			console.log('vcEntity: ', vcEntity)
+			if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT || vcEntity.format === VerifiableCredentialFormat.VC_SDJWT) {
+				const descriptor = presentationDefinition.input_descriptors.find(desc => desc.id === descriptor_id);
+				const allPaths = descriptor.constraints.fields
+					.map(field => field.path)
+					.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
+				let presentationFrame = generatePresentationFrameForPEXPaths(allPaths);
+
+				const hasher = (data, alg) => {
+					const encoded = typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+					return crypto.subtle.digest(alg, encoded).then(v => new Uint8Array(v));
+				};
+
+				const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
+				const presentation = (vcEntity.credential.split("~").length - 1) > 1 ?
+					await sdJwt.present(presentationFrame, hasher) : vcEntity.credential;
+
+				let transactionDataResponseParams;
+				if (transaction_data) {
+					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
+						.generateTransactionDataResponseParameters(transaction_data);
+					if (err) {
+						throw err;
+					}
+					transactionDataResponseParams = { ...res };
+				}
+
+				const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation], transactionDataResponseParams);
+				selectedVCs.push(presentation);
+				generatedVPs.push(vpjwt);
+
+				if (selectionMap.size > 1) {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: vcEntity.format,
+						path: `$[${i++}]`
+					});
+				}
+				else {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: vcEntity.format,
+						path: `$`
+					});
+				}
+
+				originalVCs.push(vcEntity);
+
+			} else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
+				console.log("Response uri = ", response_uri);
+
+				const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
+				const credentialBytes = base64url.decode(vcEntity.credential);
+				const issuerSigned = cborDecode(credentialBytes);
+
+				// According to ISO 23220-4: The value of input descriptor id should be the doctype
+				const m = {
+					version: '1.0',
+					documents: [new Map([
+						['docType', descriptor.id],
+						['issuerSigned', issuerSigned]
+					])],
+					status: 0
+				};
+				const encoded = cborEncode(m);
+				const mdoc = parse(encoded);
+
+				const mdocGeneratedNonce = generateRandomIdentifier(8);
+				apu = mdocGeneratedNonce;
+				apv = nonce;
+
+				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, mdocGeneratedNonce, nonce, client_id, response_uri);
+				function uint8ArrayToHexString(uint8Array) {
+					// @ts-ignore
+					return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
+				}
+				console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
+				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
+				console.log("B64U Encoded device response = ", encodedDeviceResponse);
+				selectedVCs.push(encodedDeviceResponse);
+				generatedVPs.push(encodedDeviceResponse);
+				descriptorMap.push({
+					id: descriptor_id,
+					format: VerifiableCredentialFormat.MSO_MDOC,
+					path: `$`
+				});
+				originalVCs.push(vcEntity);
+			}
+		}
+
+		const presentationSubmission = {
+			id: generateRandomIdentifier(8),
+			definition_id: S.presentation_definition.id,
+			descriptor_map: descriptorMap,
+		};
+
+		const formData = new URLSearchParams();
+
+		if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
+			const { rp_eph_pub_jwk } = await retrieveKeys(S);
+			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
+			const jwe = await new EncryptJWT({
+				vp_token: generatedVPs.length === 1 ? generatedVPs[0] : generatedVPs,
+				presentation_submission: presentationSubmission,
+				state: S.state ?? undefined
+			})
+				.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
+				.setProtectedHeader({
+					alg: S.client_metadata.authorization_encrypted_response_alg,
+					enc: S.client_metadata.authorization_encrypted_response_enc,
+					kid: rp_eph_pub_jwk.kid
+				})
+				.encrypt(rp_eph_pub);
+
+			formData.append('response', jwe);
+		} else {
+			formData.append('vp_token', generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
+			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
+			if (S.state) formData.append('state', S.state);
+		}
+
+		const credentialIdentifiers = originalVCs.map(vc => vc.credentialIdentifier);
+
+		return { formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities };
+	}
+
+	function convertDcqlToPresentationDefinition(dcql_query) {
+		const pdId = crypto.randomUUID();
+		const input_descriptors = dcql_query.credentials.map(cred => {
+			const descriptorId = cred.meta?.doctype_value!;
+
+			const format: Record<string, any> = {}
+			if (cred.format === "mso_mdoc") {
+				format.mso_mdoc = { alg: ["ES256", "ES384", "EdDSA"] }
+			}
+
+			// build fields paths against the mdoc namespace
+			const fields = cred.claims.map(claim => ({
+				path: [`$['${cred.meta?.doctype_value}']${claim.path.slice(1).map(p => `['${p}']`).join('')}`],
+				intent_to_retain: claim.intent_to_retain ?? false
+			}))
+
+			return {
+				id: descriptorId,
+				format,
+				constraints: {
+					limit_disclosure: "required",
+					fields
+				}
+			}
+		})
+
+		return {
+			id: pdId,
+			name: `DCQL-converted Presentation Definition`,
+			purpose: dcql_query.credential_sets?.[0]?.purpose ?? "No purpose defined",
+			input_descriptors
+		}
+	}
+
+	function generatePresentationFrameForDCQLPaths(paths: string[][]): any {
+		const frame = {};
+
+		for (const rawSegments of paths) {
+			let current = frame;
+			for (let i = 0; i < rawSegments.length; i++) {
+				const segment = rawSegments[i];
+				if (i === rawSegments.length - 1) {
+					current[segment] = true;
+				} else {
+					current[segment] = current[segment] || {};
+					current = current[segment];
+				}
+			}
+		}
+		return frame;
+	}
+
+	async function handleDCQLFlow(S, selectionMap, verifiableCredentials) {
+		const { dcql_query, client_id, nonce, response_uri, transaction_data } = S;
+		let apu = undefined;
+		let apv = undefined;
+		let selectedVCs = [];
+		let generatedVPs = [];
+		let originalVCs = [];
+
+		const allIds = Array.from(selectionMap.values());
+		const filtered = verifiableCredentials.filter(vc =>
+			allIds.includes(vc.credentialIdentifier)
+		);
+
+		for (const [selectionKey, credId] of selectionMap.entries()) {
+			const vcEntity = filtered.find(v => v.credentialIdentifier === credId);
+			if (!vcEntity) continue;
+
+			if (
+				vcEntity.format === VerifiableCredentialFormat.VC_SDJWT ||
+				vcEntity.format === VerifiableCredentialFormat.DC_SDJWT
+			) {
+				const descriptor = dcql_query.credentials.find(c => c.id === selectionKey);
+				if (!descriptor) {
+					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
+				}
+				const { signedClaims } = await parseCredential(vcEntity.credential);
+
+				let paths: string[][];
+
+				if (!descriptor.claims || descriptor.claims.length === 0) {
+					// All claims are requested, get keys from signedClaims
+					paths = Object.keys(signedClaims).map(key => [key]);
+				} else {
+					// Specific claims requested
+					paths = descriptor.claims.map(cl => cl.path);
+				}
+
+				const frame = generatePresentationFrameForDCQLPaths(paths);
+				const hasher = (data, alg) => {
+					const bytes = typeof data === 'string' ? new TextEncoder().encode(data) : data;
+					return crypto.subtle.digest(alg, bytes).then(buf => new Uint8Array(buf));
+				};
+
+				const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
+				// TODO handle transaction data
+				const presentation = (vcEntity.credential.split("~").length - 1) > 1
+					? await sdJwt.present(frame, hasher)
+					: vcEntity.credential;
+
+				const shaped = {
+					credential_format: vcEntity.format,
+					vct: signedClaims.vct,
+					claims: !descriptor.claims || descriptor.claims.length === 0
+						? signedClaims // include all claims
+						: Object.fromEntries(
+							Object.entries(signedClaims).filter(([k]) =>
+								descriptor.claims.some(cl => cl.path.includes(k))
+							)
+						)
+				};
+				const presResult = DcqlPresentationResult.fromDcqlPresentation(
+					{ [selectionKey]: shaped },
+					{ dcqlQuery: dcql_query }
+				);
+				if (!presResult.valid_matches[selectionKey]?.success) {
+					throw new Error(`Presentation for '${selectionKey}' did not satisfy DCQL`);
+				}
+
+				let transactionDataResponseParams;
+				if (transaction_data) {
+					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
+						.generateTransactionDataResponseParameters(transaction_data);
+					if (err) {
+						throw err;
+					}
+					transactionDataResponseParams = { ...res };
+				}
+
+				const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation], transactionDataResponseParams);
+
+				selectedVCs.push(presentation);
+				generatedVPs.push(vpjwt);
+				originalVCs.push(vcEntity);
+			}
+
+			else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
+				// Use DCQL ID (`selectionKey`) to find the descriptor
+				const descriptor = dcql_query.credentials.find(c => c.id === selectionKey);
+				if (!descriptor) {
+					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
+				}
+				const descriptorId = descriptor.meta?.doctype_value!;
+				const credentialBytes = base64url.decode(vcEntity.credential);
+				const issuerSignedPayload = cborDecode(credentialBytes);
+
+				const mdocStructure = {
+					version: '1.0',
+					documentErrors: [],
+					documents: [new Map([
+						['docType', descriptorId],
+						['issuerSigned', issuerSignedPayload]
+					])],
+					status: 0
+				};
+				const encoded = cborEncode(mdocStructure);
+				const mdoc = parse(encoded);
+				const mdocGeneratedNonce = generateRandomIdentifier(8);
+				apu = mdocGeneratedNonce;
+				apv = nonce;
+
+				let dcqlQueryWithClaims;
+				if (!descriptor.claims || descriptor.claims.length === 0) {
+					dcqlQueryWithClaims = JSON.parse(JSON.stringify(dcql_query));
+					const nsName = mdoc.documents[0].issuerSignedNameSpaces[0];
+					const ns = mdoc.documents[0].getIssuerNameSpace(nsName);
+
+					const descriptorIndex = dcqlQueryWithClaims.credentials.findIndex(c => c.id === selectionKey);
+					if (descriptorIndex !== -1) {
+						dcqlQueryWithClaims.credentials[descriptorIndex].claims = Object.keys(ns).map(key => ({
+							id: key,
+							path: [descriptorId, key]
+						}));
+					}
+				} else {
+					dcqlQueryWithClaims = dcql_query
+				}
+
+				const presentationDefinition = convertDcqlToPresentationDefinition(dcqlQueryWithClaims);
+				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, apu, apv, client_id, response_uri);
+				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
+
+				selectedVCs.push(encodedDeviceResponse);
+				generatedVPs.push(encodedDeviceResponse);
+				originalVCs.push(vcEntity);
+			}
+		}
+
+		// Always use DCQL query ID (selectionKey) as the key
+		const vpTokenObject = Object.fromEntries(
+			Array.from(selectionMap.keys()).map((key, idx) => [key, generatedVPs[idx]])
+		);
+
+		const presentationSubmission = {
+			id: generateRandomIdentifier(8),
+			descriptor_map: Array.from(selectionMap.keys()).map((id, idx) => ({ id, path: `$[${idx}]` }))
+		};
+
+		const formData = new URLSearchParams();
+
+		if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
+			const { rp_eph_pub_jwk } = await retrieveKeys(S);
+			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
+
+			const jwePayload = {
+				vp_token: vpTokenObject,
+				state: S.state ?? undefined
+			};
+
+			const jwe = await new EncryptJWT(jwePayload)
+				.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
+				.setProtectedHeader({
+					alg: S.client_metadata.authorization_encrypted_response_alg,
+					enc: S.client_metadata.authorization_encrypted_response_enc,
+					kid: rp_eph_pub_jwk.kid
+				})
+				.encrypt(rp_eph_pub);
+
+			formData.append('response', jwe);
+		} else {
+			formData.append('vp_token', JSON.stringify(vpTokenObject));
+			if (S.state) formData.append('state', S.state);
+		}
+
+		const credentialIdentifiers = originalVCs.map(vc => vc.credentialIdentifier);
+		return { formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
+	}
+
+
+	const handleAuthorizationRequest = useCallback(async (url: string) => {
+		let {
+			client_id,
+			response_uri,
+			nonce,
+			state,
+			presentation_definition,
+			presentation_definition_uri,
+			client_metadata,
+			response_mode,
+			transaction_data,
+			request_uri,
+			dcql_query
+		} = parseAuthorizationParams(url);
+
+		if (presentation_definition_uri && !presentation_definition) {
+			presentation_definition = await resolvePresentationDefinition(presentation_definition_uri, httpProxy);
+		}
+
+		const client_id_scheme = client_id.split(':')[0];
+		if (client_id_scheme !== 'x509_san_dns') {
+			return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
+		}
+
+		if (request_uri) {
+			try {
+				const result = await handleRequestUri(request_uri, httpProxy);
+				if ('error' in result) {
+					return result;
+				}
+				const { payload, parsedHeader } = result;
+				client_id = payload.client_id;
+				presentation_definition = payload.presentation_definition;
+				if (payload.presentation_definition) {
+					presentation_definition = payload.presentation_definition;
+				} else if (payload.presentation_definition_uri) {
+					const presentationDefinitionFetch = await httpProxy.get(payload.presentation_definition_uri, {});
 					presentation_definition = presentationDefinitionFetch.data;
 				}
-				response_uri = p.response_uri ?? p.redirect_uri;
-				client_metadata = p.client_metadata;
-				if (p.response_mode) {
-					response_mode = p.response_mode;
+				dcql_query = payload.dcql_query ?? dcql_query;
+				response_uri = payload.response_uri ?? payload.redirect_uri;
+				if (response_uri && !response_uri.startsWith("http")) {
+					response_uri = `https://${response_uri}`;
 				}
-				if (p.transaction_data) {
+				client_metadata = payload.client_metadata;
+				response_mode = payload.response_mode ?? response_mode;
+				if (payload.transaction_data) {
 					console.log("Received transaction data");
-					console.log('Transaction data = ', p.transaction_data)
-					transaction_data = p.transaction_data;
-					const result = parseTransactionData(transaction_data, presentation_definition);
+					console.log('Transaction data = ', payload.transaction_data)
+					transaction_data = payload.transaction_data;
+					const result = parseTransactionData(transaction_data, presentation_definition, dcql_query);
 					if (result === "invalid_transaction_data") {
 						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
 					}
 				}
-				state = p.state;
-				nonce = p.nonce;
-				if (!response_uri.startsWith("http")) {
-					response_uri = `https://${response_uri}`;
-				}
+				state = payload.state;
+				nonce = payload.nonce;
 
-				if (new URL(request_uri).hostname !== new URL(response_uri).hostname) {
-					console.log("Hostname of request_uri is different from response_uri")
-					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
-				}
-				const altNames = await extractSAN('-----BEGIN CERTIFICATE-----\n' + parsedHeader.x5c[0] + '\n-----END CERTIFICATE-----');
-
-				if (OPENID4VP_SAN_DNS_CHECK && (!altNames || altNames.length === 0)) {
-					console.log("No SAN found");
-					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
-				}
-
-				if (OPENID4VP_SAN_DNS_CHECK && !altNames.includes(new URL(response_uri).hostname)) {
-					console.log("altnames = ", altNames)
-					console.log("request_uri uri hostname = ", new URL(request_uri).hostname)
-					console.log("Hostname of request_uri is not included in the SAN list")
-					return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER }
-				}
-
-				if (OPENID4VP_SAN_DNS_CHECK_SSL_CERTS) { // get x5c from SSL
-					const response = await axios.post(`${BACKEND_URL}/helper/get-cert`, {
-						url: request_uri
-					}, {
-						timeout: 2500,
-						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
-						}
-					}).catch(() => null);
-					if (response === null) {
-						throw new Error("Could not get SSL certificate for " + new URL(request_uri).hostname);
-					}
-					const { x5c } = response.data;
-					if (x5c[0] !== parsedHeader.x5c[0]) {
-						throw new Error("x509 SAN DNS: Invalid signer certificate");
-					}
-				}
+				await verifyHostnameAndCerts(request_uri, response_uri, parsedHeader);
+			} catch (e) {
+				console.error("Failed to handle request_uri", e);
+				return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER };
 			}
+		}
 
+		if (sessionStorage.getItem('last_used_nonce') === nonce) {
+			return { error: HandleAuthorizationRequestError.OLD_STATE };
+		}
 
-			const lastUsedNonce = sessionStorage.getItem('last_used_nonce');
-			if (lastUsedNonce && nonce === lastUsedNonce) {
-				return { error: HandleAuthorizationRequestError.OLD_STATE }
-			}
+		if (!presentation_definition && !dcql_query) {
+			return { error: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
+		}
 
-			if (!presentation_definition) {
-				return { error: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
-			}
+		const { error } = ResponseModeSchema.safeParse(response_mode);
+		if (error) {
+			return { error: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
+		}
 
-			const { error } = ResponseModeSchema.safeParse(response_mode);
-			if (error) {
-				return { error: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
-			}
+		const { verifiableCredentials } = await getAllStoredVerifiableCredentials();
+		const vcList = verifiableCredentials.filter(vc => vc.instanceId === 0);
 
-			const vcList = (await getAllStoredVerifiableCredentials().then((res) => res.verifiableCredentials))
-				.filter((vc) => vc.instanceId === 0);
-
-			await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
+		await openID4VPRelyingPartyStateRepository.store(
+			new OpenID4VPRelyingPartyState(
 				presentation_definition,
 				nonce,
 				response_uri,
@@ -213,348 +881,78 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				client_metadata,
 				response_mode,
 				transaction_data,
-			));
+				dcql_query
+			)
+		);
 
-			const mapping = new Map<string, { credentials: string[], requestedFields: string[] }>();
-			let descriptorPurpose;
-			for (const descriptor of presentation_definition.input_descriptors) {
-				const conformingVcList = [];
-				descriptorPurpose = descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
+		let matchResult;
+		console.log('Presentation Definition: ', presentation_definition);
+		console.log('DCQL Query: ', dcql_query);
+		if (presentation_definition) {
+			matchResult = await matchCredentialsToDefinition(vcList, presentation_definition, parseCredential, t);
+		} else if (dcql_query) {
+			matchResult = await matchCredentialsToDCQL(vcList, dcql_query, t);
+		}
+		if ('error' in matchResult) {
+			return { error: matchResult.error };
+		}
 
-				for (const vc of vcList) {
-					try {
+		const { mapping, descriptorPurpose } = matchResult;
+		const verifierDomainName = client_id.includes("http") ? new URL(client_id).hostname : client_id;
 
-						if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
-							(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
-							const result = await parseCredential(vc.credential);
-							if ('error' in result) {
-								throw new Error('Could not parse credential');
-							}
-							if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
-								conformingVcList.push(vc.credentialIdentifier);
-								continue;
-							}
-						}
+		if (mapping.size === 0) {
+			console.error("No matching credentials for descriptors");
+			throw new Error("Credentials don't satisfy any descriptor");
+		}
 
-						if (vc.format == VerifiableCredentialFormat.MSO_MDOC && (VerifiableCredentialFormat.MSO_MDOC in descriptor.format)) {
-							const credentialBytes = base64url.decode(vc.credential);
-							const issuerSigned = cborDecode(credentialBytes);
-							// According to ISO 23220-4: The value of input descriptor id should be the doctype
-							const m = {
-								version: '1.0',
-								documents: [new Map([
-									['docType', descriptor.id],
-									['issuerSigned', issuerSigned]
-								])],
-								status: 0
-							};
-							const encoded = cborEncode(m);
-							const mdoc = parse(encoded);
-							const [document] = mdoc.documents;
-							const ns = document.getIssuerNameSpace(document.issuerSignedNameSpaces[0]);
-							const json = {};
-							json[descriptor.id] = ns;
+		return {
+			conformantCredentialsMap: mapping,
+			verifierDomainName,
+			verifierPurpose: descriptorPurpose,
+		};
+	}, [httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]);
 
-							const fieldsWithValue = descriptor.constraints.fields.map((field) => {
-								const values = field.path.map((possiblePath) => JSONPath({ path: possiblePath, json: json })[0]);
-								const val = values.filter((v) => v != undefined || v != null)[0]; // get first value that is not undefined
-								return { field, val };
-							});
-							console.log("Fields with value = ", fieldsWithValue)
+	const sendAuthorizationResponse = useCallback(async (selectionMap) => {
+		const S = await openID4VPRelyingPartyStateRepository.retrieve();
 
-							if (fieldsWithValue.map((fwv) => fwv.val).includes(undefined)) {
-								continue; // there is at least one field missing from the requirements
-							}
+		if (!S || S.nonce === "" || S.nonce === sessionStorage.getItem("last_used_nonce")) {
+			return {};
+		}
+		sessionStorage.setItem("last_used_nonce", S.nonce);
 
-							conformingVcList.push(vc.credentialIdentifier);
-							continue;
-						}
-					}
-					catch (err) {
-						console.log("Failed to match a descriptor")
-						console.log(err)
-					}
+		const { verifiableCredentials } = await getAllStoredVerifiableCredentials();
 
-				}
-				if (conformingVcList.length === 0) {
-					return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
-				}
+		let formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities;
 
-				const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
-					name: field.name || field.path[0],
-					purpose: field.purpose || descriptorPurpose // Use field-specific purpose if available, otherwise fall back to descriptor-level
-				}));
-				mapping.set(descriptor.id, { credentials: [...conformingVcList], requestedFields: requestedFieldDetails });
-			}
-			const verifierDomainName = client_id.includes("http") ? new URL(client_id).hostname : client_id;
-			if (mapping.size === 0) {
-				console.log("Credentials don't satisfy any descriptor")
-				throw new Error("Credentials don't satisfy any descriptor");
-			}
-			return { conformantCredentialsMap: mapping, verifierDomainName: verifierDomainName, verifierPurpose: descriptorPurpose };
-		},
-		[httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]
-	);
+		if (S.presentation_definition) {
+			({ formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities } =
+				await handlePresentationExchangeFlow(S, selectionMap, verifiableCredentials));
+		}
+		else {
+			({ formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities } =
+				await handleDCQLFlow(S, selectionMap, verifiableCredentials));
+		}
 
-	const sendAuthorizationResponse = useCallback(
-		async (selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }> => {
-			const S = await openID4VPRelyingPartyStateRepository.retrieve();
-			console.log("send AuthorizationResponse: S = ", S)
-			console.log("send AuthorizationResponse: Sess = ", sessionStorage.getItem('last_used_nonce'));
-			if (S?.nonce === "" || (sessionStorage.getItem('last_used_nonce') && S.nonce === sessionStorage.getItem('last_used_nonce'))) {
-				return {};
-			}
-			else {
-				sessionStorage.setItem('last_used_nonce', S.nonce);
-			}
-			async function hashSHA256(input) {
-				// Step 1: Encode the input string as a Uint8Array
-				const encoder = new TextEncoder();
-				const data = encoder.encode(input);
+		const presentations = "b64:" + toBase64(new TextEncoder().encode(
+			generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)
+		));
 
-				// Step 2: Hash the data using SHA-256
-				const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-				return new Uint8Array(hashBuffer);
-			}
+		const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, credentialIdentifiers, S.client_id);
+		const updateCredentialPromise = filteredVCEntities.map((cred) => credentialBatchHelper.useCredential(cred))
+		const updateRepositoryPromise = openID4VPRelyingPartyStateRepository.store(S);
 
-			const hasher = (data: string | ArrayBuffer, alg: string) => {
-				const encoded =
-					typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
+		await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
 
-				return crypto.subtle.digest(alg, encoded).then((v) => new Uint8Array(v));
-			};
-
-			/**
-			*
-			* @param paths example: [ '$.credentialSubject.image', '$.credentialSubject.grade', '$.credentialSubject.val.x' ]
-			* @returns example: { credentialSubject: { image: true, grade: true, val: { x: true } } }
-			*/
-			const generatePresentationFrameForPaths = (paths) => {
-				let result = {};
-
-				paths.forEach((path: string) => {
-					if (path.includes("[")) {
-						// Use the matchAll method to get all matches
-						let matches = [...path.matchAll(/\['(.*?)'\]/g)];
-
-						// grab any dot-keys before the first bracket
-						let prefix = path.replace(/\['.*$/, '').replace(/^\$\./, '');
-						let current = result;
-						if (prefix) {
-							prefix.split('.').forEach(key => {
-								current[key] = current[key] || {};
-								current = current[key];
-							});
-						}
-
-						// Iterate over each match and build the nested object
-						for (let i = 0; i < matches.length; i++) {
-							let key = matches[i][1];
-
-							// If this is the last key, set its value to true
-							if (i === matches.length - 1) {
-								current[key] = true;
-							} else {
-								// Otherwise, create a new nested object if it doesn't exist
-								current[key] = current[key] || {};
-								current = current[key];
-							}
-						}
-					}
-					else {
-						let keys = path.replace(/^\$\./, '').split('.');
-						// Initialize an empty object to build the result
-						let current = result;
-
-						// Iterate over each key and build the nested object
-						for (let i = 0; i < keys.length; i++) {
-							let key = keys[i];
-
-							// If this is the last key, set its value to true
-							if (i === keys.length - 1) {
-								current[key] = true;
-							} else {
-								// Otherwise, create a new nested object if it doesn't exist
-								current[key] = current[key] || {};
-								current = current[key];
-							}
-						}
-					}
-				});
-				return result;
-			};
-
-
-			const presentationDefinition = S.presentation_definition;
-			const response_uri = S.response_uri;
-			const client_id = S.client_id;
-			const nonce = S.nonce;
-			const transaction_data = S.transaction_data;
-			let apu = undefined;
-			let apv = undefined;
-
-			let { verifiableCredentials } = await getAllStoredVerifiableCredentials();
-			const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
-
-			// returns the credentials with the minimum usages for each credential identifier
-			const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (credentialIdentifier) => {
-				const result = await credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials)
-				return result.credential;
-			}));
-			console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
-
-			const filteredVCEntities = credentialsFilteredByUsage
-				.filter((vc) =>
-					allSelectedCredentialIdentifiers.includes(vc.credentialIdentifier),
-				);
-
-			let selectedVCs = [];
-			let generatedVPs = [];
-			let originalVCs = [];
-			const descriptorMap = [];
-			let i = 0;
-			for (const [descriptor_id, credentialIdentifier] of selectionMap) {
-				const vcEntity = filteredVCEntities.filter((vc) => vc.credentialIdentifier === credentialIdentifier)[0];
-				if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT || vcEntity.format === VerifiableCredentialFormat.VC_SDJWT) {
-					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
-					const allPaths = descriptor.constraints.fields
-						.map((field) => field.path)
-						.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
-					let presentationFrame = generatePresentationFrameForPaths(allPaths);
-					const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
-					const presentation = (vcEntity.credential.split("~").length - 1) > 1 ? await sdJwt.present(presentationFrame, hasher) : vcEntity.credential;
-					let transactionDataResponseParams = undefined;
-					if (transaction_data) {
-						const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse(presentationDefinition, descriptor_id)
-							.generateTransactionDataResponseParameters(transaction_data);
-						if (err) {
-							throw err;
-						}
-						transactionDataResponseParams = { ...res };
-					}
-
-					const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation], transactionDataResponseParams);
-					selectedVCs.push(presentation);
-					generatedVPs.push(vpjwt);
-					if (selectionMap.size > 1) {
-						descriptorMap.push({
-							id: descriptor_id,
-							format: vcEntity.format,
-							path: `$[${i++}]`
-						});
-					}
-					else {
-						descriptorMap.push({
-							id: descriptor_id,
-							format: vcEntity.format,
-							path: `$`
-						});
-					}
-
-					originalVCs.push(vcEntity);
-				}
-				else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
-					console.log("Response uri = ", response_uri);
-					const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
-					const credentialBytes = base64url.decode(vcEntity.credential);
-					const issuerSigned = cborDecode(credentialBytes);
-
-					// According to ISO 23220-4: The value of input descriptor id should be the doctype
-					const m = {
-						version: '1.0',
-						documents: [new Map([
-							['docType', descriptor.id],
-							['issuerSigned', issuerSigned]
-						])],
-						status: 0
-					};
-					const encoded = cborEncode(m);
-					const mdoc = parse(encoded);
-
-					const mdocGeneratedNonce = generateRandomIdentifier(8); // mdoc generated nonce
-					apu = mdocGeneratedNonce; // no need to base64url encode. jose library handles it
-					apv = nonce;  // no need to base64url encode. jose library handles it
-
-					const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, mdocGeneratedNonce, nonce, client_id, response_uri);
-					function uint8ArrayToHexString(uint8Array) {
-						// @ts-ignore
-						return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
-					}
-					console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
-					const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
-					console.log("B64U Encoded device response = ", encodedDeviceResponse);
-					selectedVCs.push(encodedDeviceResponse);
-					generatedVPs.push(encodedDeviceResponse);
-					descriptorMap.push({
-						id: descriptor_id,
-						format: VerifiableCredentialFormat.MSO_MDOC,
-						path: `$`
-					});
-					originalVCs.push(vcEntity);
-				}
-			}
-
-			const presentationSubmission = {
-				id: generateRandomIdentifier(8),
-				definition_id: S.presentation_definition.id,
-				descriptor_map: descriptorMap,
-			};
-
-			const formData = new URLSearchParams();
-
-			if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
-				const { rp_eph_pub_jwk } = await retrieveKeys(S);
-				const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
-				const jwe = await new EncryptJWT({
-					vp_token: generatedVPs.length === 1 ? generatedVPs[0] : generatedVPs,
-					presentation_submission: presentationSubmission,
-					state: S.state ?? undefined
-				})
-					.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
-					.setProtectedHeader({ alg: S.client_metadata.authorization_encrypted_response_alg, enc: S.client_metadata.authorization_encrypted_response_enc, kid: rp_eph_pub_jwk.kid })
-					.encrypt(rp_eph_pub);
-
-				formData.append('response', jwe);
-				console.log("JWE = ", jwe);
-			}
-			else {
-				formData.append('vp_token', generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
-				formData.append('presentation_submission', JSON.stringify(presentationSubmission));
-				if (S.state) {
-					formData.append('state', S.state);
-				}
-			}
-
-
-			const credentialIdentifiers = originalVCs.map((vc) => vc.credentialIdentifier);
-
-			const presentations = "b64:" + toBase64(new TextEncoder().encode(generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)));
-			const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, credentialIdentifiers, client_id);
-			const updateCredentialPromise = filteredVCEntities.map(async (cred) => credentialBatchHelper.useCredential(cred))
-
-			const updateRepositoryPromise = openID4VPRelyingPartyStateRepository.store(S);
-
-			await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
-
-			let res = null;
-			try {
-				res = await httpProxy.post(response_uri, formData.toString(), {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				});
-			}
-			catch (err) {
-				console.error(err);
-				showStatusPopup({
-					title: "Error in verification",
-					description: "The verification process has was not completed successfully",
-				}, 'error');
-				return {};
-			}
-
+		const bodyString = formData.toString();
+		console.log('bodyString: ', bodyString)
+		try {
+			const res = await httpProxy.post(S.response_uri, formData.toString(), {
+				'Content-Type': 'application/x-www-form-urlencoded'
+			});
 			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
 			if (responseData.presentation_during_issuance_session) {
-				return { presentation_during_issuance_session: responseData.presentation_during_issuance_session }
+				return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
 			}
 			if (responseData.redirect_uri) {
 				return { url: responseData.redirect_uri };
@@ -563,9 +961,15 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				title: "Verification succeeded",
 				description: "The verification process has been completed",
 			}, 'success');
-		},
-		[httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]
-	);
+		} catch (err) {
+			console.error(err);
+			showStatusPopup({
+				title: "Error in verification",
+				description: "The verification process was not completed successfully",
+			}, 'error');
+			return {};
+		}
+	}, [httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]);
 
 	return useMemo(() => {
 		return {
