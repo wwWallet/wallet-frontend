@@ -2,7 +2,6 @@ import { CLOCK_TOLERANCE } from "../config";
 import { IHttpProxy } from "./interfaces/IHttpProxy";
 import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
 import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
-import { defaultHttpClient } from 'wallet-common/dist/defaultHttpClient';
 
 export async function initializeCredentialEngine(
 	httpProxy: IHttpProxy,
@@ -18,7 +17,6 @@ export async function initializeCredentialEngine(
 		subtle: crypto.subtle,
 		lang: 'en-US',
 		trustedCertificates,
-		httpClient: defaultHttpClient,
 	};
 
 	helper.fetchIssuerMetadataAndCertificates(
@@ -37,7 +35,7 @@ export async function initializeCredentialEngine(
 	credentialParsingEngine.register(MsoMdocParser({ context: ctx, httpClient: httpProxy }));
 
 	const pkResolverEngine = PublicKeyResolverEngine();
-	const sdJwtVerifier = SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine });
+	const sdJwtVerifier = SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine, httpClient: httpProxy });
 	const msoMdocVerifier = MsoMdocVerifier({ context: ctx, pkResolverEngine: pkResolverEngine });
 
 	return { credentialParsingEngine, sdJwtVerifier, msoMdocVerifier };
