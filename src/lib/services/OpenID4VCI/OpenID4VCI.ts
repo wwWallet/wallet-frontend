@@ -19,10 +19,49 @@ import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, 
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
+import { fromBase64Url } from '@/util';
+import { VerifiableCredentialFormat } from 'wallet-common/dist/types';
+import { DataItem, parse } from '@auth0/mdl';
+import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
+import { COSEKeyToJWK } from "cose-kit";
 
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
+
+const textDecoder = new TextDecoder();
+
+const deriveHolderKidFromCredential = async (credential: string, format: string, type: { vct?: string, doctype?: string }) => {
+	if (format === VerifiableCredentialFormat.VC_SDJWT || format === VerifiableCredentialFormat.DC_SDJWT) {
+		const payload = credential.split('.')[1];
+		const { cnf } = JSON.parse(textDecoder.decode(fromBase64Url(payload)));
+		if (cnf && cnf.jwk) {
+			const jwkThumbprint = await jose.calculateJwkThumbprint(cnf.jwk as jose.JWK, "sha256");
+			return jwkThumbprint;
+		}
+	}
+	else if (format === VerifiableCredentialFormat.MSO_MDOC) {
+		const credentialBytes = fromBase64Url(credential);
+		const issuerSigned = cborDecode(credentialBytes);
+		const m = {
+			version: '1.0',
+			documents: [new Map([
+				['docType', type.doctype],
+				['issuerSigned', issuerSigned]
+			])],
+			status: 0
+		};
+		const encoded = cborEncode(m);
+		const mdocCredential = parse(encoded);
+		const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
+		const deviceKeyInfo = p.data.get('deviceKeyInfo');
+		const deviceKey = deviceKeyInfo.get('deviceKey');
+		// @ts-ignore
+		const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+		const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
+		return kid;
+	}
+}
 
 export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }) => void }): IOpenID4VCI {
 
@@ -56,10 +95,25 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		// wait for keystore update before commiting the new credentials
 		(async () => {
 			try {
+
+				const kidMap = await Promise.all(temp.map(async (credential, index) => {
+					if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.VC_SDJWT ||
+						credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.DC_SDJWT
+					) {
+						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format, { vct: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].vct });
+					}
+					else if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.MSO_MDOC) {
+						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format, { doctype: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].doctype });
+					}
+					else {
+						return null;
+					}
+				}));
 				const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
 					return {
 						data: credential,
 						format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
+						kid: kidMap[index] ?? "",
 						credentialConfigurationId: credentialConfigurationIdRef.current,
 						credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
 						batchId: batchId,

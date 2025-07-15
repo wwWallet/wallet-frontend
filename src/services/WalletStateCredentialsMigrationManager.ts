@@ -11,7 +11,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 
 	const migrateVerifiableCredentialTable = async () => {
 
-		if (!isLoggedIn || migrated.current) {
+		if (!isLoggedIn || migrated.current || keystore.getCalculatedWalletState() === null) {
 			return;
 		}
 		console.log("State = ", keystore.getCalculatedWalletState().credentials)

@@ -90,7 +90,7 @@ export interface LocalStorageKeystore {
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletBaseState | null,
-	addCredentials(credentials: { data: string, format: string, batchId: number, credentialIssuerIdentifier: string, instanceId: number, credentialId?: number }[]): Promise<[
+	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -611,15 +611,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return (calculatedWalletState);
 	}, [calculatedWalletState]);
 
-	const addCredentials = useCallback(async (credentials: { data: string, format: string, batchId: number, credentialIssuerIdentifier: string, instanceId: number, credentialId?: number, }[]): Promise<[
+	const addCredentials = useCallback(async (credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number, }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
 		const [walletStateContainer, ,] = await openPrivateData();
 		const newEvents: WalletSessionEvent[] = [];
-		for (const { data, format, batchId, credentialIssuerIdentifier, instanceId, credentialId } of credentials) {
-			const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, batchId, credentialIssuerIdentifier, instanceId, credentialId);
+		for (const { data, format, batchId, credentialIssuerIdentifier, kid, credentialConfigurationId, instanceId, credentialId } of credentials) {
+			const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
 			newEvents.push(e);
 		}
 		walletStateContainer.events.push(...newEvents);
@@ -648,8 +648,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
 		const newEvents: WalletSessionEvent[] = [];
 		for (const cred of credentialsToBeDeleted) {
-			const e = await WalletStateOperations.createDeleteCredentialWalletSessionEvent(walletStateContainer, cred.credentialId);
-			newEvents.push(e);
+			const e1 = await WalletStateOperations.createDeleteCredentialWalletSessionEvent(walletStateContainer, cred.credentialId);
+			newEvents.push(e1);
+			// delete keypair
+			const kid = calculatedWalletState.credentials.filter((c) => c.credentialId === cred.credentialId).map((c) => c.kid)[0];
+			if (kid) {
+				const e2 = await WalletStateOperations.createDeleteKeypairWalletSessionEvent(walletStateContainer, kid);
+				newEvents.push(e2);
+			}
 		}
 		walletStateContainer.events.push(...newEvents);
 		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {

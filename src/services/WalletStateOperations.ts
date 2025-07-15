@@ -23,8 +23,10 @@ export type WalletSessionEvent = {
 	format: string,
 	data: string,
 	batchId: number,
+	kid: string,
 	instanceId: number,
 	credentialIssuerIdentifier: string,
+	credentialConfigurationId: string,
 } | {
 	type: "delete_credential",
 	credentialId: number,
@@ -87,9 +89,11 @@ export type WalletBaseState = {
 		credentialId: number,
 		format: string,
 		data: string,
+		kid: string,
 		instanceId: number,
 		batchId: number,
 		credentialIssuerIdentifier: string,
+		credentialConfigurationId: string,
 	}[],
 	keypairs: {
 		kid: string,
@@ -149,7 +153,9 @@ function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: Wa
 				credentialId: newEvent.credentialId,
 				data: newEvent.data,
 				format: newEvent.format,
+				kid: newEvent.kid,
 				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
+				credentialConfigurationId: newEvent.credentialConfigurationId,
 				instanceId: newEvent.instanceId,
 				batchId: newEvent.batchId,
 			}]);
@@ -382,7 +388,7 @@ export namespace WalletStateOperations {
 
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
-			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { } },
+			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: {} },
 			events: [],
 		}
 	}
@@ -401,15 +407,17 @@ export namespace WalletStateOperations {
 		return true;
 	}
 
-	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, batchId: number = 0, credentialIssuerIdentifier: string = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletSessionEvent> {
+	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletSessionEvent> {
 		return {
 			...await createWalletSessionEvent(container),
 			type: "new_credential",
 			credentialId: credentialId,
 			data,
 			format,
+			kid,
 			batchId,
 			credentialIssuerIdentifier,
+			credentialConfigurationId,
 			instanceId,
 		}
 	}

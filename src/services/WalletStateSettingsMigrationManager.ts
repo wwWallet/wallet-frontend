@@ -9,7 +9,7 @@ export function useWalletStateSettingsMigrationManager(keystore: LocalStorageKey
 	const migrated = useRef(false);
 	const migrate = async () => {
 		console.log("Before")
-		if (!isLoggedIn || migrated.current) {
+		if (!isLoggedIn || migrated.current || keystore.getCalculatedWalletState() === null) {
 			return;
 		}
 

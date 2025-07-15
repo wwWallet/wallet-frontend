@@ -9,6 +9,7 @@ describe("The WalletStateOperations", () => {
 			container,
 			"<credential 1>",
 			"mso_mdoc",
+			""
 		);
 
 
@@ -23,7 +24,8 @@ describe("The WalletStateOperations", () => {
 		const e2: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container,
 			"<credential 2>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 		container.S = WalletStateOperations.walletStateReducer(s1, e2);
@@ -38,6 +40,7 @@ describe("The WalletStateOperations", () => {
 			container,
 			"<credential 1>",
 			"mso_mdoc",
+			""
 		);
 
 
@@ -62,7 +65,8 @@ describe("The WalletStateOperations", () => {
 		const e1: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container,
 			"<credential 1>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 		container.events.push(e1);
@@ -70,7 +74,8 @@ describe("The WalletStateOperations", () => {
 		const e2: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container,
 			"<credential 2>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 		container.events.push(e2);
@@ -92,7 +97,8 @@ describe("The WalletStateOperations", () => {
 		const e4: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container1,
 			"<credential session1-a>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 		container1.events.push(e4);
@@ -101,7 +107,8 @@ describe("The WalletStateOperations", () => {
 		const e5: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container1,
 			"<credential session1-b>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 
@@ -123,7 +130,8 @@ describe("The WalletStateOperations", () => {
 		const e7: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container2,
 			"<credential session2-x>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 		container2.events.push(e7);
@@ -131,7 +139,8 @@ describe("The WalletStateOperations", () => {
 		const e8: WalletSessionEvent = await WalletStateOperations.createNewCredentialWalletSessionEvent(
 			container2,
 			"<credential session2-y>",
-			"mso_mdoc"
+			"mso_mdoc",
+			""
 		);
 
 		container2.events.push(e8);

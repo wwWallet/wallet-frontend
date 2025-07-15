@@ -21,7 +21,7 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 
 	const migrateVerifiablePresentationsTable = async () => {
 
-		if (!isLoggedIn || migrated.current) {
+		if (!isLoggedIn || migrated.current || keystore.getCalculatedWalletState() === null) {
 			return;
 		}
 		console.log("State = ", keystore.getCalculatedWalletState().presentations)
