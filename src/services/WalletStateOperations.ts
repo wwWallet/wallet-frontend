@@ -574,8 +574,8 @@ export namespace WalletStateOperations {
 
 	/**
 	 * Returns a depp copy of container with the whole history of the container folded into the base state
-	 * @param walletStateContainer 
-	 * @returns 
+	 * @param walletStateContainer
+	 * @returns
 	 */
 	export function foldAllEventsIntoBaseState(walletStateContainer: WalletStateContainer) {
 		// get deep copy
@@ -587,8 +587,8 @@ export namespace WalletStateOperations {
 	/**
 	 * 
 	 * Returns a deep copy of container with folded history for the last event only
-	 * @param container 
-	 * @returns 
+	 * @param walletStateContainer
+	 * @returns
 	 */
 	export async function foldLastEventIntoBaseState(walletStateContainer: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);

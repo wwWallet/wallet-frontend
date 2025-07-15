@@ -26,7 +26,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 						credentialsIds.reduce((acc, val) => acc || p.usedCredentialIds.includes(val), false)
 					).map(p => p.transactionId);
 
-					presentations = presentations.filter((p) => 
+					presentations = presentations.filter((p) =>
 						transactionIds.includes(p.transactionId)
 					);
 					console.log("Presentations = ", presentations)
