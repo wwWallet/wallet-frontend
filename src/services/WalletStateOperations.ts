@@ -585,7 +585,7 @@ export namespace WalletStateOperations {
 	}
 
 	/**
-	 * 
+	 *
 	 * Returns a deep copy of container with folded history for the last event only
 	 * @param walletStateContainer
 	 * @returns
