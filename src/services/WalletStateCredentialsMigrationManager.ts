@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react"
 import { WalletBaseStateCredential, WalletSessionEvent, WalletStateOperations } from "./WalletStateOperations";
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
+import { deriveHolderKidFromCredential } from "@/lib/services/OpenID4VCI/OpenID4VCI";
 
 
 
@@ -34,16 +35,18 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 				stringToIdMap.set(credentialIdentifier, id++);
 			}
 		}
-		const transformedVcEntities: WalletBaseStateCredential[] = vcEntityList.map(({ credential, credentialIdentifier, credentialIssuerIdentifier, format, instanceId, }, index) => {
+		const transformedVcEntities: WalletBaseStateCredential[] = await Promise.all(vcEntityList.map(async ({ credential, credentialIdentifier, credentialIssuerIdentifier, format, instanceId, }, index) => {
 			return {
 				data: credential,
 				format: format,
 				credentialIssuerIdentifier: credentialIssuerIdentifier,
+				credentialConfigurationId: "",
 				instanceId: instanceId,
+				kid: await deriveHolderKidFromCredential(credential, format),
 				batchId: stringToIdMap.get(credentialIdentifier),
 				credentialId: index,
 			}
-		});
+		}));
 		console.log("Transformed credentials = ", transformedVcEntities)
 		const [{ }, newPrivateData, keystoreCommit] = await keystore.addCredentials(transformedVcEntities);
 		await api.updatePrivateData(newPrivateData);

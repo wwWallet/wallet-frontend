@@ -31,7 +31,7 @@ const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.sp
 
 const textDecoder = new TextDecoder();
 
-const deriveHolderKidFromCredential = async (credential: string, format: string, type: { vct?: string, doctype?: string }) => {
+export const deriveHolderKidFromCredential = async (credential: string, format: string) => {
 	if (format === VerifiableCredentialFormat.VC_SDJWT || format === VerifiableCredentialFormat.DC_SDJWT) {
 		const payload = credential.split('.')[1];
 		const { cnf } = JSON.parse(textDecoder.decode(fromBase64Url(payload)));
@@ -46,7 +46,7 @@ const deriveHolderKidFromCredential = async (credential: string, format: string,
 		const m = {
 			version: '1.0',
 			documents: [new Map([
-				['docType', type.doctype],
+				['docType', 'unknown'],
 				['issuerSigned', issuerSigned]
 			])],
 			status: 0
@@ -100,10 +100,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.VC_SDJWT ||
 						credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.DC_SDJWT
 					) {
-						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format, { vct: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].vct });
+						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format);
 					}
 					else if (credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format === VerifiableCredentialFormat.MSO_MDOC) {
-						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format, { doctype: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].doctype });
+						return deriveHolderKidFromCredential(credential, credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format);
 					}
 					else {
 						return null;
