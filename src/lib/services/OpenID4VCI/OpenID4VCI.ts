@@ -43,10 +43,11 @@ export const deriveHolderKidFromCredential = async (credential: string, format: 
 	else if (format === VerifiableCredentialFormat.MSO_MDOC) {
 		const credentialBytes = fromBase64Url(credential);
 		const issuerSigned = cborDecode(credentialBytes);
+		const dataItem = cborDecode(issuerSigned.get('issuerAuth')[2]);		
 		const m = {
 			version: '1.0',
 			documents: [new Map([
-				['docType', 'unknown'],
+				['docType', dataItem.data.get('docType')],
 				['issuerSigned', issuerSigned]
 			])],
 			status: 0

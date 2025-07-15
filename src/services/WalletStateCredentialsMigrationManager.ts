@@ -36,14 +36,6 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			}
 		}
 		const transformedVcEntities: WalletBaseStateCredential[] = await Promise.all(vcEntityList.map(async ({ credential, credentialIdentifier, credentialIssuerIdentifier, format, instanceId, }, index) => {
-			try {
-				await api.del('/storage/vc/' + credentialIdentifier);
-				console.log("Deleted vc with identifier " + credentialIdentifier);
-			}
-			catch (err) {
-				console.log("Failed to delete vc");
-				console.error(err);
-			}
 			return {
 				data: credential,
 				format: format,
@@ -72,6 +64,32 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			console.log("migrating credentials...")
 		}
 	}, [api, keystore, isOnline]);
+
+	useEffect(() => {
+		if (!migrated.current) {
+			return;
+		}
+		api.get('/storage/vc').then(async (response) => {
+			const vcEntityList = response.data.vc_list;
+			try {
+				await Promise.all(vcEntityList.map(async ({ credentialIdentifier }) => {
+					try {
+						await api.del('/storage/vc/' + credentialIdentifier);
+						console.log("Deleted vc with identifier " + credentialIdentifier);
+					}
+					catch (err) {
+						console.log("Failed to delete vc");
+						console.error(err);
+						throw err;
+					}
+				}));
+			}
+			catch (err) {
+				console.error(err);
+			}
+
+		})
+	}, [api, isOnline]);
 
 	useEffect(() => {
 		migrated.current = false;
