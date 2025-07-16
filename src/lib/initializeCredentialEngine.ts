@@ -35,7 +35,7 @@ export async function initializeCredentialEngine(
 	credentialParsingEngine.register(MsoMdocParser({ context: ctx, httpClient: httpProxy }));
 
 	const pkResolverEngine = PublicKeyResolverEngine();
-	const sdJwtVerifier = SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine });
+	const sdJwtVerifier = SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine, httpClient: httpProxy });
 	const msoMdocVerifier = MsoMdocVerifier({ context: ctx, pkResolverEngine: pkResolverEngine });
 
 	return { credentialParsingEngine, sdJwtVerifier, msoMdocVerifier };
