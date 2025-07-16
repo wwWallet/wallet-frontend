@@ -98,6 +98,9 @@ export interface BackendApi {
 
 export function useApi(isOnline: boolean | null): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
+	const [userHandle, setUserHandle, clearUserHandle] = useSessionStorage<string | null>("userHandle", null);
+	const [cachedUsers, setCachedUsers, clearCachedUsers] = useLocalStorage<CachedUser[] | null>("userHandle", null);
+
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 	const onlineRef = useRef<boolean>(isOnline !== false);
@@ -321,11 +324,14 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		} catch (e) {
 			console.error("Failed to update private data", e, e?.response?.status);
 			if (e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) {
-				throw new Error("Private data version conflict", { cause: 'x-private-data-etag' });
+				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
+				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
+				await syncPrivateData(cachedUser);
+				return;
 			}
 			throw e;
 		}
-	}, [post, updatePrivateDataEtag]);
+	}, [post, updatePrivateDataEtag, cachedUsers, userHandle]);
 
 	const login = useCallback(async (
 		username: string,
