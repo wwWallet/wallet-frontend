@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { FaRegCircle, FaCheckCircle, FaInfo, FaIdCard } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -11,6 +11,41 @@ import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
 import { truncateByWords } from '@/functions/truncateWords';
 import { MdFactCheck } from "react-icons/md";
+import { getLanguage } from '@/i18n';
+
+const mergeDisplayByLang = (displays) => {
+	const merged = {};
+
+	for (const { lang, label, description } of displays) {
+		if (!merged[lang]) {
+			merged[lang] = { lang, labels: new Set(), descriptions: new Set() };
+		}
+		merged[lang].labels.add(label);
+		if (description) {
+			merged[lang].descriptions.add(description);
+		}
+	}
+
+	return Object.values(merged).map(({ lang, labels, descriptions }) => ({
+		lang,
+		labels: Array.from(labels),
+		descriptions: Array.from(descriptions)
+	}));
+};
+
+export const getDisplayArrayByLang = (displayArray, lang, fallbackLang) => {
+	// Step 1: preferred language
+	const primary = displayArray.filter(d => getLanguage(d.lang) === lang && d.label);
+	if (primary.length > 0) return primary;
+
+	// Step 2: fallback language
+	const fallback = displayArray.filter(d => getLanguage(d.lang) === fallbackLang && d.label);
+	if (fallback.length > 0) return fallback;
+
+	// Step 3: any first with a label
+	const first = displayArray.find(d => d.label);
+	return first ? [first] : [];
+};
 
 const formatTitle = (title) => {
 	if (title) {
@@ -65,7 +100,9 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
 	const [vcEntities, setVcEntities] = useState(null);
-	const { t } = useTranslation();
+	const { t, i18n } = useTranslation();
+	const { language, options: { fallbackLng } } = i18n;
+
 	const rawKeys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : [], [popupState]);
 	const keys = useMemo(() => ['preview', ...rawKeys, 'summary'], [rawKeys]);
 	const stepTitles = useMemo(() => keys, [keys]);
@@ -80,21 +117,44 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
 
 	const requestedFieldsPerCredential = useMemo(() => {
+		if (!popupState?.options || !vcEntityList) return {};
 
-		if (!popupState?.options) return {};
 		const map = popupState.options.conformantCredentialsMap;
 		const result = {};
 		for (const [descriptorId, entry] of Object.entries(map)) {
 			const seen = new Set();
-			result[descriptorId] = (entry.requestedFields || []).filter(field => {
+			const enrichedFields = [];
+
+			for (const field of entry.requestedFields || []) {
 				const key = field.name || field.path?.join('.');
-				if (seen.has(key)) return false;
+				if (seen.has(key)) continue;
 				seen.add(key);
-				return true;
-			});
+
+				const displayByLang = [];
+
+				for (const credentialId of entry.credentials) {
+					const vcEntity = vcEntityList.find(vc => vc.credentialIdentifier === credentialId);
+					const claims = vcEntity?.parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims || [];
+
+					const match = claims.find(c => JSON.stringify(c.path) === JSON.stringify(field.path));
+					if (!match?.display) continue;
+
+					displayByLang.push(...match.display);
+				}
+
+				const rawDisplay = getDisplayArrayByLang(displayByLang, language, fallbackLng?.[0]);
+				const mergedDisplay = mergeDisplayByLang(rawDisplay);
+
+				enrichedFields.push({
+					...field,
+					display: mergedDisplay,
+				});
+			}
+
+			result[descriptorId] = enrichedFields;
 		}
 		return result;
-	}, [popupState]);
+	}, [popupState, vcEntityList, language, fallbackLng]);
 
 	const reinitialize = useCallback(() => {
 		setCurrentIndex(0);
@@ -302,9 +362,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								{t('selectCredentialPopup.requestedCredentialsFieldsTitle')}
 							</p>
 							{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
-								const names = fields.map(f => f.name || f.path?.[0]);
 								const showAll = showAllPreviewFields[descriptorId];
-
+								const displayItems = showAll ? fields : fields.slice(0, 2);
 								return (
 									<div key={descriptorId} className="my">
 										<span className="flex items-center gap-1 text-gray-700 dark:text-white text-sm font-bold my-1">
@@ -312,11 +371,37 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											{formatTitle(descriptorId)}
 										</span>
 										<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
-											{(showAll ? names : names.slice(0, 2)).map((name, i) => (
-												<li key={i}>{name}</li>
-											))}
+											{displayItems.map((field, i) => {
+												const disp = field.display?.[0];
+												const fallback = field.name || (Array.isArray(field.path) ? field.path.join('.') : field.path);
+
+												return (
+													<li key={i}>
+														{/* Display labels if available, else fallback */}
+														{disp?.labels?.length ? (
+															<div>
+																<span className="text-sm text-gray-700 font-medium dark:text-white list-disc">
+																	{disp.labels.map((label, j) => (
+																		<React.Fragment key={j}>
+																			{label}
+																			{j < disp.labels.length - 1 && (
+																				<span className="mx-1 italic font-light">or</span>
+																			)}
+																		</React.Fragment>
+																	))}
+																	{language !== getLanguage(disp.lang) && (
+																		<span className="text-xs font-light italic"> ({disp.lang})</span>
+																	)}
+																</span>
+															</div>
+														) : (
+															<span className="text-sm text-gray-700 font-light italic dark:text-white list-disc">{fallback}</span>
+														)}
+													</li>
+												);
+											})}
 										</ul>
-										{names.length > 2 && (
+										{fields.length > 2 && (
 											<button
 												onClick={() =>
 													setShowAllPreviewFields(prev => ({
