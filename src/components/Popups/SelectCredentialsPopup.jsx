@@ -12,40 +12,7 @@ import { CredentialInfoSkeleton } from '../Skeletons';
 import { truncateByWords } from '@/functions/truncateWords';
 import { MdFactCheck } from "react-icons/md";
 import { getLanguage } from '@/i18n';
-
-const mergeDisplayByLang = (displays) => {
-	const merged = {};
-
-	for (const { lang, label, description } of displays) {
-		if (!merged[lang]) {
-			merged[lang] = { lang, labels: new Set(), descriptions: new Set() };
-		}
-		merged[lang].labels.add(label);
-		if (description) {
-			merged[lang].descriptions.add(description);
-		}
-	}
-
-	return Object.values(merged).map(({ lang, labels, descriptions }) => ({
-		lang,
-		labels: Array.from(labels),
-		descriptions: Array.from(descriptions)
-	}));
-};
-
-export const getDisplayArrayByLang = (displayArray, lang, fallbackLang) => {
-	// Step 1: preferred language
-	const primary = displayArray.filter(d => getLanguage(d.lang) === lang && d.label);
-	if (primary.length > 0) return primary;
-
-	// Step 2: fallback language
-	const fallback = displayArray.filter(d => getLanguage(d.lang) === fallbackLang && d.label);
-	if (fallback.length > 0) return fallback;
-
-	// Step 3: any first with a label
-	const first = displayArray.find(d => d.label);
-	return first ? [first] : [];
-};
+import { getDisplayArrayByLang, mergeDisplayByLang } from '@/utils/displayUtils';
 
 const formatTitle = (title) => {
 	if (title) {
