@@ -13,14 +13,7 @@ import { truncateByWords } from '@/functions/truncateWords';
 import { MdFactCheck } from "react-icons/md";
 import { getLanguage } from '@/i18n';
 import { getDisplayArrayByLang, mergeDisplayByLang } from '@/utils/displayUtils';
-
-const formatTitle = (title) => {
-	if (title) {
-		return title.replace(/([a-z])([A-Z])/g, '$1 $2');
-	} else {
-		return;
-	}
-};
+import { camelCaseToWords } from '@/utils/stringUtils';
 
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 
@@ -274,7 +267,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						) : (
 							<>
 								<FaIdCard size={24} />
-								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.selectTitle') + formatTitle(stepTitles[currentIndex])}
+								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.selectTitle') + camelCaseToWords(stepTitles[currentIndex])}
 							</>
 						)}
 					</h2>
@@ -335,7 +328,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									<div key={descriptorId} className="my">
 										<span className="flex items-center gap-1 text-gray-700 dark:text-white text-sm font-bold my-1">
 											<FaIdCard className="text-primary dark:text-primary-light" />
-											{formatTitle(descriptorId)}
+											{camelCaseToWords(descriptorId)}
 										</span>
 										<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
 											{displayItems.map((field, i) => {
@@ -449,7 +442,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											showRibbon={false}
 										/>
 										<p className="text-md font-semibold text-gray-800 dark:text-white">
-											{formatTitle(descriptorId)}
+											{camelCaseToWords(descriptorId)}
 										</p>
 									</div>
 								);
