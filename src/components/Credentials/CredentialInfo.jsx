@@ -134,6 +134,9 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const expandedDisplayClaims = expandDisplayClaims(filteredClaims, signedClaims);
 
+	// Ensure parents come before children to prevent overwrite issues
+	expandedDisplayClaims.sort((a, b) => a.path.length - b.path.length);
+
 	expandedDisplayClaims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
 		if (!Array.isArray(claim.display)) return;
