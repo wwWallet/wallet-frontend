@@ -93,7 +93,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_STATIC_NAME: The installation's public name
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
   - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
-	- VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
+  - VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
 
 
 - Set up Firebase (optional)
@@ -129,14 +129,15 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
 
 
 - Install dependencies:
-   ```bash
-   yarn install
-   ```
+    ```bash
+    yarn install
+    ```
+
 - Start the development server:
 
-   ```bash
-   yarn start
-   ```
+    ```bash
+    yarn start
+    ```
 
 ## 🚀Usage
 
@@ -161,15 +162,15 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <th colspan="4">PRF Compatibility</th>
     </tr>
     <tr>
-      <th style="display:flex;align-items:center;border:none;"><img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
-	  		<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
-				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
-				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
-			</th>
-			<th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
+      <th style="display:flex;align-items:center;border:none;">
+        <img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
+        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
+        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
+        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
+      </th>
+      <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
       <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
     </tr>
-	</th>
   </thead>
   <tbody>
     <tr>
@@ -368,11 +369,11 @@ This application uses Firebase for authentication and messaging features. To int
 
 1. **Firebase Configuration (`src/firebase.js`):**
 
-   The `firebase.js` file in the `src` directory and provide your Firebase configuration details. This file initializes the Firebase app and sets up the messaging service.
+    The `firebase.js` file in the `src` directory and provide your Firebase configuration details. This file initializes the Firebase app and sets up the messaging service.
 
 2. **Firebase Messaging Service Worker (`public/firebase-messaging-sw.js`):**
 
-   This service worker is responsible for handling background messages and notification clicks. When a background message is received, it triggers a notification, and when the user clicks on a notification, it can perform custom actions.
+    This service worker is responsible for handling background messages and notification clicks. When a background message is received, it triggers a notification, and when the user clicks on a notification, it can perform custom actions.
 
 ## 🎨Tailwind CSS
 
