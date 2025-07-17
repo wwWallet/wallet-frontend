@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaQuestionCircle } from 'react-icons/fa';
 import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
@@ -20,6 +20,8 @@ import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
+
+import useScreenType from '@/hooks/useScreenType';
 
 const FormInputRow = ({
 	IconComponent,
@@ -216,6 +218,7 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
@@ -557,27 +560,50 @@ const WebauthnSignupLogin = ({
 
 						{!isLoginCache && (
 							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
-							].map(({ Icon, hint, btnLabel }) => (
+								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill, variant: "primary", helpText: "Fastest option, recommended" },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: "outline", helpText: "Use a USB or hardware security key" },
+								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: "outline", helpText: "Scan QR or link mobile device" },
+							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
 								<Button
 									key={hint}
 									id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
 									type="submit"
-									variant="primary"
-									additionalClassName="w-full mt-2"
+									variant={variant}
+									additionalClassName={`
+										w-full mt-2 flex flex-col items-center justify-center relative
+										${variant === "outline" ? "px-4 py-[0.6875rem]" : "px-4 py-3"}
+									`}
 									title={!isLogin && !isOnline && t("common.offlineTitle")}
 									value={hint}
 								>
-									<Icon className="inline text-xl mr-2 shrink-0" />
-									{isSubmitting
-										? t('loginSignup.submitting')
-										: btnLabel
-									}
+									<div className="flex flex-row items-center justify-center w-full">
+										<Icon className="inline text-xl mr-2 shrink-0" />
+										
+										{isSubmitting
+											? t('loginSignup.submitting')
+											: btnLabel
+										}
+										
+										{screenType === 'desktop' && (
+											<div className="absolute right-4 flex items-center ml-2 group">
+												<FaQuestionCircle className={`w-4 h-4 dark:text-white cursor-pointer ${variant === "outline" ? "opacity-40" : "opacity-60"} ${screenType === 'desktop' ? 'hover:opacity-100' : ''}`} aria-hidden="true" />
+
+												<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
+													{helpText}
+												</div>
+											</div>
+										)}
+									</div>
+
+									{screenType !== 'desktop' && (
+										<span className="mt-2 text-xs dark:text-white">
+											{helpText}
+										</span>
+									)}
 								</Button>
 							))
 						)}
+						
 						{error && <div className="text-red-500 pt-2">{error}</div>}
 					</>
 				)
@@ -691,16 +717,19 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
+			<div className="relative p-8 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
+
 				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
+
 				<div className='absolute top-0 right-3'>
 					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
+				
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
@@ -735,7 +764,7 @@ const Auth = () => {
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+					<p className="text-sm font-light text-gray-500 dark:text-gray-200 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
