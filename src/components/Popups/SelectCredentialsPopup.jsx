@@ -315,7 +315,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 													<FaIdCard className="text-primary dark:text-primary-light" />
 													{t('selectCredentialPopup.request')}
 												</span>
-												<span className="font-normal bg-gray-100 px-1 rounded border border-1 border-gray-400">
+												<span className="font-semibold bg-gray-100 px-1 rounded border border-1 border-gray-400">
 													{descriptorId}
 												</span>
 											</div>
