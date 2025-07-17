@@ -5,17 +5,100 @@ import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 
 const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
-	// Finding the display object based on language or fallback language
-	let displayObj = displayArray.find(d => getLanguage(d.lang) === lang) ||
-		displayArray.find(d => getLanguage(d.lang) === fallbackLang);
+	const match =
+		displayArray.find(d => getLanguage(d.lang) === lang) ||
+		displayArray.find(d => getLanguage(d.lang) === fallbackLang) ||
+		displayArray[0] || {};
+
 	return {
-		label: displayObj ? displayObj.label : displayArray[0]?.label || '',
-		description: displayObj ? displayObj.description : displayArray[0]?.description || ''
+		label: match.label || '',
+		description: match.description || '',
 	};
 };
 
-const getValueByPath = (pathArray, source) => {
-	return pathArray.reduce((acc, key) => acc ? acc[key] : undefined, source);
+const getValueByPath = (path, obj) => {
+	if (!Array.isArray(path) || path.length === 0) return undefined;
+
+	const traverse = (segments, current) => {
+		if (segments.length === 0) return current;
+		const [head, ...tail] = segments;
+
+		if (head === null && typeof current === 'object' && current !== null) {
+			return Object.values(current).map(item => traverse(tail, item)).filter(v => v !== undefined);
+		}
+
+		if (current && typeof current === 'object' && head in current) {
+			return traverse(tail, current[head]);
+		}
+		return undefined;
+	};
+
+	return traverse(path, obj);
+};
+
+const addToNestedObject = (target, path, display, value) => {
+	let current = target;
+	for (let i = 0; i < path.length; i++) {
+		const key = path[i] ?? '*';
+		if (!current[key]) current[key] = {};
+		if (i === path.length - 1) {
+			current[key].display = display;
+			current[key].value = value;
+		} else {
+			if (typeof current[key].value !== 'object' || current[key].value === null || React.isValidElement(current[key].value)) {
+				current[key].value = {};
+			}
+			current = current[key].value;
+
+		}
+	}
+};
+
+const expandDisplayClaims = (claims, signedClaims) => {
+	const expanded = [];
+
+	claims.forEach(claim => {
+		if (!Array.isArray(claim.path)) return;
+
+		if (!claim.path.includes(null)) {
+			expanded.push(claim);
+			return;
+		}
+
+		const nullIndex = claim.path.findIndex(p => p === null);
+		const basePath = claim.path.slice(0, nullIndex);
+		const restPath = claim.path.slice(nullIndex + 1);
+		const target = getValueByPath(basePath, signedClaims);
+
+		if (target && typeof target === 'object') {
+			const keys = Array.isArray(target) ? target.map((_, i) => i) : Object.keys(target);
+			for (const key of keys) {
+				expanded.push({ ...claim, path: [...basePath, key, ...restPath] });
+			}
+		}
+	});
+
+	return expanded;
+};
+
+const isDisplayClaim = (claim) => {
+	if (!Array.isArray(claim.path)) return false;
+	if (!Array.isArray(claim.display)) return false;
+	return claim.display.some(d => d.lang && d.label);
+};
+
+const formatClaimValue = (value) => {
+	if (typeof value === 'boolean') return String(value);
+	if (typeof value === 'object') {
+		return (
+			<div className="w-full">
+				<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
+					<JsonViewer value={value} />
+				</div>
+			</div>
+		);
+	}
+	return formatDate(value, 'date');
 };
 
 const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims }) => {
@@ -36,67 +119,84 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			{ path: ['expiry_date'], display: [{ lang: 'en', label: 'Expiry Date' }] },
 		];
 
-	// Check each customClaims for existence in signedClaims before displaying
 	const existingCustomClaims = customClaims.filter(field => getValueByPath(field.path, signedClaims) !== undefined);
 
-	// Prepare display claims
 	const displayClaims = claims && Array.isArray(claims) ? claims : existingCustomClaims;
 
-	// Filter and prepare claims for display
-	const claimsWithValues = displayClaims.map(claim => {
-		if (!claim.display || !claim.path) {
-			return null;
-		}
+	const filteredClaims = Array.isArray(displayClaims)
+		? displayClaims.filter(c => {
+			const valid = isDisplayClaim(c);
+			return valid;
+		})
+		: [];
+
+	const nestedClaims = {};
+
+	const expandedDisplayClaims = expandDisplayClaims(filteredClaims, signedClaims);
+
+	// Ensure parents come before children to prevent overwrite issues
+	expandedDisplayClaims.sort((a, b) => a.path.length - b.path.length);
+
+	expandedDisplayClaims.forEach(claim => {
+		if (!Array.isArray(claim.path)) return;
+		if (!Array.isArray(claim.display)) return;
+
 		const rawValue = getValueByPath(claim.path, signedClaims);
-		const { label, description } = getLabelAndDescriptionByLang(claim.display, language, fallbackLng);
-		if (rawValue && label) {
-			let formattedValue = "";
-			if (typeof rawValue === 'boolean') {
-				formattedValue = String(rawValue);
+		if (rawValue === undefined) return;
+
+		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLng);
+		const display = { label, description };
+
+		const formattedValue = formatClaimValue(rawValue);
+
+		addToNestedObject(nestedClaims, claim.path, display, formattedValue);
+	});
+
+	const renderClaims = (data) => {
+		return Object.entries(data).map(([key, node]) => {
+			const label = node.display?.label || null;
+			const value = node.value;
+			if (!node.display) {
+				return (
+					renderClaims(value)
+				);
 			}
-			else if (Array.isArray(rawValue)) {
-				formattedValue = rawValue.join(', ');
-			} else if (typeof rawValue === 'object') {
-				formattedValue =
-					<div className="w-full">
-						<div className="max-h-40 resize-y overflow-auto border rounded px-2 py-1 rounded-xl">
-							<JsonViewer value={rawValue} />
+			if (typeof value === 'object' && !React.isValidElement(value)) {
+				return (
+					<div key={key} className="w-full">
+						<details className="px-2 py-1 rounded-md">
+							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
+								{label}
+							</summary>
+							<div className="ml-4 my-1 border-l border-w-1 border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
+								{renderClaims(value)}
+							</div>
+						</details>
+					</div>
+				);
+			} else {
+				return (
+					<div key={key} className="flex flex-col sm:flex-row sm:items-start sm:gap-2 px-2 py-1">
+						<div className="font-semibold text-primary dark:text-primary-light w-1/2">
+							{label}:
+						</div>
+						<div className="text-gray-700 dark:text-white break-words w-1/2">
+							{value}
 						</div>
 					</div>
+				);
 			}
-			else {
-				formattedValue = formatDate(rawValue, 'date'); // to handle dates and other types of values
-			}
-
-			return {
-				label,
-				description,
-				value: formattedValue
-			};
-		}
-		return null;
-	}).filter(claim => claim !== null);
-
+		});
+	};
 	return (
 		<div className={mainClassName} data-testid="credential-info">
-			{claimsWithValues.length > 0 && (
-				<table>
-					<tbody>
-						{claimsWithValues.map((claim, index) => (
-							<tr key={index}>
-								<td className="flex py-1 px-2 font-bold text-primary dark:text-primary-light">
-									{claim.label}:
-								</td>
-								<td className="min-w-min max-w-[70%] py-1 px-2 text-gray-700 dark:text-white">
-									{claim.value}
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+			{Object.keys(nestedClaims).length > 0 && (
+				<div className="flex flex-col w-full gap-1">
+					{renderClaims(nestedClaims)}
+				</div>
 			)}
 		</div>
-	)
+	);
 };
 
 export default CredentialInfo;
