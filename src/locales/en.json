@@ -328,6 +328,7 @@
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
 		"requestedCredentialsFieldsTitle": "Requested Credentials/Fields:",
+		"request": "Request:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
 		"selectTitle": "Select: ",
