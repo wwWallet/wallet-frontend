@@ -1,20 +1,54 @@
+import { useEffect, useState } from 'react'
 import ExpiredRibbon from './ExpiredRibbon';
 import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 
-const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null }) => {
+const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null }) => {
+	const [imageSrc, setImageSrc] = useState(undefined);
+
+	useEffect(() => {
+		let isMounted = true;
+
+		async function loadImage() {
+			const imageFn = vcEntity?.parsedCredential?.metadata?.credential?.image?.dataUri;
+			if (!imageFn) {
+				setImageSrc(DefaultCred);
+				return;
+			}
+
+			try {
+				const uri = await (filter !== null ? imageFn(filter) : imageFn());
+				if (isMounted && uri) {
+					setImageSrc(uri);
+				} else {
+					setImageSrc(DefaultCred);
+				}
+			} catch (error) {
+				console.warn('Failed to load credential image:', error);
+				if (isMounted) {
+					setImageSrc(DefaultCred);
+				}
+			}
+		}
+
+		loadImage();
+
+		return () => { isMounted = false };
+	}, [vcEntity, filter]);
 
 	return (
 		<>
-			{vcEntity && (
-				<img src={vcEntity.parsedCredential.metadata.credential.image.dataUri !== "" ? vcEntity.parsedCredential.metadata.credential.image.dataUri : DefaultCred} alt={"Credential"} className={className} onClick={onClick} />
+			{vcEntity && imageSrc && (
+				<>
+					<img src={imageSrc} alt={"Credential"} className={className} onClick={onClick} />
+					{showRibbon &&
+						<ExpiredRibbon vcEntity={vcEntity} />
+					}
+					{showRibbon &&
+						<UsagesRibbon vcEntityInstances={vcEntityInstances} />
+					}
+				</>
 			)}
-			{vcEntity && showRibbon &&
-				<ExpiredRibbon vcEntity={vcEntity} />
-			}
-			{vcEntityInstances && showRibbon &&
-				<UsagesRibbon vcEntityInstances={vcEntityInstances} />
-			}
 		</>
 	);
 };
