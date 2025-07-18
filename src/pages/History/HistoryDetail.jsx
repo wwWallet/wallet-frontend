@@ -20,20 +20,22 @@ import HistoryDetailContent from '@/components/History/HistoryDetailContent';
 import { H1 } from '@/components/Shared/Heading';
 
 const HistoryDetail = () => {
-	const { historyId } = useParams();
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api, '', historyId);
+	const { transactionId } = useParams();
+	const { keystore } = useContext(SessionContext);
+	const history = useFetchPresentations(keystore, null, transactionId);
 	const navigate = useNavigate();
-	const [matchingCredentials, setMatchingCredentials] = useState([]);
+
+	// a history item can have more than one presentations (a history item is a transaction)
+	const [selectedHistoryItem, setSelectedHistoryItem] = useState([]);
 	const { t } = useTranslation();
 
 	console.log('history', history)
 
 	useEffect(() => {
-		if (history.length > 0) {
-			setMatchingCredentials(extractPresentations(history[0]));
+		if (transactionId && history && Object.keys(history).length > 0) {
+			setSelectedHistoryItem(Object.values(history)[0]);
 		}
-	}, [history]);
+	}, [history, transactionId]);
 
 	return (
 		<>
@@ -59,8 +61,8 @@ const HistoryDetail = () => {
 											<VerifierIcon className="fill-white bg-primary dark:bg-primary-light p-2 w-12 rounded-md" />
 										</div>
 										<div>
-											<p className='text-lg font-bold text-primary dark:text-white'>{history[0].audience} </p>
-											<p className='text-sm text-gray-700 dark:text-gray-300'>{formatDate(history[0].issuanceDate)}</p>
+											<p className='text-lg font-bold text-primary dark:text-white'>{Object.values(history)[0].audience} </p>
+											<p className='text-sm text-gray-700 dark:text-gray-300'>{formatDate(Object.values(history)[0].timestamp)}</p>
 										</div>
 									</div>
 								</>
@@ -69,8 +71,8 @@ const HistoryDetail = () => {
 					</div>
 
 				</div>
-				{matchingCredentials.length > 0 && (
-					<HistoryDetailContent historyItem={matchingCredentials} />
+				{selectedHistoryItem.length > 0 && (
+					<HistoryDetailContent historyItem={selectedHistoryItem} />
 				)}
 			</div>
 		</>

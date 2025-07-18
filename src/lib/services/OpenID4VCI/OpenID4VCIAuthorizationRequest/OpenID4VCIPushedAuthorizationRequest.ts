@@ -3,16 +3,15 @@ import { OpenidAuthorizationServerMetadata } from "../../../schemas/OpenidAuthor
 import pkce from 'pkce-challenge';
 import { OpenidCredentialIssuerMetadata } from "../../../schemas/OpenidCredentialIssuerMetadataSchema";
 import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
-import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "@/context/SessionContext";
+import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
 
-export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizationRequest {
+export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
-	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { keystore, api, isLoggedIn } = useContext(SessionContext);
 
 	const { get } = api;
@@ -91,10 +90,18 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 				authorizationRequestURL.searchParams.set('prompt', 'login');
 			}
 
-			await openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
+			await openID4VCIClientStateRepository.create({
+				sessionId: WalletStateUtils.getRandomUint32(),
+				credentialIssuerIdentifier: config.credentialIssuerIdentifier,
+				state,
+				code_verifier,
+				credentialConfigurationId,
+				created: Math.floor(Date.now() / 1000),
+			});
+			await openID4VCIClientStateRepository.commitStateChanges();
 			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore]
+		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);

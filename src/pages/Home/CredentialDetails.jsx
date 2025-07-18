@@ -14,11 +14,11 @@ import CredentialLayout from '../../components/Credentials/CredentialLayout';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 
 const CredentialDetails = () => {
-	const { credentialId } = useParams();
+	const { batchId } = useParams();
 	const { t } = useTranslation();
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const vcEntity  = useVcEntity(fetchVcData, vcEntityList, credentialId);
+	const vcEntity  = useVcEntity(fetchVcData, vcEntityList, batchId);
 
 	return (
 		<>

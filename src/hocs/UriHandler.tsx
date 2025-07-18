@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import checkForUpdates from "../offlineUpdateSW";
 import StatusContext from "../context/StatusContext";
@@ -7,6 +7,8 @@ import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
+import CredentialsContext from "@/context/CredentialsContext";
+import { CachedUser } from "@/services/LocalStorageKeystore";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -17,7 +19,7 @@ export const UriHandler = ({ children }) => {
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 
-	const { isLoggedIn } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore } = useContext(SessionContext);
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
@@ -33,11 +35,55 @@ export const UriHandler = ({ children }) => {
 	const { t } = useTranslation();
 
 	const [redirectUri, setRedirectUri] = useState(null);
+	const { vcEntityList } = useContext(CredentialsContext);
+
+	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
+	const [synced, setSynced] = useState(false);
+
 	useEffect(() => {
-		setUrl(window.location.href);
-		checkForUpdates();
-		updateOnlineStatus(false);
-	}, [location, updateOnlineStatus]);
+		if (!keystore) {
+			return;
+		}
+
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
+
+	useEffect(() => {
+		if (window.location.search !== '' && window.location.pathname !== '/login-state') {
+			setSynced(false);
+		}
+	}, [location]);
+
+	useEffect(() => {
+		if (!keystore || !cachedUser || !api) {
+			return;
+		}
+		if (synced === false && keystore.getCalculatedWalletState() && window.location.pathname !== '/login-state') {
+			console.log("Actually syncing...");
+			api.syncPrivateData(cachedUser).then((r) => {
+				if (!r.ok) {
+					return;
+				}
+				setSynced(true);
+				// checkForUpdates();
+				// updateOnlineStatus(false);
+			});
+		}
+
+	}, [api, keystore, cachedUser, synced, setSynced]);
+
+	useEffect(() => {
+		if (synced === true && window.location.search !== '') {
+			setUrl(window.location.href);
+		}
+	}, [synced, setUrl, location]);
 
 	useEffect(() => {
 		if (redirectUri) {
@@ -46,7 +92,7 @@ export const UriHandler = ({ children }) => {
 	}, [redirectUri]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP) {
+		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP || !vcEntityList || !synced) {
 			return;
 		}
 
@@ -84,7 +130,7 @@ export const UriHandler = ({ children }) => {
 			}
 			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
 				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
-				await openID4VP.handleAuthorizationRequest(u.toString()).then((result) => {
+				await openID4VP.handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
 					console.log("Result = ", result);
 					if ('error' in result) {
 						if (result.error === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
@@ -108,7 +154,7 @@ export const UriHandler = ({ children }) => {
 						return;
 					}
 					console.log("Selection = ", selection);
-					return openID4VP.sendAuthorizationResponse(selection);
+					return openID4VP.sendAuthorizationResponse(selection, vcEntityList);
 
 				}).then((res) => {
 					if (res && 'url' in res && res.url) {
@@ -134,7 +180,7 @@ export const UriHandler = ({ children }) => {
 			}
 		}
 		handle(url);
-	}, [url, t, isLoggedIn, openID4VCI, openID4VP, setRedirectUri]);
+	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList, synced]);
 
 	return (
 		<>

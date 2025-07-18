@@ -1,38 +1,9 @@
-import { useContext, useCallback, useMemo } from "react";
 import { compareBy } from "../../util";
-import { StorableCredential } from "../types/StorableCredential";
-import SessionContext from "@/context/SessionContext";
+import { ExtendedVcEntity } from "@/context/CredentialsContext";
+import { WalletBaseStatePresentation } from "@/services/WalletStateOperations";
 
-export function useCredentialBatchHelper() {
-	const { api } = useContext(SessionContext);
-
-	const { post } = api;
-	const updateCredential = useCallback(async (storableCredential: StorableCredential) => {
-		await post("/storage/vc/update", {
-			credential: storableCredential,
-		});
-	}, [post]);
-
-	const getLeastUsedCredential = useCallback(
-		async (credentialIdentifier: string, cList: StorableCredential[]): Promise<{ credential: StorableCredential }> => {
-			const creds = cList.filter((c) => c.credentialIdentifier === credentialIdentifier);
-			creds.sort(compareBy((c) => c.sigCount));
-			console.log("Ordered by sigCount = ", creds);
-			return { credential: creds[0] };
-		},
-		[]
-	);
-
-	const useCredential = useCallback(async (storableCredential: StorableCredential): Promise<void> => {
-		storableCredential.sigCount += 1;
-		await updateCredential(storableCredential);
-	}, [updateCredential]);
-
-	return useMemo(
-		() => ({
-			getLeastUsedCredential,
-			useCredential,
-		}),
-		[getLeastUsedCredential, useCredential]
-	);
+export async function getLeastUsedCredentialInstance(batchId: number, cList: ExtendedVcEntity[]) {
+	const credsByBatchId = cList.filter((c) => c.batchId === batchId);
+	credsByBatchId.sort(compareBy((c) => c.sigCount));
+	return credsByBatchId[0];
 }
