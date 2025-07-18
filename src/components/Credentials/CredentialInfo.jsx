@@ -102,14 +102,16 @@ const formatClaimValue = (value) => {
 	return formatDate(value, 'date');
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requestedFields = null }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
 	const { i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
+
+	const requestedFields = requested?.fields ?? null;
+	const requestedDisplay = requested?.display ?? undefined;
 
 	const signedClaims = parsedCredential?.signedClaims;
 	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
 
-	console.log('requestedFields', requestedFields)
 	// Define custom claims to display from signedClaims if claims is missing
 	const customClaims = fallbackClaims ? fallbackClaims :
 		[
@@ -139,7 +141,24 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	// Ensure parents come before children to prevent overwrite issues
 	expandedDisplayClaims.sort((a, b) => a.path.length - b.path.length);
 
-	expandedDisplayClaims.forEach(claim => {
+	const requestedFieldSet = new Set(
+		requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
+	);
+
+	const visibleClaims = requestedDisplay === "hide"
+		? expandedDisplayClaims.filter(claim => {
+			const joinedPath = claim.path?.join('.');
+			if (!joinedPath) return false;
+
+			// Include if this path is exactly requested or is a prefix of a requested path
+			return Array.from(requestedFieldSet).some(req =>
+				joinedPath === req || req.startsWith(joinedPath + '.')
+			);
+		})
+		: expandedDisplayClaims;
+
+
+	visibleClaims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
 		if (!Array.isArray(claim.display)) return;
 
@@ -166,7 +185,9 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			const label = node.display?.label || null;
 			const value = node.value;
 			const fullPath = [...currentPath, key].join('.');
-			const isRequested = requestedPaths.has(fullPath);
+			const isRequested = Array.from(requestedPaths).some(requested =>
+				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
+			);
 
 			if (!node.display) {
 				return renderClaims(value, [...currentPath, key]);
@@ -174,7 +195,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
 					<div key={fullPath} className="w-full">
-						<details className="px-2 py-1 rounded-md">
+						<details className="pl-2 py-1 rounded-md" open={isRequested}>
 							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
 								{label}
 							</summary>
@@ -188,7 +209,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div
 						key={fullPath}
-						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested && requestedDisplay === "highlight"
 							? 'bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-yellow-700'
 							: ''
 							}`}

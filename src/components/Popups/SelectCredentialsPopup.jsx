@@ -20,6 +20,14 @@ const formatTitle = (title) => {
 	}
 };
 
+const normalizePath = (path) => {
+	if (Array.isArray(path)) return path;
+	if (typeof path === 'string' && path.startsWith('$.')) {
+		return path.slice(2).split('.');
+	}
+	return [path];
+};
+
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 
 	return (
@@ -370,13 +378,14 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 							)}
 							{vcEntities?.[currentSlide - 1] ? (
-								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 ${screenType !== 'desktop' && "mb-16"}`}>
+								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center my-2 ${screenType !== 'desktop' && "mb-16"}`}>
 									<CredentialInfo
 										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
 										mainClassName={"text-xs w-full"}
-										requestedFields={
-											requestedFieldsPerCredential[keys[currentIndex]]?.map(field => field.path)
-										}
+										requested={{
+											fields: requestedFieldsPerCredential[keys[currentIndex]]?.map(field => normalizePath(field.path)),
+											display: "highlight"
+										}}
 									/>
 								</div>
 							) : (
@@ -397,34 +406,53 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								components={{ strong: <strong /> }}
 							/>
 						</p>
-						<div className="flex flex-col gap-4">
-							{selectedVcEntities.map((vcEntity) => {
-								const descriptorId = Object.keys(currentSelectionMap).find(
-									(key) => currentSelectionMap[key] === vcEntity.credentialIdentifier
-								);
-								return (
-									<div
-										key={vcEntity.credentialIdentifier}
-										className="flex flex-row items-center gap-2 mt-2"
-									>
+
+						<div className={`xm:px-4 px-16 sm:px-24 md:px-8 ${screenType === 'desktop' && 'max-w-[600px]'}`}>
+							<Slider
+								items={selectedVcEntities}
+								renderSlideContent={(vcEntity) => {
+									const descriptorId = Object.keys(currentSelectionMap).find(
+										(key) => currentSelectionMap[key] === vcEntity.credentialIdentifier
+									);
+									return (
 										<CredentialImage
 											vcEntity={vcEntity}
 											parsedCredential={vcEntity.parsedCredential}
-											className="w-32 rounded-md"
+											className="w-full object-cover rounded-xl"
 											showRibbon={false}
+											filter={requestedFieldsPerCredential[descriptorId]?.map(field => normalizePath(field.path))}
+
 										/>
-										<p className="text-md font-semibold text-gray-800 dark:text-white">
-											{formatTitle(descriptorId)}
-										</p>
-									</div>
-								);
-							})}
+									);
+								}}
+								onSlideChange={(index) => setCurrentSummarySlide(index)}
+							/>
+
+							{selectedVcEntities?.[currentSummarySlide] ? (
+								<div className="flex flex-wrap justify-center items-center my-2">
+									<CredentialInfo
+										parsedCredential={selectedVcEntities[currentSummarySlide].parsedCredential}
+										mainClassName="text-xs w-full"
+										requested={{
+											fields: requestedFieldsPerCredential[
+												Object.keys(currentSelectionMap).find(
+													(key) =>
+														currentSelectionMap[key] ===
+														selectedVcEntities[currentSummarySlide]?.credentialIdentifier
+												)
+											]?.map((field) => normalizePath(field.path)),
+											display: "hide"
+										}}
+									/>
+								</div>
+							) : (
+								<CredentialInfoSkeleton />
+							)}
 						</div>
 					</>
 				)}
-
-
 			</div>
+
 			<div
 				className={`z-10 left-0 right-0 bg-white dark:bg-gray-800 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
 					? 'sticky bottom-0 px-4 py-3'
