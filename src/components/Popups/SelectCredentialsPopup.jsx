@@ -374,6 +374,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									<CredentialInfo
 										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
 										mainClassName={"text-xs w-full"}
+										requestedFields={
+											requestedFieldsPerCredential[keys[currentIndex]]?.map(field => field.path)
+										}
 									/>
 								</div>
 							) : (

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { formatDate } from '../../functions/DateFormat';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
+import { IoIosSend } from "react-icons/io";
 
 const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
 	const match =
@@ -101,13 +102,14 @@ const formatClaimValue = (value) => {
 	return formatDate(value, 'date');
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requestedFields = null }) => {
 	const { i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
 
 	const signedClaims = parsedCredential?.signedClaims;
 	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
 
+	console.log('requestedFields', requestedFields)
 	// Define custom claims to display from signedClaims if claims is missing
 	const customClaims = fallbackClaims ? fallbackClaims :
 		[
@@ -152,36 +154,56 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		addToNestedObject(nestedClaims, claim.path, display, formattedValue);
 	});
 
-	const renderClaims = (data) => {
+	const requestedPaths = useMemo(() => {
+		if (!requestedFields) return new Set();
+		return new Set(requestedFields.map(path =>
+			Array.isArray(path) ? path.join('.') : path
+		));
+	}, [requestedFields]);
+
+	const renderClaims = (data, currentPath = []) => {
 		return Object.entries(data).map(([key, node]) => {
 			const label = node.display?.label || null;
 			const value = node.value;
+			const fullPath = [...currentPath, key].join('.');
+			const isRequested = requestedPaths.has(fullPath);
+
 			if (!node.display) {
-				return (
-					renderClaims(value)
-				);
+				return renderClaims(value, [...currentPath, key]);
 			}
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
-					<div key={key} className="w-full">
+					<div key={fullPath} className="w-full">
 						<details className="px-2 py-1 rounded-md">
 							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
 								{label}
 							</summary>
 							<div className="ml-4 my-1 border-l border-w-1 border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
-								{renderClaims(value)}
+								{renderClaims(value, [...currentPath, key])}
 							</div>
 						</details>
 					</div>
 				);
 			} else {
 				return (
-					<div key={key} className="flex flex-col sm:flex-row sm:items-start sm:gap-2 px-2 py-1">
+					<div
+						key={fullPath}
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested
+							? 'bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-yellow-700'
+							: ''
+							}`}
+					>
 						<div className="font-semibold text-primary dark:text-primary-light w-1/2">
 							{label}:
 						</div>
-						<div className="text-gray-700 dark:text-white break-words w-1/2">
+						<div className="text-gray-700 dark:text-white break-words w-1/2 flex justify-between items-start">
 							{value}
+							{isRequested && (
+								<IoIosSend
+									title="Requested by verifier"
+									className="text-primary dark:text-primary-light flex-shrink-0"
+								/>
+							)}
 						</div>
 					</div>
 				);
