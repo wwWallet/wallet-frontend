@@ -592,7 +592,7 @@ export namespace WalletStateOperations {
 	 */
 	export async function foldLastEventIntoBaseState(walletStateContainer: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);
-		if (walletStateContainer.events[0].timestamp > now + foldEventHistoryAfter) {
+		if (walletStateContainer.events[0] && walletStateContainer.events[0].timestamp + foldEventHistoryAfter < now) {
 			walletStateContainer.S = walletStateReducer(walletStateContainer.S, walletStateContainer.events[0]);
 			walletStateContainer.events = walletStateContainer.events.slice(1,);
 			walletStateContainer.events = await rebuildEventHistory(walletStateContainer.events);

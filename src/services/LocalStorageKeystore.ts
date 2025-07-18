@@ -616,7 +616,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
-		const [walletStateContainer, ,] = await openPrivateData();
+		let [walletStateContainer, ,] = await openPrivateData();
+		walletStateContainer = await WalletStateOperations.foldLastEventIntoBaseState(walletStateContainer);
+
 		const newEvents: WalletSessionEvent[] = [];
 		for (const { data, format, batchId, credentialIssuerIdentifier, kid, credentialConfigurationId, instanceId, credentialId } of credentials) {
 			const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
@@ -644,7 +646,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
-		const [walletStateContainer, ,] = await openPrivateData();
+		let [walletStateContainer, ,] = await openPrivateData();
+		walletStateContainer = await WalletStateOperations.foldLastEventIntoBaseState(walletStateContainer);
+
 		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
 		const newEvents: WalletSessionEvent[] = [];
 		for (const cred of credentialsToBeDeleted) {
@@ -675,7 +679,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
-		const [walletStateContainer, ,] = await openPrivateData();
+		let [walletStateContainer, ,] = await openPrivateData();
+		walletStateContainer = await WalletStateOperations.foldLastEventIntoBaseState(walletStateContainer);
+
 		const newEvents: WalletSessionEvent[] = [];
 		for (const { transactionId, data, usedCredentialIds, audience } of presentations) {
 			const e = await WalletStateOperations.createNewPresentationWalletSessionEvent(walletStateContainer,
@@ -707,7 +713,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
-		const [walletStateContainer, ,] = await openPrivateData();
+		let [walletStateContainer, ,] = await openPrivateData();
+		walletStateContainer = await WalletStateOperations.foldLastEventIntoBaseState(walletStateContainer);
+
 		for (const issuanceSession of issuanceSessions) {
 			const e = await WalletStateOperations.createSaveCredentialIssuanceSessionWalletSessionEvent(walletStateContainer,
 				issuanceSession.sessionId,
@@ -741,7 +749,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]> => {
-		const [walletStateContainer, ,] = await openPrivateData();
+		let [walletStateContainer, ,] = await openPrivateData();
+		walletStateContainer = await WalletStateOperations.foldLastEventIntoBaseState(walletStateContainer);
 		const e = await WalletStateOperations.createAlterSettingsWalletSessionEvent(walletStateContainer, settings);
 		walletStateContainer.events.push(e);
 
@@ -753,6 +762,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return [{}, newContainer];
 		});
 	}, [editPrivateData, openPrivateData]);
+
 
 	return useMemo(() => ({
 		isOpen,
