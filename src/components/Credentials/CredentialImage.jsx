@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import ExpiredRibbon from './ExpiredRibbon';
 import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
+import { CredentialCardSkeleton } from '../Skeletons';
 
 const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null }) => {
 	const [imageSrc, setImageSrc] = useState(undefined);
@@ -38,7 +39,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 
 	return (
 		<>
-			{vcEntity && imageSrc && (
+			{vcEntity && imageSrc ? (
 				<>
 					<img src={imageSrc} alt={"Credential"} className={className} onClick={onClick} />
 					{showRibbon &&
@@ -48,6 +49,8 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 						<UsagesRibbon vcEntityInstances={vcEntityInstances} />
 					}
 				</>
+			) : (
+				<CredentialCardSkeleton />
 			)}
 		</>
 	);
