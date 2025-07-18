@@ -1,25 +1,37 @@
-FROM node:22-bullseye-slim AS builder-base
-
-WORKDIR /home/node/app
-
-# Install dependencies first so rebuild of these layers is only needed when dependencies change
-COPY package.json yarn.lock .
-COPY .env.prod .env
-
-RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/* && git clone --branch master --single-branch --depth 1 https://github.com/wwWallet/wallet-common.git /lib/wallet-common
+FROM node:22-bullseye-slim AS wallet-common-builder
 
 WORKDIR /lib/wallet-common
-RUN yarn install && yarn build
+COPY ./lib/wallet-common/package.json ./lib/wallet-common/yarn.lock ./
+RUN yarn install --pure-lockfile
+
+COPY ./lib/wallet-common/ ./
+RUN yarn build
 
 
-WORKDIR /home/node/app
-# Overwrite wallet-common with the remote master branch
-RUN yarn cache clean -f && yarn add /lib/wallet-common && yarn install
+FROM node:22-bullseye-slim AS builder-base
+
+WORKDIR /app
+
+COPY package.json yarn.lock .
+COPY --from=wallet-common-builder /lib/wallet-common/ ./lib/wallet-common/
+RUN yarn install --pure-lockfile
+
+
+FROM builder-base AS development
+
+ENV NODE_ENV=development
+CMD ["yarn", "start-docker"]
+
+# src/ and public/ will be mounted from host, but we need some config files in the image for startup
+COPY . .
+
+# Set user last so everything is readonly by default
+USER node
+
 
 FROM builder-base AS test
 
 COPY . .
-COPY .env.prod .env
 # Run tests during Docker build
 RUN npm run test
 # Run tests if image is run as container
@@ -29,7 +41,7 @@ CMD ["npm", "run", "test"]
 FROM builder-base AS builder
 
 # This is just to make the builder stage depend on the test stage.
-COPY --from=test /home/node/app/package.json /dev/null
+COPY --from=test /app/package.json /dev/null
 
 COPY . .
 COPY .env.prod .env
@@ -41,7 +53,7 @@ FROM nginx:alpine AS deploy
 WORKDIR /usr/share/nginx/html
 
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /home/node/app/dist/ .
+COPY --from=builder /app/dist/ .
 
 EXPOSE 80
 
