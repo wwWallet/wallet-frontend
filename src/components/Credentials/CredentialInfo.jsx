@@ -161,9 +161,14 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			const joinedPath = claim.path?.join('.');
 			if (!joinedPath) return false;
 
-			// Include if this path is exactly requested or is a prefix of a requested path
+			// Show if the claim is:
+			// - explicitly requested
+			// - a parent of a requested field
+			// - a child of a requested field
 			return Array.from(requestedFieldSet).some(req =>
-				joinedPath === req || req.startsWith(joinedPath + '.')
+				joinedPath === req ||
+				joinedPath.startsWith(req + '.') ||
+				req.startsWith(joinedPath + '.')
 			);
 		})
 		: expandedDisplayClaims;
