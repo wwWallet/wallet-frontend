@@ -34,7 +34,18 @@ const getValueByPath = (path, obj) => {
 		return undefined;
 	};
 
-	return traverse(path, obj);
+	const result = traverse(path, obj);
+
+	if (
+		typeof result === 'object' &&
+		result !== null &&
+		!React.isValidElement(result) &&
+		Object.keys(result).length === 0
+	) {
+		return undefined;
+	}
+
+	return result;
 };
 
 const addToNestedObject = (target, path, display, value) => {
