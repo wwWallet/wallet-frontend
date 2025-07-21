@@ -122,9 +122,9 @@ export const CredentialsContextProvider = ({ children }) => {
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: { verifySchema: true } });
 							case VerifiableCredentialFormat.DC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: { verifySchema: true } });
 							case VerifiableCredentialFormat.MSO_MDOC:
 								return msoMdocVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
 						}
