@@ -318,19 +318,25 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 									return (
 										<div key={descriptorId} className="my">
-											<div className="flex flex-row gap-1 text-sm text-gray-700 dark:text-white my-1">
+											<div className="flex flex-wrap gap-1 text-sm text-gray-700 dark:text-white my-1">
 												<span className="flex items-center gap-1 font-bold">
 													<FaIdCard className="text-primary dark:text-primary-light" />
 													{t('selectCredentialPopup.request')}
 												</span>
-												<span className="font-semibold bg-gray-100 px-1 rounded border border-1 border-gray-400">
+												<span
+													title={descriptorId}
+													className="font-semibold bg-gray-100 px-1 rounded border border-1 border-gray-400 break-all"
+												>
 													{descriptorId}
 												</span>
 											</div>
 											<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
 												{(showAll ? paths : paths.slice(0, 2)).map((path, i) => (
-													<li key={i} className="my-1">
-														<span className="bg-gray-100 px-1 rounded border border-1 border-gray-400">
+													<li key={i} className="my-1 bg-gray-100 px-1 rounded border border-1 border-gray-400 max-w-max">
+														<span
+															title={path}
+															className="break-all"
+														>
 															{path}
 														</span>
 													</li>
