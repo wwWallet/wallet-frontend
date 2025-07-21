@@ -71,14 +71,14 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 };
 
 const StepTitle = ({ currentKey, t }) => {
-	let icon = <FaIdCard className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+	let icon = <FaIdCard className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
 	let text = t('selectCredentialPopup.selectTitle');
 
 	if (currentKey === 'preview') {
 		icon = <FaInfo className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.previewTitle');
 	} else if (currentKey === 'summary') {
-		icon = <MdFactCheck className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+		icon = <MdFactCheck className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.summaryTitle');
 	}
 
