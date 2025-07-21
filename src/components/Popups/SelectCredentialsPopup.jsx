@@ -70,6 +70,28 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 	);
 };
 
+const StepTitle = ({ currentKey, t }) => {
+	let icon = <FaIdCard className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+	let text = t('selectCredentialPopup.selectTitle');
+
+	if (currentKey === 'preview') {
+		icon = <FaInfo className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+		text = t('selectCredentialPopup.previewTitle');
+	} else if (currentKey === 'summary') {
+		icon = <MdFactCheck className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+		text = t('selectCredentialPopup.summaryTitle');
+	}
+
+	return (
+		<h2 className="text-lg font-bold mb-2 text-primary dark:text-white flex flex-wrap items-center gap-2 leading-tight">
+			<span className="inline-flex items-center gap-2">
+				{icon}
+				{t('selectCredentialPopup.baseTitle')} - {text}
+			</span>
+		</h2>
+	);
+};
+
 function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
 	const [vcEntities, setVcEntities] = useState(null);
@@ -241,24 +263,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					<StepBar totalSteps={keys.length} currentStep={currentIndex + 1} stepTitles={stepTitles} />
 				)}
 				{stepTitles && (
-					<h2 className="text-lg font-bold mb-2 text-primary dark:text-white flex items-center gap-2">
-						{keys[currentIndex] === 'preview' ? (
-							<>
-								<FaInfo size={22} />
-								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.previewTitle')}
-							</>
-						) : keys[currentIndex] === 'summary' ? (
-							<>
-								<MdFactCheck size={24} />
-								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.summaryTitle')}
-							</>
-						) : (
-							<>
-								<FaIdCard size={24} />
-								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.selectTitle') + formatTitle(stepTitles[currentIndex])}
-							</>
-						)}
-					</h2>
+					<StepTitle currentKey={keys[currentIndex]} t={t} />
 				)}
 				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
