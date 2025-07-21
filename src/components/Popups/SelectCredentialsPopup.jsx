@@ -144,7 +144,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 
 			if (currentKey === 'preview' || currentKey === 'summary') {
-				setVcEntities([]);
+				if (!vcEntities?.length || currentKey !== keys[currentIndex]) {
+					setVcEntities([]);
+				}
 				return;
 			}
 			try {
@@ -378,7 +380,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						<div>
 						</div>
 						<div className={`xm:px-4 px-16 sm:px-24 md:px-8 ${screenType === 'desktop' && 'max-w-[600px]'}`}>
-							{vcEntities ? (
+							{vcEntities && vcEntities.length ? (
 								<Slider
 									items={vcEntities}
 									renderSlideContent={renderSlideContent}
