@@ -300,7 +300,7 @@
 		"purpose": "Objetivo: ",
 		"purposeNotSpecified": "Objetivo não especificado pelo verifier",
 		"selectDescription": "Selecione a credencial que deseja apresentar",
-		"selectTitle": "Selecionar: "
+		"selectTitle": "Selecionar"
 	},
 	"sidebar": {
 		"navItemLogout": "Sair",

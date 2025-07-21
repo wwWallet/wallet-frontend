@@ -331,7 +331,7 @@
 		"request": "Request:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
-		"selectTitle": "Select: ",
+		"selectTitle": "Select",
 		"summaryDescription": "You are about to share the selected credential(s) below, <strong>including only the requested fields</strong>.",
 		"summaryTitle": "Summary"
 	},
