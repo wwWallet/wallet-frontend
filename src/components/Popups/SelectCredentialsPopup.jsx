@@ -389,7 +389,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 							)}
 							{vcEntities?.[currentSlide - 1] ? (
-								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center my-2 ${screenType !== 'desktop' && "mb-16"}`}>
+								<div className="flex flex-wrap justify-center flex flex-row justify-center items-center my-2">
 									<CredentialInfo
 										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
 										mainClassName={"text-xs w-full"}
