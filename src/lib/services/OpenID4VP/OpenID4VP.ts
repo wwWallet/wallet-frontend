@@ -289,7 +289,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			mapping.set(credReq.id, {
 				credentials: conforming,
 				requestedFields: !credReq.claims || credReq.claims.length === 0
-					? [{ name: t('selectCredentialPopup.allClaimsRequested'), purpose: descriptorPurpose, path: ['*'] }]
+					? [{ name: t('selectCredentialPopup.allClaimsRequested'), purpose: descriptorPurpose, path: [null] }]
 					: credReq.claims.map(cl => ({
 						name: cl.id || cl.path.join('.'),
 						purpose: descriptorPurpose,
