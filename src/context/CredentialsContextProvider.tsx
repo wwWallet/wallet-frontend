@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
+import { ROOT_TRUSTED_CERTIFICATES } from '../config'
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -28,7 +29,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	const { getExternalEntity, getSession, get } = api;
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
-		const trustedCertificates: string[] = [];
+		const trustedCertificates: string[] = ROOT_TRUSTED_CERTIFICATES;
 
 		const engine = await initializeCredentialEngine(
 			httpProxy,
