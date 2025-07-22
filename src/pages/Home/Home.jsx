@@ -116,10 +116,12 @@ const Home = () => {
 						)}
 					</div>
 				) : (
-					<div className="my-4 p-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-12 xm:px-4 sm:px-20 md:px-0">
-						{Array.from({ length: screenType !== 'desktop' ? 1 : 6 }).map((_, idx) => (
-							<CredentialCardSkeleton key={idx} />
-						))}
+					<div className="my-4 p-2 overflow-x-hidden">
+						<div className={`${screenType !== 'desktop' ? 'xm:px-4 px-12 sm:px-20' : 'grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3'} `}>
+							{Array.from({ length: screenType !== 'desktop' ? 1 : 6 }).map((_, idx) => (
+								<CredentialCardSkeleton key={idx} />
+							))}
+						</div>
 					</div>
 				)}
 			</div>

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { formatDate } from '../../functions/DateFormat';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
+import { IoIosSend } from "react-icons/io";
 
 const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
 	const match =
@@ -33,7 +34,18 @@ const getValueByPath = (path, obj) => {
 		return undefined;
 	};
 
-	return traverse(path, obj);
+	const result = traverse(path, obj);
+
+	if (
+		typeof result === 'object' &&
+		result !== null &&
+		!React.isValidElement(result) &&
+		Object.keys(result).length === 0
+	) {
+		return undefined;
+	}
+
+	return result;
 };
 
 const addToNestedObject = (target, path, display, value) => {
@@ -101,9 +113,12 @@ const formatClaimValue = (value) => {
 	return formatDate(value, 'date');
 };
 
-const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims }) => {
+const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
 	const { i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
+
+	const requestedFields = requested?.fields ?? null;
+	const requestedDisplay = requested?.display ?? undefined;
 
 	const signedClaims = parsedCredential?.signedClaims;
 	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
@@ -137,7 +152,36 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	// Ensure parents come before children to prevent overwrite issues
 	expandedDisplayClaims.sort((a, b) => a.path.length - b.path.length);
 
-	expandedDisplayClaims.forEach(claim => {
+	const isWildcardRequest = requestedFields?.some(p =>
+		Array.isArray(p) && p.length === 1 && p[0] === null
+	);
+
+	const requestedFieldSet = isWildcardRequest
+		? null // null means all fields are requested
+		: new Set(
+			requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
+		);
+
+	const visibleClaims =
+		requestedDisplay === "hide" && requestedFieldSet
+			? expandedDisplayClaims.filter(claim => {
+				const joinedPath = claim.path?.join('.');
+				if (!joinedPath) return false;
+
+				// Show if the claim is:
+				// - explicitly requested
+				// - a parent of a requested field
+				// - a child of a requested field
+				return Array.from(requestedFieldSet).some(req =>
+					joinedPath === req ||
+					joinedPath.startsWith(req + '.') ||
+					req.startsWith(joinedPath + '.')
+				);
+			})
+			: expandedDisplayClaims;
+
+
+	visibleClaims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
 		if (!Array.isArray(claim.display)) return;
 
@@ -152,36 +196,59 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		addToNestedObject(nestedClaims, claim.path, display, formattedValue);
 	});
 
-	const renderClaims = (data) => {
+	const requestedPaths = useMemo(() => {
+		if (!requestedFields) return new Set();
+		const isWildcard = requestedFields.some(p => Array.isArray(p) && p.length === 1 && p[0] === null);
+		return isWildcard ? null : new Set(
+			requestedFields.map(path => Array.isArray(path) ? path.join('.') : path)
+		);
+	}, [requestedFields]);
+
+	const renderClaims = (data, currentPath = []) => {
 		return Object.entries(data).map(([key, node]) => {
 			const label = node.display?.label || null;
 			const value = node.value;
+			const fullPath = [...currentPath, key].join('.');
+			const isRequested = !requestedPaths || Array.from(requestedPaths).some(requested =>
+				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
+			);
+
 			if (!node.display) {
-				return (
-					renderClaims(value)
-				);
+				return renderClaims(value, [...currentPath, key]);
 			}
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
-					<div key={key} className="w-full">
-						<details className="px-2 py-1 rounded-md">
-							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
+					<div key={fullPath} className="w-full">
+						<details className="pl-2 py-1 rounded-md" open={isRequested}>
+							<summary className="cursor-pointer font-semibold text-primary dark:text-white w-full">
 								{label}
 							</summary>
-							<div className="ml-4 my-1 border-l border-w-1 border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
-								{renderClaims(value)}
+							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-primary dark:border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
+								{renderClaims(value, [...currentPath, key])}
 							</div>
 						</details>
 					</div>
 				);
 			} else {
 				return (
-					<div key={key} className="flex flex-col sm:flex-row sm:items-start sm:gap-2 px-2 py-1">
-						<div className="font-semibold text-primary dark:text-primary-light w-1/2">
+					<div
+						key={fullPath}
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested && requestedDisplay === "highlight"
+							? 'bg-blue-50 dark:bg-gray-600 shadow'
+							: ''
+							}`}
+					>
+						<div className="font-semibold text-primary dark:text-white w-1/2">
 							{label}:
 						</div>
-						<div className="text-gray-700 dark:text-white break-words w-1/2">
+						<div className="text-gray-700 dark:text-white break-words w-1/2 flex justify-between items-start">
 							{value}
+							{isRequested && (
+								<IoIosSend
+									title="Requested by verifier"
+									className="text-primary dark:text-white flex-shrink-0"
+								/>
+							)}
 						</div>
 					</div>
 				);
