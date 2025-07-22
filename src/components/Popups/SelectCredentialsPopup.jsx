@@ -341,7 +341,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												{!paths[0] ? (
 													<li className="my-1 px-1">
 														<span >
-															{t('selectCredentialPopup.allFieldsRequested')}
+															{t('selectCredentialPopup.allClaimsRequested')}
 														</span>
 													</li>
 												) : (
