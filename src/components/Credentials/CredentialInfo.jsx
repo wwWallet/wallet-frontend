@@ -220,10 +220,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div key={fullPath} className="w-full">
 						<details className="pl-2 py-1 rounded-md" open={isRequested}>
-							<summary className="cursor-pointer font-semibold text-primary dark:text-primary-light w-full">
+							<summary className="cursor-pointer font-semibold text-primary dark:text-white w-full">
 								{label}
 							</summary>
-							<div className="ml-4 my-1 border-l border-w-1 border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
+							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-primary dark:border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
 								{renderClaims(value, [...currentPath, key])}
 							</div>
 						</details>
@@ -234,11 +234,11 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					<div
 						key={fullPath}
 						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested && requestedDisplay === "highlight"
-							? 'bg-blue-50 dark:bg-blue-900 shadow dark:border-yellow-700'
+							? 'bg-blue-50 dark:bg-gray-600 shadow'
 							: ''
 							}`}
 					>
-						<div className="font-semibold text-primary dark:text-primary-light w-1/2">
+						<div className="font-semibold text-primary dark:text-white w-1/2">
 							{label}:
 						</div>
 						<div className="text-gray-700 dark:text-white break-words w-1/2 flex justify-between items-start">
@@ -246,7 +246,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 							{isRequested && (
 								<IoIosSend
 									title="Requested by verifier"
-									className="text-primary dark:text-primary-light flex-shrink-0"
+									className="text-primary dark:text-white flex-shrink-0"
 								/>
 							)}
 						</div>

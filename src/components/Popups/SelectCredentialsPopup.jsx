@@ -332,7 +332,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												</span>
 												<span
 													title={descriptorId}
-													className="font-semibold bg-gray-100 px-1 rounded border border-gray-400 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
+													className="font-semibold bg-gray-100 dark:bg-gray-600 px-1 rounded border border-gray-400 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
 												>
 													{descriptorId}
 												</span>
@@ -347,7 +347,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												) : (
 
 													(showAll ? paths : paths.slice(0, 2)).map((path, i) => (
-														<li key={i} className="my-1 bg-gray-100 px-1 rounded border border-gray-400 max-w-max">
+														<li key={i} className="my-1 bg-gray-100 dark:bg-gray-600 px-1 rounded border border-gray-400 max-w-max">
 															<span
 																title={path}
 																className="break-all"
