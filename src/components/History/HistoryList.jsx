@@ -8,6 +8,7 @@ import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
 // Context
 import SessionContext from '@/context/SessionContext';
 import useFetchPresentations from '@/hooks/useFetchPresentations';
+import { compareBy } from '@/util';
 
 const HistoryList = ({ batchId = null, title = '', limit = null }) => {
 	const { keystore } = useContext(SessionContext);
@@ -43,7 +44,7 @@ const HistoryList = ({ batchId = null, title = '', limit = null }) => {
 			<div className="py-2 w-full">
 				{title && Object.values(history).length > 0 && <H3 heading={title} />}
 				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
-					{Object.values(history).map(item => ( // note: an item is an array of presentations (see useFetchPresentations hook)
+					{Object.values(history).sort(compareBy(item => -item[0].presentation.timestamp)).map(item => ( // note: an item is an array of presentations (see useFetchPresentations hook)
 						<button
 							id={`credential-history-item-${item[0].presentation.transactionId}`}
 							key={item[0].presentation.transactionId}
