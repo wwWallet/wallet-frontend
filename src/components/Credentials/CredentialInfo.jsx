@@ -152,26 +152,33 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	// Ensure parents come before children to prevent overwrite issues
 	expandedDisplayClaims.sort((a, b) => a.path.length - b.path.length);
 
-	const requestedFieldSet = new Set(
-		requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
+	const isWildcardRequest = requestedFields?.some(p =>
+		Array.isArray(p) && p.length === 1 && p[0] === ''
 	);
 
-	const visibleClaims = requestedDisplay === "hide"
-		? expandedDisplayClaims.filter(claim => {
-			const joinedPath = claim.path?.join('.');
-			if (!joinedPath) return false;
+	const requestedFieldSet = isWildcardRequest
+		? null // null means all fields are requested
+		: new Set(
+			requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
+		);
 
-			// Show if the claim is:
-			// - explicitly requested
-			// - a parent of a requested field
-			// - a child of a requested field
-			return Array.from(requestedFieldSet).some(req =>
-				joinedPath === req ||
-				joinedPath.startsWith(req + '.') ||
-				req.startsWith(joinedPath + '.')
-			);
-		})
-		: expandedDisplayClaims;
+	const visibleClaims =
+		requestedDisplay === "hide" && requestedFieldSet
+			? expandedDisplayClaims.filter(claim => {
+				const joinedPath = claim.path?.join('.');
+				if (!joinedPath) return false;
+
+				// Show if the claim is:
+				// - explicitly requested
+				// - a parent of a requested field
+				// - a child of a requested field
+				return Array.from(requestedFieldSet).some(req =>
+					joinedPath === req ||
+					joinedPath.startsWith(req + '.') ||
+					req.startsWith(joinedPath + '.')
+				);
+			})
+			: expandedDisplayClaims;
 
 
 	visibleClaims.forEach(claim => {
@@ -191,9 +198,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const requestedPaths = useMemo(() => {
 		if (!requestedFields) return new Set();
-		return new Set(requestedFields.map(path =>
-			Array.isArray(path) ? path.join('.') : path
-		));
+		const isWildcard = requestedFields.some(p => Array.isArray(p) && p.length === 1 && p[0] === '');
+		return isWildcard ? null : new Set(
+			requestedFields.map(path => Array.isArray(path) ? path.join('.') : path)
+		);
 	}, [requestedFields]);
 
 	const renderClaims = (data, currentPath = []) => {
@@ -201,7 +209,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			const label = node.display?.label || null;
 			const value = node.value;
 			const fullPath = [...currentPath, key].join('.');
-			const isRequested = Array.from(requestedPaths).some(requested =>
+			const isRequested = !requestedPaths || Array.from(requestedPaths).some(requested =>
 				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
 			);
 
@@ -226,7 +234,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					<div
 						key={fullPath}
 						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested && requestedDisplay === "highlight"
-							? 'bg-blue-50 dark:bg-blue-900 border border-blue-300 dark:border-yellow-700'
+							? 'bg-blue-50 dark:bg-blue-900 shadow dark:border-yellow-700'
 							: ''
 							}`}
 					>

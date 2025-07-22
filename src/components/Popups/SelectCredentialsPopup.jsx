@@ -338,16 +338,25 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												</span>
 											</div>
 											<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
-												{(showAll ? paths : paths.slice(0, 2)).map((path, i) => (
-													<li key={i} className="my-1 bg-gray-100 px-1 rounded border border-1 border-gray-400 max-w-max">
-														<span
-															title={path}
-															className="break-all"
-														>
-															{path}
+												{paths[0] === '*' ? (
+													<li className="my-1 px-1">
+														<span >
+															{t('selectCredentialPopup.allFieldsRequested')}
 														</span>
 													</li>
-												))}
+												) : (
+
+													(showAll ? paths : paths.slice(0, 2)).map((path, i) => (
+														<li key={i} className="my-1 bg-gray-100 px-1 rounded border border-1 border-gray-400 max-w-max">
+															<span
+																title={path}
+																className="break-all"
+															>
+																{path}
+															</span>
+														</li>
+													))
+												)}
 											</ul>
 											{paths.length > 2 && (
 												<button
