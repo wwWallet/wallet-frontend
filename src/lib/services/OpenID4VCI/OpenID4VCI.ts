@@ -47,6 +47,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				data: { access_token },
 			} = response;
 
+			const { sdJwtVerifier } = credentialEngine
+
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier)
 			]);
@@ -105,7 +107,23 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			const identifier = generateRandomIdentifier(32);
-			const storableCredentials: StorableCredential[] = credentialArray.map((credential, index) => ({
+
+			const verifiedCredentials = (await Promise.all(credentialArray.map(async rawCredential => {
+				try {
+					const result = await sdJwtVerifier.verify({ rawCredential, opts: { verifySchema: true } });
+					console.log('credential validation', result);
+
+					if (result.success) {
+						return rawCredential
+					} else if (result.error == 'VctSchemaNotFound') {
+						return rawCredential
+					}
+				} catch (err) {
+					console.log('credential validation error', err);
+				}
+			}))).filter(credential => credential);
+
+			const storableCredentials: StorableCredential[] = verifiedCredentials.map((credential, index) => ({
 				credentialIdentifier: identifier,
 				credential: credential,
 				format: credentialIssuerMetadata.metadata.credential_configurations_supported[flowState.credentialConfigurationId].format,
