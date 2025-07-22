@@ -338,7 +338,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												</span>
 											</div>
 											<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
-												{paths[0] === '*' ? (
+												{!paths[0] ? (
 													<li className="my-1 px-1">
 														<span >
 															{t('selectCredentialPopup.allFieldsRequested')}
@@ -436,14 +436,20 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									const descriptorId = Object.keys(currentSelectionMap).find(
 										(key) => currentSelectionMap[key] === vcEntity.credentialIdentifier
 									);
+
+									const fields = requestedFieldsPerCredential[descriptorId];
+									const hasValidPath = Array.isArray(fields) && fields[0]?.path[0];
 									return (
 										<CredentialImage
 											vcEntity={vcEntity}
 											parsedCredential={vcEntity.parsedCredential}
 											className="w-full object-cover rounded-xl"
 											showRibbon={false}
-											filter={requestedFieldsPerCredential[descriptorId]?.map(field => normalizePath(field.path))}
-
+											filter={
+												hasValidPath
+													? fields.map((field) => normalizePath(field.path))
+													: undefined
+											}
 										/>
 									);
 								}}

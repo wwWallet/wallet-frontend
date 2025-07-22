@@ -153,7 +153,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	expandedDisplayClaims.sort((a, b) => a.path.length - b.path.length);
 
 	const isWildcardRequest = requestedFields?.some(p =>
-		Array.isArray(p) && p.length === 1 && p[0] === ''
+		Array.isArray(p) && p.length === 1 && p[0] === null
 	);
 
 	const requestedFieldSet = isWildcardRequest
@@ -198,7 +198,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const requestedPaths = useMemo(() => {
 		if (!requestedFields) return new Set();
-		const isWildcard = requestedFields.some(p => Array.isArray(p) && p.length === 1 && p[0] === '');
+		const isWildcard = requestedFields.some(p => Array.isArray(p) && p.length === 1 && p[0] === null);
 		return isWildcard ? null : new Set(
 			requestedFields.map(path => Array.isArray(path) ? path.join('.') : path)
 		);
