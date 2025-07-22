@@ -215,87 +215,77 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 		const descriptorPurpose = dcqlJson.credential_sets?.[0]?.purpose || t('selectCredentialPopup.purposeNotSpecified');
 
+		// shape all credentials in the wallet
+		const shapedCredentials: any[] = [];
+		for (const vc of vcList) {
+			let shaped: any = { credential_format: vc.format };
+			try {
+				if (vc.format === VerifiableCredentialFormat.MSO_MDOC) {
+					const credentialBytes = base64url.decode(vc.data);
+					const issuerSigned = cborDecode(credentialBytes);
+					const [header, _, payload, sig] = issuerSigned.get('issuerAuth') as Array<Uint8Array>;
+					const decodedIssuerAuthPayload = cborDecode(payload);
+					const docType = decodedIssuerAuthPayload.data.get('docType');
+					const envelope = {
+						version: "1.0",
+						documents: [new Map([
+							["docType", docType],
+							["issuerSigned", issuerSigned],
+						])],
+						status: 0,
+					};
+					const mdoc = parse(cborEncode(envelope));
+					const [document] = mdoc.documents;
+
+					const nsName = document.issuerSignedNameSpaces[0];
+					const nsObject = document.getIssuerNameSpace(nsName);
+
+					shaped = {
+						credential_format: vc.format,
+						doctype: docType,
+						namespaces: {
+							[nsName]: nsObject
+						},
+						batchId: vc.batchId,
+						cryptographic_holder_binding: true
+					};
+				} else {
+					// --- SD-JWT shaping ---
+					const { signedClaims, error } = await parseCredential(vc.data);
+					if (error) throw error;
+					shaped.vct = signedClaims.vct;
+					shaped.claims = signedClaims;
+					shaped.cryptographic_holder_binding = true;
+					shaped.batchId = vc.batchId;
+				}
+				shapedCredentials.push(shaped);
+			} catch (e) {
+				console.error('DCQL shaping error for this VC:', e);
+			}
+		}
+
+		const parsedQuery = DcqlQuery.parse(dcqlJson);
+		DcqlQuery.validate(parsedQuery);
+		const result = await DcqlQuery.query(parsedQuery, shapedCredentials);
+
+		// Build the mapping for each credential query
 		const mapping = new Map<string, { credentials: number[]; requestedFields: { name: string; purpose: string }[] }>();
-
 		for (const credReq of dcqlJson.credentials) {
-			const mini = { credential_sets: dcqlJson.credential_sets, credentials: [credReq] };
-			const parsed = DcqlQuery.parse(mini);
-			DcqlQuery.validate(parsed);
-
+			const match = result.credential_matches[credReq.id];
 			const conforming: number[] = [];
-
-			for (const vc of vcList) {
-				if (vc.format !== credReq.format) continue;
-
-				let shaped: any = { credential_format: vc.format };
-
-				try {
-					if (vc.format === VerifiableCredentialFormat.MSO_MDOC) {
-						const credentialBytes = base64url.decode(vc.data);
-						const issuerSigned = cborDecode(credentialBytes);
-
-						const docType = credReq.meta?.doctype_value!;
-						const envelope = {
-							version: "1.0",
-							documents: [new Map([
-								["docType", docType],
-								["issuerSigned", issuerSigned],
-							])],
-							status: 0,
-						};
-						const mdoc = parse(cborEncode(envelope));
-						const [document] = mdoc.documents;
-
-						const nsName = document.issuerSignedNameSpaces[0];
-						const nsObject = document.getIssuerNameSpace(nsName);
-
-						shaped = {
-							credential_format: vc.format,
-							doctype: docType,
-							namespaces: {
-								[nsName]: nsObject
-							}
-						};
-					} else {
-						const { signedClaims, error } = await parseCredential(vc.data);
-						if (error) throw error;
-						shaped.vct = signedClaims.vct;
-						if (!credReq.claims || credReq.claims.length === 0) {
-							// No claims specified in dcql_query, include all signed claims
-							shaped.claims = signedClaims;
-						} else {
-							// include only requested claims
-							shaped.claims = {};
-							for (const claim of credReq.claims) {
-								for (const p of claim.path) {
-									const v = p.split('.').reduce((o, k) => o?.[k], signedClaims);
-									if (v !== undefined) {
-										shaped.claims[p] = v;
-										break;
-									}
-								}
-							}
-						}
+			if (match?.success && match.valid_credentials) {
+				for (const vcMatch of match.valid_credentials) {
+					// Use input_credential_index to get the shaped credential
+					const shaped = shapedCredentials[vcMatch.input_credential_index];
+					if (shaped?.batchId) {
+						conforming.push(shaped.batchId);
 					}
-					const result = await DcqlQuery.query(parsed, [shaped]);
-
-					const match = result.credential_matches[credReq.id];
-					if (match?.success) {
-						conforming.push(vc.batchId);
-					}
-				} catch (e) {
-					console.error('DCQL eval error for this VC:', e);
 				}
 			}
-
-			if (conforming.length === 0) {
-				return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
-			}
-
 			mapping.set(credReq.id, {
 				credentials: conforming,
 				requestedFields: !credReq.claims || credReq.claims.length === 0
-					? [{ name: t('selectCredentialPopup.allClaimsRequested'), purpose: descriptorPurpose, path: ['*'] }]
+					? [{ name: t('selectCredentialPopup.allClaimsRequested'), purpose: descriptorPurpose, path: [null] }]
 					: credReq.claims.map(cl => ({
 						name: cl.id || cl.path.join('.'),
 						purpose: descriptorPurpose,
@@ -304,6 +294,10 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			});
 		}
 
+		const allConforming = Array.from(mapping.values()).flatMap(m => m.credentials);
+		if (allConforming.length === 0) {
+			return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
+		}
 		return { mapping, descriptorPurpose };
 	}
 
@@ -658,6 +652,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				const shaped = {
 					credential_format: vcEntity.format,
 					vct: signedClaims.vct,
+					cryptographic_holder_binding: true,
 					claims: !descriptor.claims || descriptor.claims.length === 0
 						? signedClaims // include all claims
 						: Object.fromEntries(
@@ -667,10 +662,10 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						)
 				};
 				const presResult = DcqlPresentationResult.fromDcqlPresentation(
-					{ [selectionKey]: shaped },
+					{ [selectionKey]: [shaped] },
 					{ dcqlQuery: dcql_query }
 				);
-				if (!presResult.valid_matches[selectionKey]?.success) {
+				if (!presResult.credential_matches[selectionKey]?.success) {
 					throw new Error(`Presentation for '${selectionKey}' did not satisfy DCQL`);
 				}
 

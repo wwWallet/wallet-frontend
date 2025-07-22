@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { FaRegCircle, FaCheckCircle, FaInfo, FaIdCard } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -11,9 +11,14 @@ import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
 import { truncateByWords } from '@/functions/truncateWords';
 import { MdFactCheck } from "react-icons/md";
-import { getLanguage } from '@/i18n';
-import { getDisplayArrayByLang, mergeDisplayByLang } from '@/utils/displayUtils';
-import { camelCaseToWords } from '@/utils/stringUtils';
+
+const formatTitle = (title) => {
+	if (title) {
+		return title.replace(/([a-z])([A-Z])/g, '$1 $2');
+	} else {
+		return;
+	}
+};
 
 const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 
@@ -60,9 +65,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopup, vcEntityList }) {
 
 	const [vcEntities, setVcEntities] = useState(null);
-	const { t, i18n } = useTranslation();
-	const { language, options: { fallbackLng } } = i18n;
-
+	const { t } = useTranslation();
 	const rawKeys = useMemo(() => popupState?.options ? Object.keys(popupState.options.conformantCredentialsMap) : [], [popupState]);
 	const keys = useMemo(() => ['preview', ...rawKeys, 'summary'], [rawKeys]);
 	const stepTitles = useMemo(() => keys, [keys]);
@@ -77,44 +80,21 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
 
 	const requestedFieldsPerCredential = useMemo(() => {
-		if (!popupState?.options || !vcEntityList) return {};
 
+		if (!popupState?.options) return {};
 		const map = popupState.options.conformantCredentialsMap;
 		const result = {};
 		for (const [descriptorId, entry] of Object.entries(map)) {
 			const seen = new Set();
-			const enrichedFields = [];
-
-			for (const field of entry.requestedFields || []) {
+			result[descriptorId] = (entry.requestedFields || []).filter(field => {
 				const key = field.name || field.path?.join('.');
-				if (seen.has(key)) continue;
+				if (seen.has(key)) return false;
 				seen.add(key);
-
-				const displayByLang = [];
-
-				for (const credentialId of entry.credentials) {
-					const vcEntity = vcEntityList.find(vc => vc.credentialIdentifier === credentialId);
-					const claims = vcEntity?.parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims || [];
-
-					const match = claims.find(c => JSON.stringify(c.path) === JSON.stringify(field.path));
-					if (!match?.display) continue;
-
-					displayByLang.push(...match.display);
-				}
-
-				const rawDisplay = getDisplayArrayByLang(displayByLang, language, fallbackLng?.[0]);
-				const mergedDisplay = mergeDisplayByLang(rawDisplay);
-
-				enrichedFields.push({
-					...field,
-					display: mergedDisplay,
-				});
-			}
-
-			result[descriptorId] = enrichedFields;
+				return true;
+			});
 		}
 		return result;
-	}, [popupState, vcEntityList, language, fallbackLng]);
+	}, [popupState]);
 
 	const reinitialize = useCallback(() => {
 		setCurrentIndex(0);
@@ -267,7 +247,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						) : (
 							<>
 								<FaIdCard size={24} />
-								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.selectTitle') + camelCaseToWords(stepTitles[currentIndex])}
+								{t('selectCredentialPopup.baseTitle')} - {t('selectCredentialPopup.selectTitle') + formatTitle(stepTitles[currentIndex])}
 							</>
 						)}
 					</h2>
@@ -322,46 +302,21 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								{t('selectCredentialPopup.requestedCredentialsFieldsTitle')}
 							</p>
 							{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
+								const names = fields.map(f => f.name || f.path?.[0]);
 								const showAll = showAllPreviewFields[descriptorId];
-								const displayItems = showAll ? fields : fields.slice(0, 2);
+
 								return (
 									<div key={descriptorId} className="my">
 										<span className="flex items-center gap-1 text-gray-700 dark:text-white text-sm font-bold my-1">
 											<FaIdCard className="text-primary dark:text-primary-light" />
-											{camelCaseToWords(descriptorId)}
+											{formatTitle(descriptorId)}
 										</span>
 										<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
-											{displayItems.map((field, i) => {
-												const disp = field.display?.[0];
-												const fallback = field.name || (Array.isArray(field.path) ? field.path.join('.') : field.path);
-
-												return (
-													<li key={i}>
-														{/* Display labels if available, else fallback */}
-														{disp?.labels?.length ? (
-															<div>
-																<span className="text-sm text-gray-700 font-medium dark:text-white list-disc">
-																	{disp.labels.map((label, j) => (
-																		<React.Fragment key={j}>
-																			{label}
-																			{j < disp.labels.length - 1 && (
-																				<span className="mx-1 italic font-light">or</span>
-																			)}
-																		</React.Fragment>
-																	))}
-																	{language !== getLanguage(disp.lang) && (
-																		<span className="text-xs font-light italic"> ({disp.lang})</span>
-																	)}
-																</span>
-															</div>
-														) : (
-															<span className="text-sm text-gray-700 font-light italic dark:text-white list-disc">{fallback}</span>
-														)}
-													</li>
-												);
-											})}
+											{(showAll ? names : names.slice(0, 2)).map((name, i) => (
+												<li key={i}>{name}</li>
+											))}
 										</ul>
-										{fields.length > 2 && (
+										{names.length > 2 && (
 											<button
 												onClick={() =>
 													setShowAllPreviewFields(prev => ({
@@ -442,7 +397,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											showRibbon={false}
 										/>
 										<p className="text-md font-semibold text-gray-800 dark:text-white">
-											{camelCaseToWords(descriptorId)}
+											{formatTitle(descriptorId)}
 										</p>
 									</div>
 								);
