@@ -327,11 +327,12 @@
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
-		"requestedCredentialsFieldsTitle": "Requested Credentials/Fields:",
+		"request": "Request:",
+		"requestedCredentialsFieldsTitle": "Requested fields:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
-		"selectTitle": "Select: ",
-		"summaryDescription": "You are about to share the selected credential(s) below, <strong>including only the requested fields</strong>.",
+		"selectTitle": "Select",
+		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary"
 	},
 	"sidebar": {
