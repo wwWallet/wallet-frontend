@@ -314,17 +314,19 @@
 	},
 	"selectCredentialPopup": {
 		"allClaimsRequested": "Ο verifier έχει ζητήσει όλα τα πεδία του πιστοποιητικού.",
+		"baseTitle": "Αποστολή Πιστοποιητικών",
 		"credentialSelectTitle": "Κάντε κλικ για να επιλέξετε το {{friendlyName}}",
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
-		"previewDescription": "Θα σας ζητηθεί να επιλέξετε credentials που πληρούν τις παρακάτω απαιτήσεις.",
+		"previewDescription": "Θα σας ζητηθεί να επιλέξετε πιστοποιητικά που πληρούν τις παρακάτω απαιτήσεις.",
 		"previewTitle": "Προεπισκόπηση",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": "Μη ορισμένο purpose από τον verifier.",
-		"requestedCredentialsFieldsTitle": "Ζητούμενα credentials/πεδία:",
+		"request": "Αίτημα:",
+		"requestedCredentialsFieldsTitle": "Ζητούμενα πεδία:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
 		"selectTitle": "Επιλογή",
-		"summaryDescription": "Πρόκειται να μοιραστείτε τα παρακάτω επιλεγμένα credentials, <strong>συμπεριλαμβάνοντας μόνο τα αιτούμενα πεδία</strong>.",
+		"summaryDescription": "Πρόκειται να μοιραστείτε <strong>μόνο τα παρακάτω πεδία</strong> από τα επιλεγμένα πιστοποιητικά.",
 		"summaryTitle": "Σύνοψη"
 	},
 	"sidebar": {

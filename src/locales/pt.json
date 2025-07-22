@@ -295,11 +295,14 @@
 	},
 	"selectCredentialPopup": {
 		"allClaimsRequested": "O verificador solicitou todas as declarações da credencial.",
+		"baseTitle": "Enviar Credenciais",
 		"credentialSelectTitle": "Clique para selecionar a {{friendlyName}}",
 		"nextButtonDisabledTitle": "Precisa de selecionar uma credencial para continuar",
 		"purpose": "Objetivo: ",
 		"purposeNotSpecified": "Objetivo não especificado pelo verifier",
-		"selectDescription": "Selecione a credencial que deseja apresentar",
+		"request": "Solicitação:",
+		"requestedCredentialsFieldsTitle": "Campos solicitados:",
+		"selectDescription": "Você está prestes a compartilhar <strong>apenas os seguintes campos</strong> das credenciais selecionadas.",
 		"selectTitle": "Selecionar"
 	},
 	"sidebar": {
