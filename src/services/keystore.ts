@@ -272,6 +272,10 @@ function makeWebauthnSignFunction(
 	{ publicKey, externalPrivateKey }: CredentialKeyPairWithExternalPrivateKey,
 	uiStateMachine: UiStateMachineFunction,
 ): (alg: any, key: any, data: Uint8Array) => Promise<Uint8Array> {
+	const prehashAlgs = [COSE_ALG_ESP256_ARKG];
+	const parsedKeyRef = cbor.decode(externalPrivateKey.keyRef);
+	const shouldPrehash = prehashAlgs.includes(parsedKeyRef.get(3));
+
 	return async (alg, _key, data) => {
 		let uiStatePromise = uiStateMachine({ id: 'intro', chosenCredentialId: externalPrivateKey.credentialId });
 		let signature = null;
@@ -293,7 +297,7 @@ function makeWebauthnSignFunction(
 											keyHandleByCredential: {
 												[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
 											},
-											tbs: await crypto.subtle.digest("SHA-256", data),
+											tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
 										},
 									},
 								} as AuthenticationExtensionsClientInputs,
