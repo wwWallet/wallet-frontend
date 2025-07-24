@@ -466,7 +466,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												Object.keys(currentSelectionMap).find(
 													(key) =>
 														currentSelectionMap[key] ===
-														selectedVcEntities[currentSummarySlide]?.credentialIdentifier
+														selectedVcEntities[currentSummarySlide]?.batchId
 												)
 											]?.map((field) => normalizePath(field.path)),
 											display: "hide"
