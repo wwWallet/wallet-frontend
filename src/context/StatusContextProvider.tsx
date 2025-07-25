@@ -17,7 +17,7 @@ async function checkInternetConnection(): Promise<{ isConnected: boolean; speed:
 	try {
 		const startTime = new Date().getTime();
 		await axios.get(`${BACKEND_URL}/status`, {
-			timeout: 5000, // Timeout of 5 seconds
+			timeout: 20000, // Timeout of 5 seconds
 			headers: {
 				'Content-Type': 'application/json',
 			},
