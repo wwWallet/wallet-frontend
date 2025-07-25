@@ -59,6 +59,7 @@ export const UriHandler = ({ children }) => {
 		if (window.location.search !== '' && window.location.pathname !== '/login-state') {
 			setSynced(false);
 		}
+		updateOnlineStatus(false);
 	}, [location]);
 
 	useEffect(() => {
