@@ -195,7 +195,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	}
 
 	useEffect(() => {
-		updateOnlineStatus();
+		updateOnlineStatus(true);
 	}, []);
 	return (
 		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt }}>
