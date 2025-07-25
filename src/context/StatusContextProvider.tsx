@@ -60,32 +60,61 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		}
 
 		// Update the last call time
-		lastUpdateCallTime.current = now;
+		// lastUpdateCallTime.current = now;
 
-		const internetConnection = await checkInternetConnection();
+		// const internetConnection = await checkInternetConnection();
 
-		setConnectivity((prev) => {
-			if (
-				prev.navigatorOnline === navigatorOnline &&
-				prev.Internet === internetConnection.isConnected &&
-				prev.speed === internetConnection.speed
-			) {
-				return prev; // No changes, return previous state to prevent rerender
-			}
-			return {
-				...prev,
-				navigatorOnline,
-				Internet: internetConnection.isConnected,
-				speed: internetConnection.speed,
-			};
-		});
+		// setConnectivity((prev) => {
+		// 	if (
+		// 		prev.navigatorOnline === navigatorOnline &&
+		// 		prev.Internet === internetConnection.isConnected &&
+		// 		prev.speed === internetConnection.speed
+		// 	) {
+		// 		return prev; // No changes, return previous state to prevent rerender
+		// 	}
+		// 	return {
+		// 		...prev,
+		// 		navigatorOnline,
+		// 		Internet: internetConnection.isConnected,
+		// 		speed: internetConnection.speed,
+		// 	};
+		// });
 
-		setIsOnline((prev) => {
-			if (prev === internetConnection.isConnected) {
-				return prev; // No change in `isOnline`
-			}
-			return internetConnection.isConnected;
-		});
+		// setIsOnline((prev) => {
+		// 	if (prev === internetConnection.isConnected) {
+		// 		return prev; // No change in `isOnline`
+		// 	}
+		// 	return internetConnection.isConnected;
+		// });
+
+				// setConnectivity((prev) => {
+		// 	if (
+		// 		prev.navigatorOnline === navigatorOnline &&
+		// 		prev.Internet === internetConnection.isConnected &&
+		// 		prev.speed === internetConnection.speed
+		// 	) {
+		// 		return prev; // No changes, return previous state to prevent rerender
+		// 	}
+		// 	return {
+		// 		...prev,
+		// 		navigatorOnline,
+		// 		Internet: internetConnection.isConnected,
+		// 		speed: internetConnection.speed,
+		// 	};
+		// });
+
+		// setIsOnline((prev) => {
+		// 	if (prev === internetConnection.isConnected) {
+		// 		return prev; // No change in `isOnline`
+		// 	}
+		// 	return internetConnection.isConnected;
+		// });
+		setIsOnline(true)
+		setConnectivity({
+			navigatorOnline:true,
+			Internet:true,
+			speed:1
+		})
 	}
 
 	useEffect(() => {
