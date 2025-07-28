@@ -137,7 +137,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const from = location.search || '/';
 
 
-	const idb = useIndexedDb("wallet-frontend", 2, useCallback((db, prevVersion, newVersion) => {
+	const idb = useIndexedDb("wallet-frontend", 3, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
 			const objectStore = db.createObjectStore("keys", { keyPath: "id" });
 			objectStore.createIndex("id", "id", { unique: true });
