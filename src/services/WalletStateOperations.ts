@@ -1,4 +1,4 @@
-import { FOLD_EVENT_HISTORY_AFTER } from "@/config";
+import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
@@ -590,7 +590,7 @@ export namespace WalletStateOperations {
 	 * @param walletStateContainer
 	 * @returns
 	 */
-	export async function foldLastEventIntoBaseState(walletStateContainer: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER): Promise<WalletStateContainer> {
+	export async function foldLastEventIntoBaseState(walletStateContainer: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);
 		if (walletStateContainer.events[0] && walletStateContainer.events[0].timestamp + foldEventHistoryAfter < now) {
 			walletStateContainer.S = walletStateReducer(walletStateContainer.S, walletStateContainer.events[0]);
