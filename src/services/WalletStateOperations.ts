@@ -573,7 +573,7 @@ export namespace WalletStateOperations {
 	}
 
 	/**
-	 * Returns a depp copy of container with the whole history of the container folded into the base state
+	 * Returns container with the whole history of the container folded into the base state
 	 * @param walletStateContainer
 	 * @returns
 	 */
@@ -585,20 +585,16 @@ export namespace WalletStateOperations {
 	}
 
 	/**
-	 *
-	 * Returns a deep copy of container with folded history for the last event only
-	 * @param walletStateContainer
-	 * @returns
+	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
 	 */
-	export async function foldLastEventIntoBaseState(walletStateContainer: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
+	export async function foldOldEventsIntoBaseState({ events, S }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);
-		if (walletStateContainer.events[0] && walletStateContainer.events[0].timestampSeconds + foldEventHistoryAfter < now) {
-			walletStateContainer.S = walletStateReducer(walletStateContainer.S, walletStateContainer.events[0]);
-			walletStateContainer.events = walletStateContainer.events.slice(1,);
-			walletStateContainer.events = await rebuildEventHistory(walletStateContainer.events);
-			return { ...walletStateContainer }; // return deep copy
-		}
-
-		return walletStateContainer;
+		const foldBefore = now - foldEventHistoryAfter;
+		const firstYoungIndex = events.findIndex(event => event.timestampSeconds >= foldBefore);
+		const splitIndex = (firstYoungIndex === -1 ? events.length : firstYoungIndex);
+		return {
+			events: await rebuildEventHistory(events.slice(splitIndex)),
+			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
+		};
 	}
 }
