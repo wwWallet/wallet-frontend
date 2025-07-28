@@ -272,6 +272,19 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		DcqlQuery.validate(parsedQuery);
 		const result = await DcqlQuery.query(parsedQuery, shapedCredentials);
 
+		const matches = result.credential_matches;
+
+		function hasValidMatch(credId: string): boolean {
+			const match = matches[credId];
+			return match?.success === true && Array.isArray(match.valid_credentials) && match.valid_credentials.length > 0;
+		}
+
+		const satisfied = dcqlJson.credentials.every(cred => hasValidMatch(cred.id));
+		// TODO handle case of credential_sets with multiple options
+		if (!satisfied) {
+			return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
+		}
+
 		// Build the mapping for each credential query
 		const mapping = new Map<string, { credentials: string[]; requestedFields: { name: string; purpose: string }[] }>();
 		for (const credReq of dcqlJson.credentials) {
