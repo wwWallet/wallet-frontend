@@ -10,7 +10,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
-import { WalletBaseState, WalletBaseStateCredential, WalletBaseStateCredentialIssuanceSession, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { WalletState, WalletBaseStateCredential, WalletBaseStateCredentialIssuanceSession, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 
 
 type UserData = {
@@ -89,7 +89,7 @@ export interface LocalStorageKeystore {
 	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
-	getCalculatedWalletState(): WalletBaseState | null,
+	getCalculatedWalletState(): WalletState | null,
 	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
@@ -128,7 +128,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
 	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
-	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletBaseState | null>(null);
+	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletState | null>(null);
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
 
 	const navigate = useNavigate();
@@ -259,7 +259,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		checkPrivateData();
 	}, [closeSessionTabLocal, globalUserHandleB64u]);
 
-	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletBaseState]> => {
+	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletState]> => {
 		if (mainKey && privateData) {
 			try {
 				return await keystore.openPrivateData(mainKey, privateData);
@@ -607,7 +607,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 
-	const getCalculatedWalletState = useCallback((): WalletBaseState | null => {
+	const getCalculatedWalletState = useCallback((): WalletState | null => {
 		return (calculatedWalletState);
 	}, [calculatedWalletState]);
 

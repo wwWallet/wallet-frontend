@@ -9,7 +9,7 @@ const WALLET_SESSION_EVENT_SCHEMA_VERSION = 1;
 
 export type WalletStateContainer = {
 	events: WalletSessionEvent[];
-	S: WalletBaseState;
+	S: WalletState;
 };
 
 export type WalletSessionEvent = {
@@ -140,11 +140,11 @@ export type WalletState = {
 	}[],
 }
 
-export type WalletBaseStateCredential = WalletBaseState['credentials'][number];
-export type WalletBaseStateKeypair = WalletBaseState['keypairs'][number];
-export type WalletBaseStatePresentation = WalletBaseState['presentations'][number];
-export type WalletBaseStateSettings = WalletBaseState['settings'];
-export type WalletBaseStateCredentialIssuanceSession = WalletBaseState['credentialIssuanceSessions'][number];
+export type WalletBaseStateCredential = WalletState['credentials'][number];
+export type WalletBaseStateKeypair = WalletState['keypairs'][number];
+export type WalletBaseStatePresentation = WalletState['presentations'][number];
+export type WalletBaseStateSettings = WalletState['settings'];
+export type WalletBaseStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
 function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
@@ -527,7 +527,7 @@ export namespace WalletStateOperations {
 	}
 
 
-	export function walletStateReducer(state: WalletBaseState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletBaseState {
+	export function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
 		return {
 			schemaVersion: SCHEMA_VERSION,
 			credentials: credentialReducer(state.credentials, newEvent),
