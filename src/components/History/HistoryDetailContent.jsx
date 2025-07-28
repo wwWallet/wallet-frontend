@@ -61,8 +61,6 @@ const HistoryDetailContent = ({ historyItem }) => {
 		<div
 			key={index}
 			className="relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg"
-			aria-label={vcEntity.parsedCredential.metadata.credential.name}
-			title={vcEntity.parsedCredential.metadata.credential.name}
 		>
 			<CredentialImage vcEntity={vcEntity} showRibbon={false} className="w-full h-full rounded-xl" />
 		</div>
