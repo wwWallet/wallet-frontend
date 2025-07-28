@@ -17,7 +17,20 @@ export type WalletSessionEvent = {
 	parentHash: string,
 	eventId: number,
 	timestampSeconds: number,
-} & ({
+} & WalletSessionEventTypeAttributes;
+
+export type WalletSessionEventTypeAttributes = (
+	WalletSessionEventNewCredential
+	| WalletSessionEventDeleteCredential
+	| WalletSessionEventNewKeypair
+	| WalletSessionEventDeleteKeypair
+	| WalletSessionEventNewPresentation
+	| WalletSessionEventDeletePresentation
+	| WalletSessionEventAlterSettings
+	| WalletSessionEventSaveCredentialIssuanceSession
+);
+
+export type WalletSessionEventNewCredential = {
 	type: "new_credential",
 	credentialId: number,
 	format: string,
@@ -27,17 +40,25 @@ export type WalletSessionEvent = {
 	instanceId: number,
 	credentialIssuerIdentifier: string,
 	credentialConfigurationId: string,
-} | {
+}
+
+export type WalletSessionEventDeleteCredential = {
 	type: "delete_credential",
 	credentialId: number,
-} | {
+}
+
+export type WalletSessionEventNewKeypair = {
 	type: "new_keypair",
 	kid: string,
 	keypair: CredentialKeyPair,
-} | {
+}
+
+export type WalletSessionEventDeleteKeypair = {
 	type: "delete_keypair",
 	kid: string,
-} | {
+}
+
+export type WalletSessionEventNewPresentation = {
 	type: "new_presentation",
 	presentationId: number,
 	transactionId: number,
@@ -45,13 +66,19 @@ export type WalletSessionEvent = {
 	usedCredentialIds: number[],
 	presentationTimestampSeconds: number,
 	audience: string,
-} | {
+}
+
+export type WalletSessionEventDeletePresentation = {
 	type: "delete_presentation",
 	presentationId: number,
-} | {
+}
+
+export type WalletSessionEventAlterSettings = {
 	type: "alter_settings",
-	settings: Record<string, string>;
-} | {
+	settings: Record<string, string>,
+}
+
+export type WalletSessionEventSaveCredentialIssuanceSession = {
 	type: "save_credential_issuance_session",
 	sessionId: number,
 
@@ -81,7 +108,8 @@ export type WalletSessionEvent = {
 		auth_session: string,
 	},
 	created: number,
-})
+}
+
 
 export type WalletState = {
 	schemaVersion: number,
