@@ -83,7 +83,7 @@ export type WalletSessionEvent = {
 	created: number,
 })
 
-export type WalletBaseState = {
+export type WalletState = {
 	schemaVersion: number,
 	credentials: {
 		credentialId: number,
