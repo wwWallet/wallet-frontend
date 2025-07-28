@@ -146,7 +146,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			db.deleteObjectStore("keys");
 		}
 
-		if (!db.objectStoreNames.contains("privateData")) {
+		if (prevVersion < 3) {
 			db.createObjectStore("privateData", { keyPath: "userHandle" });
 		}
 	}, []));
