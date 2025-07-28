@@ -132,9 +132,9 @@ const Credential = () => {
 	}, [vcEntity]);
 
 	const infoTabs = [
-		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} /> },
 		{
-			label: t('pageCredentials.presentationsTitle'), component:
+			label: t('pageCredentials.presentationsTitle'),
+			component:
 				<>
 					{history.length === 0 ? (
 						<p className="text-gray-700 dark:text-white">
@@ -144,6 +144,13 @@ const Credential = () => {
 						<HistoryList history={history} />
 					)}
 				</>
+		},
+		{
+			label: t('pageCredentials.datasetTitle'),
+			component:
+				<CredentialJson
+					parsedCredential={vcEntity?.parsedCredential}
+				/>
 		}
 	];
 
