@@ -37,7 +37,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 				}
 
 				const presentationsTransformed = await Promise.all(presentations
-					.sort(reverse(compareBy(presentation => presentation.timestamp)))
+					.sort(reverse(compareBy(presentation => presentation.presentationTimestampSeconds)))
 					.map(async (presentation) => {
 						const parsedCredential = await parseCredential(presentation.data);
 						const result = await (async () => {

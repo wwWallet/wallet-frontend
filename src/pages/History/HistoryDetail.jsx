@@ -62,7 +62,7 @@ const HistoryDetail = () => {
 										</div>
 										<div>
 											<p className='text-lg font-bold text-primary dark:text-white'>{Object.values(history)[0].audience} </p>
-											<p className='text-sm text-gray-700 dark:text-gray-300'>{formatDate(Object.values(history)[0].timestamp)}</p>
+											<p className='text-sm text-gray-700 dark:text-gray-300'>{formatDate(Object.values(history)[0].presentationTimestampSeconds)}</p>
 										</div>
 									</div>
 								</>

@@ -16,7 +16,7 @@ export type WalletSessionEvent = {
 	schemaVersion: number,
 	parentHash: string,
 	eventId: number,
-	timestamp: number,
+	timestampSeconds: number,
 } & ({
 	type: "new_credential",
 	credentialId: number,
@@ -43,7 +43,7 @@ export type WalletSessionEvent = {
 	transactionId: number,
 	data: string,
 	usedCredentialIds: number[],
-	timestamp: number,
+	presentationTimestampSeconds: number,
 	audience: string,
 } | {
 	type: "delete_presentation",
@@ -104,7 +104,7 @@ export type WalletBaseState = {
 		transactionId: number, // one transaction can be associated with more than one presentations
 		data: string,
 		usedCredentialIds: number[],
-		timestamp: number,
+		presentationTimestampSeconds: number,
 		audience: string,
 	}[],
 	settings: Record<string, string>,
@@ -189,7 +189,7 @@ function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent
 				data: newEvent.data,
 				usedCredentialIds: newEvent.usedCredentialIds,
 				transactionId: newEvent.transactionId,
-				timestamp: newEvent.timestamp,
+				presentationTimestampSeconds: newEvent.presentationTimestampSeconds,
 				audience: newEvent.audience,
 			}]);
 		case "delete_presentation":
@@ -233,12 +233,12 @@ async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): P
 
 
 
-async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestamp: number }> {
+async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
 	const baseEvent = {
 		schemaVersion: WALLET_SESSION_EVENT_SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
 		parentHash: await getLastEventHashFromEventHistory(container.events),
-		timestamp: Math.floor(new Date().getTime() / 1000),
+		timestampSeconds: Math.floor(new Date().getTime() / 1000),
 	};
 	return {
 		...baseEvent,
@@ -287,7 +287,7 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		const settingsEvents: WalletSessionEvent[] = [];
 		// get only the latest applied setting during merge based on timestamp of event
 		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "alter_settings" && settingsEvents.push(event));
-		settingsEvents.sort((a, b) => a.timestamp - b.timestamp);
+		settingsEvents.sort((a, b) => a.timestampSeconds - b.timestampSeconds);
 		return settingsEvents.length > 0 ? [settingsEvents[settingsEvents.length - 1]] : [];
 	},
 	save_credential_issuance_session: (a, b) => {
@@ -324,7 +324,7 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 		mergedEvents = mergedEvents.concat(merged);
 	}
 
-	mergedEvents.sort((a, b) => a.timestamp - b.timestamp);
+	mergedEvents.sort((a, b) => a.timestampSeconds - b.timestampSeconds);
 
 	// recalculate the hashes for the merged events to rebuild the event history
 	const newEvents: WalletSessionEvent[] = [];
@@ -450,7 +450,7 @@ export namespace WalletStateOperations {
 	}
 
 
-	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], timestamp: number, audience: string): Promise<WalletSessionEvent> {
+	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], presentationTimestampSeconds: number, audience: string): Promise<WalletSessionEvent> {
 		return {
 			...await createWalletSessionEvent(container),
 			type: "new_presentation",
@@ -458,7 +458,7 @@ export namespace WalletStateOperations {
 			transactionId: transactionId,
 			data,
 			usedCredentialIds,
-			timestamp,
+			presentationTimestampSeconds,
 			audience,
 		}
 	}
@@ -541,7 +541,7 @@ export namespace WalletStateOperations {
 	export async function mergeEventHistories(events1: WalletSessionEvent[], events2: WalletSessionEvent[]) {
 		const pointOfDivergence = findDivergencePoint(events1, events2);
 		if (pointOfDivergence === null) {
-			return [...events1, ...events2].sort((e1, e2) => e1.timestamp - e2.timestamp);
+			return [...events1, ...events2].sort((e1, e2) => e1.timestampSeconds - e2.timestampSeconds);
 		}
 
 		const commonHistory: WalletSessionEvent[] = [];
@@ -592,7 +592,7 @@ export namespace WalletStateOperations {
 	 */
 	export async function foldLastEventIntoBaseState(walletStateContainer: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);
-		if (walletStateContainer.events[0] && walletStateContainer.events[0].timestamp + foldEventHistoryAfter < now) {
+		if (walletStateContainer.events[0] && walletStateContainer.events[0].timestampSeconds + foldEventHistoryAfter < now) {
 			walletStateContainer.S = walletStateReducer(walletStateContainer.S, walletStateContainer.events[0]);
 			walletStateContainer.events = walletStateContainer.events.slice(1,);
 			walletStateContainer.events = await rebuildEventHistory(walletStateContainer.events);
