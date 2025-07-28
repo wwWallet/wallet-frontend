@@ -21,7 +21,7 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials }) => {
 			onClick={() => onClick(vcEntity)}
 			aria-label={credentialName}
 			title={t('pageCredentials.credentialDetailsTitle', {
-				credentialName: credentialName,
+				friendlyName: credentialName,
 			})}
 		>
 			<CredentialImage
