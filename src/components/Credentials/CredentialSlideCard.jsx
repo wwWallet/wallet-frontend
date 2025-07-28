@@ -22,7 +22,7 @@ const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick })
 			aria-label={credentialName ?? ''}
 			tabIndex={isActive ? 0 : -1}
 			title={t('pageCredentials.credentialFullScreenTitle', {
-				credentialName: credentialName,
+				friendlyName: credentialName,
 			})}
 		>
 			<CredentialImage
