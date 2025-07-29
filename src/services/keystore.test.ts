@@ -44,7 +44,7 @@ describe("The keystore", () => {
 			async () => false,
 		);
 		const { privateData } = await keystore.init(mainKey, keyInfo);
-		const [unlocked, ] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
+		const [unlocked,] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		assert.isNotNull(unlocked);
 		assert.isNotNull(unlocked.privateData.prfKeys[0]);
 	});
@@ -53,7 +53,7 @@ describe("The keystore", () => {
 		// 1000 iterations is artificially low to keep the test fast
 		const { mainKey, keyInfo } = await keystore.initPassword("Asdf123!", { pbkdfIterations: 1000 });
 		const { privateData } = await keystore.init(mainKey, keyInfo);
-		const [unlocked, ] = await keystore.unlockPassword(privateData, "Asdf123!");
+		const [unlocked,] = await keystore.unlockPassword(privateData, "Asdf123!");
 		assert.isNotNull(unlocked);
 		assert.isNotNull(unlocked.privateData.passwordKey);
 	});
