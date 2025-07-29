@@ -1161,8 +1161,7 @@ async function addNewCredentialKeypairs(
 
 				// append events
 				for (const { kid, keypair } of keypairsWithPrivateKeys) {
-					const newEvent = await WalletStateOperations.createNewKeypairWalletSessionEvent(privateData, kid, keypair);
-					privateData.events = [ ...privateData.events, newEvent ];
+					privateData = await WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair);
 				}
 
 				return {

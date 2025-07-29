@@ -619,12 +619,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await WalletStateOperations.foldOldEventsIntoBaseState(walletStateContainer);
 
-		const newEvents: WalletSessionEvent[] = [];
 		for (const { data, format, batchId, credentialIssuerIdentifier, kid, credentialConfigurationId, instanceId, credentialId } of credentials) {
-			const e = await WalletStateOperations.createNewCredentialWalletSessionEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
-			newEvents.push(e);
+			walletStateContainer = await WalletStateOperations.addNewCredentialEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
 		}
-		walletStateContainer.events.push(...newEvents);
 		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
@@ -650,18 +647,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		walletStateContainer = await WalletStateOperations.foldOldEventsIntoBaseState(walletStateContainer);
 
 		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
-		const newEvents: WalletSessionEvent[] = [];
 		for (const cred of credentialsToBeDeleted) {
-			const e1 = await WalletStateOperations.createDeleteCredentialWalletSessionEvent(walletStateContainer, cred.credentialId);
-			newEvents.push(e1);
+			walletStateContainer = await WalletStateOperations.addDeleteCredentialEvent(walletStateContainer, cred.credentialId);
 			// delete keypair
 			const kid = calculatedWalletState.credentials.filter((c) => c.credentialId === cred.credentialId).map((c) => c.kid)[0];
 			if (kid) {
-				const e2 = await WalletStateOperations.createDeleteKeypairWalletSessionEvent(walletStateContainer, kid);
-				newEvents.push(e2);
+				walletStateContainer = await WalletStateOperations.addDeleteKeypairEvent(walletStateContainer, kid);
 			}
 		}
-		walletStateContainer.events.push(...newEvents);
 		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
@@ -682,18 +675,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await WalletStateOperations.foldOldEventsIntoBaseState(walletStateContainer);
 
-		const newEvents: WalletSessionEvent[] = [];
 		for (const { transactionId, data, usedCredentialIds, audience } of presentations) {
-			const e = await WalletStateOperations.createNewPresentationWalletSessionEvent(walletStateContainer,
+			walletStateContainer = await WalletStateOperations.addNewPresentationEvent(walletStateContainer,
 				transactionId,
 				data,
 				usedCredentialIds,
 				Math.floor(new Date().getTime() / 1000),
 				audience
 			);
-			newEvents.push(e);
 		}
-		walletStateContainer.events.push(...newEvents);
 		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
@@ -717,7 +707,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		walletStateContainer = await WalletStateOperations.foldOldEventsIntoBaseState(walletStateContainer);
 
 		for (const issuanceSession of issuanceSessions) {
-			const e = await WalletStateOperations.createSaveCredentialIssuanceSessionWalletSessionEvent(walletStateContainer,
+			walletStateContainer = await WalletStateOperations.addSaveCredentialIssuanceSessionEvent(walletStateContainer,
 				issuanceSession.sessionId,
 				issuanceSession.credentialIssuerIdentifier,
 				issuanceSession.state,
@@ -728,7 +718,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				issuanceSession.firstPartyAuthorization,
 				issuanceSession.created
 			);
-			walletStateContainer.events.push(e);
 		}
 
 		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
