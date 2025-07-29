@@ -31,7 +31,7 @@ export const UriHandler = ({ children }) => {
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
-	const [textSyncPopup, setTextSyncPopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
+	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({description: "" });
 
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
@@ -191,7 +191,7 @@ export const UriHandler = ({ children }) => {
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
 		if (params.get('sync') === 'fail' && synced === false) {
-			setTextSyncPopup({ title: 'Synchronize Wallet', description: `Looks like you've modified your wallet in another session. Use your passkey to see what's new.` });
+			setTextSyncPopup({description: 'syncPopup.description' });
 			setSyncPopup(true);
 		}
 	}, [location, t, synced]);

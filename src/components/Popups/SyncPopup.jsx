@@ -1,7 +1,7 @@
 // MessagePopup.js
 import React, { useContext, useState, useCallback } from 'react';
 import { FaCheckCircle } from 'react-icons/fa';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
@@ -97,7 +97,7 @@ const WebauthnLogin = ({
 };
 
 const SyncPopup = ({ message, onClose }) => {
-	const { title, description } = message || {};
+	const { description } = message || {};
 	const { t } = useTranslation();
 
 	const { isOnline } = useContext(StatusContext);
@@ -140,12 +140,15 @@ const SyncPopup = ({ message, onClose }) => {
 
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} shouldCloseOnOverlayClick={false}>
-			<div className="flex flex-col items-center mb-2">
+			<div className="flex flex-col items-center text-center mb-2">
 				<p className="font-bold text-xl mt-2 dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</p>
 				<p className=" mb-2 mt-2 dark:text-white">
-					{description}
+					<Trans
+						i18nKey={description}
+						components={{ strong: <strong /> }}
+					/>
 				</p>
 			</div>
 			<WebauthnLogin
