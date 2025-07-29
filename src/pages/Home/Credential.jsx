@@ -17,7 +17,6 @@ import useScreenType from '../../hooks/useScreenType';
 import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
-import CredentialTabs from '../../components/Credentials/CredentialTabs';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import HistoryList from '../../components/History/HistoryList';
@@ -27,7 +26,7 @@ import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 import PopupLayout from '../../components/Popups/PopupLayout';
 import CredentialImage from '../../components/Credentials/CredentialImage';
-
+import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 
@@ -39,7 +38,6 @@ const Credential = () => {
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
-	const [activeTab, setActiveTab] = useState(0);
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
@@ -160,12 +158,7 @@ const Credential = () => {
 			<>
 				<div className="w-full pt-2 px-2">
 					{screenType !== 'mobile' ? (
-						<>
-							<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
-							<div className='py-2'>
-								{infoTabs[activeTab].component}
-							</div>
-						</>
+						<CredentialTabsPanel tabs={infoTabs} />
 					) : (
 						<>
 							<Button
