@@ -458,7 +458,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			}
 			const queryParams = new URLSearchParams(from);
 			queryParams.append('user', cachedUser.userHandleB64u);
-			navigate(`/login-state?${queryParams.toString()}`, { replace: true });
+			queryParams.append('sync', 'fail');
+			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
 			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
 			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		}
