@@ -10,6 +10,7 @@ const WALLET_SESSION_EVENT_SCHEMA_VERSION = 1;
 export type WalletStateContainer = {
 	events: WalletSessionEvent[];
 	S: WalletState;
+	lastEventHash: string;
 };
 
 export type WalletSessionEvent = {
@@ -168,13 +169,13 @@ export type WalletState = {
 	}[],
 }
 
-export type WalletBaseStateCredential = WalletState['credentials'][number];
-export type WalletBaseStateKeypair = WalletState['keypairs'][number];
-export type WalletBaseStatePresentation = WalletState['presentations'][number];
-export type WalletBaseStateSettings = WalletState['settings'];
-export type WalletBaseStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
+export type WalletStateCredential = WalletState['credentials'][number];
+export type WalletStateKeypair = WalletState['keypairs'][number];
+export type WalletStatePresentation = WalletState['presentations'][number];
+export type WalletStateSettings = WalletState['settings'];
+export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
-function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: WalletSessionEvent) {
+function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_credential":
 			return state.concat([{
@@ -194,7 +195,7 @@ function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: Wa
 	}
 }
 
-function keypairReducer(state: WalletBaseStateKeypair[] = [], newEvent: WalletSessionEvent) {
+function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_keypair":
 			return state.concat([{
@@ -209,7 +210,7 @@ function keypairReducer(state: WalletBaseStateKeypair[] = [], newEvent: WalletSe
 }
 
 
-function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent: WalletSessionEvent) {
+function presentationReducer(state: WalletStatePresentation[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_presentation":
 			return state.concat([{
@@ -227,7 +228,7 @@ function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent
 	}
 }
 
-function credentialIssuanceSessionReducer(state: WalletBaseStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
+function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "save_credential_issuance_session":
 			return state.filter((s) => s.sessionId !== newEvent.sessionId).concat([{
@@ -246,7 +247,7 @@ function credentialIssuanceSessionReducer(state: WalletBaseStateCredentialIssuan
 	}
 }
 
-function settingsReducer(state: WalletBaseStateSettings = {}, newEvent: WalletSessionEvent) {
+function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "alter_settings":
 			return { ...newEvent.settings };
@@ -418,15 +419,19 @@ export namespace WalletStateOperations {
 		return {
 			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: {} },
 			events: [],
+			lastEventHash: "",
 		}
 	}
 
-	export async function validateEventHistoryContinuity(events: WalletSessionEvent[]): Promise<boolean> {
-		if (events.length < 1) {
+	export async function validateEventHistoryContinuity(container: WalletStateContainer, events: WalletSessionEvent[]): Promise<boolean> {
+		if (events.length === 0) {
 			return true;
 		}
 
 		const eventHashes = await Promise.all(events.map(async (e) => WalletStateUtils.calculateEventHash(e)));
+		if (container.lastEventHash !== "" && events[0].parentHash !== container.lastEventHash) {
+			return false;
+		}
 		for (let i = 1; i < events.length; i++) {
 			if (events[i].parentHash !== eventHashes[i - 1]) {
 				return false;
@@ -623,6 +628,7 @@ export namespace WalletStateOperations {
 		return {
 			events: await rebuildEventHistory(events.slice(splitIndex)),
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
+			lastEventHash: await WalletStateUtils.calculateEventHash(events[splitIndex-1]),
 		};
 	}
 }

@@ -16,6 +16,7 @@ import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { WalletState, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
+import { WalletStateUtils } from "./WalletStateUtils";
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
@@ -596,6 +597,7 @@ async function rewrapPrivateKeys(
 
 	return {
 		...privateData,
+		lastEventHash: privateData.lastEventHash ?? "",
 		S: {
 			...privateData.S,
 			keypairs: rewrappedKeys,
@@ -1107,6 +1109,7 @@ export async function updateWalletState(
 					...privateData,
 					S: S,
 					events: events,
+					lastEventHash: events[0] ? await WalletStateUtils.calculateEventHash(events[0]) : "",
 				}
 			}
 		)
@@ -1166,6 +1169,7 @@ async function addNewCredentialKeypairs(
 					...privateData,
 					S: privateData.S,
 					events: privateData.events,
+					lastEventHash: privateData.lastEventHash ?? "",
 				}
 			}
 		),

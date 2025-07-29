@@ -625,7 +625,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			newEvents.push(e);
 		}
 		walletStateContainer.events.push(...newEvents);
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
 
@@ -662,7 +662,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			}
 		}
 		walletStateContainer.events.push(...newEvents);
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
 
@@ -694,7 +694,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			newEvents.push(e);
 		}
 		walletStateContainer.events.push(...newEvents);
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
 
@@ -731,7 +731,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			walletStateContainer.events.push(e);
 		}
 
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
 		return editPrivateData(async (originalContainer) => {
@@ -754,7 +754,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		const e = await WalletStateOperations.createAlterSettingsWalletSessionEvent(walletStateContainer, settings);
 		walletStateContainer.events.push(e);
 
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer.events)) {
+		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
 			throw new Error("History continuity is not maintained");
 		}
 		return editPrivateData(async (originalContainer) => {
