@@ -7,8 +7,8 @@ import { PiCardsBold } from "react-icons/pi";
 import i18n from '@/i18n';
 
 // Hooks
-import useScreenType from '../../hooks/useScreenType';
-import { useVcEntity } from '../../hooks/useVcEntity';
+import useScreenType from '@/hooks/useScreenType';
+import { useVcEntity } from '@/hooks/useVcEntity';
 import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Contexts
