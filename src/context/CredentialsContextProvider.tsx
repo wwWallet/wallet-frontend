@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
+import { ROOT_TRUSTED_CERTIFICATES } from '../config'
 import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
 import { compareBy, reverse } from '../util';
@@ -28,7 +29,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	const { getExternalEntity, getSession, get } = api;
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
-		const trustedCertificates: string[] = [];
+		const trustedCertificates: string[] = ROOT_TRUSTED_CERTIFICATES;
 
 		const engine = await initializeCredentialEngine(
 			httpProxy,
@@ -122,9 +123,9 @@ export const CredentialsContextProvider = ({ children }) => {
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: { verifySchema: true } });
 							case VerifiableCredentialFormat.DC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: { verifySchema: true } });
 							case VerifiableCredentialFormat.MSO_MDOC:
 								return msoMdocVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
 						}
