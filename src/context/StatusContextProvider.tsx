@@ -131,27 +131,45 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	useEffect(() => {
 		let pollingInterval: NodeJS.Timeout | null = null;
 
-		const startOnlinePolling = () => {
-			pollingInterval = setInterval(() => {
-				const now = Date.now();
+		const poll = () => {
+			const now = Date.now();
+			if (!document.hidden && now - lastUpdateCallTime.current > 20000) {
+				updateOnlineStatus(false);
+			}
+		};
 
-				// Check if it's been more than 20 seconds since the last update call
-				if (now - lastUpdateCallTime.current > 20000) {
-					updateOnlineStatus(false); // Pass `false` to indicate this is a periodic check
-				}
-			}, 20000); // Poll every 20 seconds
+		const startPolling = () => {
+			console.log('startPolling')
+			if (!pollingInterval) {
+				pollingInterval = setInterval(poll, 20000);
+			}
+		};
+
+		const stopPolling = () => {
+			console.log('stopPolling')
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+				pollingInterval = null;
+			}
+		};
+
+		const handleVisibilityChange = () => {
+			if (document.hidden) {
+				stopPolling();
+			} else {
+				startPolling();
+				poll(); // Trigger immediately when returning to foreground
+			}
 		};
 
 		if (isOnline) {
-			startOnlinePolling();
-		} else if (pollingInterval) {
-			clearInterval(pollingInterval);
+			startPolling();
+			document.addEventListener('visibilitychange', handleVisibilityChange);
 		}
 
 		return () => {
-			if (pollingInterval) {
-				clearInterval(pollingInterval);
-			}
+			stopPolling();
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
 	}, [isOnline]);
 
