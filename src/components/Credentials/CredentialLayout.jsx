@@ -4,10 +4,12 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
 import { PiCardsBold } from "react-icons/pi";
+import i18n from '@/i18n';
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
 import { useVcEntity } from '../../hooks/useVcEntity';
+import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
@@ -41,7 +43,7 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	);
 };
 
-const CredentialLayout = ({ children, title = null, displayCredentialInfo = null, credentialName = "" }) => {
+const CredentialLayout = ({ children, title = null, displayCredentialInfo = null }) => {
 	const { credentialId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -59,6 +61,12 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			setSigTotal(vcEntity.instances.length);
 		}
 	}, [vcEntity]);
+
+	const credentialName = useCredentialName(
+		vcEntity?.parsedCredential?.metadata?.credential?.name,
+		vcEntity?.id,
+		[i18n.language]
+	);
 
 	const CredentialImageButton = ({
 		showRibbon,
