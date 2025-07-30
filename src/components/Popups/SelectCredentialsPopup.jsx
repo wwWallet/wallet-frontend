@@ -14,7 +14,6 @@ import { MdFactCheck } from "react-icons/md";
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
 
-
 const SelectableCredentialSlideCard = ({
 	vcEntity,
 	isActive,

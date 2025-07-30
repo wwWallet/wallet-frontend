@@ -37,7 +37,7 @@ const Home = () => {
 	const handleImageClick = (vcEntity) => {
 		navigate(`/credential/${vcEntity.batchId}`);
 	};
-console.log('vcEntityList',vcEntityList)
+
 	return (
 		<>
 			<div className="sm:px-6 w-full">

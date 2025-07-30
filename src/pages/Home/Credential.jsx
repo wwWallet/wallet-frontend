@@ -56,6 +56,12 @@ const Credential = () => {
 		[i18n.language]
 	);
 
+	const credentialName = useCredentialName(
+		vcEntity?.parsedCredential?.metadata?.credential?.name,
+		vcEntity?.id,
+		[i18n.language]
+	);
+
 	const handleSureDelete = async () => {
 		setLoading(true);
 		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId));
