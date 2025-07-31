@@ -9,6 +9,7 @@ import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
+import SyncPopup from "@/components/Popups/SyncPopup";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -19,7 +20,7 @@ export const UriHandler = ({ children }) => {
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 
-	const { isLoggedIn, api, keystore } = useContext(SessionContext);
+	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
@@ -28,6 +29,9 @@ export const UriHandler = ({ children }) => {
 
 	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse } = openID4VCI;
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
+
+	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
+	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({description: "" });
 
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
@@ -56,7 +60,8 @@ export const UriHandler = ({ children }) => {
 	}, [keystore, setCachedUser]);
 
 	useEffect(() => {
-		if (window.location.search !== '' && window.location.pathname !== '/login-state') {
+		const params = new URLSearchParams(window.location.search);
+		if (window.location.search !== '' && params.get('sync') !== 'fail') {
 			setSynced(false);
 		}
 	}, [location]);
@@ -65,7 +70,8 @@ export const UriHandler = ({ children }) => {
 		if (!keystore || !cachedUser || !api) {
 			return;
 		}
-		if (synced === false && keystore.getCalculatedWalletState() && window.location.pathname !== '/login-state') {
+		const params = new URLSearchParams(window.location.search);
+		if (synced === false && keystore.getCalculatedWalletState() && params.get('sync') !== 'fail') {
 			console.log("Actually syncing...");
 			api.syncPrivateData(cachedUser).then((r) => {
 				if (!r.ok) {
@@ -182,6 +188,14 @@ export const UriHandler = ({ children }) => {
 		handle(url);
 	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList, synced]);
 
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		if (params.get('sync') === 'fail' && synced === false) {
+			setTextSyncPopup({description: 'syncPopup.description' });
+			setSyncPopup(true);
+		}
+	}, [location, t, synced]);
+
 	return (
 		<>
 			{children}
@@ -190,6 +204,14 @@ export const UriHandler = ({ children }) => {
 			}
 			{showMessagePopup &&
 				<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+			}
+			{showSyncPopup &&
+				<SyncPopup message={textSyncPopup}
+					onClose={() => {
+						setSyncPopup(false);
+						logout();
+					}}
+				/>
 			}
 		</>
 	);

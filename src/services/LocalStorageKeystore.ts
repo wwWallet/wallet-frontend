@@ -269,7 +269,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				console.log("Navigating to login-state to handle JWE decryption failure");
 				const queryParams = new URLSearchParams(from);
 				queryParams.append('user', userHandleB64u);
-				navigate(`/login-state?${queryParams.toString()}`, { replace: true });
+				queryParams.append('sync', 'fail');
+				navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
 				return null;
 			}
 		} else {

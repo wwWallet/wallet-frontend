@@ -99,7 +99,7 @@ export interface BackendApi {
 export function useApi(isOnline: boolean | null): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [userHandle, setUserHandle, clearUserHandle] = useSessionStorage<string | null>("userHandle", null);
-	const [cachedUsers, setCachedUsers, clearCachedUsers] = useLocalStorage<CachedUser[] | null>("userHandle", null);
+	const [cachedUsers, setCachedUsers, clearCachedUsers] = useLocalStorage<CachedUser[] | null>("cachedUsers", null);
 
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
@@ -458,7 +458,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			}
 			const queryParams = new URLSearchParams(from);
 			queryParams.append('user', cachedUser.userHandleB64u);
-			navigate(`/login-state?${queryParams.toString()}`, { replace: true });
+			queryParams.append('sync', 'fail');
+			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
 			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
 			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		}
