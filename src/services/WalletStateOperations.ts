@@ -2,9 +2,7 @@ import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
-
-const SCHEMA_VERSION = 1;
-const WALLET_SESSION_EVENT_SCHEMA_VERSION = 1;
+import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
 
 
 export type WalletStateContainer = {
@@ -264,7 +262,7 @@ async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): P
 
 async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
 	const baseEvent = {
-		schemaVersion: WALLET_SESSION_EVENT_SCHEMA_VERSION,
+		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
 		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
 		timestampSeconds: Math.floor(new Date().getTime() / 1000),
@@ -325,6 +323,9 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		return [...map.values()];
 	},
 };
+
+
+
 
 async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSessionEvent[]> {
 	const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[]]> = {
@@ -412,8 +413,9 @@ async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: 
 }
 
 export namespace WalletStateOperations {
-
-
+	export const walletStateReducerRegistry = {
+		1: WalletStateOperations.walletStateReducer
+	};
 
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
@@ -676,8 +678,20 @@ export namespace WalletStateOperations {
 
 
 	export function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
+		if (newEvent.schemaVersion < state.schemaVersion) {
+			if (!(newEvent.schemaVersion in WalletStateMigrations.walletStateReducerRegistry)) {
+				throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}: no reducer found`);
+			}
+			const reduced = WalletStateMigrations.walletStateReducerRegistry[newEvent.schemaVersion](state, newEvent);
+			return WalletStateMigrations.migrateWalletStateToCurrent(reduced);
+		}
+
+		if (newEvent.schemaVersion > state.schemaVersion) {
+			state = WalletStateMigrations.migrateWalletStateTo(newEvent.schemaVersion, state);
+		}
+
 		return {
-			schemaVersion: SCHEMA_VERSION,
+			schemaVersion: newEvent.schemaVersion,
 			credentials: credentialReducer(state.credentials, newEvent),
 			keypairs: keypairReducer(state.keypairs, newEvent),
 			presentations: presentationReducer(state.presentations, newEvent),
