@@ -323,7 +323,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			}
 		} catch (e) {
 			console.error("Failed to update private data", e, e?.response?.status);
-			if (e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) {
+			if ((e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) || (e.cause === 'x-private-data-etag')) {
 				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
 				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
 				await syncPrivateData(cachedUser);

@@ -4,7 +4,7 @@ import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
 
-const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null }) => {
+const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null, onLoad, }) => {
 	const [imageSrc, setImageSrc] = useState(undefined);
 
 	useEffect(() => {
@@ -14,6 +14,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 			const imageFn = vcEntity?.parsedCredential?.metadata?.credential?.image?.dataUri;
 			if (!imageFn) {
 				setImageSrc(DefaultCred);
+				onLoad?.();
 				return;
 			}
 
@@ -21,6 +22,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 				const uri = await (filter !== null ? imageFn(filter) : imageFn());
 				if (isMounted && uri) {
 					setImageSrc(uri);
+					onLoad?.();
 				} else {
 					setImageSrc(DefaultCred);
 				}
@@ -28,6 +30,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 				console.warn('Failed to load credential image:', error);
 				if (isMounted) {
 					setImageSrc(DefaultCred);
+					onLoad?.();
 				}
 			}
 		}

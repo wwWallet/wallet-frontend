@@ -16,6 +16,7 @@ import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { WalletState, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
+import { WalletStateUtils } from "./WalletStateUtils";
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
@@ -596,6 +597,7 @@ async function rewrapPrivateKeys(
 
 	return {
 		...privateData,
+		lastEventHash: privateData.lastEventHash ?? "",
 		S: {
 			...privateData.S,
 			keypairs: rewrappedKeys,
@@ -1095,8 +1097,7 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 
 export async function updateWalletState(
 	[privateData, mainKey]: OpenedContainer,
-	S: WalletState,
-	events: WalletSessionEvent[],
+	walletStateContainer: WalletStateContainer,
 ): Promise<{ newContainer: OpenedContainer }> {
 
 	return {
@@ -1105,8 +1106,7 @@ export async function updateWalletState(
 			async (privateData: PrivateData) => {
 				return {
 					...privateData,
-					S: S,
-					events: events,
+					...walletStateContainer,
 				}
 			}
 		)
@@ -1158,14 +1158,14 @@ async function addNewCredentialKeypairs(
 
 				// append events
 				for (const { kid, keypair } of keypairsWithPrivateKeys) {
-					const newEvent = await WalletStateOperations.createNewKeypairWalletSessionEvent(privateData, kid, keypair);
-					privateData.events = [ ...privateData.events, newEvent ];
+					privateData = await WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair);
 				}
 
 				return {
 					...privateData,
 					S: privateData.S,
 					events: privateData.events,
+					lastEventHash: privateData.lastEventHash ?? "",
 				}
 			}
 		),

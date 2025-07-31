@@ -2,14 +2,13 @@ import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
-
-const SCHEMA_VERSION = 1;
-const WALLET_SESSION_EVENT_SCHEMA_VERSION = 1;
+import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
 
 
 export type WalletStateContainer = {
 	events: WalletSessionEvent[];
 	S: WalletState;
+	lastEventHash: string;
 };
 
 export type WalletSessionEvent = {
@@ -168,13 +167,13 @@ export type WalletState = {
 	}[],
 }
 
-export type WalletBaseStateCredential = WalletState['credentials'][number];
-export type WalletBaseStateKeypair = WalletState['keypairs'][number];
-export type WalletBaseStatePresentation = WalletState['presentations'][number];
-export type WalletBaseStateSettings = WalletState['settings'];
-export type WalletBaseStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
+export type WalletStateCredential = WalletState['credentials'][number];
+export type WalletStateKeypair = WalletState['keypairs'][number];
+export type WalletStatePresentation = WalletState['presentations'][number];
+export type WalletStateSettings = WalletState['settings'];
+export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
-function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: WalletSessionEvent) {
+function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_credential":
 			return state.concat([{
@@ -194,7 +193,7 @@ function credentialReducer(state: WalletBaseStateCredential[] = [], newEvent: Wa
 	}
 }
 
-function keypairReducer(state: WalletBaseStateKeypair[] = [], newEvent: WalletSessionEvent) {
+function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_keypair":
 			return state.concat([{
@@ -209,7 +208,7 @@ function keypairReducer(state: WalletBaseStateKeypair[] = [], newEvent: WalletSe
 }
 
 
-function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent: WalletSessionEvent) {
+function presentationReducer(state: WalletStatePresentation[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_presentation":
 			return state.concat([{
@@ -227,7 +226,7 @@ function presentationReducer(state: WalletBaseStatePresentation[] = [], newEvent
 	}
 }
 
-function credentialIssuanceSessionReducer(state: WalletBaseStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
+function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "save_credential_issuance_session":
 			return state.filter((s) => s.sessionId !== newEvent.sessionId).concat([{
@@ -246,7 +245,7 @@ function credentialIssuanceSessionReducer(state: WalletBaseStateCredentialIssuan
 	}
 }
 
-function settingsReducer(state: WalletBaseStateSettings = {}, newEvent: WalletSessionEvent) {
+function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "alter_settings":
 			return { ...newEvent.settings };
@@ -263,9 +262,9 @@ async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): P
 
 async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
 	const baseEvent = {
-		schemaVersion: WALLET_SESSION_EVENT_SCHEMA_VERSION,
+		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
-		parentHash: await getLastEventHashFromEventHistory(container.events),
+		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
 		timestampSeconds: Math.floor(new Date().getTime() / 1000),
 	};
 	return {
@@ -324,6 +323,9 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		return [...map.values()];
 	},
 };
+
+
+
 
 async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSessionEvent[]> {
 	const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[]]> = {
@@ -392,13 +394,13 @@ export function findDivergencePoint(events1: WalletSessionEvent[], events2: Wall
 	return null;
 }
 
-async function rebuildEventHistory(events: WalletSessionEvent[]): Promise<WalletSessionEvent[]> {
+async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: string): Promise<WalletSessionEvent[]> {
 	const newEvents: WalletSessionEvent[] = [];
 	for (let i = 0; i < events.length; i++) {
 		if (i == 0) {
 			newEvents.push({
 				...events[0],
-				parentHash: "",
+				parentHash: lastEventHash,
 			});
 			continue;
 		}
@@ -411,22 +413,28 @@ async function rebuildEventHistory(events: WalletSessionEvent[]): Promise<Wallet
 }
 
 export namespace WalletStateOperations {
-
-
+	export const walletStateReducerRegistry = {
+		1: WalletStateOperations.walletStateReducer
+	};
 
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
 			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: {} },
 			events: [],
+			lastEventHash: "",
 		}
 	}
 
-	export async function validateEventHistoryContinuity(events: WalletSessionEvent[]): Promise<boolean> {
-		if (events.length < 1) {
+	export async function validateEventHistoryContinuity(container: WalletStateContainer): Promise<boolean> {
+		const events = container.events;
+		if (events.length === 0) {
 			return true;
 		}
 
 		const eventHashes = await Promise.all(events.map(async (e) => WalletStateUtils.calculateEventHash(e)));
+		if (container.lastEventHash !== "" && events[0].parentHash !== container.lastEventHash) {
+			return false;
+		}
 		for (let i = 1; i < events.length; i++) {
 			if (events[i].parentHash !== eventHashes[i - 1]) {
 				return false;
@@ -435,81 +443,180 @@ export namespace WalletStateOperations {
 		return true;
 	}
 
-	export async function createNewCredentialWalletSessionEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "new_credential",
-			credentialId: credentialId,
-			data,
-			format,
-			kid,
-			batchId,
-			credentialIssuerIdentifier,
-			credentialConfigurationId,
-			instanceId,
+	export async function addNewCredentialEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
 		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "new_credential",
+					credentialId: credentialId,
+					data,
+					format,
+					kid,
+					batchId,
+					credentialIssuerIdentifier,
+					credentialConfigurationId,
+					instanceId,
+				},
+			],
+			S: container.S,
+		};
+
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
-	export async function createDeleteCredentialWalletSessionEvent(container: WalletStateContainer, credentialId: number): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "delete_credential",
-			credentialId,
+	export async function addDeleteCredentialEvent(container: WalletStateContainer, credentialId: number): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
 		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "delete_credential",
+					credentialId,
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
-	export async function createNewKeypairWalletSessionEvent(container: WalletStateContainer, kid: string, keypair: CredentialKeyPair): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "new_keypair",
-			kid,
-			keypair,
+	export async function addNewKeypairEvent(container: WalletStateContainer, kid: string, keypair: CredentialKeyPair): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
 		}
-	}
-
-
-	export async function createDeleteKeypairWalletSessionEvent(container: WalletStateContainer, kid: string): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "delete_keypair",
-			kid,
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "new_keypair",
+					kid,
+					keypair,
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
 		}
-	}
-
-
-	export async function createNewPresentationWalletSessionEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], presentationTimestampSeconds: number, audience: string): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "new_presentation",
-			presentationId: WalletStateUtils.getRandomUint32(),
-			transactionId: transactionId,
-			data,
-			usedCredentialIds,
-			presentationTimestampSeconds,
-			audience,
-		}
-	}
-
-
-	export async function createDeletePresentationWalletSessionEvent(container: WalletStateContainer, presentationId: number): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "delete_presentation",
-			presentationId,
-		}
-	}
-
-	export async function createAlterSettingsWalletSessionEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "alter_settings",
-			settings: settings,
-		}
+		return newContainer;
 	}
 
 
-	export async function createSaveCredentialIssuanceSessionWalletSessionEvent(container: WalletStateContainer,
+	export async function addDeleteKeypairEvent(container: WalletStateContainer, kid: string): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "delete_keypair",
+					kid,
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
+	}
+
+
+	export async function addNewPresentationEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], presentationTimestampSeconds: number, audience: string): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "new_presentation",
+					presentationId: WalletStateUtils.getRandomUint32(),
+					transactionId: transactionId,
+					data,
+					usedCredentialIds,
+					presentationTimestampSeconds,
+					audience,
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
+	}
+
+
+	export async function addDeletePresentationEvent(container: WalletStateContainer, presentationId: number): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "delete_presentation",
+					presentationId,
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
+	}
+
+	export async function addAlterSettingsEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "alter_settings",
+					settings: settings,
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
+	}
+
+
+	export async function addSaveCredentialIssuanceSessionEvent(container: WalletStateContainer,
 		sessionId: number,
 		credentialIssuerIdentifier: string,
 		state: string,
@@ -537,27 +644,54 @@ export namespace WalletStateOperations {
 			auth_session: string,
 		},
 		created?: number
-	): Promise<WalletSessionEvent> {
-		return {
-			...await createWalletSessionEvent(container),
-			type: "save_credential_issuance_session",
-			sessionId: sessionId,
+	): Promise<WalletStateContainer> {
 
-			credentialIssuerIdentifier,
-			state,
-			code_verifier,
-			credentialConfigurationId,
-			tokenResponse,
-			dpop,
-			firstPartyAuthorization,
-			created: created ?? Math.floor(Date.now() / 1000),
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
 		}
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "save_credential_issuance_session",
+					sessionId: sessionId,
+
+					credentialIssuerIdentifier,
+					state,
+					code_verifier,
+					credentialConfigurationId,
+					tokenResponse,
+					dpop,
+					firstPartyAuthorization,
+					created: created ?? Math.floor(Date.now() / 1000),
+				},
+			],
+			S: container.S,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
 	export function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
+		if (newEvent.schemaVersion < state.schemaVersion) {
+			if (!(newEvent.schemaVersion in WalletStateMigrations.walletStateReducerRegistry)) {
+				throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}: no reducer found`);
+			}
+			const reduced = WalletStateMigrations.walletStateReducerRegistry[newEvent.schemaVersion](state, newEvent);
+			return WalletStateMigrations.migrateWalletStateToCurrent(reduced);
+		}
+
+		if (newEvent.schemaVersion > state.schemaVersion) {
+			state = WalletStateMigrations.migrateWalletStateTo(newEvent.schemaVersion, state);
+		}
+
 		return {
-			schemaVersion: SCHEMA_VERSION,
+			schemaVersion: newEvent.schemaVersion,
 			credentials: credentialReducer(state.credentials, newEvent),
 			keypairs: keypairReducer(state.keypairs, newEvent),
 			presentations: presentationReducer(state.presentations, newEvent),
@@ -566,10 +700,18 @@ export namespace WalletStateOperations {
 		}
 	}
 
-	export async function mergeEventHistories(events1: WalletSessionEvent[], events2: WalletSessionEvent[]) {
-		const pointOfDivergence = findDivergencePoint(events1, events2);
+	export async function mergeEventHistories(container1: WalletStateContainer, container2: WalletStateContainer): Promise<WalletStateContainer> {
+		const pointOfDivergence = findDivergencePoint(container1.events, container2.events);
 		if (pointOfDivergence === null) {
-			return [...events1, ...events2].sort((e1, e2) => e1.timestampSeconds - e2.timestampSeconds);
+			const events = [...container1.events, ...container2.events].sort((e1, e2) => e1.timestampSeconds - e2.timestampSeconds);
+			const newContainer = {
+				...container1,
+				events: events,
+			};
+			if (!(await validateEventHistoryContinuity(newContainer))) {
+				throw new Error("Invalid event history chain");
+			}
+			return newContainer;
 		}
 
 		const commonHistory: WalletSessionEvent[] = [];
@@ -577,27 +719,35 @@ export namespace WalletStateOperations {
 		const history2DivergentPart = [];
 
 		let pointOfDivergenceIndex = -1;
-		for (let i = 0; i < events1.length; i++) {
-			if (events1[i].eventId === pointOfDivergence.eventId) {
+		for (let i = 0; i < container1.events.length; i++) {
+			if (container1.events[i].eventId === pointOfDivergence.eventId) {
 				pointOfDivergenceIndex = i;
 			}
 		}
 
 		for (let i = 0; i <= pointOfDivergenceIndex; i++) {
-			commonHistory.push(events1[i]);
+			commonHistory.push(container1.events[i]);
 		}
 
-		for (let i = pointOfDivergenceIndex + 1; i < events1.length; i++) {
-			history1DivergentPart.push(events1[i]);
+		for (let i = pointOfDivergenceIndex + 1; i < container1.events.length; i++) {
+			history1DivergentPart.push(container1.events[i]);
 		}
 
-		for (let i = pointOfDivergenceIndex + 1; i < events2.length; i++) {
-			history1DivergentPart.push(events2[i]);
+		for (let i = pointOfDivergenceIndex + 1; i < container2.events.length; i++) {
+			history1DivergentPart.push(container2.events[i]);
 		}
 
 
 		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
-		return commonHistory.concat(mergeDivergentPartsResult);
+		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
+		const newContainer = {
+			...container1,
+			events: newEventHistory,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 	/**
@@ -615,14 +765,24 @@ export namespace WalletStateOperations {
 	/**
 	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
 	 */
-	export async function foldOldEventsIntoBaseState({ events, S }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
+	export async function foldOldEventsIntoBaseState({ events, S, lastEventHash }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);
 		const foldBefore = now - foldEventHistoryAfter;
 		const firstYoungIndex = events.findIndex(event => event.timestampSeconds >= foldBefore);
 		const splitIndex = (firstYoungIndex === -1 ? events.length : firstYoungIndex);
+		if (splitIndex === 0) {
+			return {
+				events,
+				S,
+				lastEventHash,
+			};
+		}
+		const newLastEventHash = await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
+		const newEventHistory = await rebuildEventHistory(events.slice(splitIndex), newLastEventHash);
 		return {
-			events: await rebuildEventHistory(events.slice(splitIndex)),
+			events: newEventHistory,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
+			lastEventHash: newLastEventHash,
 		};
 	}
 }
