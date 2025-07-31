@@ -161,11 +161,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		}
 	}, [userHandleB64u]);
 
-	useEffect(() => { // constantly update indexdb privateData
-		if (privateData && userHandleB64u) {
-			writePrivateDataOnIdb(privateData, userHandleB64u);
-		}
-	}, [privateData, userHandleB64u]);
 
 	const writePrivateDataOnIdb = async (privateData: EncryptedContainer | null, userHandleB64u: string) => {
 		await idb.write(["privateData"], (tx) => {
@@ -294,6 +289,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				result,
 				newPrivateData,
 				async () => {
+					await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
 					setCalculatedWalletState(newCalculatedWalletState);
 					setPrivateData(newPrivateData);
 					setMainKey(await keystore.exportMainKey(newMainKey));
@@ -388,6 +384,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					?
 					[newPrivateData,
 						async () => {
+							await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
 							setPrivateData(newPrivateData);
 						},
 					]
@@ -450,6 +447,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return [
 				newPrivateData,
 				async () => {
+					await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
 					setPrivateData(newPrivateData);
 				},
 			];
@@ -463,6 +461,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return [
 				newPrivateData,
 				async () => {
+					await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
 					setPrivateData(newPrivateData);
 				},
 			];
@@ -484,6 +483,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					?
 					[newPrivateData,
 						async () => {
+							await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
 							setPrivateData(newPrivateData);
 						},
 					]
@@ -535,6 +535,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				return [
 					newPrivateData,
 					async () => {
+						await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
 						setPrivateData(newPrivateData);
 					},
 				];
