@@ -8,6 +8,7 @@ import Spinner from '../Shared/Spinner'; // Import your spinner component
 import { useSessionStorage } from '../../hooks/useStorage';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import * as config from '../../config';
 
 
 type PrivateRouteContextValue = {
@@ -179,7 +180,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		if (isLoggedIn) {
+		if (isLoggedIn && config.FIREBASE_ENABLED) {
 			requestNotificationPermission();
 		}
 	}, [isLoggedIn, location, setTokenSentInSession]);
@@ -208,10 +209,11 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			}
 		};
 
-		if (isOnline === true && isLoggedIn) {
-			sendFcmTokenToBackend();
-		} else if (isOnline === false) {
+		if (!config.FIREBASE_ENABLED || isOnline === false) {
 			setTokenSentInSession(false);
+		}
+		else if (isOnline === true && isLoggedIn) {
+			sendFcmTokenToBackend();
 		}
 	}, [
 		api,

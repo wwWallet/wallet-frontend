@@ -24,22 +24,18 @@ import CredentialSlideCard from '@/components/Credentials/CredentialSlideCard';
 
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api);
+	const { keystore } = useContext(SessionContext);
 	const screenType = useScreenType();
 
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	useEffect(() => {
-		getData();
-	}, [getData]);
 
 	const handleAddCredential = () => {
 		navigate('/add');
 	};
 
 	const handleImageClick = (vcEntity) => {
-		navigate(`/credential/${vcEntity.credentialIdentifier}`);
+		navigate(`/credential/${vcEntity.batchId}`);
 	};
 
 	return (
@@ -64,7 +60,7 @@ const Home = () => {
 												items={vcEntityList}
 												renderSlideContent={(vcEntity, index) => (
 													<CredentialSlideCard
-														key={vcEntity.id}
+														key={vcEntity.batchId}
 														vcEntity={vcEntity}
 														isActive={currentSlide === index + 1}
 														latestCredentials={latestCredentials}
@@ -78,8 +74,7 @@ const Home = () => {
 											{/* Update HistoryList based on current slide */}
 											{vcEntityList[currentSlide - 1] && (
 												<HistoryList
-													credentialId={vcEntityList[currentSlide - 1].credentialIdentifier}
-													history={history}
+													batchId={vcEntityList[currentSlide - 1].batchId}
 													title="Recent History"
 													limit={3}
 												/>
@@ -90,7 +85,7 @@ const Home = () => {
 									<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
 										{vcEntityList && vcEntityList.map((vcEntity) => (
 											<CredentialGridCard
-												key={vcEntity.id}
+												key={vcEntity.batchId}
 												vcEntity={vcEntity}
 												latestCredentials={latestCredentials}
 												onClick={handleImageClick}

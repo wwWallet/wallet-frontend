@@ -340,6 +340,10 @@
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
+	"syncPopup": {
+		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to see what's new.",
+		"title": "Synchronize Wallet"
+	},
 	"tourGuide": {
 		"closeTourButton": "Close Tour",
 		"tourComplete": "Thank you for completing the tour, we hope it was helpful!",

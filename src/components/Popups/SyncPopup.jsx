@@ -1,26 +1,25 @@
-import React, { useCallback, useContext, useState } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FaInfoCircle } from 'react-icons/fa';
-import { GoPasskeyFill } from 'react-icons/go';
-import { Trans, useTranslation } from 'react-i18next';
-
-import StatusContext from '@/context/StatusContext';
+// MessagePopup.js
+import React, { useContext, useState, useCallback } from 'react';
+import { FaCheckCircle } from 'react-icons/fa';
+import { useTranslation, Trans } from 'react-i18next';
+import Button from '../Buttons/Button';
+import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
-
-import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import Button from '../../components/Buttons/Button';
-import LoginPageLayout from '../../components/Auth/LoginLayout';
-import checkForUpdates from '../../offlineUpdateSW';
-import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
+import StatusContext from '@/context/StatusContext';
+import { useLocation, Navigate, useNavigate } from 'react-router-dom';
+import checkForUpdates from '@/offlineUpdateSW';
+import { GoPasskeyFill } from 'react-icons/go';
+import { MdOutlineSyncLock } from "react-icons/md";
 
 const WebauthnLogin = ({
 	filteredUser,
+	onClose,
 }) => {
 	const { api, keystore } = useContext(SessionContext);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
-	const from = location.search || '/';
+	const from = '/';
 	const { t } = useTranslation();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,10 +28,7 @@ const WebauthnLogin = ({
 		async (cachedUser) => {
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
-				const params = new URLSearchParams(from);
-				params.append('authenticated', 'true');
-				navigate(`?${params.toString()}`, { replace: true });
-
+				navigate(`${window.location.pathname}`, { replace: true });
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
@@ -74,12 +70,12 @@ const WebauthnLogin = ({
 				<div className='flex flex-row gap-4 justify-center mr-2'>
 					<Button
 						id="cancel-login-state"
-						onClick={() => navigate('/')}
+						onClick={onClose}
 						variant="cancel"
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						{t('common.cancel')}
+						Logout
 					</Button>
 					<Button
 						id={`${isSubmitting ? 'submitting' : 'continue'}-login-state`}
@@ -100,14 +96,21 @@ const WebauthnLogin = ({
 	);
 };
 
-const LoginState = () => {
+const SyncPopup = ({ message, onClose }) => {
+	const { description } = message || {};
+	const { t } = useTranslation();
+
 	const { isOnline } = useContext(StatusContext);
 	const { isLoggedIn, keystore } = useContext(SessionContext);
-	const { t } = useTranslation();
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search || '/';
+
+
+	const IconComponent = FaCheckCircle;
+	const color = 'green-500';
+
 
 	const getfilteredUser = () => {
 		const queryParams = new URLSearchParams(from);
@@ -119,7 +122,6 @@ const LoginState = () => {
 		}
 		if (state) {
 			try {
-				console.log('state', state);
 				const decodedState = atob(state);
 				const stateObj = JSON.parse(decodedState);
 				return [cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u), false, authenticated === 'true'];
@@ -133,50 +135,28 @@ const LoginState = () => {
 	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
 
 	if (!filteredUser) {
-		return <Navigate to="/login" replace />;
-	} else if ((isLoggedIn && !forceAuthenticate) || (forceAuthenticate === true && authenticated)) {
-		return <Navigate to={`/${window.location.search}`} replace />;
+		return;
 	}
 
 	return (
-		<LoginPageLayout heading={
-			<Trans
-				i18nKey="loginState.welcomeBackMessage"
-				components={{
-					highlight: <span className="text-primary dark:text-primary-light" />
-				}}
-			/>
-		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+		<PopupLayout isOpen={true} onClose={onClose} shouldCloseOnOverlayClick={false}>
+			<div className="flex flex-col items-center text-center mb-2">
+				<p className="font-bold text-xl mt-2 dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
-				</h1>
-				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
-					<ConnectionStatusIcon backgroundColor='light' />
-				</div>
-				<div className='absolute top-0 right-3'>
-					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
-				</div>
-				{isOnline === false && (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
-						{t('loginSignup.messageOffline')}
-					</p>
-				)}
-				<p className="text-sm text-center text-gray-600 dark:text-gray-200 mb-2">
+				</p>
+				<p className=" mb-2 mt-2 dark:text-white">
 					<Trans
-						i18nKey="loginState.message"
+						i18nKey={description}
 						components={{ strong: <strong /> }}
 					/>
 				</p>
-
-				<WebauthnLogin
-					filteredUser={filteredUser}
-				/>
-
 			</div>
-		</LoginPageLayout>
+			<WebauthnLogin
+				filteredUser={filteredUser}
+				onClose={onClose}
+			/>
+		</PopupLayout>
 	);
 };
 
-export default LoginState;
+export default SyncPopup;

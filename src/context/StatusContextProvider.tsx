@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import StatusContext, { Connectivity } from './StatusContext';
@@ -86,7 +86,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 			}
 			return internetConnection.isConnected;
 		});
-	};
+	}
 
 	useEffect(() => {
 		// Add event listeners for online/offline status
@@ -194,6 +194,9 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		setHidePwaPrompt(true);
 	}
 
+	useEffect(() => {
+		updateOnlineStatus();
+	}, []);
 	return (
 		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt }}>
 			{children}

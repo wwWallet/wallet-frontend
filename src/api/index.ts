@@ -6,7 +6,8 @@ import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
-import { useEffect, useCallback, useMemo,useRef } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
@@ -82,14 +83,32 @@ export interface BackendApi {
 	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
 	/** Register a storage hook handle to be cleared when `useApi().clearSession()` is invoked. */
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
+
+	syncPrivateData(
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>>;
 }
 
 export function useApi(isOnline: boolean | null): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
+	const [userHandle, setUserHandle, clearUserHandle] = useSessionStorage<string | null>("userHandle", null);
+	const [cachedUsers, setCachedUsers, clearCachedUsers] = useLocalStorage<CachedUser[] | null>("cachedUsers", null);
+
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 	const onlineRef = useRef<boolean>(isOnline !== false);
 
+	const navigate = useNavigate();
+	const location = useLocation();
+
+	const from = location.search || '/';
 	useEffect(() => {
 		onlineRef.current = isOnline !== false;
 	}, [isOnline]);
@@ -304,12 +323,15 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			}
 		} catch (e) {
 			console.error("Failed to update private data", e, e?.response?.status);
-			if (e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) {
-				throw new Error("Private data version conflict", { cause: 'x-private-data-etag' });
+			if ((e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) || (e.cause === 'x-private-data-etag')) {
+				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
+				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
+				await syncPrivateData(cachedUser);
+				return;
 			}
 			throw e;
 		}
-	}, [post, updatePrivateDataEtag]);
+	}, [post, updatePrivateDataEtag, cachedUsers, userHandle]);
 
 	const login = useCallback(async (
 		username: string,
@@ -417,6 +439,38 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			throw error;
 		}
 	}, [post]);
+
+	const syncPrivateData = useCallback(async (
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>> => {
+
+		try {
+			const getPrivateDataResponse = await get('/user/session/private-data');
+			if (privateDataEtag && getPrivateDataResponse.headers['x-private-data-etag'] && getPrivateDataResponse.headers['x-private-data-etag'] === privateDataEtag) {
+				return Ok.EMPTY; // already synced
+			}
+			const queryParams = new URLSearchParams(from);
+			queryParams.append('user', cachedUser.userHandleB64u);
+			queryParams.append('sync', 'fail');
+			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+			return Err('syncFailed');
+			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
+			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+		}
+		catch (err) {
+			console.error(err);
+			return Err('syncFailed');
+		}
+
+	}, [privateDataEtag, get]);
+
 
 	const loginWebauthn = useCallback(async (
 		keystore: LocalStorageKeystore,
@@ -690,6 +744,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 		addEventListener,
 		removeEventListener,
+
+		syncPrivateData,
 	}), [
 		del,
 		get,
@@ -716,6 +772,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 		addEventListener,
 		removeEventListener,
+
+		syncPrivateData,
 	]);
 
 	return {

@@ -14,8 +14,8 @@ import HistoryList from '../../components/History/HistoryList';
 import PageDescription from '../../components/Shared/PageDescription';
 
 const History = () => {
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api);
+	const { api, keystore } = useContext(SessionContext);
+	const history = useFetchPresentations(keystore);
 
 	const { t } = useTranslation();
 
@@ -29,7 +29,7 @@ const History = () => {
 					{t('pageHistory.noFound')}
 				</p>
 			) : (
-				<HistoryList history={history} />
+				<HistoryList />
 			)}
 		</div>
 	);

@@ -604,7 +604,7 @@ const Auth = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			navigate('/');
+			navigate(`/${window.location.search}`, { replace: true });
 		}
 	}, [isLoggedIn, navigate]);
 

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import HistoryDetailContent from '../History/HistoryDetailContent';
 import PopupLayout from './PopupLayout';
 
-const HistoryDetailPopup = ({ isOpen, onClose, matchingCredentials }) => {
+const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 	const { t } = useTranslation();
 
 	return (
@@ -37,7 +37,7 @@ const HistoryDetailPopup = ({ isOpen, onClose, matchingCredentials }) => {
 			</div>
 			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-			<HistoryDetailContent historyItem={matchingCredentials} />
+			<HistoryDetailContent historyItem={historyItem} />
 		</PopupLayout>
 	);
 };

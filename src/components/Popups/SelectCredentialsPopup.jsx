@@ -25,16 +25,16 @@ const SelectableCredentialSlideCard = ({
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
-		vcEntity?.id,
+		vcEntity?.batchId,
 		[i18n.language]
 	);
 
 	return (
 		<button
-			id={`slider-select-credentials-${vcEntity.id}`}
+			id={`slider-select-credentials-${vcEntity.batchId}`}
 			className="relative w-full rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
 			tabIndex={isActive ? 0 : -1}
-			onClick={() => onClick(vcEntity.credentialIdentifier)}
+			onClick={() => onClick(vcEntity.batchId)}
 			aria-label={credentialName}
 			title={t('selectCredentialPopup.credentialSelectTitle', {
 				friendlyName: credentialName,
@@ -43,7 +43,7 @@ const SelectableCredentialSlideCard = ({
 			<CredentialImage
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
-				key={vcEntity.credentialIdentifier}
+				key={vcEntity.batchId}
 				parsedCredential={vcEntity.parsedCredential}
 				className="w-full object-cover rounded-xl"
 				showRibbon={isActive}
@@ -214,7 +214,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 			try {
 				const filteredVcEntities = vcEntityList.filter(vcEntity =>
-					popupState.options.conformantCredentialsMap[currentKey].credentials.includes(vcEntity.credentialIdentifier)
+					popupState.options.conformantCredentialsMap[keys[currentIndex]].credentials.includes(vcEntity.batchId)
 				);
 				setVcEntities(filteredVcEntities);
 			} catch (error) {
@@ -248,7 +248,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 		return Object.values(currentSelectionMap)
 			.map((selectedId) =>
-				vcEntityList.find((vc) => vc.credentialIdentifier === selectedId)
+				vcEntityList.find((vc) => vc.batchId === selectedId)
 			)
 			.filter(Boolean);
 	}, [currentSelectionMap, vcEntityList]);
@@ -268,14 +268,14 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		}
 	};
 
-	const handleClick = (credentialIdentifier) => {
+	const handleClick = (batchId) => {
 		const descriptorId = keys[currentIndex];
-		if (selectedCredential === credentialIdentifier) {
+		if (selectedCredential === batchId) {
 			setSelectedCredential(null);
 			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: undefined }));
 		} else {
-			setSelectedCredential(credentialIdentifier);
-			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: credentialIdentifier }));
+			setSelectedCredential(batchId);
+			setCurrentSelectionMap((prev) => ({ ...prev, [descriptorId]: batchId }));
 		}
 	};
 
@@ -427,10 +427,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									items={vcEntities}
 									renderSlideContent={(vcEntity, index) => (
 										<SelectableCredentialSlideCard
-											key={vcEntity.id}
+											key={vcEntity.batchId}
 											vcEntity={vcEntity}
 											isActive={currentSlide === index + 1}
-											isSelected={selectedCredential === vcEntity.credentialIdentifier}
+											isSelected={selectedCredential === vcEntity.batchId}
 											onClick={handleClick}
 										/>
 									)}
@@ -475,7 +475,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								items={selectedVcEntities}
 								renderSlideContent={(vcEntity) => {
 									const descriptorId = Object.keys(currentSelectionMap).find(
-										(key) => currentSelectionMap[key] === vcEntity.credentialIdentifier
+										(key) => currentSelectionMap[key] === vcEntity.batchId
 									);
 
 									const fields = requestedFieldsPerCredential[descriptorId];
@@ -507,7 +507,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												Object.keys(currentSelectionMap).find(
 													(key) =>
 														currentSelectionMap[key] ===
-														selectedVcEntities[currentSummarySlide]?.credentialIdentifier
+														selectedVcEntities[currentSummarySlide]?.batchId
 												)
 											]?.map((field) => normalizePath(field.path)),
 											display: "hide"
@@ -551,8 +551,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
 						variant="primary"
-						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && !selectedCredential}
-						title={!selectedCredential && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
+						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential == undefined}
+						title={selectedCredential == undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
 							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
 					>
 						{keys[currentIndex] === 'summary'

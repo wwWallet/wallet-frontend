@@ -14,9 +14,9 @@ import HistoryList from '../../components/History/HistoryList';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 
 const CredentialHistory = () => {
-	const { credentialId } = useParams();
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api, credentialId, null);
+	const { batchId } = useParams();
+	const { keystore } = useContext(SessionContext);
+	const history = useFetchPresentations(keystore, batchId, null);
 	const { t } = useTranslation();
 
 	return (
@@ -27,7 +27,7 @@ const CredentialHistory = () => {
 						{t('pageHistory.noFound')}
 					</p>
 				) : (
-					<HistoryList credentialId={credentialId} history={history} />
+					<HistoryList batchId={batchId} history={history} />
 				)}
 			</CredentialLayout>
 
