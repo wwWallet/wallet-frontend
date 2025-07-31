@@ -42,7 +42,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		setCredentialEngine(engine);
 	}, [httpProxy, helper, getExternalEntity]);
 
-		useEffect(() => {
+	useEffect(() => {
 		if (httpProxy && helper) {
 			if (prevIsLoggedIn.current === false && isLoggedIn === true) {
 				console.log("[CredentialsContext] Detected login transition, initializing without cache");
@@ -163,8 +163,16 @@ export const CredentialsContextProvider = ({ children }) => {
 					setLatestCredentials(new Set());
 				}, 2000);
 			}
-			setVcEntityList(storedCredentials);
-
+			setVcEntityList((prev) => {
+				if (
+					!prev ||
+					prev.length !== storedCredentials.length ||
+					prev.some((vc, i) => vc.id !== storedCredentials[i].id)
+				) {
+					return storedCredentials;
+				}
+				return prev;
+			});
 			credentialNumber.current = storedCredentials.length;
 
 		} catch (error) {

@@ -11,6 +11,69 @@ import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
 import { truncateByWords } from '@/functions/truncateWords';
 import { MdFactCheck } from "react-icons/md";
+import { useCredentialName } from '@/hooks/useCredentialName';
+import i18n from '@/i18n';
+
+const SelectableCredentialSlideCard = ({
+	vcEntity,
+	isActive,
+	isSelected,
+	onClick
+}) => {
+	const { t } = useTranslation();
+	const [imageLoaded, setImageLoaded] = useState(false);
+
+	const credentialName = useCredentialName(
+		vcEntity?.parsedCredential?.metadata?.credential?.name,
+		vcEntity?.batchId,
+		[i18n.language]
+	);
+
+	return (
+		<button
+			id={`slider-select-credentials-${vcEntity.batchId}`}
+			className="relative w-full rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
+			tabIndex={isActive ? 0 : -1}
+			onClick={() => onClick(vcEntity.batchId)}
+			aria-label={credentialName}
+			title={t('selectCredentialPopup.credentialSelectTitle', {
+				friendlyName: credentialName,
+			})}
+		>
+			<CredentialImage
+				vcEntity={vcEntity}
+				vcEntityInstances={vcEntity.instances}
+				key={vcEntity.batchId}
+				parsedCredential={vcEntity.parsedCredential}
+				className="w-full object-cover rounded-xl"
+				showRibbon={isActive}
+				onLoad={() => setImageLoaded(true)}
+			/>
+
+			{imageLoaded && (
+				<>
+					<div
+						className={`absolute inset-0 rounded-xl transition-opacity bg-white/50 ${isSelected ? 'opacity-0' : 'opacity-50'
+							}`}
+					/>
+					<div className="absolute bottom-4 right-4 z-60">
+						{isSelected ? (
+							<FaCheckCircle
+								size={30}
+								className="z-50 rounded-full bg-white text-primary dark:text-primary-light"
+							/>
+						) : (
+							<FaRegCircle
+								size={30}
+								className="z-50 rounded-full bg-white/50 text-primary dark:text-primary-light"
+							/>
+						)}
+					</div>
+				</>
+			)}
+		</button>
+	);
+};
 
 const formatTitle = (title) => {
 	if (title) {
@@ -227,36 +290,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		return null;
 	};
 
-	const renderSlideContent = (vcEntity) => (
-		<button
-			id={`slider-select-credentials-${vcEntity.batchId}`}
-			key={vcEntity.batchId}
-			className="relative rounded-xl transition-shadow shadow-md hover:shadow-xl cursor-pointer"
-			tabIndex={currentSlide !== vcEntities.indexOf(vcEntity) + 1 ? -1 : 0}
-			onClick={() => handleClick(vcEntity.batchId)}
-			aria-label={`${vcEntity.parsedCredential.metadata.credential.name}`}
-			title={t('selectCredentialPopup.credentialSelectTitle', { friendlyName: vcEntity.parsedCredential.metadata.credential.name })}
-		>
-			<CredentialImage
-				vcEntity={vcEntity}
-				vcEntityInstances={vcEntity.instances}
-				key={vcEntity.batchId}
-				parsedCredential={vcEntity.parsedCredential}
-				className="w-full object-cover rounded-xl"
-				showRibbon={currentSlide === vcEntities.indexOf(vcEntity) + 1}
-			/>
-
-			<div className={`absolute inset-0 rounded-xl transition-opacity bg-white/50 ${selectedCredential === vcEntity.batchId ? 'opacity-0' : 'opacity-50'}`} />
-			<div className="absolute bottom-4 right-4 z-60">
-				{selectedCredential === vcEntity.batchId ? (
-					<FaCheckCircle size={30} className="z-50 rounded-full bg-white text-primary dark:text-primary-light" />
-				) : (
-					<FaRegCircle size={30} className="z-50 rounded-full bg-white/50 text-primary dark:text-primary-light" />
-				)}
-			</div>
-		</button>
-	);
-
 	return (
 		<PopupLayout isOpen={popupState?.isOpen} onClose={onClose} loading={false} fullScreen={screenType !== 'desktop'} padding="p-0" shouldCloseOnOverlayClick={false}>
 			<div className={`${screenType === 'desktop' && 'p-4'}`}>
@@ -392,7 +425,15 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							{vcEntities && vcEntities.length ? (
 								<Slider
 									items={vcEntities}
-									renderSlideContent={renderSlideContent}
+									renderSlideContent={(vcEntity, index) => (
+										<SelectableCredentialSlideCard
+											key={vcEntity.batchId}
+											vcEntity={vcEntity}
+											isActive={currentSlide === index + 1}
+											isSelected={selectedCredential === vcEntity.batchId}
+											onClick={handleClick}
+										/>
+									)}
 									onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
 								/>
 							) : (
