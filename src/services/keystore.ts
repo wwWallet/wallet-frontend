@@ -1097,8 +1097,7 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 
 export async function updateWalletState(
 	[privateData, mainKey]: OpenedContainer,
-	S: WalletState,
-	events: WalletSessionEvent[],
+	walletStateContainer: WalletStateContainer,
 ): Promise<{ newContainer: OpenedContainer }> {
 
 	return {
@@ -1107,9 +1106,7 @@ export async function updateWalletState(
 			async (privateData: PrivateData) => {
 				return {
 					...privateData,
-					S: S,
-					events: events,
-					lastEventHash: events[0] ? await WalletStateUtils.calculateEventHash(events[0]) : "",
+					...walletStateContainer,
 				}
 			}
 		)

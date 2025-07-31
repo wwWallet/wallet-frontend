@@ -266,7 +266,7 @@ async function createWalletSessionEvent(container: WalletStateContainer): Promis
 	const baseEvent = {
 		schemaVersion: WALLET_SESSION_EVENT_SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
-		parentHash: await getLastEventHashFromEventHistory(container.events),
+		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
 		timestampSeconds: Math.floor(new Date().getTime() / 1000),
 	};
 	return {
@@ -393,13 +393,13 @@ export function findDivergencePoint(events1: WalletSessionEvent[], events2: Wall
 	return null;
 }
 
-async function rebuildEventHistory(events: WalletSessionEvent[]): Promise<WalletSessionEvent[]> {
+async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: string): Promise<WalletSessionEvent[]> {
 	const newEvents: WalletSessionEvent[] = [];
 	for (let i = 0; i < events.length; i++) {
 		if (i == 0) {
 			newEvents.push({
 				...events[0],
-				parentHash: "",
+				parentHash: lastEventHash,
 			});
 			continue;
 		}
@@ -423,7 +423,8 @@ export namespace WalletStateOperations {
 		}
 	}
 
-	export async function validateEventHistoryContinuity(container: WalletStateContainer, events: WalletSessionEvent[]): Promise<boolean> {
+	export async function validateEventHistoryContinuity(container: WalletStateContainer): Promise<boolean> {
+		const events = container.events;
 		if (events.length === 0) {
 			return true;
 		}
@@ -441,7 +442,10 @@ export namespace WalletStateOperations {
 	}
 
 	export async function addNewCredentialEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletStateContainer> {
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -460,11 +464,19 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
 	export async function addDeleteCredentialEvent(container: WalletStateContainer, credentialId: number): Promise<WalletStateContainer> {
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -476,10 +488,17 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 	export async function addNewKeypairEvent(container: WalletStateContainer, kid: string, keypair: CredentialKeyPair): Promise<WalletStateContainer> {
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -492,11 +511,18 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
 	export async function addDeleteKeypairEvent(container: WalletStateContainer, kid: string): Promise<WalletStateContainer> {
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -508,11 +534,18 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
 	export async function addNewPresentationEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], presentationTimestampSeconds: number, audience: string): Promise<WalletStateContainer> {
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -529,11 +562,18 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
 	export async function addDeletePresentationEvent(container: WalletStateContainer, presentationId: number): Promise<WalletStateContainer> {
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -545,10 +585,17 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
-	export async function createAlterSettingsWalletSessionEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletStateContainer> {
-		return {
+	export async function addAlterSettingsEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletStateContainer> {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -560,6 +607,10 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
@@ -593,7 +644,10 @@ export namespace WalletStateOperations {
 		created?: number
 	): Promise<WalletStateContainer> {
 
-		return {
+		if (!(await validateEventHistoryContinuity(container))) {
+			throw new Error("Invalid event history chain");
+		}
+		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
 				...container.events,
@@ -614,6 +668,10 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 
@@ -628,10 +686,18 @@ export namespace WalletStateOperations {
 		}
 	}
 
-	export async function mergeEventHistories(events1: WalletSessionEvent[], events2: WalletSessionEvent[]) {
-		const pointOfDivergence = findDivergencePoint(events1, events2);
+	export async function mergeEventHistories(container1: WalletStateContainer, container2: WalletStateContainer): Promise<WalletStateContainer> {
+		const pointOfDivergence = findDivergencePoint(container1.events, container2.events);
 		if (pointOfDivergence === null) {
-			return [...events1, ...events2].sort((e1, e2) => e1.timestampSeconds - e2.timestampSeconds);
+			const events = [...container1.events, ...container2.events].sort((e1, e2) => e1.timestampSeconds - e2.timestampSeconds);
+			const newContainer = {
+				...container1,
+				events: events,
+			};
+			if (!(await validateEventHistoryContinuity(newContainer))) {
+				throw new Error("Invalid event history chain");
+			}
+			return newContainer;
 		}
 
 		const commonHistory: WalletSessionEvent[] = [];
@@ -639,27 +705,35 @@ export namespace WalletStateOperations {
 		const history2DivergentPart = [];
 
 		let pointOfDivergenceIndex = -1;
-		for (let i = 0; i < events1.length; i++) {
-			if (events1[i].eventId === pointOfDivergence.eventId) {
+		for (let i = 0; i < container1.events.length; i++) {
+			if (container1.events[i].eventId === pointOfDivergence.eventId) {
 				pointOfDivergenceIndex = i;
 			}
 		}
 
 		for (let i = 0; i <= pointOfDivergenceIndex; i++) {
-			commonHistory.push(events1[i]);
+			commonHistory.push(container1.events[i]);
 		}
 
-		for (let i = pointOfDivergenceIndex + 1; i < events1.length; i++) {
-			history1DivergentPart.push(events1[i]);
+		for (let i = pointOfDivergenceIndex + 1; i < container1.events.length; i++) {
+			history1DivergentPart.push(container1.events[i]);
 		}
 
-		for (let i = pointOfDivergenceIndex + 1; i < events2.length; i++) {
-			history1DivergentPart.push(events2[i]);
+		for (let i = pointOfDivergenceIndex + 1; i < container2.events.length; i++) {
+			history1DivergentPart.push(container2.events[i]);
 		}
 
 
 		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
-		return commonHistory.concat(mergeDivergentPartsResult);
+		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
+		const newContainer = {
+			...container1,
+			events: newEventHistory,
+		};
+		if (!(await validateEventHistoryContinuity(newContainer))) {
+			throw new Error("Invalid event history chain");
+		}
+		return newContainer;
 	}
 
 	/**
@@ -677,15 +751,24 @@ export namespace WalletStateOperations {
 	/**
 	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
 	 */
-	export async function foldOldEventsIntoBaseState({ events, S }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
+	export async function foldOldEventsIntoBaseState({ events, S, lastEventHash }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
 		const now = Math.floor(new Date().getTime() / 1000);
 		const foldBefore = now - foldEventHistoryAfter;
 		const firstYoungIndex = events.findIndex(event => event.timestampSeconds >= foldBefore);
 		const splitIndex = (firstYoungIndex === -1 ? events.length : firstYoungIndex);
+		if (splitIndex === 0) {
+			return {
+				events,
+				S,
+				lastEventHash,
+			};
+		}
+		const newLastEventHash = await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
+		const newEventHistory = await rebuildEventHistory(events.slice(splitIndex), newLastEventHash);
 		return {
-			events: await rebuildEventHistory(events.slice(splitIndex)),
+			events: newEventHistory,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
-			lastEventHash: await WalletStateUtils.calculateEventHash(events[splitIndex - 1]),
+			lastEventHash: newLastEventHash,
 		};
 	}
 }

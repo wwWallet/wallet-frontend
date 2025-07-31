@@ -10,7 +10,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
-import { WalletState, WalletBaseStateCredential, WalletBaseStateCredentialIssuanceSession, WalletBaseStatePresentation, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { WalletState, WalletStateContainer, WalletStateCredential, WalletStateCredentialIssuanceSession, WalletStateOperations, WalletStatePresentation } from "./WalletStateOperations";
 
 
 type UserData = {
@@ -100,19 +100,19 @@ export interface LocalStorageKeystore {
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getAllCredentials(): Promise<WalletBaseStateCredential[] | null>,
+	getAllCredentials(): Promise<WalletState[] | null>,
 	addPresentations(presentations: { transactionId: number, data: string, usedCredentialIds: number[], audience: string, }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getAllPresentations(): Promise<WalletBaseStatePresentation[] | null>,
-	saveCredentialIssuanceSessions(issuanceSessions: WalletBaseStateCredentialIssuanceSession[]): Promise<[
+	getAllPresentations(): Promise<WalletStatePresentation[] | null>,
+	saveCredentialIssuanceSessions(issuanceSessions: WalletStateCredentialIssuanceSession[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getCredentialIssuanceSessionByState(state: string): Promise<WalletBaseStateCredentialIssuanceSession | null>,
+	getCredentialIssuanceSessionByState(state: string): Promise<WalletStateCredentialIssuanceSession | null>,
 	alterSettings(settings: Record<string, string>): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
@@ -270,6 +270,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				const queryParams = new URLSearchParams(from);
 				queryParams.append('user', userHandleB64u);
 				navigate(`/login-state?${queryParams.toString()}`, { replace: true });
+				return null;
 			}
 		} else {
 			throw new Error("Private data not present in storage.");
@@ -622,18 +623,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		for (const { data, format, batchId, credentialIssuerIdentifier, kid, credentialConfigurationId, instanceId, credentialId } of credentials) {
 			walletStateContainer = await WalletStateOperations.addNewCredentialEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
 		}
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
-			throw new Error("History continuity is not maintained");
-		}
 
 		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
 			return [{}, newContainer];
 		})
 	}, [editPrivateData, openPrivateData])
 
 
-	const getAllCredentials = useCallback(async (): Promise<WalletBaseStateCredential[] | null> => {
+	const getAllCredentials = useCallback(async (): Promise<WalletStateCredential[] | null> => {
 		return calculatedWalletState ? calculatedWalletState.credentials : null;
 	}, [calculatedWalletState]);
 
@@ -655,12 +653,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				walletStateContainer = await WalletStateOperations.addDeleteKeypairEvent(walletStateContainer, kid);
 			}
 		}
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
-			throw new Error("History continuity is not maintained");
-		}
 
 		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
 			return [{}, newContainer];
 		});
 
@@ -684,21 +679,18 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				audience
 			);
 		}
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
-			throw new Error("History continuity is not maintained");
-		}
 
 		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
 			return [{}, newContainer];
 		})
 	}, [editPrivateData, openPrivateData])
-	const getAllPresentations = useCallback(async (): Promise<WalletBaseStatePresentation[] | null> => {
+	const getAllPresentations = useCallback(async (): Promise<WalletStatePresentation[] | null> => {
 		return calculatedWalletState ? calculatedWalletState.presentations : null;
 	}, [calculatedWalletState]);
 
 
-	const saveCredentialIssuanceSessions = useCallback(async (issuanceSessions: WalletBaseStateCredentialIssuanceSession[]): Promise<[
+	const saveCredentialIssuanceSessions = useCallback(async (issuanceSessions: WalletStateCredentialIssuanceSession[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -720,17 +712,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			);
 		}
 
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
-			throw new Error("History continuity is not maintained");
-		}
 		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
 			return [{}, newContainer];
 		});
 	}, [editPrivateData, openPrivateData]);
 
-	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<WalletBaseStateCredentialIssuanceSession | null> => {
-		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletBaseStateCredentialIssuanceSession) => s.state === state)[0] : null;
+	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
+		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
 	}, [editPrivateData, openPrivateData]);
 
 	const alterSettings = useCallback(async (settings: Record<string, string>): Promise<[
@@ -740,14 +729,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	]> => {
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await WalletStateOperations.foldOldEventsIntoBaseState(walletStateContainer);
-		const e = await WalletStateOperations.createAlterSettingsWalletSessionEvent(walletStateContainer, settings);
-		walletStateContainer.events.push(e);
+		walletStateContainer = await WalletStateOperations.addAlterSettingsEvent(walletStateContainer, settings);
 
-		if (!WalletStateOperations.validateEventHistoryContinuity(walletStateContainer, walletStateContainer.events)) {
-			throw new Error("History continuity is not maintained");
-		}
 		return editPrivateData(async (originalContainer) => {
-			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer.S, walletStateContainer.events);
+			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
 			return [{}, newContainer];
 		});
 	}, [editPrivateData, openPrivateData]);
