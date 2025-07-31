@@ -324,6 +324,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			// useEffect updating cachedUsers from corrupting cache entries for other
 			// users logged in in other tabs.
 			setGlobalUserHandleB64u(userHandleB64u);
+			await writePrivateDataOnIdb(privateData, userHandleB64u);
 
 			setCachedUsers((cachedUsers) => {
 				// Move most recently used user to front of list

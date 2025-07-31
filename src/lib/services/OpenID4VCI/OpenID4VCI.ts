@@ -529,11 +529,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const generateAuthorizationRequest = useCallback(
 		async (credentialIssuerIdentifier: string, credentialConfigurationId: string, issuer_state?: string) => {
-			await api.syncPrivateData(cachedUser).then((r) => {
-				if (!r.ok) {
-					return;
-				}
-			});
+			const result = await api.syncPrivateData(cachedUser);
+			if (!result.ok) {
+				return {};
+			}
 			console.log('generateAuthorizationRequest')
 			await openID4VCIClientStateRepository.cleanupExpired();
 

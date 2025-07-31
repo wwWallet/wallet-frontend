@@ -460,6 +460,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			queryParams.append('user', cachedUser.userHandleB64u);
 			queryParams.append('sync', 'fail');
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+			return Err('syncFailed');
 			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
 			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		}
