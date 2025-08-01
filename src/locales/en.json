@@ -71,6 +71,7 @@
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
 		"choosePasskeyUsername": "What should we call you?",
+		"choosePasskeyPlatform": "Select your preferred passkey type",
 		"confirmPasswordLabel": "Confirm Password",
 		"enterPasskeyName": "Choose a name for yourself",
 		"enterPassword": "Enter your password",

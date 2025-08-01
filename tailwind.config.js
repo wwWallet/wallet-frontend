@@ -10,6 +10,8 @@ export default {
 				'55': 55,
 			},
 			colors: {
+				'primary-dark': '#003476',
+				'primary-dark-hover': '#003476',
 				'primary': '#0750AF',
 				'primary-hover': '#004195',
 				'primary-light': '#1D6FDB',

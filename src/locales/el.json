@@ -67,6 +67,7 @@
 		"authOnceMoreLogin": "Για να ολοκληρώσετε το ξεκλείδωμα του wallet αυθεντικοποιηθείτε με το κλειδί πρόσβασής σας μία ακόμη φορά.",
 		"capitalLetter": "Τουλάχιστον ένα κεφαλαίο γράμμα",
 		"choosePasskeyUsername": "Πώς να σας αποκαλούμε;",
+		"choosePasskeyPlatform": "Επιλέξτε το είδος κλειδιού πρόσβασης που προτιμάτε",
 		"confirmPasswordLabel": "Επιβεβαίωση Κωδικού",
 		"enterPasskeyName": "Επιλέξτε ένα όνομα για εσάς",
 		"enterPassword": "Εισάγετε τον κωδικό σας",

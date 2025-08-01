@@ -558,49 +558,57 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
+						{!isLoginCache && !isLogin && (
+							<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
+								{t('loginSignup.choosePasskeyPlatform')}
+							</label>
+						)}
+
 						{!isLoginCache && (
 							[
 								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill, variant: "primary", helpText: "Fastest option, recommended" },
 								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: "outline", helpText: "Use a USB or hardware security key" },
 								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: "outline", helpText: "Scan QR or link mobile device" },
 							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
-								<Button
-									key={hint}
-									id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
-									type="submit"
-									variant={variant}
-									additionalClassName={`
-										w-full mt-2 flex flex-col items-center justify-center relative
-										${variant === "outline" ? "px-4 py-[0.6875rem]" : "px-4 py-3"}
-									`}
-									title={!isLogin && !isOnline && t("common.offlineTitle")}
-									value={hint}
-								>
-									<div className="flex flex-row items-center justify-center w-full">
-										<Icon className="inline text-xl mr-2 shrink-0" />
-										
-										{isSubmitting
-											? t('loginSignup.submitting')
-											: btnLabel
-										}
-										
-										{screenType === 'desktop' && (
-											<div className="absolute right-4 flex items-center ml-2 group">
-												<FaQuestionCircle className={`w-4 h-4 dark:text-white cursor-pointer ${variant === "outline" ? "opacity-40" : "opacity-60"} ${screenType === 'desktop' ? 'hover:opacity-100' : ''}`} aria-hidden="true" />
+								<div className='mt-2 relative w-full flex flex-col justify-center'>
+									<Button
+										key={hint}
+										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
+										type="submit"
+										variant={variant}
+										additionalClassName={`
+											w-full flex flex-col items-center justify-center relative
+											${variant === "outline" ? "px-4 py-[0.6875rem]" : "px-4 py-3"}
+										`}
+										title={!isLogin && !isOnline && t("common.offlineTitle")}
+										value={hint}
+									>
+										<div className="flex flex-row items-center justify-center w-full">
+											<Icon className="inline text-xl mr-2 shrink-0" />
+											
+											{isSubmitting
+												? t('loginSignup.submitting')
+												: btnLabel
+											}
+										</div>
 
-												<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
-													{helpText}
-												</div>
-											</div>
+										{screenType !== 'desktop' && (
+											<span className="mt-2 text-xs dark:text-white">
+												{helpText}
+											</span>
 										)}
-									</div>
+									</Button>
 
-									{screenType !== 'desktop' && (
-										<span className="mt-2 text-xs dark:text-white">
-											{helpText}
-										</span>
+									{screenType === 'desktop' && (
+										<div className="absolute -right-7 flex items-center ml-2 group">
+											<FaQuestionCircle className={`w-4 h-4 text-gray-600 dark:text-gray-400 cursor-pointer opacity-50 ${screenType === 'desktop' ? 'hover:opacity-100' : ''}`} aria-hidden="true" />
+
+											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
+												{helpText}
+											</div>
+										</div>
 									)}
-								</Button>
+								</div>
 							))
 						)}
 						
@@ -717,7 +725,7 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
+			<div className="relative p-8 px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
