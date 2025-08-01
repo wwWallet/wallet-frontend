@@ -1,4 +1,4 @@
-import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { FormEvent, KeyboardEvent, useCallback, useContext, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
 import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
@@ -13,11 +13,12 @@ import useScreenType from '../../hooks/useScreenType';
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { formatDate } from '../../functions/DateFormat';
-import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
+import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
-import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
+import DeletePopup from '../../components/Popups/DeletePopup';
+import Dialog from '../../components/Dialog';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
@@ -48,42 +49,6 @@ type UpgradePrfState = (
 	}
 );
 
-const Dialog = ({
-	children,
-	open,
-	onCancel,
-}: {
-	children: ReactNode,
-	open: boolean,
-	onCancel: () => void,
-}) => {
-	const dialog = useRef<HTMLDialogElement>();
-
-	useEffect(
-		() => {
-			if (dialog.current) {
-				if (open) {
-					dialog.current.showModal();
-				} else {
-					dialog.current.close();
-				}
-			}
-		},
-		[dialog, open],
-	);
-
-	return (
-		<dialog
-			ref={dialog}
-			className="p-4 pt-8 text-center rounded md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700"
-			style={{ minWidth: '30%' }}
-			onCancel={onCancel}
-		>
-			{children}
-		</dialog>
-	);
-};
-
 const WebauthnRegistation = ({
 	unwrappingKey,
 	onSuccess,
@@ -96,17 +61,16 @@ const WebauthnRegistation = ({
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const [beginData, setBeginData] = useState(null);
-	const [pendingCredential, setPendingCredential] = useState(null);
+	const [pendingCredential, setPendingCredential] = useState<PrecreatedPublicKeyCredential | null>(null);
 	const [nickname, setNickname] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const screenType = useScreenType();
 
-	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
+	const stateChooseNickname = Boolean(beginData) && !resolvePrfRetryPrompt;
 
 	const onBegin = useCallback(
 		async (webauthnHint) => {
@@ -130,7 +94,7 @@ const WebauthnRegistation = ({
 				};
 
 				try {
-					const credential = await navigator.credentials.create(createOptions);
+					const credential = await keystore.beginAddPrf(createOptions);
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
@@ -141,14 +105,13 @@ const WebauthnRegistation = ({
 				setIsSubmitting(false);
 			}
 		},
-		[api],
+		[api, keystore],
 	);
 
 	const onCancel = () => {
 		console.log("onCancel");
 		setPendingCredential(null);
 		setBeginData(null);
-		setNeedPrfRetry(false);
 		setResolvePrfRetryPrompt(null);
 		setPrfRetryAccepted(false);
 		setIsSubmitting(false);
@@ -160,36 +123,36 @@ const WebauthnRegistation = ({
 
 		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
 			try {
-				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
+				const [newPrivateData, keystoreCommit] = await keystore.finishAddPrf(
 					pendingCredential,
 					[unwrappingKey, wrappedMainKey],
 					async () => {
-						setNeedPrfRetry(true);
 						return new Promise<boolean>((resolve, reject) => {
 							setResolvePrfRetryPrompt(() => resolve);
 						}).finally(() => {
-							setNeedPrfRetry(false);
 							setPrfRetryAccepted(true);
 							setResolvePrfRetryPrompt(null);
 						});
 					},
 				);
 
+				const { credential } = pendingCredential;
+
 				setIsSubmitting(true);
 				api.updatePrivateDataEtag(await api.post('/user/session/webauthn/register-finish', {
 					challengeId: beginData.challengeId,
 					nickname,
 					credential: {
-						type: pendingCredential.type,
-						id: pendingCredential.id,
-						rawId: pendingCredential.rawId,
+						type: credential.type,
+						id: credential.id,
+						rawId: credential.rawId,
 						response: {
-							attestationObject: pendingCredential.response.attestationObject,
-							clientDataJSON: pendingCredential.response.clientDataJSON,
-							transports: pendingCredential.response.getTransports(),
+							attestationObject: credential.response.attestationObject,
+							clientDataJSON: credential.response.clientDataJSON,
+							transports: credential.response.getTransports(),
 						},
-						authenticatorAttachment: pendingCredential.authenticatorAttachment,
-						clientExtensionResults: pendingCredential.getClientExtensionResults(),
+						authenticatorAttachment: credential.authenticatorAttachment,
+						clientExtensionResults: credential.getClientExtensionResults(),
 					},
 					privateData: serializePrivateData(newPrivateData),
 				}));
@@ -297,7 +260,7 @@ const WebauthnRegistation = ({
 			</Dialog>
 
 			<Dialog
-				open={needPrfRetry && !prfRetryAccepted}
+				open={resolvePrfRetryPrompt && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
 				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('registerPasskey.messageDone')}</h3>
