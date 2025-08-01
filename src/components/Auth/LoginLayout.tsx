@@ -14,6 +14,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			{screenType !== 'desktop' && (
 				<PWAInstallPrompt />
 			)}
+
 			<div className="flex-grow flex flex-col items-center justify-center px-6 py-8">
 				<Logo aClassName='mb-6' imgClassName='w-40' />
 
@@ -24,13 +25,14 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 				<div className="relative w-full sm:max-w-md xl:p-0">
 					{children}
 				</div>
+
 				{screenType === 'desktop' && (
 					<PWAInstallPrompt />
 				)}
 			</div>
 
 			<footer className="py-4">
-				<p className="text-gray-700 dark:text-gray-400 text-center">
+				<p className="text-sm text-gray-700 dark:text-gray-400 text-center">
 					<Trans
 						i18nKey="sidebar.poweredBy"
 						components={{
