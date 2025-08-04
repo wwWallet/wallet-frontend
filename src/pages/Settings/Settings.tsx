@@ -767,8 +767,13 @@ const Settings = () => {
 			keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
 			try {
 				const response = await api.get('/user/session/account-info');
-				console.log(response.data);
-				setUserData(response.data);
+				const s = keystore.getCalculatedWalletState();
+				const userData = {
+					...response.data,
+					settings: s.settings,
+				};
+				console.log(userData);
+				setUserData(userData);
 				dispatchEvent(new CustomEvent("settingsChanged"));
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -872,9 +877,15 @@ const Settings = () => {
 
 	const handleTokenMaxAgeChange = async (newMaxAge: string) => {
 		try {
-			await api.post('/user/session/settings', {
-				openidRefreshTokenMaxAgeInSeconds: parseInt(newMaxAge),
+			if (isNaN(parseInt(newMaxAge))) {
+				throw new Error("Update token max age: newMaxAge is not a number");
+			}
+			const [{ }, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+				openidRefreshTokenMaxAgeInSeconds: newMaxAge,
 			});
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+
 			console.log('Settings updated successfully');
 			setSuccessMessage(t('pageSettings.rememberIssuer.successMessage'));
 			setTimeout(() => {
