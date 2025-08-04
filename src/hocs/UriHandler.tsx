@@ -190,7 +190,10 @@ export const UriHandler = ({ children }) => {
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
-		if (params.get('sync') === 'fail' && synced === false) {
+		if (synced === true && params.get('sync') === 'fail') {
+			setSynced(false);
+		}
+		else if (params.get('sync') === 'fail' && synced === false) {
 			setTextSyncPopup({description: 'syncPopup.description' });
 			setSyncPopup(true);
 		}
