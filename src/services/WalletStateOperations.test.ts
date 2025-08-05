@@ -16,7 +16,7 @@ describe("The WalletStateOperations", () => {
 		const s1 = WalletStateOperations.walletStateReducer(container.S, container.events[0]);
 
 		assert(s1.credentials[0].data === "<credential 1>");
-		assert(WalletStateOperations.validateEventHistoryContinuity(container, container.events))
+		assert(WalletStateOperations.validateEventHistoryContinuity(container))
 
 		container = await WalletStateOperations.addNewCredentialEvent(
 			container,
