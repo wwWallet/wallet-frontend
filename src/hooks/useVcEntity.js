@@ -16,12 +16,12 @@ export const useVcEntity = (fetchVcData, vcEntityList, batchId) => {
 				setVcEntity(vcEntity);
 			} else {
 				const vcEntityList = await fetchVcData(parseInt(batchId));
-				setVcEntity(vcEntityList[0]);
+				setVcEntity(vcEntityList?.[0]);
 
 			}
 		} catch (err) {
 			console.error('Error fetching VC entity:', err);
-			setVcEntity(null); // Clear the state on error
+			setVcEntity(undefined); // Clear the state on error
 		}
 	}, [fetchVcData, vcEntityList, batchId]);
 

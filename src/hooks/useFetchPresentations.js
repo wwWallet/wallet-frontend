@@ -18,7 +18,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 				let presentations = await keystore.getAllPresentations();
 
 				if (batchId) {
-					const credentials = await keystore.getAllCredentials();
+					const credentials = await keystore.getAllCredentials() || [];
 					const instances = credentials.filter((credential) => credential.batchId === parseInt(batchId));
 					const credentialsIds = instances.map((instance) => instance.credentialId);
 
