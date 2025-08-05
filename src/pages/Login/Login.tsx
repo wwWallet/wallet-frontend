@@ -585,7 +585,7 @@ const WebauthnSignupLogin = ({
 									>
 										<div className="flex flex-row items-center justify-center w-full">
 											<Icon className="inline text-xl mr-2 shrink-0" />
-											
+
 											{isSubmitting
 												? t('loginSignup.submitting')
 												: btnLabel
@@ -611,7 +611,7 @@ const WebauthnSignupLogin = ({
 								</div>
 							))
 						)}
-						
+
 						{error && <div className="text-red-500 pt-2">{error}</div>}
 					</>
 				)
@@ -737,7 +737,7 @@ const Auth = () => {
 				<div className='absolute top-0 right-3'>
 					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
-				
+
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
