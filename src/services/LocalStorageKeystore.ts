@@ -100,7 +100,7 @@ export interface LocalStorageKeystore {
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getAllCredentials(): Promise<WalletState[] | null>,
+	getAllCredentials(): Promise<WalletStateCredential[] | null>,
 	addPresentations(presentations: { transactionId: number, data: string, usedCredentialIds: number[], audience: string, }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,

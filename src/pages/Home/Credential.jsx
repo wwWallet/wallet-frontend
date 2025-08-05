@@ -30,7 +30,6 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 
-
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
@@ -56,8 +55,30 @@ const Credential = () => {
 		[i18n.language]
 	);
 
+	const [cachedUser, setCachedUser] = useState(null);
+
+
+	useEffect(() => {
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
+
 	const handleSureDelete = async () => {
 		setLoading(true);
+		if (!cachedUser) {
+			return;
+		}
+		const result = await api.syncPrivateData(cachedUser);
+		if (!result.ok) {
+			setLoading(false);
+			return;
+		}
 		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId));
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
@@ -189,37 +210,37 @@ const Credential = () => {
 						</div>
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
-								{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
-								{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
-								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
-								{mdocQRStatus === 2 && <span className='pb-16'>
-									<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
-										{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
-										<strong>
-											{
-												shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
-											}
-										</strong>
-									</p>
-									<CredentialImage
-										vcEntity={vcEntity}
-										vcEntityInstances={vcEntity.instances}
-										key={vcEntity.batchId}
-										parsedCredential={vcEntity.parsedCredential}
-										className="w-full object-cover rounded-xl"
-									/>
-									<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
-										{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential}/>}
-									</div>
-									<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
-										<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
-									</div>
-									</span>}
-								{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100}/></span>}
-								{![1,2].includes(mdocQRStatus) &&
-									<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
+							{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
+							{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
+							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
+							{mdocQRStatus === 2 && <span className='pb-16'>
+								<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+									{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
+									<strong>
+										{
+											shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
+										}
+									</strong>
+								</p>
+								<CredentialImage
+									vcEntity={vcEntity}
+									vcEntityInstances={vcEntity.instances}
+									key={vcEntity.batchId}
+									parsedCredential={vcEntity.parsedCredential}
+									className="w-full object-cover rounded-xl"
+								/>
+								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
+									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
+								</div>
+								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+									<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
+									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
+								</div>
+							</span>}
+							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100} /></span>}
+							{![1, 2].includes(mdocQRStatus) &&
+								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
 								</div>}
 						</span>
 					</PopupLayout>
