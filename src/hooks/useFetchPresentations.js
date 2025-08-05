@@ -16,6 +16,10 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 			console.log('FetchPresentations');
 			try {
 				let presentations = await keystore.getAllPresentations();
+				if (presentations.length === 0) {
+					setHistory([]);
+					return;
+				}
 
 				if (batchId) {
 					const credentials = await keystore.getAllCredentials() || [];
@@ -38,6 +42,10 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 
 				if (transactionId) {
 					presentations = presentations.filter((p) => p.transactionId === parseInt(transactionId));
+					if (presentations.length === 0) {
+						setHistory([]);
+						return;
+					}
 				}
 
 				const presentationsTransformed = await Promise.all(presentations
