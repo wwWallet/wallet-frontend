@@ -173,7 +173,7 @@ export const CredentialsContextProvider = ({ children }) => {
 				}
 				return prev;
 			});
-			credentialNumber.current = storedCredentials.length;
+			credentialNumber.current = storedCredentials?.length;
 
 		} catch (error) {
 			console.error('Failed to fetch data', error);

@@ -49,6 +49,12 @@ const Credential = () => {
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 
+	useEffect(() => {
+		if (vcEntity === undefined) {
+			navigate(`/${window.location.search}`, { replace: true });
+		}
+	}, [vcEntity]);
+
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
 		vcEntity?.batchId,
