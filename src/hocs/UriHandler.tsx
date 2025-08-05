@@ -31,7 +31,7 @@ export const UriHandler = ({ children }) => {
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
-	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({description: "" });
+	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
 
 	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
 	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
@@ -194,8 +194,10 @@ export const UriHandler = ({ children }) => {
 			setSynced(false);
 		}
 		else if (params.get('sync') === 'fail' && synced === false) {
-			setTextSyncPopup({description: 'syncPopup.description' });
+			setTextSyncPopup({ description: 'syncPopup.description' });
 			setSyncPopup(true);
+		} else {
+			setSyncPopup(false);
 		}
 	}, [location, t, synced]);
 

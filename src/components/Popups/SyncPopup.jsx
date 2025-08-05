@@ -28,7 +28,10 @@ const WebauthnLogin = ({
 		async (cachedUser) => {
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
-				navigate(`${window.location.pathname}`, { replace: true });
+				const params = new URLSearchParams(window.location.search);
+				params.delete("user");
+				params.delete('sync')
+				navigate(`${window.location.pathname}?${params.toString()}`, { replace: true });
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (result.val) {
