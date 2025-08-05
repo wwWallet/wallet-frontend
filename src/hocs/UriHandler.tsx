@@ -10,12 +10,13 @@ import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import SyncPopup from "@/components/Popups/SyncPopup";
+import { useSessionStorage } from "@/hooks/useStorage";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandler = ({ children }) => {
-	const { updateOnlineStatus } = useContext(StatusContext);
+	const { updateOnlineStatus, isOnline } = useContext(StatusContext);
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
@@ -43,6 +44,7 @@ export const UriHandler = ({ children }) => {
 
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 	const [synced, setSynced] = useState(false);
+	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	useEffect(() => {
 		if (!keystore) {
@@ -65,6 +67,24 @@ export const UriHandler = ({ children }) => {
 			setSynced(false);
 		}
 	}, [location]);
+
+	useEffect(() => {
+		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
+			api.syncPrivateData(cachedUser);
+		}
+		if (isLoggedIn) {
+			setLatestIsOnlineStatus(isOnline);
+		} else {
+			setLatestIsOnlineStatus(null);
+		}
+	}, [
+		api,
+		isLoggedIn,
+		isOnline,
+		latestIsOnlineStatus,
+		setLatestIsOnlineStatus,
+		cachedUser
+	]);
 
 	useEffect(() => {
 		if (!keystore || !cachedUser || !api) {
