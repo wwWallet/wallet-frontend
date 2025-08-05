@@ -11,7 +11,7 @@ import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
-import { buildCredentialConfiguration, getCredentialType } from '@/components/QueryableList/CredentialsDisplayUtils';
+import { buildCredentialConfiguration } from '@/components/QueryableList/CredentialsDisplayUtils';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -40,7 +40,7 @@ const AddCredentials = () => {
 	useEffect(() => {
 		const fetchRecentCredConfigs = async () => {
 			vcEntityList.map(async (vcEntity, key) => {
-				const identifierField = JSON.stringify([getCredentialType(vcEntity.parsedCredential), vcEntity.credentialIssuerIdentifier]);
+				const identifierField = JSON.stringify([vcEntity.credentialConfigurationId, vcEntity.credentialIssuerIdentifier]);
 				setRecent((currentArray) => {
 					const recentRecordExists = currentArray.some((rec) =>
 						rec === identifierField

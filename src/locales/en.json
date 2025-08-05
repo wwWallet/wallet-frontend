@@ -321,6 +321,7 @@
 		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
+		"allClaimsRequested": "The verifier has requested all claims of the credential.",
 		"baseTitle": "Send Credentials",
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
@@ -328,17 +329,22 @@
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
-		"requestedCredentialsFieldsTitle": "Requested Credentials/Fields:",
+		"request": "Request:",
+		"requestedCredentialsFieldsTitle": "Requested fields:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
-		"selectTitle": "Select: ",
-		"summaryDescription": "You are about to share the selected credential(s) below, <strong>including only the requested fields</strong>.",
+		"selectTitle": "Select",
+		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
+	},
+	"syncPopup": {
+		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to see what's new.",
+		"title": "Synchronize Wallet"
 	},
 	"tourGuide": {
 		"closeTourButton": "Close Tour",

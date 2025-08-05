@@ -4,10 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { BsQrCode, BsCheckCircle } from "react-icons/bs";
 import QRCode from "react-qr-code";
+import i18n from '@/i18n';
 
 // Contexts
 import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
+import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
@@ -15,7 +17,6 @@ import useScreenType from '../../hooks/useScreenType';
 import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
-import CredentialTabs from '../../components/Credentials/CredentialTabs';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import HistoryList from '../../components/History/HistoryList';
@@ -25,19 +26,18 @@ import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 import PopupLayout from '../../components/Popups/PopupLayout';
 import CredentialImage from '../../components/Credentials/CredentialImage';
-
+import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 
 
 const Credential = () => {
-	const { credentialId } = useParams();
-	const { api } = useContext(SessionContext);
-	const history = useFetchPresentations(api, credentialId, null);
+	const { batchId } = useParams();
+	const { api, keystore } = useContext(SessionContext);
+	const history = useFetchPresentations(keystore, batchId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
-	const [activeTab, setActiveTab] = useState(0);
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
@@ -48,15 +48,20 @@ const Credential = () => {
 	const { t } = useTranslation();
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
+
+	const credentialName = useCredentialName(
+		vcEntity?.parsedCredential?.metadata?.credential?.name,
+		vcEntity?.batchId,
+		[i18n.language]
+	);
 
 	const handleSureDelete = async () => {
 		setLoading(true);
-		try {
-			await api.del(`/storage/vc/${vcEntity.credentialIdentifier}`);
-		} catch (error) {
-			console.error('Failed to delete data', error);
-		}
+		const [, newPrivateData, keystoreCommit] = await keystore.deleteCredentialsByBatchId(parseInt(batchId));
+		await api.updatePrivateData(newPrivateData);
+		await keystoreCommit();
+
 		setLoading(false);
 		setShowDeletePopup(false);
 		window.location.href = '/';
@@ -124,38 +129,41 @@ const Credential = () => {
 	}, [vcEntity]);
 
 	const infoTabs = [
-		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} /> },
 		{
-			label: t('pageCredentials.presentationsTitle'), component:
+			label: t('pageCredentials.presentationsTitle'),
+			component:
 				<>
 					{history.length === 0 ? (
 						<p className="text-gray-700 dark:text-white">
 							{t('pageHistory.noFound')}
 						</p>
 					) : (
-						<HistoryList history={history} />
+						<HistoryList batchId={batchId} />
 					)}
 				</>
+		},
+		{
+			label: t('pageCredentials.datasetTitle'),
+			component:
+				<CredentialJson
+					parsedCredential={vcEntity?.parsedCredential}
+				/>
 		}
 	];
 
 	return (
+
 		<CredentialLayout title={t('pageCredentials.credentialTitle')} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
 			<>
 				<div className="w-full pt-2 px-2">
 					{screenType !== 'mobile' ? (
-						<>
-							<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
-							<div className='py-2'>
-								{infoTabs[activeTab].component}
-							</div>
-						</>
+						<CredentialTabsPanel tabs={infoTabs} />
 					) : (
 						<>
 							<Button
 								id="navigate-credential-history"
 								variant="primary"
-								onClick={() => navigate(`/credential/${credentialId}/history`)}
+								onClick={() => navigate(`/credential/${batchId}/history`)}
 								additionalClassName='w-full my-2'
 							>
 								{t('pageCredentials.presentationsTitle')}
@@ -163,7 +171,7 @@ const Credential = () => {
 							<Button
 								id="navigate-credential-details"
 								variant="primary"
-								onClick={() => navigate(`/credential/${credentialId}/details`)}
+								onClick={() => navigate(`/credential/${batchId}/details`)}
 								additionalClassName='w-full my-2'
 							>
 								{t('pageCredentials.datasetTitle')}
@@ -172,12 +180,12 @@ const Credential = () => {
 					)}
 				</div>
 				<div className='px-2 w-full'>
-				{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode/></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
+					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
-					<div className="flex items-start justify-between mb-2">
-						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-							{t('qrShareMdoc.shareUsingQR')}
-						</h2>
+						<div className="flex items-start justify-between mb-2">
+							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+								{t('qrShareMdoc.shareUsingQR')}
+							</h2>
 						</div>
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
@@ -195,7 +203,8 @@ const Credential = () => {
 									</p>
 									<CredentialImage
 										vcEntity={vcEntity}
-										key={vcEntity.credentialIdentifier}
+										vcEntityInstances={vcEntity.instances}
+										key={vcEntity.batchId}
 										parsedCredential={vcEntity.parsedCredential}
 										className="w-full object-cover rounded-xl"
 									/>
@@ -228,7 +237,7 @@ const Credential = () => {
 						message={
 							<Trans
 								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName: vcEntity.parsedCredential.metadata.credential.name }}
+								values={{ credentialName }}
 								components={{ strong: <strong />, br: <br /> }}
 							/>
 						}
