@@ -5,11 +5,18 @@ import { useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
+import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
+import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
+import { useWalletStateSettingsMigrationManager } from '@/services/WalletStateSettingsMigrationManager';
 
 export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
+	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
+	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	const _settingslMigrationManager = useWalletStateSettingsMigrationManager(keystore, api, isOnline, isLoggedIn);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
@@ -17,7 +24,7 @@ export const SessionContextProvider = ({ children }) => {
 	// Memoize clearSession using useCallback
 	const clearSession = useCallback(async () => {
 		window.history.replaceState({}, '', `${window.location.pathname}`);
-		console.log('Clear Session');
+		console.log('[Session Context] Clear Session');
 		api.clearSession();
 	}, [api]);
 
@@ -27,9 +34,10 @@ export const SessionContextProvider = ({ children }) => {
 	}, [clearSession]);
 
 	// The close() will dispatch Event CloseSessionTabLocal in order to call the clearSession
-	const logout = async () => {
+	const logout = useCallback(async () => {
+		console.log('[Session Context] Close Keystore');
 		await keystore.close();
-	};
+	}, [keystore]);
 
 	useEffect(() => {
 		// Handler function that calls the current clearSession function
@@ -50,11 +58,15 @@ export const SessionContextProvider = ({ children }) => {
 
 	const value: SessionContextValue = useMemo(() => ({
 		api,
-		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
+		isLoggedIn: isLoggedIn,
 		keystore,
 		logout,
-	}), [api, keystore, logout]);
+	}), [api, keystore, logout, isLoggedIn]);
 
+
+	if (api.isLoggedIn() === true && keystore.isOpen() === false) {
+		return <></>
+	}
 	return (
 		<SessionContext.Provider value={value}>
 			{children}

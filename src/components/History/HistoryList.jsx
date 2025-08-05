@@ -1,54 +1,59 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useScreenType from '../../hooks/useScreenType';
 import { formatDate } from '../../functions/DateFormat';
 import { H3 } from '../Shared/Heading';
 import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
-import { extractPresentations } from '@/functions/extractPresentations';
 
-const HistoryList = ({ credentialId = null, history, title = '', limit = null }) => {
+// Context
+import SessionContext from '@/context/SessionContext';
+import useFetchPresentations from '@/hooks/useFetchPresentations';
+import { reverse, compareBy } from '@/util';
 
-	const [matchingCredentials, setMatchingCredentials] = useState([]);
+const HistoryList = ({ batchId = null, title = '', limit = null }) => {
+	const { keystore } = useContext(SessionContext);
+
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const screenType = useScreenType();
 	const navigate = useNavigate();
 
-	const credentialHistory = useMemo(() => {
-		if (credentialId === null) {
-			return limit !== null ? history.slice(0, limit) : history;
+	const history = useFetchPresentations(keystore, batchId, null);
+
+	const [selectedHistoryItemFilteredByBatchId, setSelectedHistoryItemFilteredByBatchId] = useState(null);
+	const [selectedHistoryItemFilteredByTransactionId, setSelectedHistoryItemFilteredByTransactionId] = useState(null);
+	useEffect(() => {
+		if (batchId !== null && history !== null && Object.values(history).length > 0) {
+			setSelectedHistoryItemFilteredByBatchId(Object.values(history)[0]);
 		}
-		let filteredHistory = history.filter(histItem => histItem.ivci.includes(credentialId));
-		return limit !== null ? filteredHistory.slice(0, limit) : filteredHistory;
-	}, [history, credentialId, limit]);
+	}, [batchId, history]);
 
 	const handleHistoryItemClick = async (item) => {
 		console.log('extractPresentations', item);
-		setMatchingCredentials(extractPresentations(item));
+		const transactionId = item[0].presentation.transactionId;
 		if (screenType === 'mobile') {
-			navigate(`/history/${item.id}`);
+			navigate(`/history/${transactionId}`);
+		}
+		else {
+			setSelectedHistoryItemFilteredByTransactionId(item);
 		}
 		setImageModalOpen(true);
 	};
 
-	if (credentialHistory.length === 0) {
-		return null;
-	}
-
 	return (
 		<>
 			<div className="py-2 w-full">
-				{title && <H3 heading={title} />}
+				{title && Object.values(history).length > 0 && <H3 heading={title} />}
 				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
-					{credentialHistory.map(item => (
+					{Object.values(history).sort(reverse(compareBy(item => item[0].presentation.presentationTimestampSeconds))).map(item => ( // note: an item is an array of presentations (see useFetchPresentations hook)
 						<button
-							id={`credential-history-item-${item.id}`}
-							key={item.id}
+							id={`credential-history-item-${item[0].presentation.transactionId}`}
+							key={item[0].presentation.transactionId}
 							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
 							style={{ wordBreak: 'break-all' }}
 							onClick={() => handleHistoryItemClick(item)}
 						>
-							<div className="font-bold">{item.audience}</div>
-							<div>{formatDate(item.issuanceDate)}</div>
+							<div className="font-bold">{item[0].presentation.audience}</div>
+							<div>{formatDate(item[0].presentation.presentationTimestampSeconds)}</div>
 						</button>
 					))}
 				</div>
@@ -58,7 +63,16 @@ const HistoryList = ({ credentialId = null, history, title = '', limit = null })
 			<HistoryDetailPopup
 				isOpen={isImageModalOpen}
 				onClose={() => setImageModalOpen(false)}
-				matchingCredentials={matchingCredentials}
+				historyItem={
+					(selectedHistoryItemFilteredByTransactionId ?
+						selectedHistoryItemFilteredByTransactionId :
+						(selectedHistoryItemFilteredByBatchId ?
+							selectedHistoryItemFilteredByBatchId : []
+						)
+					)
+
+
+				}
 			/>
 		</>
 	);
