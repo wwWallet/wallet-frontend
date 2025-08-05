@@ -6,7 +6,7 @@ import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
-import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
@@ -96,22 +96,19 @@ export interface BackendApi {
 	>>;
 }
 
-export function useApi(isOnline: boolean | null): BackendApi {
+export function useApi(isOnlineProp: boolean = true): BackendApi {
+	const isOnline = useMemo(() => isOnlineProp === null ? true : isOnlineProp, [isOnlineProp]);
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [userHandle, setUserHandle, clearUserHandle] = useSessionStorage<string | null>("userHandle", null);
 	const [cachedUsers, setCachedUsers, clearCachedUsers] = useLocalStorage<CachedUser[] | null>("cachedUsers", null);
 
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
-	const onlineRef = useRef<boolean>(isOnline !== false);
 
 	const navigate = useNavigate();
 	const location = useLocation();
 
 	const from = location.search || '/';
-	useEffect(() => {
-		onlineRef.current = isOnline !== false;
-	}, [isOnline]);
 
 	/**
 	 * Synchronization tag for the encrypted private data. To prevent data loss,
@@ -160,10 +157,10 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		options?: { appToken?: string },
 		forceIndexDB: boolean = false
 	): Promise<AxiosResponse> => {
-		console.log(`Get: ${path} ${onlineRef.current ? 'online' : 'offline'} mode ${onlineRef.current}`);
+		console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 		// Offline case
-		if (!onlineRef.current) {
+		if (!isOnline) {
 			return {
 				data: await getItem(path, dbKey),
 			} as AxiosResponse;
@@ -185,7 +182,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		);
 		await addItem(path, dbKey, respBackend.data);
 		return respBackend;
-	}, [buildGetHeaders]);
+	}, [buildGetHeaders, isOnline]);
 
 	const get = useCallback(async (
 		path: string,
@@ -302,10 +299,10 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		});
 
 		await addItem('users', response.data.uuid, response.data);
-		if (onlineRef.current) {
+		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-	}, [setAppToken, setSessionState, fetchInitialData]);
+	}, [setAppToken, setSessionState, fetchInitialData, isOnline]);
 
 	const updatePrivateData = useCallback(async (
 		newPrivateData: EncryptedContainer,
@@ -489,7 +486,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
-				if (onlineRef.current) {
+				if (isOnline) {
 					const beginResp = await post('/user/login-webauthn-begin', {});
 					console.log("begin", beginResp);
 					return beginResp.data;
@@ -525,7 +522,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 				try {
 					const finishResp = await (async () => {
-						if (onlineRef.current) {
+						if (isOnline) {
 							return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
 								challengeId: beginData.challengeId,
 								credential: {
@@ -604,7 +601,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		} catch (e) {
 			return Err('passkeyLoginFailedServerError');
 		}
-	}, [post, updatePrivateDataEtag, updatePrivateData, setSession]);
+	}, [post, updatePrivateDataEtag, updatePrivateData, setSession, isOnline]);
 
 	const signupWebauthn = useCallback(async (
 		name: string,
