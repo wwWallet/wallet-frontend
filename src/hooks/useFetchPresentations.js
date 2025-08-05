@@ -30,6 +30,10 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 						transactionIds.includes(p.transactionId)
 					);
 					console.log("Presentations = ", presentations)
+					if (presentations.length === 0) {
+						setHistory([]);
+						return;
+					}
 				}
 
 				if (transactionId) {
