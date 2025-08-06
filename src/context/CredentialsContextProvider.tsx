@@ -78,7 +78,6 @@ export const CredentialsContextProvider = ({ children }) => {
 		if (!engine) return null;
 
 		const credentials = await keystore.getAllCredentials();
-		console.log("Creds = ", credentials)
 		if (!credentials) {
 			return null;
 		}

@@ -11,7 +11,6 @@ const PWAInstallPrompt = () => {
 	const screenType = useScreenType();
 	const { t } = useTranslation();
 
-	console.log('pwaInstallable', pwaInstallable)
 	return (
 		pwaInstallable && !hidePwaPrompt && (
 			<div className={`w-full flex justify-center ${screenType === 'desktop' && 'mt-5'}`}>
