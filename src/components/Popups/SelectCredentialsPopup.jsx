@@ -364,7 +364,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												</span>
 											</div>
 											<p className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-4">
-												{fields[0] !== '' ? (
+												{!fields[0].path[0] ? (
 													<span>
 														{t('selectCredentialPopup.allClaimsRequested')}
 													</span>
