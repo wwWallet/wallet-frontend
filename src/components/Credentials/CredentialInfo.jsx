@@ -110,6 +110,9 @@ const formatClaimValue = (value) => {
 			</div>
 		);
 	}
+	if (typeof value === 'string' && !value.includes(' ') && value.length > 30) {
+		return value.slice(0, 30) + '…';
+	}
 	return formatDate(value, 'date');
 };
 
@@ -282,10 +285,20 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 							: ''
 							}`}
 					>
-						<div className="font-semibold text-primary dark:text-white w-1/2">
+						<div
+							className={
+								`font-semibold text-primary dark:text-white w-1/2 break-words` +
+								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
+							}
+						>
 							{label}:
 						</div>
-						<div className="text-gray-700 dark:text-white break-words w-1/2 flex justify-between items-start">
+						<div
+							className={
+								`text-gray-700 dark:text-white w-1/2 flex justify-between items-start break-words` +
+								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
+							}
+						>
 							{value}
 							{isRequested && (
 								<IoIosSend
