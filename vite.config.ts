@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
 				strategies: 'injectManifest', // Uses `src/service-worker.js` for caching
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
-					maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+					maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
 				},
 			}),
 

@@ -30,7 +30,7 @@ COPY --from=test /home/node/app/package.json /dev/null
 
 COPY . .
 COPY .env.prod .env
-RUN yarn build
+RUN NODE_OPTIONS=--max-old-space-size=3072 yarn build
 
 
 FROM nginx:alpine AS deploy
