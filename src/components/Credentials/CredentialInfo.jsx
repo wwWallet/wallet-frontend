@@ -140,8 +140,18 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const filteredClaims = Array.isArray(displayClaims)
 		? displayClaims.filter(c => {
-			const valid = isDisplayClaim(c);
-			return valid;
+			// Always keep if it is a display claim
+			if (isDisplayClaim(c)) return true;
+
+			// If requestedFields exists, also keep if the path is in requestedFields
+			if (requestedFields) {
+				const joined = Array.isArray(c.path) ? c.path.join('.') : '';
+				return requestedFields.some(field =>
+					(Array.isArray(field) ? field.join('.') : field) === joined
+				);
+			}
+
+			return false;
 		})
 		: [];
 
@@ -162,9 +172,44 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
 		);
 
+	const pathKey = (path) => Array.isArray(path) ? path.join('.') : '';
+
+	const pathToClaimIdx = new Map(
+		expandedDisplayClaims.map((claim, idx) => [pathKey(claim.path), idx])
+	);
+
+	const syntheticClaims = [];
+
+	if (requestedFieldSet && requestedFields) {
+		requestedFields.forEach(field => {
+			const pathArr = Array.isArray(field) ? field : [field];
+			const joined = pathKey(pathArr);
+			const value = getValueByPath(pathArr, signedClaims);
+
+			const claimIdx = pathToClaimIdx.get(joined);
+
+			if (claimIdx !== undefined) {
+				const claim = expandedDisplayClaims[claimIdx];
+				if (!claim.display || !claim.display.some(d => d.label)) {
+					expandedDisplayClaims[claimIdx] = {
+						...claim,
+						display: [{ lang: 'en', label: joined, description: '' }]
+					};
+				}
+			} else if (value !== undefined) {
+				syntheticClaims.push({
+					path: pathArr,
+					display: [{ lang: 'en', label: joined, description: '' }]
+				});
+			}
+		});
+	}
+
+	const claimsWithDisplay = [...expandedDisplayClaims, ...syntheticClaims];
+
 	const visibleClaims =
 		requestedDisplay === "hide" && requestedFieldSet
-			? expandedDisplayClaims.filter(claim => {
+			? claimsWithDisplay.filter(claim => {
 				const joinedPath = claim.path?.join('.');
 				if (!joinedPath) return false;
 
@@ -178,8 +223,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					req.startsWith(joinedPath + '.')
 				);
 			})
-			: expandedDisplayClaims;
-
+			: claimsWithDisplay;
 
 	visibleClaims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
