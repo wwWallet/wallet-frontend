@@ -56,7 +56,6 @@ const AddCredentials = () => {
 		};
 
 		if (vcEntityList) {
-			console.log("Fetching Recent Credential Configurations...")
 			fetchRecentCredConfigs();
 		}
 	}, [vcEntityList]);

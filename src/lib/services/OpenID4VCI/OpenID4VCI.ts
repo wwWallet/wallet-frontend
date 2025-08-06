@@ -148,7 +148,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const credentialRequest = useCallback(
 		async (response: any, flowState: WalletBaseStateCredentialIssuanceSession) => {
-			console.log('credentialRequest')
 			const {
 				data: { access_token },
 			} = response;
@@ -220,9 +219,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			for (const rawCredential of credentialArray) {
 
 				const result = await credentialEngine.credentialParsingEngine.parse({ rawCredential })
-				console.log('result', result);
 				if (result.success) {
-					console.log(`Credential parsed successfully:`, result.value);
 
 					if (result.value.warnings && result.value.warnings.length > 0) {
 						console.warn(`Credential had warnings:`, result.value.warnings);
@@ -271,7 +268,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				credentialConfigurationId: string;
 			}
 		}) => {
-			console.log('requestCredentials')
 			console.log(JSON.stringify(requestCredentialsParams));
 			const [authzServerMetadata, clientId] = await Promise.all([
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
@@ -430,7 +426,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const handleAuthorizationResponse = useCallback(
 		async (url: string, dpopNonceHeader?: string) => {
-			console.log('handleAuthorizationResponse');
 			const parsedUrl = new URL(url);
 
 			const code = parsedUrl.searchParams.get('code');
@@ -441,7 +436,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 
 			const s = await openID4VCIClientStateRepository.getByState(state);
-			console.log("S = ", s)
 			if (!s || !s.credentialIssuerIdentifier) {
 				console.log("No credential issuer identifier was found in the issuance flow state");
 				return;
@@ -473,7 +467,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const handleCredentialOffer = useCallback(
 		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> => {
-			console.log('handleCredentialOffer')
 			const parsedUrl = new URL(credentialOfferURL);
 			let offer;
 			if (parsedUrl.searchParams.get("credential_offer")) {
@@ -515,7 +508,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const getAvailableCredentialConfigurations = useCallback(
 		async (credentialIssuerIdentifier: string): Promise<Record<string, CredentialConfigurationSupported>> => {
-			console.log('getAvailableCredentialConfigurations')
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier)
 			]);
@@ -533,7 +525,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			if (!result.ok) {
 				return {};
 			}
-			console.log('generateAuthorizationRequest')
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			try { // attempt to get credentials using active session
@@ -594,7 +585,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
 	useEffect(() => {
-		console.log('call and call')
 		generateAuthorizationRequestRef.current = generateAuthorizationRequest;
 	}, [generateAuthorizationRequest]);
 

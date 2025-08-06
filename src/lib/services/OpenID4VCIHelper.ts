@@ -30,7 +30,6 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	const getClientId = useCallback(
 		async (credentialIssuerIdentifier: string) => {
-			console.log('getClientId');
 
 			try {
 				const issuerResponse = await getExternalEntity('/issuer/all', undefined, true);
@@ -61,7 +60,6 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				null;
 
 			const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
-			console.log('getAuthorizationServerMetadata');
 			try {
 				const authzServeMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathAuthorizationServer,
@@ -94,7 +92,6 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const getCredentialIssuerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
 			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
-			console.log('getCredentialIssuerMetadata', useCache);
 			try {
 				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
 					pathCredentialIssuer,
@@ -129,7 +126,6 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	const getMdocIacas = useCallback(
 		async (credentialIssuerIdentifier: string, metadata?: OpenidCredentialIssuerMetadata, useCache?: boolean) => {
-			console.log('getMdocIacas');
 			try {
 				if (!metadata) {
 					const response = await getCredentialIssuerMetadata(credentialIssuerIdentifier);

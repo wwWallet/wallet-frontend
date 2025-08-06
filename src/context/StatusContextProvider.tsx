@@ -102,8 +102,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 
 	useEffect(() => {
 		console.log('Online status:', isOnline);
-		console.log('Internet connection status:', connectivity);
-	}, [isOnline, connectivity]);
+	}, [isOnline]);
 
 	// Polling logic when offline
 	useEffect(() => {
@@ -139,14 +138,12 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		};
 
 		const startPolling = () => {
-			console.log('startPolling')
 			if (!pollingInterval) {
 				pollingInterval = setInterval(poll, 20000);
 			}
 		};
 
 		const stopPolling = () => {
-			console.log('stopPolling')
 			if (pollingInterval) {
 				clearInterval(pollingInterval);
 				pollingInterval = null;
