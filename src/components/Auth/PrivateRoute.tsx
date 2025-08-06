@@ -149,7 +149,6 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));
-	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 	const cachedUsers = keystore.getCachedUsers();
 
 	const location = useLocation();
@@ -223,25 +222,6 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		tokenSentInSession,
 		isLoggedIn,
 	]);
-
-	useEffect(() => {
-		if (latestIsOnlineStatus === false && isOnline === true) {
-			logout();
-		}
-		if (isLoggedIn) {
-			setLatestIsOnlineStatus(isOnline);
-		} else {
-			setLatestIsOnlineStatus(null);
-		}
-	}, [
-		api,
-		isLoggedIn,
-		isOnline,
-		logout,
-		latestIsOnlineStatus,
-		setLatestIsOnlineStatus,
-	]);
-
 
 	const userExistsInCache = (state: string) => {
 		if (!state) return false;
