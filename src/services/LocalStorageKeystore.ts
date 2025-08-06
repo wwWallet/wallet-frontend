@@ -11,6 +11,7 @@ import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
 import { WalletState, WalletStateContainer, WalletStateCredential, WalletStateCredentialIssuanceSession, WalletStateOperations, WalletStatePresentation } from "./WalletStateOperations";
+import { WalletStateUtils } from "./WalletStateUtils";
 
 
 type UserData = {
@@ -124,12 +125,17 @@ export interface LocalStorageKeystore {
 export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageKeystore {
 	const [cachedUsers, setCachedUsers,] = useLocalStorage<CachedUser[]>("cachedUsers", []);
 	const [privateData, setPrivateData] = useState<EncryptedContainer | null>(null);
-	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 
+	const [globalUserHandleB64u, setGlobalUserHandleB64u, clearGlobalUserHandleB64u] = useLocalStorage<string | null>("userHandle", null);
 	const [userHandleB64u, setUserHandleB64u, clearUserHandleB64u] = useSessionStorage<string | null>("userHandle", null);
+
+	// A unique id for each logged in tab
+	const [globalTabB64id, setGlobalTabB64id, clearGlobalTabB64id] = useLocalStorage<string | null>("globalTabB64id", null);
+	const [tabB64id, setTabB64id, clearTabB64id] = useSessionStorage<string | null>("tabB64id", null);
+
 	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
 	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletState | null>(null);
-	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
+	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey, clearTabB64id);
 
 	const navigate = useNavigate();
 
@@ -193,8 +199,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			await idb.destroy();
 			setCalculatedWalletState(null);
 			clearGlobalUserHandleB64u();
+			clearGlobalTabB64id();
 		},
-		[idb, clearGlobalUserHandleB64u, clearPrivateData, setCalculatedWalletState, userHandleB64u],
+		[idb, clearGlobalUserHandleB64u, clearGlobalTabB64id, clearPrivateData, setCalculatedWalletState, userHandleB64u],
 	);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
@@ -225,13 +232,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	useEffect(
 		() => {
-			if (userHandleB64u && globalUserHandleB64u && (userHandleB64u !== globalUserHandleB64u)) {
+			if (tabB64id && globalTabB64id && (tabB64id !== globalTabB64id)) {
 				// When user logs in in any tab, log out in all other tabs
-				// that are logged in to a different account
 				closeSessionTabLocal();
 			}
 		},
-		[closeSessionTabLocal, userHandleB64u, globalUserHandleB64u, setCachedUsers],
+		[closeSessionTabLocal, tabB64id, globalTabB64id],
 	);
 
 	useEffect(() => {
@@ -319,6 +325,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 			setUserHandleB64u(userHandleB64u);
 
+			let tabid = tabB64id ?? WalletStateUtils.getRandomUint32().toString()
+			setTabB64id(tabid);
+			setGlobalTabB64id(tabid);
+
 			// This must happen before setPrivateData in order to prevent the
 			// useEffect updating cachedUsers from corrupting cache entries for other
 			// users logged in in other tabs.
@@ -343,7 +353,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		setCachedUsers,
 		setMainKey,
 		setPrivateData,
-		setCalculatedWalletState
+		setCalculatedWalletState,
+		setTabB64id,
+		setGlobalTabB64id,
+		tabB64id
 	]);
 
 
