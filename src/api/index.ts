@@ -7,7 +7,7 @@ import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, 
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
 import { useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
@@ -106,9 +106,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 	const onlineRef = useRef<boolean>(isOnline !== false);
 
 	const navigate = useNavigate();
-	const location = useLocation();
 
-	const from = location.search || '/';
 	useEffect(() => {
 		onlineRef.current = isOnline !== false;
 	}, [isOnline]);
@@ -456,9 +454,13 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			if (privateDataEtag && getPrivateDataResponse.headers['x-private-data-etag'] && getPrivateDataResponse.headers['x-private-data-etag'] === privateDataEtag) {
 				return Ok.EMPTY; // already synced
 			}
-			const queryParams = new URLSearchParams(from);
+			const queryParams = new URLSearchParams(window.location.search);
+			queryParams.delete('user');
+			queryParams.delete('sync');
+
 			queryParams.append('user', cachedUser.userHandleB64u);
 			queryParams.append('sync', 'fail');
+
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
 			return Err('syncFailed');
 			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
