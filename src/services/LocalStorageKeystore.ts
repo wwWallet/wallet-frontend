@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../hooks/useStorage";
@@ -132,10 +132,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey);
 
 	const navigate = useNavigate();
-	const location = useLocation();
-
-	const from = location.search || '/';
-
 
 	const idb = useIndexedDb("wallet-frontend", 3, useCallback((db, prevVersion, newVersion) => {
 		if (prevVersion < 1) {
@@ -262,7 +258,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			catch (err) {
 				console.error(err);
 				console.log("Navigating to login-state to handle JWE decryption failure");
-				const queryParams = new URLSearchParams(from);
+				const queryParams = new URLSearchParams(window.location.search);
+				queryParams.delete('user');
+				queryParams.delete('sync');
+
 				queryParams.append('user', userHandleB64u);
 				queryParams.append('sync', 'fail');
 				navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
@@ -271,7 +270,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		} else {
 			throw new Error("Private data not present in storage.");
 		}
-	}, [mainKey, privateData, from]);
+	}, [mainKey, privateData]);
 
 	const editPrivateData = useCallback(async <T>(
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
