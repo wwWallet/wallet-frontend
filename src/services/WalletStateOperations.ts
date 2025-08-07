@@ -425,7 +425,7 @@ export namespace WalletStateOperations {
 		}
 	}
 
-	export async function validateEventHistoryContinuity(container: WalletStateContainer): Promise<boolean> {
+	export async function eventHistoryIsConsistent(container: WalletStateContainer): Promise<boolean> {
 		const events = container.events;
 		if (events.length === 0) {
 			return true;
@@ -443,10 +443,15 @@ export namespace WalletStateOperations {
 		return true;
 	}
 
-	export async function addNewCredentialEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
+	export async function validateEventHistoryContinuity(container: WalletStateContainer): Promise<void> {
+		const result = await eventHistoryIsConsistent(container);
+		if (!result) {
 			throw new Error("Invalid event history chain");
 		}
+	}
+
+	export async function addNewCredentialEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletStateContainer> {
+		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -466,18 +471,13 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 
 	export async function addDeleteCredentialEvent(container: WalletStateContainer, credentialId: number): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -490,16 +490,12 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 	export async function addNewKeypairEvent(container: WalletStateContainer, kid: string, keypair: CredentialKeyPair): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -513,17 +509,13 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 
 	export async function addDeleteKeypairEvent(container: WalletStateContainer, kid: string): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -536,17 +528,14 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 
 	export async function addNewPresentationEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], presentationTimestampSeconds: number, audience: string): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
+
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -564,17 +553,13 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 
 	export async function addDeletePresentationEvent(container: WalletStateContainer, presentationId: number): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -587,16 +572,12 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 	export async function addAlterSettingsEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletStateContainer> {
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -609,9 +590,7 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
@@ -646,9 +625,8 @@ export namespace WalletStateOperations {
 		created?: number
 	): Promise<WalletStateContainer> {
 
-		if (!(await validateEventHistoryContinuity(container))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(container);
+
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
 			events: [
@@ -670,19 +648,17 @@ export namespace WalletStateOperations {
 			],
 			S: container.S,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
 
 	export function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
 		if (newEvent.schemaVersion < state.schemaVersion) {
-			if (!(newEvent.schemaVersion in WalletStateMigrations.walletStateReducerRegistry)) {
+			if (!(newEvent.schemaVersion in walletStateReducerRegistry)) {
 				throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}: no reducer found`);
 			}
-			const reduced = WalletStateMigrations.walletStateReducerRegistry[newEvent.schemaVersion](state, newEvent);
+			const reduced = walletStateReducerRegistry[newEvent.schemaVersion](state, newEvent);
 			return WalletStateMigrations.migrateWalletStateToCurrent(reduced);
 		}
 
@@ -708,9 +684,7 @@ export namespace WalletStateOperations {
 				...container1,
 				events: events,
 			};
-			if (!(await validateEventHistoryContinuity(newContainer))) {
-				throw new Error("Invalid event history chain");
-			}
+			await validateEventHistoryContinuity(newContainer);
 			return newContainer;
 		}
 
@@ -744,9 +718,7 @@ export namespace WalletStateOperations {
 			...container1,
 			events: newEventHistory,
 		};
-		if (!(await validateEventHistoryContinuity(newContainer))) {
-			throw new Error("Invalid event history chain");
-		}
+		await validateEventHistoryContinuity(newContainer);
 		return newContainer;
 	}
 
