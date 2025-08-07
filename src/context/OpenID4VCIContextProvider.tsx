@@ -1,10 +1,13 @@
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback, useContext } from "react";
 import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
 import OpenID4VCIContext from "./OpenID4VCIContext";
 import IssuanceConsentPopup from "@/components/Popups/IssuanceConsentPopup";
 import MessagePopup from "@/components/Popups/MessagePopup";
+import SessionContext from "./SessionContext";
 
 export const OpenID4VCIContextProvider = ({ children }) => {
+
+	const { isLoggedin } = useContext(SessionContext);
 
 	const [popupConsentState, setPopupConsentState] = useState({
 		isOpen: false,
@@ -57,9 +60,13 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 	return (
 		<OpenID4VCIContext.Provider value={{ openID4VCI }}>
 			{children}
-			<IssuanceConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
-			{messagePopupState && (
-				<MessagePopup type={messagePopupState.type} message={messagePopupState.message} onClose={messagePopupState.onClose} />
+			{isLoggedin && (
+				<>
+					<IssuanceConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
+					{messagePopupState && (
+						<MessagePopup type={messagePopupState.type} message={messagePopupState.message} onClose={messagePopupState.onClose} />
+					)}
+				</>
 			)}
 		</OpenID4VCIContext.Provider>
 	);

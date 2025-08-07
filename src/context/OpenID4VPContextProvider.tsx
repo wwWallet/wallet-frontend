@@ -5,9 +5,11 @@ import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import OpenID4VPContext from "./OpenID4VPContext";
 import MessagePopup from "@/components/Popups/MessagePopup";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
+import SessionContext from "./SessionContext";
 
 export const OpenID4VPContextProvider = ({ children }) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
+	const { isLoggedin } = useContext<any>(SessionContext);
 
 	const [popupState, setPopupState] = useState({
 		isOpen: false,
@@ -96,13 +98,16 @@ export const OpenID4VPContextProvider = ({ children }) => {
 	return (
 		<OpenID4VPContext.Provider value={{ openID4VP }}>
 			{children}
-			<GenericConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
-			<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} />
-			{messagePopupState !== null ?
-				<MessagePopup type={messagePopupState.type} message={messagePopupState.message} onClose={messagePopupState.onClose} />
-				: <></>
-			}
-
+			{isLoggedin && (
+				<>
+					<GenericConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
+					<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} />
+					{messagePopupState !== null ?
+						<MessagePopup type={messagePopupState.type} message={messagePopupState.message} onClose={messagePopupState.onClose} />
+						: <></>
+					}
+				</>
+			)}
 		</OpenID4VPContext.Provider>
 	);
 }
