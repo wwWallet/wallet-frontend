@@ -13,6 +13,8 @@ import { truncateByWords } from '@/functions/truncateWords';
 import { MdFactCheck } from "react-icons/md";
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
+import { verifyAttestationWithRegistrar } from '@/lib/services/VerifierRegistrar/VerifyAttestation';
+import { checkVerifierViolations } from '@/lib/services/VerifierRegistrar/CheckVerifierViolations';
 
 const SelectableCredentialSlideCard = ({
 	vcEntity,
@@ -169,6 +171,26 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
+	const [trustViolations, setTrustViolations] = useState([]);
+	const [trustCheckStatus, setTrustCheckStatus] = useState('idle');
+
+	const runTrustCheck = async () => {
+		if (!popupState?.options?.verifierAttestationsJwt) return;
+		setTrustCheckStatus('checking');
+		try {
+			const verified = await verifyAttestationWithRegistrar(popupState.options.verifierAttestationsJwt);
+			const violations = checkVerifierViolations(
+				verified,
+				popupState.options.presentationDefinition,
+				popupState.options.dcqlQuery
+			);
+			setTrustViolations(violations);
+		} catch (err) {
+			console.error("Trust check failed:", err);
+			setTrustViolations([{ type: 'error', message: t('selectCredentialPopup.trustCheckError') }]);
+		}
+		setTrustCheckStatus('done');
+	};
 
 	const requestedFieldsPerCredential = useMemo(() => {
 
@@ -378,6 +400,44 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									);
 								})}
 							</div>
+							{popupState.options.verifierAttestationsJwt && (
+								<div className="mt-4 p-3 border rounded bg-gray-50 dark:bg-gray-700">
+									<p className="text-sm font-semibold text-primary dark:text-white mb-2">
+										{t('selectCredentialPopup.trustCheckTitle', 'Verifier Trust Check')}
+									</p>
+
+									{trustCheckStatus === 'idle' && (
+										<Button
+											onClick={runTrustCheck}
+											variant="secondary"
+											size="sm"
+											className="text-sm"
+										>
+											{t('selectCredentialPopup.trustCheckButton', 'Check')}
+										</Button>
+									)}
+
+									{trustCheckStatus === 'checking' && (
+										<p className="text-sm text-gray-600 dark:text-white italic">
+											{t('selectCredentialPopup.trustCheckRunning', 'Checking...')}
+										</p>
+									)}
+
+									{trustCheckStatus === 'done' && trustViolations.length === 0 && (
+										<p className="text-sm text-green-600 dark:text-green-400">
+											✅ {t('selectCredentialPopup.trustCheckSuccess', 'No violations found.')}
+										</p>
+									)}
+
+									{trustCheckStatus === 'done' && trustViolations.length > 0 && (
+										<ul className="text-sm text-red-600 dark:text-red-400 list-disc ml-4 mt-1">
+											{trustViolations.map((v, i) => (
+												<li key={i}>{v.message}</li>
+											))}
+										</ul>
+									)}
+								</div>
+							)}
 						</div>
 
 					</>

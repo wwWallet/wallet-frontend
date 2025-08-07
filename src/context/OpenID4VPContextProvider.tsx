@@ -10,7 +10,6 @@ import SessionContext from "./SessionContext";
 export const OpenID4VPContextProvider = ({ children }) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
 	const { isLoggedin } = useContext<any>(SessionContext);
-
 	const [popupState, setPopupState] = useState({
 		isOpen: false,
 		options: null,
@@ -80,8 +79,8 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		}, [setMessagePopupState]);
 
 	const showCredentialSelectionPopup = useCallback(
-		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
-			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose });
+		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string, verifierPurpose: string, verifierAttestationsJwt: string | null, presentationDefinition: any, dcqlQuery: any): Promise<Map<string, string>> => {
+			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose, verifierAttestationsJwt, presentationDefinition, dcqlQuery });
 		},
 		[showPopup]
 	);

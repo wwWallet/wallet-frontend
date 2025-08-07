@@ -34,6 +34,7 @@ interface ImportMetaEnv {
 	readonly VITE_FOLD_EVENT_HISTORY_AFTER: string;
 	readonly VITE_DISPLAY_ISSUANCE_WARNINGS: string;
 	readonly VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: string;
+	readonly VITE_RP_REGISTRAR_CA_URL: string;
 }
 
 interface ImportMeta {
