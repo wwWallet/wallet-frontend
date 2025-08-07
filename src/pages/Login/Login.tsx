@@ -570,9 +570,8 @@ const WebauthnSignupLogin = ({
 								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: "outline", helpText: "Use a USB or hardware security key" },
 								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: "outline", helpText: "Scan QR or link mobile device" },
 							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
-								<div className='mt-2 relative w-full flex flex-col justify-center'>
+								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button
-										key={hint}
 										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
 										type="submit"
 										variant={variant}
