@@ -336,7 +336,13 @@
 		"selectTitle": "Select",
 		"specificClaimsRequested": "The verifier has requested specific claims of the credential.",
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
-		"summaryTitle": "Summary"
+		"summaryTitle": "Summary",
+		"trustCheckButton": "Check",
+		"trustCheckDescrition": "You can optionally validate the verifier's request against its registrar.",
+		"trustCheckRunning": "Checking...",
+		"trustCheckSuccess": "No violations found.",
+		"trustCheckTitle": "Verifier Trust Check",
+		"trustReCheckButton": "Recheck"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",

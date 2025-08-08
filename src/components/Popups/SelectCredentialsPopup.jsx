@@ -15,6 +15,7 @@ import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
 import { verifyAttestationWithRegistrar } from '@/lib/services/VerifierRegistrar/VerifyAttestation';
 import { checkVerifierViolations } from '@/lib/services/VerifierRegistrar/CheckVerifierViolations';
+import { VscWorkspaceUnknown, VscWorkspaceTrusted, VscWorkspaceUntrusted } from "react-icons/vsc";
 
 const SelectableCredentialSlideCard = ({
 	vcEntity,
@@ -401,41 +402,64 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								})}
 							</div>
 							{popupState.options.verifierAttestationsJwt && (
-								<div className="mt-4 p-3 border rounded bg-gray-50 dark:bg-gray-700">
-									<p className="text-sm font-semibold text-primary dark:text-white mb-2">
-										{t('selectCredentialPopup.trustCheckTitle', 'Verifier Trust Check')}
-									</p>
+								<div className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
+									<span className="text-primary text-sm font-bold dark:text-white block mb-1">
+										{t('selectCredentialPopup.trustCheckTitle')}
+									</span>
+									<div className="flex w-full border border-gray-300 dark:border:gray-600 rounded-md p-2">
+										<div className='flex flex-col'>
+											<div className='flex gap-2'>
+												<p>
+													{t('selectCredentialPopup.trustCheckDescrition')}
+												</p>
+												<Button
+													onClick={runTrustCheck}
+													size="sm"
+													additionalClassName={`rounded-lg text-sm flex flex-row flex-nowrap items-center justify-center border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-[0.2375rem]
+															${(trustCheckStatus === 'idle' || trustCheckStatus === 'checking') ? 'border-primary-light text-primary-light dark:border-white text-white' :
+															trustViolations.length === 0 ? 'border-green-600 text-green-600 dark:border-green-400 text-green-400' : 'border-red-600 text-red-600 dark:border-red-400 dark:text-red-400'}`}
+												>
+													<div className='flex flex-row items-center gap-2' >
+														{trustCheckStatus === 'idle' ? (
+															<>
+																<VscWorkspaceUnknown size={18} />
+																{t('selectCredentialPopup.trustCheckButton')}
+															</>
+														) : trustCheckStatus === 'checking' ? (
+															<>
+																<VscWorkspaceUnknown size={18} />
+																{t('selectCredentialPopup.trustCheckRunning')}
+															</>
+														) : trustCheckStatus === 'done' && (
+															<>
+																{trustViolations.length === 0 ? (
+																	<VscWorkspaceTrusted size={18} />
+																) : (
+																	<VscWorkspaceUntrusted size={18} />
+																)}
+																{t('selectCredentialPopup.trustReCheckButton')}
+															</>
+														)}
+													</div>
+												</Button>
+											</div>
+											<div>
+												{trustCheckStatus === 'done' && trustViolations.length === 0 && (
+													<p className="text-sm text-green-600 mt-1 dark:text-green-400">
+														{t('selectCredentialPopup.trustCheckSuccess')}
+													</p>
+												)}
 
-									{trustCheckStatus === 'idle' && (
-										<Button
-											onClick={runTrustCheck}
-											variant="secondary"
-											size="sm"
-											className="text-sm"
-										>
-											{t('selectCredentialPopup.trustCheckButton', 'Check')}
-										</Button>
-									)}
-
-									{trustCheckStatus === 'checking' && (
-										<p className="text-sm text-gray-600 dark:text-white italic">
-											{t('selectCredentialPopup.trustCheckRunning', 'Checking...')}
-										</p>
-									)}
-
-									{trustCheckStatus === 'done' && trustViolations.length === 0 && (
-										<p className="text-sm text-green-600 dark:text-green-400">
-											✅ {t('selectCredentialPopup.trustCheckSuccess', 'No violations found.')}
-										</p>
-									)}
-
-									{trustCheckStatus === 'done' && trustViolations.length > 0 && (
-										<ul className="text-sm text-red-600 dark:text-red-400 list-disc ml-4 mt-1">
-											{trustViolations.map((v, i) => (
-												<li key={i}>{v.message}</li>
-											))}
-										</ul>
-									)}
+												{trustCheckStatus === 'done' && trustViolations.length > 0 && (
+													<ul className="text-sm text-red-600 dark:text-red-400 list-disc ml-4 mt-1">
+														{trustViolations.map((v, i) => (
+															<li key={i}>{v.message}</li>
+														))}
+													</ul>
+												)}
+											</div>
+										</div>
+									</div>
 								</div>
 							)}
 						</div>
