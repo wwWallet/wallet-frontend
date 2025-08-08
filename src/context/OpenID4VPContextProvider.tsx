@@ -9,7 +9,7 @@ import SessionContext from "./SessionContext";
 
 export const OpenID4VPContextProvider = ({ children }) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
-	const { isLoggedin } = useContext<any>(SessionContext);
+	const { isLoggedIn } = useContext<any>(SessionContext);
 
 	const [popupState, setPopupState] = useState({
 		isOpen: false,
@@ -98,7 +98,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 	return (
 		<OpenID4VPContext.Provider value={{ openID4VP }}>
 			{children}
-			{isLoggedin && (
+			{isLoggedIn && (
 				<>
 					<GenericConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
 					<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} />

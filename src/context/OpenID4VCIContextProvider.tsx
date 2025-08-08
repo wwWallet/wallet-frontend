@@ -7,7 +7,7 @@ import SessionContext from "./SessionContext";
 
 export const OpenID4VCIContextProvider = ({ children }) => {
 
-	const { isLoggedin } = useContext(SessionContext);
+	const { isLoggedIn } = useContext(SessionContext);
 
 	const [popupConsentState, setPopupConsentState] = useState({
 		isOpen: false,
@@ -60,7 +60,7 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 	return (
 		<OpenID4VCIContext.Provider value={{ openID4VCI }}>
 			{children}
-			{isLoggedin && (
+			{isLoggedIn && (
 				<>
 					<IssuanceConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
 					{messagePopupState && (
