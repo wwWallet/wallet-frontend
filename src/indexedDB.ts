@@ -71,7 +71,7 @@ export async function initializeDataSource(): Promise<void> {
 		await stores.externalEntities.ready();
 		await stores.proxyCache.ready();
 
-		await migrateDataSource();
+		// await migrateDataSource();
 
 		console.log('Database initialized successfully');
 	} catch (err) {
