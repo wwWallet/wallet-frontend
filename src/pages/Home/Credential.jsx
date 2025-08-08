@@ -91,7 +91,6 @@ const Credential = () => {
 
 		setLoading(false);
 		setShowDeletePopup(false);
-		window.location.href = '/';
 	};
 
 	const generateQR = async () => {
