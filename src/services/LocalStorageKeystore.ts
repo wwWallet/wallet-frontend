@@ -145,7 +145,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			objectStore.createIndex("id", "id", { unique: true });
 		}
 		if (prevVersion < 2) {
-			db.deleteObjectStore("keys");
+			if (db.objectStoreNames.contains("keys")) {
+				db.deleteObjectStore("keys");
+			}
 		}
 
 		if (prevVersion < 3) {
