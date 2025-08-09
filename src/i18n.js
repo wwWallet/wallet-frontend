@@ -2,6 +2,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as config from './config';
+import { jsonParseTaggedBinary } from './util';
 
 import enTranslation from './locales/en.json';
 import elTranslation from './locales/el.json';
@@ -9,6 +10,12 @@ import ptTranslation from './locales/pt.json';
 
 const fallbackLng = 'en';
 
+let storedLocale = null;
+const raw = localStorage.getItem('appSettings');
+const parsed = raw ? jsonParseTaggedBinary(raw) : null;
+storedLocale = parsed?.locale ?? null;
+
+console.log('storedLocale',storedLocale)
 const resources = {
 	en: { translation: enTranslation },
 	el: { translation: elTranslation },
@@ -35,7 +42,7 @@ export const getLanguage = (locale) => {
 
 // Get the preferred language
 let preferredLanguage =
-	localStorage.getItem('locale') || // Check localStorage first
+	storedLocale || // Check localStorage first
 	getLanguage(navigator.language) || // Check navigator.language next
 	getLanguage(navigator.languages ? navigator.languages[0] : null) || // Check navigator.languages[0] last
 	null;
