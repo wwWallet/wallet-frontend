@@ -10,13 +10,29 @@ export function checkVerifierViolations(
 			allowed?: any;
 		}[] = [];
 
+		// normalize "$['a']['b']" -> ["a","b"], "$.a.b" -> ["a","b"]
+		const normalizePath = (p: string | string[]): string[] => {
+			if (Array.isArray(p)) return p;
+			if (typeof p === "string") {
+				// DCQL style
+				const bracketMatches = [...p.matchAll(/\['([^']+)'\]/g)].map(m => m[1]);
+				if (bracketMatches.length) return bracketMatches;
+
+				// PEX style
+				if (p.startsWith("$.")) return p.slice(2).split(".").filter(Boolean);
+			}
+			return [String(p)];
+		};
+
 		const requestedCreds = [];
 
 		if (presentationDefinition) {
 			for (const desc of presentationDefinition.input_descriptors) {
 				const format = Object.keys(desc.format || {})[0] || null;
 				const vct_values = desc.format?.[format]?.vct_values || [];
-				const claims = desc.constraints?.fields?.flatMap(f => f.path) || [];
+				const claimsRaw: (string | string[])[] =
+					desc.constraints?.fields?.flatMap((f: any) => f.path) || [];
+				const claims = claimsRaw.map(normalizePath);
 				requestedCreds.push({ format, vct_values, claims });
 			}
 		}
@@ -26,7 +42,7 @@ export function checkVerifierViolations(
 				requestedCreds.push({
 					format: cred.format,
 					vct_values: cred.meta?.vct_values || [],
-					claims: (cred.claims || []).map(cl => cl.path)
+					claims: (cred.claims || []).map((cl: any) => normalizePath(cl.path)),
 				});
 			}
 		}
