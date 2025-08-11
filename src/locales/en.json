@@ -325,7 +325,6 @@
 		"baseTitle": "Send Credentials",
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
-		"previewDescription": "You will be asked to select credentials that match the requirements below.",
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
@@ -339,9 +338,10 @@
 		"summaryTitle": "Summary",
 		"trustCheckButton": "Check",
 		"trustCheckDescrition": "You can optionally validate the verifier's request against its registrar.",
+		"trustCheckError": "An error occurred while checking the verifier's trust status.",
 		"trustCheckRunning": "Checking...",
 		"trustCheckSuccess": "No violations found.",
-		"trustCheckTitle": "Verifier Trust Check",
+		"trustCheckTitle": "Verifier Trust Check:",
 		"trustReCheckButton": "Recheck"
 	},
 	"sidebar": {
