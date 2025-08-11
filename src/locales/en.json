@@ -334,6 +334,7 @@
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
 		"selectTitle": "Select",
+		"specificClaimsRequested": "The verifier has requested specific claims of the credential.",
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary"
 	},

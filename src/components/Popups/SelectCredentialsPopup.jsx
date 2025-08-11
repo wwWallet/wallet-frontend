@@ -165,8 +165,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [currentSelectionMap, setCurrentSelectionMap] = useState({});
 	const [showFullPurpose, setShowFullPurpose] = useState(false);
-	const [showAllPreviewFields, setShowAllPreviewFields] = useState({});
-
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const screenType = useScreenType();
 	const [currentSlide, setCurrentSlide] = useState(1);
@@ -351,11 +349,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									{t('selectCredentialPopup.requestedCredentialsFieldsTitle')}
 								</p>
 								{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
-									const paths = fields.map(f =>
-										Array.isArray(f.path) ? f.path.join('.') : f.path
-									);
-									const showAll = showAllPreviewFields[descriptorId];
-
 									return (
 										<div key={descriptorId} className="my">
 											<div className="flex flex-row gap-1 text-sm text-gray-700 dark:text-white my-1">
@@ -370,40 +363,17 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 													{descriptorId}
 												</span>
 											</div>
-											<ul className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-5">
-												{!paths[0] ? (
-													<li className="my-1 px-1">
-														<span >
-															{t('selectCredentialPopup.allClaimsRequested')}
-														</span>
-													</li>
+											<p className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-4">
+												{!fields[0].path[0] ? (
+													<span>
+														{t('selectCredentialPopup.allClaimsRequested')}
+													</span>
 												) : (
-
-													(showAll ? paths : paths.slice(0, 2)).map((path, i) => (
-														<li key={i} className="my-1 bg-gray-100 dark:bg-gray-600 px-1 rounded border border-gray-400 max-w-max">
-															<span
-																title={path}
-																className="break-all"
-															>
-																{path}
-															</span>
-														</li>
-													))
+													<span>
+														{t('selectCredentialPopup.specificClaimsRequested')}
+													</span>
 												)}
-											</ul>
-											{paths.length > 2 && (
-												<button
-													onClick={() =>
-														setShowAllPreviewFields(prev => ({
-															...prev,
-															[descriptorId]: !prev[descriptorId]
-														}))
-													}
-													className="ml-1 text-primary text-sm dark:text-extra-light font-medium hover:underline"
-												>
-													{showAll ? t('common.showLess') : t('common.showMore')}
-												</button>
-											)}
+											</p>
 										</div>
 									);
 								})}

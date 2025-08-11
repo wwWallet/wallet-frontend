@@ -9,7 +9,7 @@ import { UserData, UserId, Verifier } from './types';
 import { useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
-import { addItem, getItem } from '../indexedDB';
+import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withHintsFromAllowCredentials } from '@/util-webauthn';
 
@@ -157,13 +157,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 		// Offline case
-		if (!isOnline) {
+		if (!isOnline && !EXCLUDED_INDEXEDDB_PATHS.has(path)) {
 			return {
 				data: await getItem(path, dbKey),
 			} as AxiosResponse;
 		}
 
-		if (forceIndexDB) {
+		if (forceIndexDB && !EXCLUDED_INDEXEDDB_PATHS.has(path)) {
 			const data = await getItem(path, dbKey);
 			if (data) {
 				return { data } as AxiosResponse;
@@ -177,7 +177,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				transformResponse,
 			},
 		);
-		await addItem(path, dbKey, respBackend.data);
+		if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
+			await addItem(path, dbKey, respBackend.data);
+		}
 		return respBackend;
 	}, [buildGetHeaders, isOnline]);
 

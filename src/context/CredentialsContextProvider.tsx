@@ -8,8 +8,8 @@ import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsContext";
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
-import { WalletBaseStateCredential } from '@/services/WalletStateOperations';
 import { ParsedCredential } from "wallet-common/dist/types";
+import { WalletStateCredential } from '@/services/WalletStateOperations';
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);
@@ -19,7 +19,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	const httpProxy = useHttpProxy();
 	const helper = useOpenID4VCIHelper();
 	const credentialNumber = useRef<number | null>(null)
-
+	const { getCalculatedWalletState } = keystore;
 	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
 	// const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
@@ -77,14 +77,14 @@ export const CredentialsContextProvider = ({ children }) => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 
-		const credentials = await keystore.getAllCredentials();
-		console.log("Creds = ", credentials)
+		const { credentials } = getCalculatedWalletState();
 		if (!credentials) {
 			return null;
 		}
-		const presentations = await keystore.getAllPresentations();
+
+		const { presentations } = getCalculatedWalletState();
 		// Create a map of instances grouped by credentialIdentifier
-		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletBaseStateCredential) => {
+		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletStateCredential) => {
 			if (!acc[vcEntity.batchId]) {
 				acc[vcEntity.batchId] = [];
 			}
@@ -142,19 +142,10 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.reverse();
 		return filteredVcEntityList;
-	}, [parseCredential, httpProxy, helper, keystore, get, parseCredential, credentialEngine]);
+	}, [httpProxy, helper, getCalculatedWalletState, get, parseCredential, credentialEngine]);
 
-	// const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
-	// 	setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
 
-	// 	setTimeout(() => {
-	// 		setLatestCredentials(new Set());
-	// 	}, 2000);
-
-	// 	setVcEntityList(vcEntityList);
-	// };
-
-	const getData = useCallback(async (shouldPoll = false) => {
+	const getData = useCallback(async () => {
 		try {
 			const storedCredentials = await fetchVcData();
 			if (storedCredentials != null && (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current)) {
@@ -181,12 +172,12 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [getSession, fetchVcData, setVcEntityList]);
 
 	useEffect(() => {
-		if (!keystore || !credentialEngine || !isLoggedIn) {
+		if (!getCalculatedWalletState || !credentialEngine || !isLoggedIn) {
 			return;
 		}
-		console.log("Triggerring getData()", keystore.getCalculatedWalletState())
+		console.log("Triggerring getData()", getCalculatedWalletState())
 		getData();
-	}, [getData, keystore, credentialEngine, isLoggedIn]);
+	}, [getData, getCalculatedWalletState, credentialEngine, isLoggedIn]);
 
 	if (isLoggedIn && !credentialEngine) {
 		return (
