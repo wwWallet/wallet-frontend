@@ -326,9 +326,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Preview step */}
 				{keys[currentIndex] === 'preview' && (
 					<>
-						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-2">
-							{t('selectCredentialPopup.previewDescription')}
-						</p>
 						<div className="flex flex-col gap-2">
 
 							{popupState.options.verifierDomainName && (
@@ -406,16 +403,16 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									<span className="text-primary text-sm font-bold dark:text-white block mb-1">
 										{t('selectCredentialPopup.trustCheckTitle')}
 									</span>
-									<div className="flex w-full border border-gray-300 dark:border:gray-600 rounded-md p-2">
+									<div className="flex w-full border border-gray-300 dark:border:gray-600 rounded-md p-2 max-h-[13rem] overflow-y-auto">
 										<div className='flex flex-col'>
-											<div className='flex gap-2'>
+											<div className='flex gap-2 mb-3 items-center'>
 												<p>
 													{t('selectCredentialPopup.trustCheckDescrition')}
 												</p>
 												<Button
 													onClick={runTrustCheck}
 													size="sm"
-													additionalClassName={`rounded-lg text-sm flex flex-row flex-nowrap items-center justify-center border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 px-4 py-[0.2375rem]
+													additionalClassName={`rounded-lg text-sm flex flex-row flex-nowrap items-center justify-center border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 max-h-fit
 															${(trustCheckStatus === 'idle' || trustCheckStatus === 'checking') ? 'border-primary-light text-primary-light dark:border-white text-white' :
 															trustViolations.length === 0 ? 'border-green-600 text-green-600 dark:border-green-400 text-green-400' : 'border-red-600 text-red-600 dark:border-red-400 dark:text-red-400'}`}
 												>
@@ -450,7 +447,14 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 													</p>
 												)}
 
-												{trustCheckStatus === 'done' && trustViolations.length > 0 && (
+												{trustCheckStatus === 'done' && trustViolations.length === 1 && (
+													<ul className="text-sm text-red-600 dark:text-red-400 mt-1">
+														{trustViolations.map((v, i) => (
+															<span key={i}>{v.message}</span>
+														))}
+													</ul>
+												)}
+												{trustCheckStatus === 'done' && trustViolations.length > 1 && (
 													<ul className="text-sm text-red-600 dark:text-red-400 list-disc ml-4 mt-1">
 														{trustViolations.map((v, i) => (
 															<li key={i}>{v.message}</li>

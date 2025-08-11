@@ -10,7 +10,6 @@ async function fetchRegistrarRootCert() {
 				Accept: "application/json"
 			}
 		});
-		console.log("Registrar cert:", res.data);
 		return res.data;
 	} catch (err) {
 		console.error("Failed to fetch registrar root cert:", err);
