@@ -30,6 +30,22 @@ const AddCredentials = () => {
 
 	const { t } = useTranslation();
 	const filterItemByLang = useFilterItemByLang();
+	const [cachedUser, setCachedUser] = useState(null);
+
+	useEffect(() => {
+		if (!keystore) {
+			return;
+		}
+
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
 
 	useEffect(() => {
 		if (vcEntityList === null) {
@@ -137,6 +153,10 @@ const AddCredentials = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
+		const result = await api.syncPrivateData(cachedUser);
+		if (!result.ok) {
+			return {};
+		}
 		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId && conf.credentialIssuerIdentifier === credentialIssuerIdentifier);
 		if (clickedCredentialConfiguration) {

@@ -13,7 +13,6 @@ import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import { WalletBaseStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
-import { CachedUser } from '@/services/LocalStorageKeystore';
 import SessionContext from '@/context/SessionContext';
 import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
@@ -70,7 +69,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { api, keystore } = useContext(SessionContext);
 	const { getData, credentialEngine } = useContext<any>(CredentialsContext);
-	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 
 	const { t } = useTranslation();
 	const [receivedCredentialsArray, setReceivedCredentialsArray] = useState<string[] | null>(null);
@@ -131,20 +129,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		})();
 	}, [keystore, receivedCredentialsArray, getData, api])
 
-	useEffect(() => {
-		if (!keystore) {
-			return;
-		}
-
-		const userHandle = keystore.getUserHandleB64u();
-		if (!userHandle) {
-			return;
-		}
-		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
-		if (u) {
-			setCachedUser(u);
-		}
-	}, [keystore, setCachedUser]);
 
 	const credentialRequest = useCallback(
 		async (response: any, flowState: WalletBaseStateCredentialIssuanceSession) => {
@@ -521,10 +505,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const generateAuthorizationRequest = useCallback(
 		async (credentialIssuerIdentifier: string, credentialConfigurationId: string, issuer_state?: string) => {
-			const result = await api.syncPrivateData(cachedUser);
-			if (!result.ok) {
-				return {};
-			}
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			try { // attempt to get credentials using active session
@@ -580,7 +560,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				return {}
 			}
 		},
-		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials, api, cachedUser]
+		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials, api]
 	);
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
