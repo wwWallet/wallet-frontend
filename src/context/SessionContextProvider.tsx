@@ -8,12 +8,18 @@ import SessionContext, { SessionContextValue } from './SessionContext';
 import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
 import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
 import { useWalletStateSettingsMigrationManager } from '@/services/WalletStateSettingsMigrationManager';
+import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
 
 export const SessionContextProvider = ({ children }) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
+
+	// A unique id for each logged in tab
+	const [globalTabId, setGlobalTabId, clearGlobalTabId] = useLocalStorage<string | null>("globalTabId", null);
+	const [tabId, setTabId, clearTabId] = useSessionStorage<string | null>("tabId", null);
+
 	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
 	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
 	const _settingslMigrationManager = useWalletStateSettingsMigrationManager(keystore, api, isOnline, isLoggedIn);
@@ -62,6 +68,12 @@ export const SessionContextProvider = ({ children }) => {
 		keystore,
 		logout,
 	}), [api, keystore, logout, isLoggedIn]);
+
+	useEffect(() => {
+		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
+			clearSession();
+		}
+	}, [globalTabId, tabId, clearSession, api, keystore]);
 
 
 	if (api.isLoggedIn() === true && keystore.isOpen() === false) {
