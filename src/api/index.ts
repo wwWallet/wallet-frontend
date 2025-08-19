@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
-import { withHintsFromAllowCredentials } from '@/util-webauthn';
+import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -636,6 +636,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							},
 						},
 						hints: webauthnHints,
+						authenticatorSelection: withAuthenticatorAttachmentFromHints({}, webauthnHints),
 					},
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAttestationResponse;
