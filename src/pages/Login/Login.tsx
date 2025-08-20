@@ -252,11 +252,23 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
+	const registerHandlers = () => {
+		// Attempt to register a scheme handler
+		console.log("Setting web+wallet...");
+		try {
+			navigator.registerProtocolHandler("web+wallet", `${config.VITE_STATIC_PUBLIC_URL}/handler?p=%s`);
+			console.log("web+wallet ✅");
+		} catch (e) {
+			console.log(e);
+			console.log("web+wallet ❌");
+		}
+	}
+
 	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
 		if (result.ok) {
 			navigate(from, { replace: true });
-
+			registerHandlers();
 		} else {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {

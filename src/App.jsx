@@ -1,5 +1,5 @@
 // App.jsx
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
 // Import i18next and set up translations
@@ -15,6 +15,8 @@ import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 import useNewCredentialListener from './hooks/useNewCredentialListener';
 import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
+
+import * as config from './config';
 
 const reactLazyWithNonDefaultExports = (load, ...names) => {
 	const nonDefaults = (names ?? []).map(name => {
@@ -82,6 +84,25 @@ const Login = lazyWithDelay(() => import('./pages/Login/Login'), 400);
 const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
+function Handler() {
+	const { search } = useLocation();
+
+	useEffect(() => {
+		if (search) {
+			const params = new URLSearchParams(search);
+			if (params.has("p")) {
+				const p = params.get("p");
+				const parsed = p.replace("web+wallet:", "");
+				window.location.href = `${config.VITE_STATIC_PUBLIC_URL}${parsed}`;
+			}
+		}
+	}, [search])
+	return (
+		<>
+		</>
+	)
+}
+
 function App() {
 	const location = useLocation();
 	const { notification, clearNotification } = useNewCredentialListener();
@@ -126,6 +147,7 @@ function App() {
 						}>
 							<Route path="/login" element={<Login />} />
 							<Route path="/login-state" element={<LoginState />} />
+							<Route path="/handler/*" element={<Handler />} />
 							<Route path="*" element={<NotFound />} />
 						</Route>
 					</Routes>
