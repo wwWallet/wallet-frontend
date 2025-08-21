@@ -267,7 +267,6 @@ const WebauthnSignupLogin = ({
 	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
 		if (result.ok) {
-			navigate(from, { replace: true });
 			registerHandlers();
 		} else {
 			// Using a switch here so the t() argument can be a literal, to ease searching
@@ -309,7 +308,6 @@ const WebauthnSignupLogin = ({
 			retrySignupFrom,
 		);
 		if (result.ok) {
-			navigate(from, { replace: true });
 
 		} else if (result.err) {
 			// Using a switch here so the t() argument can be a literal, to ease searching
