@@ -262,7 +262,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				console.error('DCQL shaping error for this VC:', e);
 			}
 		}
-
+		if (shapedCredentials.length === 0) {
+			return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
+		}
 		const parsedQuery = DcqlQuery.parse(dcqlJson);
 		DcqlQuery.validate(parsedQuery);
 		const result = await DcqlQuery.query(parsedQuery, shapedCredentials);
