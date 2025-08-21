@@ -63,6 +63,12 @@ export function generateManifest(env): Partial<ManifestOptions> {
 				"label": "Credential details view"
 			}
 		],
+		"protocol_handlers": [
+			{
+				"protocol": "web+wallet",
+				"url": "/handler?p=%s"
+			},
+		],
 		"start_url": "/",
 		"display": "standalone",
 		"theme_color": "#111827",
