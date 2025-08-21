@@ -308,7 +308,7 @@ const WebauthnSignupLogin = ({
 			retrySignupFrom,
 		);
 		if (result.ok) {
-
+			registerHandlers();
 		} else if (result.err) {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {
