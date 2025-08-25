@@ -11,7 +11,7 @@ import { ALG_SPLIT_BBS, CRV_BLS12381G1, exportHolderPrivateJwk, exportHolderPubl
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toHex, toU8 } from "../util";
+import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toU8 } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
@@ -24,7 +24,7 @@ import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
-import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS, COSE_CRV_BLS12_381, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "../coseConstants";
+import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS, COSE_CRV_BLS12_381, COSE_KTY_ARKG_PUB } from "../coseConstants";
 import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 import { StorableCredential } from "@/lib/types/StorableCredential";
 import { getCipherSuite, PointG1 } from "wallet-common/dist/bbs/index";
@@ -234,20 +234,20 @@ export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | Privat
 }
 
 type WebauthnSignArkgPublicSeed = {
-	credentialId: Uint8Array,
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
+	externalKey: WebauthnSignKeyRef,
 }
 
 type WebauthnSignSplitBbsKeypair = {
-	credentialId: Uint8Array,
-	/** Contains kid used to construct reference to private key */
-	publicKey: webauthn.ParsedCOSEKeyEc2Public & { kid: any },
+	publicKey: webauthn.ParsedCOSEKeyEc2Public,
+	externalKey: WebauthnSignKeyRef,
 }
 
 type WebauthnSignKeyRef = {
 	credentialId: Uint8Array,
-	keyRef: Uint8Array,
-	bbsBlindingFactor?: Uint8Array,
+	keyHandle: Uint8Array,
+	algorithm: COSEAlgorithmIdentifier,
+	additionalArgs?: Uint8Array,
 }
 
 type CredentialKeyPairCommon = {
@@ -261,6 +261,7 @@ export type CredentialKeyPairWithWrappedPrivateKey = CredentialKeyPairCommon & {
 }
 type CredentialKeyPairWithExternalPrivateKey = CredentialKeyPairCommon & {
 	externalPrivateKey: WebauthnSignKeyRef,
+	bbsBlindingFactor?: Uint8Array,
 }
 export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey | CredentialKeyPairWithExternalPrivateKey;
 
@@ -291,8 +292,7 @@ function makeWebauthnSignFunction(
 	uiStateMachine: UiStateMachineFunction,
 ): (alg: any, key: any, data: Uint8Array) => Promise<Uint8Array> {
 	const prehashAlgs = [COSE_ALG_ESP256_ARKG];
-	const parsedKeyRef = cbor.decode(externalPrivateKey.keyRef);
-	const shouldPrehash = prehashAlgs.includes(parsedKeyRef.get(3));
+	const shouldPrehash = prehashAlgs.includes(externalPrivateKey.algorithm);
 
 	return async (alg, _key, data) => {
 		let uiStatePromise = uiStateMachine({ id: 'intro', chosenCredentialId: externalPrivateKey.credentialId });
@@ -310,12 +310,13 @@ function makeWebauthnSignFunction(
 								challenge: crypto.getRandomValues(new Uint8Array(32)),
 								allowCredentials: [{ type: "public-key" as "public-key", id: externalPrivateKey.credentialId }],
 								extensions: {
-									sign: {
-										sign: {
-											keyHandleByCredential: {
-												[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
+									previewSign: {
+										signByCredential: {
+											[toBase64Url(externalPrivateKey.credentialId)]: {
+												keyHandle: externalPrivateKey.keyHandle,
+												tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
+												...(externalPrivateKey.additionalArgs ? { additionalArgs: externalPrivateKey.additionalArgs } : {}),
 											},
-											tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
 										},
 									},
 								} as AuthenticationExtensionsClientInputs,
@@ -332,7 +333,7 @@ function makeWebauthnSignFunction(
 					const pkc = eventResponse.credential;
 					try {
 						const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
-						const sig = authData?.extensions?.sign?.get(6);
+						const sig = authData?.extensions?.previewSign?.get(6);
 						if (sig) {
 							switch (alg) {
 								case "ES256":
@@ -837,7 +838,7 @@ function addWebauthnRegistrationExtensionInputs(options: CredentialCreationOptio
 							first: prfSalt,
 						},
 					},
-					sign: {
+					previewSign: {
 						generateKey: {
 							algorithms: [
 								COSE_ALG_SPLIT_BBS,
@@ -1366,11 +1367,9 @@ async function generateCredentialKeypair(
 		);
 		const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
 		const externalPrivateKey: WebauthnSignKeyRef = {
-			credentialId: arkgSeed.credentialId,
-			keyRef: new Uint8Array(webauthn.encodeCoseKeyRefArkgDerived({
-				kty: COSE_KTY_ARKG_DERIVED,
-				kid: arkgSeed.publicSeed.kid,
-				alg: COSE_ALG_ESP256_ARKG,
+			...arkgSeed.externalKey,
+			additionalArgs: toU8(webauthn.encodeCoseSignArgsArkg({
+				alg: arkgSeed.externalKey.algorithm,
 				kh: new Uint8Array(arkgKeyHandle),
 				info: arkgCtx,
 			})),
@@ -1477,15 +1476,8 @@ async function addNewBbsKeypair(
 			did,
 			alg: "experimental/SplitBBSv2.1",
 			publicKey: publicKeyWithKid,
-			externalPrivateKey: {
-				credentialId: bbsKeypair.credentialId,
-				keyRef: cbor.encodeCanonical(new cbor.Map([ // Can't use object literal because that turns integer keys into strings
-					[1, -2], // kty: Ref-EC2 TODO: update to 2 (EC2) in sign-ext version 4
-					[2, bbsKeypair.publicKey.kid.buffer],
-					[3, bbsKeypair.publicKey.alg],
-				])),
-				bbsBlindingFactor: blindingFactor,
-			},
+			externalPrivateKey: bbsKeypair.externalKey,
+			bbsBlindingFactor: blindingFactor,
 		};
 
 		console.log("addNewBbsKeypair: Before update private data")
@@ -1651,12 +1643,16 @@ export async function signSplitBbs(
 			return bbs.SplitProofGenDevice(dsk, bls12_381.G1.Point.BASE.toBytes(), c_host, t2bar.toBytes());
 		} else {
 			const t2aff = t2bar.toAffine();
-			const keyRef = cbor.decode(keypair.externalPrivateKey.keyRef);
-			keyRef.set(-10, new cbor.Map([ // Can't use object literal because that turns integer keys into strings
-				[1, 2], // kty: EC2
-				[-1, COSE_CRV_BLS12_381], // crv: BLS12-381
-				[-2, bls12_381.fields.Fp.toBytes(t2aff.x).buffer],
-				[-3, bls12_381.fields.Fp.toBytes(t2aff.y).buffer],
+			const additionalArgs = cbor.encode(new cbor.Map([ // Can't use object literal because that turns integer keys into strings
+				[3, keypair.externalPrivateKey.algorithm], // alg
+				[
+					-10, new cbor.Map([
+						[1, 2], // kty: EC2
+						[-1, COSE_CRV_BLS12_381], // crv: BLS12-381
+						[-2, bls12_381.fields.Fp.toBytes(t2aff.x).buffer],
+						[-3, bls12_381.fields.Fp.toBytes(t2aff.y).buffer],
+					]),
+				]
 			]));
 			const signFunc = makeWebauthnSignFunction(
 				config.WEBAUTHN_RPID,
@@ -1664,21 +1660,21 @@ export async function signSplitBbs(
 					...keypair,
 					externalPrivateKey: {
 						...keypair.externalPrivateKey,
-						keyRef: toU8(cbor.encodeCanonical(keyRef)),
+						additionalArgs,
 					},
 				},
 				uiStateMachine,
 			);
 
 			const sig = await signFunc("experimental/SplitBBSv2.1", null, toU8(I2OSP(c_host, 32)));
-			if (keypair.externalPrivateKey.bbsBlindingFactor) {
+			if (keypair.bbsBlindingFactor) {
 				const sa1 = sig.slice(0, 32);
 				const c = sig.slice(32, 64);
 				const n = sig.slice(64, 96);
 				const sa1Int = OS2IP(sa1);
 				const cInt = OS2IP(c);
 				const Fr = bls12_381.fields.Fr;
-				const b = OS2IP(keypair.externalPrivateKey.bbsBlindingFactor)
+				const b = OS2IP(keypair.bbsBlindingFactor);
 				const sa1bar = Fr.sub(sa1Int, Fr.mul(cInt, b));
 				return concat(I2OSP(sa1bar, 32), c, n);
 			} else {
@@ -1875,19 +1871,24 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 	: { arkg: WebauthnSignArkgPublicSeed }
 	| { splitBbs: WebauthnSignSplitBbsKeypair }
 	| null {
-	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
+	const generatedKey = credential?.getClientExtensionResults()?.previewSign?.generatedKey;
 	if (generatedKey) {
+		const credentialId = new Uint8Array(credential.rawId);
+		const externalKey = {
+			credentialId,
+			keyHandle: toU8(generatedKey.keyHandle),
+			algorithm: generatedKey.algorithm,
+		};
 		try {
 			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
-			const credentialId = new Uint8Array(credential.rawId);
 			switch (key.kty) {
 				case 2:
 					switch (key.alg) {
 						case COSE_ALG_SPLIT_BBS:
 							return {
 								splitBbs: {
-									credentialId,
 									publicKey: key,
+									externalKey,
 								},
 							};
 						default:
@@ -1898,8 +1899,8 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 				case COSE_KTY_ARKG_PUB:
 					return {
 						arkg: {
-							credentialId,
 							publicSeed: key,
+							externalKey,
 						},
 					};
 

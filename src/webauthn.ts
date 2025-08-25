@@ -1,5 +1,5 @@
 import * as cbor from 'cbor-web';
-import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from './coseConstants';
+import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_PUB } from './coseConstants';
 
 
 export type ParsedCOSEKey = {
@@ -25,18 +25,12 @@ export type ParsedCOSEKeyArkgPubSeed = ParsedCOSEKey & {
 	pkKem: ParsedCOSEKey,
 };
 
-export type ParsedCOSEKeyRef = {
-	kty: number | string,
-	kid: Uint8Array,
-	alg?: COSEAlgorithmIdentifier,
+export type ParsedCOSESignArgs = {
+	alg: COSEAlgorithmIdentifier,
 	[name: string]: any,
 };
 
-export type ParsedCOSEKeyRefArkgDerivedBase = ParsedCOSEKeyRef & {
-	kty: COSE_KTY_ARKG_DERIVED,
-};
-
-export type ParsedCOSEKeyRefArkgDerived = ParsedCOSEKeyRefArkgDerivedBase & {
+export type ParsedCOSESignArgsArkg = ParsedCOSESignArgs & {
 	kh: Uint8Array,
 	info: Uint8Array,
 }
@@ -289,7 +283,7 @@ export function parseCoseKeyArkgPubSeed(cose: cbor.Map): ParsedCOSEKeyArkgPubSee
 	switch (kty) {
 		case COSE_KTY_ARKG_PUB:
 			const kid = cose.get(2);
-			if (!(kid instanceof Uint8Array)) {
+			if (kid && !(kid instanceof Uint8Array)) {
 				throw new Error(
 					`Incorrect type of "kid (2)" attribute of ARKG-pub COSE_Key: ${typeof kid} ${kid}`,
 					{ cause: { kid } },
@@ -320,12 +314,10 @@ export function parseCoseKeyArkgPubSeed(cose: cbor.Map): ParsedCOSEKeyArkgPubSee
 	}
 }
 
-export function encodeCoseKeyRefArkgDerived(keyRef: ParsedCOSEKeyRefArkgDerived): ArrayBuffer {
+export function encodeCoseSignArgsArkg(args: ParsedCOSESignArgsArkg): ArrayBuffer {
 	return new Uint8Array(cbor.encodeCanonical(new cbor.Map([ // Can't use object literal because that turns integer keys into strings
-		[1, keyRef.kty],
-		[2, keyRef.kid.buffer],
-		[3, keyRef.alg],
-		[-1, keyRef.kh.buffer],
-		[-2, keyRef.info.buffer],
+		[3, args.alg],
+		[-1, args.kh.buffer],
+		[-2, args.info.buffer],
 	]))).buffer;
 }

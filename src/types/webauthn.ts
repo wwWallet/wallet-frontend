@@ -19,7 +19,7 @@ export interface AuthenticationExtensionsPRFOutputs {
 
 export interface AuthenticationExtensionsSignInputs {
 	generateKey?: AuthenticationExtensionsSignGenerateKeyInputs;
-	sign?: AuthenticationExtensionsSignSignInputs;
+	previewSign?: AuthenticationExtensionsSignSignInputs;
 }
 
 export interface AuthenticationExtensionsSignGenerateKeyInputs {
@@ -40,8 +40,10 @@ interface AuthenticationExtensionsSignOutputs {
 };
 
 interface AuthenticationExtensionsSignGeneratedKey {
-	publicKey: ArrayBuffer;
 	keyHandle: ArrayBuffer;
+	publicKey: ArrayBuffer;
+	algorithm: COSEAlgorithmIdentifier;
+	attestationObject: ArrayBuffer;
 };
 
 
@@ -50,12 +52,12 @@ declare global {
 	// Polyfill for https://www.w3.org/TR/webauthn-3/#prf-extension
 	export interface AuthenticationExtensionsClientInputs {
 		prf?: AuthenticationExtensionsPRFInputs;
-		sign?: AuthenticationExtensionsSignInputs;
+		previewSign?: AuthenticationExtensionsSignInputs;
 	}
 
 	export interface AuthenticationExtensionsClientOutputs {
 		prf?: AuthenticationExtensionsPRFOutputs;
-		sign?: AuthenticationExtensionsSignOutputs;
+		previewSign?: AuthenticationExtensionsSignOutputs;
 	}
 }
 
