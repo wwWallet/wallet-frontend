@@ -441,7 +441,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const getCachedUsers = useCallback((): CachedUser[] => {
 		return [...(cachedUsers || [])];
-	}, []);
+	}, [cachedUsers]);
 
 	const forgetCachedUser = useCallback((user: CachedUser): void => {
 		setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
