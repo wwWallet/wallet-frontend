@@ -22,6 +22,9 @@ export const UriHandler = ({ children }) => {
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 
 	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
+	const { syncPrivateData } = api;
+	const { getUserHandleB64u, getCachedUsers, getCalculatedWalletState } = keystore;
+
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
@@ -47,19 +50,21 @@ export const UriHandler = ({ children }) => {
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	useEffect(() => {
-		if (!keystore) {
+		if (!keystore || cachedUser !== null || !isLoggedIn) {
 			return;
 		}
 
-		const userHandle = keystore.getUserHandleB64u();
+		const userHandle = getUserHandleB64u();
 		if (!userHandle) {
 			return;
 		}
-		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		const u = getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
 		if (u) {
+			console.log("X: new", u)
+			console.log("X: prev", cachedUser)
 			setCachedUser(u);
 		}
-	}, [keystore, setCachedUser]);
+	}, [getCachedUsers, getUserHandleB64u, setCachedUser, cachedUser, isLoggedIn]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -87,13 +92,13 @@ export const UriHandler = ({ children }) => {
 	]);
 
 	useEffect(() => {
-		if (!keystore || !cachedUser || !api) {
+		if (!getCalculatedWalletState || !cachedUser || !syncPrivateData) {
 			return;
 		}
 		const params = new URLSearchParams(window.location.search);
-		if (synced === false && keystore.getCalculatedWalletState() && params.get('sync') !== 'fail') {
+		if (synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
 			console.log("Actually syncing...");
-			api.syncPrivateData(cachedUser).then((r) => {
+			syncPrivateData(cachedUser).then((r) => {
 				if (!r.ok) {
 					return;
 				}
@@ -103,7 +108,7 @@ export const UriHandler = ({ children }) => {
 			});
 		}
 
-	}, [api, keystore, cachedUser, synced, setSynced]);
+	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData]);
 
 	useEffect(() => {
 		if (synced === true && window.location.search !== '') {
