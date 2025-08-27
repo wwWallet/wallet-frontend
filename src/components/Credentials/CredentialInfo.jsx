@@ -110,8 +110,22 @@ const formatClaimValue = (value) => {
 			</div>
 		);
 	}
-	if (typeof value === 'string' && !value.includes(' ') && value.length > 30) {
-		return value.slice(0, 30) + '…';
+	// Image handling
+	if (typeof value === 'string') {
+		const lower = value.toLowerCase();
+		if (lower.startsWith('data:image/')) {
+			return (
+				<img
+					src={value}
+					alt="Claim image"
+					className="max-h-10 max-w-full rounded border"
+				/>
+			);
+		}
+		// Long string fallback
+		if (!value.includes(' ') && value.length > 30) {
+			return value.slice(0, 30) + '…';
+		}
 	}
 	return formatDate(value, 'date');
 };
