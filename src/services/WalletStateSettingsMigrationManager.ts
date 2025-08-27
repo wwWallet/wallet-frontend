@@ -7,13 +7,15 @@ import { BackendApi } from "@/api";
 export function useWalletStateSettingsMigrationManager(keystore: LocalStorageKeystore, api: BackendApi, isOnline: boolean, isLoggedIn: boolean) {
 
 	const migrated = useRef(false);
+	const { getCalculatedWalletState, alterSettings } = keystore;
+	const { updatePrivateData } = api;
 	const migrate = async () => {
 		console.log("Before")
-		if (!isLoggedIn || migrated.current || keystore.getCalculatedWalletState() === null) {
+		if (!isLoggedIn || migrated.current || getCalculatedWalletState() === null) {
 			return;
 		}
 
-		if (keystore.getCalculatedWalletState().settings && Object.keys(keystore.getCalculatedWalletState().settings).length > 0) {
+		if (getCalculatedWalletState().settings && Object.keys(getCalculatedWalletState().settings).length > 0) {
 			migrated.current = true;
 			return;
 		}
@@ -27,8 +29,8 @@ export function useWalletStateSettingsMigrationManager(keystore: LocalStorageKey
 			return;
 		}
 
-		const [{}, newPrivateData, keystoreCommit] = await keystore.alterSettings({ ...settings });
-		await api.updatePrivateData(newPrivateData);
+		const [{}, newPrivateData, keystoreCommit] = await alterSettings({ ...settings });
+		await updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
 		console.log("Successfully migrated settings");
@@ -38,11 +40,11 @@ export function useWalletStateSettingsMigrationManager(keystore: LocalStorageKey
 	}
 
 	useEffect(() => {
-		if (api && keystore && isOnline && !migrated.current) {
+		if (isOnline && !migrated.current) {
 			migrate();
 			console.log("migrating settings...")
 		}
-	}, [api, keystore, isOnline]);
+	}, [getCalculatedWalletState, alterSettings, isOnline]);
 
 	useEffect(() => {
 		migrated.current = false;
