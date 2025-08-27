@@ -71,30 +71,60 @@ export function jsonParseTaggedBinary(json: string): any {
 }
 
 /**
-	Create a comparator function comparing the result of passing each argument through the given function.
+	Create a comparator function comparing the result of passing each argument through the given function or functions.
+
+	If more than one function is supplied, the sorting will first compare the results of the first function,
+	then the second if the first results are equal, and so on.
+	Later comparator functions are not invoked if not needed.
+
+	If zero comparator functions are given, the returned function always returns zero.
+
 	The function returned by `compareBy` is suitable as an argument to `Array.sort()`, for example.
 
 	Example:
 	```
+	list.sort(compareBy());
 	list.sort(compareBy(obj => new Date(obj.issuanceDate)));
+	list.sort(compareBy(obj => new Date(obj.issuanceDate), obj => obj.name));
 	```
 
 	The above is equivalent to:
 	```
+	list.sort((objA, objB) => 0);
 	list.sort((objA, objB) => new Date(objB.issuanceDate) - new Date(objA.issuanceDate));
-	```
- */
-export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
-	return (a: T, b: T) => {
-		const fa = f(a);
-		const fb = f(b);
-		if (fa < fb) {
+	list.sort((objA, objB) => {
+		const a1 = new Date(objA.issuanceDate);
+		const b1 = new Date(objB.issuanceDate);
+		if (a1 < b1) {
 			return -1;
-		} else if (fb < fa) {
+		} else if (b1 < a1) {
 			return 1;
 		} else {
-			return 0;
+			const a2 = objA.name;
+			const b2 = objB.name;
+			if (a2 < b2) {
+				return -1;
+			} else if (b2 < a2) {
+				return 1;
+			} else {
+				return 0;
+			}
 		}
+	}).sort();
+	```
+ */
+export function compareBy<T>(...fs: ((v: T) => any)[]): (a: T, b: T) => number {
+	return (a: T, b: T) => {
+		for (const f of fs) {
+			const fa = f(a);
+			const fb = f(b);
+			if (fa < fb) {
+				return -1;
+			} else if (fb < fa) {
+				return 1;
+			}
+		}
+		return 0;
 	};
 }
 
