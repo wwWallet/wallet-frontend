@@ -60,8 +60,6 @@ export const UriHandler = ({ children }) => {
 		}
 		const u = getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
 		if (u) {
-			console.log("X: new", u)
-			console.log("X: prev", cachedUser)
 			setCachedUser(u);
 		}
 	}, [getCachedUsers, getUserHandleB64u, setCachedUser, cachedUser, isLoggedIn]);
