@@ -204,7 +204,6 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 	isLoginCache,
-	setIsLoginCache,
 	error,
 	setError,
 }: {
@@ -212,7 +211,6 @@ const WebauthnSignupLogin = ({
 	isSubmitting: boolean,
 	setIsSubmitting: (isSubmitting: boolean) => void,
 	isLoginCache: boolean,
-	setIsLoginCache: (isLoginCache: boolean) => void,
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 }) => {
@@ -376,7 +374,6 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onForgetCachedUser = (cachedUser: CachedUser) => {
-		setIsLoginCache(keystore.getCachedUsers().length - 1 > 0);
 		keystore.forgetCachedUser(cachedUser);
 	};
 
@@ -631,7 +628,13 @@ const Auth = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const navigate = useNavigate();
-	const [isLoginCache, setIsLoginCache] = useState(keystore.getCachedUsers().length > 0);
+
+	const { getCachedUsers } = keystore;
+	const [isLoginCache, setIsLoginCache] = useState(getCachedUsers().length > 0);
+
+	useEffect(() => {
+		setIsLoginCache(getCachedUsers().length > 0);
+	}, [getCachedUsers, setIsLoginCache]);
 
 	useEffect(() => {
 		if (isLoggedIn) {
@@ -763,7 +766,6 @@ const Auth = () => {
 					isSubmitting={isSubmitting}
 					setIsSubmitting={setIsSubmitting}
 					isLoginCache={isLoginCache}
-					setIsLoginCache={setIsLoginCache}
 					error={webauthnError}
 					setError={setWebauthnError}
 				/>
