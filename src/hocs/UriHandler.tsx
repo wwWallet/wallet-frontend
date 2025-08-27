@@ -22,6 +22,8 @@ export const UriHandler = ({ children }) => {
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
 
 	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
+	const { getUserHandleB64u, getCachedUsers } = keystore;
+
 	const location = useLocation();
 	const [url, setUrl] = useState(window.location.href);
 
@@ -47,19 +49,19 @@ export const UriHandler = ({ children }) => {
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	useEffect(() => {
-		if (!keystore) {
+		if (!keystore || cachedUser !== null || !isLoggedIn) {
 			return;
 		}
 
-		const userHandle = keystore.getUserHandleB64u();
+		const userHandle = getUserHandleB64u();
 		if (!userHandle) {
 			return;
 		}
-		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		const u = getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
 		if (u) {
 			setCachedUser(u);
 		}
-	}, [keystore, setCachedUser]);
+	}, [getCachedUsers, getUserHandleB64u, setCachedUser, cachedUser]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
