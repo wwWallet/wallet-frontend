@@ -140,7 +140,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
     yarn start
     ```
 
-## ✅ Pre-commit Hook
+## ✅Pre-commit Hook
 
 We use [pre-commit](https://pre-commit.com/) to enforce our `.editorconfig` before code is committed.
 
