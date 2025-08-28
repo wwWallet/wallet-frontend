@@ -12,6 +12,7 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - ✨ [Features](#features)
 - 🔍 [Prerequisites](#prerequisites)
 - 📦 [Installation](#installation)
+- ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
 - 🔐 [PRF Compatibility](#prf-compatibility)
 - 🔥 [Firebase](#firebase)
@@ -138,6 +139,31 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
     ```bash
     yarn start
     ```
+
+## ✅ Pre-commit Hook
+
+We use [pre-commit](https://pre-commit.com/) to enforce our `.editorconfig` before code is committed.
+
+### One-time setup
+
+```
+# install pre-commit if you don’t already have it
+pip install pre-commit       # or brew install pre-commit / pipx install pre-commit
+
+# enable the git hook in this repo
+pre-commit install
+
+# optional: clean up the repo on demand
+pre-commit run --all-files
+
+git add -A
+```
+
+### What happens on commit
+
+- Auto-fixers run (e.g. add final newlines).
+- After the auto-fixers, the editorconfig-checker runs inside Docker to validate all staged files.
+- If violations remain, fix them manually until the commit passes.
 
 ## 🚀Usage
 
