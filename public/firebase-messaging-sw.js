@@ -1,34 +1,22 @@
 importScripts("https://www.gstatic.com/firebasejs/10.1.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.1.0/firebase-messaging-compat.js");
 
+self.addEventListener('message', ({ data }) => {
+	firebase.initializeApp(data.firebaseConfig);
 
-// the Firebase config object
-const firebaseConfig = {
-	apiKey: "AIzaSyAfAxdW05Q-fWlMEUEBkPr8avW6GRNjUcE",
-	authDomain: "ediplomas-wallet.firebaseapp.com",
-	projectId: "ediplomas-wallet",
-	storageBucket: "ediplomas-wallet.appspot.com",
-	messagingSenderId: "598999145142",
-	appId: "1:598999145142:web:9561c751460a10b6836417",
-	measurementId: "G-SY9LQ8597Y"
-};
+	const messaging = firebase.messaging();
 
+	messaging.onBackgroundMessage(function(payload) {
+		console.log('Received background message ', payload);
+		const notificationTitle = payload.data.title;
+		const notificationOptions = {
+			body: payload.data.body,
+			data: { url: '/' },
+		};
 
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
-
-
-messaging.onBackgroundMessage(function(payload) {
-	console.log('Received background message ', payload);
-	const notificationTitle = payload.data.title;
-	const notificationOptions = {
-		body: payload.data.body,
-		data: { url: '/' },
-	};
-
-	self.registration.showNotification(notificationTitle,
-		notificationOptions);
-});
+		self.registration.showNotification(notificationTitle, notificationOptions);
+	});
+})
 
 self.addEventListener('notificationclick', function (event) {
 	console.log('Notification click Received.!!!!!!');
