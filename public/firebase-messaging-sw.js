@@ -1,7 +1,7 @@
 importScripts("https://www.gstatic.com/firebasejs/10.1.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.1.0/firebase-messaging-compat.js");
 
-self.addEventListener('message', ({data}) => {
+self.addEventListener('message', ({ data }) => {
 	firebase.initializeApp(data);
 
 	const messaging = firebase.messaging();
