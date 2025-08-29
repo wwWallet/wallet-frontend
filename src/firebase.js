@@ -13,14 +13,23 @@ export async function isEnabledAndIsSupported() {
 	return config.FIREBASE_ENABLED && await isSupported();
 }
 
+/** @param {ServiceWorkerRegistration} r */
+async function postFirebaseConfigToWorker(r) {
+	let worker = r.installing || r.active;
+
+	worker.postMessage(config.FIREBASE)
+}
+
 export async function register() {
 	if (await isEnabledAndIsSupported() && 'serviceWorker' in navigator) {
 		try {
 			const existingRegistration = await navigator.serviceWorker.getRegistration('/firebase-cloud-messaging-push-scope');
 			if (existingRegistration) {
 				console.log('Service Worker is already registered. Scope:', existingRegistration.scope);
+				postFirebaseConfigToWorker(existingRegistration);
 			} else {
 				const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
+				postFirebaseConfigToWorker(registration);
 				console.log('App: Firebase Messaging Service Worker registered! Scope is:', registration.scope);
 			}
 		} catch (err) {
@@ -72,6 +81,7 @@ const reRegisterServiceWorkerAndGetToken = async () => {
 			// Re-register the service worker
 			const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/firebase-cloud-messaging-push-scope' });
 			if (registration) {
+				postFirebaseConfigToWorker(registration);
 				console.log('Service Worker re-registered', registration);
 				const token = await requestForToken();
 				if (token) {
