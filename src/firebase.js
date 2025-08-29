@@ -17,7 +17,7 @@ export async function isEnabledAndIsSupported() {
 async function postFirebaseConfigToWorker(r) {
 	let worker = r.installing || r.active;
 
-	worker.postMessage(config.FIREBASE);
+	worker.postMessage({ firebaseConfig: config.FIREBASE });
 }
 
 export async function register() {
