@@ -74,7 +74,7 @@ export type WalletSessionEventDeletePresentation = {
 
 export type WalletSessionEventAlterSettings = {
 	type: "alter_settings",
-	settings: Record<string, string>,
+	settings: Record<string, unknown>,
 }
 
 export type WalletSessionEventSaveCredentialIssuanceSession = {
@@ -134,7 +134,7 @@ export type WalletState = {
 		presentationTimestampSeconds: number,
 		audience: string,
 	}[],
-	settings: Record<string, string>,
+	settings: Record<string, unknown>,
 	credentialIssuanceSessions: {
 		sessionId: number, // unique
 
@@ -419,7 +419,7 @@ export namespace WalletStateOperations {
 
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
-			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: {} },
+			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { openidRefreshTokenMaxAgeInSeconds: 0 } },
 			events: [],
 			lastEventHash: "",
 		}
