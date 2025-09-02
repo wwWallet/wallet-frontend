@@ -389,6 +389,39 @@ describe("The WalletStateOperations", () => {
 		});
 	});
 
+	it("resolves a trivial merge by returning the container unchanged.", async () => {
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addDeleteCredentialEvent(
+			container,
+			(container.events[0] as any).credentialId,
+		);
+
+		const divp = findDivergencePoint(container.events, container.events);
+		assert.strictEqual(divp, container.events[1]);
+		const merged = await WalletStateOperations.mergeEventHistories(container, container);
+		assert.deepEqual(merged, container);
+	});
+
+	it("resolves a fast-forward merge by returning the younger container unchanged.", async () => {
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addDeleteCredentialEvent(
+			container,
+			(container.events[0] as any).credentialId,
+		);
+
+		let container2 = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+
+		const divp = findDivergencePoint(container.events, container2.events);
+		assert.strictEqual(divp, container.events[1]);
+
+		const mergedR = await WalletStateOperations.mergeEventHistories(container, container2);
+		assert.deepEqual(mergedR, container2);
+		const mergedL = await WalletStateOperations.mergeEventHistories(container2, container);
+		assert.deepEqual(mergedL, mergedR);
+	});
+
 	it("should successfully fold one event at a time", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
