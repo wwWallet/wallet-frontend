@@ -9,19 +9,20 @@ import { deriveHolderKidFromCredential } from "@/lib/services/OpenID4VCI/OpenID4
 export function useWalletStateCredentialsMigrationManager(keystore: LocalStorageKeystore, api: BackendApi, isOnline: boolean, isLoggedIn: boolean) {
 
 	const migrated = useRef(false);
+	const { getCalculatedWalletState, addCredentials } = keystore;
+	const { get, del, updatePrivateData } = api;
 
 	const migrateVerifiableCredentialTable = async () => {
 
-		if (!isLoggedIn || migrated.current || keystore.getCalculatedWalletState() === null) {
+		if (!isLoggedIn || migrated.current || getCalculatedWalletState() === null) {
 			return;
 		}
-		console.log("State = ", keystore.getCalculatedWalletState().credentials)
-		if (keystore.getCalculatedWalletState().credentials.length > 0) {
+		if (getCalculatedWalletState().credentials.length > 0) {
 			migrated.current = true;
 			return;
 		}
 
-		const response = await api.get('/storage/vc');
+		const response = await get('/storage/vc');
 		const vcEntityList = response.data.vc_list;
 		if (vcEntityList.length === 0) {
 			migrated.current = true;
@@ -48,8 +49,8 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			}
 		}));
 		console.log("Transformed credentials = ", transformedVcEntities)
-		const [{ }, newPrivateData, keystoreCommit] = await keystore.addCredentials(transformedVcEntities);
-		await api.updatePrivateData(newPrivateData);
+		const [{ }, newPrivateData, keystoreCommit] = await addCredentials(transformedVcEntities);
+		await updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
 		console.log("Successfully migrated credentials");
@@ -59,22 +60,22 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 	}
 
 	useEffect(() => {
-		if (api && keystore && isOnline && !migrated.current) {
+		if (updatePrivateData && addCredentials && getCalculatedWalletState && isOnline && !migrated.current) {
 			migrateVerifiableCredentialTable();
 			console.log("migrating credentials...")
 		}
-	}, [api, keystore, isOnline]);
+	}, [updatePrivateData, addCredentials, getCalculatedWalletState, isOnline]);
 
 	useEffect(() => {
 		if (!migrated.current) {
 			return;
 		}
-		api.get('/storage/vc').then(async (response) => {
+		get('/storage/vc').then(async (response) => {
 			const vcEntityList = response.data.vc_list;
 			try {
 				await Promise.all(vcEntityList.map(async ({ credentialIdentifier }) => {
 					try {
-						await api.del('/storage/vc/' + credentialIdentifier);
+						await del('/storage/vc/' + credentialIdentifier);
 						console.log("Deleted vc with identifier " + credentialIdentifier);
 					}
 					catch (err) {
@@ -89,7 +90,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			}
 
 		})
-	}, [api, isOnline]);
+	}, [get, isOnline]);
 
 	useEffect(() => {
 		migrated.current = false;

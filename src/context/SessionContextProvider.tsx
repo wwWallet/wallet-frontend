@@ -7,7 +7,6 @@ import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
 import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
 import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
-import { useWalletStateSettingsMigrationManager } from '@/services/WalletStateSettingsMigrationManager';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
 
 export const SessionContextProvider = ({ children }) => {
@@ -22,7 +21,6 @@ export const SessionContextProvider = ({ children }) => {
 
 	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
 	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
-	const _settingslMigrationManager = useWalletStateSettingsMigrationManager(keystore, api, isOnline, isLoggedIn);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
