@@ -678,29 +678,10 @@ export namespace WalletStateOperations {
 			return newContainer;
 		}
 
-		const commonHistory: WalletSessionEvent[] = [];
-		const history1DivergentPart = [];
-		const history2DivergentPart = [];
-
-		let pointOfDivergenceIndex = -1;
-		for (let i = 0; i < container1.events.length; i++) {
-			if (container1.events[i].eventId === pointOfDivergence.eventId) {
-				pointOfDivergenceIndex = i;
-			}
-		}
-
-		for (let i = 0; i <= pointOfDivergenceIndex; i++) {
-			commonHistory.push(container1.events[i]);
-		}
-
-		for (let i = pointOfDivergenceIndex + 1; i < container1.events.length; i++) {
-			history1DivergentPart.push(container1.events[i]);
-		}
-
-		for (let i = pointOfDivergenceIndex + 1; i < container2.events.length; i++) {
-			history1DivergentPart.push(container2.events[i]);
-		}
-
+		let pointOfDivergenceIndex = container1.events.findIndex(event => event.eventId === pointOfDivergence.eventId);
+		const commonHistory = container1.events.slice(0, pointOfDivergenceIndex + 1);
+		const history1DivergentPart = container1.events.slice(pointOfDivergenceIndex + 1);
+		const history2DivergentPart = container2.events.slice(pointOfDivergenceIndex + 1);
 
 		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
 		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
