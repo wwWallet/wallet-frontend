@@ -128,7 +128,7 @@ const WebauthnRegistation = ({
 					publicKey: {
 						...beginData.createOptions.publicKey,
 						hints,
-						authenticatorSelection: withAuthenticatorAttachmentFromHints({}, hints),
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, hints),
 					},
 				};
 

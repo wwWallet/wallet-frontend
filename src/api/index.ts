@@ -636,7 +636,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							},
 						},
 						hints: webauthnHints,
-						authenticatorSelection: withAuthenticatorAttachmentFromHints({}, webauthnHints),
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, webauthnHints),
 					},
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAttestationResponse;
