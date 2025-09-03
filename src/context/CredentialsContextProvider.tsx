@@ -70,11 +70,16 @@ export const CredentialsContextProvider = ({ children }) => {
 				let icon = "";
 				if (supportedCredConf?.display && supportedCredConf?.display[0] && supportedCredConf.display[0]?.background_image?.uri) {
 					const uri = supportedCredConf.display[0]?.background_image?.uri;
-					const img = await axios.get(uri, { responseType: 'arraybuffer' });
-					const contentType = img.headers['content-type'];
-					const b64data = toBase64(img.data);
-					const b64UriData = `data:${contentType};base64,${b64data}`
-					icon = b64UriData;
+					let icon = '';
+					try {
+						const img = await axios.get(uri, { responseType: 'arraybuffer' });
+						const contentType = img.headers['content-type'];
+						const b64data = toBase64(img.data);
+						const b64UriData = `data:${contentType};base64,${b64data}`
+						icon = b64UriData;
+					} catch (e) {
+						console.error(e);
+					}
 				}
 				const newRandomId = WalletStateUtils.getRandomUint32();
 				const supportedCredential = {
@@ -101,13 +106,12 @@ export const CredentialsContextProvider = ({ children }) => {
 		if (!supportedDcApiCredentials || !window.nativeWrapper || !window.nativeWrapper.updateAllCredentials) {
 			return;
 		}
-		// @ts-ignore
-		const fn = window.nativeWrapper.updateAllCredentials as NativeWrapperUpdateCredentialsFn;
 		const aggregatedSupportedDcApiCreds = Object.values(supportedDcApiCredentials).reduce<DcApiCredentialWrapperCommonSchema[]>(
 			(acc, arr) => [...acc, ...arr],
 			[]
 		);
-		fn(aggregatedSupportedDcApiCreds);
+		// @ts-ignore
+		nativeWrapper.updateAllCredentials(JSON.stringify(aggregatedSupportedDcApiCreds));
 	}, [supportedDcApiCredentials]);
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
