@@ -190,4 +190,20 @@ describe("The WalletStateOperations", () => {
 
 	});
 
+	it("foldOldEventsIntoBaseState does not modify the parent hashes of unfolded events.", async () => {
+		const now = Date.now() / 1000;
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+
+		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container.events[0].timestampSeconds = now - 10;
+
+		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container.events[1].timestampSeconds = now + 10;
+
+		const folded = await WalletStateOperations.foldOldEventsIntoBaseState(container, 0);
+
+		assert.deepEqual(folded.events, container.events.slice(1));
+		assert.strictEqual(folded.lastEventHash, container.events[1].parentHash);
+	});
+
 })
