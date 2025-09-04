@@ -56,11 +56,24 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [isLoggedIn, httpProxy, helper]);
 
 
-	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
+	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
-			const result = await engine.credentialParsingEngine.parse({ rawCredential });
+
+			const {
+				data,
+				credentialIssuerIdentifier,
+				credentialConfigurationId,
+			} = vcEntity;
+
+			const result = await credentialEngine.credentialParsingEngine.parse({
+				rawCredential: data,
+				credentialIssuer: {
+					credentialIssuerIdentifier: credentialIssuerIdentifier,
+					credentialConfigurationId: credentialConfigurationId,
+				},
+			});
 			if (result.success) {
 				return result.value;
 			}
@@ -109,8 +122,9 @@ export const CredentialsContextProvider = ({ children }) => {
 					return vcEntity.instanceId === 0;
 				})
 				.map(async (vcEntity) => {
+					console.log('vcEntity', vcEntity)
 					// Parse the credential to get parsedCredential
-					const parsedCredential = await parseCredential(vcEntity.data);
+					const parsedCredential = await parseCredential(vcEntity);
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}

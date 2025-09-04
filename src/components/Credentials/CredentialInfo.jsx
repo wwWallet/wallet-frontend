@@ -100,33 +100,64 @@ const isDisplayClaim = (claim) => {
 };
 
 const formatClaimValue = (value) => {
-	if (typeof value === 'boolean') return String(value);
-	if (typeof value === 'object') {
-		return (
-			<div className="w-full">
-				<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
-					<JsonViewer value={value} />
-				</div>
+
+	const renderImg = (src) => (
+		<img
+			src={src}
+			alt="Claim image"
+			className="max-h-10 max-w-full rounded border"
+		/>
+	);
+
+	const renderJson = (v) => (
+		<div className="w-full">
+			<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
+				<JsonViewer value={v} />
 			</div>
-		);
-	}
-	// Image handling
+		</div>
+	);
+
+	if (typeof value === 'boolean') return String(value);
+
+	// String handling
 	if (typeof value === 'string') {
 		const lower = value.toLowerCase();
+
+		// Image data URI
 		if (lower.startsWith('data:image/')) {
-			return (
-				<img
-					src={value}
-					alt="Claim image"
-					className="max-h-10 max-w-full rounded border"
-				/>
-			);
+			return renderImg(value);
 		}
 		// Long string fallback
 		if (!value.includes(' ') && value.length > 30) {
 			return value.slice(0, 30) + '…';
 		}
 	}
+
+	// Handle raw image bytes
+	if (
+		typeof value === 'object' &&
+		value !== null &&
+		Object.keys(value).length > 0 &&
+		Object.keys(value).every(k => !isNaN(Number(k))) &&
+		Object.values(value).every(v => typeof v === 'number')
+	) {
+		try {
+			const uint8Array = new Uint8Array(Object.values(value));
+			const base64 = btoa(
+				String.fromCharCode.apply(null, Array.from(uint8Array))
+			);
+			const src = `data:image/jpeg;base64,${base64}`;
+			return renderImg(src);
+		} catch {
+			// fallback if conversion fails
+			return renderJson(value);
+		}
+	}
+
+	if (typeof value === 'object') {
+		return renderJson(value);
+	}
+
 	return formatDate(value, 'date');
 };
 
