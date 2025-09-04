@@ -265,7 +265,7 @@ async function createWalletSessionEvent(container: WalletStateContainer): Promis
 		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
 		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
-		timestampSeconds: Math.floor(new Date().getTime() / 1000),
+		timestampSeconds: Math.floor(Date.now() / 1000),
 	};
 	return {
 		...baseEvent,
@@ -723,7 +723,7 @@ export namespace WalletStateOperations {
 	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
 	 */
 	export async function foldOldEventsIntoBaseState({ events, S, lastEventHash }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
-		const now = Math.floor(new Date().getTime() / 1000);
+		const now = Math.floor(Date.now() / 1000);
 		const foldBefore = now - foldEventHistoryAfter;
 		const firstYoungIndex = events.findIndex(event => event.timestampSeconds >= foldBefore);
 		const splitIndex = (firstYoungIndex === -1 ? events.length : firstYoungIndex);
