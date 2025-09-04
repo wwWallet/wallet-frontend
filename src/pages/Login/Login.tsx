@@ -725,7 +725,7 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
+			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
