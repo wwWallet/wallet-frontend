@@ -735,7 +735,7 @@ export namespace WalletStateOperations {
 			};
 		}
 		const newEvents = events.slice(splitIndex);
-		const newLastEventHash = await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
+		const newLastEventHash = newEvents[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
 		return {
 			events: newEvents,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
