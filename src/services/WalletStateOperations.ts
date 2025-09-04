@@ -744,10 +744,10 @@ export namespace WalletStateOperations {
 				lastEventHash,
 			};
 		}
+		const newEvents = events.slice(splitIndex);
 		const newLastEventHash = await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
-		const newEventHistory = await rebuildEventHistory(events.slice(splitIndex), newLastEventHash);
 		return {
-			events: newEventHistory,
+			events: newEvents,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
 			lastEventHash: newLastEventHash,
 		};
