@@ -48,14 +48,12 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						id="previous-slide"
 						onClick={handlePrev}
 						disabled={currentSlide === 1}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -left-14 sm:-left-16 p-2
-              ${currentSlide === 1
-								? 'opacity-50 cursor-not-allowed text-gray-400'
-								: 'text-primary dark:text-white hover:opacity-100'} opacity-90`}
-						aria-label={
-							currentSlide === 1
-								? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') })
-								: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -left-14 sm:-left-16 p-2 ${currentSlide === 1
+							? 'opacity-50 cursor-not-allowed text-gray-400'
+							: 'text-primary dark:text-white hover:opacity-100'} opacity-90`}
+						aria-label={currentSlide === 1
+							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') })
+							: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })
 						}
 						title={
 							currentSlide === 1
@@ -70,14 +68,12 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						id="next-slide"
 						onClick={handleNext}
 						disabled={currentSlide === items.length}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -right-14 sm:-right-16 p-2
-              ${currentSlide === items.length
-								? 'opacity-50 cursor-not-allowed text-gray-400'
-								: 'text-primary dark:text-white hover:opacity-100'} opacity-90`}
-						aria-label={
-							currentSlide === items.length
-								? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') })
-								: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -right-14 sm:-right-16 p-2 ${currentSlide === items.length
+							? 'opacity-50 cursor-not-allowed text-gray-400'
+							: 'text-primary dark:text-white hover:opacity-100'} opacity-90`}
+						aria-label={currentSlide === items.length
+							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') })
+							: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })
 						}
 						title={
 							currentSlide === items.length
