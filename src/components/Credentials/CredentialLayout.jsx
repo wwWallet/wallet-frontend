@@ -153,7 +153,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 	if (!vcEntity) return null;
 
 	return (
-		<div className=" sm:px-6">
+		<div className="px-6">
 			{screenType !== 'mobile' ? (
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
