@@ -20,7 +20,7 @@ const History = () => {
 	const { t } = useTranslation();
 
 	return (
-		<div className="sm:px-6 w-full">
+		<div className="px-6 sm:px-12 w-full">
 			<H1 heading={t('common.navItemHistory')} />
 			<PageDescription description={t('pageHistory.description')} />
 
