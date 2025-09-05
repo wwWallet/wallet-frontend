@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: end-of-file-fixer
+        name: Minor auto-fixes
+        exclude: ^(node_modules|dist|build|public)/
+
+  - repo: local
+    hooks:
+      - id: editorconfig-checker-docker
+        name: Check .editorconfig rules
+        language: docker_image
+        entry: mstruebing/editorconfig-checker:latest
+        args: ["ec", "-no-color"]
+        types_or: [text]
+        exclude: ^(node_modules|dist|build|public)/
