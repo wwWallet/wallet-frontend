@@ -21,9 +21,13 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 					return;
 				}
 
+				const allCredentials = (await keystore.getAllCredentials()) || [];
+				const credentialById = new Map(
+					allCredentials.map(c => [String(c.credentialId), c])
+				);
+
 				if (batchId) {
-					const credentials = await keystore.getAllCredentials() || [];
-					const instances = credentials.filter((credential) => credential.batchId === parseInt(batchId));
+					const instances = allCredentials.filter((credential) => credential.batchId === parseInt(batchId));
 					const credentialsIds = instances.map((instance) => instance.credentialId);
 
 					const transactionIds = presentations.filter((p) =>
@@ -33,7 +37,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 					presentations = presentations.filter((p) =>
 						transactionIds.includes(p.transactionId)
 					);
-					console.log("Presentations = ", presentations)
+
 					if (presentations.length === 0) {
 						setHistory([]);
 						return;
@@ -51,7 +55,16 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 				const presentationsTransformed = await Promise.all(presentations
 					.sort(reverse(compareBy(presentation => presentation.presentationTimestampSeconds)))
 					.map(async (presentation) => {
-						const parsedCredential = await parseCredential(presentation.data);
+
+						const firstUsedId = String(presentation.usedCredentialIds?.[0] ?? "");
+						const firstVC = credentialById.get(firstUsedId);
+
+						const parsedCredential = await parseCredential({
+							...presentation,
+							credentialConfigurationId: firstVC?.credentialConfigurationId ?? null,
+							credentialIssuerIdentifier: firstVC?.credentialIssuerIdentifier ?? null,
+						});
+
 						const result = await (async () => {
 							switch (parsedCredential.metadata.credential.format) {
 								case VerifiableCredentialFormat.VC_SDJWT:

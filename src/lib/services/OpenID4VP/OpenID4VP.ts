@@ -148,7 +148,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				try {
 					if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
 						(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
-						const result = await parseCredential(vc.data);
+						const result = await parseCredential(vc);
 						if ('error' in result) continue;
 						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
 							conformingVcList.push(vc.batchId);
@@ -250,7 +250,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					};
 				} else {
 					// --- SD-JWT shaping ---
-					const { signedClaims, error } = await parseCredential(vc.data);
+					const { signedClaims, error } = await parseCredential(vc);
 					if (error) throw error;
 					shaped.vct = signedClaims.vct;
 					shaped.claims = signedClaims;
@@ -639,7 +639,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-				const { signedClaims } = await parseCredential(vcEntity.data);
+				const { signedClaims } = await parseCredential(vcEntity);
 
 				let paths: string[][];
 

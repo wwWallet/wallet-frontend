@@ -1,9 +1,6 @@
 // External libraries
 import React, { useContext, useEffect, useState } from 'react';
 
-// Context
-import CredentialsContext from '@/context/CredentialsContext';
-
 // Components
 import Slider from '../Shared/Slider';
 import CredentialImage from '../Credentials/CredentialImage';
@@ -17,7 +14,6 @@ import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
-	const { parseCredential, credentialEngine } = useContext(CredentialsContext);
 	const screenType = useScreenType();
 	const httpProxy = useHttpProxy();
 
