@@ -1,11 +1,11 @@
 // CredentialsContext.ts
-import { WalletBaseStateCredential } from '@/services/WalletStateOperations';
+import { WalletBaseStateCredential, WalletStateCredential } from '@/services/WalletStateOperations';
 import { createContext } from 'react';
 import { ParsedCredential } from 'wallet-common/dist/types';
-import { ParsingEngineI,CredentialVerifier } from 'wallet-common/dist/interfaces';
+import { ParsingEngineI, CredentialVerifier } from 'wallet-common/dist/interfaces';
 
 type CredentialEngine = {
-	credentialParsingEngine:ParsingEngineI ;
+	credentialParsingEngine: ParsingEngineI;
 	sdJwtVerifier: CredentialVerifier;
 	msoMdocVerifier: CredentialVerifier;
 };
@@ -29,7 +29,7 @@ export type CredentialsContextValue = {
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
+	parseCredential: (vcEntity: WalletStateCredential) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
 };
 

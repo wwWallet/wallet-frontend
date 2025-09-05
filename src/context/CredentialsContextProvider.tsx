@@ -122,7 +122,6 @@ export const CredentialsContextProvider = ({ children }) => {
 					return vcEntity.instanceId === 0;
 				})
 				.map(async (vcEntity) => {
-					console.log('vcEntity', vcEntity)
 					// Parse the credential to get parsedCredential
 					const parsedCredential = await parseCredential(vcEntity);
 					if (parsedCredential === null) { // filter out the non parsable credentials
