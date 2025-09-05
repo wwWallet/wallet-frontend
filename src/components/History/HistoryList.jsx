@@ -44,18 +44,21 @@ const HistoryList = ({ batchId = null, title = '', limit = null }) => {
 			<div className="py-2 w-full">
 				{title && Object.values(history).length > 0 && <H3 heading={title} />}
 				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
-					{Object.values(history).sort(reverse(compareBy(item => item[0].presentation.presentationTimestampSeconds))).map(item => ( // note: an item is an array of presentations (see useFetchPresentations hook)
-						<button
-							id={`credential-history-item-${item[0].presentation.transactionId}`}
-							key={item[0].presentation.transactionId}
-							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
-							style={{ wordBreak: 'break-all' }}
-							onClick={() => handleHistoryItemClick(item)}
-						>
-							<div className="font-bold">{item[0].presentation.audience}</div>
-							<div>{formatDate(item[0].presentation.presentationTimestampSeconds)}</div>
-						</button>
-					))}
+					{Object.values(history)
+						.sort(reverse(compareBy(item => item[0].presentation.presentationTimestampSeconds)))
+						.slice(0, limit ?? Object.values(history).length)
+						.map(item => ( // note: an item is an array of presentations (see useFetchPresentations hook)
+							<button
+								id={`credential-history-item-${item[0].presentation.transactionId}`}
+								key={item[0].presentation.transactionId}
+								className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
+								style={{ wordBreak: 'break-all' }}
+								onClick={() => handleHistoryItemClick(item)}
+							>
+								<div className="font-bold">{item[0].presentation.audience}</div>
+								<div>{formatDate(item[0].presentation.presentationTimestampSeconds)}</div>
+							</button>
+						))}
 				</div>
 			</div>
 
