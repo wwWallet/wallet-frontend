@@ -1,5 +1,5 @@
 import { assert, describe, it } from "vitest";
-import { findDivergencePoint, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { findDivergencePoint, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { CredentialKeyPair } from "./keystore";
 
