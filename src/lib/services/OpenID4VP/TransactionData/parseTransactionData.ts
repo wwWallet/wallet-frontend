@@ -1,7 +1,12 @@
 import { fromBase64Url } from "@/util";
-import { TransactionDataRequestObject } from "./TransactionDataRequest/TransactionDataRequestObject";
+import { TransactionDataRequest, TransactionDataRequestObject } from "./TransactionDataRequest/TransactionDataRequestObject";
 
-export function parseTransactionData(transaction_data: string[], presentation_definition?: Record<string, unknown>, dcql_query?: Record<string, unknown>) {
+export type ParsedTransactionData = {
+    transaction_data_b64u: string;
+    parsed: TransactionDataRequest;
+}[];
+
+export function parseTransactionData(transaction_data: string[], presentation_definition?: Record<string, unknown>, dcql_query?: Record<string, unknown>): ParsedTransactionData | null {
 	try {
 		if (presentation_definition && dcql_query) {
 			throw new Error("Only one of presentation_definition or dcql_query should be provided");
@@ -35,14 +40,8 @@ export function parseTransactionData(transaction_data: string[], presentation_de
 	}
 	catch (e) {
 		console.error(e);
-		return "invalid_transaction_data";
+		return null;
 	}
 
 }
 
-export interface TransactionDataResponse {
-	generateTransactionDataResponseParameters(transaction_data: string[]): Promise<[{
-		transaction_data_hashes: string[],
-		transaction_data_hashes_alg: string[],
-	} | null, Error | null]>;
-}
