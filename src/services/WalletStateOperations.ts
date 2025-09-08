@@ -3,7 +3,7 @@ import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
-import { compareBy } from "@/util";
+import { compareBy, last } from "@/util";
 
 
 export type WalletStateContainer = {
@@ -768,7 +768,7 @@ export namespace WalletStateOperations {
 		}
 
 		const { lastEventHash, baseState, commonEvents, uniqueEvents1, uniqueEvents2 } = mergeBase;
-		const lastCommonEvent = commonEvents[commonEvents.length - 1];
+		const lastCommonEvent = last(commonEvents);
 		const pointOfDivergenceHash = (
 			lastCommonEvent
 				? await WalletStateUtils.calculateEventHash(lastCommonEvent)

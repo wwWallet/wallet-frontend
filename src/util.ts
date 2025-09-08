@@ -70,6 +70,11 @@ export function jsonParseTaggedBinary(json: string): any {
 	return JSON.parse(json, reviverTaggedBinaryToUint8Array);
 }
 
+/** Get the last element of `arr`, or `undefined` if `arr` is empty or nullish. */
+export function last<T>(arr: T[]): T | undefined {
+	return arr ? arr[arr.length - 1] : undefined;
+}
+
 /**
 	Create a comparator function comparing the result of passing each argument through the given function.
 	The function returned by `compareBy` is suitable as an argument to `Array.sort()`, for example.
