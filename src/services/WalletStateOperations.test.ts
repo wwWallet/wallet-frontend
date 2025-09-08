@@ -127,7 +127,31 @@ describe("The WalletStateOperations", () => {
 		const result = findDivergencePoint(container1.events, container2.events);
 		// verify that E3 is the actual point of divergence
 		assert(await WalletStateUtils.calculateEventHash(result) === await WalletStateUtils.calculateEventHash(container.events[2]));
-		await WalletStateOperations.mergeEventHistories(container1, container2);
+
+		const merged = await WalletStateOperations.mergeEventHistories(container1, container2);
+		const expectMergedEvent2_4 = {
+			...container2.events[4],
+			parentHash: await WalletStateUtils.calculateEventHash(container1.events[container1.events.length - 1]),
+		};
+		const expectMergedEvent2_5 = {
+			...container2.events[5],
+			parentHash: await WalletStateUtils.calculateEventHash(expectMergedEvent2_4),
+		};
+		const expectMergedEvent2_3 = {
+			...container2.events[3],
+			parentHash: await WalletStateUtils.calculateEventHash(expectMergedEvent2_5),
+		};
+		assert.deepEqual(merged, {
+			lastEventHash: container.lastEventHash,
+			S: container.S,
+			events: [
+				...container.events,
+				...container1.events.slice(3),
+				expectMergedEvent2_4,
+				expectMergedEvent2_5,
+				expectMergedEvent2_3,
+			],
+		});
 	});
 
 	it("should successfully fold one event at a time", async () => {
