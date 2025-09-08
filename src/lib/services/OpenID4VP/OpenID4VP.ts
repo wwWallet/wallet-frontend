@@ -19,13 +19,13 @@ import { parse } from "@auth0/mdl";
 import { DcqlQuery, DcqlPresentationResult } from 'dcql';
 import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
-import { parseTransactionData } from "./TransactionData/parseTransactionData";
-import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
+import { ParsedTransactionData, parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
+import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
 
-export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, number>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
+export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string, parsedTransactionData?: ParsedTransactionData[]) => Promise<Map<string, number>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
 
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
@@ -72,8 +72,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 
 	const promptForCredentialSelection = useCallback(
-		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, number>> => {
-			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose);
+		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string, parsedTransactionData: ParsedTransactionData[]): Promise<Map<string, number>> => {
+			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData);
 		},
 		[showCredentialSelectionPopup]
 	);
@@ -273,6 +273,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 		function hasValidMatch(credId: string): boolean {
 			const match = matches[credId];
+			if (match?.success === false) {
+				match.failed_credentials.map((failedCreds) => {
+					if (!failedCreds.meta.success) {
+						console.error("DCQL metadata issues: ", failedCreds.meta.issues)
+					}
+					if (!failedCreds.claims.success) {
+						console.error("DCQL failed claims: ", failedCreds.claims)
+					}
+				})
+			}
 			return match?.success === true && Array.isArray(match.valid_credentials) && match.valid_credentials.length > 0;
 		}
 
@@ -455,8 +465,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
-						.generateTransactionDataResponseParameters(transaction_data);
+					const [res, err] = await TransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
+						.generateTransactionDataResponse(transaction_data);
 					if (err) {
 						throw err;
 					}
@@ -685,8 +695,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
-						.generateTransactionDataResponseParameters(transaction_data);
+					const [res, err] = await TransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
+						.generateTransactionDataResponse(transaction_data);
 					if (err) {
 						throw err;
 					}
@@ -792,7 +802,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	}
 
 
-	const handleAuthorizationRequest = useCallback(async (url: string, vcEntityList: ExtendedVcEntity[]): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string } | { error: HandleAuthorizationRequestError }> => {
+	const handleAuthorizationRequest = useCallback(async (url: string, vcEntityList: ExtendedVcEntity[]): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string, parsedTransactionData?: ParsedTransactionData } | { error: HandleAuthorizationRequestError }> => {
 		let {
 			client_id,
 			response_uri,
@@ -816,6 +826,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
 		}
 
+		let parsedTransactionData: ParsedTransactionData | null = null;
 		if (request_uri) {
 			try {
 				const result = await handleRequestUri(request_uri, httpProxy);
@@ -842,8 +853,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					console.log("Received transaction data");
 					console.log('Transaction data = ', payload.transaction_data)
 					transaction_data = payload.transaction_data;
-					const result = parseTransactionData(transaction_data, presentation_definition, dcql_query);
-					if (result === "invalid_transaction_data") {
+					parsedTransactionData = parseTransactionData(transaction_data, presentation_definition, dcql_query);
+					if (parsedTransactionData === null) {
 						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
 					}
 				}
@@ -911,6 +922,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			conformantCredentialsMap: mapping,
 			verifierDomainName,
 			verifierPurpose: descriptorPurpose,
+			parsedTransactionData,
 		};
 	}, [httpProxy, parseCredential, openID4VPRelyingPartyStateRepository]);
 
