@@ -422,6 +422,35 @@ describe("The WalletStateOperations", () => {
 		}
 	});
 
+	it("mergeEventHistories overwrites conflicting alter_settings events with the latest one.", async () => {
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+		container = await WalletStateOperations.addAlterSettingsEvent(container, { foo: "bar" });
+		container.events[0].timestampSeconds = 0;
+
+		const container1 = await WalletStateOperations.addAlterSettingsEvent(container, { foo: "boo" });
+		container1.events[1].timestampSeconds = 1;
+		let container2 = await WalletStateOperations.addAlterSettingsEvent(container, { foo: "far" });
+		container2.events[1].timestampSeconds = 2;
+		container2 = await WalletStateOperations.addAlterSettingsEvent(container2, { foo: "zoo" });
+		container2.events[2].timestampSeconds = 3;
+		assert.notDeepEqual(container1.events[1], container2.events[1]);
+
+		const mergedL = await WalletStateOperations.mergeEventHistories(container1, container2);
+		assert.deepEqual(mergedL, {
+			lastEventHash: container.lastEventHash,
+			S: container.S,
+			events: [
+				...container.events,
+				{
+					...container2.events[2],
+					parentHash: container2.events[1].parentHash,
+				},
+			],
+		});
+		const mergedR = await WalletStateOperations.mergeEventHistories(container2, container1);
+		assert.deepEqual(mergedR, mergedL);
+	});
+
 	it("should successfully fold one event at a time", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
 
