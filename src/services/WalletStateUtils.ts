@@ -47,4 +47,11 @@ export namespace WalletStateUtils {
 		return sha256(JSON.stringify(normalize(event)));
 	}
 
+	export async function reparent(childEvent: WalletSessionEvent, parentEvent: WalletSessionEvent): Promise<WalletSessionEvent> {
+		return {
+			...childEvent,
+			parentHash: await calculateEventHash(parentEvent),
+		};
+	}
+
 }

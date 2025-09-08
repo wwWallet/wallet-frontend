@@ -394,10 +394,7 @@ async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: 
 			});
 			continue;
 		}
-		newEvents.push({
-			...events[i],
-			parentHash: await WalletStateUtils.calculateEventHash(newEvents[i - 1]),
-		});
+		newEvents.push(await WalletStateUtils.reparent(events[i], newEvents[i - 1]));
 	}
 	return newEvents;
 }
