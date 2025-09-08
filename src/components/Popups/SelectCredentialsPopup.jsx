@@ -345,14 +345,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								);
 							})()}
 
-							{popupState?.options?.parsedTransactionData?.[0]?.parsed.type === 'urn:wwwallet:example_transaction_data_type' && (
-								<div className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
-									<span className="text-primary text-sm font-bold dark:text-white block mb-1">
-										Example transaction data information: {t('selectCredentialPopup.transactionDataExample')}
-									</span>
-									<p></p>
-								</div>
-							)}
+							{popupState?.options?.parsedTransactionData.map((txData) => {
+								const TxComp = txData.ui;
+								return (<TxComp />)
+							})}
 
 							<div>
 								<p className="text-primary dark:text-white text-sm font-bold">
@@ -450,14 +446,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							/>
 						</p>
 
-						{popupState?.options?.parsedTransactionData?.[0]?.parsed.type === 'urn:wwwallet:example_transaction_data_type' && (
-							<div className="pd-2 text-gray-700 text-sm dark:text-white mt-2">
-								<span className="text-primary text-sm font-bold dark:text-white block mb-1">
-									Example transaction data information: {t('selectCredentialPopup.transactionDataExample')}
-								</span>
-								<p></p>
-							</div>
-						)}
+						{popupState?.options?.parsedTransactionData.map((txData) => {
+							const TxComp = txData.ui;
+							return <TxComp />
+						})}
 
 						<div className={`xm:px-4 px-16 sm:px-24 md:px-8 ${screenType === 'desktop' && 'max-w-[600px]'}`}>
 							<Slider
