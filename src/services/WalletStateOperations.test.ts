@@ -196,6 +196,55 @@ describe("The WalletStateOperations", () => {
 		}
 	});
 
+	it("mergeEventHistories de-duplicates delete_credential events by credentialId.", async () => {
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container.events[0].timestampSeconds = 0;
+		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container.events[1].timestampSeconds = 1;
+
+		const container1 = await WalletStateOperations.addDeleteCredentialEvent(
+			container,
+			(container.events[0] as any).credentialId,
+		);
+		container1.events[2].timestampSeconds = 2;
+		let container2 = await WalletStateOperations.addDeleteCredentialEvent(
+			container,
+			(container.events[0] as any).credentialId,
+		);
+		container2.events[2].timestampSeconds = 3;
+		container2 = await WalletStateOperations.addDeleteCredentialEvent(container2, (container.events[1] as any).credentialId);
+		container2.events[3].timestampSeconds = 4;
+
+		{
+			const mergedL = await WalletStateOperations.mergeEventHistories(container1, container2);
+			assert.deepEqual(mergedL, {
+				lastEventHash: container.lastEventHash,
+				S: container.S,
+				events: [
+					...container.events,
+					...container2.events.slice(2),
+				],
+			});
+		}
+
+		{
+			const mergedR = await WalletStateOperations.mergeEventHistories(container2, container1);
+			assert.deepEqual(mergedR, {
+				lastEventHash: container.lastEventHash,
+				S: container.S,
+				events: [
+					...container.events,
+					container1.events[2],
+					{
+						...container2.events[3],
+						parentHash: await WalletStateUtils.calculateEventHash(container1.events[2]),
+					},
+				],
+			});
+		}
+	});
+
 	it("should successfully fold one event at a time", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
 
