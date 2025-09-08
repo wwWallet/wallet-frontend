@@ -537,4 +537,56 @@ describe("The WalletStateOperations", () => {
 		assert.strictEqual(folded.lastEventHash, container.events[1].parentHash);
 	});
 
+	it("mergeEventHistories maintains the per-branch order of events.", async () => {
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+
+		container = await WalletStateOperations.addNewCredentialEvent(
+			container,
+			"<credential 1>",
+			"mso_mdoc",
+			""
+		);
+		container.events[0].timestampSeconds = 0;
+		container = await WalletStateOperations.addNewCredentialEvent(
+			container,
+			"<credential 2>",
+			"mso_mdoc",
+			""
+		);
+		container.events[1].timestampSeconds = 1;
+		container = await WalletStateOperations.addDeleteCredentialEvent(container, (container.events[0] as any).credentialId);
+		container.events[2].timestampSeconds = 2;
+
+		let container1 = await WalletStateOperations.addNewCredentialEvent(container, "<credential session1-a>", "mso_mdoc", "");
+		container1.events[3].timestampSeconds = 10;
+		container1 = await WalletStateOperations.addNewCredentialEvent(container1, "<credential session1-b>", "mso_mdoc", "");
+		container1.events[4].timestampSeconds = 20;
+
+		let container2 = await WalletStateOperations.addDeleteCredentialEvent(container, (container.events[1] as any).credentialId);
+		container2.events[3].timestampSeconds = 15;
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential session2-x>", "mso_mdoc", "");
+		container2.events[4].timestampSeconds = 16;
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential session2-y>", "mso_mdoc", "");
+		container2.events[5].timestampSeconds = 25;
+
+		const merged = await WalletStateOperations.mergeEventHistories(container1, container2);
+		const expectEvent4 = container1.events[3];
+		const expectEvent5 = await WalletStateUtils.reparent(container2.events[3], expectEvent4);
+		const expectEvent6 = await WalletStateUtils.reparent(container2.events[4], expectEvent5);
+		const expectEvent7 = await WalletStateUtils.reparent(container1.events[4], expectEvent6);
+		const expectEvent8 = await WalletStateUtils.reparent(container2.events[5], expectEvent7);
+		assert.deepEqual(merged, {
+			lastEventHash: container.lastEventHash,
+			S: container.S,
+			events: [
+				...container.events,
+				expectEvent4,
+				expectEvent5,
+				expectEvent6,
+				expectEvent7,
+				expectEvent8,
+			],
+		});
+	});
+
 })
