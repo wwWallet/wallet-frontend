@@ -355,17 +355,7 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 	}
 
 	mergedEvents.sort((a, b) => a.timestampSeconds - b.timestampSeconds);
-
-	// recalculate the hashes for the merged events to rebuild the event history
-	const newEvents: WalletSessionEvent[] = [];
-	for (let i = 0; i < mergedEvents.length; i++) {
-		const e: WalletSessionEvent = {
-			...mergedEvents[i],
-			parentHash: i == 0 ? lastCommonAncestorHashFromEventHistory : await getLastEventHashFromEventHistory(newEvents),
-		}
-		newEvents.push(e);
-	}
-	return newEvents;
+	return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
 }
 
 export function findDivergencePoint(events1: WalletSessionEvent[], events2: WalletSessionEvent[]): WalletSessionEvent | null {
@@ -406,7 +396,7 @@ async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: 
 		}
 		newEvents.push({
 			...events[i],
-			parentHash: await WalletStateUtils.calculateEventHash(events[i - 1]),
+			parentHash: await WalletStateUtils.calculateEventHash(newEvents[i - 1]),
 		});
 	}
 	return newEvents;
