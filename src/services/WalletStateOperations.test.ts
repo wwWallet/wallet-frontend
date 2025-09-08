@@ -1,6 +1,7 @@
 import { assert, describe, it } from "vitest";
 import { findDivergencePoint, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 import { WalletStateUtils } from "./WalletStateUtils";
+import { CredentialKeyPair } from "./keystore";
 
 describe("The WalletStateOperations", () => {
 	it("should successfully apply 'new_credential' events on empty baseState", async () => {
@@ -239,6 +240,47 @@ describe("The WalletStateOperations", () => {
 					{
 						...container2.events[3],
 						parentHash: await WalletStateUtils.calculateEventHash(container1.events[2]),
+					},
+				],
+			});
+		}
+	});
+
+	it("mergeEventHistories de-duplicates new_keypair events by kid.", async () => {
+		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
+		container = await WalletStateOperations.addNewKeypairEvent(container, "kid0", { did: "did0" } as CredentialKeyPair);
+		container.events[0].timestampSeconds = 0;
+
+		const container1 = await WalletStateOperations.addNewKeypairEvent(container, "kid1", { did: "did1" } as CredentialKeyPair);
+		container1.events[1].timestampSeconds = 1;
+		let container2 = await WalletStateOperations.addNewKeypairEvent(container, "kid2", { did: "did2" } as CredentialKeyPair);
+		container2.events[1].timestampSeconds = 2;
+		container2 = await WalletStateOperations.addNewKeypairEvent(container2, "kid1", { did: "did3" } as CredentialKeyPair);
+		container2.events[2].timestampSeconds = 3;
+
+		{
+			const mergedL = await WalletStateOperations.mergeEventHistories(container1, container2);
+			assert.deepEqual(mergedL, {
+				lastEventHash: container.lastEventHash,
+				S: container.S,
+				events: [
+					...container.events,
+					...container2.events.slice(1),
+				],
+			});
+		}
+
+		{
+			const mergedR = await WalletStateOperations.mergeEventHistories(container2, container1);
+			assert.deepEqual(mergedR, {
+				lastEventHash: container.lastEventHash,
+				S: container.S,
+				events: [
+					...container.events,
+					container1.events[1],
+					{
+						...container2.events[1],
+						parentHash: await WalletStateUtils.calculateEventHash(container1.events[1]),
 					},
 				],
 			});
