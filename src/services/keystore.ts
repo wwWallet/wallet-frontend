@@ -370,8 +370,8 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, WalletState]> {
 	const mainKey = await importMainKey(exportedMainKey);
 	const openedPrivateData = await decryptPrivateData(privateData.jwe, mainKey);
-	const calculatedState = WalletStateOperations.foldAllEventsIntoBaseState(openedPrivateData);
-	return [openedPrivateData, mainKey, calculatedState.S];
+	const calculatedState = WalletStateOperations.foldState(openedPrivateData);
+	return [openedPrivateData, mainKey, calculatedState];
 }
 
 async function generateEncapsulationKeypair(): Promise<[EncapsulationPublicKeyInfo, CryptoKey]> {
