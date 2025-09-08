@@ -699,6 +699,23 @@ export namespace WalletStateOperations {
 	}
 
 	/**
+	 * Returns the container with the first history event, if any, folded into the base state.
+	 * If the container has no events, the same object is returned unchanged.
+	 */
+	export async function foldNextEventIntoBaseState(container: WalletStateContainer): Promise<WalletStateContainer> {
+		const [event, ...events] = container.events;
+		if (event) {
+			return {
+				S: walletStateReducer(container.S, event),
+				events,
+				lastEventHash: events[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(event),
+			};
+		} else {
+			return container;
+		}
+	}
+
+	/**
 	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
 	 */
 	export async function foldOldEventsIntoBaseState({ events, S, lastEventHash }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
