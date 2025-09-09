@@ -265,7 +265,7 @@ async function createWalletSessionEvent(container: WalletStateContainer): Promis
 		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
 		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
-		timestampSeconds: Math.floor(new Date().getTime() / 1000),
+		timestampSeconds: Math.floor(Date.now() / 1000),
 	};
 	return {
 		...baseEvent,
@@ -355,17 +355,7 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 	}
 
 	mergedEvents.sort((a, b) => a.timestampSeconds - b.timestampSeconds);
-
-	// recalculate the hashes for the merged events to rebuild the event history
-	const newEvents: WalletSessionEvent[] = [];
-	for (let i = 0; i < mergedEvents.length; i++) {
-		const e: WalletSessionEvent = {
-			...mergedEvents[i],
-			parentHash: i == 0 ? lastCommonAncestorHashFromEventHistory : await getLastEventHashFromEventHistory(newEvents),
-		}
-		newEvents.push(e);
-	}
-	return newEvents;
+	return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
 }
 
 export function findDivergencePoint(events1: WalletSessionEvent[], events2: WalletSessionEvent[]): WalletSessionEvent | null {
@@ -404,10 +394,7 @@ async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: 
 			});
 			continue;
 		}
-		newEvents.push({
-			...events[i],
-			parentHash: await WalletStateUtils.calculateEventHash(events[i - 1]),
-		});
+		newEvents.push(await WalletStateUtils.reparent(events[i], newEvents[i - 1]));
 	}
 	return newEvents;
 }
@@ -688,29 +675,10 @@ export namespace WalletStateOperations {
 			return newContainer;
 		}
 
-		const commonHistory: WalletSessionEvent[] = [];
-		const history1DivergentPart = [];
-		const history2DivergentPart = [];
-
-		let pointOfDivergenceIndex = -1;
-		for (let i = 0; i < container1.events.length; i++) {
-			if (container1.events[i].eventId === pointOfDivergence.eventId) {
-				pointOfDivergenceIndex = i;
-			}
-		}
-
-		for (let i = 0; i <= pointOfDivergenceIndex; i++) {
-			commonHistory.push(container1.events[i]);
-		}
-
-		for (let i = pointOfDivergenceIndex + 1; i < container1.events.length; i++) {
-			history1DivergentPart.push(container1.events[i]);
-		}
-
-		for (let i = pointOfDivergenceIndex + 1; i < container2.events.length; i++) {
-			history1DivergentPart.push(container2.events[i]);
-		}
-
+		let pointOfDivergenceIndex = container1.events.findIndex(event => event.eventId === pointOfDivergence.eventId);
+		const commonHistory = container1.events.slice(0, pointOfDivergenceIndex + 1);
+		const history1DivergentPart = container1.events.slice(pointOfDivergenceIndex + 1);
+		const history2DivergentPart = container2.events.slice(pointOfDivergenceIndex + 1);
 
 		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
 		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
@@ -733,7 +701,7 @@ export namespace WalletStateOperations {
 	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
 	 */
 	export async function foldOldEventsIntoBaseState({ events, S, lastEventHash }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
-		const now = Math.floor(new Date().getTime() / 1000);
+		const now = Math.floor(Date.now() / 1000);
 		const foldBefore = now - foldEventHistoryAfter;
 		const firstYoungIndex = events.findIndex(event => event.timestampSeconds >= foldBefore);
 		const splitIndex = (firstYoungIndex === -1 ? events.length : firstYoungIndex);
@@ -744,10 +712,10 @@ export namespace WalletStateOperations {
 				lastEventHash,
 			};
 		}
-		const newLastEventHash = await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
-		const newEventHistory = await rebuildEventHistory(events.slice(splitIndex), newLastEventHash);
+		const newEvents = events.slice(splitIndex);
+		const newLastEventHash = newEvents[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
 		return {
-			events: newEventHistory,
+			events: newEvents,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
 			lastEventHash: newLastEventHash,
 		};
