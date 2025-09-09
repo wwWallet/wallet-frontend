@@ -1,5 +1,5 @@
 import { assert, describe, it } from "vitest";
-import { findMergeBase, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { findMergeBase, WalletStateContainer, WalletStateOperations } from "./WalletStateSchemaVersion1";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { CredentialKeyPair } from "./keystore";
 import { last } from "@/util";

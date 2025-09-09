@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react"
-import { WalletStateCredential } from "./WalletStateOperations";
+import { WalletStateCredential } from "./WalletStateSchemaVersion1";
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
 import { deriveHolderKidFromCredential } from "@/lib/services/OpenID4VCI/OpenID4VCI";
