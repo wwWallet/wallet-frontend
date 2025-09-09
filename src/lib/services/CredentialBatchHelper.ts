@@ -1,6 +1,6 @@
 import { compareBy } from "../../util";
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
-import { WalletBaseStatePresentation } from "@/services/WalletStateOperations";
+import { WalletBaseStatePresentation } from "@/services/WalletStateSchemaVersion1";
 
 export async function getLeastUsedCredentialInstance(batchId: number, cList: ExtendedVcEntity[]) {
 	const credsByBatchId = cList.filter((c) => c.batchId === batchId);

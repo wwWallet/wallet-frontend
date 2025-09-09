@@ -9,7 +9,7 @@ import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsCon
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { ParsedCredential } from "wallet-common/dist/types";
-import { WalletStateCredential } from '@/services/WalletStateOperations';
+import { WalletStateCredential } from '@/services/WalletStateSchemaVersion1';
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);

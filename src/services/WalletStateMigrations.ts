@@ -1,4 +1,4 @@
-import { WalletState } from "./WalletStateOperations";
+import { WalletState } from "./WalletStateSchemaVersion1";
 
 export const SCHEMA_VERSION = 1;
 

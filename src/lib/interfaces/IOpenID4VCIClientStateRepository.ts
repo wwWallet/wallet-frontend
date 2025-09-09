@@ -1,4 +1,4 @@
-import { WalletBaseStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
+import { WalletBaseStateCredentialIssuanceSession } from "@/services/WalletStateSchemaVersion1";
 
 export interface IOpenID4VCIClientStateRepository {
 	getByState(state: string): Promise<WalletBaseStateCredentialIssuanceSession | null>;
