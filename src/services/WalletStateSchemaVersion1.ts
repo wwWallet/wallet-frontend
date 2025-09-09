@@ -1,9 +1,13 @@
-import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { CredentialKeyPair } from "./keystore";
-import { sha256, WalletStateUtils } from "./WalletStateUtils";
+import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
-import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
+import { sha256 } from "./WalletStateUtils";
 import { compareBy } from "@/util";
+import { getLastEventHashFromEventHistory, rebuildEventHistory, validateEventHistoryContinuity } from "./WalletStateSchema";
+import * as WalletSchemaCommon from "./WalletStateSchema";
+
+
+export const SCHEMA_VERSION = 1;
 
 
 export type WalletStateContainer = {
@@ -174,42 +178,6 @@ export type WalletStatePresentation = WalletState['presentations'][number];
 export type WalletStateSettings = WalletState['settings'];
 export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
-function normalize(obj: any) {
-	if (Array.isArray(obj)) {
-		return obj.map(normalize);
-	} else if (obj && typeof obj === 'object' && obj.constructor === Object) {
-		return Object.keys(obj)
-			.sort()
-			.reduce((acc: any, key: any) => {
-				acc[key] = normalize(obj[key]);
-				return acc;
-			}, {});
-	}
-	return obj;
-}
-
-export async function calculateEventHash(event: WalletSessionEvent): Promise<string> {
-	// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
-	if (event.type === 'new_keypair') {
-		return sha256(JSON.stringify(normalize({
-			...event,
-			keypair: {
-				...event.keypair,
-				wrappedPrivateKey: null,
-			},
-		} as WalletSessionEventNewKeypair)));
-	}
-	return sha256(JSON.stringify(normalize(event)));
-}
-
-export async function reparent(childEvent: WalletSessionEvent, parentEvent: WalletSessionEvent): Promise<WalletSessionEvent> {
-	return {
-		...childEvent,
-		parentHash: await calculateEventHash(parentEvent),
-	};
-}
-
-
 function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_credential":
@@ -291,10 +259,6 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 	}
 }
 
-async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
-	return events.length > 0 ? calculateEventHash(events[events.length - 1]) : "";
-}
-
 
 
 async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
@@ -362,85 +326,7 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 };
 
 
-
-
-async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSessionEvent[]> {
-	const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[]]> = {
-		new_credential: [[], []],
-		delete_credential: [[], []],
-		new_keypair: [[], []],
-		delete_keypair: [[], []],
-		new_presentation: [[], []],
-		delete_presentation: [[], []],
-		alter_settings: [[], []],
-		save_credential_issuance_session: [[], []],
-	};
-
-	for (const event of historyA) {
-		eventsByType[event.type][0].push(event);
-	}
-
-	for (const event of historyB) {
-		eventsByType[event.type][1].push(event);
-	}
-
-	let mergedEvents: WalletSessionEvent[] = [];
-	for (const type in mergeStrategies) {
-		const [a, b] = eventsByType[type as WalletSessionEvent["type"]];
-		const merged = mergeStrategies[type as WalletSessionEvent["type"]](a, b);
-		mergedEvents = mergedEvents.concat(merged);
-	}
-
-	mergedEvents.sort(compareBy(e => e.timestampSeconds));
-	return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
-}
-
-export function findDivergencePoint(events1: WalletSessionEvent[], events2: WalletSessionEvent[]): WalletSessionEvent | null {
-	const parents1 = new Set();
-	const parents2 = new Set();
-
-	let i1 = events1.length - 1;
-	let i2 = events2.length - 1;
-
-	while (i1 >= 0 || i2 >= 0) {
-		if (i1 >= 0) {
-			if (parents2.has(events1[i1].parentHash)) {
-				return events1[i1 - 1];
-			}
-			parents1.add(events1[i1].parentHash);
-			i1 -= 1;
-		}
-		if (i2 >= 0) {
-			if (parents1.has(events2[i2].parentHash)) {
-				return events2[i2 - 1];
-			}
-			parents2.add(events2[i2].parentHash);
-			i2 -= 1;
-		}
-	}
-	return null;
-}
-
-async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: string): Promise<WalletSessionEvent[]> {
-	const newEvents: WalletSessionEvent[] = [];
-	for (let i = 0; i < events.length; i++) {
-		if (i == 0) {
-			newEvents.push({
-				...events[0],
-				parentHash: lastEventHash,
-			});
-			continue;
-		}
-		newEvents.push(await reparent(events[i], newEvents[i - 1]));
-	}
-	return newEvents;
-}
-
 export namespace WalletStateOperations {
-	export const walletStateReducerRegistry = {
-		1: WalletStateOperations.walletStateReducer
-	};
-
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
 			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { openidRefreshTokenMaxAgeInSeconds: 0 } },
@@ -449,29 +335,56 @@ export namespace WalletStateOperations {
 		}
 	}
 
-	export async function eventHistoryIsConsistent(container: WalletStateContainer): Promise<boolean> {
-		const events = container.events;
-		if (events.length === 0) {
-			return true;
+	export function migrateState(state: WalletSchemaCommon.WalletState): WalletState {
+		if ((state?.schemaVersion ?? 1) <= 1) {
+			return state as WalletState;
+		} else {
+			throw new Error(`Cannot migrate state with schemaVersion ${state?.schemaVersion} to version ${SCHEMA_VERSION}`);
 		}
-
-		const eventHashes = await Promise.all(events.map(async (e) => calculateEventHash(e)));
-		if (container.lastEventHash !== "" && events[0].parentHash !== container.lastEventHash) {
-			return false;
-		}
-		for (let i = 1; i < events.length; i++) {
-			if (events[i].parentHash !== eventHashes[i - 1]) {
-				return false;
-			}
-		}
-		return true;
 	}
 
-	export async function validateEventHistoryContinuity(container: WalletStateContainer): Promise<void> {
-		const result = await eventHistoryIsConsistent(container);
-		if (!result) {
-			throw new Error("Invalid event history chain");
+	// TODO: This is unused
+	export function migrateContainer(
+		container: WalletSchemaCommon.WalletStateContainerGeneric,
+	): WalletSchemaCommon.WalletStateContainer<WalletSchemaCommon.WalletState, WalletSessionEvent> {
+		if ((container.S.schemaVersion ?? 1) <= SCHEMA_VERSION) {
+			const illegalEvent = container.events.find(e => (e.schemaVersion ?? 1) > SCHEMA_VERSION);
+			if (illegalEvent) {
+				throw new Error(`Cannot migrate container to schemaVersion ${SCHEMA_VERSION}: event has schemaVersion ${illegalEvent.schemaVersion}`);
+			} else {
+				return container as WalletSchemaCommon.WalletStateContainer<WalletSchemaCommon.WalletState, WalletSessionEvent>;
+			}
+		} else {
+			throw new Error(`Cannot migrate container to schemaVersion ${SCHEMA_VERSION}: base state has schemaVersion ${container.S.schemaVersion}`);
 		}
+	}
+
+	export function normalize(obj: any) {
+		if (Array.isArray(obj)) {
+			return obj.map(normalize);
+		} else if (obj && typeof obj === 'object' && obj.constructor === Object) {
+			return Object.keys(obj)
+				.sort()
+				.reduce((acc: any, key: any) => {
+					acc[key] = normalize(obj[key]);
+					return acc;
+				}, {});
+		}
+		return obj;
+	}
+
+	export async function calculateEventHash(event: WalletSessionEvent): Promise<string> {
+		// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
+		if (event.type === 'new_keypair') {
+			return sha256(JSON.stringify(normalize({
+				...event,
+				keypair: {
+					...event.keypair,
+					wrappedPrivateKey: null,
+				},
+			} as WalletSessionEventNewKeypair)));
+		}
+		return sha256(JSON.stringify(normalize(event)));
 	}
 
 	export async function addNewCredentialEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletStateContainer> {
@@ -676,18 +589,9 @@ export namespace WalletStateOperations {
 		return newContainer;
 	}
 
-
 	export function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
-		if (newEvent.schemaVersion < state.schemaVersion) {
-			if (!(newEvent.schemaVersion in walletStateReducerRegistry)) {
-				throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}: no reducer found`);
-			}
-			const reduced = walletStateReducerRegistry[newEvent.schemaVersion](state, newEvent);
-			return WalletStateMigrations.migrateWalletStateToCurrent(reduced);
-		}
-
-		if (newEvent.schemaVersion > state.schemaVersion) {
-			state = WalletStateMigrations.migrateWalletStateTo(newEvent.schemaVersion, state);
+		if (newEvent.schemaVersion !== state.schemaVersion) {
+			throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}`);
 		}
 
 		return {
@@ -700,61 +604,35 @@ export namespace WalletStateOperations {
 		}
 	}
 
-	export async function mergeEventHistories(container1: WalletStateContainer, container2: WalletStateContainer): Promise<WalletStateContainer> {
-		const pointOfDivergence = findDivergencePoint(container1.events, container2.events);
-		if (pointOfDivergence === null) {
-			const events = [...container1.events, ...container2.events].sort(compareBy(e => e.timestampSeconds));
-			const newContainer = {
-				...container1,
-				events: events,
-			};
-			await validateEventHistoryContinuity(newContainer);
-			return newContainer;
+	export async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSessionEvent[]> {
+		const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[]]> = {
+			new_credential: [[], []],
+			delete_credential: [[], []],
+			new_keypair: [[], []],
+			delete_keypair: [[], []],
+			new_presentation: [[], []],
+			delete_presentation: [[], []],
+			alter_settings: [[], []],
+			save_credential_issuance_session: [[], []],
+		};
+
+		for (const event of historyA) {
+			eventsByType[event.type][0].push(event);
 		}
 
-		let pointOfDivergenceIndex = container1.events.findIndex(event => event.eventId === pointOfDivergence.eventId);
-		const commonHistory = container1.events.slice(0, pointOfDivergenceIndex + 1);
-		const history1DivergentPart = container1.events.slice(pointOfDivergenceIndex + 1);
-		const history2DivergentPart = container2.events.slice(pointOfDivergenceIndex + 1);
-
-		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await calculateEventHash(pointOfDivergence));
-		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
-		const newContainer = {
-			...container1,
-			events: newEventHistory,
-		};
-		await validateEventHistoryContinuity(newContainer);
-		return newContainer;
-	}
-
-	/**
-	 * Returns the result of folding all event history into the base state.
-	 */
-	export function foldState(container: WalletStateContainer): WalletState {
-		return container.events.reduce(walletStateReducer, container.S);
-	}
-
-	/**
-	 * Returns container with folded history for events older than `now - foldEventHistoryAfter`
-	 */
-	export async function foldOldEventsIntoBaseState({ events, S, lastEventHash }: WalletStateContainer, foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS): Promise<WalletStateContainer> {
-		const now = Math.floor(Date.now() / 1000);
-		const foldBefore = now - foldEventHistoryAfter;
-		const firstYoungIndex = events.findIndex(event => event.timestampSeconds >= foldBefore);
-		const splitIndex = (firstYoungIndex === -1 ? events.length : firstYoungIndex);
-		if (splitIndex === 0) {
-			return {
-				events,
-				S,
-				lastEventHash,
-			};
+		for (const event of historyB) {
+			eventsByType[event.type][1].push(event);
 		}
-		const newEvents = events.slice(splitIndex);
-		const newLastEventHash = newEvents[0]?.parentHash ?? await calculateEventHash(events[splitIndex - 1]);
-		return {
-			events: newEvents,
-			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
-			lastEventHash: newLastEventHash,
-		};
+
+		let mergedEvents: WalletSessionEvent[] = [];
+		for (const type in mergeStrategies) {
+			const [a, b] = eventsByType[type as WalletSessionEvent["type"]];
+			const merged = mergeStrategies[type as WalletSessionEvent["type"]](a, b);
+			mergedEvents = mergedEvents.concat(merged);
+		}
+
+		mergedEvents.sort(compareBy(e => e.timestampSeconds));
+		return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
 	}
+
 }

@@ -1,6 +1,7 @@
-import { WalletState } from "./WalletStateOperations";
-
-export const SCHEMA_VERSION = 1;
+import {
+	SCHEMA_VERSION,
+	WalletState,
+} from "./WalletStateSchema";
 
 
 export namespace WalletStateMigrations {

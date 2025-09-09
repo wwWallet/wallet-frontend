@@ -1,7 +1,4 @@
-import { WalletSessionEvent, WalletSessionEventNewKeypair } from "./WalletStateOperations";
-
 const encoder = new TextEncoder();
-
 
 
 export async function sha256(input: string): Promise<string> {
@@ -18,4 +15,5 @@ export namespace WalletStateUtils {
 		crypto.getRandomValues(array);
 		return array[0] === 0 ? 1 : array[0];
 	}
+
 }

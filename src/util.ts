@@ -71,6 +71,19 @@ export function jsonParseTaggedBinary(json: string): any {
 }
 
 /**
+	Like `Array.findIndex`, but returns the index past the end of the array
+	instead of -1 if no matching element is found.
+	*/
+export function findIndexOrEnd<T>(arr: T[], predicate: (element: T) => boolean): number {
+	const index = arr.findIndex(predicate);
+	if (index === -1) {
+		return arr.length;
+	} else {
+		return index;
+	}
+}
+
+/**
 	Create a comparator function comparing the result of passing each argument through the given function or functions.
 
 	If more than one function is supplied, the sorting will first compare the results of the first function,
