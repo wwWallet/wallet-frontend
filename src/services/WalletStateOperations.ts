@@ -1,1 +1,3 @@
-export * from './WalletStateSchemaVersion1';
+import { CurrentSchema } from "./WalletStateSchema";
+
+export const WalletStateOperations = CurrentSchema.WalletStateOperations;

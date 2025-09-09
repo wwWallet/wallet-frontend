@@ -76,6 +76,19 @@ export function last<T>(arr: T[]): T | undefined {
 }
 
 /**
+	Like `Array.findIndex`, but returns the index past the end of the array
+	instead of -1 if no matching element is found.
+	*/
+export function findIndexOrEnd<T>(arr: T[], predicate: (element: T) => boolean): number {
+	const index = arr.findIndex(predicate);
+	if (index === -1) {
+		return arr.length;
+	} else {
+		return index;
+	}
+}
+
+/**
 	Filter `arr` for duplicates as determined by `f`, keeping the last element of
 	each duplicate class.
 	*/

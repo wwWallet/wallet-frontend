@@ -14,8 +14,9 @@ import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEn
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
-import { WalletState, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { WalletStateOperations } from "./WalletStateOperations";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
+import { CurrentSchema, foldState, WalletState, WalletStateContainer } from "./WalletStateSchema";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -257,7 +258,7 @@ export type PrivateDataV1 = {
 	},
 }
 
-export type PrivateData = WalletStateContainer;
+export type PrivateData = CurrentSchema.WalletStateContainer;
 
 export async function parsePrivateData(privateData: BufferSource): Promise<EncryptedContainer> {
 	return jsonParseTaggedBinary(new TextDecoder().decode(privateData));
@@ -370,7 +371,7 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, WalletState]> {
 	const mainKey = await importMainKey(exportedMainKey);
 	const openedPrivateData = await decryptPrivateData(privateData.jwe, mainKey);
-	const calculatedState = WalletStateOperations.foldState(openedPrivateData);
+	const calculatedState = foldState(openedPrivateData);
 	return [openedPrivateData, mainKey, calculatedState];
 }
 

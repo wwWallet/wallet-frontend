@@ -1,6 +1,6 @@
 import { useContext, useCallback, useMemo, useState, useRef, useEffect } from "react";
 import SessionContext from "@/context/SessionContext";
-import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
+import { CurrentSchema } from "@/services/WalletStateSchema";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
 import { last } from "@/util";
@@ -10,7 +10,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 
 	// key: sessionId
-	const sessions = useRef(new Map<number, WalletStateCredentialIssuanceSession>());
+	const sessions = useRef(new Map<number, CurrentSchema.WalletStateCredentialIssuanceSession>());
 
 	useEffect(() => {
 		if (keystore && sessions.current.size === 0) {
@@ -45,7 +45,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	const getByCredentialIssuerIdentifierAndCredentialConfigurationId = useCallback(async (
 		credentialIssuer: string,
 		credentialConfigurationId: string
-	): Promise<WalletStateCredentialIssuanceSession | null> => {
+	): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null> => {
 		const r = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer);
 		const res = last(r);
 		return res ? res : null;
@@ -54,7 +54,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	);
 
 	const getByState = useCallback(
-		async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
+		async (state: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null> => {
 			const r = Array.from(sessions.current.values()).filter((S) => S.state === state);
 			const res = last(r);
 			return res ? res : null;
@@ -81,7 +81,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	}, [getRememberIssuerAge]);
 
 	const create = useCallback(
-		async (state: WalletStateCredentialIssuanceSession): Promise<void> => {
+		async (state: CurrentSchema.WalletStateCredentialIssuanceSession): Promise<void> => {
 			const existingState = await getByCredentialIssuerIdentifierAndCredentialConfigurationId(
 				state.credentialIssuerIdentifier,
 				state.credentialConfigurationId
@@ -97,7 +97,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	);
 
 	const updateState = useCallback(
-		async (newState: WalletStateCredentialIssuanceSession): Promise<void> => {
+		async (newState: CurrentSchema.WalletStateCredentialIssuanceSession): Promise<void> => {
 			const fetched = await getByState(newState.state);
 			if (!fetched) {
 				return;
