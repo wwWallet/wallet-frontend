@@ -12,7 +12,7 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
-import { WalletStateCredentialIssuanceSession } from '@/services/WalletStateSchemaVersion1';
+import { WalletStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
 import SessionContext from '@/context/SessionContext';
 import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import { useTranslation } from 'react-i18next';

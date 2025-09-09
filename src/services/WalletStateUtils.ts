@@ -1,4 +1,4 @@
-import { WalletSessionEvent, WalletSessionEventNewKeypair } from "./WalletStateSchemaVersion1";
+import { WalletSessionEvent, WalletSessionEventNewKeypair } from "./WalletStateOperations";
 
 const encoder = new TextEncoder();
 

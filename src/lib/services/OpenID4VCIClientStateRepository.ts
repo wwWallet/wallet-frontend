@@ -1,6 +1,6 @@
 import { useContext, useCallback, useMemo, useState, useRef, useEffect } from "react";
 import SessionContext from "@/context/SessionContext";
-import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateSchemaVersion1";
+import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
 import { last } from "@/util";
