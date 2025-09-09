@@ -345,7 +345,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								);
 							})()}
 
-							{popupState?.options?.parsedTransactionData.map((txData) => {
+							{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData) => {
 								const TxComp = txData.ui;
 								return (<TxComp />)
 							})}
@@ -446,7 +446,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							/>
 						</p>
 
-						{popupState?.options?.parsedTransactionData.map((txData) => {
+						{popupState?.options?.parsedTransactionData && popupState?.options?.parsedTransactionData.map((txData) => {
 							const TxComp = txData.ui;
 							return <TxComp />
 						})}
