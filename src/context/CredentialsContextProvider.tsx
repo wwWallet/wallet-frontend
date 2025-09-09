@@ -9,7 +9,7 @@ import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsCon
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { ParsedCredential } from "wallet-common/dist/types";
-import { WalletStateCredential } from '@/services/WalletStateOperations';
+import { CurrentSchema } from '@/services/WalletStateSchema';
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);
@@ -56,7 +56,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [isLoggedIn, httpProxy, helper]);
 
 
-	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
+	const parseCredential = useCallback(async (vcEntity: CurrentSchema.WalletStateCredential): Promise<ParsedCredential | null> => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
@@ -97,7 +97,7 @@ export const CredentialsContextProvider = ({ children }) => {
 
 		const { presentations } = getCalculatedWalletState();
 		// Create a map of instances grouped by credentialIdentifier
-		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletStateCredential) => {
+		const instancesMap = credentials.reduce((acc: any, vcEntity: CurrentSchema.WalletStateCredential) => {
 			if (!acc[vcEntity.batchId]) {
 				acc[vcEntity.batchId] = [];
 			}
