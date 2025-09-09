@@ -14,9 +14,9 @@ import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEn
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
-import { WalletState, WalletSessionEvent, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { WalletState, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { WalletStateUtils } from "./WalletStateUtils";
+
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
