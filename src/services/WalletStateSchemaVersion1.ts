@@ -1,6 +1,6 @@
 import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { CredentialKeyPair } from "./keystore";
-import { WalletStateUtils } from "./WalletStateUtils";
+import { sha256, WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
 import { compareBy } from "@/util";
@@ -174,6 +174,42 @@ export type WalletStatePresentation = WalletState['presentations'][number];
 export type WalletStateSettings = WalletState['settings'];
 export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
+function normalize(obj: any) {
+	if (Array.isArray(obj)) {
+		return obj.map(normalize);
+	} else if (obj && typeof obj === 'object' && obj.constructor === Object) {
+		return Object.keys(obj)
+			.sort()
+			.reduce((acc: any, key: any) => {
+				acc[key] = normalize(obj[key]);
+				return acc;
+			}, {});
+	}
+	return obj;
+}
+
+export async function calculateEventHash(event: WalletSessionEvent): Promise<string> {
+	// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
+	if (event.type === 'new_keypair') {
+		return sha256(JSON.stringify(normalize({
+			...event,
+			keypair: {
+				...event.keypair,
+				wrappedPrivateKey: null,
+			},
+		} as WalletSessionEventNewKeypair)));
+	}
+	return sha256(JSON.stringify(normalize(event)));
+}
+
+export async function reparent(childEvent: WalletSessionEvent, parentEvent: WalletSessionEvent): Promise<WalletSessionEvent> {
+	return {
+		...childEvent,
+		parentHash: await calculateEventHash(parentEvent),
+	};
+}
+
+
 function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_credential":
@@ -256,7 +292,7 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 }
 
 async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
-	return events.length > 0 ? WalletStateUtils.calculateEventHash(events[events.length - 1]) : "";
+	return events.length > 0 ? calculateEventHash(events[events.length - 1]) : "";
 }
 
 
@@ -395,7 +431,7 @@ async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: 
 			});
 			continue;
 		}
-		newEvents.push(await WalletStateUtils.reparent(events[i], newEvents[i - 1]));
+		newEvents.push(await reparent(events[i], newEvents[i - 1]));
 	}
 	return newEvents;
 }
@@ -419,7 +455,7 @@ export namespace WalletStateOperations {
 			return true;
 		}
 
-		const eventHashes = await Promise.all(events.map(async (e) => WalletStateUtils.calculateEventHash(e)));
+		const eventHashes = await Promise.all(events.map(async (e) => calculateEventHash(e)));
 		if (container.lastEventHash !== "" && events[0].parentHash !== container.lastEventHash) {
 			return false;
 		}
@@ -681,7 +717,7 @@ export namespace WalletStateOperations {
 		const history1DivergentPart = container1.events.slice(pointOfDivergenceIndex + 1);
 		const history2DivergentPart = container2.events.slice(pointOfDivergenceIndex + 1);
 
-		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
+		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await calculateEventHash(pointOfDivergence));
 		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
 		const newContainer = {
 			...container1,
@@ -714,7 +750,7 @@ export namespace WalletStateOperations {
 			};
 		}
 		const newEvents = events.slice(splitIndex);
-		const newLastEventHash = newEvents[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
+		const newLastEventHash = newEvents[0]?.parentHash ?? await calculateEventHash(events[splitIndex - 1]);
 		return {
 			events: newEvents,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
