@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="1000" height="1000" viewBox="0 0 1000 1000" xml:space="preserve">
+<desc>Created with Fabric.js 3.5.0</desc>
+<defs>
+</defs>
+<rect x="0" y="0" width="100%" height="100%" fill="rgba(255,255,255,0)"/>
+<g transform="matrix(4.7757 0 0 1.8658 500.0016 296.7004)" id="314920" clip-path="url(#CLIPPATH_24)">
+<clipPath id="CLIPPATH_24">
+	<rect transform="matrix(1 0 0 1 0.0001 0.0002)" id="clip0_302_100" x="-79" y="-79" rx="0" ry="0" width="158" height="158"/>
+</clipPath>
+<path style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; is-custom-font: none; font-file-url: none; fill: currentColor; fill-rule: nonzero; opacity: 1;" vector-effect="non-scaling-stroke" transform=" translate(-78.9999, -78.9998)" d="M 154.685 0.000367219 H 3.31409 C 1.48378 0.000367219 0 1.48415 0 3.31478 V 154.686 C 0 156.516 1.48378 158 3.31409 158 H 154.685 C 156.515 158 157.999 156.516 157.999 154.686 V 3.31478 C 158 3.26912 158 3.22347 157.999 3.17813 C 157.962 1.38523 156.478 -0.0373614 154.685 0.000367219 Z" stroke-linecap="round"/>
+</g>
+<g transform="matrix(4.7757 0 0 1.8658 500 718.29)" id="593664" clip-path="url(#CLIPPATH_25)">
+<clipPath id="CLIPPATH_25">
+	<rect transform="matrix(1 0 0 1 0.0001 0.0002)" id="clip0_302_100" x="-79" y="-79" rx="0" ry="0" width="158" height="158"/>
+</clipPath>
+<path style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; is-custom-font: none; font-file-url: none; fill: currentColor; fill-rule: nonzero; opacity: 1;" vector-effect="non-scaling-stroke" transform=" translate(-78.9999, -78.9998)" d="M 154.685 0.000367219 H 3.31409 C 1.48378 0.000367219 0 1.48415 0 3.31478 V 154.686 C 0 156.516 1.48378 158 3.31409 158 H 154.685 C 156.515 158 157.999 156.516 157.999 154.686 V 3.31478 C 158 3.26912 158 3.22347 157.999 3.17813 C 157.962 1.38523 156.478 -0.0373614 154.685 0.000367219 Z" stroke-linecap="round"/>
+</g>
+</svg>
