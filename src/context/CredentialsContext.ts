@@ -1,5 +1,5 @@
 // CredentialsContext.ts
-import { WalletStateCredential } from '@/services/WalletStateOperations';
+import { CurrentSchema } from '@/services/WalletStateSchema';
 import { createContext } from 'react';
 import { ParsedCredential } from 'wallet-common/dist/types';
 import { ParsingEngineI, CredentialVerifier } from 'wallet-common/dist/interfaces';
@@ -15,7 +15,7 @@ export type Instance = {
 	sigCount: number;
 }
 
-export type ExtendedVcEntity = WalletStateCredential & {
+export type ExtendedVcEntity = CurrentSchema.WalletStateCredential & {
 	parsedCredential: ParsedCredential;
 	isExpired: boolean;
 	instances: Instance[];
@@ -29,7 +29,7 @@ export type CredentialsContextValue = {
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (vcEntity: WalletStateCredential) => Promise<ParsedCredential | null>;
+	parseCredential: (vcEntity: CurrentSchema.WalletStateCredential) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
 };
 

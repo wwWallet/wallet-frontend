@@ -6,7 +6,7 @@ import { calculateEventHash, eventHistoryIsConsistent, findMergeBase, foldNextEv
 
 
 
-describe("The WalletStateOperations", () => {
+describe("WalletStateSchema", () => {
 	it("should successfully apply 'new_credential' events on empty baseState", async () => {
 		let container: SchemaV1.WalletStateContainer = SchemaV1.WalletStateOperations.initialWalletStateContainer();
 		container = await SchemaV1.WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
