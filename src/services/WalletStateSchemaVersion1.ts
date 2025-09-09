@@ -1,6 +1,6 @@
 import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { CredentialKeyPair } from "./keystore";
-import { WalletStateUtils } from "./WalletStateUtils";
+import { sha256, WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
 import { compareBy, deduplicateFromRightBy, last, maxByKey } from "@/util";
@@ -174,6 +174,45 @@ export type WalletStatePresentation = WalletState['presentations'][number];
 export type WalletStateSettings = WalletState['settings'];
 export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
+function normalize(obj: any) {
+	if (Array.isArray(obj)) {
+		return obj.map(normalize);
+	} else if (obj && typeof obj === 'object' && obj.constructor === Object) {
+		return Object.keys(obj)
+			.sort()
+			.reduce((acc: any, key: any) => {
+				acc[key] = normalize(obj[key]);
+				return acc;
+			}, {});
+	}
+	return obj;
+}
+
+export async function calculateEventHash(event: WalletSessionEvent | undefined): Promise<string> {
+	if (event === undefined) {
+		return "";
+	}
+	// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
+	if (event.type === 'new_keypair') {
+		return sha256(JSON.stringify(normalize({
+			...event,
+			keypair: {
+				...event.keypair,
+				wrappedPrivateKey: null,
+			},
+		} as WalletSessionEventNewKeypair)));
+	}
+	return sha256(JSON.stringify(normalize(event)));
+}
+
+export async function reparent(childEvent: WalletSessionEvent, parentEvent: WalletSessionEvent): Promise<WalletSessionEvent> {
+	return {
+		...childEvent,
+		parentHash: await calculateEventHash(parentEvent),
+	};
+}
+
+
 function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_credential":
@@ -261,7 +300,7 @@ async function createWalletSessionEvent(container: WalletStateContainer): Promis
 		eventId: WalletStateUtils.getRandomUint32(),
 		parentHash: container.events.length === 0
 			? container.lastEventHash
-			: await WalletStateUtils.calculateEventHash(last(container.events)),
+			: await calculateEventHash(last(container.events)),
 		timestampSeconds: Math.floor(Date.now() / 1000),
 	};
 	return {
@@ -408,10 +447,10 @@ export async function findMergeBase(
 	}
 
 	if (i1 >= 0) {
-		history1.set(await WalletStateUtils.calculateEventHash(container1.events[i1]), i1 + 1);
+		history1.set(await calculateEventHash(container1.events[i1]), i1 + 1);
 	}
 	if (i2 >= 0) {
-		const hash = await WalletStateUtils.calculateEventHash(container2.events[i2]);
+		const hash = await calculateEventHash(container2.events[i2]);
 		history2.set(hash, i2 + 1);
 
 		if (history1.has(hash) && history2.has(hash)) {
@@ -467,7 +506,7 @@ async function rebuildEventHistory(events: WalletSessionEvent[], lastEventHash: 
 			});
 			continue;
 		}
-		newEvents.push(await WalletStateUtils.reparent(events[i], newEvents[i - 1]));
+		newEvents.push(await reparent(events[i], newEvents[i - 1]));
 	}
 	return newEvents;
 }
@@ -491,7 +530,7 @@ export namespace WalletStateOperations {
 			return true;
 		}
 
-		const eventHashes = await Promise.all(events.map(async (e) => WalletStateUtils.calculateEventHash(e)));
+		const eventHashes = await Promise.all(events.map(async (e) => calculateEventHash(e)));
 		if (container.lastEventHash !== "" && events[0].parentHash !== container.lastEventHash) {
 			return false;
 		}
@@ -752,7 +791,7 @@ export namespace WalletStateOperations {
 		const lastCommonEvent = last(commonEvents);
 		const pointOfDivergenceHash = (
 			lastCommonEvent
-				? await WalletStateUtils.calculateEventHash(lastCommonEvent)
+				? await calculateEventHash(lastCommonEvent)
 				: lastEventHash
 		);
 
@@ -788,7 +827,7 @@ export namespace WalletStateOperations {
 			return {
 				S: walletStateReducer(container.S, event),
 				events,
-				lastEventHash: events[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(event),
+				lastEventHash: events[0]?.parentHash ?? await calculateEventHash(event),
 			};
 		} else {
 			return container;
@@ -811,7 +850,7 @@ export namespace WalletStateOperations {
 			};
 		}
 		const newEvents = events.slice(splitIndex);
-		const newLastEventHash = newEvents[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(events[splitIndex - 1]);
+		const newLastEventHash = newEvents[0]?.parentHash ?? await calculateEventHash(events[splitIndex - 1]);
 		return {
 			events: newEvents,
 			S: events.slice(0, splitIndex).reduce(walletStateReducer, S),
