@@ -9,12 +9,12 @@ describe("The WalletStateOperations", () => {
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		const s1 = WalletStateOperations.walletStateReducer(container.S, container.events[0]);
 
-		assert(s1.credentials[0].data === "cred1");
+		assert.strictEqual(s1.credentials[0].data, "cred1");
 		assert(await WalletStateOperations.eventHistoryIsConsistent(container));
 
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container.S = WalletStateOperations.walletStateReducer(s1, container.events[1]);
-		assert(container.S.credentials[1].data === "cred2");
+		assert.strictEqual(container.S.credentials[1].data, "cred2");
 	});
 
 	it("should successfully apply 'delete_credential' event on a baseState that includes credentials", async () => {
@@ -28,7 +28,7 @@ describe("The WalletStateOperations", () => {
 		);
 
 		container.S = WalletStateOperations.walletStateReducer(container.S, container.events[1]);
-		assert(container.S.credentials.length === 0);
+		assert.strictEqual(container.S.credentials.length, 0);
 	});
 
 	it("should successfully find the correct point of divergence between two event histories and merge them", async () => {
@@ -52,7 +52,10 @@ describe("The WalletStateOperations", () => {
 
 		const result = findDivergencePoint(container1.events, container2.events);
 		// verify that E3 is the actual point of divergence
-		assert(await WalletStateUtils.calculateEventHash(result) === await WalletStateUtils.calculateEventHash(container.events[2]));
+		assert.strictEqual(
+			await WalletStateUtils.calculateEventHash(result),
+			await WalletStateUtils.calculateEventHash(container.events[2]),
+		);
 
 		const merged = await WalletStateOperations.mergeEventHistories(container1, container2);
 		const expectMergedEvent2_4 = await WalletStateUtils.reparent(
@@ -394,9 +397,9 @@ describe("The WalletStateOperations", () => {
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		const e2Hash = await WalletStateUtils.calculateEventHash(container.events[0]);
 
-		assert(container.lastEventHash === e1Hash);
+		assert.strictEqual(container.lastEventHash, e1Hash);
 		container = await WalletStateOperations.foldOldEventsIntoBaseState(container, -1);
-		assert(container.lastEventHash === e2Hash);
+		assert.strictEqual(container.lastEventHash, e2Hash);
 	});
 
 
@@ -406,7 +409,7 @@ describe("The WalletStateOperations", () => {
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		const e2Hash = await WalletStateUtils.calculateEventHash(container.events[1]);
 		container = await WalletStateOperations.foldOldEventsIntoBaseState(container, -1);
-		assert(container.lastEventHash === e2Hash);
+		assert.strictEqual(container.lastEventHash, e2Hash);
 	});
 
 	it("foldOldEventsIntoBaseState does not modify the parent hashes of unfolded events.", async () => {
