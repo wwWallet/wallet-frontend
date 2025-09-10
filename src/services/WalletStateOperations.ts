@@ -3,6 +3,7 @@ import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
+import { compareBy } from "@/util";
 
 
 export type WalletStateContainer = {
@@ -314,7 +315,7 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		const settingsEvents: WalletSessionEvent[] = [];
 		// get only the latest applied setting during merge based on timestamp of event
 		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "alter_settings" && settingsEvents.push(event));
-		settingsEvents.sort((a, b) => a.timestampSeconds - b.timestampSeconds);
+		settingsEvents.sort(compareBy(e => e.timestampSeconds));
 		return settingsEvents.length > 0 ? [settingsEvents[settingsEvents.length - 1]] : [];
 	},
 	save_credential_issuance_session: (a, b) => {
@@ -354,7 +355,7 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 		mergedEvents = mergedEvents.concat(merged);
 	}
 
-	mergedEvents.sort((a, b) => a.timestampSeconds - b.timestampSeconds);
+	mergedEvents.sort(compareBy(e => e.timestampSeconds));
 	return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
 }
 
@@ -666,7 +667,7 @@ export namespace WalletStateOperations {
 	export async function mergeEventHistories(container1: WalletStateContainer, container2: WalletStateContainer): Promise<WalletStateContainer> {
 		const pointOfDivergence = findDivergencePoint(container1.events, container2.events);
 		if (pointOfDivergence === null) {
-			const events = [...container1.events, ...container2.events].sort((e1, e2) => e1.timestampSeconds - e2.timestampSeconds);
+			const events = [...container1.events, ...container2.events].sort(compareBy(e => e.timestampSeconds));
 			const newContainer = {
 				...container1,
 				events: events,
