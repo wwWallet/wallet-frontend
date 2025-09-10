@@ -363,17 +363,17 @@
 		"description": "New Version is available!"
 	},
 	"viewSelect": {
-		"view": "View",
+		"aria": {
+			"menuLabel": "Credential view options",
+			"option": "View: {{label}}",
+			"toggle": "Change view"
+		},
 		"options": {
 			"horizontalSlider": "Horizontal Slider",
-			"verticalSlider": "Vertical Slider",
-			"list": "List"
+			"list": "List",
+			"verticalSlider": "Vertical Slider"
 		},
-		"aria": {
-			"toggle": "Change view",
-			"menuLabel": "Credential view options",
-			"option": "View: {{label}}"
-		}
+		"view": "View"
 	},
 	"welcomeModal": {
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
