@@ -6,20 +6,20 @@ import { CredentialKeyPair } from "./keystore";
 describe("The WalletStateOperations", () => {
 	it("should successfully apply 'new_credential' events on empty baseState", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		const s1 = WalletStateOperations.walletStateReducer(container.S, container.events[0]);
 
-		assert(s1.credentials[0].data === "<credential 1>");
+		assert(s1.credentials[0].data === "cred1");
 		assert(await WalletStateOperations.eventHistoryIsConsistent(container));
 
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container.S = WalletStateOperations.walletStateReducer(s1, container.events[1]);
-		assert(container.S.credentials[1].data === "<credential 2>");
+		assert(container.S.credentials[1].data === "cred2");
 	});
 
 	it("should successfully apply 'delete_credential' event on a baseState that includes credentials", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container.S = WalletStateOperations.walletStateReducer(container.S, container.events[0]);
 
 		container = await WalletStateOperations.addDeleteCredentialEvent(
@@ -33,22 +33,22 @@ describe("The WalletStateOperations", () => {
 
 	it("should successfully find the correct point of divergence between two event histories and merge them", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container = await WalletStateOperations.addDeleteCredentialEvent(
 			container,
 			(container.events[0] as any).credentialId,
 		);
 
-		let container1 = await WalletStateOperations.addNewCredentialEvent(container, "<credential session1-a>", "mso_mdoc", "");
-		container1 = await WalletStateOperations.addNewCredentialEvent(container1, "<credential session1-b>", "mso_mdoc", "");
+		let container1 = await WalletStateOperations.addNewCredentialEvent(container, "cred1a", "", "");
+		container1 = await WalletStateOperations.addNewCredentialEvent(container1, "cred1b", "", "");
 
 		let container2: WalletStateContainer = await WalletStateOperations.addDeleteCredentialEvent(
 			container,
 			(container.events[1] as any).credentialId,
 		);
-		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential session2-x>", "mso_mdoc", "");
-		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential session2-y>", "mso_mdoc", "");
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2x", "", "");
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2y", "", "");
 
 		const result = findDivergencePoint(container1.events, container2.events);
 		// verify that E3 is the actual point of divergence
@@ -76,14 +76,14 @@ describe("The WalletStateOperations", () => {
 
 	it("mergeEventHistories de-duplicates new_credential events by credentialId.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 0>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred0", "", "");
 		container.events[0].timestampSeconds = 0;
 
-		const container1 = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1a>", "mso_mdoc", "");
+		const container1 = await WalletStateOperations.addNewCredentialEvent(container, "cred1a", "", "");
 		container1.events[1].timestampSeconds = 1;
-		let container2 = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2a>", "mso_mdoc", "");
+		let container2 = await WalletStateOperations.addNewCredentialEvent(container, "cred2a", "", "");
 		container2.events[1].timestampSeconds = 2;
-		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential 2b>", "mso_mdoc", "");
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2b", "", "");
 		container2.events[2].timestampSeconds = 3;
 		(container2.events[2] as any).credentialId = (container1.events[1] as any).credentialId;
 
@@ -115,9 +115,9 @@ describe("The WalletStateOperations", () => {
 
 	it("mergeEventHistories de-duplicates delete_credential events by credentialId.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container.events[0].timestampSeconds = 0;
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container.events[1].timestampSeconds = 1;
 
 		const container1 = await WalletStateOperations.addDeleteCredentialEvent(
@@ -388,10 +388,10 @@ describe("The WalletStateOperations", () => {
 
 	it("should successfully fold one event at a time", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		const e1Hash = await WalletStateUtils.calculateEventHash(container.events[0]);
 		container = await WalletStateOperations.foldOldEventsIntoBaseState(container, -1);
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		const e2Hash = await WalletStateUtils.calculateEventHash(container.events[0]);
 
 		assert(container.lastEventHash === e1Hash);
@@ -402,8 +402,8 @@ describe("The WalletStateOperations", () => {
 
 	it("should successfully fold both events at once", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		const e2Hash = await WalletStateUtils.calculateEventHash(container.events[1]);
 		container = await WalletStateOperations.foldOldEventsIntoBaseState(container, -1);
 		assert(container.lastEventHash === e2Hash);
@@ -413,10 +413,10 @@ describe("The WalletStateOperations", () => {
 		const now = Date.now() / 1000;
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
 
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container.events[0].timestampSeconds = now - 10;
 
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container.events[1].timestampSeconds = now + 10;
 
 		const folded = await WalletStateOperations.foldOldEventsIntoBaseState(container, 0);
@@ -428,23 +428,23 @@ describe("The WalletStateOperations", () => {
 	it("mergeEventHistories maintains the per-branch order of events.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
 
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container.events[0].timestampSeconds = 0;
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container.events[1].timestampSeconds = 1;
 		container = await WalletStateOperations.addDeleteCredentialEvent(container, (container.events[0] as any).credentialId);
 		container.events[2].timestampSeconds = 2;
 
-		let container1 = await WalletStateOperations.addNewCredentialEvent(container, "<credential session1-a>", "mso_mdoc", "");
+		let container1 = await WalletStateOperations.addNewCredentialEvent(container, "cred1a", "", "");
 		container1.events[3].timestampSeconds = 10;
-		container1 = await WalletStateOperations.addNewCredentialEvent(container1, "<credential session1-b>", "mso_mdoc", "");
+		container1 = await WalletStateOperations.addNewCredentialEvent(container1, "cred1b", "", "");
 		container1.events[4].timestampSeconds = 20;
 
 		let container2 = await WalletStateOperations.addDeleteCredentialEvent(container, (container.events[1] as any).credentialId);
 		container2.events[3].timestampSeconds = 15;
-		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential session2-x>", "mso_mdoc", "");
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2x", "", "");
 		container2.events[4].timestampSeconds = 16;
-		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "<credential session2-y>", "mso_mdoc", "");
+		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2y", "", "");
 		container2.events[5].timestampSeconds = 25;
 
 		const merged = await WalletStateOperations.mergeEventHistories(container1, container2);
