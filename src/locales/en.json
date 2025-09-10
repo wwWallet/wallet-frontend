@@ -362,6 +362,19 @@
 	"updateNotification": {
 		"description": "New Version is available!"
 	},
+	"viewSelect": {
+		"view": "View",
+		"options": {
+			"horizontalSlider": "Horizontal Slider",
+			"verticalSlider": "Vertical Slider",
+			"list": "List"
+		},
+		"aria": {
+			"toggle": "Change view",
+			"menuLabel": "Credential view options",
+			"option": "View: {{label}}"
+		}
+	},
 	"welcomeModal": {
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
 		"dismissButton": "Dismiss",
