@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
 import { CredentialKeyPair } from "./keystore";
-import { calculateEventHash, CurrentSchema, eventHistoryIsConsistent, findDivergencePoint, foldOldEventsIntoBaseState, mergeEventHistories, reparent } from "./WalletStateSchema";
+import { CurrentSchema, findDivergencePoint, foldOldEventsIntoBaseState, mergeEventHistories, SchemaV1, SchemaV2 } from "./WalletStateSchema";
 
 
 describe("The current WalletStateSchema version", () => {
@@ -10,7 +10,7 @@ describe("The current WalletStateSchema version", () => {
 		const s1 = CurrentSchema.WalletStateOperations.walletStateReducer(container.S, container.events[0]);
 
 		assert.strictEqual(s1.credentials[0].data, "cred1");
-		assert(await eventHistoryIsConsistent(container))
+		assert(await CurrentSchema.eventHistoryIsConsistent(container))
 
 		container = await CurrentSchema.WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 		container.S = CurrentSchema.WalletStateOperations.walletStateReducer(s1, container.events[1]);
@@ -51,17 +51,17 @@ describe("The current WalletStateSchema version", () => {
 		const result = findDivergencePoint(container1.events, container2.events);
 		// verify that E3 is the actual point of divergence
 		assert.strictEqual(
-			await calculateEventHash(result),
-			await calculateEventHash(container.events[2]),
+			await CurrentSchema.calculateEventHash(result),
+			await CurrentSchema.calculateEventHash(container.events[2]),
 		);
 
 		const merged = await mergeEventHistories(container1, container2);
-		const expectMergedEvent2_4 = await reparent(
+		const expectMergedEvent2_4 = await CurrentSchema.reparent(
 			container2.events[4],
 			container1.events[container1.events.length - 1],
 		);
-		const expectMergedEvent2_5 = await reparent(container2.events[5], expectMergedEvent2_4);
-		const expectMergedEvent2_3 = await reparent(container2.events[3], expectMergedEvent2_5);
+		const expectMergedEvent2_5 = await CurrentSchema.reparent(container2.events[5], expectMergedEvent2_4);
+		const expectMergedEvent2_3 = await CurrentSchema.reparent(container2.events[3], expectMergedEvent2_5);
 		assert.deepEqual(merged, {
 			lastEventHash: container.lastEventHash,
 			S: container.S,
@@ -108,7 +108,7 @@ describe("The current WalletStateSchema version", () => {
 				events: [
 					...container.events,
 					container1.events[1],
-					await reparent(container2.events[1], container1.events[1]),
+					await CurrentSchema.reparent(container2.events[1], container1.events[1]),
 				],
 			});
 		}
@@ -154,7 +154,7 @@ describe("The current WalletStateSchema version", () => {
 				events: [
 					...container.events,
 					container1.events[2],
-					await reparent(container2.events[3], container1.events[2]),
+					await CurrentSchema.reparent(container2.events[3], container1.events[2]),
 				],
 			});
 		}
@@ -192,7 +192,7 @@ describe("The current WalletStateSchema version", () => {
 				events: [
 					...container.events,
 					container1.events[1],
-					await reparent(container2.events[1], container1.events[1]),
+					await CurrentSchema.reparent(container2.events[1], container1.events[1]),
 				],
 			});
 		}
@@ -232,13 +232,13 @@ describe("The current WalletStateSchema version", () => {
 				events: [
 					...container.events,
 					container1.events[2],
-					await reparent(container2.events[2], container1.events[2]),
+					await CurrentSchema.reparent(container2.events[2], container1.events[2]),
 				],
 			});
 		}
 	});
 
-	it("mergeEventHistories de-duplicates new_presentation events by eventId.", async () => {
+	it("mergeEventHistories de-duplicates new_presentation events by presentationId.", async () => {
 		let container: CurrentSchema.WalletStateContainer = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 		container = await CurrentSchema.WalletStateOperations.addNewPresentationEvent(container, 0, "data0", [], 0, "");
 		container.events[0].timestampSeconds = 0;
@@ -249,7 +249,7 @@ describe("The current WalletStateSchema version", () => {
 		container2.events[1].timestampSeconds = 2;
 		container2 = await CurrentSchema.WalletStateOperations.addNewPresentationEvent(container2, 3, "data2b", [], 0, "");
 		container2.events[2].timestampSeconds = 3;
-		container2.events[2].eventId = container1.events[1].eventId;
+		(container2.events[2] as any).presentationId = (container1.events[1] as any).presentationId;
 
 		{
 			const mergedL = await mergeEventHistories(container1, container2);
@@ -271,7 +271,7 @@ describe("The current WalletStateSchema version", () => {
 				events: [
 					...container.events,
 					container1.events[1],
-					await reparent(container2.events[1], container1.events[1]),
+					await CurrentSchema.reparent(container2.events[1], container1.events[1]),
 				],
 			});
 		}
@@ -318,7 +318,7 @@ describe("The current WalletStateSchema version", () => {
 				events: [
 					...container.events,
 					container1.events[2],
-					await reparent(container2.events[2], container1.events[2]),
+					await CurrentSchema.reparent(container2.events[2], container1.events[2]),
 				],
 			});
 		}
@@ -382,7 +382,7 @@ describe("The current WalletStateSchema version", () => {
 			events: [
 				...container.events,
 				container1.events[1],
-				await reparent(container2.events[1], container1.events[1]),
+				await CurrentSchema.reparent(container2.events[1], container1.events[1]),
 			],
 		});
 	});
@@ -390,10 +390,10 @@ describe("The current WalletStateSchema version", () => {
 	it("should successfully fold one event at a time", async () => {
 		let container = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 		container = await CurrentSchema.WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
-		const e1Hash = await calculateEventHash(container.events[0]);
+		const e1Hash = await CurrentSchema.calculateEventHash(container.events[0]);
 		container = await foldOldEventsIntoBaseState(container, -1);
 		container = await CurrentSchema.WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
-		const e2Hash = await calculateEventHash(container.events[0]);
+		const e2Hash = await CurrentSchema.calculateEventHash(container.events[0]);
 
 		assert.strictEqual(container.lastEventHash, e1Hash);
 		container = await foldOldEventsIntoBaseState(container, -1);
@@ -405,7 +405,7 @@ describe("The current WalletStateSchema version", () => {
 		let container: CurrentSchema.WalletStateContainer = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 		container = await CurrentSchema.WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container = await CurrentSchema.WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
-		const e2Hash = await calculateEventHash(container.events[1]);
+		const e2Hash = await CurrentSchema.calculateEventHash(container.events[1]);
 		container = await foldOldEventsIntoBaseState(container, -1);
 		assert.strictEqual(container.lastEventHash, e2Hash);
 	});
@@ -449,10 +449,51 @@ describe("The current WalletStateSchema version", () => {
 
 		const merged = await mergeEventHistories(container1, container2);
 		const expectEvent4 = container1.events[3];
-		const expectEvent5 = await reparent(container2.events[3], expectEvent4);
-		const expectEvent6 = await reparent(container2.events[4], expectEvent5);
-		const expectEvent7 = await reparent(container1.events[4], expectEvent6);
-		const expectEvent8 = await reparent(container2.events[5], expectEvent7);
+		const expectEvent5 = await CurrentSchema.reparent(container2.events[3], expectEvent4);
+		const expectEvent6 = await CurrentSchema.reparent(container2.events[4], expectEvent5);
+		const expectEvent7 = await CurrentSchema.reparent(container1.events[4], expectEvent6);
+		const expectEvent8 = await CurrentSchema.reparent(container2.events[5], expectEvent7);
+		assert.deepEqual(merged, {
+			lastEventHash: container.lastEventHash,
+			S: container.S,
+			events: [
+				...container.events,
+				expectEvent4,
+				expectEvent5,
+				expectEvent6,
+				expectEvent7,
+				expectEvent8,
+			],
+		});
+	});
+
+	it("mergeEventHistories orders events first in ascending order of schemaVersion.", async () => {
+		let container = SchemaV1.WalletStateOperations.initialWalletStateContainer();
+		container = await SchemaV1.WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
+		container.events[0].timestampSeconds = 0;
+		container = await SchemaV1.WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
+		container.events[1].timestampSeconds = 1;
+		container = await SchemaV1.WalletStateOperations.addDeleteCredentialEvent(container, (container.events[0] as any).credentialId);
+		container.events[2].timestampSeconds = 2;
+
+		let container1 = await SchemaV1.WalletStateOperations.addNewCredentialEvent(container, "cred1a", "", "");
+		container1.events[3].timestampSeconds = 10;
+		container1 = await SchemaV2.WalletStateOperations.addNewCredentialEvent(container1, "cred1b", "", "");
+		container1.events[4].timestampSeconds = 11;
+
+		let container2 = await SchemaV1.WalletStateOperations.addDeleteCredentialEvent(container, (container.events[1] as any).credentialId);
+		container2.events[3].timestampSeconds = 20;
+		container2 = await SchemaV2.WalletStateOperations.addNewCredentialEvent(container2, "cred2x", "", "");
+		container2.events[4].timestampSeconds = 21;
+		container2 = await SchemaV2.WalletStateOperations.addNewCredentialEvent(container2, "cred2y", "", "");
+		container2.events[5].timestampSeconds = 22;
+
+		const merged = await mergeEventHistories(container1, container2);
+		const expectEvent4 = container1.events[3];
+		const expectEvent5 = await CurrentSchema.reparent(container2.events[3], expectEvent4);
+		const expectEvent6 = await CurrentSchema.reparent(container1.events[4], expectEvent5);
+		const expectEvent7 = await CurrentSchema.reparent(container2.events[4], expectEvent6);
+		const expectEvent8 = await CurrentSchema.reparent(container2.events[5], expectEvent7);
 		assert.deepEqual(merged, {
 			lastEventHash: container.lastEventHash,
 			S: container.S,
