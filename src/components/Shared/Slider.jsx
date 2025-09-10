@@ -3,7 +3,7 @@ import React, { useState, useRef } from 'react';
 import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useTranslation } from 'react-i18next';
-import { EffectCards } from 'swiper/modules';
+import { EffectCards, Keyboard } from 'swiper/modules';
 
 // Styles
 import 'swiper/css';
@@ -22,7 +22,8 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 			<Swiper
 				effect="cards"
 				grabCursor
-				modules={[EffectCards]}
+				modules={[EffectCards, Keyboard]}
+				keyboard
 				slidesPerView={1}
 				initialSlide={currentSlide - 1}
 				onSlideChange={(swiper) => {
