@@ -18,7 +18,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 	const handleNext = () => sliderRef.current?.slideNext();
 
 	return (
-		<div className="relative w-full overflow-visible">
+		<div className="relative w-full px-2 overflow-visible">
 			<Swiper
 				effect="cards"
 				grabCursor
@@ -48,9 +48,9 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						id="previous-slide"
 						onClick={handlePrev}
 						disabled={currentSlide === 1}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -left-14 sm:-left-16 p-2 ${currentSlide === 1
-							? 'opacity-50 cursor-not-allowed text-gray-400'
-							: 'text-primary dark:text-white hover:opacity-100'} opacity-90`}
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -left-3 z-10 p-2 bg-gray-500/40 rounded-md ${currentSlide === 1
+							? 'opacity-50 cursor-not-allowed text-gray-300'
+							: 'text-white hover:opacity-100'} opacity-90`}
 						aria-label={currentSlide === 1
 							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') })
 							: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slidePrevious') })
@@ -61,16 +61,16 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 								: t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })
 						}
 					>
-						<SlArrowLeft size={35} />
+						<SlArrowLeft size={22} />
 					</button>
 
 					<button
 						id="next-slide"
 						onClick={handleNext}
 						disabled={currentSlide === items.length}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -right-14 sm:-right-16 p-2 ${currentSlide === items.length
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -right-3 bg-gray-500/40 rounded-md z-10 p-2 ${currentSlide === items.length
 							? 'opacity-50 cursor-not-allowed text-gray-400'
-							: 'text-primary dark:text-white hover:opacity-100'} opacity-90`}
+							: 'text-white hover:opacity-100'}`}
 						aria-label={currentSlide === items.length
 							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') })
 							: t('pageCredentials.slideButtonAriaLabelEnable', { direction: t('pageCredentials.slideNext') })
@@ -81,10 +81,10 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 								: t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })
 						}
 					>
-						<SlArrowRight size={35} />
+						<SlArrowRight size={22} />
 					</button>
 
-					<div className="absolute bottom-3 z-10 left-2 text-xs bg-black/30 text-white dark:text-white px-2 py-1 rounded">
+					<div className="absolute bottom-3 z-10 left-3 text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
 						{currentSlide}/{items.length}
 					</div>
 				</div>
