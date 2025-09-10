@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react"
-import { WalletSessionEvent, WalletStateOperations, WalletStatePresentation } from "./WalletStateOperations";
+import { WalletStatePresentation } from "./WalletStateOperations";
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
 import { WalletStateUtils } from "./WalletStateUtils";
