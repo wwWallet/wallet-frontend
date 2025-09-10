@@ -165,3 +165,25 @@ input:-webkit-autofill {
 .overflow-visible-force {
 	overflow: visible !important;
 }
+
+.swiper-wrapper {
+	transform: unset !important;
+}
+
+.swiper-slide {
+	margin-bottom: 0 !important;
+}
+
+.vertical-stack-swiper,
+.vertical-stack-swiper .swiper-wrapper {
+	overflow: visible !important;
+}
+
+.vertical-stack-swiper .swiper-slide-active {
+	opacity: 1 !important;
+}
+
+.vertical-stack-swiper .swiper-slide-prev,
+.vertical-stack-swiper .swiper-slide-next {
+	opacity: 0.85 !important;
+}
