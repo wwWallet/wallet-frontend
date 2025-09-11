@@ -210,6 +210,16 @@
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
 			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		},
+		"appearance": {
+			"colorSchema": {
+				"dark": "Dark",
+				"description": "Choose if appearance should be light or dark, or follow your device settings.",
+				"light": "Light",
+				"system": "System",
+				"title": "Color Schema"
+			},
+			"title": "Appearance"
+		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",

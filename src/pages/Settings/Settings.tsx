@@ -1,12 +1,13 @@
 import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
+import { BsLock, BsMoonFill, BsPlusCircle, BsSunFill, BsUnlock } from 'react-icons/bs';
 import { MdNotifications } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import AppSettingsContext from '@/context/AppSettingsContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
@@ -23,6 +24,8 @@ import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
+import { IoMdMoon, IoMdSunny } from "react-icons/io";
+import { FaLaptop, FaMobile } from "react-icons/fa";
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -724,6 +727,7 @@ const WebauthnCredentialItem = ({
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
+	const { setTheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
@@ -733,6 +737,7 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const screenType = useScreenType();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
@@ -914,6 +919,59 @@ const Settings = () => {
 								<div className="relative">
 									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
+							</div>
+						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.appearance.title')} />
+							<div className='pt-4'>
+								<H3 heading={t('pageSettings.appearance.colorSchema.title')}>
+								</H3>
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.appearance.colorSchema.description')}
+								</p>
+							</div>
+							<div className="flex gap-2">
+								<Button
+									id="theme-light"
+									onClick={() => setTheme('light')}
+									variant='custom'
+									ariaLabel={t('pageSettings.appearance.colorSchema.light')}
+									title={t('pageSettings.appearance.colorSchema.light')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${settings.theme === 'light' ? 'bg-gray-100 border border-primary dark:border-primary-light' : 'bg-white '}`}
+
+								>
+									<BsSunFill className='mr-2' />
+									{t('pageSettings.appearance.colorSchema.light')}
+								</Button>
+
+								<Button
+									id="theme-dark"
+									onClick={() => setTheme('dark')}
+									variant="custom"
+									ariaLabel={t('pageSettings.appearance.colorSchema.dark')}
+									title={t('pageSettings.appearance.colorSchema.dark')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.theme === 'dark' ? 'dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white dark:bg-gray-800'}`}
+
+								>
+									<BsMoonFill className='mr-2' />
+									{t('pageSettings.appearance.colorSchema.dark')}
+								</Button>
+
+								<Button
+									id="theme-system"
+									onClick={() => setTheme('system')}
+									variant="custom"
+									ariaLabel={t('pageSettings.appearance.colorSchema.system')}
+									title={t('pageSettings.appearance.colorSchema.system')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.theme === 'system' ? 'bg-gray-100 dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white  dark:bg-gray-800'}`}
+								>
+									{screenType === 'desktop' ? (
+										<FaLaptop className='mr-2' />
+									) : (
+										<FaMobile className='mr-2' />
+									)}
+									{t('pageSettings.appearance.colorSchema.system')}
+								</Button>
 							</div>
 						</div>
 						<div className="my-2 py-2">
