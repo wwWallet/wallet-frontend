@@ -30,7 +30,7 @@ export async function foldNextEvent<S extends WalletState, E extends WalletSessi
 		const { S, events: [nextEvent, ...restEvents] } = container;
 		const schema = getSchema(nextEvent.schemaVersion);
 		return {
-			S: schema.walletStateReducer(schema.migrateState(S), nextEvent) as S,
+			S: schema.walletStateReducer(S, nextEvent) as S,
 			events: restEvents,
 			lastEventHash: restEvents[0]?.parentHash ?? await schema.calculateEventHash(nextEvent),
 		};

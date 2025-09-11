@@ -642,17 +642,17 @@ export function createOperations(
 	}
 
 	function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
-		if (newEvent.schemaVersion !== state.schemaVersion) {
-			throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}`);
-		}
-
-		return {
-			schemaVersion: newEvent.schemaVersion,
-			credentials: credentialReducer(state.credentials, newEvent),
-			keypairs: keypairReducer(state.keypairs, newEvent),
-			presentations: presentationReducer(state.presentations, newEvent),
-			credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
-			settings: settingsReducer(state.settings, newEvent)
+		if (newEvent.schemaVersion === state.schemaVersion) {
+			return {
+				schemaVersion: newEvent.schemaVersion,
+				credentials: credentialReducer(state.credentials, newEvent),
+				keypairs: keypairReducer(state.keypairs, newEvent),
+				presentations: presentationReducer(state.presentations, newEvent),
+				credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
+				settings: settingsReducer(state.settings, newEvent)
+			};
+		} else {
+			return walletStateReducer(migrateState(state), newEvent);
 		}
 	}
 
