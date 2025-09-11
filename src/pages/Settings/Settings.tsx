@@ -1,7 +1,7 @@
 import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { BsLock, BsMoonFill, BsPlusCircle, BsSunFill, BsUnlock } from 'react-icons/bs';
+import { BsLock, BsMoonFill, BsSunFill, BsUnlock } from 'react-icons/bs';
 import { MdNotifications } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 
@@ -24,7 +24,6 @@ import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
-import { IoMdMoon, IoMdSunny } from "react-icons/io";
 import { FaLaptop, FaMobile } from "react-icons/fa";
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
