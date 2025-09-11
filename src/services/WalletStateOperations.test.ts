@@ -1,5 +1,5 @@
 import { assert, describe, it } from "vitest";
-import { findDivergencePoint, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
+import { findMergeBase, WalletStateContainer, WalletStateOperations } from "./WalletStateOperations";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { CredentialKeyPair } from "./keystore";
 
@@ -50,12 +50,14 @@ describe("The WalletStateOperations", () => {
 		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2x", "", "");
 		container2 = await WalletStateOperations.addNewCredentialEvent(container2, "cred2y", "", "");
 
-		const result = findDivergencePoint(container1.events, container2.events);
-		// verify that E3 is the actual point of divergence
-		assert.strictEqual(
-			await WalletStateUtils.calculateEventHash(result),
-			await WalletStateUtils.calculateEventHash(container.events[2]),
-		);
+		const mergeBase = await findMergeBase(container1, container2);
+		assert.deepEqual(mergeBase, {
+			lastEventHash: container.lastEventHash,
+			baseState: container.S,
+			commonEvents: container.events,
+			uniqueEvents1: container1.events.slice(container.events.length),
+			uniqueEvents2: container2.events.slice(container.events.length),
+		});
 
 		const merged = await WalletStateOperations.mergeEventHistories(container1, container2);
 		const expectMergedEvent2_4 = await WalletStateUtils.reparent(
@@ -397,8 +399,15 @@ describe("The WalletStateOperations", () => {
 			(container.events[0] as any).credentialId,
 		);
 
-		const divp = findDivergencePoint(container.events, container.events);
-		assert.strictEqual(divp, container.events[1]);
+		const mergeBase = await findMergeBase(container, container);
+		assert.deepEqual(mergeBase, {
+			lastEventHash: container.lastEventHash,
+			baseState: container.S,
+			commonEvents: container.events,
+			uniqueEvents1: [],
+			uniqueEvents2: [],
+		});
+
 		const merged = await WalletStateOperations.mergeEventHistories(container, container);
 		assert.deepEqual(merged, container);
 	});
@@ -413,8 +422,17 @@ describe("The WalletStateOperations", () => {
 
 		const folded = await WalletStateOperations.foldOldEventsIntoBaseState(container, -1);
 
-		const result = findDivergencePoint(container.events, folded.events);
-		assert.strictEqual(result, container.events[1]);
+		const mergeBaseL = await findMergeBase(container, folded);
+		assert.deepEqual(mergeBaseL, {
+			lastEventHash: container.lastEventHash,
+			baseState: container.S,
+			commonEvents: container.events,
+			uniqueEvents1: [],
+			uniqueEvents2: [],
+		});
+		const mergeBaseR = await findMergeBase(folded, container);
+		assert.deepEqual(mergeBaseR, mergeBaseL);
+
 		const mergedL = await WalletStateOperations.mergeEventHistories(container, folded);
 		assert.deepEqual(mergedL, container);
 		const mergedR = await WalletStateOperations.mergeEventHistories(folded, container);
@@ -431,8 +449,22 @@ describe("The WalletStateOperations", () => {
 
 		let container2 = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
 
-		const divp = findDivergencePoint(container.events, container2.events);
-		assert.strictEqual(divp, container.events[1]);
+		const mergeBaseL = await findMergeBase(container, container2);
+		assert.deepEqual(mergeBaseL, {
+			lastEventHash: container.lastEventHash,
+			baseState: container.S,
+			commonEvents: container.events,
+			uniqueEvents1: [],
+			uniqueEvents2: container2.events.slice(container.events.length),
+		});
+		const mergeBaseR = await findMergeBase(container2, container);
+		assert.deepEqual(mergeBaseR, {
+			lastEventHash: container.lastEventHash,
+			baseState: container.S,
+			commonEvents: container.events,
+			uniqueEvents1: container2.events.slice(container.events.length),
+			uniqueEvents2: [],
+		});
 
 		const mergedR = await WalletStateOperations.mergeEventHistories(container, container2);
 		assert.deepEqual(mergedR, container2);
@@ -457,8 +489,17 @@ describe("The WalletStateOperations", () => {
 				""
 			);
 
-			const divp = findDivergencePoint(container1a.events, container2a.events);
-			assert.strictEqual(divp, container.events[1]);
+			const mergeBaseL = await findMergeBase(container1a, container2a);
+			assert.deepEqual(mergeBaseL, {
+				lastEventHash: container.lastEventHash,
+				baseState: container.S,
+				commonEvents: container.events,
+				uniqueEvents1: container1a.events.slice(container.events.length),
+				uniqueEvents2: container2a.events.slice(container.events.length - 1),
+			});
+			const mergeBaseR = await findMergeBase(container2a, container1a);
+			assert.deepEqual(mergeBaseR, mergeBaseR);
+
 			const mergedR = await WalletStateOperations.mergeEventHistories(container1a, container2a);
 			assert.deepEqual(
 				mergedR,
@@ -493,8 +534,14 @@ describe("The WalletStateOperations", () => {
 				""
 			);
 
-			const divp = findDivergencePoint(container1b.events, container2b.events);
-			assert.strictEqual(divp, container.events[1]);
+			const mergeBaseR = await findMergeBase(container1b, container2b);
+			assert.deepEqual(mergeBaseR, {
+				lastEventHash: container.events[1].parentHash,
+				baseState: container1b.S,
+				commonEvents: container1b.events.slice(0, container1b.events.length - 1),
+				uniqueEvents1: container1b.events.slice(container1b.events.length - 1),
+				uniqueEvents2: container2b.events.slice(container1b.events.length - 2),
+			});
 			const mergedR = await WalletStateOperations.mergeEventHistories(container1b, container2b);
 			assert.deepEqual(
 				mergedR,
@@ -510,6 +557,8 @@ describe("The WalletStateOperations", () => {
 				},
 			);
 
+			const mergeBaseL = await findMergeBase(container1b, container2b);
+			assert.deepEqual(mergeBaseL, mergeBaseR);
 			const mergedL = await WalletStateOperations.mergeEventHistories(container2b, container1b);
 			assert.deepEqual(mergedL, mergedR);
 		}
