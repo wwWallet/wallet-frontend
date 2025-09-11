@@ -1,21 +1,21 @@
 import { createContext } from 'react';
 
-export type Theme = 'light' | 'dark' | 'system';
+export type ColorScheme = 'light' | 'dark' | 'system';
 
 export type Settings = {
-	theme: Theme;
+	colorScheme: ColorScheme;
 };
 
 export interface AppSettingsState {
 	settings: Settings,
-	resolvedTheme: 'light' | 'dark';
-	setTheme: (t: Theme) => void;
+	resolvedColorScheme: 'light' | 'dark';
+	setColorScheme: (t: ColorScheme) => void;
 }
 
 const AppSettingsContext = createContext<AppSettingsState>({
-	settings: { theme: "system" },
-	resolvedTheme: "light",
-	setTheme: () => { },
+	settings: { colorScheme: "system" },
+	resolvedColorScheme: "light",
+	setColorScheme: () => { },
 });
 
 export default AppSettingsContext;

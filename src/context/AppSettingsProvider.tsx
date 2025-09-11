@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import AppSettingsContext, { Theme, Settings } from "./AppSettingsContext";
+import AppSettingsContext, { ColorScheme, Settings } from "./AppSettingsContext";
 import { useLocalStorage } from "@/hooks/useStorage";
 
 const getSystemPref = (): "light" | "dark" =>
@@ -8,13 +8,13 @@ const getSystemPref = (): "light" | "dark" =>
 		: "light";
 
 export const AppSettingsProvider = ({ children }: { children: React.ReactNode }) => {
-	const [settings, setSettings] = useLocalStorage<Settings>("settings", { theme: "system" });
+	const [settings, setSettings] = useLocalStorage<Settings>("settings", { colorScheme: "system" });
 
 	// Track OS preference and react to changes
 	const [systemPref, setSystemPref] = useState<"light" | "dark">(getSystemPref());
 
 	useEffect(() => {
-		if (typeof window === "undefined" || settings.theme !== "system") return;
+		if (typeof window === "undefined" || settings.colorScheme !== "system") return;
 		const mql = window.matchMedia("(prefers-color-scheme: dark)");
 
 		const onChange = (e: MediaQueryListEvent | MediaQueryList) => {
@@ -38,28 +38,28 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
 				(mql as any).removeListener(onChange);
 			}
 		};
-	}, [settings.theme]);
+	}, [settings.colorScheme]);
 
-	const setTheme = (t: Theme) => setSettings({ ...settings, theme: t });
+	const setColorScheme = (t: ColorScheme) => setSettings({ ...settings, colorScheme: t });
 
-	const resolvedTheme: "light" | "dark" = useMemo(
-		() => (settings.theme === "system" ? systemPref : settings.theme),
-		[settings.theme, systemPref]
+	const resolvedColorScheme: "light" | "dark" = useMemo(
+		() => (settings.colorScheme === "system" ? systemPref : settings.colorScheme),
+		[settings.colorScheme, systemPref]
 	);
 
 	// Apply to <html>
 	useEffect(() => {
 		if (typeof document === "undefined") return;
 		const root = document.documentElement;
-		const isDark = resolvedTheme === "dark";
+		const isDark = resolvedColorScheme === "dark";
 		root.classList.toggle("dark", isDark);      // Tailwind dark mode
-		root.setAttribute("data-theme", resolvedTheme);
+		root.setAttribute("data-theme", resolvedColorScheme);
 		root.style.colorScheme = isDark ? "dark" : "light"; // native form controls
-	}, [resolvedTheme]);
+	}, [resolvedColorScheme]);
 
 	const value = useMemo(
-		() => ({ settings, resolvedTheme, setTheme }),
-		[settings, resolvedTheme]
+		() => ({ settings, resolvedColorScheme, setColorScheme }),
+		[settings, resolvedColorScheme]
 	);
 
 	return (

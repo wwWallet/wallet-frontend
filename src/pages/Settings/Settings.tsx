@@ -727,7 +727,7 @@ const WebauthnCredentialItem = ({
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
-	const { setTheme, settings } = useContext(AppSettingsContext);
+	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
@@ -924,53 +924,53 @@ const Settings = () => {
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.appearance.title')} />
 							<div className='pt-4'>
-								<H3 heading={t('pageSettings.appearance.colorSchema.title')}>
+								<H3 heading={t('pageSettings.appearance.colorScheme.title')}>
 								</H3>
 								<p className='mb-2 dark:text-white'>
-									{t('pageSettings.appearance.colorSchema.description')}
+									{t('pageSettings.appearance.colorScheme.description')}
 								</p>
 							</div>
 							<div className="flex gap-2">
 								<Button
-									id="theme-light"
-									onClick={() => setTheme('light')}
+									id="color-scheme-light"
+									onClick={() => setColorScheme('light')}
 									variant='custom'
-									ariaLabel={t('pageSettings.appearance.colorSchema.light')}
-									title={t('pageSettings.appearance.colorSchema.light')}
-									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${settings.theme === 'light' ? 'bg-gray-100 border border-primary dark:border-primary-light' : 'bg-white '}`}
+									ariaLabel={t('pageSettings.appearance.colorScheme.light')}
+									title={t('pageSettings.appearance.colorScheme.light')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'light' ? 'bg-gray-100 border border-primary dark:border-primary-light' : 'bg-white '}`}
 
 								>
 									<BsSunFill className='mr-2' />
-									{t('pageSettings.appearance.colorSchema.light')}
+									{t('pageSettings.appearance.colorScheme.light')}
 								</Button>
 
 								<Button
-									id="theme-dark"
-									onClick={() => setTheme('dark')}
+									id="color-scheme-dark"
+									onClick={() => setColorScheme('dark')}
 									variant="custom"
-									ariaLabel={t('pageSettings.appearance.colorSchema.dark')}
-									title={t('pageSettings.appearance.colorSchema.dark')}
-									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.theme === 'dark' ? 'dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white dark:bg-gray-800'}`}
+									ariaLabel={t('pageSettings.appearance.colorScheme.dark')}
+									title={t('pageSettings.appearance.colorScheme.dark')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'dark' ? 'dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white dark:bg-gray-800'}`}
 
 								>
 									<BsMoonFill className='mr-2' />
-									{t('pageSettings.appearance.colorSchema.dark')}
+									{t('pageSettings.appearance.colorScheme.dark')}
 								</Button>
 
 								<Button
-									id="theme-system"
-									onClick={() => setTheme('system')}
+									id="color-scheme-system"
+									onClick={() => setColorScheme('system')}
 									variant="custom"
-									ariaLabel={t('pageSettings.appearance.colorSchema.system')}
-									title={t('pageSettings.appearance.colorSchema.system')}
-									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.theme === 'system' ? 'bg-gray-100 dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white  dark:bg-gray-800'}`}
+									ariaLabel={t('pageSettings.appearance.colorScheme.system')}
+									title={t('pageSettings.appearance.colorScheme.system')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'system' ? 'bg-gray-100 dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white  dark:bg-gray-800'}`}
 								>
 									{screenType === 'desktop' ? (
 										<FaLaptop className='mr-2' />
 									) : (
 										<FaMobile className='mr-2' />
 									)}
-									{t('pageSettings.appearance.colorSchema.system')}
+									{t('pageSettings.appearance.colorScheme.system')}
 								</Button>
 							</div>
 						</div>

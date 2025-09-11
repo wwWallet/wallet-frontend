@@ -211,12 +211,12 @@
 			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		},
 		"appearance": {
-			"colorSchema": {
+			"colorScheme": {
 				"dark": "Dark",
 				"description": "Choose if appearance should be light or dark, or follow your device settings.",
 				"light": "Light",
 				"system": "System",
-				"title": "Color Schema"
+				"title": "Color Scheme"
 			},
 			"title": "Appearance"
 		},
