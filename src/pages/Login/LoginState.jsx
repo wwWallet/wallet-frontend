@@ -151,7 +151,7 @@ const LoginState = () => {
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
-				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+				<div className='absolute text-gray-500 dark:text-white top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 				<div className='absolute top-0 right-3'>
