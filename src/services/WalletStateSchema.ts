@@ -2,17 +2,21 @@ import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
 import { compareBy, last, splitWhen } from "@/util";
 
 import * as SchemaV1 from "./WalletStateSchemaVersion1";
-import * as CurrentSchema from "./WalletStateSchemaVersion1";
+import * as SchemaV2 from "./WalletStateSchemaVersion2";
+import * as CurrentSchema from "./WalletStateSchemaVersion2";
 import { WalletSessionEvent, WalletState, WalletStateContainer, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
 
 export * as SchemaV1 from "./WalletStateSchemaVersion1";
-export * as CurrentSchema from "./WalletStateSchemaVersion1";
+export * as SchemaV2 from "./WalletStateSchemaVersion2";
+export * as CurrentSchema from "./WalletStateSchemaVersion2";
 
 
 function getSchema(schemaVersion: number): WalletStateOperations<WalletState, WalletSessionEvent> {
 	switch (schemaVersion) {
 		case 1:
 			return SchemaV1.WalletStateOperations;
+		case 2:
+			return SchemaV2.WalletStateOperations;
 
 		default:
 			throw new Error(`Unknown schema version: ${schemaVersion}`);
@@ -66,22 +70,25 @@ export async function foldOldEventsIntoBaseState<S extends WalletState, E extend
 }
 
 async function mergeDivergentHistoriesWithStrategies(
+	mergedByEarlierSchemaVersions: WalletSessionEvent[],
 	historyA: WalletSessionEvent[],
 	historyB: WalletSessionEvent[],
 	lastCommonAncestorHashFromEventHistory: string,
 ): Promise<WalletSessionEvent[]> {
-	if (historyA.length === 0) {
-		return CurrentSchema.WalletStateOperations.rebuildEventHistory(historyB, lastCommonAncestorHashFromEventHistory);
-	} else if (historyB.length === 0) {
-		return CurrentSchema.WalletStateOperations.rebuildEventHistory(historyA, lastCommonAncestorHashFromEventHistory);
+	if (historyA.length === 0 && historyB.length === 0) {
+		return [];
 
 	} else {
-		const firstSchemaVersion = Math.min(historyA[0].schemaVersion, historyB[0].schemaVersion);
+		const firstSchemaVersion = Math.min(...[
+			historyA[0]?.schemaVersion,
+			historyB[0]?.schemaVersion,
+		].filter(v => v !== undefined));
 		const [startA, tailA] = splitWhen(historyA, e => e.schemaVersion !== firstSchemaVersion);
 		const [startB, tailB] = splitWhen(historyB, e => e.schemaVersion !== firstSchemaVersion);
 
 		const firstPart = await CurrentSchema.WalletStateOperations.rebuildEventHistory(
 			await getSchema(firstSchemaVersion).mergeDivergentHistoriesWithStrategies(
+				mergedByEarlierSchemaVersions,
 				startA,
 				startB,
 				lastCommonAncestorHashFromEventHistory,
@@ -90,7 +97,7 @@ async function mergeDivergentHistoriesWithStrategies(
 		);
 		const nextParentHash = await CurrentSchema.WalletStateOperations.calculateEventHash(last(firstPart));
 
-		return [...firstPart, ...await mergeDivergentHistoriesWithStrategies(tailA, tailB, nextParentHash,)];
+		return [...firstPart, ...await mergeDivergentHistoriesWithStrategies(firstPart, tailA, tailB, nextParentHash)];
 	}
 }
 
@@ -232,6 +239,7 @@ export async function mergeEventHistories(container1: WalletStateContainerGeneri
 	);
 
 	const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(
+		[],
 		uniqueEvents1,
 		uniqueEvents2,
 		pointOfDivergenceHash,

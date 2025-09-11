@@ -272,9 +272,9 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 	}
 }
 
-type MergeStrategy = (a: WalletSessionEvent[], b: WalletSessionEvent[]) => WalletSessionEvent[];
+export type MergeStrategy = (a: WalletSessionEvent[], b: WalletSessionEvent[]) => WalletSessionEvent[];
 
-const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
+export const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 	new_credential: (a, b) => {
 		// Remove duplicate new_credential events that create a credential with the same credentialId
 		// assuming that credentialId is a safe randomly-generated number that was assigned during insertion
@@ -312,6 +312,7 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 
 export function createOperations(
 	SCHEMA_VERSION: number,
+	mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy>,
 ) {
 
 	async function calculateEventHash(event: WalletSchemaCommon.WalletSessionEvent | undefined): Promise<string> {
@@ -656,7 +657,13 @@ export function createOperations(
 		}
 	}
 
-	async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
+	async function mergeDivergentHistoriesWithStrategies(
+		/** Will always be empty for schema version 1, can safely ignore */
+		_mergedByEarlierSchemaVersions: WalletSchemaCommon.WalletSessionEvent[],
+		historyA: WalletSessionEvent[],
+		historyB: WalletSessionEvent[],
+		lastCommonAncestorHashFromEventHistory: string,
+	): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
 		const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[]]> = {
 			new_credential: [[], []],
 			delete_credential: [[], []],
@@ -708,4 +715,4 @@ export function createOperations(
 	};
 }
 
-export const WalletStateOperations = createOperations(SCHEMA_VERSION);
+export const WalletStateOperations = createOperations(SCHEMA_VERSION, mergeStrategies);

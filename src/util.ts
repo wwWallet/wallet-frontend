@@ -101,6 +101,28 @@ export function splitWhen<T>(arr: T[], predicate: (element: T) => boolean): [T[]
 }
 
 /**
+	Filter `arr` for duplicates as determined by `f`, keeping the first element
+	of each duplicate class.
+	*/
+export function deduplicateBy<T, U extends (string | number | boolean | bigint | symbol)>(
+	arr: T[],
+	f: (element: T) => U,
+): T[] {
+	return [
+		...arr.reduce(
+			(map, e: T) => {
+				const key = f(e);
+				if (!map.has(key)) {
+					map.set(key, e);
+				}
+				return map;
+			},
+			new Map<U, T>(),
+		).values(),
+	];
+}
+
+/**
 	Filter `arr` for duplicates as determined by `f`, keeping the last element of
 	each duplicate class.
 	*/

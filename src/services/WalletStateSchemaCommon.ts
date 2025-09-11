@@ -22,5 +22,10 @@ export interface WalletStateOperations<S extends WalletState, E extends WalletSe
 	migrateState(state: WalletState): S;
 	walletStateReducer(state: S, newEvent: E): S;
 	calculateEventHash(event: E): Promise<string>;
-	mergeDivergentHistoriesWithStrategies(historyA: E[], historyB: E[], lastCommonAncestorHashFromEventHistory: string): Promise<E[]>;
+	mergeDivergentHistoriesWithStrategies(
+		mergedByEarlierSchemaVersions: WalletSessionEvent[],
+		historyA: E[],
+		historyB: E[],
+		lastCommonAncestorHashFromEventHistory: string,
+	): Promise<E[]>;
 }
