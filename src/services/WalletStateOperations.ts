@@ -3,7 +3,7 @@ import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
-import { compareBy, last, maxByKey } from "@/util";
+import { compareBy, deduplicateFromRightBy, last, maxByKey } from "@/util";
 
 
 export type WalletStateContainer = {
@@ -273,39 +273,27 @@ type MergeStrategy = (a: WalletSessionEvent[], b: WalletSessionEvent[]) => Walle
 
 const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 	new_credential: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
-		// the following line removes the duplicate new_credential event that creates a credential with the same credentialId
+		// Remove duplicate new_credential events that create a credential with the same credentialId
 		// assuming that credentialId is a safe randomly-generated number that was assigned during insertion
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "new_credential" && map.set(event.credentialId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "new_credential"), e => e.credentialId);
 	},
 	delete_credential: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
 		// the following line removes the duplicate delete_credential event that deletes the same credential
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "delete_credential" && map.set(event.credentialId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_credential"), e => e.credentialId);
 	},
 	new_keypair: (a, b) => {
-		const map = new Map<string, WalletSessionEvent>();
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "new_keypair" && map.set(event.kid, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "new_keypair"), e => e.kid);
 	},
 	delete_keypair: (a, b) => {
-		const map = new Map<string, WalletSessionEvent>();
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "delete_keypair" && map.set(event.kid, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_keypair"), e => e.kid);
 	},
 	new_presentation: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
-		// the following line accepts all presentations with unique eventId
-		[...a, ...b].map((event: WalletSessionEvent) => event.type === "new_presentation" && map.set(event.eventId, event));
-		return [...map.values()];
+		// Keep all presentations with unique eventId
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "new_presentation"), e => e.eventId);
 	},
 	delete_presentation: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
 		// similar to new_presentation
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "delete_presentation" && map.set(event.eventId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_presentation"), e => e.eventId);
 	},
 	alter_settings: (a, b) => {
 		const settingsEvents: WalletSessionEvent[] = [];
@@ -315,9 +303,7 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		return latest ? [latest] : [];
 	},
 	save_credential_issuance_session: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
-		[...a, ...b].map((event: WalletSessionEvent) => event.type === "save_credential_issuance_session" && map.set(event.eventId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "save_credential_issuance_session"), e => e.eventId);
 	},
 };
 
