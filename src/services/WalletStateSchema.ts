@@ -1,5 +1,5 @@
 import { FOLD_EVENT_HISTORY_AFTER_SECONDS } from "@/config";
-import { compareBy, findIndexOrEnd, last } from "@/util";
+import { compareBy, last, splitWhen } from "@/util";
 
 import * as SchemaV1 from "./WalletStateSchemaVersion1";
 import * as CurrentSchema from "./WalletStateSchemaVersion1";
@@ -77,24 +77,20 @@ async function mergeDivergentHistoriesWithStrategies(
 
 	} else {
 		const firstSchemaVersion = Math.min(historyA[0].schemaVersion, historyB[0].schemaVersion);
-		const splitPointA = findIndexOrEnd(historyA, e => e.schemaVersion !== firstSchemaVersion);
-		const splitPointB = findIndexOrEnd(historyB, e => e.schemaVersion !== firstSchemaVersion);
+		const [startA, tailA] = splitWhen(historyA, e => e.schemaVersion !== firstSchemaVersion);
+		const [startB, tailB] = splitWhen(historyB, e => e.schemaVersion !== firstSchemaVersion);
 
 		const firstPart = await CurrentSchema.WalletStateOperations.rebuildEventHistory(
 			await getSchema(firstSchemaVersion).mergeDivergentHistoriesWithStrategies(
-				historyA.slice(0, splitPointA),
-				historyB.slice(0, splitPointB),
+				startA,
+				startB,
 				lastCommonAncestorHashFromEventHistory,
 			),
 			lastCommonAncestorHashFromEventHistory,
 		);
 		const nextParentHash = await CurrentSchema.WalletStateOperations.calculateEventHash(last(firstPart));
 
-		return [...firstPart, ...await mergeDivergentHistoriesWithStrategies(
-			historyA.slice(splitPointA),
-			historyB.slice(splitPointB),
-			nextParentHash,
-		)];
+		return [...firstPart, ...await mergeDivergentHistoriesWithStrategies(tailA, tailB, nextParentHash,)];
 	}
 }
 

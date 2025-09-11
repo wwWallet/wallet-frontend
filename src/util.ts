@@ -89,6 +89,18 @@ export function findIndexOrEnd<T>(arr: T[], predicate: (element: T) => boolean):
 }
 
 /**
+	Split `arr` into two contiguous segments. The second segment begins with the
+	first element that satisfies the `predicate`.
+
+	If no element satisfies the `predicate`, then the first segment is a shallow
+	copy of `arr` and the second segment is empty.
+	*/
+export function splitWhen<T>(arr: T[], predicate: (element: T) => boolean): [T[], T[]] {
+	const splitIndex = findIndexOrEnd(arr, predicate);
+	return [arr.slice(0, splitIndex), arr.slice(splitIndex)];
+}
+
+/**
 	Filter `arr` for duplicates as determined by `f`, keeping the last element of
 	each duplicate class.
 	*/
