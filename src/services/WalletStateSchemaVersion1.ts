@@ -318,6 +318,10 @@ export function createOperations(
 		if (event === undefined) {
 			return "";
 		}
+		if (event.schemaVersion > SCHEMA_VERSION) {
+			throw new Error(`Cannot use schema v${SCHEMA_VERSION} to calculate hash of event with schema v${event.schemaVersion}`);
+		}
+
 		// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
 		if (event.type === 'new_keypair' && 'keypair' in event && typeof event.keypair === 'object') {
 			return sha256(JSON.stringify(normalize({
