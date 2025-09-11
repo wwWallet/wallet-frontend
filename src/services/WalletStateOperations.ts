@@ -296,9 +296,8 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_presentation"), e => e.eventId);
 	},
 	alter_settings: (a, b) => {
-		const settingsEvents: WalletSessionEvent[] = [];
 		// get only the latest applied setting during merge based on timestamp of event
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "alter_settings" && settingsEvents.push(event));
+		const settingsEvents: WalletSessionEvent[] = a.concat(b).filter(e => e.type === "alter_settings");
 		const latest = maxByKey(settingsEvents, e => e.timestampSeconds);
 		return latest ? [latest] : [];
 	},
