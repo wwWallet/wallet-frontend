@@ -96,6 +96,7 @@ const Home = () => {
 													)}
 													initialSlide={currentSlide}
 													onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+													className='w-full px-8 xm:px-6 sm:px-20'
 												/>
 												{vcEntityList[currentSlide - 1] && (
 													<div className='px-6'>

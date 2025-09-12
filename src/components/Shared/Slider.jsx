@@ -9,7 +9,7 @@ import { EffectCards, Keyboard } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/effect-cards';
 
-const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) => {
+const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, className = '' }) => {
 	const [currentSlide, setCurrentSlide] = useState(initialSlide);
 	const sliderRef = useRef(null);
 	const { t } = useTranslation();
@@ -18,7 +18,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 	const handleNext = () => sliderRef.current?.slideNext();
 
 	return (
-		<div className="relative w-full px-8 xm:px-6 sm:px-20 overflow-visible">
+		<div className={`relative w-full overflow-visible ${className}`}>
 			<Swiper
 				effect="cards"
 				grabCursor
@@ -42,7 +42,6 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 					</SwiperSlide>
 				))}
 			</Swiper>
-
 			{items.length > 1 && (
 				<div className="pointer-events-none absolute inset-0">
 					<button
@@ -85,8 +84,10 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						<SlArrowRight size={22} />
 					</button>
 
-					<div className="absolute bottom-3 z-10 left-10 xm:left-8 left-10 sm:left-[90px] text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
-						{currentSlide}/{items.length}
+					<div className={`absolute bottom-3 z-10 left-2 ${className}`}>
+						<div className="text-xs bg-gray-500/40 w-max text-white dark:text-white px-2 py-1 rounded">
+							{currentSlide}/{items.length}
+						</div>
 					</div>
 				</div>
 			)}
