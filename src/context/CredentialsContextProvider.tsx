@@ -43,7 +43,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		setCredentialEngine(engine);
 	}, [httpProxy, helper, getExternalEntity]);
 
-		useEffect(() => {
+	useEffect(() => {
 		if (httpProxy && helper) {
 			if (prevIsLoggedIn.current === false && isLoggedIn === true) {
 				console.log("[CredentialsContext] Detected login transition, initializing without cache");
@@ -149,15 +149,29 @@ export const CredentialsContextProvider = ({ children }) => {
 		return filteredVcEntityList;
 	}, [get, parseCredential, credentialEngine]);
 
-	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
-		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
+	const updateVcListAndLatestCredentials = useCallback(
+		(newVcEntityList: ExtendedVcEntity[], setLatest: boolean) => {
+			if (setLatest && newVcEntityList.length > 0) {
+				setLatestCredentials(new Set(newVcEntityList.filter(vc => vc.id === newVcEntityList[0].id).map(vc => vc.id)));
 
-		setTimeout(() => {
-			setLatestCredentials(new Set());
-		}, 2000);
+				setTimeout(() => {
+					setLatestCredentials(new Set());
+				}, 2000);
+			}
 
-		setVcEntityList(vcEntityList);
-	};
+			setVcEntityList((prev) => {
+				if (
+					!prev ||
+					prev.length !== newVcEntityList.length ||
+					prev.some((vc, i) => vc.id !== newVcEntityList[i].id)
+				) {
+					return newVcEntityList;
+				}
+				return prev;
+			});
+		},
+		[setVcEntityList, setLatestCredentials]
+	);
 
 	const pollForCredentials = useCallback(() => {
 		if (isPollingActive) {
@@ -177,7 +191,7 @@ export const CredentialsContextProvider = ({ children }) => {
 			if (previousSize < vcEntityList.length) {
 				console.log('Found new credentials, stopping polling');
 				stopPolling();
-				updateVcListAndLatestCredentials(vcEntityList);
+				updateVcListAndLatestCredentials(vcEntityList, true);
 			}
 
 			if (attempts >= 5) {
@@ -194,21 +208,22 @@ export const CredentialsContextProvider = ({ children }) => {
 			const uniqueIdentifiers = new Set(previousVcList?.vc_list.map(vc => vc.credentialIdentifier));
 			const previousSize = uniqueIdentifiers.size;
 
-			const vcEntityList = await fetchVcData();
-			const newCredentialsFound = previousSize < vcEntityList.length;
+			const newVcEntityList = await fetchVcData();
+			const newCredentialsFound = previousSize < newVcEntityList.length;
 
 			if (shouldPoll && !newCredentialsFound) {
 				window.history.replaceState({}, '', `/`);
 				console.log("No new credentials, starting polling");
-				setVcEntityList(vcEntityList);
+				setVcEntityList(newVcEntityList);
+				updateVcListAndLatestCredentials(newVcEntityList, false);
 				pollForCredentials();
 			} else if (newCredentialsFound) {
 				window.history.replaceState({}, '', `/`);
 				stopPolling();
 				console.log("Found new credentials, no need to poll");
-				updateVcListAndLatestCredentials(vcEntityList);
+				updateVcListAndLatestCredentials(newVcEntityList, true);
 			} else {
-				setVcEntityList(vcEntityList);
+				updateVcListAndLatestCredentials(newVcEntityList, false);
 			}
 		} catch (error) {
 			console.error('Failed to fetch data', error);

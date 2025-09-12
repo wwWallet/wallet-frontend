@@ -4,10 +4,12 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
 import { PiCardsBold } from "react-icons/pi";
+import i18n from '@/i18n';
 
 // Hooks
-import useScreenType from '../../hooks/useScreenType';
-import { useVcEntity } from '../../hooks/useVcEntity';
+import useScreenType from '@/hooks/useScreenType';
+import { useVcEntity } from '@/hooks/useVcEntity';
+import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
@@ -17,6 +19,7 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
+import CredentialGridCard from './CredentialGridCard';
 
 const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	if (zeroSigCount === null || sigTotal === null) return null;
@@ -44,7 +47,6 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 	const { credentialId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
-	const [credentialFiendlyName, setCredentialFriendlyName] = useState(null);
 	const { t } = useTranslation();
 	const navigate = useNavigate();
 	const [zeroSigCount, setZeroSigCount] = useState(null)
@@ -57,9 +59,14 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		if (vcEntity) {
 			setZeroSigCount(vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0);
 			setSigTotal(vcEntity.instances.length);
-			setCredentialFriendlyName(vcEntity.parsedCredential.metadata.credential.name);
 		}
 	}, [vcEntity]);
+
+	const credentialName = useCredentialName(
+		vcEntity?.parsedCredential?.metadata?.credential?.name,
+		vcEntity?.id,
+		[i18n.language]
+	);
 
 	const CredentialImageButton = ({
 		showRibbon,
@@ -72,8 +79,8 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			id="show-full-screen-credential"
 			className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 			onClick={onClick}
-			aria-label={ariaLabel ?? credentialFiendlyName}
-			title={title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFiendlyName })}
+			aria-label={ariaLabel ?? credentialName}
+			title={title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName })}
 		>
 			<CredentialImage
 				vcEntity={vcEntity}
@@ -121,7 +128,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				</div>
 				{screenType === 'mobile' && (
 					<div className='flex flex-start flex-col gap-1'>
-						<p className='text-xl font-bold text-primary dark:text-white'>{credentialFiendlyName}</p>
+						<p className='text-xl font-bold text-primary dark:text-white'>{credentialName}</p>
 						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
 					</div>
@@ -155,7 +162,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				>
 					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-primary dark:text-primary-light" />
 
-					<H1 heading={credentialFiendlyName} hr={false} />
+					<H1 heading={credentialName} hr={false} />
 				</H1>
 			) : (
 				<div className='flex'>

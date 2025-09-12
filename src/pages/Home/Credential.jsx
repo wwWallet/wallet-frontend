@@ -4,10 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
 import { BsQrCode, BsCheckCircle } from "react-icons/bs";
 import QRCode from "react-qr-code";
+import i18n from '@/i18n';
 
 // Contexts
 import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
+import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Hooks
 import useFetchPresentations from '../../hooks/useFetchPresentations';
@@ -15,7 +17,6 @@ import useScreenType from '../../hooks/useScreenType';
 import { useVcEntity } from '../../hooks/useVcEntity';
 
 // Components
-import CredentialTabs from '../../components/Credentials/CredentialTabs';
 import CredentialInfo from '../../components/Credentials/CredentialInfo';
 import CredentialJson from '../../components/Credentials/CredentialJson';
 import HistoryList from '../../components/History/HistoryList';
@@ -25,7 +26,7 @@ import Button from '../../components/Buttons/Button';
 import CredentialLayout from '../../components/Credentials/CredentialLayout';
 import PopupLayout from '../../components/Popups/PopupLayout';
 import CredentialImage from '../../components/Credentials/CredentialImage';
-
+import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 
@@ -37,7 +38,6 @@ const Credential = () => {
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const screenType = useScreenType();
-	const [activeTab, setActiveTab] = useState(0);
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
 	const [showMdocQR, setShowMdocQR] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
@@ -49,6 +49,12 @@ const Credential = () => {
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
+
+	const credentialName = useCredentialName(
+		vcEntity?.parsedCredential?.metadata?.credential?.name,
+		vcEntity?.id,
+		[i18n.language]
+	);
 
 	const handleSureDelete = async () => {
 		setLoading(true);
@@ -124,9 +130,9 @@ const Credential = () => {
 	}, [vcEntity]);
 
 	const infoTabs = [
-		{ label: t('pageCredentials.datasetTitle'), component: <CredentialJson parsedCredential={vcEntity?.parsedCredential} /> },
 		{
-			label: t('pageCredentials.presentationsTitle'), component:
+			label: t('pageCredentials.presentationsTitle'),
+			component:
 				<>
 					{history.length === 0 ? (
 						<p className="text-gray-700 dark:text-white">
@@ -136,20 +142,23 @@ const Credential = () => {
 						<HistoryList history={history} />
 					)}
 				</>
+		},
+		{
+			label: t('pageCredentials.datasetTitle'),
+			component:
+				<CredentialJson
+					parsedCredential={vcEntity?.parsedCredential}
+				/>
 		}
 	];
 
 	return (
+
 		<CredentialLayout title={t('pageCredentials.credentialTitle')} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
 			<>
 				<div className="w-full pt-2 px-2">
 					{screenType !== 'mobile' ? (
-						<>
-							<CredentialTabs tabs={infoTabs} activeTab={activeTab} onTabChange={setActiveTab} />
-							<div className='py-2'>
-								{infoTabs[activeTab].component}
-							</div>
-						</>
+						<CredentialTabsPanel tabs={infoTabs} />
 					) : (
 						<>
 							<Button
@@ -172,45 +181,45 @@ const Credential = () => {
 					)}
 				</div>
 				<div className='px-2 w-full'>
-				{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode/></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
+					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
-					<div className="flex items-start justify-between mb-2">
-						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-							{t('qrShareMdoc.shareUsingQR')}
-						</h2>
+						<div className="flex items-start justify-between mb-2">
+							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+								{t('qrShareMdoc.shareUsingQR')}
+							</h2>
 						</div>
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
-								{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
-								{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
-								{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
-								{mdocQRStatus === 2 && <span className='pb-16'>
-									<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
-										{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
-										<strong>
-											{
-												shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
-											}
-										</strong>
-									</p>
-									<CredentialImage
-										vcEntity={vcEntity}
-										key={vcEntity.credentialIdentifier}
-										parsedCredential={vcEntity.parsedCredential}
-										className="w-full object-cover rounded-xl"
-									/>
-									<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
-										{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential}/>}
-									</div>
-									<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
-										<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
-									</div>
-									</span>}
-								{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100}/></span>}
-								{![1,2].includes(mdocQRStatus) &&
-									<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-										<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
+							{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
+							{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
+							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
+							{mdocQRStatus === 2 && <span className='pb-16'>
+								<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+									{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
+									<strong>
+										{
+											shareWithQrFilter.map(key => key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")).join(", ")
+										}
+									</strong>
+								</p>
+								<CredentialImage
+									vcEntity={vcEntity}
+									key={vcEntity.credentialIdentifier}
+									parsedCredential={vcEntity.parsedCredential}
+									className="w-full object-cover rounded-xl"
+								/>
+								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
+									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
+								</div>
+								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+									<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
+									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
+								</div>
+							</span>}
+							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100} /></span>}
+							{![1, 2].includes(mdocQRStatus) &&
+								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
 								</div>}
 						</span>
 					</PopupLayout>
@@ -228,7 +237,7 @@ const Credential = () => {
 						message={
 							<Trans
 								i18nKey="pageCredentials.deletePopupMessage"
-								values={{ credentialName: vcEntity.parsedCredential.metadata.credential.name }}
+								values={{ credentialName }}
 								components={{ strong: <strong />, br: <br /> }}
 							/>
 						}

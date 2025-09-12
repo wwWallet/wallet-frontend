@@ -65,7 +65,6 @@ export function generateManifest(env): Partial<ManifestOptions> {
 		],
 		"start_url": "/",
 		"display": "standalone",
-		"orientation": "any",
 		"theme_color": "#111827",
 		"description": `${process.env.VITE_STATIC_NAME || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
 		"background_color": "#ffffff",
