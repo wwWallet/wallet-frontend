@@ -72,8 +72,10 @@ const Home = () => {
 				{vcEntityList ? (
 					<div className=''>
 						{vcEntityList.length === 0 ? (
-							<div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-20">
-								<AddCredentialCard onClick={handleAddCredential} />
+							<div className="py-4 md:py-2 overflow-x-hidden">
+								<div className={`${screenType !== 'desktop' ? 'xm:px-6 px-8 sm:px-20' : 'px-12 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3'} `}>
+									<AddCredentialCard onClick={handleAddCredential} />
+								</div>
 							</div>
 						) : (
 							<>
