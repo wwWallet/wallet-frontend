@@ -15,7 +15,7 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { CurrentSchema, foldState, SchemaV1, WalletState, WalletStateContainer } from "./WalletStateSchema";
+import { CurrentSchema, foldState, SchemaV1 } from "./WalletStateSchema";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -1097,7 +1097,7 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 
 export async function updateWalletState(
 	[privateData, mainKey]: OpenedContainer,
-	walletStateContainer: WalletStateContainer,
+	walletStateContainer: CurrentSchema.WalletStateContainer,
 ): Promise<{ newContainer: OpenedContainer }> {
 
 	return {
@@ -1182,7 +1182,7 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 	}
 }
 
-export async function signJwtPresentation([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
+export async function signJwtPresentation([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
 	const hasher = (data: string | ArrayBuffer, alg: string) => {
 		const encoded =
 			typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
@@ -1273,7 +1273,7 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
 
 	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
 		DataItem.fromData(
@@ -1338,7 +1338,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	return { deviceResponseMDoc };
 }
 
-export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
 	// extract the COSE device public key from mdoc
 	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
 	const deviceKeyInfo = p.data.get('deviceKeyInfo');

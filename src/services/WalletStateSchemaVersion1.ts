@@ -3,8 +3,7 @@ import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { sha256 } from "./WalletStateUtils";
 import { compareBy, deduplicateFromRightBy, last, maxByKey } from "@/util";
-import { rebuildEventHistory, validateEventHistoryContinuity } from "./WalletStateSchema";
-import * as WalletSchemaCommon from "./WalletStateSchema";
+import * as WalletSchemaCommon from "./WalletStateSchemaCommon";
 
 
 export const SCHEMA_VERSION = 1;
@@ -311,26 +310,78 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 };
 
 
-
 export function createOperations(
 	SCHEMA_VERSION: number,
 ) {
 
-	async function calculateEventHash(event: WalletSessionEvent | undefined): Promise<string> {
+	async function calculateEventHash(event: WalletSchemaCommon.WalletSessionEvent | undefined): Promise<string> {
 		if (event === undefined) {
 			return "";
 		}
 		// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
-		if (event.type === 'new_keypair') {
+		if (event.type === 'new_keypair' && 'keypair' in event && typeof event.keypair === 'object') {
 			return sha256(JSON.stringify(normalize({
 				...event,
 				keypair: {
 					...event.keypair,
 					wrappedPrivateKey: null,
 				},
-			} as WalletSessionEventNewKeypair)));
+			} as unknown as WalletSessionEventNewKeypair)));
 		}
 		return sha256(JSON.stringify(normalize(event)));
+	}
+
+	async function reparent(
+		childEvent: WalletSchemaCommon.WalletSessionEvent,
+		parentEvent: WalletSchemaCommon.WalletSessionEvent,
+	): Promise<WalletSchemaCommon.WalletSessionEvent> {
+		return {
+			...childEvent,
+			parentHash: await calculateEventHash(parentEvent),
+		};
+	}
+
+	async function rebuildEventHistory(
+		events: WalletSchemaCommon.WalletSessionEvent[],
+		lastEventHash: string,
+	): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
+		const newEvents: WalletSchemaCommon.WalletSessionEvent[] = [];
+		for (let i = 0; i < events.length; i++) {
+			if (i == 0) {
+				newEvents.push({
+					...events[0],
+					parentHash: lastEventHash,
+				});
+				continue;
+			}
+			newEvents.push(await reparent(events[i], newEvents[i - 1]));
+		}
+		return newEvents;
+	}
+
+	async function eventHistoryIsConsistent(container: WalletSchemaCommon.WalletStateContainerGeneric): Promise<boolean> {
+		const events = container.events;
+		if (events.length === 0) {
+			return true;
+		}
+
+		const eventHashes = await Promise.all(events.map(async (e) => calculateEventHash(e)));
+		if (container.lastEventHash !== "" && events[0].parentHash !== container.lastEventHash) {
+			return false;
+		}
+		for (let i = 1; i < events.length; i++) {
+			if (events[i].parentHash !== eventHashes[i - 1]) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	async function validateEventHistoryContinuity(container: WalletSchemaCommon.WalletStateContainerGeneric): Promise<void> {
+		const result = await eventHistoryIsConsistent(container);
+		if (!result) {
+			throw new Error("Invalid event history chain");
+		}
 	}
 
 	function initialWalletStateContainer(): WalletStateContainer {
@@ -601,7 +652,7 @@ export function createOperations(
 		}
 	}
 
-	async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSessionEvent[]> {
+	async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEvent[], historyB: WalletSessionEvent[], lastCommonAncestorHashFromEventHistory: string): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
 		const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[]]> = {
 			new_credential: [[], []],
 			delete_credential: [[], []],
@@ -636,6 +687,10 @@ export function createOperations(
 		initialWalletStateContainer,
 		migrateState,
 		calculateEventHash,
+		reparent,
+		rebuildEventHistory,
+		eventHistoryIsConsistent,
+		validateEventHistoryContinuity,
 		addNewCredentialEvent,
 		addDeleteCredentialEvent,
 		addNewKeypairEvent,
