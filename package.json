@@ -13,7 +13,7 @@
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
     "dcql": "^0.4.2",
-    "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#9370029b70edd4b37478f523c91de2ad7c749f3c",
+    "wallet-common": "git+https://github.com/emlun/wallet-common.git#9370029b70edd4b37478f523c91de2ad7c749f3c",
     "cose-kit": "^1.7.1",
     "did-resolver": "^4.1.0",
     "firebase": "^10.1.0",
