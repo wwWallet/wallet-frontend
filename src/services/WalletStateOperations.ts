@@ -3,7 +3,7 @@ import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
-import { compareBy, last } from "@/util";
+import { compareBy, last, maxByKey } from "@/util";
 
 
 export type WalletStateContainer = {
@@ -311,8 +311,8 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		const settingsEvents: WalletSessionEvent[] = [];
 		// get only the latest applied setting during merge based on timestamp of event
 		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "alter_settings" && settingsEvents.push(event));
-		settingsEvents.sort(compareBy(e => e.timestampSeconds));
-		return settingsEvents.length > 0 ? [settingsEvents[settingsEvents.length - 1]] : [];
+		const latest = maxByKey(settingsEvents, e => e.timestampSeconds);
+		return latest ? [latest] : [];
 	},
 	save_credential_issuance_session: (a, b) => {
 		const map = new Map<number, WalletSessionEvent>();

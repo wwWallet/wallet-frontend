@@ -103,6 +103,28 @@ export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 	};
 }
 
+/**
+	Return the element of `arr` for which the value returned by `byKey` is
+	greatest, as determined by the `>` operator.
+
+	If `arr` is empty, return `undefined`.
+
+	If the maximum is not unique, return the first maximum.
+	 */
+export function maxByKey<T, U extends string | number | boolean | bigint>(arr: T[], byKey: (v: T) => U): T | undefined {
+	if (arr.length === 0) {
+		return undefined;
+	} else {
+		return arr.slice(1).reduce<[T, U]>(
+			([max, maxKey], next) => {
+				const nextKey = byKey(next);
+				return (nextKey > maxKey) ? [next, nextKey] : [max, maxKey];
+			},
+			[arr[0], byKey(arr[0])],
+		)[0];
+	}
+}
+
 /** Reverse the given comparator function. */
 export function reverse<T>(f: (a: T, b: T) => number): (a: T, b: T) => number {
 	return (a: T, b: T) => -f(a, b);
