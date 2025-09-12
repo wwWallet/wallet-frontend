@@ -76,6 +76,25 @@ export function last<T>(arr: T[]): T | undefined {
 }
 
 /**
+	Filter `arr` for duplicates as determined by `f`, keeping the last element of
+	each duplicate class.
+	*/
+export function deduplicateFromRightBy<T, U extends (string | number | boolean | bigint | symbol)>(
+	arr: T[],
+	f: (element: T) => U,
+): T[] {
+	return [
+		...arr.reduce(
+			(map, e: T) => {
+				map.set(f(e), e);
+				return map;
+			},
+			new Map<U, T>(),
+		).values(),
+	];
+}
+
+/**
 	Create a comparator function comparing the result of passing each argument through the given function.
 	The function returned by `compareBy` is suitable as an argument to `Array.sort()`, for example.
 
