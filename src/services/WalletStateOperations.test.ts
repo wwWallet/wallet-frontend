@@ -391,7 +391,7 @@ describe("The WalletStateOperations", () => {
 
 	it("resolves a trivial merge by returning the container unchanged.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container = await WalletStateOperations.addDeleteCredentialEvent(
 			container,
 			(container.events[0] as any).credentialId,
@@ -412,7 +412,7 @@ describe("The WalletStateOperations", () => {
 
 	it("resolves a trivial merge where one container has fully folded history by returning the unfolded container unchanged.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container = await WalletStateOperations.addDeleteCredentialEvent(
 			container,
 			(container.events[0] as any).credentialId,
@@ -439,13 +439,13 @@ describe("The WalletStateOperations", () => {
 
 	it("resolves a fast-forward merge by returning the younger container unchanged.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container = await WalletStateOperations.addDeleteCredentialEvent(
 			container,
 			(container.events[0] as any).credentialId,
 		);
 
-		let container2 = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2>", "mso_mdoc", "");
+		let container2 = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
 
 		const mergeBaseL = await findMergeBase(container, container2);
 		assert.deepEqual(mergeBaseL, {
@@ -472,20 +472,17 @@ describe("The WalletStateOperations", () => {
 
 	it("correctly merges diverged containers when one container is partially folded.", async () => {
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addNewCredentialEvent(container, "<credential 1>", "mso_mdoc", "");
+		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
 		container = await WalletStateOperations.addDeleteCredentialEvent(
 			container,
 			(container.events[0] as any).credentialId,
 		);
 
 		{
-			let container1a = await WalletStateOperations.addNewCredentialEvent(container, "<credential 2a>", "mso_mdoc", "");
+			let container1a = await WalletStateOperations.addNewCredentialEvent(container, "cred2a", "", "");
 			let container2a = await WalletStateOperations.addNewCredentialEvent(
 				await WalletStateOperations.foldNextEventIntoBaseState(container),
-				"<credential 2b>",
-				"mso_mdoc",
-				""
-			);
+				"cred2>", "", "");
 
 			const mergeBaseL = await findMergeBase(container1a, container2a);
 			assert.deepEqual(mergeBaseL, {
@@ -520,17 +517,12 @@ describe("The WalletStateOperations", () => {
 		{
 			let container1b = await WalletStateOperations.addNewCredentialEvent(
 				await WalletStateOperations.foldNextEventIntoBaseState(container),
-				"<credential 2a>",
-				"mso_mdoc",
-				""
-			);
+				"cred2a", "", "");
 
 			let container2b = await WalletStateOperations.addNewCredentialEvent(
-				await WalletStateOperations.foldNextEventIntoBaseState(await WalletStateOperations.foldNextEventIntoBaseState(container)),
-				"<credential 2b>",
-				"mso_mdoc",
-				""
-			);
+				await WalletStateOperations.foldNextEventIntoBaseState(
+					await WalletStateOperations.foldNextEventIntoBaseState(container)),
+				"cred2b", "", "");
 
 			const mergeBaseR = await findMergeBase(container1b, container2b);
 			assert.deepEqual(mergeBaseR, {
