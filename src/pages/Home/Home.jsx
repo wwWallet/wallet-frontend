@@ -63,7 +63,7 @@ const Home = () => {
 				<div className="px-6 sm:px-12">
 					<div className='flex items-center justify-between gap-3'>
 						<H1 heading={t('common.navItemCredentials')} />
-						{screenType !== "desktop" && (
+						{screenType !== "desktop" && vcEntityList.length > 1 && (
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
