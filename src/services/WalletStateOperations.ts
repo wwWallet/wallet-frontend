@@ -359,29 +359,120 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 	return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
 }
 
-export function findDivergencePoint(events1: WalletSessionEvent[], events2: WalletSessionEvent[]): WalletSessionEvent | null {
-	const parents1 = new Set();
-	const parents2 = new Set();
+/**
+ * Divide `container1` and `container2` into shared and respective unique
+ * events, and determine which base state a merged container should be based on.
+ *
+ * @returns Non-null if a common point of history is found between `container1`
+ * and `container2`; null if no common point of history is found.
+ */
+export async function findMergeBase(
+	container1: WalletStateContainer,
+	container2: WalletStateContainer,
+): Promise<{
+	/** The `lastEventHash` of the container that is the ancestor of the other */
+	lastEventHash: string,
+	/** The `baseState` of the container that is the ancestor of the other */
+	baseState: WalletState,
+	/** All events present in both containers (either explicitly in both, or
+	explicitly in one and already folded into base state in the other), in order
+	*/
+	commonEvents: WalletSessionEvent[],
+	/** All events present only in `container1`, in order */
+	uniqueEvents1: WalletSessionEvent[],
+	/** All events present only in `container2`, in order */
+	uniqueEvents2: WalletSessionEvent[],
+} | null> {
+	// Maps of event hashes to the index of the first diverged event in that
+	// branch, if that hash is the last common parent hash.
+	const history1: Map<string, number> = new Map();
+	const history2: Map<string, number> = new Map();
 
-	let i1 = events1.length - 1;
-	let i2 = events2.length - 1;
+	let i1 = container1.events.length - 1;
+	let i2 = container2.events.length - 1;
+
+	function decideCanonicalContainer(
+		container1: WalletStateContainer,
+		container2: WalletStateContainer,
+		commonEventIndex1: number,
+		commonEventIndex2: number,
+	): [[WalletStateContainer, number], [WalletStateContainer, number]] {
+		if (container1.lastEventHash === container2.lastEventHash) {
+			// The containers start from the same event, so either is an equally valid choice.
+			return [[container1, commonEventIndex1], [container2, commonEventIndex2]];
+		} else {
+			// Since the containers have a common event in their history, whichever
+			// has more events before the common event must have a base state that is
+			// an ancestor of the other's base state.
+			if (commonEventIndex1 >= commonEventIndex2) {
+				return [[container1, commonEventIndex1], [container2, commonEventIndex2]];
+			} else {
+				return [[container2, commonEventIndex2], [container1, commonEventIndex1]];
+			}
+		}
+	}
+
+	function finalizeFoundCommonEvent(commonEventIndex1: number, commonEventIndex2: number) {
+		const [
+			[ancestorContainer, ancestorUniqueIndex],
+			[descendantContainer, descendantUniqueIndex]
+		] = decideCanonicalContainer(container1, container2, commonEventIndex1, commonEventIndex2);
+		return {
+			lastEventHash: ancestorContainer.lastEventHash,
+			baseState: ancestorContainer.S,
+			commonEvents: ancestorContainer.events.slice(0, ancestorUniqueIndex),
+			uniqueEvents1: ancestorContainer.events.slice(ancestorUniqueIndex),
+			uniqueEvents2: descendantContainer.events.slice(descendantUniqueIndex),
+		};
+	}
+
+	if (i1 >= 0) {
+		history1.set(await WalletStateUtils.calculateEventHash(container1.events[i1]), i1 + 1);
+	}
+	if (i2 >= 0) {
+		const hash = await WalletStateUtils.calculateEventHash(container2.events[i2]);
+		history2.set(hash, i2 + 1);
+
+		if (history1.has(hash) && history2.has(hash)) {
+			// Both histories end with the same event hash, so they are semantically
+			// equivalent.
+			return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+		}
+	}
 
 	while (i1 >= 0 || i2 >= 0) {
 		if (i1 >= 0) {
-			if (parents2.has(events1[i1].parentHash)) {
-				return events1[i1 - 1];
+			const hash = container1.events[i1].parentHash;
+			history1.set(hash, i1);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
 			}
-			parents1.add(events1[i1].parentHash);
+			i1 -= 1;
+		} else if (i1 === -1) {
+			const hash = container1.lastEventHash;
+			history1.set(hash, 0);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+			}
 			i1 -= 1;
 		}
 		if (i2 >= 0) {
-			if (parents1.has(events2[i2].parentHash)) {
-				return events2[i2 - 1];
+			const hash = container2.events[i2].parentHash;
+			history2.set(hash, i2);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
 			}
-			parents2.add(events2[i2].parentHash);
+			i2 -= 1;
+		} else if (i2 === -1) {
+			const hash = container2.lastEventHash;
+			history2.set(hash, 0);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+			}
 			i2 -= 1;
 		}
 	}
+
 	return null;
 }
 
@@ -665,8 +756,8 @@ export namespace WalletStateOperations {
 	}
 
 	export async function mergeEventHistories(container1: WalletStateContainer, container2: WalletStateContainer): Promise<WalletStateContainer> {
-		const pointOfDivergence = findDivergencePoint(container1.events, container2.events);
-		if (pointOfDivergence === null) {
+		const mergeBase = await findMergeBase(container1, container2);
+		if (mergeBase === null) {
 			const events = [...container1.events, ...container2.events].sort(compareBy(e => e.timestampSeconds));
 			const newContainer = {
 				...container1,
@@ -676,15 +767,23 @@ export namespace WalletStateOperations {
 			return newContainer;
 		}
 
-		let pointOfDivergenceIndex = container1.events.findIndex(event => event.eventId === pointOfDivergence.eventId);
-		const commonHistory = container1.events.slice(0, pointOfDivergenceIndex + 1);
-		const history1DivergentPart = container1.events.slice(pointOfDivergenceIndex + 1);
-		const history2DivergentPart = container2.events.slice(pointOfDivergenceIndex + 1);
+		const { lastEventHash, baseState, commonEvents, uniqueEvents1, uniqueEvents2 } = mergeBase;
+		const lastCommonEvent = commonEvents[commonEvents.length - 1];
+		const pointOfDivergenceHash = (
+			lastCommonEvent
+				? await WalletStateUtils.calculateEventHash(lastCommonEvent)
+				: lastEventHash
+		);
 
-		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
-		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
+		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(
+			uniqueEvents1,
+			uniqueEvents2,
+			pointOfDivergenceHash,
+		);
+		const newEventHistory = commonEvents.concat(mergeDivergentPartsResult);
 		const newContainer = {
-			...container1,
+			lastEventHash,
+			S: baseState,
 			events: newEventHistory,
 		};
 		await validateEventHistoryContinuity(newContainer);
@@ -696,6 +795,23 @@ export namespace WalletStateOperations {
 	 */
 	export function foldState(container: WalletStateContainer): WalletState {
 		return container.events.reduce(walletStateReducer, container.S);
+	}
+
+	/**
+	 * Returns the container with the first history event, if any, folded into the base state.
+	 * If the container has no events, the same object is returned unchanged.
+	 */
+	export async function foldNextEventIntoBaseState(container: WalletStateContainer): Promise<WalletStateContainer> {
+		const [event, ...events] = container.events;
+		if (event) {
+			return {
+				S: walletStateReducer(container.S, event),
+				events,
+				lastEventHash: events[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(event),
+			};
+		} else {
+			return container;
+		}
 	}
 
 	/**
