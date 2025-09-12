@@ -8,7 +8,10 @@ const getSystemPref = (): "light" | "dark" =>
 		: "light";
 
 export const AppSettingsProvider = ({ children }: { children: React.ReactNode }) => {
-	const [settings, setSettings] = useLocalStorage<Settings>("settings", { colorScheme: "system" });
+	const [settings, setSettings] = useLocalStorage<Settings>("settings", {
+		colorScheme: "system",
+		mobileView: "horizontal-slider",
+	});
 
 	// Track OS preference and react to changes
 	const [systemPref, setSystemPref] = useState<"light" | "dark">(getSystemPref());
@@ -40,7 +43,11 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
 		};
 	}, [settings.colorScheme]);
 
-	const setColorScheme = (t: ColorScheme) => setSettings({ ...settings, colorScheme: t });
+	const setColorScheme = (t: ColorScheme) =>
+		setSettings((prev) => ({ ...prev, colorScheme: t }));
+
+	const setMobileView = (v: Settings['mobileView']) =>
+		setSettings((prev) => ({ ...prev, mobileView: v }));
 
 	const resolvedColorScheme: "light" | "dark" = useMemo(
 		() => (settings.colorScheme === "system" ? systemPref : settings.colorScheme),
@@ -58,7 +65,7 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
 	}, [resolvedColorScheme]);
 
 	const value = useMemo(
-		() => ({ settings, resolvedColorScheme, setColorScheme }),
+		() => ({ settings, resolvedColorScheme, setColorScheme, setMobileView }),
 		[settings, resolvedColorScheme]
 	);
 

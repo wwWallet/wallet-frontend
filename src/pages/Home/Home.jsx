@@ -11,6 +11,7 @@ import { BsSubstack } from "react-icons/bs";
 // Contexts
 import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
+import AppSettingsContext from "@/context/AppSettingsContext";
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -34,10 +35,11 @@ import VerticalSlider from '@/components/Shared/VerticalSlider';
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
 	const { api, keystore } = useContext(SessionContext);
+	const { settings, setMobileView } = useContext(AppSettingsContext);
 	const screenType = useScreenType();
 
 	const [viewOpen, setViewOpen] = useState(false);
-	const [mobileView, setMobileView,] = useLocalStorage('mobileView', 'horizontal-slider');
+	const mobileView = settings.mobileView;
 
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -54,6 +56,7 @@ const Home = () => {
 		setMobileView(v);
 		setViewOpen(false);
 	};
+
 	return (
 		<>
 			<div className="w-full">
