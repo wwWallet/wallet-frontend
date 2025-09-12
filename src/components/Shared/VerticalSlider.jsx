@@ -9,8 +9,8 @@ const VerticalSlider = ({
 	renderSlideContent,
 	initialIndex = 0,
 	onSlideChange,
-	padStepVh = 4,
-	padMaxVh = 10,
+	padStepVh = 3,
+	padMaxVh = 9,
 }) => {
 	const [activeIndex, setActiveIndex] = useState(initialIndex);
 
@@ -22,7 +22,7 @@ const VerticalSlider = ({
 
 	return (
 		<div
-			className={`relative w-full overflow-visible sm:px-8 h-[60vh]`}
+			className={`relative w-full overflow-visible sm:px-14 h-[60vh]`}
 			style={{
 				paddingTop,
 				transition: 'padding 280ms ease-in-out',
@@ -36,7 +36,6 @@ const VerticalSlider = ({
 				mousewheel
 				grabCursor
 				centeredSlides
-				centeredSlidesBounds
 				slidesPerView="auto"
 				spaceBetween={24}
 				initialSlide={initialIndex}
@@ -59,12 +58,12 @@ const VerticalSlider = ({
 						className={`!h-auto flex items-center justify-center ${Math.abs(activeIndex - (i)) > 2 && 'invisible pointer-events-none'
 							} `}
 					>
-						<div className="w-full h-full rounded-xl p-2 px-4">
+						<div className="w-full h-full rounded-xl p-2">
 							{renderSlideContent(item, i)}
 						</div>
 
 						{items.length > 1 && activeIndex === i && (
-							<div className="absolute bottom-5 z-50 left-5 text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
+							<div className="absolute bottom-5 z-50 left-6 text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
 								{activeIndex + 1}/{items.length}
 							</div>
 						)}

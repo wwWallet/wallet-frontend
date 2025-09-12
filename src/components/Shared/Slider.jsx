@@ -18,7 +18,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 	const handleNext = () => sliderRef.current?.slideNext();
 
 	return (
-		<div className="relative w-full px-2 overflow-visible">
+		<div className="relative w-full px-8 xm:px-6 sm:px-20 overflow-visible">
 			<Swiper
 				effect="cards"
 				grabCursor
@@ -49,7 +49,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						id="previous-slide"
 						onClick={handlePrev}
 						disabled={currentSlide === 1}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -left-3 z-10 p-2 bg-gray-500/40 rounded-md ${currentSlide === 1
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 bg-gray-500/40 rounded-md ${currentSlide === 1
 							? 'opacity-50 cursor-not-allowed text-gray-300'
 							: 'text-white hover:opacity-100'} opacity-90`}
 						aria-label={currentSlide === 1
@@ -69,7 +69,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						id="next-slide"
 						onClick={handleNext}
 						disabled={currentSlide === items.length}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 -right-3 bg-gray-500/40 rounded-md z-10 p-2 ${currentSlide === items.length
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 bg-gray-500/40 rounded-md z-10 p-2 ${currentSlide === items.length
 							? 'opacity-50 cursor-not-allowed text-gray-400'
 							: 'text-white hover:opacity-100'}`}
 						aria-label={currentSlide === items.length
@@ -85,7 +85,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1 }) 
 						<SlArrowRight size={22} />
 					</button>
 
-					<div className="absolute bottom-3 z-10 left-3 text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
+					<div className="absolute bottom-3 z-10 left-10 xm:left-8 left-10 sm:left-[90px] text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
 						{currentSlide}/{items.length}
 					</div>
 				</div>
