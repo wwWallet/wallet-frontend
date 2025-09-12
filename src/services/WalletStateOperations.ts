@@ -3,7 +3,7 @@ import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
-import { compareBy } from "@/util";
+import { compareBy, last, maxByKey } from "@/util";
 
 
 export type WalletStateContainer = {
@@ -255,17 +255,13 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 	}
 }
 
-async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
-	return events.length > 0 ? WalletStateUtils.calculateEventHash(events[events.length - 1]) : "";
-}
-
-
-
 async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
 	const baseEvent = {
 		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
-		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
+		parentHash: container.events.length === 0
+			? container.lastEventHash
+			: await WalletStateUtils.calculateEventHash(last(container.events)),
 		timestampSeconds: Math.floor(Date.now() / 1000),
 	};
 	return {
@@ -315,8 +311,8 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 		const settingsEvents: WalletSessionEvent[] = [];
 		// get only the latest applied setting during merge based on timestamp of event
 		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "alter_settings" && settingsEvents.push(event));
-		settingsEvents.sort(compareBy(e => e.timestampSeconds));
-		return settingsEvents.length > 0 ? [settingsEvents[settingsEvents.length - 1]] : [];
+		const latest = maxByKey(settingsEvents, e => e.timestampSeconds);
+		return latest ? [latest] : [];
 	},
 	save_credential_issuance_session: (a, b) => {
 		const map = new Map<number, WalletSessionEvent>();
@@ -768,7 +764,7 @@ export namespace WalletStateOperations {
 		}
 
 		const { lastEventHash, baseState, commonEvents, uniqueEvents1, uniqueEvents2 } = mergeBase;
-		const lastCommonEvent = commonEvents[commonEvents.length - 1];
+		const lastCommonEvent = last(commonEvents);
 		const pointOfDivergenceHash = (
 			lastCommonEvent
 				? await WalletStateUtils.calculateEventHash(lastCommonEvent)

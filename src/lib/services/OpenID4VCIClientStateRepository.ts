@@ -3,6 +3,7 @@ import SessionContext from "@/context/SessionContext";
 import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
+import { last } from "@/util";
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
@@ -46,7 +47,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		credentialConfigurationId: string
 	): Promise<WalletStateCredentialIssuanceSession | null> => {
 		const r = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer);
-		const res = r[r.length-1];
+		const res = last(r);
 		return res ? res : null;
 	},
 		[]
@@ -55,7 +56,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	const getByState = useCallback(
 		async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
 			const r = Array.from(sessions.current.values()).filter((S) => S.state === state);
-			const res = r[r.length-1];
+			const res = last(r);
 			return res ? res : null;
 		},
 		[]

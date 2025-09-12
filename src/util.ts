@@ -70,6 +70,11 @@ export function jsonParseTaggedBinary(json: string): any {
 	return JSON.parse(json, reviverTaggedBinaryToUint8Array);
 }
 
+/** Get the last element of `arr`, or `undefined` if `arr` is empty or nullish. */
+export function last<T>(arr: T[]): T | undefined {
+	return arr ? arr[arr.length - 1] : undefined;
+}
+
 /**
 	Create a comparator function comparing the result of passing each argument through the given function.
 	The function returned by `compareBy` is suitable as an argument to `Array.sort()`, for example.
@@ -96,6 +101,28 @@ export function compareBy<T, U>(f: (v: T) => U): (a: T, b: T) => number {
 			return 0;
 		}
 	};
+}
+
+/**
+	Return the element of `arr` for which the value returned by `byKey` is
+	greatest, as determined by the `>` operator.
+
+	If `arr` is empty, return `undefined`.
+
+	If the maximum is not unique, return the first maximum.
+	 */
+export function maxByKey<T, U extends string | number | boolean | bigint>(arr: T[], byKey: (v: T) => U): T | undefined {
+	if (arr.length === 0) {
+		return undefined;
+	} else {
+		return arr.slice(1).reduce<[T, U]>(
+			([max, maxKey], next) => {
+				const nextKey = byKey(next);
+				return (nextKey > maxKey) ? [next, nextKey] : [max, maxKey];
+			},
+			[arr[0], byKey(arr[0])],
+		)[0];
+	}
 }
 
 /** Reverse the given comparator function. */
