@@ -1,25 +1,25 @@
 import { createContext } from 'react';
 
 export type ColorScheme = 'light' | 'dark' | 'system';
-export type MobileView = 'horizontal-slider' | 'vertical-slider' | 'list';
+export type MobileVcHomeView = 'horizontal-slider' | 'vertical-slider' | 'list';
 
 export type Settings = {
 	colorScheme: ColorScheme;
-	mobileView: MobileView;
+	mobileVcHomeView: MobileVcHomeView;
 };
 
 export interface AppSettingsState {
 	settings: Settings,
 	resolvedColorScheme: 'light' | 'dark';
 	setColorScheme: (t: ColorScheme) => void;
-	setMobileView: (v: MobileView) => void;
+	setMobileVcHomeView: (v: MobileVcHomeView) => void;
 }
 
 const AppSettingsContext = createContext<AppSettingsState>({
-	settings: { colorScheme: "system", mobileView: 'horizontal-slider' },
+	settings: { colorScheme: "system", mobileVcHomeView: 'horizontal-slider' },
 	resolvedColorScheme: "light",
 	setColorScheme: () => { },
-	setMobileView: () => { },
+	setMobileVcHomeView: () => { },
 });
 
 export default AppSettingsContext;

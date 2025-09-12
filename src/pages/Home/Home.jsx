@@ -35,11 +35,11 @@ import VerticalSlider from '@/components/Shared/VerticalSlider';
 const Home = () => {
 	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
 	const { api, keystore } = useContext(SessionContext);
-	const { settings, setMobileView } = useContext(AppSettingsContext);
+	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
 	const screenType = useScreenType();
 
 	const [viewOpen, setViewOpen] = useState(false);
-	const mobileView = settings.mobileView;
+	const mobileVcHomeView = settings.mobileVcHomeView;
 
 	const navigate = useNavigate();
 	const { t } = useTranslation();
@@ -53,7 +53,7 @@ const Home = () => {
 	};
 
 	const setView = (v) => {
-		setMobileView(v);
+		setMobileVcHomeView(v);
 		setViewOpen(false);
 	};
 
@@ -64,7 +64,7 @@ const Home = () => {
 					<div className='flex items-center justify-between gap-3'>
 						<H1 heading={t('common.navItemCredentials')} />
 						{screenType !== "desktop" && (
-							<ViewSelect value={mobileView} onChange={(v) => setView(v)} />
+							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
@@ -79,7 +79,7 @@ const Home = () => {
 							<>
 								{screenType !== 'desktop' ? (
 									<>
-										{(mobileView === 'horizontal-slider') ? (
+										{(mobileVcHomeView === 'horizontal-slider') ? (
 											<div className='py-4 overflow-hidden'>
 												<Slider
 													items={vcEntityList}
@@ -105,7 +105,7 @@ const Home = () => {
 													</div>
 												)}
 											</div>
-										) : mobileView === 'vertical-slider' ? (
+										) : mobileVcHomeView === 'vertical-slider' ? (
 											<div className='py-2 px-6 xm:px-4 sm:px-4'>
 												<VerticalSlider
 													items={vcEntityList}
@@ -122,7 +122,7 @@ const Home = () => {
 													)}
 												/>
 											</div>
-										) : mobileView === 'list' && (
+										) : mobileVcHomeView === 'list' && (
 											<>
 												<div className="xm:px-6 px-8 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
 													{vcEntityList && vcEntityList.map((vcEntity) => (
