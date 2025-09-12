@@ -255,17 +255,13 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 	}
 }
 
-async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
-	return WalletStateUtils.calculateEventHash(last(events));
-}
-
-
-
 async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
 	const baseEvent = {
 		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
-		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
+		parentHash: container.events.length === 0
+			? container.lastEventHash
+			: await WalletStateUtils.calculateEventHash(last(container.events)),
 		timestampSeconds: Math.floor(Date.now() / 1000),
 	};
 	return {
