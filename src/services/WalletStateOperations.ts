@@ -256,7 +256,7 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 }
 
 async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
-	return events.length > 0 ? WalletStateUtils.calculateEventHash(events[events.length - 1]) : "";
+	return WalletStateUtils.calculateEventHash(last(events));
 }
 
 
