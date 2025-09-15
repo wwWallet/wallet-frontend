@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import eslint from 'vite-plugin-eslint';
 import { VitePWA } from 'vite-plugin-pwa';
-import { ManifestPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
+import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '')
@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => {
 			ManifestPlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),
+			MobileWrapperWKAppLinksPlugin(env),
 			VitePWA({
 				registerType: 'autoUpdate',
 				srcDir: 'src',
