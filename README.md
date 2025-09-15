@@ -95,6 +95,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
   - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
   - VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
+  - VITE_WELLKNOWN_APPLE_APPIDS: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
+  - VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_CERTS: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<CERT>,<PKG_NAME>::<CERT>,<PKG_NAME>::<CERT>,..."` Can be left blank.
 
 
 - Set up Firebase (optional)
