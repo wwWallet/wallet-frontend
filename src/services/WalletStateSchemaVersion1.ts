@@ -14,12 +14,7 @@ export type WalletStateContainer = {
 	lastEventHash: string;
 };
 
-export type WalletSessionEvent = {
-	schemaVersion: number,
-	parentHash: string,
-	eventId: number,
-	timestampSeconds: number,
-} & WalletSessionEventTypeAttributes;
+export type WalletSessionEvent = WalletSchemaCommon.WalletSessionEvent & WalletSessionEventTypeAttributes;
 
 export type WalletSessionEventTypeAttributes = (
 	WalletSessionEventNewCredential
