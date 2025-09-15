@@ -22,14 +22,14 @@ async function generateAndroidAppLinks(env: Env) {
 
 	const tmpl = pkgsList.map(({ pkgName, fingerprints}) => ({
 		"relation": [
-      "delegate_permission/common.handle_all_urls",
-      "delegate_permission/common.get_login_creds"
-    ],
-    "target": {
-      "namespace": "android_app",
-      "package_name": pkgName,
-      "sha256_cert_fingerprints": [fingerprints]
-    }
+			"delegate_permission/common.handle_all_urls",
+			"delegate_permission/common.get_login_creds"
+		],
+		"target": {
+			"namespace": "android_app",
+			"package_name": pkgName,
+			"sha256_cert_fingerprints": [fingerprints]
+		}
 	}));
 
 	const filePath = resolve(DIR, "assetlinks.json");
