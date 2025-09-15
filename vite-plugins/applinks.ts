@@ -6,7 +6,7 @@ type Env = Record<string, string|null|undefined>;
 const DIR = resolve("public/.well-known");
 
 async function generateAndroidAppLinks(env: Env) {
-	const packages = env.VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_CERTS;
+	const packages = env.VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS;
 	if (typeof packages !== "string") return;
 
 	const pkgsList = packages
