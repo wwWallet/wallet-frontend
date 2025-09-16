@@ -265,23 +265,25 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return;
 	}, []);
 
-	const terminateSession = useCallback(async (): Promise<void> => {
-		const sessionData = {
-			data: new Uint8Array([]),
-			status: 20
-		}
+	const terminateSession = useCallback(
+		async (): Promise<void> => {
+			const sessionData = {
+				data: new Uint8Array([]),
+				status: 20
+			}
 
-		const options = getCborEncodeDecodeOptions();
-		options.variableMapSize = true;
-		setCborEncodeDecodeOptions(options);
-		const sessionDataEncoded = cborEncode(sessionData);
-		/* @ts-ignore */
-		await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+			const options = getCborEncodeDecodeOptions();
+			options.variableMapSize = true;
+			setCborEncodeDecodeOptions(options);
+			const sessionDataEncoded = cborEncode(sessionData);
+			/* @ts-ignore */
+			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
 
-		/* @ts-ignore */
-		await nativeWrapper.bluetoothTerminate();
-
-	});
+			/* @ts-ignore */
+			await nativeWrapper.bluetoothTerminate();
+		},
+		[],
+	);
 
 	return useMemo(
 		() => ({
