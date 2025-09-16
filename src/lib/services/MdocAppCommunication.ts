@@ -26,10 +26,10 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const { post } = api;
 
 	const storeVerifiablePresentation = useCallback(
-		async (presentation: string, presentationSubmission: any, usedCredentialId: number, audience: string) => {
+		async (presentation: string, _presentationSubmission: any, usedCredentialId: number, audience: string) => {
 			try {
 				const transactionId = WalletStateUtils.getRandomUint32();
-				const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations([presentation].map((vpData, index) => {
+				const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations([presentation].map((vpData, _index) => {
 					console.log("Presentation: ")
 
 					return {
@@ -156,7 +156,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const fields: Map<string, boolean> = mdocRequestDecoded.get("docRequests")[0].get("itemsRequest").data.get("nameSpaces").get("eu.europa.ec.eudi.pid.1");
 
 			const fieldsPEX = [];
-			fields.forEach((value, key, map) => {
+			fields.forEach((value, key) => {
 				fieldKeys.push(key);
 				fieldsPEX.push({
 					"name": key,
@@ -238,11 +238,11 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			while (toSendBytes.length > (assumedChunkSize - 1)) {
 				const chunk = [1, ...toSendBytes.slice(0, (assumedChunkSize - 1))]
 				/* @ts-ignore */
-				const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
+				await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
 				toSendBytes = toSendBytes.slice((assumedChunkSize - 1));
 			}
 			/* @ts-ignore */
-			const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
+			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
 
 			const presentationSubmission = {
 				id: generateRandomIdentifier(8),
@@ -276,7 +276,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		setCborEncodeDecodeOptions(options);
 		const sessionDataEncoded = cborEncode(sessionData);
 		/* @ts-ignore */
-		const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+		await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
 
 		/* @ts-ignore */
 		await nativeWrapper.bluetoothTerminate();

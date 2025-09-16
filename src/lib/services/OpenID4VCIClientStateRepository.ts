@@ -7,7 +7,7 @@ import { last } from "@/util";
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
-	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { api, keystore } = useContext(SessionContext);
 
 	// key: sessionId
 	const sessions = useRef(new Map<number, WalletStateCredentialIssuanceSession>());

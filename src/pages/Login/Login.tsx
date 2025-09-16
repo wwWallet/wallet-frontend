@@ -223,9 +223,6 @@ const WebauthnSignupLogin = ({
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
-	const navigate = useNavigate();
-	const location = useLocation();
-	const from = location.search || '/';
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -241,7 +238,7 @@ const WebauthnSignupLogin = ({
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
 		setNeedPrfRetry(true);
-		return new Promise((resolve: (accept: boolean) => void, reject) => {
+		return new Promise((resolve: (accept: boolean) => void, _reject) => {
 			setResolvePrfRetryPrompt(() => resolve);
 		}).finally(() => {
 			setNeedPrfRetry(false);

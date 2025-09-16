@@ -15,7 +15,7 @@ const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandler = ({ children }) => {
-	const { updateOnlineStatus, isOnline } = useContext(StatusContext);
+	const { isOnline } = useContext(StatusContext);
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
