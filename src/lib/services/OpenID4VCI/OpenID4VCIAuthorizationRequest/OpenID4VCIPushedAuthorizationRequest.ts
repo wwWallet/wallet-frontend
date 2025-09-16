@@ -1,7 +1,6 @@
 import { IOpenID4VCIAuthorizationRequest } from "../../../interfaces/IOpenID4VCIAuthorizationRequest";
-import { OpenidAuthorizationServerMetadata } from "wallet-common";
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
 import pkce from 'pkce-challenge';
-import { OpenidCredentialIssuerMetadata } from "../../../schemas/OpenidCredentialIssuerMetadataSchema";
 import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useCallback, useMemo, useContext } from "react";

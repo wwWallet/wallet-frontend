@@ -1,5 +1,4 @@
-import { OpenidAuthorizationServerMetadata } from "wallet-common";
-import { OpenidCredentialIssuerMetadata } from "../schemas/OpenidCredentialIssuerMetadataSchema";
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
 
 
 export type ClientConfig = {
