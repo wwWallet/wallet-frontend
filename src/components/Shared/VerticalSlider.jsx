@@ -56,7 +56,7 @@ const VerticalSlider = ({
 					<SwiperSlide
 						key={item.batchId ?? item.id ?? i}
 						className={`!h-auto flex items-center justify-center ${Math.abs(activeIndex - (i)) > 2 && 'invisible pointer-events-none'
-							} `}
+							} ${activeIndex === i && 'overflow-visible-force'} `}
 					>
 						<div className="w-full h-full rounded-xl p-2">
 							{renderSlideContent(item, i)}
