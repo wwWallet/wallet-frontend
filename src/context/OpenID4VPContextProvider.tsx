@@ -36,7 +36,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		onClose: (e) => Promise<void>
 	} | null>(null);
 
-	const showPopup = useCallback((options): Promise<Map<string, string>> =>
+	const showPopup = useCallback((options): Promise<Map<string, number>> =>
 		new Promise((resolve, reject) => {
 			setPopupState({
 				isOpen: true,
@@ -86,8 +86,8 @@ export const OpenID4VPContextProvider = ({ children }) => {
 			conformantCredentialsMap: Map<string, string[]>,
 			verifierDomainName: string,
 			verifierPurpose: string,
-			parsedTransactionData?: ParsedTransactionData,
-		): Promise<Map<string, string>> => {
+			parsedTransactionData?: ParsedTransactionData[],
+		): Promise<Map<string, number>> => {
 			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData });
 		},
 		[showPopup]
