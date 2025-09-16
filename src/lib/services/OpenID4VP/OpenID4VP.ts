@@ -24,7 +24,23 @@ import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
 
-export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string, parsedTransactionData?: ParsedTransactionData[]) => Promise<Map<string, number>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
+export function useOpenID4VP({
+	showCredentialSelectionPopup,
+	showStatusPopup,
+	showTransactionDataConsentPopup,
+}: {
+	showCredentialSelectionPopup: (
+		conformantCredentialsMap: any,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData?: ParsedTransactionData[],
+	) => Promise<Map<string, number>>,
+	showStatusPopup: (
+		message: { title: string, description: string },
+		type: 'error' | 'success',
+	) => Promise<void>,
+	showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean>,
+}): IOpenID4VP {
 
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
@@ -71,7 +87,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 
 	const promptForCredentialSelection = useCallback(
-		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string, parsedTransactionData: ParsedTransactionData[]): Promise<Map<string, number>> => {
+		async (
+			conformantCredentialsMap: any,
+			verifierDomainName: string,
+			verifierPurpose: string,
+			parsedTransactionData: ParsedTransactionData[],
+		): Promise<Map<string, number>> => {
 			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData);
 		},
 		[showCredentialSelectionPopup]
@@ -801,7 +822,18 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	}
 
 
-	const handleAuthorizationRequest = useCallback(async (url: string, vcEntityList: ExtendedVcEntity[]): Promise<{ conformantCredentialsMap: Map<string, any>; verifierDomainName: string, verifierPurpose: string, parsedTransactionData?: ParsedTransactionData } | { error: HandleAuthorizationRequestError }> => {
+	const handleAuthorizationRequest = useCallback(async (
+		url: string,
+		vcEntityList: ExtendedVcEntity[],
+	): Promise<
+		{
+			conformantCredentialsMap: Map<string, any>,
+			verifierDomainName: string,
+			verifierPurpose: string,
+			parsedTransactionData?: ParsedTransactionData,
+		}
+		| { error: HandleAuthorizationRequestError }
+	> => {
 		let {
 			client_id,
 			response_uri,
