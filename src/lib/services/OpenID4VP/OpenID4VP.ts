@@ -830,7 +830,7 @@ export function useOpenID4VP({
 			conformantCredentialsMap: Map<string, any>,
 			verifierDomainName: string,
 			verifierPurpose: string,
-			parsedTransactionData?: ParsedTransactionData,
+			parsedTransactionData: ParsedTransactionData[] | null,
 		}
 		| { error: HandleAuthorizationRequestError }
 	> => {
@@ -857,7 +857,7 @@ export function useOpenID4VP({
 			return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
 		}
 
-		let parsedTransactionData: ParsedTransactionData | null = null;
+		let parsedTransactionData: ParsedTransactionData[] | null = null;
 		if (request_uri) {
 			try {
 				const result = await handleRequestUri(request_uri, httpProxy);
