@@ -294,8 +294,8 @@ export function useOpenID4VP({
 			const match = matches[credId];
 			if (match?.success === false) {
 				match.failed_credentials.map((failedCreds) => {
-					if (!failedCreds.meta.success) {
-						console.error("DCQL metadata issues: ", failedCreds.meta.issues)
+					if (failedCreds.meta.success === false) {
+						console.error("DCQL metadata issues: ", failedCreds.meta.issues);
 					}
 					if (!failedCreds.claims.success) {
 						console.error("DCQL failed claims: ", failedCreds.claims)
