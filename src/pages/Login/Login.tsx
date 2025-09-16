@@ -339,9 +339,9 @@ const WebauthnSignupLogin = ({
 		}
 	};
 
-	const onSubmit = async (event) => {
+	const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
 		event.preventDefault();
-		const webauthnHint = event.nativeEvent?.submitter?.value;
+		const webauthnHint = (event.nativeEvent?.submitter as HTMLButtonElement)?.value;
 
 		setError('');
 		setInProgress(true);
