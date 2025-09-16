@@ -10,7 +10,7 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
 import { MDoc } from "@auth0/mdl";
-import { WalletState, WalletStateContainer, WalletStateCredential, WalletStateCredentialIssuanceSession, WalletStateOperations, WalletStatePresentation } from "./WalletStateOperations";
+import { WalletState, WalletStateContainer, WalletStateCredential, WalletStateCredentialIssuanceSession, WalletStateOperations, WalletStatePresentation, WalletStateSettings } from "./WalletStateOperations";
 import { WalletStateUtils } from "./WalletStateUtils";
 
 
@@ -114,7 +114,7 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 	getCredentialIssuanceSessionByState(state: string): Promise<WalletStateCredentialIssuanceSession | null>,
-	alterSettings(settings: Record<string, string>): Promise<[
+	alterSettings(settings: WalletStateSettings): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -739,7 +739,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
 	}, [editPrivateData, openPrivateData]);
 
-	const alterSettings = useCallback(async (settings: Record<string, string>): Promise<[
+	const alterSettings = useCallback(async (settings: WalletStateSettings): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
