@@ -287,7 +287,7 @@ export function useOpenID4VP({
 		}
 		const parsedQuery = DcqlQuery.parse(dcqlJson);
 		DcqlQuery.validate(parsedQuery);
-		const result = await DcqlQuery.query(parsedQuery, shapedCredentials);
+		const result = DcqlQuery.query(parsedQuery, shapedCredentials);
 
 		const matches = result.credential_matches;
 
