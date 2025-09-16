@@ -1,4 +1,4 @@
-import { useContext, useCallback, useMemo, useState, useRef, useEffect } from "react";
+import { useContext, useCallback, useMemo, useRef, useEffect } from "react";
 import SessionContext from "@/context/SessionContext";
 import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
 import { WalletStateUtils } from "@/services/WalletStateUtils";

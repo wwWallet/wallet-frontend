@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback,useRef,useEffect } from "react";
+import React, { useState, useContext, useCallback } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
@@ -7,6 +7,7 @@ import MessagePopup from "@/components/Popups/MessagePopup";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
 import SessionContext from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
+
 
 export const OpenID4VPContextProvider = ({ children }) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);

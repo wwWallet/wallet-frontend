@@ -9,7 +9,6 @@ import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPart
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../../config";
-import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";

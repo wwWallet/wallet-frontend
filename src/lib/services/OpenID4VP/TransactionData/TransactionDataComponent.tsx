@@ -1,4 +1,3 @@
-import { ParsedTransactionData } from "./parseTransactionData"
 import React from 'react';
 import { TransactionDataRequest } from "./TransactionDataRequest/TransactionDataRequestObject";
 
