@@ -270,8 +270,7 @@ export function useOpenID4VP({
 					};
 				} else {
 					// --- SD-JWT shaping ---
-					const { signedClaims, error } = await parseCredential(vc);
-					if (error) throw error;
+					const { signedClaims } = await parseCredential(vc);
 					shaped.vct = signedClaims.vct;
 					shaped.claims = signedClaims;
 					shaped.cryptographic_holder_binding = true;
