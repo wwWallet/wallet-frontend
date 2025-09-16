@@ -1327,7 +1327,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		mdocGeneratedNonce
 	);
 
-	const uint8ArrayToHexString = (uint8Array: any) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
+	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
