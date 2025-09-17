@@ -59,12 +59,15 @@ const VerticalSlider = ({
 							key={item.batchId ?? item.id ?? i}
 							className="!h-auto flex items-center justify-center"
 							aria-hidden={isFar ? 'true' : 'false'}
-							style={{
-								visibility: isFar ? 'hidden' : 'visible',
-								pointerEvents: isFar ? 'none' : 'auto',
-							}}
 						>
-							<div className="w-full rounded-xl p-2">
+							<div
+								className={[
+									"w-full rounded-xl p-2 transition-all duration-300",
+									isFar ? "pointer-events-none" : "pointer-events-auto",
+									isActive ? "opacity-100" : "opacity-90",
+									isActive ? "" : "[filter:brightness(0.9)]",
+								].join(" ")}
+							>
 								{renderSlideContent(item, i)}
 							</div>
 
