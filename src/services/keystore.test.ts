@@ -607,7 +607,9 @@ describe("The keystore", () => {
 			assert.equal(keypairs.length, numKeys);
 			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
 			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
-			for (const { kid, publicKey, wrappedPrivateKey } of keypairs) {
+			for (const keypair of keypairs) {
+				assert("wrappedPrivateKey" in keypair);
+				const { kid, publicKey, wrappedPrivateKey } = keypair;
 				const { publicKey: storedPublicKey } = calculatedState.keypairs.filter((keypair) => keypair.kid === kid)[0].keypair;
 				assert.deepEqual(publicKey, storedPublicKey);
 				assert.isOk(wrappedPrivateKey);
@@ -1030,6 +1032,7 @@ describe("The keystore", () => {
 					const publicKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", publicKey) as jose.JWK;
 					const did = util.createDid(publicKeyJwk);
 					const kid = did;
+					assert("wrappedPrivateKey" in privateData.S.keypairs[0].keypair);
 					const wrappedPrivateKey = await updateWrappedPrivateKey(
 						// TODO // (Object.values(privateData.keypairs)[0] as keystore.CredentialKeyPairWithWrappedPrivateKey).wrappedPrivateKey,
 						privateData.S.keypairs[0].keypair.wrappedPrivateKey,

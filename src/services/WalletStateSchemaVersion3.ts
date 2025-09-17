@@ -10,7 +10,7 @@ export const SCHEMA_VERSION = 3;
 
 export type WalletStateContainer = {
 	events: WalletSessionEvent[];
-	S: WalletState;
+	S: WalletStateV3OrEarlier;
 	lastEventHash: string;
 };
 export type WalletSessionEventV3 = WalletSchemaCommon.WalletSessionEvent & WalletSessionEventTypeAttributesV3;
@@ -54,15 +54,14 @@ export type WalletStateV3 = SchemaV2.WalletState & {
 	splitBbsKeypairs: WebauthnSignSplitBbsKeypair[],
 }
 export type WalletStateV3OrEarlier = SchemaV2.WalletState | WalletStateV3;
-export type WalletState = WalletStateV3OrEarlier;
+export type WalletState = WalletStateV3;
 
-function isV3Event(event: WalletSessionEvent): event is WalletSessionEventV3 {
-	return [
-		"new_arkg_seed",
-		"delete_arkg_seed",
-		"new_split_bbs_keypair",
-		"delete_split_bbs_keypair",
-	].includes(event.type);
+function isV3State(state: WalletStateV3OrEarlier): state is WalletStateV3 {
+	return state.schemaVersion === SCHEMA_VERSION;
+}
+
+function isLegacyEvent(event: WalletSessionEventV3OrEarlier): event is SchemaV2.WalletSessionEvent {
+	return event.schemaVersion < SCHEMA_VERSION;
 }
 
 export type MergeStrategy = SchemaV2.MergeStrategy<WalletSessionEvent>;
@@ -94,17 +93,16 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 ) {
 	const v2ops = SchemaV2.createOperations(SCHEMA_VERSION, mergeStrategies);
 
-	function migrateState(state: WalletSchemaCommon.WalletState): WalletState {
-		const ver = state?.schemaVersion ?? 1;
-		if (ver === SCHEMA_VERSION) {
-			return state as WalletState;
-		} else if (ver < SCHEMA_VERSION){
+	function migrateState(state: WalletStateV3OrEarlier): WalletState {
+		if (isV3State(state)) {
+			return state;
+		} else if (state?.schemaVersion ?? 1 < SCHEMA_VERSION){
 			return {
 				...state,
 				schemaVersion: SCHEMA_VERSION,
 				arkgSeeds: [],
 				splitBbsKeypairs: [],
-			} as WalletState;
+			};
 		} else {
 			throw new Error(`Cannot migrate state with schemaVersion ${state?.schemaVersion} to version ${SCHEMA_VERSION}`);
 		}
@@ -133,21 +131,22 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 	}
 
 	function walletStateReducer(
-		state: WalletState,
+		state: WalletStateV3OrEarlier,
 		newEvent: WalletSessionEvent,
-	): WalletState {
-		if (newEvent.schemaVersion === state.schemaVersion) {
-			if (isV3Event(newEvent)) {
-				return {
-					...state,
-					arkgSeeds: arkgSeedsReducer(state.arkgSeeds, newEvent),
-					splitBbsKeypairs: splitBbsKeypairsReducer(state.splitBbsKeypairs, newEvent),
-				};
-			} else {
-				return migrateState(SchemaV2.WalletStateOperations.walletStateReducer(state, newEvent));
-			}
+	): WalletStateV3OrEarlier {
+		if (isLegacyEvent(newEvent)) {
+			return SchemaV2.WalletStateOperations.walletStateReducer(state, newEvent);
 		} else {
-			return walletStateReducer(migrateState(state), newEvent);
+			const stateV3 = migrateState(
+				SchemaV2.WalletStateOperations.walletStateReducer(
+					state,
+					newEvent as unknown as SchemaV2.WalletSessionEvent,
+				));
+			return {
+				...stateV3,
+				arkgSeeds: arkgSeedsReducer(stateV3.arkgSeeds, newEvent),
+				splitBbsKeypairs: splitBbsKeypairsReducer(stateV3.splitBbsKeypairs, newEvent),
+			};
 		}
 	}
 

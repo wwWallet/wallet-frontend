@@ -1511,8 +1511,9 @@ async function addNewBbsKeypair(
 	newPrivateData: OpenedContainer,
 }> {
 	const [privateDataContents] = await openPrivateData(mainKey, privateData);
-	if (privateDataContents.splitBbsKeypairs && privateDataContents.splitBbsKeypairs.length > 0) {
-		const bbsKeypair = privateDataContents.splitBbsKeypairs[0];
+	const state = foldState(privateDataContents);
+	if (state.splitBbsKeypairs && state.splitBbsKeypairs.length > 0) {
+		const bbsKeypair = state.splitBbsKeypairs[0];
 		const blindingFactor = bls12_381.utils.randomSecretKey();
 		const publicKey = bls12_381.G1.Point.fromBytes(
 			importHolderPublicJwk({
@@ -1852,7 +1853,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	}
 	const { alg, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const privateKeyJwk = await toJwk(privateKey);
 
 	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);

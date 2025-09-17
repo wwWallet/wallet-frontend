@@ -443,21 +443,21 @@ describe("WalletStateSchemaVersion1", () => {
 	});
 
 	it("should successfully fold one event at a time", async () => {
-		let container: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":2790537656,\"parentHash\":\"\",\"timestampSeconds\":1758140973,\"type\":\"new_credential\",\"credentialId\":3826119239,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":3105567709,\"parentHash\":\"b120179d47ff902d87cea70a49b73c24f2cdb1fa41f4af90a4815db4155fbad8\",\"timestampSeconds\":1758140973,\"type\":\"new_credential\",\"credentialId\":3945855528,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[],\"presentations\":[],\"keypairs\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
+		const containerv1: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":2790537656,\"parentHash\":\"\",\"timestampSeconds\":1758140973,\"type\":\"new_credential\",\"credentialId\":3826119239,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":3105567709,\"parentHash\":\"b120179d47ff902d87cea70a49b73c24f2cdb1fa41f4af90a4815db4155fbad8\",\"timestampSeconds\":1758140973,\"type\":\"new_credential\",\"credentialId\":3945855528,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[],\"presentations\":[],\"keypairs\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
 
-		const e1Hash = await WalletStateOperations.calculateEventHash(container.events[0]);
-		const e2Hash = await WalletStateOperations.calculateEventHash(container.events[1]);
-		container = await foldNextEvent(container);
+		const e1Hash = await WalletStateOperations.calculateEventHash(containerv1.events[0]);
+		const e2Hash = await WalletStateOperations.calculateEventHash(containerv1.events[1]);
+		let container = await foldNextEvent(containerv1);
 		assert.strictEqual(container.lastEventHash, e1Hash);
 		container = await foldOldEventsIntoBaseState(container, -1);
 		assert.strictEqual(container.lastEventHash, e2Hash);
 	});
 
 	it("should successfully fold both events at once", async () => {
-		let container: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":2869811535,\"parentHash\":\"\",\"timestampSeconds\":1758141039,\"type\":\"new_credential\",\"credentialId\":3893673824,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":4148212910,\"parentHash\":\"9efc476407b39f3e4ea38965203bfefd99de3114887cb4635520a5fdbcba74dd\",\"timestampSeconds\":1758141039,\"type\":\"new_credential\",\"credentialId\":1597171040,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[],\"presentations\":[],\"keypairs\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
+		const containerv1: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":2869811535,\"parentHash\":\"\",\"timestampSeconds\":1758141039,\"type\":\"new_credential\",\"credentialId\":3893673824,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":4148212910,\"parentHash\":\"9efc476407b39f3e4ea38965203bfefd99de3114887cb4635520a5fdbcba74dd\",\"timestampSeconds\":1758141039,\"type\":\"new_credential\",\"credentialId\":1597171040,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[],\"presentations\":[],\"keypairs\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
 
-		const e2Hash = await WalletStateOperations.calculateEventHash(container.events[1]);
-		container = await foldOldEventsIntoBaseState(container, -1);
+		const e2Hash = await WalletStateOperations.calculateEventHash(containerv1.events[1]);
+		const container = await foldOldEventsIntoBaseState(containerv1, -1);
 		assert.strictEqual(container.lastEventHash, e2Hash);
 	});
 
