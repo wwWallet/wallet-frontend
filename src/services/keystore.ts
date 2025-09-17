@@ -15,7 +15,7 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { CurrentSchema, foldState, SchemaV1 } from "./WalletStateSchema";
+import { addNewKeypairEvent, CurrentSchema, foldState, SchemaV1 } from "./WalletStateSchema";
 
 
 const keyDidResolver = KeyDidResolver.getResolver();
@@ -1158,7 +1158,7 @@ async function addNewCredentialKeypairs(
 
 				// append events
 				for (const { kid, keypair } of keypairsWithPrivateKeys) {
-					privateData = await CurrentSchema.WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair);
+					privateData = await addNewKeypairEvent(privateData, kid, keypair);
 				}
 
 				return {
