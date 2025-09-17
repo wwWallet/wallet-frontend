@@ -44,7 +44,7 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 };
 
 const CredentialLayout = ({ children, title = null, displayCredentialInfo = null }) => {
-	const { credentialId } = useParams();
+	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const { t } = useTranslation();
@@ -53,7 +53,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 	const [sigTotal, setSigTotal] = useState(null);
 
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
-	const vcEntity = useVcEntity(fetchVcData, vcEntityList, credentialId);
+	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 
 	useEffect(() => {
 		if (vcEntity) {
@@ -64,7 +64,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
-		vcEntity?.id,
+		vcEntity?.batchId,
 		[i18n.language]
 	);
 
@@ -153,7 +153,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 	if (!vcEntity) return null;
 
 	return (
-		<div className=" sm:px-6">
+		<div className="px-6">
 			{screenType !== 'mobile' ? (
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}

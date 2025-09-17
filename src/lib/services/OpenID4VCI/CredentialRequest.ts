@@ -2,8 +2,10 @@ import { compactDecrypt, CompactDecryptResult, exportJWK, generateKeyPair, JWK, 
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
-import { useContext, useCallback, useMemo, useRef } from "react";
+import { useContext, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import SessionContext from "@/context/SessionContext";
+import { OpenidCredentialIssuerMetadata } from "wallet-common";
+import CredentialsContext from "@/context/CredentialsContext";
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
 
 export function useCredentialRequest() {
@@ -19,6 +21,10 @@ export function useCredentialRequest() {
 	const dpopPublicKeyJwkRef = useRef<JWK | null>(null);
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
+	const credentialConfigurationIdRef = useRef<string | null>(null);
+	const { getData } = useContext<any>(CredentialsContext);
+
+	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
 	const { post, updatePrivateData } = api;
 
@@ -75,6 +81,10 @@ export function useCredentialRequest() {
 
 	const setDpopJti = useCallback((id: string) => {
 		jtiRef.current = id;
+	}, []);
+
+	const setCredentialConfigurationId = useCallback((id: string) => {
+		credentialConfigurationIdRef.current = id;
 	}, []);
 
 	const setDpopHeader = useCallback(async () => {
@@ -215,6 +225,7 @@ export function useCredentialRequest() {
 			throw new Error("Failed to generate proof");
 		}
 
+		credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 
 		credentialEndpointBody.credential_configuration_id = credentialConfigurationId;
 
@@ -265,8 +276,17 @@ export function useCredentialRequest() {
 			}
 			throw new Error("Credential Request failed");
 		}
+
+		// const credentialResponseData = credentialResponse.data as { credentials: { credential: string }[] };
+
+
+
+		// receivedCredentialsArrayRef.current = credentialArray;
+		console.log("Credential response: ", credentialResponse);
 		return { credentialResponse };
 	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
+
+
 
 	return useMemo(() => ({
 		setCredentialEndpoint,
@@ -276,6 +296,7 @@ export function useCredentialRequest() {
 		setDpopPrivateKey,
 		setDpopPublicKeyJwk,
 		setDpopJti,
+		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
 		execute,
@@ -287,6 +308,7 @@ export function useCredentialRequest() {
 		setDpopPrivateKey,
 		setDpopPublicKeyJwk,
 		setDpopJti,
+		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
 		execute,

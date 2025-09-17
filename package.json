@@ -1,6 +1,6 @@
 {
   "name": "wallet-frontend",
-  "version": "0.2.9",
+  "version": "0.3.1",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -12,9 +12,9 @@
     "asn1js": "^3.0.5",
     "autoprefixer": "^10.4.14",
     "axios": "^1.4.0",
-    "cbor-web": "^9.0.2",
-    "cose-kit": "^1.7.1",
     "dcql": "^0.4.2",
+    "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#9370029b70edd4b37478f523c91de2ad7c749f3c",
+    "cose-kit": "^1.7.1",
     "did-resolver": "^4.1.0",
     "firebase": "^10.1.0",
     "i18next": "^23.2.11",
@@ -47,7 +47,6 @@
     "typescript": "^5.1.6",
     "uuid": "^9.0.0",
     "vite-plugin-pwa": "^0.21.1",
-    "wallet-common": "./lib/wallet-common",
     "web-vitals": "^2.1.4",
     "workbox-core": "^7.3.0",
     "workbox-expiration": "^7.3.0",
@@ -82,8 +81,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
-    "vitest": "VITE_CJS_IGNORE_WARNING=true vitest run",
-    "vitest-start": "VITE_CJS_IGNORE_WARNING=true vitest",
+    "test-start": "VITE_CJS_IGNORE_WARNING=true vitest",
     "translations": "node translation_coverage/translations.js"
   },
   "repository": "https://github.com/wwwallet/wallet-frontend",

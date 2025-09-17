@@ -1,42 +1,35 @@
 // CredentialsContext.ts
+import { CurrentSchema } from '@/services/WalletStateSchema';
 import { createContext } from 'react';
 import { ParsedCredential } from 'wallet-common/dist/types';
-import { ParsingEngineI,CredentialVerifier } from 'wallet-common/dist/interfaces';
+import { ParsingEngineI, CredentialVerifier } from 'wallet-common/dist/interfaces';
 
 type CredentialEngine = {
-	credentialParsingEngine:ParsingEngineI ;
+	credentialParsingEngine: ParsingEngineI;
 	sdJwtVerifier: CredentialVerifier;
 	msoMdocVerifier: CredentialVerifier;
 };
 
-type Instance = {
+export type Instance = {
 	instanceId: number;
 	sigCount: number;
 }
 
-export type ExtendedVcEntity = {
-	id: number;
-	holderDID: string;
-	credentialIdentifier: string;
-	credential: string;
-	format: string;
-	credentialConfigurationId: string;
-	credentialIssuerIdentifier: string;
-	instanceId: number;
-	sigCount: number;
+export type ExtendedVcEntity = CurrentSchema.WalletStateCredential & {
 	parsedCredential: ParsedCredential;
 	isExpired: boolean;
 	instances: Instance[];
+	sigCount: number; // calculate usage by parsing all presentation history
 }
 
 export type CredentialsContextValue = {
 	vcEntityList: ExtendedVcEntity[];
 	latestCredentials: Set<number>;
-	fetchVcData: (credentialId?: string) => Promise<ExtendedVcEntity[]>;
+	fetchVcData: (credentialId?: number) => Promise<ExtendedVcEntity[]>;
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (rawCredential: unknown) => Promise<ParsedCredential | null>;
+	parseCredential: (vcEntity: CurrentSchema.WalletStateCredential) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
 };
 

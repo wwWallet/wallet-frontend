@@ -9,14 +9,15 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials }) => {
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
-		vcEntity?.id,
+		vcEntity?.batchId,
 		i18n.language
 	);
 
 	return (
 		<button
-			id={`credential-grid-${vcEntity.id}`}
-			className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'highlight-border fade-in' : ''
+			id={`credential-grid-${vcEntity.batchId}`}
+			key={vcEntity.batchId}
+			className={`relative rounded-xl transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.batchId) ? 'highlight-border fade-in' : ''
 				}`}
 			onClick={() => onClick(vcEntity)}
 			aria-label={credentialName}
@@ -28,7 +29,7 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials }) => {
 				vcEntity={vcEntity}
 				vcEntityInstances={vcEntity.instances}
 				parsedCredential={vcEntity.parsedCredential}
-				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''
+				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
 					}`}
 			/>
 		</button>

@@ -1,9 +1,10 @@
-import { OpenID4VCIClientState } from "../types/OpenID4VCIClientState";
+import { CurrentSchema } from "@/services/WalletStateSchema";
 
 export interface IOpenID4VCIClientStateRepository {
-	getByStateAndUserHandle(state: string): Promise<OpenID4VCIClientState | null>;
-	getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(credentialIssuerIdentifier: string, credentialConfigurationId: string): Promise<OpenID4VCIClientState | null>;
-	create(s: OpenID4VCIClientState): Promise<void>;
-	updateState(s: OpenID4VCIClientState): Promise<void>;
+	getByState(state: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null>;
+	getByCredentialIssuerIdentifierAndCredentialConfigurationId(credentialIssuerIdentifier: string, credentialConfigurationId: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null>;
+	create(s: CurrentSchema.WalletStateCredentialIssuanceSession): Promise<void>;
+	updateState(s: CurrentSchema.WalletStateCredentialIssuanceSession): Promise<void>;
 	cleanupExpired(): Promise<void>;
+	commitStateChanges(): Promise<void>;
 }
