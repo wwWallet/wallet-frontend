@@ -1846,6 +1846,10 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
+	if (!("wrappedPrivateKey" in keypair.keypair)) {
+		// TODO
+		throw new Error("Not implemented: generateDeviceResponse with external private key");
+	}
 	const { alg, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
 	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
@@ -1888,9 +1892,13 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
+	if (!("wrappedPrivateKey" in keypair.keypair)) {
+		// TODO
+		throw new Error("Not implemented: generateDeviceResponseWithProximity with external private key");
+	}
 	const { alg, did, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const privateKeyJwk = await toJwk(privateKey);
 
 	const options = getCborEncodeDecodeOptions();
 	options.variableMapSize = true;
