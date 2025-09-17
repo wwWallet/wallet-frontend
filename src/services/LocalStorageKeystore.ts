@@ -22,12 +22,13 @@ import type {
 } from "./keystore";
 import { MDoc } from "@auth0/mdl";
 import { WalletStateUtils } from "./WalletStateUtils";
-import { CurrentSchema, foldOldEventsIntoBaseState } from "./WalletStateSchema";
+import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteKeypairEvent, addNewCredentialEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, foldOldEventsIntoBaseState } from "./WalletStateSchema";
 import { PublicKeyCredentialCreation } from "../types/webauthn";
 import WebauthnInteractionDialogContext, { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 import { useTranslation } from "react-i18next";
 import { StorableCredential } from "@/lib/types/StorableCredential";
 import { PointG1 } from "wallet-common/dist/bbs/index";
+import { JWK } from "jose";
 
 
 type UserData = {
@@ -842,7 +843,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
 
 		for (const { data, format, batchId, credentialIssuerIdentifier, kid, credentialConfigurationId, instanceId, credentialId } of credentials) {
-			walletStateContainer = await CurrentSchema.WalletStateOperations.addNewCredentialEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
+			walletStateContainer = await addNewCredentialEvent(walletStateContainer, data, format, kid, batchId, credentialIssuerIdentifier, credentialConfigurationId, instanceId, credentialId);
 		}
 
 		return editPrivateData(async (originalContainer) => {
@@ -867,11 +868,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 		const credentialsToBeDeleted = calculatedWalletState.credentials.filter((cred) => cred.batchId === batchId);
 		for (const cred of credentialsToBeDeleted) {
-			walletStateContainer = await CurrentSchema.WalletStateOperations.addDeleteCredentialEvent(walletStateContainer, cred.credentialId);
+			walletStateContainer = await addDeleteCredentialEvent(walletStateContainer, cred.credentialId);
 			// delete keypair
 			const kid = calculatedWalletState.credentials.filter((c) => c.credentialId === cred.credentialId).map((c) => c.kid)[0];
 			if (kid) {
-				walletStateContainer = await CurrentSchema.WalletStateOperations.addDeleteKeypairEvent(walletStateContainer, kid);
+				walletStateContainer = await addDeleteKeypairEvent(walletStateContainer, kid);
 			}
 		}
 
@@ -892,7 +893,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
 
 		for (const { transactionId, data, usedCredentialIds, audience } of presentations) {
-			walletStateContainer = await CurrentSchema.WalletStateOperations.addNewPresentationEvent(walletStateContainer,
+			walletStateContainer = await addNewPresentationEvent(walletStateContainer,
 				transactionId,
 				data,
 				usedCredentialIds,
@@ -920,7 +921,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
 
 		for (const issuanceSession of issuanceSessions) {
-			walletStateContainer = await CurrentSchema.WalletStateOperations.addSaveCredentialIssuanceSessionEvent(walletStateContainer,
+			walletStateContainer = await addSaveCredentialIssuanceSessionEvent(walletStateContainer,
 				issuanceSession.sessionId,
 				issuanceSession.credentialIssuerIdentifier,
 				issuanceSession.state,
@@ -950,7 +951,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	]> => {
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
-		walletStateContainer = await CurrentSchema.WalletStateOperations.addAlterSettingsEvent(walletStateContainer, settings);
+		walletStateContainer = await addAlterSettingsEvent(walletStateContainer, settings);
 
 		return editPrivateData(async (originalContainer) => {
 			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
