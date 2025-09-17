@@ -21,7 +21,7 @@ import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addNewArkgSeedEvent, addNewKeypairEvent, addNewSplitBbsKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
 import type { PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
+import { parseAuthenticatorData, parseCoseKeyWithKid, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
@@ -1911,7 +1911,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		try {
-			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
+			const key = parseCoseKeyWithKid(cbor.decodeFirstSync(generatedKey.publicKey));
 			const credentialId = new Uint8Array(credential.rawId);
 			switch (key.kty) {
 				case 2:
@@ -1937,6 +1937,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 					};
 
 				default:
+					// @ts-ignore
 					console.log(`Unsupported COSE key type: ${key.kty}`);
 					return null;
 			}
