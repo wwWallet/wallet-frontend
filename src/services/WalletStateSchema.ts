@@ -10,7 +10,6 @@ import * as WalletSchemaCommon from "./WalletStateSchemaCommon";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { CredentialKeyPair, WebauthnSignArkgPublicSeed, WebauthnSignSplitBbsKeypair } from "./keystore";
 import { JWK } from "jose";
-import { WalletSessionEventNewArkgSeed, WalletSessionEventNewSplitBbsKeypair } from "./WalletStateSchemaVersion3";
 
 export * as SchemaV1 from "./WalletStateSchemaVersion1";
 export * as SchemaV2 from "./WalletStateSchemaVersion2";
@@ -36,6 +35,8 @@ function getSchema(schemaVersion: number): WalletStateOperations<WalletState, Wa
 			return SchemaV1.WalletStateOperations;
 		case 2:
 			return SchemaV2.WalletStateOperations;
+		case 3:
+			return SchemaV3.WalletStateOperations;
 
 		default:
 			throw new Error(`Unknown schema version: ${schemaVersion}`);
