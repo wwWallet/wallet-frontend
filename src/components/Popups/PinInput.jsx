@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import SessionContext from '@/context/SessionContext';
 import PopupLayout from './PopupLayout';
+import { last } from '@/util';
 
 function PinInput({ isOpen, setIsOpen }) {
 	const { api } = useContext(SessionContext);
@@ -101,7 +102,7 @@ function PinInput({ isOpen, setIsOpen }) {
 			}
 			setPin(updatedPin);
 
-			inputRefs[inputRefs.length - 1].current.focus();
+			last(inputRefs).current.focus();
 		}
 	};
 

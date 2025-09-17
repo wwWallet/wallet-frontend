@@ -100,16 +100,64 @@ const isDisplayClaim = (claim) => {
 };
 
 const formatClaimValue = (value) => {
-	if (typeof value === 'boolean') return String(value);
-	if (typeof value === 'object') {
-		return (
-			<div className="w-full">
-				<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
-					<JsonViewer value={value} />
-				</div>
+
+	const renderImg = (src) => (
+		<img
+			src={src}
+			alt="Claim image"
+			className="max-h-10 max-w-full rounded border"
+		/>
+	);
+
+	const renderJson = (v) => (
+		<div className="w-full">
+			<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
+				<JsonViewer value={v} />
 			</div>
-		);
+		</div>
+	);
+
+	if (typeof value === 'boolean') return String(value);
+
+	// String handling
+	if (typeof value === 'string') {
+		const lower = value.toLowerCase();
+
+		// Image data URI
+		if (lower.startsWith('data:image/')) {
+			return renderImg(value);
+		}
+		// Long string fallback
+		if (!value.includes(' ') && value.length > 30) {
+			return value.slice(0, 30) + '…';
+		}
 	}
+
+	// Handle raw image bytes
+	if (
+		typeof value === 'object' &&
+		value !== null &&
+		Object.keys(value).length > 0 &&
+		Object.keys(value).every(k => !isNaN(Number(k))) &&
+		Object.values(value).every(v => typeof v === 'number')
+	) {
+		try {
+			const uint8Array = new Uint8Array(Object.values(value));
+			const base64 = btoa(
+				String.fromCharCode.apply(null, Array.from(uint8Array))
+			);
+			const src = `data:image/jpeg;base64,${base64}`;
+			return renderImg(src);
+		} catch {
+			// fallback if conversion fails
+			return renderJson(value);
+		}
+	}
+
+	if (typeof value === 'object') {
+		return renderJson(value);
+	}
+
 	return formatDate(value, 'date');
 };
 
@@ -140,8 +188,18 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 	const filteredClaims = Array.isArray(displayClaims)
 		? displayClaims.filter(c => {
-			const valid = isDisplayClaim(c);
-			return valid;
+			// Always keep if it is a display claim
+			if (isDisplayClaim(c)) return true;
+
+			// If requestedFields exists, also keep if the path is in requestedFields
+			if (requestedFields) {
+				const joined = Array.isArray(c.path) ? c.path.join('.') : '';
+				return requestedFields.some(field =>
+					(Array.isArray(field) ? field.join('.') : field) === joined
+				);
+			}
+
+			return false;
 		})
 		: [];
 
@@ -162,9 +220,44 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			requestedFields?.map(p => Array.isArray(p) ? p.join('.') : p)
 		);
 
+	const pathKey = (path) => Array.isArray(path) ? path.join('.') : '';
+
+	const pathToClaimIdx = new Map(
+		expandedDisplayClaims.map((claim, idx) => [pathKey(claim.path), idx])
+	);
+
+	const syntheticClaims = [];
+
+	if (requestedFieldSet && requestedFields) {
+		requestedFields.forEach(field => {
+			const pathArr = Array.isArray(field) ? field : [field];
+			const joined = pathKey(pathArr);
+			const value = getValueByPath(pathArr, signedClaims);
+
+			const claimIdx = pathToClaimIdx.get(joined);
+
+			if (claimIdx !== undefined) {
+				const claim = expandedDisplayClaims[claimIdx];
+				if (!claim.display || !claim.display.some(d => d.label)) {
+					expandedDisplayClaims[claimIdx] = {
+						...claim,
+						display: [{ lang: 'en', label: joined, description: '' }]
+					};
+				}
+			} else if (value !== undefined) {
+				syntheticClaims.push({
+					path: pathArr,
+					display: [{ lang: 'en', label: joined, description: '' }]
+				});
+			}
+		});
+	}
+
+	const claimsWithDisplay = [...expandedDisplayClaims, ...syntheticClaims];
+
 	const visibleClaims =
 		requestedDisplay === "hide" && requestedFieldSet
-			? expandedDisplayClaims.filter(claim => {
+			? claimsWithDisplay.filter(claim => {
 				const joinedPath = claim.path?.join('.');
 				if (!joinedPath) return false;
 
@@ -178,8 +271,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					req.startsWith(joinedPath + '.')
 				);
 			})
-			: expandedDisplayClaims;
-
+			: claimsWithDisplay;
 
 	visibleClaims.forEach(claim => {
 		if (!Array.isArray(claim.path)) return;
@@ -238,10 +330,20 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 							: ''
 							}`}
 					>
-						<div className="font-semibold text-primary dark:text-white w-1/2">
+						<div
+							className={
+								`font-semibold text-primary dark:text-white w-1/2 break-words` +
+								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
+							}
+						>
 							{label}:
 						</div>
-						<div className="text-gray-700 dark:text-white break-words w-1/2 flex justify-between items-start">
+						<div
+							className={
+								`text-gray-700 dark:text-white w-1/2 flex justify-between items-start break-words` +
+								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
+							}
+						>
 							{value}
 							{isRequested && (
 								<IoIosSend

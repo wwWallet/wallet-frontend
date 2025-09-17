@@ -1,17 +1,19 @@
 import React, { FormEvent, KeyboardEvent, useCallback, useContext, useEffect, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
+import { BsLock, BsMoonFill, BsSunFill, BsUnlock } from 'react-icons/bs';
 import { MdNotifications } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import AppSettingsContext from '@/context/AppSettingsContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
+import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { formatDate } from '../../functions/DateFormat';
 import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
@@ -23,6 +25,7 @@ import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
+import { FaLaptop, FaMobile } from "react-icons/fa";
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -85,11 +88,13 @@ const WebauthnRegistation = ({
 			if (beginData.challengeId) {
 				setBeginData(beginData);
 
+				const hints = [webauthnHint];
 				const createOptions = {
 					...beginData.createOptions,
 					publicKey: {
 						...beginData.createOptions.publicKey,
-						hints: [webauthnHint],
+						hints,
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, hints),
 					},
 				};
 
@@ -684,6 +689,7 @@ const WebauthnCredentialItem = ({
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
+	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
@@ -693,6 +699,7 @@ const Settings = () => {
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const screenType = useScreenType();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
@@ -730,8 +737,13 @@ const Settings = () => {
 			keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
 			try {
 				const response = await api.get('/user/session/account-info');
-				console.log(response.data);
-				setUserData(response.data);
+				const s = keystore.getCalculatedWalletState();
+				const userData = {
+					...response.data,
+					settings: s.settings,
+				};
+				console.log(userData);
+				setUserData(userData);
 				dispatchEvent(new CustomEvent("settingsChanged"));
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -835,9 +847,15 @@ const Settings = () => {
 
 	const handleTokenMaxAgeChange = async (newMaxAge: string) => {
 		try {
-			await api.post('/user/session/settings', {
-				openidRefreshTokenMaxAgeInSeconds: parseInt(newMaxAge),
+			if (isNaN(parseInt(newMaxAge))) {
+				throw new Error("Update token max age: newMaxAge is not a number");
+			}
+			const [{ }, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+				openidRefreshTokenMaxAgeInSeconds: newMaxAge,
 			});
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+
 			console.log('Settings updated successfully');
 			setSuccessMessage(t('pageSettings.rememberIssuer.successMessage'));
 			setTimeout(() => {
@@ -851,7 +869,7 @@ const Settings = () => {
 
 	return (
 		<>
-			<div className="sm:px-6 w-full">
+			<div className="px-6 sm:px-12 w-full">
 				{userData && (
 					<>
 						<H1 heading={t('common.navItemSettings')} />
@@ -863,6 +881,59 @@ const Settings = () => {
 								<div className="relative">
 									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
+							</div>
+						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.appearance.title')} />
+							<div className='pt-4'>
+								<H3 heading={t('pageSettings.appearance.colorScheme.title')}>
+								</H3>
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.appearance.colorScheme.description')}
+								</p>
+							</div>
+							<div className="flex gap-2">
+								<Button
+									id="color-scheme-light"
+									onClick={() => setColorScheme('light')}
+									variant='custom'
+									ariaLabel={t('pageSettings.appearance.colorScheme.light')}
+									title={t('pageSettings.appearance.colorScheme.light')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'light' ? 'bg-gray-100 border border-primary dark:border-primary-light' : 'bg-white '}`}
+
+								>
+									<BsSunFill className='mr-2' />
+									{t('pageSettings.appearance.colorScheme.light')}
+								</Button>
+
+								<Button
+									id="color-scheme-dark"
+									onClick={() => setColorScheme('dark')}
+									variant="custom"
+									ariaLabel={t('pageSettings.appearance.colorScheme.dark')}
+									title={t('pageSettings.appearance.colorScheme.dark')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'dark' ? 'dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white dark:bg-gray-800'}`}
+
+								>
+									<BsMoonFill className='mr-2' />
+									{t('pageSettings.appearance.colorScheme.dark')}
+								</Button>
+
+								<Button
+									id="color-scheme-system"
+									onClick={() => setColorScheme('system')}
+									variant="custom"
+									ariaLabel={t('pageSettings.appearance.colorScheme.system')}
+									title={t('pageSettings.appearance.colorScheme.system')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'system' ? 'bg-gray-100 dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white  dark:bg-gray-800'}`}
+								>
+									{screenType === 'desktop' ? (
+										<FaLaptop className='mr-2' />
+									) : (
+										<FaMobile className='mr-2' />
+									)}
+									{t('pageSettings.appearance.colorScheme.system')}
+								</Button>
 							</div>
 						</div>
 						<div className="my-2 py-2">

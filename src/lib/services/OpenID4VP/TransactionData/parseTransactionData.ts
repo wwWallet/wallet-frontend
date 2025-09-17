@@ -1,7 +1,15 @@
 import { fromBase64Url } from "@/util";
-import { TransactionDataRequestObject } from "./TransactionDataRequest/TransactionDataRequestObject";
+import { TransactionDataRequest, TransactionDataRequestObject } from "./TransactionDataRequest/TransactionDataRequestObject";
+import { withTransactionData } from "./TransactionDataComponent";
 
-export function parseTransactionData(transaction_data: string[], presentation_definition?: Record<string, unknown>, dcql_query?: Record<string, unknown>) {
+
+export type ParsedTransactionData = {
+	transaction_data_b64u: string;
+	parsed: TransactionDataRequest;
+	ui: React.FC;
+};
+
+export function parseTransactionData(transaction_data: string[], presentation_definition?: Record<string, unknown>, dcql_query?: Record<string, unknown>): ParsedTransactionData[] | null {
 	try {
 		if (presentation_definition && dcql_query) {
 			throw new Error("Only one of presentation_definition or dcql_query should be provided");
@@ -18,10 +26,14 @@ export function parseTransactionData(transaction_data: string[], presentation_de
 			);
 		}
 
-		const parsedTransactionData = transaction_data.map((td) => ({
-			transaction_data_b64u: td,
-			parsed: TransactionDataRequestObject.parse(JSON.parse(new TextDecoder().decode(fromBase64Url(td)))),
-		}));
+		const parsedTransactionData = transaction_data.map((td) => {
+			const parsed = TransactionDataRequestObject.parse(JSON.parse(new TextDecoder().decode(fromBase64Url(td))));
+			return {
+				transaction_data_b64u: td,
+				parsed: parsed,
+				ui: withTransactionData(parsed)
+			}
+		});
 		for (const td of parsedTransactionData) {
 			if (td.parsed.credential_ids && validCredentialIds) {
 				for (const cred_id of td.parsed.credential_ids) {
@@ -35,14 +47,7 @@ export function parseTransactionData(transaction_data: string[], presentation_de
 	}
 	catch (e) {
 		console.error(e);
-		return "invalid_transaction_data";
+		return null;
 	}
 
-}
-
-export interface TransactionDataResponse {
-	generateTransactionDataResponseParameters(transaction_data: string[]): Promise<[{
-		transaction_data_hashes: string[],
-		transaction_data_hashes_alg: string[],
-	} | null, Error | null]>;
 }

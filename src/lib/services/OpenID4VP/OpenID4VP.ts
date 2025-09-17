@@ -9,8 +9,6 @@ import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPart
 import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../../config";
-import { useCredentialBatchHelper } from "../CredentialBatchHelper";
-import { toBase64 } from "../../../util";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
@@ -20,20 +18,38 @@ import { parse } from "@auth0/mdl";
 import { DcqlQuery, DcqlPresentationResult } from 'dcql';
 import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
-import { parseTransactionData } from "./TransactionData/parseTransactionData";
-import { ExampleTypeSdJwtVcTransactionDataResponse } from "./TransactionData/ExampleTypeSdJwtVcTransactionDataResponse";
+import { ParsedTransactionData, parseTransactionData } from "./TransactionData/parseTransactionData";
+import { ExtendedVcEntity } from "@/context/CredentialsContext";
+import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
+import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
 import { ClaimPath, presentSplitBbs } from "wallet-common/dist/jpt";
 
-export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup }: { showCredentialSelectionPopup: (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string) => Promise<Map<string, string>>, showStatusPopup: (message: { title: string, description: string }, type: 'error' | 'success') => Promise<void>, showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean> }): IOpenID4VP {
+export function useOpenID4VP({
+	showCredentialSelectionPopup,
+	showStatusPopup,
+	showTransactionDataConsentPopup,
+}: {
+	showCredentialSelectionPopup: (
+		conformantCredentialsMap: any,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData?: ParsedTransactionData[],
+	) => Promise<Map<string, number>>,
+	showStatusPopup: (
+		message: { title: string, description: string },
+		type: 'error' | 'success',
+	) => Promise<void>,
+	showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean>,
+}): IOpenID4VP {
 
-	console.log('useOpenID4VP');
 	const openID4VPRelyingPartyStateRepository = useOpenID4VPRelyingPartyStateRepository();
 	const httpProxy = useHttpProxy();
 	const { parseCredential } = useContext(CredentialsContext);
-	const credentialBatchHelper = useCredentialBatchHelper();
 	const { keystore, api } = useContext(SessionContext);
+
 	const { t } = useTranslation();
-	const { post, get } = api;
+	const { post } = api;
 
 	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 		if (S.client_metadata.jwks) {
@@ -70,16 +86,15 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		[post]
 	);
 
-	const getAllStoredVerifiableCredentials = useCallback(async () => {
-		const fetchAllCredentials = await get("/storage/vc");
-		return { verifiableCredentials: fetchAllCredentials.data.vc_list };
-	},
-		[get]
-	);
 
 	const promptForCredentialSelection = useCallback(
-		async (conformantCredentialsMap: any, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>> => {
-			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose);
+		async (
+			conformantCredentialsMap: any,
+			verifierDomainName: string,
+			verifierPurpose: string,
+			parsedTransactionData: ParsedTransactionData[],
+		): Promise<Map<string, number>> => {
+			return showCredentialSelectionPopup(conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData);
 		},
 		[showCredentialSelectionPopup]
 	);
@@ -138,7 +153,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 	}
 
 	async function matchCredentialsToDefinition(
-		vcList: any[],
+		vcList: ExtendedVcEntity[],
 		presentation_definition: any,
 		parseCredential: any,
 		t: any
@@ -163,16 +178,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 					if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
 						(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
-						const result = await parseCredential(vc.credential);
+						const result = await parseCredential(vc);
 						if ('error' in result) continue;
 						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
-							conformingVcList.push(vc.credentialIdentifier);
+							conformingVcList.push(vc.batchId);
 							continue;
 						}
 					}
 
 					if (vc.format === VerifiableCredentialFormat.MSO_MDOC && VerifiableCredentialFormat.MSO_MDOC in descriptor.format) {
-						const credentialBytes = base64url.decode(vc.credential);
+						const credentialBytes = base64url.decode(vc.data);
 						const issuerSigned = cborDecode(credentialBytes);
 						console.log('issuerSigned: ', issuerSigned)
 
@@ -200,7 +215,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 						if (fieldsWithValue.some((fwv) => fwv.val === undefined)) continue;
 
-						conformingVcList.push(vc.credentialIdentifier);
+						conformingVcList.push(vc.batchId);
 					}
 				} catch (err) {
 					console.error("Descriptor matching error", err);
@@ -222,8 +237,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		return { mapping, descriptorPurpose };
 	}
 
-	async function matchCredentialsToDCQL(vcList: Array<{ credentialIdentifier: string; credential: string; format: string }>, dcqlJson: any, t: any): Promise<
-		| { mapping: Map<string, { credentials: string[]; requestedFields: { name: string; purpose: string }[] }>; descriptorPurpose: string }
+	async function matchCredentialsToDCQL(vcList: ExtendedVcEntity[], dcqlJson: any, t: any): Promise<
+		| { mapping: Map<string, { credentials: number[]; requestedFields: { name: string; purpose: string }[] }>; descriptorPurpose: string }
 		| { error: HandleAuthorizationRequestError }
 	> {
 
@@ -235,7 +250,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			let shaped: any = { credential_format: vc.format };
 			try {
 				if (vc.format === VerifiableCredentialFormat.MSO_MDOC) {
-					const credentialBytes = base64url.decode(vc.credential);
+					const credentialBytes = base64url.decode(vc.data);
 					const issuerSigned = cborDecode(credentialBytes);
 					const [header, _, payload, sig] = issuerSigned.get('issuerAuth') as Array<Uint8Array>;
 					const decodedIssuerAuthPayload = cborDecode(payload);
@@ -260,7 +275,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 						namespaces: {
 							[nsName]: nsObject
 						},
-						credentialIdentifier: vc.credentialIdentifier,
+						batchId: vc.batchId,
 						cryptographic_holder_binding: true
 					};
 
@@ -283,27 +298,38 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				} else {
 					// --- SD-JWT shaping ---
-					const { signedClaims, error } = await parseCredential(vc.credential);
-					if (error) throw error;
+					const { signedClaims } = await parseCredential(vc);
 					shaped.vct = signedClaims.vct;
 					shaped.claims = signedClaims;
 					shaped.cryptographic_holder_binding = true;
-					shaped.credentialIdentifier = vc.credentialIdentifier;
+					shaped.batchId = vc.batchId;
 				}
 				shapedCredentials.push(shaped);
 			} catch (e) {
 				console.error('DCQL shaping error for this VC:', e);
 			}
 		}
-
+		if (shapedCredentials.length === 0) {
+			return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
+		}
 		const parsedQuery = DcqlQuery.parse(dcqlJson);
 		DcqlQuery.validate(parsedQuery);
-		const result = await DcqlQuery.query(parsedQuery, shapedCredentials);
+		const result = DcqlQuery.query(parsedQuery, shapedCredentials);
 
 		const matches = result.credential_matches;
 
 		function hasValidMatch(credId: string): boolean {
 			const match = matches[credId];
+			if (match?.success === false) {
+				match.failed_credentials.map((failedCreds) => {
+					if (failedCreds.meta.success === false) {
+						console.error("DCQL metadata issues: ", failedCreds.meta.issues);
+					}
+					if (!failedCreds.claims.success) {
+						console.error("DCQL failed claims: ", failedCreds.claims)
+					}
+				})
+			}
 			return match?.success === true && Array.isArray(match.valid_credentials) && match.valid_credentials.length > 0;
 		}
 
@@ -314,16 +340,16 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		}
 
 		// Build the mapping for each credential query
-		const mapping = new Map<string, { credentials: string[]; requestedFields: { name: string; purpose: string }[] }>();
+		const mapping = new Map<string, { credentials: number[]; requestedFields: { name: string; purpose: string }[] }>();
 		for (const credReq of dcqlJson.credentials) {
 			const match = result.credential_matches[credReq.id];
-			const conforming: string[] = [];
+			const conforming: number[] = [];
 			if (match?.success && match.valid_credentials) {
 				for (const vcMatch of match.valid_credentials) {
 					// Use input_credential_index to get the shaped credential
 					const shaped = shapedCredentials[vcMatch.input_credential_index];
-					if (shaped?.credentialIdentifier) {
-						conforming.push(shaped.credentialIdentifier);
+					if (shaped?.batchId) {
+						conforming.push(shaped.batchId);
 					}
 				}
 			}
@@ -437,7 +463,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		return result;
 	}
 
-	async function handlePresentationExchangeFlow(S, selectionMap, verifiableCredentials) {
+	async function handlePresentationExchangeFlow(S, selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) {
 		const presentationDefinition = S.presentation_definition;
 		const response_uri = S.response_uri;
 		const client_id = S.client_id;
@@ -446,29 +472,27 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		let apu = undefined;
 		let apv = undefined;
 
-		const allSelectedCredentialIdentifiers = Array.from(selectionMap.values());
+		const allSelectedCredentialBatchIds = Array.from(selectionMap.values());
 
-		// returns the credentials with the minimum usages for each credential identifier
-		const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialIdentifiers.map(async (credentialIdentifier) => {
-			const result = await credentialBatchHelper.getLeastUsedCredential(credentialIdentifier, verifiableCredentials);
-			return result.credential;
-		}));
+		const credentialsFilteredByUsage = await Promise.all(allSelectedCredentialBatchIds.map(async (batchId) =>
+			getLeastUsedCredentialInstance(batchId, vcEntityList)
+		));
 		console.log("Sig count: ", credentialsFilteredByUsage[0].sigCount)
 
 
 		const filteredVCEntities = credentialsFilteredByUsage.filter((vc) =>
-			allSelectedCredentialIdentifiers.includes(vc.credentialIdentifier)
+			allSelectedCredentialBatchIds.includes(vc.batchId)
 		);
 
 		let selectedVCs = [];
 		let generatedVPs = [];
-		let originalVCs = [];
+		let originalVCs: ExtendedVcEntity[] = [];
 		const descriptorMap = [];
 
 		let i = 0;
 
-		for (const [descriptor_id, credentialIdentifier] of selectionMap) {
-			const vcEntity = filteredVCEntities.find(vc => vc.credentialIdentifier === credentialIdentifier);
+		for (const [descriptor_id, batchId] of selectionMap) {
+			const vcEntity = filteredVCEntities.find(vc => vc.batchId === batchId);
 			console.log('vcEntity: ', vcEntity)
 			if (vcEntity.format === VerifiableCredentialFormat.DC_SDJWT || vcEntity.format === VerifiableCredentialFormat.VC_SDJWT) {
 				const descriptor = presentationDefinition.input_descriptors.find(desc => desc.id === descriptor_id);
@@ -482,14 +506,14 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					return crypto.subtle.digest(alg, encoded).then(v => new Uint8Array(v));
 				};
 
-				const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
-				const presentation = (vcEntity.credential.split("~").length - 1) > 1 ?
-					await sdJwt.present(presentationFrame, hasher) : vcEntity.credential;
+				const sdJwt = await SDJwt.fromEncode(vcEntity.data, hasher);
+				const presentation = (vcEntity.data.split("~").length - 1) > 1 ?
+					await sdJwt.present(presentationFrame, hasher) : vcEntity.data;
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
-						.generateTransactionDataResponseParameters(transaction_data);
+					const [res, err] = await TransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
+						.generateTransactionDataResponse(transaction_data);
 					if (err) {
 						throw err;
 					}
@@ -567,7 +591,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				console.log("Response uri = ", response_uri);
 
 				const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
-				const credentialBytes = base64url.decode(vcEntity.credential);
+				const credentialBytes = base64url.decode(vcEntity.data);
 				const issuerSigned = cborDecode(credentialBytes);
 
 				// According to ISO 23220-4: The value of input descriptor id should be the doctype
@@ -639,7 +663,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			if (S.state) formData.append('state', S.state);
 		}
 
-		const credentialIdentifiers = originalVCs.map(vc => vc.credentialIdentifier);
+		const credentialIdentifiers = originalVCs.map(vc => vc.batchId);
 
 		return { formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities };
 	}
@@ -696,7 +720,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		return frame;
 	}
 
-	async function handleDCQLFlow(S, selectionMap, verifiableCredentials) {
+	async function handleDCQLFlow(S, selectionMap, vcEntityList: ExtendedVcEntity[]) {
 		const { dcql_query, client_id, nonce, response_uri, transaction_data } = S;
 		let apu = undefined;
 		let apv = undefined;
@@ -705,12 +729,12 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		let originalVCs = [];
 
 		const allIds = Array.from(selectionMap.values());
-		const filtered = verifiableCredentials.filter(vc =>
-			allIds.includes(vc.credentialIdentifier)
+		const filtered = vcEntityList.filter(vc =>
+			allIds.includes(vc.batchId)
 		);
 
-		for (const [selectionKey, credId] of selectionMap.entries()) {
-			const vcEntity = filtered.find(v => v.credentialIdentifier === credId);
+		for (const [selectionKey, batchId] of selectionMap.entries()) {
+			const vcEntity = filtered.find(v => v.batchId === batchId);
 			if (!vcEntity) continue;
 
 			if (
@@ -721,7 +745,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-				const { signedClaims } = await parseCredential(vcEntity.credential);
+				const { signedClaims } = await parseCredential(vcEntity);
 
 				let paths: string[][];
 
@@ -739,10 +763,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					return crypto.subtle.digest(alg, bytes).then(buf => new Uint8Array(buf));
 				};
 
-				const sdJwt = await SDJwt.fromEncode(vcEntity.credential, hasher);
-				const presentation = (vcEntity.credential.split("~").length - 1) > 1
+				const sdJwt = await SDJwt.fromEncode(vcEntity.data, hasher);
+				// TODO handle transaction data
+				const presentation = (vcEntity.data.split("~").length - 1) > 1
 					? await sdJwt.present(frame, hasher)
-					: vcEntity.credential;
+					: vcEntity.data;
 
 				const shaped = {
 					credential_format: vcEntity.format,
@@ -766,8 +791,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
-						.generateTransactionDataResponseParameters(transaction_data);
+					const [res, err] = await TransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
+						.generateTransactionDataResponse(transaction_data);
 					if (err) {
 						throw err;
 					}
@@ -857,7 +882,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
 				const descriptorId = descriptor.meta?.doctype_value!;
-				const credentialBytes = base64url.decode(vcEntity.credential);
+				const credentialBytes = base64url.decode(vcEntity.data);
 				const issuerSignedPayload = cborDecode(credentialBytes);
 
 				const mdocStructure = {
@@ -938,8 +963,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			if (S.state) formData.append('state', S.state);
 		}
 
-		const credentialIdentifiers = originalVCs.map(vc => vc.credentialIdentifier);
-		return { formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
+		return { formData, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
 	}
 
 	function dcqlClaimPathsFromPresentationDefinitionPaths(paths: string[]): ClaimPath[] {
@@ -954,7 +978,18 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		});
 	};
 
-	const handleAuthorizationRequest = useCallback(async (url: string) => {
+	const handleAuthorizationRequest = useCallback(async (
+		url: string,
+		vcEntityList: ExtendedVcEntity[],
+	): Promise<
+		{
+			conformantCredentialsMap: Map<string, any>,
+			verifierDomainName: string,
+			verifierPurpose: string,
+			parsedTransactionData: ParsedTransactionData[] | null,
+		}
+		| { error: HandleAuthorizationRequestError }
+	> => {
 		let {
 			client_id,
 			response_uri,
@@ -978,6 +1013,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			return { error: HandleAuthorizationRequestError.NON_SUPPORTED_CLIENT_ID_SCHEME };
 		}
 
+		let parsedTransactionData: ParsedTransactionData[] | null = null;
 		if (request_uri) {
 			try {
 				const result = await handleRequestUri(request_uri, httpProxy);
@@ -1004,8 +1040,8 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					console.log("Received transaction data");
 					console.log('Transaction data = ', payload.transaction_data)
 					transaction_data = payload.transaction_data;
-					const result = parseTransactionData(transaction_data, presentation_definition, dcql_query);
-					if (result === "invalid_transaction_data") {
+					parsedTransactionData = parseTransactionData(transaction_data, presentation_definition, dcql_query);
+					if (parsedTransactionData === null) {
 						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
 					}
 				}
@@ -1032,21 +1068,21 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			return { error: HandleAuthorizationRequestError.INVALID_RESPONSE_MODE };
 		}
 
-		const { verifiableCredentials } = await getAllStoredVerifiableCredentials();
-		const vcList = verifiableCredentials.filter(vc => vc.instanceId === 0);
 
-		await openID4VPRelyingPartyStateRepository.store(
-			new OpenID4VPRelyingPartyState(
-				presentation_definition,
-				nonce,
-				response_uri,
-				client_id,
-				state,
-				client_metadata,
-				response_mode,
-				transaction_data,
-				dcql_query
-			)
+		console.log("VC entity list = ", vcEntityList)
+		const vcList = vcEntityList.filter((cred) => cred.instanceId === 0);
+
+		await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
+			presentation_definition,
+			nonce,
+			response_uri,
+			client_id,
+			state,
+			client_metadata,
+			response_mode,
+			transaction_data,
+			dcql_query
+		)
 		);
 
 		let matchResult;
@@ -1073,10 +1109,11 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			conformantCredentialsMap: mapping,
 			verifierDomainName,
 			verifierPurpose: descriptorPurpose,
+			parsedTransactionData,
 		};
-	}, [httpProxy, parseCredential, getAllStoredVerifiableCredentials, openID4VPRelyingPartyStateRepository]);
+	}, [httpProxy, parseCredential, openID4VPRelyingPartyStateRepository]);
 
-	const sendAuthorizationResponse = useCallback(async (selectionMap) => {
+	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
 		const S = await openID4VPRelyingPartyStateRepository.retrieve();
 
 		if (!S || S.nonce === "" || S.nonce === sessionStorage.getItem("last_used_nonce")) {
@@ -1084,28 +1121,31 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 		}
 		sessionStorage.setItem("last_used_nonce", S.nonce);
 
-		const { verifiableCredentials } = await getAllStoredVerifiableCredentials();
 
-		let formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities;
+		let formData, generatedVPs, presentationSubmission, filteredVCEntities;
 
 		if (S.presentation_definition) {
-			({ formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities } =
-				await handlePresentationExchangeFlow(S, selectionMap, verifiableCredentials));
+			({ formData, generatedVPs, presentationSubmission, filteredVCEntities } =
+				await handlePresentationExchangeFlow(S, selectionMap, vcEntityList));
 		}
 		else {
-			({ formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities } =
-				await handleDCQLFlow(S, selectionMap, verifiableCredentials));
+			({ formData, generatedVPs, presentationSubmission, filteredVCEntities } =
+				await handleDCQLFlow(S, selectionMap, vcEntityList));
 		}
 
-		const presentations = "b64:" + toBase64(new TextEncoder().encode(
-			generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs)
-		));
+		const transactionId = WalletStateUtils.getRandomUint32();
+		const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations(generatedVPs.map((vpData, index) => {
+			console.log("Presentation: ")
 
-		const storePresentationPromise = storeVerifiablePresentation(presentations, presentationSubmission, credentialIdentifiers, S.client_id);
-		const updateCredentialPromise = filteredVCEntities.map((cred) => credentialBatchHelper.useCredential(cred))
-		const updateRepositoryPromise = openID4VPRelyingPartyStateRepository.store(S);
-
-		await Promise.all([storePresentationPromise, ...updateCredentialPromise, updateRepositoryPromise]);
+			return {
+				transactionId: transactionId,
+				data: vpData,
+				usedCredentialIds: [filteredVCEntities[index].credentialId],
+				audience: S.client_id,
+			}
+		}));
+		await api.updatePrivateData(newPrivateData);
+		await keystoreCommit();
 
 		const bodyString = formData.toString();
 		console.log('bodyString: ', bodyString)
@@ -1133,7 +1173,7 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 			}, 'error');
 			return {};
 		}
-	}, [httpProxy, openID4VPRelyingPartyStateRepository, credentialBatchHelper, getAllStoredVerifiableCredentials, storeVerifiablePresentation, showStatusPopup]);
+	}, [httpProxy, openID4VPRelyingPartyStateRepository, storeVerifiablePresentation, showStatusPopup]);
 
 	return useMemo(() => {
 		return {

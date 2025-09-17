@@ -12,6 +12,7 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - ✨ [Features](#features)
 - 🔍 [Prerequisites](#prerequisites)
 - 📦 [Installation](#installation)
+- ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
 - 🔐 [PRF Compatibility](#prf-compatibility)
 - 🔥 [Firebase](#firebase)
@@ -94,6 +95,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
   - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
   - VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
+  - VITE_WELLKNOWN_APPLE_APPIDS: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
+  - VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
 
 
 - Set up Firebase (optional)
@@ -138,6 +141,31 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
     ```bash
     yarn start
     ```
+
+## ✅Pre-commit Hook
+
+We use [pre-commit](https://pre-commit.com/) to enforce our `.editorconfig` before code is committed.
+
+### One-time setup
+
+```
+# install pre-commit if you don’t already have it
+pip install pre-commit       # or brew install pre-commit / pipx install pre-commit
+
+# enable the git hook in this repo
+pre-commit install
+
+# optional: clean up the repo on demand
+pre-commit run --all-files
+
+git add -A
+```
+
+### What happens on commit
+
+- Auto-fixers run (e.g. add final newlines).
+- After the auto-fixers, the editorconfig-checker runs inside Docker to validate all staged files.
+- If violations remain, fix them manually until the commit passes.
 
 ## 🚀Usage
 
