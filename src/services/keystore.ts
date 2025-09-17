@@ -1620,7 +1620,7 @@ export async function signJwtPresentation(
 
 	const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
 
-	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0]?.keypair;
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
@@ -1674,7 +1674,7 @@ export async function signSplitBbs(
 	const credParts = vcEntity.credential.split('.');
 	const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
 
-	const keypair = privateData.keypairs[dpkJwk.kid];
+	const keypair = foldState(privateData).keypairs.find(keypair => keypair.kid === dpkJwk.kid)?.keypair;
 	if (keypair) {
 		const bbs = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
 		if ("wrappedPrivateKey" in keypair) {
