@@ -20,7 +20,7 @@ import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
-import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
+import type { PublicKeyCredentialCreation } from "../types/webauthn";
 import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
@@ -252,12 +252,12 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): 
 	}
 }
 
-type WebauthnSignArkgPublicSeed = {
+export type WebauthnSignArkgPublicSeed = {
 	credentialId: Uint8Array,
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
 }
 
-type WebauthnSignSplitBbsKeypair = {
+export type WebauthnSignSplitBbsKeypair = {
 	credentialId: Uint8Array,
 	/** Contains kid used to construct reference to private key */
 	publicKey: webauthn.ParsedCOSEKeyEc2Public & { kid: any },
@@ -1561,20 +1561,8 @@ async function addNewBbsKeypair(
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
 				[privateData, mainKey],
-				async (privateData: PrivateData) => {
-
-					const combinedKeypairs = {
-						...privateData.keypairs,
-						[kid]: keypair,
-					};
-
-					return {
-						...privateData,
-						keypairs: {
-							...combinedKeypairs
-						},
-					}
-				}
+				(privateData: PrivateData) =>
+					CurrentSchema.WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair),
 			),
 		};
 
@@ -1603,20 +1591,8 @@ async function addNewBbsKeypair(
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
 				[privateData, mainKey],
-				async (privateData: PrivateData) => {
-
-					const combinedKeypairs = {
-						...privateData.keypairs,
-						[kid]: keypair,
-					};
-
-					return {
-						...privateData,
-						keypairs: {
-							...combinedKeypairs
-						},
-					}
-				}
+				(privateData: PrivateData) =>
+					CurrentSchema.WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair),
 			),
 		};
 	}

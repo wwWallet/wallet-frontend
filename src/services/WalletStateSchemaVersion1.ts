@@ -409,6 +409,7 @@ export function createOperations(
 	function walletStateReducer(state: WalletState, newEvent: WalletSessionEvent): WalletState {
 		if (newEvent.schemaVersion === state.schemaVersion) {
 			return {
+				...state,
 				schemaVersion: newEvent.schemaVersion,
 				credentials: credentialReducer(state.credentials, newEvent),
 				keypairs: keypairReducer(state.keypairs, newEvent),
