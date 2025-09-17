@@ -11,14 +11,14 @@ import { ALG_SPLIT_BBS, CRV_BLS12381G1, exportHolderPrivateJwk, exportHolderPubl
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toHex, toU8 } from "../util";
+import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toU8 } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { addNewKeypairEvent, CurrentSchema, foldState, SchemaV1 } from "./WalletStateSchema";
+import { addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
 import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
 import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
