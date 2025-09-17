@@ -280,25 +280,33 @@ export function useOpenID4VP({
 					};
 
 				} else if (vc.format === VerifiableCredentialFormat.DC_JPT) {
-					const { issuerHeader, signedJptClaims, error } = await parseCredential(vc.credential);
-					if (error) throw error;
+					const parsedCredential = await parseCredential(vc);
+					if (!("signedJptClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+					}
+					const { issuerHeader, signedJptClaims } = parsedCredential;;
 					shaped.vct = issuerHeader.vct;
 					if (shaped.vct.endsWith(':dc:jpt')) {
 						shaped.vct = shaped.vct.substring(0, shaped.vct.length - 7); // TODO: Unhack this
 					}
 					shaped.claims = signedJptClaims.simple;
 					shaped.cryptographic_holder_binding = true;
-					shaped.credentialIdentifier = vc.credentialIdentifier;
-					shaped.credential_format = 'dc+sd-jwt'; // TODO: Unhack this
-					for (const credQuery of dcqlJson.credentials) {
-						if (credQuery.format === 'dc+jpt') {
-							credQuery.format = 'dc+sd-jwt'; // TODO: Unhack this
-						}
-					}
+					// shaped.credentialIdentifier = vc.credentialIdentifier;
+					shaped.batchId = vc.batchId;
+					// shaped.credential_format = 'dc+sd-jwt'; // TODO: Unhack this
+					// for (const credQuery of dcqlJson.credentials) {
+					// 	if (credQuery.format === 'dc+jpt') {
+					// 		credQuery.format = 'dc+sd-jwt'; // TODO: Unhack this
+					// 	}
+					// }
 
 				} else {
 					// --- SD-JWT shaping ---
-					const { signedClaims } = await parseCredential(vc);
+					const parsedCredential = await parseCredential(vc);
+					if (!("signedClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+					}
+					const { signedClaims } = parsedCredential;;
 					shaped.vct = signedClaims.vct;
 					shaped.claims = signedClaims;
 					shaped.cryptographic_holder_binding = true;
@@ -548,8 +556,8 @@ export function useOpenID4VP({
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
-						.generateTransactionDataResponseParameters(transaction_data);
+					const [res, err] = await TransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
+						.generateTransactionDataResponse(transaction_data);
 					if (err) {
 						throw err;
 					}
@@ -557,7 +565,7 @@ export function useOpenID4VP({
 				}
 
 				const vpjpt = await presentSplitBbs(
-					vcEntity.credential,
+					vcEntity.data,
 					{
 						alg: 'experimental/SplitBBSv2.1',
 						nonce,
@@ -565,7 +573,7 @@ export function useOpenID4VP({
 						...transactionDataResponseParams,
 					},
 					presentationPaths,
-					(t2bar, c_host) => keystore.signSplitBbs(vcEntity, t2bar, c_host),
+					(t2bar, c_host) => keystore.signSplitBbs(vcEntity.data, t2bar, c_host),
 				);
 				selectedVCs.push(vpjpt);
 				generatedVPs.push(vpjpt);
@@ -745,7 +753,11 @@ export function useOpenID4VP({
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-				const { signedClaims } = await parseCredential(vcEntity);
+				const parsedCredential = await parseCredential(vcEntity);
+				if (!("signedClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+				}
+				const { signedClaims } = parsedCredential;
 
 				let paths: string[][];
 
@@ -811,7 +823,11 @@ export function useOpenID4VP({
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-				const { issuerHeader, signedJptClaims } = await parseCredential(vcEntity.credential);
+				const parsedCredential = await parseCredential(vcEntity);
+				if (!("signedJptClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+				}
+				const { issuerHeader, signedJptClaims } = parsedCredential;
 
 				let paths: string[][];
 
@@ -850,8 +866,8 @@ export function useOpenID4VP({
 
 				let transactionDataResponseParams;
 				if (transaction_data) {
-					const [res, err] = await ExampleTypeSdJwtVcTransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
-						.generateTransactionDataResponseParameters(transaction_data);
+					const [res, err] = await TransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
+						.generateTransactionDataResponse(transaction_data);
 					if (err) {
 						throw err;
 					}
@@ -859,7 +875,7 @@ export function useOpenID4VP({
 				}
 
 				const vpjpt = await presentSplitBbs(
-					vcEntity.credential,
+					vcEntity.data,
 					{
 						alg: 'experimental/SplitBBSv2.1',
 						nonce,
@@ -867,7 +883,7 @@ export function useOpenID4VP({
 						...transactionDataResponseParams,
 					},
 					paths,
-					(t2bar, c_host) => keystore.signSplitBbs(vcEntity, t2bar, c_host),
+					(t2bar, c_host) => keystore.signSplitBbs(vcEntity.data, t2bar, c_host),
 				);
 
 				selectedVCs.push(vpjpt);

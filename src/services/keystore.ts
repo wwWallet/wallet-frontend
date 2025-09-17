@@ -1672,17 +1672,17 @@ export async function signJwtPresentation(
 }
 
 export async function signSplitBbs(
-	[privateData, mainKey]: [PrivateData, CryptoKey],
-	vcEntity: StorableCredential,
+	[_privateData, mainKey, state]: [PrivateData, CryptoKey, CurrentSchema.WalletState],
+	issuedJpt: string,
 	t2bar: PointG1,
 	c_host: bigint,
 	uiStateMachine: UiStateMachineFunction,
 ): Promise<BufferSource> {
-	console.log("signSplitBbs", vcEntity);
-	const credParts = vcEntity.credential.split('.');
+	console.log("signSplitBbs", issuedJpt);
+	const credParts = issuedJpt.split('.');
 	const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
 
-	const keypair = foldState(privateData).keypairs.find(keypair => keypair.kid === dpkJwk.kid)?.keypair;
+	const keypair = state.keypairs.find(keypair => keypair.kid === dpkJwk.kid)?.keypair;
 	if (keypair) {
 		const bbs = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
 		if ("wrappedPrivateKey" in keypair) {

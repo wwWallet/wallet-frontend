@@ -92,7 +92,7 @@ export interface LocalStorageKeystore {
 	forgetCachedUser(user: CachedUser): void,
 	getUserHandleB64u(): string | null,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
-	signSplitBbs(vcEntity: StorableCredential, t2bar: PointG1, c_host: bigint): Promise<BufferSource>,
+	signSplitBbs(issuedJpt: string, t2bar: PointG1, c_host: bigint): Promise<BufferSource>,
 	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
 		{ proof_jwts: string[] },
 		AsymmetricEncryptedContainer,
@@ -667,8 +667,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const signSplitBbs = useCallback(
-		async (vcEntity: StorableCredential, t2bar: PointG1, c_host: bigint, uiStateMachine: UiStateMachineFunction): Promise<BufferSource> => {
-			console.log("signSplitBbs", vcEntity, t2bar, c_host);
+		async (issuedJpt: string, t2bar: PointG1, c_host: bigint): Promise<BufferSource> => {
+			console.log("signSplitBbs", issuedJpt, t2bar, c_host);
 			const moveUiStateMachine = webauthnInteractionCtx.setup(
 				t("Sign credential presentation"),
 				state => {
@@ -714,7 +714,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			);
 			return await keystore.signSplitBbs(
 				await openPrivateData(),
-				vcEntity,
+				issuedJpt,
 				t2bar,
 				c_host,
 				async event => {
