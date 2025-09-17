@@ -556,11 +556,11 @@ describe("WalletStateSchemaVersion1", () => {
 	it("should successfully fold one event at a time", async () => {
 		let container = WalletStateOperations.initialWalletStateContainer();
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred1", "", "");
-		const e1Hash = await WalletStateOperations.calculateEventHash(container.events[0]);
-		container = await foldOldEventsIntoBaseState(container, -1);
 		container = await WalletStateOperations.addNewCredentialEvent(container, "cred2", "", "");
-		const e2Hash = await WalletStateOperations.calculateEventHash(container.events[0]);
+		const e1Hash = await WalletStateOperations.calculateEventHash(container.events[0]);
+		const e2Hash = await WalletStateOperations.calculateEventHash(container.events[1]);
 
+		container = await foldNextEvent(container);
 		assert.strictEqual(container.lastEventHash, e1Hash);
 		container = await foldOldEventsIntoBaseState(container, -1);
 		assert.strictEqual(container.lastEventHash, e2Hash);
