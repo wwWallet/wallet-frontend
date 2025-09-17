@@ -129,8 +129,7 @@ export const CredentialsContextProvider = ({ children }) => {
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.DC_JPT:
-								return jptVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
-								return { success: true };
+								return jptVerifier.verify({ rawCredential: vcEntity.data, opts: {} });
 							case VerifiableCredentialFormat.VC_SDJWT:
 								return sdJwtVerifier.verify({ rawCredential: vcEntity.data, opts: {} });
 							case VerifiableCredentialFormat.DC_SDJWT:

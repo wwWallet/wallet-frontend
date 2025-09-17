@@ -168,10 +168,10 @@ export function useOpenID4VP({
 			for (const vc of vcList) {
 				try {
 					if (vc.format === VerifiableCredentialFormat.DC_JPT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_JPT in descriptor.format)) {
-						const result = await parseCredential(vc.credential);
+						const result = await parseCredential(vc);
 						if ('error' in result) continue;
 						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedJptClaims.simple)) {
-							conformingVcList.push(vc.credentialIdentifier);
+							conformingVcList.push(vc.batchId);
 							continue;
 						}
 					}
