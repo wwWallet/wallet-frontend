@@ -756,13 +756,19 @@ async function rewrapPrivateKeys(
 
 	const newCredentialKeypairEvents = privateData.events.filter(e => e.type === 'new_keypair');
 	const rewrappedKeysFromEvents: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
-		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => ({
-			kid,
-			keypair: {
-				...keypair,
-				wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-			},
-		}))
+		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => {
+			if ("wrappedPrivateKey" in keypair) {
+				return {
+					kid,
+					keypair: {
+						...keypair,
+						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
+					},
+				};
+			} else {
+				return { kid, keypair };
+			}
+		}),
 	);
 
 	return {
@@ -1239,10 +1245,10 @@ export async function init(
 	const splitBbsKeypair = (webauthnSignGeneratedKey && "splitBbs" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.splitBbs : null;
 	let state = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 	if (arkgSeed) {
-		state = CurrentSchema.WalletStateOperations.addArkgSeedEvent(state, arkgSeed);
+		state = await addNewArkgSeedEvent(state, arkgSeed);
 	}
 	if (splitBbsKeypair) {
-		state = CurrentSchema.WalletStateOperations.addSplitBbsKeypairEvent(state, splitBbsKeypair);
+		state = await addNewSplitBbsKeypairEvent(state, splitBbsKeypair);
 	}
 	const privateData: EncryptedContainer = {
 		...keyInfo,
@@ -1409,8 +1415,9 @@ async function generateCredentialKeypair(
 	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignKeyRef }],
 ]> {
 	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
-	if (privateData?.arkgSeeds?.length > 0) {
-		const { arkgSeeds } = privateData;
+	const state = foldState(privateData);
+	if (state.arkgSeeds?.length > 0) {
+		const { arkgSeeds } = state;
 		if (arkgSeeds.length > 1) {
 			throw new Error("Unimplemented: More than one ARKG seed available");
 		}
