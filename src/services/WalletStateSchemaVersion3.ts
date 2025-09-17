@@ -91,28 +91,6 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 ) {
 	const v2ops = SchemaV2.createOperations(SCHEMA_VERSION, mergeStrategies);
 
-	async function createNewArkgSeedEvent(
-		container: WalletSchemaCommon.WalletStateContainerGeneric,
-		arkgSeed: WebauthnSignArkgPublicSeed,
-	): Promise<WalletSessionEvent & WalletSessionEventNewArkgSeed> {
-		return {
-			...await v2ops.createWalletSessionEvent(container),
-			type: "new_arkg_seed",
-			arkgSeed,
-		};
-	}
-
-	async function createNewSplitBbsKeypairEvent(
-		container: WalletSchemaCommon.WalletStateContainerGeneric,
-		splitBbsKeypair: WebauthnSignSplitBbsKeypair,
-	): Promise<WalletSessionEvent & WalletSessionEventNewSplitBbsKeypair> {
-		return {
-			...await v2ops.createWalletSessionEvent(container),
-			type: "new_split_bbs_keypair",
-			splitBbsKeypair,
-		};
-	}
-
 	function migrateState(state: WalletSchemaCommon.WalletState): WalletState {
 		const ver = state?.schemaVersion ?? 1;
 		if (ver === SCHEMA_VERSION) {
@@ -152,7 +130,7 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 	}
 
 	function walletStateReducer(
-		state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {}, arkgSeeds: [], splitBbsKeypairs: [] },
+		state: WalletState,
 		newEvent: WalletSessionEvent,
 	): WalletState {
 		if (newEvent.schemaVersion === state.schemaVersion) {
@@ -185,32 +163,6 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 					arkgSeeds: [],
 					splitBbsKeypairs: [],
 				},
-			};
-		},
-
-		async addNewArkgSeedEvent(
-			container: WalletStateContainer,
-			arkgSeed: WebauthnSignArkgPublicSeed,
-		): Promise<WalletStateContainer> {
-			return {
-				...container,
-				events: [
-					...container.events,
-					await createNewArkgSeedEvent(container, arkgSeed),
-				],
-			};
-		},
-
-		async addNewSplitBbsKeypairEvent(
-			container: WalletStateContainer,
-			splitBbsKeypair: WebauthnSignSplitBbsKeypair,
-		): Promise<WalletStateContainer> {
-			return {
-				...container,
-				events: [
-					...container.events,
-					await createNewSplitBbsKeypairEvent(container, splitBbsKeypair),
-				],
 			};
 		},
 	};

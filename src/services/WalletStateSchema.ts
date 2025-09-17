@@ -3,16 +3,19 @@ import { compareBy, last, splitWhen } from "@/util";
 
 import * as SchemaV1 from "./WalletStateSchemaVersion1";
 import * as SchemaV2 from "./WalletStateSchemaVersion2";
-import * as CurrentSchema from "./WalletStateSchemaVersion2";
+import * as SchemaV3 from "./WalletStateSchemaVersion3";
+import * as CurrentSchema from "./WalletStateSchemaVersion3";
 import { WalletSessionEvent, WalletState, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
 import * as WalletSchemaCommon from "./WalletStateSchemaCommon";
 import { WalletStateUtils } from "./WalletStateUtils";
-import { CredentialKeyPair } from "./keystore";
+import { CredentialKeyPair, WebauthnSignArkgPublicSeed, WebauthnSignSplitBbsKeypair } from "./keystore";
 import { JWK } from "jose";
+import { WalletSessionEventNewArkgSeed, WalletSessionEventNewSplitBbsKeypair } from "./WalletStateSchemaVersion3";
 
 export * as SchemaV1 from "./WalletStateSchemaVersion1";
 export * as SchemaV2 from "./WalletStateSchemaVersion2";
-export * as CurrentSchema from "./WalletStateSchemaVersion2";
+export * as SchemaV3 from "./WalletStateSchemaVersion3";
+export * as CurrentSchema from "./WalletStateSchemaVersion3";
 
 
 const {
@@ -249,6 +252,38 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 	};
 	await validateEventHistoryContinuity(newContainer);
 	return newContainer;
+}
+
+export async function addNewArkgSeedEvent(
+	container: WalletStateContainer,
+	arkgSeed: WebauthnSignArkgPublicSeed,
+): Promise<WalletStateContainer> {
+	return {
+		...container,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_arkg_seed",
+				arkgSeed,
+			}]
+	};
+}
+
+export async function addNewSplitBbsKeypairEvent(
+	container: WalletStateContainer,
+	splitBbsKeypair: WebauthnSignSplitBbsKeypair,
+): Promise<WalletStateContainer> {
+	return {
+		...container,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_split_bbs_keypair",
+				splitBbsKeypair,
+			}]
+	};
 }
 
 /**

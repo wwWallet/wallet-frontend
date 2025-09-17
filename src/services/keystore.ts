@@ -18,7 +18,7 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
+import { addNewArkgSeedEvent, addNewKeypairEvent, addNewSplitBbsKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
 import type { PublicKeyCredentialCreation } from "../types/webauthn";
 import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
@@ -299,8 +299,6 @@ export type PrivateDataV1 = {
 	keypairs: {
 		[kid: string]: CredentialKeyPair,
 	},
-	arkgSeeds?: WebauthnSignArkgPublicSeed[],
-	splitBbsKeypairs?: WebauthnSignSplitBbsKeypair[],
 }
 
 export type PrivateData = CurrentSchema.WalletStateContainer;
@@ -1059,22 +1057,14 @@ async function addWebauthnSignKeypair(
 	if (newKeypair) {
 		const [newPrivateData,] = await updatePrivateData(
 			[privateData as AsymmetricEncryptedContainer, mainKey],
-			async (privateData: PrivateData, _updateWrappedPrivateKey) => {
-				const arkgSeeds = (newKeypair && "arkg" in newKeypair) ? [
-					...(privateData.arkgSeeds ?? []),
-					newKeypair.arkg,
-				] : privateData.arkgSeeds;
-
-				const splitBbsKeypairs = (newKeypair && "splitBbs" in newKeypair) ? [
-					...(privateData.splitBbsKeypairs ?? []),
-					newKeypair.splitBbs,
-				] : privateData.splitBbsKeypairs;
-
-				return {
-					...privateData,
-					arkgSeeds,
-					splitBbsKeypairs,
-				};
+			async (privateData: PrivateData) => {
+				if (newKeypair && "arkg" in newKeypair) {
+					return addNewArkgSeedEvent(privateData, newKeypair.arkg);
+				} else if (newKeypair && "splitBbs" in newKeypair) {
+					return addNewSplitBbsKeypairEvent(privateData, newKeypair.splitBbs);
+				} else {
+					return privateData;
+				}
 			},
 		);
 		return newPrivateData;
@@ -1561,8 +1551,7 @@ async function addNewBbsKeypair(
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
 				[privateData, mainKey],
-				(privateData: PrivateData) =>
-					CurrentSchema.WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair),
+				(privateData: PrivateData) => addNewKeypairEvent(privateData, kid, keypair),
 			),
 		};
 
@@ -1591,8 +1580,7 @@ async function addNewBbsKeypair(
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
 				[privateData, mainKey],
-				(privateData: PrivateData) =>
-					CurrentSchema.WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair),
+				(privateData: PrivateData) => addNewKeypairEvent(privateData, kid, keypair),
 			),
 		};
 	}
