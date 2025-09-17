@@ -246,15 +246,16 @@ describe("WalletStateSchemaVersion2", () => {
 	});
 
 	it("mergeEventHistories overwrites an older v2 alter_settings event with a younger v1 one.", async () => {
+		const defaultSettings: SchemaV1.WalletStateSettings = { openidRefreshTokenMaxAgeInSeconds: '0' };
 		let container: WalletStateContainer = SchemaV1.WalletStateOperations.initialWalletStateContainer();
-		container = await SchemaV1.WalletStateOperations.addAlterSettingsEvent(container, { foo: "bar" });
+		container = await SchemaV1.WalletStateOperations.addAlterSettingsEvent(container, { ...defaultSettings, foo: "bar" });
 		container.events[0].timestampSeconds = 0;
 
-		const container1 = await SchemaV1.WalletStateOperations.addAlterSettingsEvent(container, { foo: "boo" });
+		const container1 = await SchemaV1.WalletStateOperations.addAlterSettingsEvent(container, { ...defaultSettings, foo: "boo" });
 		container1.events[1].timestampSeconds = 10;
-		let container2 = await SchemaV2.WalletStateOperations.addAlterSettingsEvent(container, { foo: "far" });
+		let container2 = await SchemaV2.WalletStateOperations.addAlterSettingsEvent(container, { ...defaultSettings, foo: "far" });
 		container2.events[1].timestampSeconds = 2;
-		container2 = await SchemaV2.WalletStateOperations.addAlterSettingsEvent(container2, { foo: "zoo" });
+		container2 = await SchemaV2.WalletStateOperations.addAlterSettingsEvent(container2, { ...defaultSettings, foo: "zoo" });
 		container2.events[2].timestampSeconds = 3;
 		assert.notDeepEqual(container1.events[1], container2.events[1]);
 

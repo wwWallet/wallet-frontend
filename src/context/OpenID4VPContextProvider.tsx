@@ -1,4 +1,4 @@
-import React, { useState, useContext, useCallback,useRef,useEffect } from "react";
+import React, { useState, useContext, useCallback } from "react";
 import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup";
 import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
@@ -7,6 +7,7 @@ import MessagePopup from "@/components/Popups/MessagePopup";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
 import SessionContext from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
+
 
 export const OpenID4VPContextProvider = ({ children }) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
@@ -35,7 +36,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		onClose: (e) => Promise<void>
 	} | null>(null);
 
-	const showPopup = useCallback((options): Promise<Map<string, string>> =>
+	const showPopup = useCallback((options): Promise<Map<string, number>> =>
 		new Promise((resolve, reject) => {
 			setPopupState({
 				isOpen: true,
@@ -81,7 +82,12 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		}, [setMessagePopupState]);
 
 	const showCredentialSelectionPopup = useCallback(
-		async (conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string, verifierPurpose: string, parsedTransactionData?: ParsedTransactionData): Promise<Map<string, string>> => {
+		async (
+			conformantCredentialsMap: Map<string, string[]>,
+			verifierDomainName: string,
+			verifierPurpose: string,
+			parsedTransactionData?: ParsedTransactionData[],
+		): Promise<Map<string, number>> => {
 			return showPopup({ conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData });
 		},
 		[showPopup]

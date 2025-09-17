@@ -114,7 +114,7 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 	getCredentialIssuanceSessionByState(state: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null>,
-	alterSettings(settings: Record<string, string>): Promise<[
+	alterSettings(settings: CurrentSchema.WalletStateSettings): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -739,7 +739,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: CurrentSchema.WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
 	}, [editPrivateData, openPrivateData]);
 
-	const alterSettings = useCallback(async (settings: Record<string, string>): Promise<[
+	const alterSettings = useCallback(async (settings: CurrentSchema.WalletStateSettings): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,

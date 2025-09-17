@@ -1,7 +1,5 @@
 import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
-import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
-import { compareBy, reverse } from '../util';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from "wallet-common/dist/error";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
@@ -10,6 +8,7 @@ import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { ParsedCredential } from "wallet-common/dist/types";
 import { CurrentSchema } from '@/services/WalletStateSchema';
+
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);

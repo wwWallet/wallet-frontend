@@ -1,5 +1,4 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
-import { OpenID4VCIClientState } from '../../types/OpenID4VCIClientState';
 import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
@@ -14,7 +13,7 @@ import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
-import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import type { CredentialConfigurationSupported } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';

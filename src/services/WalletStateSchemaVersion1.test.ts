@@ -2,7 +2,7 @@ import { assert, describe, it } from "vitest";
 import { CredentialKeyPair } from "./keystore";
 import { last } from "@/util";
 import { findMergeBase, foldNextEvent, foldOldEventsIntoBaseState, mergeEventHistories } from "./WalletStateSchema";
-import { WalletStateContainer, WalletStateOperations } from "./WalletStateSchemaVersion1";
+import { WalletStateContainer, WalletStateOperations, WalletStateSettings } from "./WalletStateSchemaVersion1";
 
 
 describe("WalletStateSchemaVersion1", () => {
@@ -326,15 +326,16 @@ describe("WalletStateSchemaVersion1", () => {
 	});
 
 	it("mergeEventHistories overwrites conflicting alter_settings events with the latest one.", async () => {
+		const defaultSettings: WalletStateSettings = { openidRefreshTokenMaxAgeInSeconds: '0' };
 		let container: WalletStateContainer = WalletStateOperations.initialWalletStateContainer();
-		container = await WalletStateOperations.addAlterSettingsEvent(container, { foo: "bar" });
+		container = await WalletStateOperations.addAlterSettingsEvent(container, { ...defaultSettings, foo: "bar" });
 		last(container.events).timestampSeconds = 0;
 
-		const container1 = await WalletStateOperations.addAlterSettingsEvent(container, { foo: "boo" });
+		const container1 = await WalletStateOperations.addAlterSettingsEvent(container, { ...defaultSettings, foo: "boo" });
 		last(container1.events).timestampSeconds = 1;
-		let container2 = await WalletStateOperations.addAlterSettingsEvent(container, { foo: "far" });
+		let container2 = await WalletStateOperations.addAlterSettingsEvent(container, { ...defaultSettings, foo: "far" });
 		last(container2.events).timestampSeconds = 2;
-		container2 = await WalletStateOperations.addAlterSettingsEvent(container2, { foo: "zoo" });
+		container2 = await WalletStateOperations.addAlterSettingsEvent(container2, { ...defaultSettings, foo: "zoo" });
 		last(container2.events).timestampSeconds = 3;
 		assert.notDeepEqual(container1.events[1], container2.events[1]);
 
