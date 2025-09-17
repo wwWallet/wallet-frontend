@@ -101,34 +101,37 @@ export function createOperations(
 			historyB: WalletSessionEvent[],
 			parentHash: string,
 		): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
-			const eventsByType: Record<WalletSessionEvent["type"], [WalletSessionEvent[], WalletSessionEvent[], WalletSessionEvent[]]> = {
-				new_credential: [[], [], []],
-				delete_credential: [[], [], []],
-				new_keypair: [[], [], []],
-				delete_keypair: [[], [], []],
-				new_presentation: [[], [], []],
-				delete_presentation: [[], [], []],
-				alter_settings: [[], [], []],
-				save_credential_issuance_session: [[], [], []],
-			};
+			const eventsByType: Map<string, [WalletSessionEvent[], WalletSessionEvent[], WalletSessionEvent[]]> = new Map();
 
 			for (const event of mergedByEarlierSchemaVersions) {
-				eventsByType[event.type][0].push(event);
+				if (!eventsByType.has(event.type)) {
+					eventsByType.set(event.type, [[], [], []]);
+				}
+				eventsByType.get(event.type)[0].push(event as WalletSessionEvent); // TODO: dangerous type assertion?
 			}
 
 			for (const event of historyA) {
-				eventsByType[event.type][1].push(event);
+				if (!eventsByType.has(event.type)) {
+					eventsByType.set(event.type, [[], [], []]);
+				}
+				eventsByType.get(event.type)[1].push(event);
 			}
 
 			for (const event of historyB) {
-				eventsByType[event.type][2].push(event);
+				if (!eventsByType.has(event.type)) {
+					eventsByType.set(event.type, [[], [], []]);
+				}
+				eventsByType.get(event.type)[2].push(event);
 			}
 
 			let mergedEvents: WalletSessionEvent[] = [];
 			for (const type in mergeStrategies) {
-				const [mergedByEarlierSchemaVersions, a, b] = eventsByType[type as WalletSessionEvent["type"]];
-				const merged = mergeStrategies[type as WalletSessionEvent["type"]](mergedByEarlierSchemaVersions, a, b);
-				mergedEvents = mergedEvents.concat(merged);
+				const mergeResult = eventsByType.get(type);
+				if (mergeResult) {
+					const [mergedByEarlierSchemaVersions, a, b] = mergeResult;
+					const merged = mergeStrategies[type as WalletSessionEvent["type"]](mergedByEarlierSchemaVersions, a, b);
+					mergedEvents = mergedEvents.concat(merged);
+				}
 			}
 
 			mergedEvents.sort(compareBy(e => e.timestampSeconds));

@@ -13,8 +13,9 @@ export type WalletStateContainer = {
 	S: WalletState;
 	lastEventHash: string;
 };
-export type WalletSessionEvent = WalletSchemaCommon.WalletSessionEvent & WalletSessionEventTypeAttributes;
-export type WalletSessionEventV3 = WalletSessionEvent & WalletSessionEventTypeAttributesV3;
+export type WalletSessionEventV3 = WalletSchemaCommon.WalletSessionEvent & WalletSessionEventTypeAttributesV3;
+export type WalletSessionEventV3OrEarlier = SchemaV2.WalletSessionEvent | WalletSessionEventV3;
+export type WalletSessionEvent = WalletSessionEventV3OrEarlier;
 
 export type WalletSessionEventTypeAttributes = (
 	SchemaV2.WalletSessionEventTypeAttributes
@@ -48,10 +49,12 @@ export type WalletSessionEventDeleteSplitBbsKeypair = {
 	credentialId: Uint8Array,
 }
 
-export type WalletState = SchemaV2.WalletState & {
+export type WalletStateV3 = SchemaV2.WalletState & {
 	arkgSeeds: WebauthnSignArkgPublicSeed[],
 	splitBbsKeypairs: WebauthnSignSplitBbsKeypair[],
 }
+export type WalletStateV3OrEarlier = SchemaV2.WalletState | WalletStateV3;
+export type WalletState = WalletStateV3OrEarlier;
 
 function isV3Event(event: WalletSessionEvent): event is WalletSessionEventV3 {
 	return [
