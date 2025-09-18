@@ -291,14 +291,13 @@ export function useOpenID4VP({
 					}
 					shaped.claims = signedJptClaims.simple;
 					shaped.cryptographic_holder_binding = true;
-					// shaped.credentialIdentifier = vc.credentialIdentifier;
 					shaped.batchId = vc.batchId;
-					// shaped.credential_format = 'dc+sd-jwt'; // TODO: Unhack this
-					// for (const credQuery of dcqlJson.credentials) {
-					// 	if (credQuery.format === 'dc+jpt') {
-					// 		credQuery.format = 'dc+sd-jwt'; // TODO: Unhack this
-					// 	}
-					// }
+					shaped.credential_format = 'dc+sd-jwt'; // TODO: Unhack this
+					for (const credQuery of dcqlJson.credentials) {
+						if (credQuery.format === 'dc+jpt') {
+							credQuery.format = 'dc+sd-jwt'; // TODO: Unhack this
+						}
+					}
 
 				} else {
 					// --- SD-JWT shaping ---
