@@ -32,89 +32,87 @@ describe('CredentialInfo Component', () => {
 		},
 		metadata: {
 			credential: {
-				metadataDocuments: [
-					{
-						claims: [
-							{
-								"path": ["firstname"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "First Name",
-										"description": "The first name of the individual"
-									}
-								],
-								"svg_id": "firstname"
-							},
-							{
-								"path": ["address", "street_address"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "Street Address",
-										"description": "The street address of the individual"
-									}
-								],
-								"svg_id": "street_address"
-							},
-							{
-								"path": ["address", "locality", "city"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "City",
-										"description": "The city of the individual's address"
-									}
-								],
-								"svg_id": "city"
-							},
-							{
-								"path": ["date_of_birth"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "Date of Birth",
-										"description": "The birthdate of the individual"
-									}
-								],
-								"svg_id": "date_of_birth"
-							},
-							{
-								"path": ["expiry_date"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "Expiry Date",
-										"description": "The Expiry Date"
-									}
-								],
-								"svg_id": "expiry_date"
-							},
-							{
-								"path": ["age_over_18"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "Over 18",
-										"description": "Indicates if the individual is over the age of 18"
-									}
-								],
-								"svg_id": "age_over_18"
-							},
-							{
-								"path": ["grade"],
-								"display": [
-									{
-										"lang": "en-US",
-										"label": "Grade",
-										"description": "The current grade level of the individual"
-									}
-								],
-								"svg_id": "grade"
-							}
-						]
-					}
-				]
+				metadataDocuments: {
+					claims: [
+						{
+							"path": ["firstname"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "First Name",
+									"description": "The first name of the individual"
+								}
+							],
+							"svg_id": "firstname"
+						},
+						{
+							"path": ["address", "street_address"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "Street Address",
+									"description": "The street address of the individual"
+								}
+							],
+							"svg_id": "street_address"
+						},
+						{
+							"path": ["address", "locality", "city"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "City",
+									"description": "The city of the individual's address"
+								}
+							],
+							"svg_id": "city"
+						},
+						{
+							"path": ["date_of_birth"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "Date of Birth",
+									"description": "The birthdate of the individual"
+								}
+							],
+							"svg_id": "date_of_birth"
+						},
+						{
+							"path": ["expiry_date"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "Expiry Date",
+									"description": "The Expiry Date"
+								}
+							],
+							"svg_id": "expiry_date"
+						},
+						{
+							"path": ["age_over_18"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "Over 18",
+									"description": "Indicates if the individual is over the age of 18"
+								}
+							],
+							"svg_id": "age_over_18"
+						},
+						{
+							"path": ["grade"],
+							"display": [
+								{
+									"lang": "en-US",
+									"label": "Grade",
+									"description": "The current grade level of the individual"
+								}
+							],
+							"svg_id": "grade"
+						}
+					]
+				}
 			}
 		}
 	}
@@ -132,9 +130,8 @@ describe('CredentialInfo Component', () => {
 			},
 			metadata: {
 				credential: {
-					metadataDocuments: [
+					metadataDocuments:
 						{}
-					]
 				}
 			}
 		}
@@ -153,11 +150,9 @@ describe('CredentialInfo Component', () => {
 			},
 			metadata: {
 				credential: {
-					metadataDocuments: [
-						{
-							claims: []
-						}
-					]
+					metadataDocuments: {
+						claims: []
+					}
 				}
 			}
 		}
@@ -224,124 +219,122 @@ describe('CredentialInfo Component', () => {
 			},
 			metadata: {
 				credential: {
-					metadataDocuments: [
-						{
-							claims: [
-								{
-									"path": ["firstname"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "First Name",
-											"description": "The first name of the individual"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Όνομα",
-											"description": "Το όνομα του ατόμου"
-										}
-									],
-									"svg_id": "firstname"
-								},
-								{
-									"path": ["address", "street_address"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "Street Address",
-											"description": "The street address of the individual"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Διεύθυνση",
-											"description": "Η διεύθυνση του ατόμου"
-										}
-									],
-									"svg_id": "street_address"
-								},
-								{
-									"path": ["address", "locality", "city"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "City",
-											"description": "The city of the individual's address"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Πόλη",
-											"description": "Η πόλη της διεύθυνσης του ατόμου"
-										}
-									],
-									"svg_id": "city"
-								},
-								{
-									"path": ["date_of_birth"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "Date of Birth",
-											"description": "The birthdate of the individual"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Ημερομηνία Γέννησης",
-											"description": "Η ημερομηνία γέννησης του ατόμου"
-										}
-									],
-									"svg_id": "date_of_birth"
-								},
-								{
-									"path": ["age_over_18"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "Over 18",
-											"description": "Indicates if the individual is over the age of 18"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Άνω των 18",
-											"description": "Δηλώνει εάν το άτομο είναι άνω των 18 ετών"
-										}
-									],
-									"svg_id": "age_over_18"
-								},
-								{
-									"path": ["grade"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "Grade",
-											"description": "The current grade level of the individual"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Βαθμίδα",
-											"description": "Η τρέχουσα βαθμίδα του ατόμου"
-										}
-									],
-									"svg_id": "grade"
-								},
-								{
-									"path": ["expiry_date"],
-									"display": [
-										{
-											"lang": "en-US",
-											"label": "Expiry Date",
-											"description": "The expiry date of the credential"
-										},
-										{
-											"lang": "el-GR",
-											"label": "Ημερομηνία Λήξης",
-											"description": "Η ημερομηνία λήξης του πιστοποιητικού"
-										}
-									],
-									"svg_id": "expiry_date"
-								}
-							]
-						}
-					]
+					metadataDocuments: {
+						claims: [
+							{
+								"path": ["firstname"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "First Name",
+										"description": "The first name of the individual"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Όνομα",
+										"description": "Το όνομα του ατόμου"
+									}
+								],
+								"svg_id": "firstname"
+							},
+							{
+								"path": ["address", "street_address"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "Street Address",
+										"description": "The street address of the individual"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Διεύθυνση",
+										"description": "Η διεύθυνση του ατόμου"
+									}
+								],
+								"svg_id": "street_address"
+							},
+							{
+								"path": ["address", "locality", "city"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "City",
+										"description": "The city of the individual's address"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Πόλη",
+										"description": "Η πόλη της διεύθυνσης του ατόμου"
+									}
+								],
+								"svg_id": "city"
+							},
+							{
+								"path": ["date_of_birth"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "Date of Birth",
+										"description": "The birthdate of the individual"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Ημερομηνία Γέννησης",
+										"description": "Η ημερομηνία γέννησης του ατόμου"
+									}
+								],
+								"svg_id": "date_of_birth"
+							},
+							{
+								"path": ["age_over_18"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "Over 18",
+										"description": "Indicates if the individual is over the age of 18"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Άνω των 18",
+										"description": "Δηλώνει εάν το άτομο είναι άνω των 18 ετών"
+									}
+								],
+								"svg_id": "age_over_18"
+							},
+							{
+								"path": ["grade"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "Grade",
+										"description": "The current grade level of the individual"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Βαθμίδα",
+										"description": "Η τρέχουσα βαθμίδα του ατόμου"
+									}
+								],
+								"svg_id": "grade"
+							},
+							{
+								"path": ["expiry_date"],
+								"display": [
+									{
+										"lang": "en-US",
+										"label": "Expiry Date",
+										"description": "The expiry date of the credential"
+									},
+									{
+										"lang": "el-GR",
+										"label": "Ημερομηνία Λήξης",
+										"description": "Η ημερομηνία λήξης του πιστοποιητικού"
+									}
+								],
+								"svg_id": "expiry_date"
+							}
+						]
+					}
 				}
 			}
 		};
