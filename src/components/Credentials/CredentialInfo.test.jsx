@@ -32,7 +32,7 @@ describe('CredentialInfo Component', () => {
 		},
 		metadata: {
 			credential: {
-				metadataDocuments: {
+				TypeMetadata: {
 					claims: [
 						{
 							"path": ["firstname"],
@@ -130,7 +130,7 @@ describe('CredentialInfo Component', () => {
 			},
 			metadata: {
 				credential: {
-					metadataDocuments:
+					TypeMetadata:
 						{}
 				}
 			}
@@ -150,7 +150,7 @@ describe('CredentialInfo Component', () => {
 			},
 			metadata: {
 				credential: {
-					metadataDocuments: {
+					TypeMetadata: {
 						claims: []
 					}
 				}
@@ -219,7 +219,7 @@ describe('CredentialInfo Component', () => {
 			},
 			metadata: {
 				credential: {
-					metadataDocuments: {
+					TypeMetadata: {
 						claims: [
 							{
 								"path": ["firstname"],
