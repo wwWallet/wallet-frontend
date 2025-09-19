@@ -1211,7 +1211,7 @@ const Settings = () => {
 						</div>
 
 						{userData.webauthnCredentials.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length <= 0 ? (
-							<div className="px-4 sm:px-6 py-24 flex flex-col items-center text-center">
+							<div className="px-4 sm:px-6 py-12 flex flex-col items-center text-center">
 								<H3 heading={t('pageSettings.noOtherPasskeysTitle') || 'No other passkeys'} />
 								<p className="text-gray-700 dark:text-gray-300 max-w-lg mt-4">
 									{t('pageSettings.noOtherPasskeysDescription') || 'Add additional passkeys to secure your account and provide backup access options.'}
