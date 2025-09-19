@@ -6,13 +6,13 @@ import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
-import { calculateByteSize } from '../../util';
+import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
 import * as config from '../../config';
-import Button from '../../components/Buttons/Button';
+import Button, { Variant } from '../../components/Buttons/Button';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import SeparatorLine from '../../components/Shared/SeparatorLine';
@@ -22,6 +22,7 @@ import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 import useScreenType from '@/hooks/useScreenType';
+
 
 const FormInputRow = ({
 	IconComponent,
@@ -223,9 +224,6 @@ const WebauthnSignupLogin = ({
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
-	const navigate = useNavigate();
-	const location = useLocation();
-	const from = location.search || '/';
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -241,7 +239,7 @@ const WebauthnSignupLogin = ({
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
 		setNeedPrfRetry(true);
-		return new Promise((resolve: (accept: boolean) => void, reject) => {
+		return new Promise((resolve: (accept: boolean) => void, _reject) => {
 			setResolvePrfRetryPrompt(() => resolve);
 		}).finally(() => {
 			setNeedPrfRetry(false);
@@ -341,9 +339,9 @@ const WebauthnSignupLogin = ({
 		}
 	};
 
-	const onSubmit = async (event) => {
+	const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
 		event.preventDefault();
-		const webauthnHint = event.nativeEvent?.submitter?.value;
+		const webauthnHint = (event.nativeEvent?.submitter as HTMLButtonElement)?.value;
 
 		setError('');
 		setInProgress(true);
@@ -561,9 +559,9 @@ const WebauthnSignupLogin = ({
 
 						{!isLoginCache && (
 							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill, variant: "primary", helpText: "Fastest option, recommended" },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: "outline", helpText: "Use a USB or hardware security key" },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: "outline", helpText: "Scan QR or link mobile device" },
+								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
+								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
 							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
 								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button

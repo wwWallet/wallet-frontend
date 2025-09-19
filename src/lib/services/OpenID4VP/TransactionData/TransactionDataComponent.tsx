@@ -1,9 +1,8 @@
-import { ParsedTransactionData } from "./parseTransactionData"
 import React from 'react';
 import { TransactionDataRequest } from "./TransactionDataRequest/TransactionDataRequestObject";
 
 
-export const withTransactionData = (req: TransactionDataRequest) => {
+export const withTransactionData = (_req: TransactionDataRequest) => {
 	const TransactionDataComponent: React.FC = () => {
 		return (
 			<div className="p-2 text-gray-700 text-sm dark:text-white mt-2">

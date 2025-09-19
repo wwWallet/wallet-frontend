@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useLocation } from "react-router-dom";
-import checkForUpdates from "../offlineUpdateSW";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
@@ -16,7 +15,7 @@ const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandler = ({ children }) => {
-	const { updateOnlineStatus, isOnline } = useContext(StatusContext);
+	const { isOnline } = useContext(StatusContext);
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);

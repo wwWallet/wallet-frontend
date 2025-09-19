@@ -1,3 +1,6 @@
+import '@/types/webauthn';
+
+
 export function withHintsFromAllowCredentials(publicKey: PublicKeyCredentialRequestOptions): PublicKeyCredentialRequestOptions {
 	const hasInternal = publicKey?.allowCredentials?.some(desc => desc.transports?.includes("internal"));
 	const hasHybrid = publicKey?.allowCredentials?.some(desc => desc.transports?.includes("hybrid"));

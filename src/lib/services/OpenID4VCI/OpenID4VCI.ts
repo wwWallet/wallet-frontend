@@ -1,5 +1,4 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
-import { OpenID4VCIClientState } from '../../types/OpenID4VCIClientState';
 import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
@@ -12,9 +11,9 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
-import { WalletBaseStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
+import { WalletStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
 import SessionContext from '@/context/SessionContext';
-import type { CredentialConfigurationSupported, OpenidCredentialIssuerMetadata, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import type { CredentialConfigurationSupported } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
@@ -131,7 +130,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 
 	const credentialRequest = useCallback(
-		async (response: any, flowState: WalletBaseStateCredentialIssuanceSession) => {
+		async (response: any, flowState: WalletStateCredentialIssuanceSession) => {
 			const {
 				data: { access_token },
 			} = response;
@@ -303,7 +302,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const tokenEndpoint = authzServerMetadata.authzServeMetadata.token_endpoint;
 
 
-			let flowState: WalletBaseStateCredentialIssuanceSession | null = null;
+			let flowState: WalletStateCredentialIssuanceSession | null = null;
 
 			if (requestCredentialsParams?.authorizationCodeGrant) {
 

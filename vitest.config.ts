@@ -14,6 +14,9 @@ export default defineConfig({
 		environmentMatchGlobs: [
 			['**/services/*.test.ts', 'node'],
 			['**', 'jsdom']
-		]
+		],
+		typecheck: {
+			enabled: true,
+		},
 	},
 });

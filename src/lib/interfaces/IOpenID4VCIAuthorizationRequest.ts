@@ -1,5 +1,5 @@
-import { OpenidAuthorizationServerMetadata } from "../schemas/OpenidAuthorizationServerMetadataSchema";
-import { OpenidCredentialIssuerMetadata } from "../schemas/OpenidCredentialIssuerMetadataSchema";
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
+
 
 export interface IOpenID4VCIAuthorizationRequest {
 	generate(credentialConfigurationId: string, issuer_state: string | undefined, config: {

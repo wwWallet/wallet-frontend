@@ -1,4 +1,5 @@
-import { VerifiableCredentialFormat } from "../schemas/vc"
+import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+
 
 export type StorableCredential = {
 	credentialIdentifier: string;

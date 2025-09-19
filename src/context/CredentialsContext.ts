@@ -1,5 +1,5 @@
 // CredentialsContext.ts
-import { WalletBaseStateCredential, WalletStateCredential } from '@/services/WalletStateOperations';
+import { WalletStateCredential } from '@/services/WalletStateOperations';
 import { createContext } from 'react';
 import { ParsedCredential } from 'wallet-common/dist/types';
 import { ParsingEngineI, CredentialVerifier } from 'wallet-common/dist/interfaces';
@@ -15,7 +15,7 @@ export type Instance = {
 	sigCount: number;
 }
 
-export type ExtendedVcEntity = WalletBaseStateCredential & {
+export type ExtendedVcEntity = WalletStateCredential & {
 	parsedCredential: ParsedCredential;
 	isExpired: boolean;
 	instances: Instance[];

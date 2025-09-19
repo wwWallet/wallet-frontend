@@ -1,8 +1,8 @@
 import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
-import { DataItem, MDoc, parse } from "@auth0/mdl";
+import { DataItem, parse } from "@auth0/mdl";
 import { cborDecode, cborEncode, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { v4 as uuidv4 } from 'uuid';
-import { encryptMessage, decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
+import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
 import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
@@ -26,10 +26,10 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const { post } = api;
 
 	const storeVerifiablePresentation = useCallback(
-		async (presentation: string, presentationSubmission: any, usedCredentialId: number, audience: string) => {
+		async (presentation: string, _presentationSubmission: any, usedCredentialId: number, audience: string) => {
 			try {
 				const transactionId = WalletStateUtils.getRandomUint32();
-				const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations([presentation].map((vpData, index) => {
+				const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations([presentation].map((vpData, _index) => {
 					console.log("Presentation: ")
 
 					return {
@@ -156,7 +156,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const fields: Map<string, boolean> = mdocRequestDecoded.get("docRequests")[0].get("itemsRequest").data.get("nameSpaces").get("eu.europa.ec.eudi.pid.1");
 
 			const fieldsPEX = [];
-			fields.forEach((value, key, map) => {
+			fields.forEach((value, key) => {
 				fieldKeys.push(key);
 				fieldsPEX.push({
 					"name": key,
@@ -238,11 +238,11 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			while (toSendBytes.length > (assumedChunkSize - 1)) {
 				const chunk = [1, ...toSendBytes.slice(0, (assumedChunkSize - 1))]
 				/* @ts-ignore */
-				const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
+				await nativeWrapper.bluetoothSendToServer(JSON.stringify(chunk));
 				toSendBytes = toSendBytes.slice((assumedChunkSize - 1));
 			}
 			/* @ts-ignore */
-			const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
+			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...toSendBytes]));
 
 			const presentationSubmission = {
 				id: generateRandomIdentifier(8),
@@ -265,23 +265,25 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		return;
 	}, []);
 
-	const terminateSession = useCallback(async (): Promise<void> => {
-		const sessionData = {
-			data: new Uint8Array([]),
-			status: 20
-		}
+	const terminateSession = useCallback(
+		async (): Promise<void> => {
+			const sessionData = {
+				data: new Uint8Array([]),
+				status: 20
+			}
 
-		const options = getCborEncodeDecodeOptions();
-		options.variableMapSize = true;
-		setCborEncodeDecodeOptions(options);
-		const sessionDataEncoded = cborEncode(sessionData);
-		/* @ts-ignore */
-		const send = await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
+			const options = getCborEncodeDecodeOptions();
+			options.variableMapSize = true;
+			setCborEncodeDecodeOptions(options);
+			const sessionDataEncoded = cborEncode(sessionData);
+			/* @ts-ignore */
+			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));
 
-		/* @ts-ignore */
-		await nativeWrapper.bluetoothTerminate();
-
-	});
+			/* @ts-ignore */
+			await nativeWrapper.bluetoothTerminate();
+		},
+		[],
+	);
 
 	return useMemo(
 		() => ({

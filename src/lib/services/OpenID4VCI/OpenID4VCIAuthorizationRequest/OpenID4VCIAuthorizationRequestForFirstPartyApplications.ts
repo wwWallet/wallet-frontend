@@ -1,15 +1,14 @@
 import { IOpenID4VCIAuthorizationRequest } from "../../../interfaces/IOpenID4VCIAuthorizationRequest";
-import { OpenidAuthorizationServerMetadata } from "../../../schemas/OpenidAuthorizationServerMetadataSchema";
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
 import pkce from 'pkce-challenge';
-import { OpenidCredentialIssuerMetadata } from "../../../schemas/OpenidCredentialIssuerMetadataSchema";
 import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
-import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "@/context/SessionContext";
 import OpenID4VPContext from "@/context/OpenID4VPContext";
 import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
+
 
 export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 	const httpProxy = useHttpProxy();
