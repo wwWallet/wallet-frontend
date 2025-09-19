@@ -1071,7 +1071,7 @@ const Settings = () => {
 	};
 
 	return (
-		<div className="px-4 sm:px-8 lg:px-12 pt-10 pb-20 w-full max-w-[1064px] mx-auto">
+		<div className="px-6 sm:px-12 w-full">
 			{userData && (
 				<>
 					<H1 heading={t('common.navItemSettings')} />
