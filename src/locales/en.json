@@ -47,7 +47,8 @@
 		"showMore": "Show more",
 		"submit": "Submit",
 		"tryAgain": "Try again",
-		"walletName": "wwWallet"
+		"walletName": "wwWallet",
+		"close": "Close"
 	},
 	"expiredRibbon": {
 		"expired": "Expired"
@@ -184,7 +185,20 @@
 		"slideButtonTitleDisable": "No {{direction}} credential available",
 		"slideButtonTitleEnable": "Click to move to the {{direction}} credential",
 		"slideNext": "next",
-		"slidePrevious": "previous"
+		"slidePrevious": "previous",
+		"presentations": "Presentations",
+		"noPresentationsFound": "You don't have any history for this credential.",
+		"presentationsDescription": "This credential has not been used yet. When you send this credential to a verifier, you will be able to see the history here.",
+		"sendCredential": "Send credential",
+		"deleteCredential": "Delete credential",
+		"deleteWarning": "Once you delete your credential, there is no going back. Please be certain.",
+		"actions": {
+			"viewDataset": "View Dataset"
+		},
+		"dataset": {
+			"title": "Dataset",
+			"description": "This is the raw dataset of this credential. You can copy it to your clipboard and use it in your own application."
+		}
 	},
 	"pageHistory": {
 		"description": "View history of credential transmissions, detailing when and to which verifiers you sent",
