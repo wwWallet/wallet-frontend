@@ -596,6 +596,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey,
 	unlocked,
 	additionalClassName = '',
+	ensureUnlocked,
 }: {
 	credential: WebauthnCredential,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
@@ -604,6 +605,7 @@ const WebauthnCredentialItem = ({
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
 	unlocked: boolean,
 	additionalClassName?: string,
+	ensureUnlocked: () => Promise<boolean>,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
@@ -706,10 +708,15 @@ const WebauthnCredentialItem = ({
 						: (
 							<Button
 								id="rename-passkey"
-								onClick={() => setEditing(true)}
-								disabled={(onDelete && !unlocked) || !isOnline}
+								onClick={async () => {
+									const isUnlocked = await ensureUnlocked();
+									if (isUnlocked) {
+										setEditing(true);
+									}
+								}}
+								disabled={!isOnline}
 								aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-								title={!isOnline ? t("common.offlineTitle") : onDelete && !unlocked && t("pageSettings.passkeyItem.renameButtonTitleLocked")}
+								title={!isOnline ? t("common.offlineTitle") : ""}
 								variant="secondary"
 							>
 								<FaEdit size={16} className="mr-2" />
@@ -719,15 +726,20 @@ const WebauthnCredentialItem = ({
 					}
 
 					{onDelete && (
-						<Button
-							id="delete-passkey"
-							onClick={openDeleteConfirmation}
-							variant="delete"
-							disabled={!unlocked || !isOnline}
-							aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-							title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
-							additionalClassName='ml-2 py-2.5'
-						>
+					<Button
+						id="delete-passkey"
+						onClick={async () => {
+							const isUnlocked = await ensureUnlocked();
+							if (isUnlocked) {
+								openDeleteConfirmation();
+							}
+						}}
+						variant="delete"
+						disabled={!isOnline}
+						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
+						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+						additionalClassName='ml-2 py-2.5'
+					>
 							<FaTrash size={16} />
 						</Button>
 					)}
@@ -1190,6 +1202,7 @@ const Settings = () => {
 							onUpgradePrfKey={onUpgradePrfKey}
 							unlocked={unlocked}
 							additionalClassName='mt-8'
+							ensureUnlocked={ensureUnlocked}
 						/>
 					)}
 
@@ -1233,15 +1246,16 @@ const Settings = () => {
 									.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
 									.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
 									.map(cred => (
-										<WebauthnCredentialItem
-											key={cred.id}
-											credential={cred}
-											prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
-											onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
-											onRename={onRenameWebauthnCredential}
-											onUpgradePrfKey={onUpgradePrfKey}
-											unlocked={unlocked}
-										/>
+											<WebauthnCredentialItem
+												key={cred.id}
+												credential={cred}
+												prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
+												onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+												onRename={onRenameWebauthnCredential}
+												onUpgradePrfKey={onUpgradePrfKey}
+												unlocked={unlocked}
+												ensureUnlocked={ensureUnlocked}
+											/>
 									))}
 							</div>
 						)}
