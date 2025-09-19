@@ -25,6 +25,19 @@ export const CredentialsContextProvider = ({ children }) => {
 	const prevIsLoggedIn = useRef<boolean>(null);
 
 	const { getExternalEntity, getSession, get } = api;
+	const [pendingTransactions, setPendingTransactions] = useState(null);
+
+	useEffect(() => {
+		if (!getCalculatedWalletState) return;
+
+		const S = getCalculatedWalletState();
+		if (!S) return;
+
+		const sessionsWithTx = S.credentialIssuanceSessions.filter(
+			(session) => session.credentialEndpoint?.transactionId
+		);
+		setPendingTransactions(sessionsWithTx);
+	}, [getCalculatedWalletState]);
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
 		const trustedCertificates: string[] = [];
@@ -199,7 +212,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine, pendingTransactions }}>
 				{children}
 			</CredentialsContext.Provider>
 		);
