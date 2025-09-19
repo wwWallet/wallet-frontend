@@ -23,7 +23,7 @@ const PendingList = ({ batchId = null, title = '', limit = null }) => {
 	const { getCalculatedWalletState } = keystore;
 	const [pendingTransactions, setPendingTransactions] = useState(null);
 
-	
+
 	const credentialIssuerMetadata = useRef(new Map());
 	const helper = useOpenID4VCIHelper();
 
@@ -91,7 +91,7 @@ const PendingList = ({ batchId = null, title = '', limit = null }) => {
 								key={pendingTransaction.credentialEndpoint.transactionId}
 								className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
 								style={{ wordBreak: 'break-all' }}
-								onClick={() => {}}
+								onClick={() => { }}
 							>
 								<div className="font-bold">{`${getMetadataFromSession(pendingTransaction).credential.name} - ${getMetadataFromSession(pendingTransaction).issuer.name}`}</div>
 								<div>{formatDate(pendingTransaction.created)}</div>
