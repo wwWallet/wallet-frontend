@@ -943,14 +943,14 @@ const Settings = () => {
 				case 'passwordUnlockFailed':
 					setUnlockError(t('passwordUnlockFailed'));
 					// Re-trigger password prompt automatically for password failure
-					ensureUnlocked(); 
+					ensureUnlocked();
 					break;
 				case 'cancelled': // User cancelled the passkey/password prompt
 					setUnlockError(""); // No error message needed for cancellation
 					break;
 				default:
 					// Use a generic error message for other unexpected errors
-					setUnlockError('An error occurred'); 
+					setUnlockError('An error occurred');
 					break;
 			}
 			setUnwrappingKey(null); // Ensure state reflects locked status on error
@@ -1392,7 +1392,7 @@ const Settings = () => {
 					<p className="text-gray-700 dark:text-gray-300 mb-6">
 						{t('pageSettings.unlockPassword.description')}
 					</p>
-					
+
 					<input
 						type="password"
 						className="w-full border rounded-lg py-2 px-3 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-500 text-gray-900 dark:text-white dark:inputDarkModeOverride outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200 placeholder:text-gray-500 dark:placeholder:text-gray-400"
@@ -1415,7 +1415,7 @@ const Settings = () => {
 							{t('common.cancel')}
 						</Button>
 
-						<Button	
+						<Button
 							id="submit-password-management-settings"
 							type="submit"
 							variant="secondary"
