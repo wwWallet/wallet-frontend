@@ -623,7 +623,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [transactionId, getCalculatedWalletState, openID4VCIClientStateRepository]); // listen to changes of the wallet state
 
 	useEffect(() => {
-		
+
 		if (!openID4VCIClientStateRepository || !api.isLoggedIn()) {
 			return;
 		}
