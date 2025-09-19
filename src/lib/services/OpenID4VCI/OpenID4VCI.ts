@@ -134,6 +134,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				setTimeout(() => {
 					setCommitStateChanges((current) => current + 1);
 				}, 1000);
+				// display notification
 			}
 			catch (err) {
 				throw err;
