@@ -90,12 +90,19 @@ export const CredentialsContextProvider = ({ children }) => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 
-		const { credentials } = getCalculatedWalletState();
+		const S = getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		const { credentials } = S;
 		if (!credentials) {
 			return null;
 		}
 
-		const { presentations } = getCalculatedWalletState();
+		const { presentations } = S;
+		if (!presentations) {
+			return null;
+		}
 		// Create a map of instances grouped by credentialIdentifier
 		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletStateCredential) => {
 			if (!acc[vcEntity.batchId]) {
