@@ -6,6 +6,7 @@ import { addItem, getItem, removeItem } from '@/indexedDB';
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
+const TIMEOUT = 100*1000;
 
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
@@ -86,7 +87,7 @@ export function useHttpProxy(): IHttpProxy {
 						url,
 						method: 'get',
 					}, {
-						timeout: 2500,
+						timeout: TIMEOUT,
 						headers: {
 							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
 						},
@@ -197,7 +198,7 @@ export function useHttpProxy(): IHttpProxy {
 					method: 'post',
 					data: body,
 				}, {
-					timeout: 2500,
+					timeout: TIMEOUT,
 					headers: {
 						Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
 					}

@@ -107,6 +107,9 @@ export type WalletSessionEventSaveCredentialIssuanceSession = {
 	firstPartyAuthorization?: {
 		auth_session: string,
 	},
+	credentialEndpoint?: {
+		transactionId?: string,
+	},
 	created: number,
 }
 
@@ -163,6 +166,9 @@ export type WalletState = {
 		},
 		firstPartyAuthorization?: {
 			auth_session: string,
+		},
+		credentialEndpoint?: {
+			transactionId?: string,
 		},
 		created: number,
 	}[],
@@ -239,6 +245,7 @@ function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSe
 				tokenResponse: newEvent.tokenResponse,
 				dpop: newEvent.dpop,
 				firstPartyAuthorization: newEvent.firstPartyAuthorization,
+				credentialEndpoint: newEvent.credentialEndpoint,
 				created: newEvent.created,
 			}]);
 		default:
@@ -682,6 +689,9 @@ export namespace WalletStateOperations {
 		firstPartyAuthorization?: {
 			auth_session: string,
 		},
+		credentialEndpoint?: {
+			transactionId?: string,
+		},
 		created?: number
 	): Promise<WalletStateContainer> {
 
@@ -703,6 +713,7 @@ export namespace WalletStateOperations {
 					tokenResponse,
 					dpop,
 					firstPartyAuthorization,
+					credentialEndpoint,
 					created: created ?? Math.floor(Date.now() / 1000),
 				},
 			],

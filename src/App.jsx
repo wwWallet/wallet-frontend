@@ -71,6 +71,7 @@ const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCreden
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
 const History = React.lazy(() => import('./pages/History/History'));
+const Pending = React.lazy(() => import('./pages/Pending/Pending'));
 const HistoryDetail = React.lazy(() => import('./pages/History/HistoryDetail'));
 const Home = React.lazy(() => import('./pages/Home/Home'));
 const SendCredentials = React.lazy(() => import('./pages/SendCredentials/SendCredentials'));
@@ -113,6 +114,7 @@ function App() {
 							<Route path="/credential/:batchId/history" element={<CredentialHistory />} />
 							<Route path="/credential/:batchId/details" element={<CredentialDetails />} />
 							<Route path="/history" element={<History />} />
+							<Route path="/pending" element={<Pending />} />
 							<Route path="/history/:transactionId" element={<HistoryDetail />} />
 							<Route path="/add" element={<AddCredentials />} />
 							<Route path="/send" element={<SendCredentials />} />

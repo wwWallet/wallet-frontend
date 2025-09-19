@@ -194,6 +194,11 @@
 			"title": "Presentation Details"
 		}
 	},
+	"pagePending": {
+		"description": "View pending issuance requests",
+		"noFound": "No pending issuance requests found",
+		"title": "Pending issuance requests"
+	},
 	"pageSendCredentials": {
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
@@ -294,6 +299,11 @@
 		"errorInvalidDatatype": "Credential could not be parsed.",
 		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorNotSupportedCredentialType": "This type of credential is not supported."
+	},
+	"pendingTransactions": {
+		"subtitle": "Waiting for issuance to complete",
+		"title": "{{count}} pending credential(s)",
+		"view": "View details"
 	},
 	"pwaInstallPrompt": {
 		"button": {
