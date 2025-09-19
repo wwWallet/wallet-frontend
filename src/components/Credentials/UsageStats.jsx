@@ -8,11 +8,11 @@ const UsageStats = ({ vcEntity, className }) => {
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
-	const sigTotal = useMemo(() => 
+	const sigTotal = useMemo(() =>
 		vcEntity ? vcEntity.instances.length : 0
 	, [vcEntity]);
 
-	const zeroSigCount = useMemo(() => 
+	const zeroSigCount = useMemo(() =>
 		vcEntity ? vcEntity.instances.filter(instance => instance.sigCount === 0).length || 0 : 0
 	, [vcEntity]);
 

@@ -11,10 +11,10 @@ const DatasetPopup = ({ isOpen, onClose, vcEntity, loading }) => {
 	const { t } = useTranslation();
 
 	return (
-		<PopupLayout 
-			isOpen={isOpen} 
-			onClose={onClose} 
-			loading={loading} 
+		<PopupLayout
+			isOpen={isOpen}
+			onClose={onClose}
+			loading={loading}
 			padding="p-6"
 		>
 			<div className="flex items-start justify-between">
@@ -31,9 +31,9 @@ const DatasetPopup = ({ isOpen, onClose, vcEntity, loading }) => {
 						{t('pageCredentials.dataset.description')}
 					</p>
 
-					<CredentialJson 
-						parsedCredential={vcEntity?.parsedCredential} 
-						textAreaRows='16' 
+					<CredentialJson
+						parsedCredential={vcEntity?.parsedCredential}
+						textAreaRows='16'
 					/>
 
 					<div className="flex items-center mt-6">

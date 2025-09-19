@@ -44,7 +44,7 @@ const Credential = () => {
 	const { vcEntityList, fetchVcData } = useContext(CredentialsContext);
 	const vcEntity = useVcEntity(fetchVcData, vcEntityList, batchId);
 	const { generateEngagementQR, startClient, getMdocRequest, sendMdocResponse, terminateSession } = useMdocAppCommunication();
-	
+
 	// State
 	const [loading, setLoading] = useState(false);
 	const [mdocQRStatus, setMdocQRStatus] = useState(0); // 0 init; 1 loading; 2 finished;
@@ -68,7 +68,7 @@ const Credential = () => {
 		[i18n.language]
 	);
 
-	const credentialFriendlyName = useMemo(() => 
+	const credentialFriendlyName = useMemo(() =>
 		vcEntity ? credentialName : ""
 	, [vcEntity, credentialName]);
 
@@ -215,9 +215,9 @@ const Credential = () => {
 
 					<div className="flex items-center gap-2">
 						{shareWithQr && (
-							<Button 
-								variant="primary" 
-								additionalClassName="mr-2" 
+							<Button
+								variant="primary"
+								additionalClassName="mr-2"
 								onClick={generateQR}
 							>
 								<BsQrCode className="mr-2" />
@@ -287,13 +287,13 @@ const Credential = () => {
 								aria-label={credentialFriendlyName}
 								title={t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialFriendlyName })}
 							>
-								<CredentialImage 
-									vcEntity={vcEntity} 
-									className="w-full object-cover" 
-									showRibbon={screenType !== 'mobile'} 
+								<CredentialImage
+									vcEntity={vcEntity}
+									className="w-full object-cover"
+									showRibbon={screenType !== 'mobile'}
 								/>
 							</button>
-							
+
 							{screenType !== 'mobile' && (
 								<UsageStats vcEntity={vcEntity} className="flex lg:hidden" />
 							)}
@@ -415,11 +415,11 @@ const Credential = () => {
 					</Button>
 
 					<CredentialDeleteButton onDelete={() => setShowDeletePopup(true)} additionalClassName="w-full" />
-					
+
 					{shareWithQr && (
-						<Button 
-							variant="primary" 
-							additionalClassName="w-full" 
+						<Button
+							variant="primary"
+							additionalClassName="w-full"
 							onClick={generateQR}
 						>
 							<BsQrCode className="mr-2" />
@@ -469,15 +469,15 @@ const Credential = () => {
 							/>
 							<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
 								{vcEntity && (
-									<CredentialInfo 
-										mainClassName="text-xs w-full" 
-										parsedCredential={vcEntity.parsedCredential} 
-										fallbackClaims={shareWithQrFilter.map(key => ({ 
-											path: [key], 
-											display: [{ 
-												lang: 'en', 
-												label: key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ") 
-											}] 
+									<CredentialInfo
+										mainClassName="text-xs w-full"
+										parsedCredential={vcEntity.parsedCredential}
+										fallbackClaims={shareWithQrFilter.map(key => ({
+											path: [key],
+											display: [{
+												lang: 'en',
+												label: key.split("_").map(word => `${word[0].toUpperCase()}${word.slice(1)}`).join(" ")
+											}]
 										}))}
 										showToggle={false}
 									/>
@@ -514,9 +514,9 @@ const Credential = () => {
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage 
-							vcEntity={vcEntity} 
-							className="max-w-full max-h-full rounded-xl" 
+						<CredentialImage
+							vcEntity={vcEntity}
+							className="max-w-full max-h-full rounded-xl"
 							showRibbon={false}
 						/>
 					}
@@ -539,7 +539,7 @@ const Credential = () => {
 					loading={loading}
 				/>
 			)}
-			
+
 			{/* Dataset Popup */}
 			{showDatasetPopup && vcEntity && (
 				<DatasetPopup
