@@ -194,6 +194,11 @@
 			"title": "Presentation Details"
 		}
 	},
+	"pagePending": {
+		"title": "Pending issuance requests",
+		"description": "View pending issuance requests",
+		"noFound": "No pending issuance requests found"
+	},
 	"pageSendCredentials": {
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
