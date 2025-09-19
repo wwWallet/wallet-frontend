@@ -169,7 +169,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	const requestedDisplay = requested?.display ?? undefined;
 
 	const signedClaims = parsedCredential?.signedClaims;
-	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
+	const claims = parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
 
 	// Define custom claims to display from signedClaims if claims is missing
 	const customClaims = fallbackClaims ? fallbackClaims :

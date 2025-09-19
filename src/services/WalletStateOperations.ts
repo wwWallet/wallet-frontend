@@ -3,7 +3,7 @@ import { CredentialKeyPair } from "./keystore";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
 import { SCHEMA_VERSION, WalletStateMigrations } from "./WalletStateMigrations";
-import { compareBy } from "@/util";
+import { compareBy, deduplicateFromRightBy, last, maxByKey } from "@/util";
 
 
 export type WalletStateContainer = {
@@ -262,17 +262,13 @@ function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessio
 	}
 }
 
-async function getLastEventHashFromEventHistory(events: WalletSessionEvent[]): Promise<string> {
-	return events.length > 0 ? WalletStateUtils.calculateEventHash(events[events.length - 1]) : "";
-}
-
-
-
 async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
 	const baseEvent = {
 		schemaVersion: SCHEMA_VERSION,
 		eventId: WalletStateUtils.getRandomUint32(),
-		parentHash: container.events.length === 0 ? container.lastEventHash : await getLastEventHashFromEventHistory(container.events),
+		parentHash: container.events.length === 0
+			? container.lastEventHash
+			: await WalletStateUtils.calculateEventHash(last(container.events)),
 		timestampSeconds: Math.floor(Date.now() / 1000),
 	};
 	return {
@@ -284,51 +280,36 @@ type MergeStrategy = (a: WalletSessionEvent[], b: WalletSessionEvent[]) => Walle
 
 const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 	new_credential: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
-		// the following line removes the duplicate new_credential event that creates a credential with the same credentialId
+		// Remove duplicate new_credential events that create a credential with the same credentialId
 		// assuming that credentialId is a safe randomly-generated number that was assigned during insertion
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "new_credential" && map.set(event.credentialId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "new_credential"), e => e.credentialId);
 	},
 	delete_credential: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
 		// the following line removes the duplicate delete_credential event that deletes the same credential
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "delete_credential" && map.set(event.credentialId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_credential"), e => e.credentialId);
 	},
 	new_keypair: (a, b) => {
-		const map = new Map<string, WalletSessionEvent>();
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "new_keypair" && map.set(event.kid, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "new_keypair"), e => e.kid);
 	},
 	delete_keypair: (a, b) => {
-		const map = new Map<string, WalletSessionEvent>();
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "delete_keypair" && map.set(event.kid, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_keypair"), e => e.kid);
 	},
 	new_presentation: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
-		// the following line accepts all presentations with unique eventId
-		[...a, ...b].map((event: WalletSessionEvent) => event.type === "new_presentation" && map.set(event.eventId, event));
-		return [...map.values()];
+		// Keep all presentations with unique eventId
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "new_presentation"), e => e.eventId);
 	},
 	delete_presentation: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
 		// similar to new_presentation
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "delete_presentation" && map.set(event.eventId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_presentation"), e => e.eventId);
 	},
 	alter_settings: (a, b) => {
-		const settingsEvents: WalletSessionEvent[] = [];
 		// get only the latest applied setting during merge based on timestamp of event
-		[...a, ...b].forEach((event: WalletSessionEvent) => event.type === "alter_settings" && settingsEvents.push(event));
-		settingsEvents.sort(compareBy(e => e.timestampSeconds));
-		return settingsEvents.length > 0 ? [settingsEvents[settingsEvents.length - 1]] : [];
+		const settingsEvents: WalletSessionEvent[] = a.concat(b).filter(e => e.type === "alter_settings");
+		const latest = maxByKey(settingsEvents, e => e.timestampSeconds);
+		return latest ? [latest] : [];
 	},
 	save_credential_issuance_session: (a, b) => {
-		const map = new Map<number, WalletSessionEvent>();
-		[...a, ...b].map((event: WalletSessionEvent) => event.type === "save_credential_issuance_session" && map.set(event.eventId, event));
-		return [...map.values()];
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "save_credential_issuance_session"), e => e.eventId);
 	},
 };
 
@@ -366,29 +347,120 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 	return rebuildEventHistory(mergedEvents, lastCommonAncestorHashFromEventHistory);
 }
 
-export function findDivergencePoint(events1: WalletSessionEvent[], events2: WalletSessionEvent[]): WalletSessionEvent | null {
-	const parents1 = new Set();
-	const parents2 = new Set();
+/**
+ * Divide `container1` and `container2` into shared and respective unique
+ * events, and determine which base state a merged container should be based on.
+ *
+ * @returns Non-null if a common point of history is found between `container1`
+ * and `container2`; null if no common point of history is found.
+ */
+export async function findMergeBase(
+	container1: WalletStateContainer,
+	container2: WalletStateContainer,
+): Promise<{
+	/** The `lastEventHash` of the container that is the ancestor of the other */
+	lastEventHash: string,
+	/** The `baseState` of the container that is the ancestor of the other */
+	baseState: WalletState,
+	/** All events present in both containers (either explicitly in both, or
+	explicitly in one and already folded into base state in the other), in order
+	*/
+	commonEvents: WalletSessionEvent[],
+	/** All events present only in `container1`, in order */
+	uniqueEvents1: WalletSessionEvent[],
+	/** All events present only in `container2`, in order */
+	uniqueEvents2: WalletSessionEvent[],
+} | null> {
+	// Maps of event hashes to the index of the first diverged event in that
+	// branch, if that hash is the last common parent hash.
+	const history1: Map<string, number> = new Map();
+	const history2: Map<string, number> = new Map();
 
-	let i1 = events1.length - 1;
-	let i2 = events2.length - 1;
+	let i1 = container1.events.length - 1;
+	let i2 = container2.events.length - 1;
+
+	function decideCanonicalContainer(
+		container1: WalletStateContainer,
+		container2: WalletStateContainer,
+		commonEventIndex1: number,
+		commonEventIndex2: number,
+	): [[WalletStateContainer, number], [WalletStateContainer, number]] {
+		if (container1.lastEventHash === container2.lastEventHash) {
+			// The containers start from the same event, so either is an equally valid choice.
+			return [[container1, commonEventIndex1], [container2, commonEventIndex2]];
+		} else {
+			// Since the containers have a common event in their history, whichever
+			// has more events before the common event must have a base state that is
+			// an ancestor of the other's base state.
+			if (commonEventIndex1 >= commonEventIndex2) {
+				return [[container1, commonEventIndex1], [container2, commonEventIndex2]];
+			} else {
+				return [[container2, commonEventIndex2], [container1, commonEventIndex1]];
+			}
+		}
+	}
+
+	function finalizeFoundCommonEvent(commonEventIndex1: number, commonEventIndex2: number) {
+		const [
+			[ancestorContainer, ancestorUniqueIndex],
+			[descendantContainer, descendantUniqueIndex]
+		] = decideCanonicalContainer(container1, container2, commonEventIndex1, commonEventIndex2);
+		return {
+			lastEventHash: ancestorContainer.lastEventHash,
+			baseState: ancestorContainer.S,
+			commonEvents: ancestorContainer.events.slice(0, ancestorUniqueIndex),
+			uniqueEvents1: ancestorContainer.events.slice(ancestorUniqueIndex),
+			uniqueEvents2: descendantContainer.events.slice(descendantUniqueIndex),
+		};
+	}
+
+	if (i1 >= 0) {
+		history1.set(await WalletStateUtils.calculateEventHash(container1.events[i1]), i1 + 1);
+	}
+	if (i2 >= 0) {
+		const hash = await WalletStateUtils.calculateEventHash(container2.events[i2]);
+		history2.set(hash, i2 + 1);
+
+		if (history1.has(hash) && history2.has(hash)) {
+			// Both histories end with the same event hash, so they are semantically
+			// equivalent.
+			return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+		}
+	}
 
 	while (i1 >= 0 || i2 >= 0) {
 		if (i1 >= 0) {
-			if (parents2.has(events1[i1].parentHash)) {
-				return events1[i1 - 1];
+			const hash = container1.events[i1].parentHash;
+			history1.set(hash, i1);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
 			}
-			parents1.add(events1[i1].parentHash);
+			i1 -= 1;
+		} else if (i1 === -1) {
+			const hash = container1.lastEventHash;
+			history1.set(hash, 0);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+			}
 			i1 -= 1;
 		}
 		if (i2 >= 0) {
-			if (parents1.has(events2[i2].parentHash)) {
-				return events2[i2 - 1];
+			const hash = container2.events[i2].parentHash;
+			history2.set(hash, i2);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
 			}
-			parents2.add(events2[i2].parentHash);
+			i2 -= 1;
+		} else if (i2 === -1) {
+			const hash = container2.lastEventHash;
+			history2.set(hash, 0);
+			if (history1.has(hash) && history2.has(hash)) {
+				return finalizeFoundCommonEvent(history1.get(hash), history2.get(hash));
+			}
 			i2 -= 1;
 		}
 	}
+
 	return null;
 }
 
@@ -676,8 +748,8 @@ export namespace WalletStateOperations {
 	}
 
 	export async function mergeEventHistories(container1: WalletStateContainer, container2: WalletStateContainer): Promise<WalletStateContainer> {
-		const pointOfDivergence = findDivergencePoint(container1.events, container2.events);
-		if (pointOfDivergence === null) {
+		const mergeBase = await findMergeBase(container1, container2);
+		if (mergeBase === null) {
 			const events = [...container1.events, ...container2.events].sort(compareBy(e => e.timestampSeconds));
 			const newContainer = {
 				...container1,
@@ -687,15 +759,23 @@ export namespace WalletStateOperations {
 			return newContainer;
 		}
 
-		let pointOfDivergenceIndex = container1.events.findIndex(event => event.eventId === pointOfDivergence.eventId);
-		const commonHistory = container1.events.slice(0, pointOfDivergenceIndex + 1);
-		const history1DivergentPart = container1.events.slice(pointOfDivergenceIndex + 1);
-		const history2DivergentPart = container2.events.slice(pointOfDivergenceIndex + 1);
+		const { lastEventHash, baseState, commonEvents, uniqueEvents1, uniqueEvents2 } = mergeBase;
+		const lastCommonEvent = last(commonEvents);
+		const pointOfDivergenceHash = (
+			lastCommonEvent
+				? await WalletStateUtils.calculateEventHash(lastCommonEvent)
+				: lastEventHash
+		);
 
-		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(history1DivergentPart, history2DivergentPart, await WalletStateUtils.calculateEventHash(pointOfDivergence));
-		const newEventHistory = commonHistory.concat(mergeDivergentPartsResult);
+		const mergeDivergentPartsResult = await mergeDivergentHistoriesWithStrategies(
+			uniqueEvents1,
+			uniqueEvents2,
+			pointOfDivergenceHash,
+		);
+		const newEventHistory = commonEvents.concat(mergeDivergentPartsResult);
 		const newContainer = {
-			...container1,
+			lastEventHash,
+			S: baseState,
 			events: newEventHistory,
 		};
 		await validateEventHistoryContinuity(newContainer);
@@ -707,6 +787,23 @@ export namespace WalletStateOperations {
 	 */
 	export function foldState(container: WalletStateContainer): WalletState {
 		return container.events.reduce(walletStateReducer, container.S);
+	}
+
+	/**
+	 * Returns the container with the first history event, if any, folded into the base state.
+	 * If the container has no events, the same object is returned unchanged.
+	 */
+	export async function foldNextEventIntoBaseState(container: WalletStateContainer): Promise<WalletStateContainer> {
+		const [event, ...events] = container.events;
+		if (event) {
+			return {
+				S: walletStateReducer(container.S, event),
+				events,
+				lastEventHash: events[0]?.parentHash ?? await WalletStateUtils.calculateEventHash(event),
+			};
+		} else {
+			return container;
+		}
 	}
 
 	/**

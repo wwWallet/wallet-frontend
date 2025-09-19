@@ -397,7 +397,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</p>
 						<div>
 						</div>
-						<div className={`xm:px-4 px-16 sm:px-24 md:px-8 ${screenType === 'desktop' && 'max-w-[600px]'}`}>
+						<div className={`${screenType === 'desktop' && 'max-w-[600px]'}`}>
 							{vcEntities && vcEntities.length ? (
 								<Slider
 									items={vcEntities}
@@ -411,6 +411,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 										/>
 									)}
 									onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+									className='xm:px-4 px-16 sm:px-24 md:px-8'
 								/>
 							) : (
 								<CredentialCardSkeleton />
@@ -451,10 +452,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							return <TxComp />
 						})}
 
-						<div className={`xm:px-4 px-16 sm:px-24 md:px-8 ${screenType === 'desktop' && 'max-w-[600px]'}`}>
+						<div className={`${screenType === 'desktop' && 'max-w-[600px]'}`}>
 							<Slider
 								items={selectedVcEntities}
-								renderSlideContent={(vcEntity) => {
+								renderSlideContent={(vcEntity, i) => {
 									const descriptorId = Object.keys(currentSelectionMap).find(
 										(key) => currentSelectionMap[key] === vcEntity.batchId
 									);
@@ -462,20 +463,24 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									const fields = requestedFieldsPerCredential[descriptorId];
 									const hasValidPath = Array.isArray(fields) && fields[0]?.path[0];
 									return (
-										<CredentialImage
-											vcEntity={vcEntity}
-											parsedCredential={vcEntity.parsedCredential}
-											className="w-full object-cover rounded-xl"
-											showRibbon={false}
-											filter={
-												hasValidPath
-													? fields.map((field) => normalizePath(field.path))
-													: undefined
-											}
-										/>
+										<div className='py-1 w-full'>
+											<CredentialImage
+												vcEntity={vcEntity}
+												vcEntityInstances={vcEntity.instances}
+												parsedCredential={vcEntity.parsedCredential}
+												className="w-full object-cover rounded-xl"
+												showRibbon={currentSummarySlide === i}
+												filter={
+													hasValidPath
+														? fields.map((field) => normalizePath(field.path))
+														: undefined
+												}
+											/>
+										</div>
 									);
 								}}
 								onSlideChange={(index) => setCurrentSummarySlide(index)}
+								className='xm:px-4 px-16 sm:px-24 md:px-8'
 							/>
 
 							{selectedVcEntities?.[currentSummarySlide] ? (

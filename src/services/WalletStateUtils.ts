@@ -33,7 +33,10 @@ export namespace WalletStateUtils {
 		return array[0] === 0 ? 1 : array[0];
 	}
 
-	export async function calculateEventHash(event: WalletSessionEvent): Promise<string> {
+	export async function calculateEventHash(event: WalletSessionEvent | undefined): Promise<string> {
+		if (event === undefined) {
+			return "";
+		}
 		// if new new_keypair event, then don't include the wrappedPrivateKey because it changes after every change of the keystore
 		if (event.type === 'new_keypair') {
 			return sha256(JSON.stringify(normalize({

@@ -4,6 +4,7 @@ import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOper
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
 import { OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS } from "@/config";
+import { last } from "@/util";
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
@@ -54,7 +55,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	): Promise<WalletStateCredentialIssuanceSession | null> => {
 		loadSessions();
 		const r = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer);
-		const res = r[r.length - 1];
+		const res = last(r);
 		return res ? res : null;
 	},
 		[]
@@ -64,7 +65,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
 			loadSessions();
 			const r = Array.from(sessions.current.values()).filter((S) => S.state === state);
-			const res = r[r.length - 1];
+			const res = last(r);
 			return res ? res : null;
 		},
 		[loadSessions]

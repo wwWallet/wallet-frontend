@@ -28,11 +28,12 @@ const HistoryDetailContent = ({ historyItem }) => {
 
 	return (
 		<div className="py-2 w-full">
-			<div className="px-2">
+			<div className="">
 				<Slider
 					items={historyItem} // note: a HistoryItem is an array of presentations that happened in a single OpenID4VP transaction
 					renderSlideContent={renderSlideContent}
 					onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+					className='px-2'
 				/>
 			</div>
 
