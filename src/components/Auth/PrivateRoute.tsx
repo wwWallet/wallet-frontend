@@ -72,7 +72,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 						{isOnline === false && isMessageOfflineVisible === false && (
 							<>
 								<div className="flex-grow">
-									<p className='text-sm'>
+									<p className='text-sm text-gray-800'>
 										<Trans
 											i18nKey="layout.messageOffline"
 											components={{ strong: <strong /> }}
@@ -93,7 +93,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 								{!isPermissionGranted && (
 									<>
 										<div className="flex-grow">
-											<p className='text-sm'>
+											<p className='text-sm text-gray-800'>
 												<Trans
 													i18nKey="layout.messageAllowPermission"
 													components={{ strong: <strong /> }}
