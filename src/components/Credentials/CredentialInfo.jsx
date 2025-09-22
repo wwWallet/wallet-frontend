@@ -10,21 +10,23 @@ const Legend = ({ showRequired, showRequested }) => {
 	if (!showRequired && !showRequested) return null;
 	return (
 		<div
-			className="my-2 p-1 flex flex-wrap items-center gap-4 text-xs text-gray-600 dark:text-gray-300 border border-gray-200 rounded-sm dark:border-gray-400"
+			className="mb-2 flex justify-end"
 			aria-label="Claim legend"
 		>
-			{showRequired && (
-				<span className="inline-flex items-center gap-1" title="Required claims">
-					<TbAsterisk className="text-primary dark:text-white" aria-hidden="true" />
-					<span>Required</span>
-				</span>
-			)}
-			{showRequested && (
-				<span className="inline-flex items-center gap-1" title="Requested by verifier">
-					<IoIosSend className="text-primary dark:text-white" aria-hidden="true" />
-					<span>Requested by verifier</span>
-				</span>
-			)}
+			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-sm dark:border-gray-400/40'>
+				{showRequired && (
+					<span className="inline-flex items-center gap-1" title="Required claims">
+						<span>Required</span>
+						<TbAsterisk className="text-primary dark:text-white" aria-hidden="true" />
+					</span>
+				)}
+				{showRequested && (
+					<span className="inline-flex items-center gap-1" title="Requested by verifier">
+						<span>Requested by verifier</span>
+						<IoIosSend className="text-primary dark:text-white" aria-hidden="true" />
+					</span>
+				)}
+			</div>
 		</div>
 	);
 };
