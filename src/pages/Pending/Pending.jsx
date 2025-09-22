@@ -72,7 +72,7 @@ const Pending = () => {
 								>
 									<div className="flex gap-2 items-center">
 
-										<PiClockCounterClockwiseBold className="h-8 w-8 text-orange-500 dark:text-white" />
+										<PiClockCounterClockwiseBold className="h-8 w-8 text-orange-500" />
 										<div className="w-px h-12 bg-gray-300 dark:bg-gray-600" />
 										<div>
 											<p className="font-semibold">{`${cred}`}</p>
