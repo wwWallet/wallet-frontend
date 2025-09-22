@@ -117,24 +117,59 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						return null;
 					}
 				}));
-				const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
-					return {
-						data: credential,
-						format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
-						kid: kidMap[index] ?? "",
-						credentialConfigurationId: credentialConfigurationIdRef.current,
-						credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
-						batchId: batchId,
-						instanceId: index,
-					}
-				}));
 
-				await api.updatePrivateData(privateData);
-				await keystoreCommit();
-				setTimeout(() => {
-					setCommitStateChanges((current) => current + 1);
-				}, 1000);
-				// display notification
+				let warnings = [];
+
+				const result = await credentialEngine.credentialParsingEngine.parse(
+					{
+						rawCredential: temp[0],
+						credentialIssuer: {
+							credentialConfigurationId: credentialConfigurationIdRef.current,
+							credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+						},
+					}
+				)
+
+				if (result.success) {
+
+					if (result.value.warnings && result.value.warnings.length > 0) {
+						console.warn(`Credential had warnings:`, result.value.warnings);
+						warnings = result.value.warnings;
+					}
+				} else {
+					console.error(`Credential failed to parse:`, result.error, result.message);
+					showMessagePopup({ title: t('issuance.error'), description: t(`parsing.error${result.error}`) });
+					return;
+				}
+
+				let userConsent = true;
+				if (warnings.length > 0 && config.VITE_DISPLAY_ISSUANCE_WARNINGS === true) {
+					userConsent = await showPopupConsent({
+						title: t("issuance.title"),
+						warnings: warnings
+					});
+				}
+
+				if (userConsent) {
+					const [, privateData, keystoreCommit] = await keystore.addCredentials(temp.map((credential, index) => {
+						return {
+							data: credential,
+							format: credentialIssuerMetadataRef.current.metadata.credential_configurations_supported[credentialConfigurationIdRef.current].format,
+							kid: kidMap[index] ?? "",
+							credentialConfigurationId: credentialConfigurationIdRef.current,
+							credentialIssuerIdentifier: credentialIssuerMetadataRef.current.metadata.credential_issuer,
+							batchId: batchId,
+							instanceId: index,
+						}
+					}));
+
+					await api.updatePrivateData(privateData);
+					await keystoreCommit();
+					setTimeout(() => {
+						setCommitStateChanges((current) => current + 1);
+					}, 1000);
+					// display notification
+				}
 			}
 			catch (err) {
 				throw err;
@@ -222,42 +257,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
 
-
-			let warnings = [];
-			for (const rawCredential of credentialArray) {
-
-				const result = await credentialEngine.credentialParsingEngine.parse(
-					{
-						rawCredential: rawCredential,
-						credentialIssuer: {
-							credentialIssuerIdentifier: flowState.credentialIssuerIdentifier,
-							credentialConfigurationId: flowState.credentialConfigurationId,
-						},
-					})
-				if (result.success) {
-
-					if (result.value.warnings && result.value.warnings.length > 0) {
-						console.warn(`Credential had warnings:`, result.value.warnings);
-						warnings = result.value.warnings;
-					}
-				} else {
-					console.error(`Credential failed to parse:`, result.error, result.message);
-					showMessagePopup({ title: t('issuance.error'), description: t(`parsing.error${result.error}`) });
-					return;
-				}
-			}
-
-			let userConsent = true;
-			if (warnings.length > 0 && config.VITE_DISPLAY_ISSUANCE_WARNINGS === true) {
-				userConsent = await showPopupConsent({
-					title: t("issuance.title"),
-					warnings: warnings
-				});
-			}
-
-			if (userConsent) {
-				setReceivedCredentialsArray(credentialArray);
-			}
+			setReceivedCredentialsArray(credentialArray);
 
 			return;
 
