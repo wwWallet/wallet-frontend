@@ -462,6 +462,21 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 									const fields = requestedFieldsPerCredential[descriptorId];
 									const hasValidPath = Array.isArray(fields) && fields[0]?.path[0];
+
+									const requiredClaimPaths = (vcEntity.parsedCredential.metadata.credential?.TypeMetadata?.claims ?? [])
+										.filter(c => c?.required === true)
+										.map(c => normalizePath(c.path));
+
+									// Only merge when hasValidPath is true, otherwise leave undefined
+									const filterPaths = hasValidPath
+										? Array.from(
+											new Set([
+												...fields.map(f => JSON.stringify(normalizePath(f.path))),
+												...requiredClaimPaths.map(p => JSON.stringify(p))
+											])
+										).map(p => JSON.parse(p))
+										: undefined;
+
 									return (
 										<div className='py-1 w-full'>
 											<CredentialImage
@@ -470,11 +485,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												parsedCredential={vcEntity.parsedCredential}
 												className="w-full object-cover rounded-xl"
 												showRibbon={currentSummarySlide === i}
-												filter={
-													hasValidPath
-														? fields.map((field) => normalizePath(field.path))
-														: undefined
-												}
+												filter={filterPaths}
 											/>
 										</div>
 									);
