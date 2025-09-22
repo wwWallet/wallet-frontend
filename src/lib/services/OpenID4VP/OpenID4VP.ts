@@ -655,7 +655,30 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 
 				if (!descriptor.claims || descriptor.claims.length === 0) {
 					// All claims are requested, get keys from signedClaims
-					paths = Object.keys(signedClaims).map(key => [key]);
+					paths = [];
+					const getNestedPaths = (val: any, path: string[]) => {
+						if (val === null || typeof val !== "object") {
+							if (path.length) paths.push(path);
+							return;
+						}
+						if (Array.isArray(val)) {
+							if (path.length) {
+								paths.push(path);
+							}
+							return;
+						}
+						const entries = Object.entries(val);
+						if (entries.length === 0) {
+							if (path.length) {
+								paths.push(path);
+							}
+							return;
+						}
+						for (const [k, v] of entries) {
+							getNestedPaths(v, path.concat(k));
+						}
+					};
+					getNestedPaths(signedClaims, []);
 				} else {
 					// Specific claims requested
 					paths = descriptor.claims.map(cl => cl.path);
