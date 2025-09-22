@@ -6,23 +6,23 @@ import JsonViewer from '../JsonViewer/JsonViewer';
 import { IoIosSend } from "react-icons/io";
 import { TbAsterisk } from "react-icons/tb";
 
-const Legend = ({ showRequired, showRequested }) => {
+const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
 	return (
 		<div
 			className="mb-2 flex justify-end"
-			aria-label="Claim legend"
+			aria-label={t('credentialInfo.legendAriaLabel')}
 		>
 			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-sm dark:border-gray-400/40'>
 				{showRequired && (
-					<span className="inline-flex items-center gap-1" title="Required claims">
-						<span>Required</span>
+					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
+						<span>{t('credentialInfo.legendRequired')}</span>
 						<TbAsterisk className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
 				{showRequested && (
-					<span className="inline-flex items-center gap-1" title="Requested by verifier">
-						<span>Requested by verifier</span>
+					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequested')}>
+						<span>{t('credentialInfo.legendRequested')}</span>
 						<IoIosSend className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
@@ -189,7 +189,7 @@ const formatClaimValue = (value) => {
 };
 
 const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
-	const { i18n } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
 
 	const requestedFields = requested?.fields ?? null;
@@ -432,6 +432,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					<Legend
 						showRequired={legendFlags.showRequired}
 						showRequested={legendFlags.showRequested}
+						t={t}
 					/>
 					{renderClaims(nestedClaims)}
 				</div>

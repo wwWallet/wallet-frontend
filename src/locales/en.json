@@ -49,6 +49,11 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"credentialInfo": {
+		"legendAriaLabel": "Claim legend",
+		"legendRequested": "Requested by verifier",
+		"legendRequired": "Required"
+	},
 	"expiredRibbon": {
 		"expired": "Expired"
 	},
