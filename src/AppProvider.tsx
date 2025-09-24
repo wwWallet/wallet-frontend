@@ -7,6 +7,7 @@ import { OpenID4VPContextProvider } from './context/OpenID4VPContextProvider';
 import { OpenID4VCIContextProvider } from './context/OpenID4VCIContextProvider';
 import { AppSettingsProvider } from './context/AppSettingsProvider';
 import UriHandler from './hocs/UriHandler';
+import { NativeWrapperProvider } from './context/NativeWrapper';
 
 type RootProviderProps = {
 	children: ReactNode;
@@ -21,7 +22,9 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 						<OpenID4VCIContextProvider>
 							<UriHandler>
 								<AppSettingsProvider>
-									{children}
+									<NativeWrapperProvider>
+										{children}
+									</NativeWrapperProvider>
 								</AppSettingsProvider>
 							</UriHandler>
 						</OpenID4VCIContextProvider>
