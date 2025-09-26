@@ -6,7 +6,7 @@ import { addItem, getItem, removeItem } from '@/indexedDB';
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
-const TIMEOUT = 100*1000;
+const TIMEOUT = 100 * 1000;
 
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
@@ -51,6 +51,20 @@ export function useHttpProxy(): IHttpProxy {
 						const isFresh = now < expiry;
 
 						if (online === null || isFresh) {
+							if (isBinaryRequest && cachedData?.__binary) {
+								// RECONSTRUCT a fresh Blob URL from the stored bytes and type
+								const bytes = cachedData.bytes instanceof ArrayBuffer
+									? new Uint8Array(cachedData.bytes)
+									: Uint8Array.from(cachedData.bytes);
+								const blob = new Blob([bytes], { type: cachedData.contentType || 'application/octet-stream' });
+								const blobUrl = URL.createObjectURL(blob);
+
+								return {
+									status: cachedData.status || 200,
+									headers: cachedData.headers || {},
+									data: blobUrl,
+								};
+							}
 							return cachedData;
 						}
 					}
@@ -132,7 +146,13 @@ export function useHttpProxy(): IHttpProxy {
 
 						if (shouldCache) {
 							await addItem('proxyCache', cacheKey, {
-								data: responseToCache,
+								data: {
+									__binary: true,
+									status: response.status,
+									headers: sourceHeaders,
+									contentType: contentTypeHeader,
+									bytes: arrayBuffer,
+								},
 								expiry: now + maxAge,
 							}, 'proxyCache');
 						}
