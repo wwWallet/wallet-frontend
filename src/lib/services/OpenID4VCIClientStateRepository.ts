@@ -38,7 +38,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		}
 	}, [getCalculatedWalletState]);
 
-	const cleanupExpired = useCallback(async (): Promise<void> => {
+	const cleanupExpired = useCallback(async (): Promise<number[]> => {
 		loadSessions();
 		if (!sessions.current) {
 			return;
@@ -49,19 +49,21 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (rememberIssuerForSeconds == null) {
 			return;
 		}
-		for (const res of Array.from(sessions.current.values())) {
-			if (res.created &&
-				typeof res.created === 'number' &&
-				Math.floor(Date.now() / 1000) > res.created + rememberIssuerForSeconds) {
-				sessions.current.delete(res.sessionId);
-			}
-		}
 		const now = Math.floor(new Date().getTime() / 1000);
+		const deletedSessions = [];
 		for (const [k, v] of sessions.current) {
-			if (now - v.created > OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) {
-				sessions.current.delete(k);
+			if (v.created && typeof v.created === 'number') {
+				if (v?.credentialEndpoint?.transactionId && now - v.created > OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) {
+					sessions.current.delete(k);
+					deletedSessions.push(k);
+				}
+				else if (!v?.credentialEndpoint?.transactionId && now - v.created > rememberIssuerForSeconds) {
+					sessions.current.delete(k);
+					deletedSessions.push(k);
+				}
 			}
 		}
+		return deletedSessions;
 	}, [getRememberIssuerAge, loadSessions]);
 
 	const commitStateChanges = useCallback(async (): Promise<void> => {
@@ -72,8 +74,8 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (!sessions.current) {
 			return;
 		}
-		await cleanupExpired();
-		const [{ }, newPrivateData, keystoreCommit] = await saveCredentialIssuanceSessions(Array.from(sessions.current.values()));
+		const deletedSessions = await cleanupExpired();
+		const [{ }, newPrivateData, keystoreCommit] = await saveCredentialIssuanceSessions(Array.from(sessions.current.values()), deletedSessions);
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		console.log("CHANGES WRITTEN")
