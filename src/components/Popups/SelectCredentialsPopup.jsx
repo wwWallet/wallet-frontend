@@ -325,15 +325,15 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</p>
 						<div className="flex flex-col gap-2">
 
-							{popupState.options.verifierDomainName && (
-								<p className="pd-2 text-gray-700 text-sm dark:text-white mb">
-									<span className="text-primary text-sm font-bold dark:text-white">
+							{popupState?.options?.verifierDomainName && (
+								<div className="flex flex-wrap gap-1 items-center text-gray-700 text-sm dark:text-white">
+									<span className="text-primary text-sm font-bold dark:text-white block">
 										{t('selectCredentialPopup.requestingParty')}
 									</span>
-									<span className="font-medium">
+									<span className="w-max font-semibold text-primary dark:text-white rounded border border-primary dark:border-white p-1 break-all block">
 										{prettyDomain(popupState.options.verifierDomainName)}
 									</span>
-								</p>
+								</div>
 							)}
 							{popupState.options.verifierPurpose && (() => {
 								const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
