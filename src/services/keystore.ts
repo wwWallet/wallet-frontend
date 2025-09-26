@@ -11,17 +11,17 @@ import { ALG_SPLIT_BBS, CRV_BLS12381G1, exportHolderPrivateJwk, exportHolderPubl
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
-import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toHex, toU8 } from "../util";
+import { byteArrayEquals, concat, filterObject, fromBase64Url, I2OSP, jsonParseTaggedBinary, jsonStringifyTaggedBinary, OS2IP, sequentialAll, toBase64Url, toU8 } from "../util";
 import { SDJwt } from "@sd-jwt/core";
 import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
 import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
+import { addNewArkgSeedEvent, addNewKeypairEvent, addNewSplitBbsKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
-import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
+import type { PublicKeyCredentialCreation } from "../types/webauthn";
+import { parseAuthenticatorData, parseCoseKeyWithKid, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
@@ -252,12 +252,12 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): 
 	}
 }
 
-type WebauthnSignArkgPublicSeed = {
+export type WebauthnSignArkgPublicSeed = {
 	credentialId: Uint8Array,
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
 }
 
-type WebauthnSignSplitBbsKeypair = {
+export type WebauthnSignSplitBbsKeypair = {
 	credentialId: Uint8Array,
 	/** Contains kid used to construct reference to private key */
 	publicKey: webauthn.ParsedCOSEKeyEc2Public & { kid: any },
@@ -299,8 +299,6 @@ export type PrivateDataV1 = {
 	keypairs: {
 		[kid: string]: CredentialKeyPair,
 	},
-	arkgSeeds?: WebauthnSignArkgPublicSeed[],
-	splitBbsKeypairs?: WebauthnSignSplitBbsKeypair[],
 }
 
 export type PrivateData = CurrentSchema.WalletStateContainer;
@@ -758,13 +756,19 @@ async function rewrapPrivateKeys(
 
 	const newCredentialKeypairEvents = privateData.events.filter(e => e.type === 'new_keypair');
 	const rewrappedKeysFromEvents: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
-		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => ({
-			kid,
-			keypair: {
-				...keypair,
-				wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-			},
-		}))
+		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => {
+			if ("wrappedPrivateKey" in keypair) {
+				return {
+					kid,
+					keypair: {
+						...keypair,
+						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
+					},
+				};
+			} else {
+				return { kid, keypair };
+			}
+		}),
 	);
 
 	return {
@@ -1059,22 +1063,14 @@ async function addWebauthnSignKeypair(
 	if (newKeypair) {
 		const [newPrivateData,] = await updatePrivateData(
 			[privateData as AsymmetricEncryptedContainer, mainKey],
-			async (privateData: PrivateData, _updateWrappedPrivateKey) => {
-				const arkgSeeds = (newKeypair && "arkg" in newKeypair) ? [
-					...(privateData.arkgSeeds ?? []),
-					newKeypair.arkg,
-				] : privateData.arkgSeeds;
-
-				const splitBbsKeypairs = (newKeypair && "splitBbs" in newKeypair) ? [
-					...(privateData.splitBbsKeypairs ?? []),
-					newKeypair.splitBbs,
-				] : privateData.splitBbsKeypairs;
-
-				return {
-					...privateData,
-					arkgSeeds,
-					splitBbsKeypairs,
-				};
+			async (privateData: PrivateData) => {
+				if (newKeypair && "arkg" in newKeypair) {
+					return addNewArkgSeedEvent(privateData, newKeypair.arkg);
+				} else if (newKeypair && "splitBbs" in newKeypair) {
+					return addNewSplitBbsKeypairEvent(privateData, newKeypair.splitBbs);
+				} else {
+					return privateData;
+				}
 			},
 		);
 		return newPrivateData;
@@ -1249,10 +1245,10 @@ export async function init(
 	const splitBbsKeypair = (webauthnSignGeneratedKey && "splitBbs" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.splitBbs : null;
 	let state = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
 	if (arkgSeed) {
-		state = CurrentSchema.WalletStateOperations.addArkgSeedEvent(state, arkgSeed);
+		state = await addNewArkgSeedEvent(state, arkgSeed);
 	}
 	if (splitBbsKeypair) {
-		state = CurrentSchema.WalletStateOperations.addSplitBbsKeypairEvent(state, splitBbsKeypair);
+		state = await addNewSplitBbsKeypairEvent(state, splitBbsKeypair);
 	}
 	const privateData: EncryptedContainer = {
 		...keyInfo,
@@ -1419,8 +1415,9 @@ async function generateCredentialKeypair(
 	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignKeyRef }],
 ]> {
 	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
-	if (privateData?.arkgSeeds?.length > 0) {
-		const { arkgSeeds } = privateData;
+	const state = foldState(privateData);
+	if (state.arkgSeeds?.length > 0) {
+		const { arkgSeeds } = state;
 		if (arkgSeeds.length > 1) {
 			throw new Error("Unimplemented: More than one ARKG seed available");
 		}
@@ -1498,7 +1495,7 @@ async function addNewCredentialKeypairs(
 
 				// append events
 				for (const { kid, keypair } of keypairsWithPrivateKeys) {
-					privateData = await CurrentSchema.WalletStateOperations.addNewKeypairEvent(privateData, kid, keypair);
+					privateData = await addNewKeypairEvent(privateData, kid, keypair);
 				}
 
 				return {
@@ -1521,8 +1518,9 @@ async function addNewBbsKeypair(
 	newPrivateData: OpenedContainer,
 }> {
 	const [privateDataContents] = await openPrivateData(mainKey, privateData);
-	if (privateDataContents.splitBbsKeypairs && privateDataContents.splitBbsKeypairs.length > 0) {
-		const bbsKeypair = privateDataContents.splitBbsKeypairs[0];
+	const state = foldState(privateDataContents);
+	if (state.splitBbsKeypairs && state.splitBbsKeypairs.length > 0) {
+		const bbsKeypair = state.splitBbsKeypairs[0];
 		const blindingFactor = bls12_381.utils.randomSecretKey();
 		const publicKey = bls12_381.G1.Point.fromBytes(
 			importHolderPublicJwk({
@@ -1561,20 +1559,7 @@ async function addNewBbsKeypair(
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
 				[privateData, mainKey],
-				async (privateData: PrivateData) => {
-
-					const combinedKeypairs = {
-						...privateData.keypairs,
-						[kid]: keypair,
-					};
-
-					return {
-						...privateData,
-						keypairs: {
-							...combinedKeypairs
-						},
-					}
-				}
+				(privateData: PrivateData) => addNewKeypairEvent(privateData, kid, keypair),
 			),
 		};
 
@@ -1603,20 +1588,7 @@ async function addNewBbsKeypair(
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
 				[privateData, mainKey],
-				async (privateData: PrivateData) => {
-
-					const combinedKeypairs = {
-						...privateData.keypairs,
-						[kid]: keypair,
-					};
-
-					return {
-						...privateData,
-						keypairs: {
-							...combinedKeypairs
-						},
-					}
-				}
+				(privateData: PrivateData) => addNewKeypairEvent(privateData, kid, keypair),
 			),
 		};
 	}
@@ -1656,7 +1628,7 @@ export async function signJwtPresentation(
 
 	const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
 
-	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0]?.keypair;
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
@@ -1700,17 +1672,17 @@ export async function signJwtPresentation(
 }
 
 export async function signSplitBbs(
-	[privateData, mainKey]: [PrivateData, CryptoKey],
-	vcEntity: StorableCredential,
+	[_privateData, mainKey, state]: [PrivateData, CryptoKey, CurrentSchema.WalletState],
+	issuedJpt: string,
 	t2bar: PointG1,
 	c_host: bigint,
 	uiStateMachine: UiStateMachineFunction,
 ): Promise<BufferSource> {
-	console.log("signSplitBbs", vcEntity);
-	const credParts = vcEntity.credential.split('.');
+	console.log("signSplitBbs", issuedJpt);
+	const credParts = issuedJpt.split('.');
 	const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
 
-	const keypair = privateData.keypairs[dpkJwk.kid];
+	const keypair = state.keypairs.find(keypair => keypair.kid === dpkJwk.kid)?.keypair;
 	if (keypair) {
 		const bbs = getCipherSuite('BBS_BLS12381G1_XMD:SHA-256_SSWU_RO_');
 		if ("wrappedPrivateKey" in keypair) {
@@ -1882,9 +1854,13 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
+	if (!("wrappedPrivateKey" in keypair.keypair)) {
+		// TODO
+		throw new Error("Not implemented: generateDeviceResponse with external private key");
+	}
 	const { alg, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const privateKeyJwk = await toJwk(privateKey);
 
 	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
@@ -1924,9 +1900,13 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
+	if (!("wrappedPrivateKey" in keypair.keypair)) {
+		// TODO
+		throw new Error("Not implemented: generateDeviceResponseWithProximity with external private key");
+	}
 	const { alg, did, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const privateKeyJwk = await toJwk(privateKey);
 
 	const options = getCborEncodeDecodeOptions();
 	options.variableMapSize = true;
@@ -1947,7 +1927,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		try {
-			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
+			const key = parseCoseKeyWithKid(cbor.decodeFirstSync(generatedKey.publicKey));
 			const credentialId = new Uint8Array(credential.rawId);
 			switch (key.kty) {
 				case 2:
@@ -1973,6 +1953,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 					};
 
 				default:
+					// @ts-ignore
 					console.log(`Unsupported COSE key type: ${key.kty}`);
 					return null;
 			}

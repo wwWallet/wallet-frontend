@@ -3,12 +3,29 @@ import { compareBy, last, splitWhen } from "@/util";
 
 import * as SchemaV1 from "./WalletStateSchemaVersion1";
 import * as SchemaV2 from "./WalletStateSchemaVersion2";
-import * as CurrentSchema from "./WalletStateSchemaVersion2";
-import { WalletSessionEvent, WalletState, WalletStateContainer, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
+import * as SchemaV3 from "./WalletStateSchemaVersion3";
+import * as CurrentSchema from "./WalletStateSchemaVersion3";
+import { WalletSessionEvent, WalletState, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
+import { WalletStateUtils } from "./WalletStateUtils";
+import { CredentialKeyPair, WebauthnSignArkgPublicSeed, WebauthnSignSplitBbsKeypair } from "./keystore";
+import { JWK } from "jose";
 
 export * as SchemaV1 from "./WalletStateSchemaVersion1";
 export * as SchemaV2 from "./WalletStateSchemaVersion2";
-export * as CurrentSchema from "./WalletStateSchemaVersion2";
+export * as SchemaV3 from "./WalletStateSchemaVersion3";
+export * as CurrentSchema from "./WalletStateSchemaVersion3";
+
+
+const {
+	SCHEMA_VERSION,
+	WalletStateOperations: {
+		calculateEventHash,
+		validateEventHistoryContinuity,
+	},
+} = CurrentSchema;
+
+type WalletStateContainer = CurrentSchema.WalletStateContainer;
+type WalletStateSettings = CurrentSchema.WalletStateSettings;
 
 
 function getSchema(schemaVersion: number): WalletStateOperations<WalletState, WalletSessionEvent> {
@@ -17,26 +34,269 @@ function getSchema(schemaVersion: number): WalletStateOperations<WalletState, Wa
 			return SchemaV1.WalletStateOperations;
 		case 2:
 			return SchemaV2.WalletStateOperations;
+		case 3:
+			return SchemaV3.WalletStateOperations;
 
 		default:
 			throw new Error(`Unknown schema version: ${schemaVersion}`);
 	}
 }
 
+
+export async function createWalletSessionEvent(container: WalletStateContainer): Promise<{ schemaVersion: number, eventId: number, parentHash: string, timestampSeconds: number }> {
+	const baseEvent = {
+		schemaVersion: SCHEMA_VERSION,
+		eventId: WalletStateUtils.getRandomUint32(),
+		parentHash: container.events.length === 0
+			? container.lastEventHash
+			: await calculateEventHash(last(container.events)),
+		timestampSeconds: Math.floor(Date.now() / 1000),
+	};
+	return {
+		...baseEvent,
+	}
+}
+
+export async function addNewCredentialEvent(container: WalletStateContainer, data: string, format: string, kid: string, batchId: number = 0, credentialIssuerIdentifier: string = "", credentialConfigurationId = "", instanceId: number = 0, credentialId: number = WalletStateUtils.getRandomUint32()): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_credential",
+				credentialId: credentialId,
+				data,
+				format,
+				kid,
+				batchId,
+				credentialIssuerIdentifier,
+				credentialConfigurationId,
+				instanceId,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addDeleteCredentialEvent(container: WalletStateContainer, credentialId: number): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "delete_credential",
+				credentialId,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addNewKeypairEvent(container: WalletStateContainer, kid: string, keypair: CredentialKeyPair): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_keypair",
+				kid,
+				keypair,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addDeleteKeypairEvent(container: WalletStateContainer, kid: string): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "delete_keypair",
+				kid,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addNewPresentationEvent(container: WalletStateContainer, transactionId: number, data: string, usedCredentialIds: number[], presentationTimestampSeconds: number, audience: string): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_presentation",
+				presentationId: WalletStateUtils.getRandomUint32(),
+				transactionId: transactionId,
+				data,
+				usedCredentialIds,
+				presentationTimestampSeconds,
+				audience,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addDeletePresentationEvent(container: WalletStateContainer, presentationId: number): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "delete_presentation",
+				presentationId,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addAlterSettingsEvent(container: WalletStateContainer, settings: WalletStateSettings): Promise<WalletStateContainer> {
+	await validateEventHistoryContinuity(container);
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "alter_settings",
+				settings: settings,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addSaveCredentialIssuanceSessionEvent(container: WalletStateContainer,
+	sessionId: number,
+	credentialIssuerIdentifier: string,
+	state: string,
+	code_verifier: string,
+	credentialConfigurationId: string,
+	tokenResponse?: {
+		data: {
+			access_token: string,
+			expiration_timestamp: number,
+			c_nonce: string,
+			c_nonce_expiration_timestamp: number,
+			refresh_token?: string,
+		},
+		headers: {
+			"dpop-nonce"?: string,
+		}
+	},
+	dpop?: {
+		dpopJti: string,
+		dpopPrivateKeyJwk: JWK,
+		dpopPublicKeyJwk?: JWK,
+		dpopAlg: string,
+	},
+	firstPartyAuthorization?: {
+		auth_session: string,
+	},
+	created?: number
+): Promise<WalletStateContainer> {
+
+	await validateEventHistoryContinuity(container);
+
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "save_credential_issuance_session",
+				sessionId: sessionId,
+
+				credentialIssuerIdentifier,
+				state,
+				code_verifier,
+				credentialConfigurationId,
+				tokenResponse,
+				dpop,
+				firstPartyAuthorization,
+				created: created ?? Math.floor(Date.now() / 1000),
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addNewArkgSeedEvent(
+	container: WalletStateContainer,
+	arkgSeed: WebauthnSignArkgPublicSeed,
+): Promise<WalletStateContainer> {
+	return {
+		...container,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_arkg_seed",
+				arkgSeed,
+			}]
+	};
+}
+
+export async function addNewSplitBbsKeypairEvent(
+	container: WalletStateContainer,
+	splitBbsKeypair: WebauthnSignSplitBbsKeypair,
+): Promise<WalletStateContainer> {
+	return {
+		...container,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "new_split_bbs_keypair",
+				splitBbsKeypair,
+			}]
+	};
+}
+
 /**
  * Returns the container with the next event, if any, folded into the base
  * state. If the container has no events, it is returned unchanged.
  */
-export async function foldNextEvent<S extends WalletState, E extends WalletSessionEvent>(
-	container: WalletStateContainer<S, E>,
-): Promise<WalletStateContainer<S, E>> {
+export async function foldNextEvent(container: WalletStateContainer): Promise<WalletStateContainer> {
 	if (container.events.length > 0) {
 		const { S, events: [nextEvent, ...restEvents] } = container;
-		const schema = getSchema(nextEvent.schemaVersion);
 		return {
-			S: schema.walletStateReducer(S, nextEvent) as S,
+			S: CurrentSchema.WalletStateOperations.walletStateReducer(S, nextEvent),
 			events: restEvents,
-			lastEventHash: restEvents[0]?.parentHash ?? await schema.calculateEventHash(nextEvent),
+			lastEventHash: restEvents[0]?.parentHash ?? await CurrentSchema.WalletStateOperations.calculateEventHash(nextEvent),
 		};
 	} else {
 		return container;
@@ -46,10 +306,10 @@ export async function foldNextEvent<S extends WalletState, E extends WalletSessi
 /**
  * Returns the result of folding all event history into the base state.
  */
-export function foldState(container: WalletStateContainerGeneric): CurrentSchema.WalletState {
+export function foldState(container: WalletStateContainer): CurrentSchema.WalletState {
 	return CurrentSchema.WalletStateOperations.migrateState(
 		container.events.reduce(
-			(s, e) => getSchema(e.schemaVersion).walletStateReducer(s, e),
+			(s, e) => CurrentSchema.WalletStateOperations.walletStateReducer(s, e),
 			container.S,
 		));
 }
@@ -57,10 +317,10 @@ export function foldState(container: WalletStateContainerGeneric): CurrentSchema
 /**
  * Returns container with folded history for events older than `now - foldEventHistoryAfter`
  */
-export async function foldOldEventsIntoBaseState<S extends WalletState, E extends WalletSessionEvent>(
-	container: WalletStateContainer<S, E>,
+export async function foldOldEventsIntoBaseState(
+	container: WalletStateContainer,
 	foldEventHistoryAfter = FOLD_EVENT_HISTORY_AFTER_SECONDS,
-): Promise<WalletStateContainer<S, E>> {
+): Promise<WalletStateContainer> {
 	const now = Math.floor(Date.now() / 1000);
 	const foldBefore = now - foldEventHistoryAfter;
 	while (container.events.length > 0 && container.events[0].timestampSeconds <= foldBefore) {

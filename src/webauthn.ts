@@ -220,6 +220,18 @@ export function parseCoseKey(cose: cbor.Map): ParsedCOSEKeyEc2Public | ParsedCOS
 	}
 }
 
+export function parseCoseKeyWithKid(cose: cbor.Map): (ParsedCOSEKeyEc2Public | ParsedCOSEKeyArkgPubSeed) & { kid: any } {
+	const key = parseCoseKey(cose);
+	if (key.kid) {
+		return {
+			...key,
+			kid: key.kid,
+		};
+	} else {
+		throw new Error('Expected kid in COSE key', { cause: { key } });
+	}
+}
+
 export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 	const kty = cose.get(1);
 	switch (kty) {
