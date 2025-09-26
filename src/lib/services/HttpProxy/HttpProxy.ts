@@ -3,6 +3,8 @@ import axios from 'axios';
 import { IHttpProxy } from '../../interfaces/IHttpProxy';
 import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
+import { toU8 } from '@/util';
+
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
