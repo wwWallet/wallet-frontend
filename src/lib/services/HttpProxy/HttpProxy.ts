@@ -53,10 +53,7 @@ export function useHttpProxy(): IHttpProxy {
 						if (online === null || isFresh) {
 							if (isBinaryRequest && cachedData?.__binary) {
 								// RECONSTRUCT a fresh Blob URL from the stored bytes and type
-								const bytes = cachedData.bytes instanceof ArrayBuffer
-									? new Uint8Array(cachedData.bytes)
-									: Uint8Array.from(cachedData.bytes);
-								const blob = new Blob([bytes], { type: cachedData.contentType || 'application/octet-stream' });
+								const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
 								const blobUrl = URL.createObjectURL(blob);
 
 								return {
