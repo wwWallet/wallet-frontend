@@ -199,10 +199,15 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Προσθήκη κλειδιού πρόσβασης:",
+		"addPasskeyButton": "Προσθήκη κλειδιού πρόσβασης",
 		"addPasskeyTitle": "Κάντε κλικ για να προσθέσετε κλειδί πρόσβασης",
 		"appVersion": {
 			"descriptionLatestVersion": "Χρησιμοποιείτε την τελευταία έκδοση του $t(common.walletName) {{react_app_version}}",
 			"descriptionOldVersion": "Χρησιμοποιείτε την έκδοση του wwWallet {{react_app_version}}.<br/> <strong>Μια νέα έκδοση είναι διαθέσιμη.</strong> <reloadButton>Ανανεώστε</reloadButton> για ενημέρωση!"
+		},
+		"language": {
+			"description": "Ορίστε τη γλώσσα που προτιμάτε σε όλη την ιστοσελίδα του wwWallet.",
+			"title": "Γλώσσα"
 		},
 		"deleteAccount": {
 			"buttonText": "Διαγραφή του λογαριασμού σας",
@@ -216,7 +221,10 @@
 		"lockPasskeyManagement": "Κλείδωμα διαχείρισης κλειδιών πρόσβασης",
 		"lockPasskeyManagementTitle": "Κάντε κλικ για να κλειδώσετε τη διαχείριση κλειδιών πρόσβασης",
 		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
+		"noOtherPasskeysTitle": "Δεν έχετε άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
+		"noOtherPasskeysDescription": "Τα κλειδιά πρόσβασης είναι μια ασφαλής μέθοδος αυθεντικοποίησης από αξιόπιστα μέρη. Συνδέστε περισσότερα κλειδιά πρόσβασης σε περίπτωση που χάσετε ένα.",
 		"passkeyItem": {
+			"title": "Κλειδί πρόσβασης",
 			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
 			"canEncryptNo": "Όχι",
 			"canEncryptYes": "Ναι",
@@ -251,6 +259,7 @@
 			"successMessage": "Αποθηκεύτηκε"
 		},
 		"title": {
+			"preferences": "Προτιμήσεις",
 			"appVersion": "Έκδοση Εφαρμογής",
 			"confirmDeletePopup": "Είστε Σίγουροι;",
 			"language": "Γλώσσα",

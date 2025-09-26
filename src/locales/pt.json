@@ -193,10 +193,15 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Adicionar chave de acesso:",
+		"addPasskeyButton": "Adicionar chave de acesso",
 		"addPasskeyTitle": "Clique para adicionar chave de acesso",
 		"appVersion": {
 			"descriptionLatestVersion": "Está, neste momento, a usar a versão mais recente ({{react_app_version}}) da $t(common.walletName).",
 			"descriptionOldVersion": "Está, neste momento, a usar a versão {{react_app_version}} da wwWallet.<br/> <strong>Está disponível uma nova versão.</strong> Por favor, <reloadButton>recarregue</reloadButton> para atualizar!"
+		},
+		"language": {
+			"description": "Defina a sua linguagem preferida em todo o site wwWallet.",
+			"title": "Idioma"
 		},
 		"deleteAccount": {
 			"buttonText": "Elimine a sua conta",
@@ -210,7 +215,10 @@
 		"lockPasskeyManagement": "Bloquear gestão",
 		"lockPasskeyManagementTitle": "Clique para bloquear gestão de chaves de acesso",
 		"noOtherPasskeys": "Não há mais chaves de acesso nesta conta.",
+		"noOtherPasskeysTitle": "Não tem outras chaves de acesso nesta conta.",
+		"noOtherPasskeysDescription": "As chaves de acesso são um método de autenticação seguro por entidades confiáveis. Conecte mais chaves de acesso caso perca uma.",
 		"passkeyItem": {
+			"title": "Chave de acesso",
 			"canEncrypt": "Pode encriptar",
 			"canEncryptNo": "Não",
 			"canEncryptYes": "Sim",
@@ -245,6 +253,7 @@
 			"successMessage": "Guardado"
 		},
 		"title": {
+			"preferences": "Preferências",
 			"appVersion": "Versão da aplicação",
 			"confirmDeletePopup": "Tem a certeza?",
 			"language": "Idioma",

@@ -215,6 +215,7 @@
 	},
 	"pageSettings": {
 		"addPasskey": "Add passkey:",
+		"addPasskeyButton": "Add passkey",
 		"addPasskeyTitle": "Click to Add passkey",
 		"appVersion": {
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
@@ -230,6 +231,10 @@
 			},
 			"title": "Appearance"
 		},
+		"language": {
+			"description": "Set your preferred language across the wwWallet website.",
+			"title": "Language"
+		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",
@@ -242,7 +247,10 @@
 		"lockPasskeyManagement": "Lock passkey management",
 		"lockPasskeyManagementTitle": "Click to Lock passkey management",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
+		"noOtherPasskeysTitle": "You don’t have any other passkeys in this account.",
+		"noOtherPasskeysDescription": "Passkeys are a secure authentication method by trusted parties. Connect more passkeys in case you lose one.",
 		"passkeyItem": {
+			"title": "Passkey",
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
 			"canEncryptYes": "Yes",
@@ -277,6 +285,7 @@
 			"successMessage": "Saved"
 		},
 		"title": {
+			"preferences": "Preferences",
 			"appVersion": "App Version",
 			"confirmDeletePopup": "Are You Sure?",
 			"language": "Language",
