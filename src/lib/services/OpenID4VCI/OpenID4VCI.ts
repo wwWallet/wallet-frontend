@@ -262,9 +262,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			return;
 
 		},
-		[openID4VCIHelper, openID4VCIClientStateRepository, credentialRequestBuilder]
+		[openID4VCIHelper, openID4VCIClientStateRepository, credentialRequestBuilder, getCalculatedWalletState]
 	);
-	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
+	const getRememberIssuerAge = useCallback((): number | null => {
 		if (!getCalculatedWalletState) {
 			return null;
 		}
@@ -307,7 +307,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 
 				// if c_nonce and access_token are not expired
-				if (flowState.tokenResponse && Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.c_nonce_expiration_timestamp && Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.expiration_timestamp) {
+				if (flowState.tokenResponse &&
+						Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.c_nonce_expiration_timestamp &&
+						Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.expiration_timestamp &&
+						getRememberIssuerAge() !== null && Math.floor(Date.now() / 1000) - flowState.created < getRememberIssuerAge()) {
 					// attempt credential request
 					if (!flowState.dpop) {
 						throw new Error("Using active access token: No dpop in flowstate");
@@ -445,6 +448,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			openID4VCIHelper,
 			credentialRequest,
 			tokenRequestBuilder,
+			getCalculatedWalletState
 		]
 	);
 
@@ -602,7 +606,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				return {}
 			}
 		},
-		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials, api]
+		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials, api, getCalculatedWalletState]
 	);
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
@@ -621,7 +625,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		setTransactionId(null);
 		console.log("Transaction id set")
 		openID4VCIClientStateRepository.commitStateChanges();
-	}, [transactionId, getCalculatedWalletState, openID4VCIClientStateRepository]); // listen to changes of the wallet state
+	}, [transactionId, getCalculatedWalletState, openID4VCIClientStateRepository, getCalculatedWalletState]); // listen to changes of the wallet state
 
 	useEffect(() => {
 

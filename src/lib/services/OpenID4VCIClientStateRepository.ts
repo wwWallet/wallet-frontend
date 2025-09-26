@@ -14,6 +14,17 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	// key: sessionId
 	const sessions = useRef<Map<number, WalletStateCredentialIssuanceSession>>(null);
 
+	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
+		if (!getCalculatedWalletState) {
+			return null;
+		}
+		const S = getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		return parseInt(S.settings['openidRefreshTokenMaxAgeInSeconds']);
+	}, [getCalculatedWalletState]);
+
 	const loadSessions = useCallback(() => {
 		const S = getCalculatedWalletState();
 		if (!S) {
@@ -27,6 +38,32 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		}
 	}, [getCalculatedWalletState]);
 
+	const cleanupExpired = useCallback(async (): Promise<void> => {
+		loadSessions();
+		if (!sessions.current) {
+			return;
+		}
+		const rememberIssuerForSeconds = await getRememberIssuerAge();
+		console.log("Rememeber issuer for seconds = ", rememberIssuerForSeconds)
+
+		if (rememberIssuerForSeconds == null) {
+			return;
+		}
+		for (const res of Array.from(sessions.current.values())) {
+			if (res.created &&
+				typeof res.created === 'number' &&
+				Math.floor(Date.now() / 1000) > res.created + rememberIssuerForSeconds) {
+				sessions.current.delete(res.sessionId);
+			}
+		}
+		const now = Math.floor(new Date().getTime() / 1000);
+		for (const [k, v] of sessions.current) {
+			if (now - v.created > OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) {
+				sessions.current.delete(k);
+			}
+		}
+	}, [getRememberIssuerAge, loadSessions]);
+
 	const commitStateChanges = useCallback(async (): Promise<void> => {
 		const S = getCalculatedWalletState();
 		if (!S) {
@@ -35,22 +72,14 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (!sessions.current) {
 			return;
 		}
+		await cleanupExpired();
 		const [{ }, newPrivateData, keystoreCommit] = await saveCredentialIssuanceSessions(Array.from(sessions.current.values()));
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		console.log("CHANGES WRITTEN")
-	}, [getCalculatedWalletState, saveCredentialIssuanceSessions, api]);
+	}, [getCalculatedWalletState, saveCredentialIssuanceSessions, api, cleanupExpired]);
 
-	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
-		if (!getCalculatedWalletState) {
-			return null;
-		}
-		const S = getCalculatedWalletState();
-		if (!S) {
-			return null;
-		}
-		return parseInt(S.settings['openidRefreshTokenMaxAgeInSeconds']);
-	}, [getCalculatedWalletState]);
+
 
 	const getByCredentialIssuerIdentifierAndCredentialConfigurationId = useCallback(async (
 		credentialIssuer: string,
@@ -80,33 +109,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		[loadSessions]
 	);
 
-	const cleanupExpired = useCallback(async (): Promise<void> => {
-		loadSessions();
-		if (!sessions.current) {
-			return;
-		}
-		const rememberIssuerForSeconds = await getRememberIssuerAge();
-		console.log("Rememeber issuer for seconds = ", rememberIssuerForSeconds)
 
-		if (rememberIssuerForSeconds == null) {
-			return;
-		}
-		for (const res of Array.from(sessions.current.values())) {
-			console.log("Res i: ", res);
-			if (res.created &&
-				typeof res.created === 'number' &&
-				Math.floor(Date.now() / 1000) > res.created + rememberIssuerForSeconds) {
-				console.log("Removed session id = ", res.sessionId)
-				sessions.current.delete(res.sessionId);
-			}
-		}
-		const now = Math.floor(new Date().getTime() / 1000);
-		for (const [k, v] of sessions.current) {
-			if (now - v.created > OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) {
-				sessions.current.delete(k);
-			}
-		}
-	}, [getRememberIssuerAge, loadSessions]);
 
 	const create = useCallback(
 		async (state: WalletStateCredentialIssuanceSession): Promise<void> => {
