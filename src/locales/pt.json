@@ -43,7 +43,8 @@
 		"showMore": "Mostrar mais",
 		"submit": "Submeter",
 		"tryAgain": "Tentar novamente",
-		"walletName": "wwWallet"
+		"walletName": "wwWallet",
+		"close": "Fechar"
 	},
 	"expiredRibbon": {
 		"expired": "Expirada"
@@ -172,7 +173,20 @@
 		"slideButtonTitleDisable": "Sem credencial {{direction}} disponível",
 		"slideButtonTitleEnable": "Clique para ir para a credencial {{direction}}",
 		"slideNext": "Seguinte",
-		"slidePrevious": "Anterior"
+		"slidePrevious": "Anterior",
+		"presentations": "Apresentações",
+		"noPresentationsFound": "Não tem nenhum histórico para esta credencial.",
+		"presentationsDescription": "Esta credencial ainda não foi utilizada. Quando enviar esta credencial para um verificador, poderá ver o histórico aqui.",
+		"sendCredential": "Enviar credencial",
+		"deleteCredential": "Eliminar credencial",
+		"deleteWarning": "Uma vez que elimine a sua credencial, não há volta atrás. Por favor, tenha a certeza.",
+		"actions": {
+			"viewDataset": "Ver Dataset"
+		},
+		"dataset": {
+			"title": "Dataset",
+			"description": "Este é o dataset bruto desta credencial. Pode copiá-lo para a sua área de transferência e usá-lo em sua própria aplicação."
+		}
 	},
 	"pageHistory": {
 		"description": "Consulte o histórico de transmissões de credenciais, com informação sobre quando e para que verifiers elas foram enviadas.",
