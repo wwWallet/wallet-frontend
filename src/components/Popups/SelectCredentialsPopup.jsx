@@ -14,6 +14,23 @@ import { MdFactCheck } from "react-icons/md";
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
 
+const prettyDomain = (raw) => {
+	if (!raw) return '';
+	let value = raw.trim();
+
+	// Strip known prefixes
+	if (value.startsWith('origin:')) value = value.slice(7);
+	if (value.startsWith('x509_san_dns:')) value = value.slice(13);
+
+	// Try to reduce to hostname if it's a URL
+	try {
+		const url = new URL(value);
+		return url.host || value;
+	} catch {
+		return value;
+	}
+};
+
 const SelectableCredentialSlideCard = ({
 	vcEntity,
 	isActive,
@@ -308,15 +325,15 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</p>
 						<div className="flex flex-col gap-2">
 
-							{popupState.options.verifierDomainName && (
-								<p className="pd-2 text-gray-700 text-sm dark:text-white mb">
-									<span className="text-primary text-sm font-bold dark:text-white">
+							{popupState?.options?.verifierDomainName && (
+								<div className="flex flex-wrap gap-1 items-center text-gray-700 text-sm dark:text-white">
+									<span className="text-primary text-sm font-bold dark:text-white block">
 										{t('selectCredentialPopup.requestingParty')}
 									</span>
-									<span className="font-medium">
-										{popupState.options.verifierDomainName}
+									<span className="w-max font-semibold text-primary dark:text-white rounded border border-primary dark:border-white p-1 break-all block">
+										{prettyDomain(popupState.options.verifierDomainName)}
 									</span>
-								</p>
+								</div>
 							)}
 							{popupState.options.verifierPurpose && (() => {
 								const { text: truncatedText, truncated } = truncateByWords(popupState.options.verifierPurpose, 40);
