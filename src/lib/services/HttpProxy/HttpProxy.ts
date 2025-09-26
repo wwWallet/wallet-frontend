@@ -53,7 +53,10 @@ export function useHttpProxy(): IHttpProxy {
 						const isFresh = now < expiry;
 
 						if (online === null || isFresh) {
-							if (isBinaryRequest && cachedData?.__binary) {
+
+							if (isBinaryRequest && !cachedData?.__binary) {
+								// do nothing -> fall through to fetch
+							} else if (isBinaryRequest && cachedData?.__binary) {
 								// RECONSTRUCT a fresh Blob URL from the stored bytes and type
 								const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
 								const blobUrl = URL.createObjectURL(blob);
@@ -63,8 +66,9 @@ export function useHttpProxy(): IHttpProxy {
 									headers: cachedData.headers || {},
 									data: blobUrl,
 								};
+							} else {
+								return cachedData;
 							}
-							return cachedData;
 						}
 					}
 
