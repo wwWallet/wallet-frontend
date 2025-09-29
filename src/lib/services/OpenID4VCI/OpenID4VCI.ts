@@ -23,7 +23,7 @@ import { VerifiableCredentialFormat } from 'wallet-common/dist/types';
 import { DataItem, parse } from '@auth0/mdl';
 import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
 import { COSEKeyToJWK } from "cose-kit";
-
+import { notify } from "@/context/notifier";
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
@@ -169,6 +169,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						setCommitStateChanges((current) => current + 1);
 					}, 1000);
 					// display notification
+					notify("newCredential");
 				}
 			}
 			catch (err) {
