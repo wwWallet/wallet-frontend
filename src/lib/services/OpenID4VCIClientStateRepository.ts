@@ -36,6 +36,13 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 				sessions.current.set(session.sessionId, session);
 			});
 		}
+		else {
+			S.credentialIssuanceSessions.map((session) => {
+				if (!sessions.current.has(session.sessionId)) {
+					sessions.current.set(session.sessionId, session);
+				}
+			});
+		}
 	}, [getCalculatedWalletState]);
 
 	const cleanupExpired = useCallback(async (): Promise<number[]> => {

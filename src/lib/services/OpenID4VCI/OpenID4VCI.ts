@@ -6,7 +6,8 @@ import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState, useContext, useReducer, useLayoutEffect } from 'react';
+import { useLocation } from "react-router-dom";
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
@@ -29,6 +30,41 @@ const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];
 
 const textDecoder = new TextDecoder();
+
+export function useWriterQueue() {
+	const queueRef = useRef<Array<() => void>>([]);
+	const hasPendingRef = useRef(false);
+
+	const [, forceRender] = useReducer((x) => x + 1, 0);
+
+	const enqueue = (job: () => void) => {
+		queueRef.current.push(job);
+		hasPendingRef.current = true;
+	}
+
+	useLayoutEffect(() => {
+		if (!hasPendingRef.current) return;
+
+		const job = queueRef.current.shift();
+		hasPendingRef.current = false;
+
+		if (job) job();
+
+		if (queueRef.current.length > 0) {
+			hasPendingRef.current = true;
+			forceRender();
+		}
+	});
+
+	return {
+		enqueue,
+		hasPending: () => queueRef.current.length > 0,
+		clear: () => {
+			queueRef.current.length = 0;
+			hasPendingRef.current = false;
+		},
+	};
+}
 
 export const deriveHolderKidFromCredential = async (credential: string, format: string) => {
 	if (format === VerifiableCredentialFormat.VC_SDJWT || format === VerifiableCredentialFormat.DC_SDJWT) {
@@ -64,6 +100,12 @@ export const deriveHolderKidFromCredential = async (credential: string, format: 
 }
 
 export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }) => void }): IOpenID4VCI {
+	const { enqueue } = useWriterQueue();
+	const { search } = useLocation();
+	const params = new URLSearchParams(search);
+
+	const verificationFlowInProgress = () => params.has("request_uri") && params.has("client_id");
+	const issuanceFlowInProgress = () => params.has("code");
 
 	const httpProxy = useHttpProxy();
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
@@ -94,7 +136,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const [commitStateChanges, setCommitStateChanges] = useState<number>(0);
 
 	useEffect(() => {
-		if (!receivedCredentialsArray || !keystore) {
+		if (!receivedCredentialsArray || !keystore || verificationFlowInProgress()) {
 			return;
 		}
 		const temp = [...receivedCredentialsArray];
@@ -165,9 +207,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 					await api.updatePrivateData(privateData);
 					await keystoreCommit();
-					setTimeout(() => {
-						setCommitStateChanges(1);
-					}, 1000);
+					enqueue(() => setCommitStateChanges(1));
 					// display notification
 				}
 			}
@@ -249,6 +289,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					transactionId: credentialResponse.data.transaction_id
 				};
 				await openID4VCIClientStateRepository.updateState(flowState);
+				console.log("Flow state: ", flowState)
 				const s = await openID4VCIClientStateRepository.getByState(flowState.state);
 				setTransactionId(credentialResponse.data.transaction_id);
 
@@ -615,23 +656,24 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [generateAuthorizationRequest]);
 
 	useEffect(() => {
-		if (commitStateChanges === 1) {
+		if (commitStateChanges && openID4VCIClientStateRepository && !verificationFlowInProgress()) {
 			openID4VCIClientStateRepository.commitStateChanges();
+			setCommitStateChanges(0);
 		}
-	}, [commitStateChanges, setCommitStateChanges]);
+	}, [commitStateChanges, openID4VCIClientStateRepository, setCommitStateChanges]);
 
 	useEffect(() => {
-		if (!transactionId || !getCalculatedWalletState || !openID4VCIClientStateRepository) {
+		if (!transactionId || !getCalculatedWalletState || !openID4VCIClientStateRepository || verificationFlowInProgress()) {
 			return;
 		}
 		setTransactionId(null);
 		console.log("Transaction id set")
-		openID4VCIClientStateRepository.commitStateChanges();
-	}, [transactionId, getCalculatedWalletState, openID4VCIClientStateRepository, getCalculatedWalletState]); // listen to changes of the wallet state
+		enqueue(() => setCommitStateChanges(1));
+	}, [transactionId, getCalculatedWalletState, openID4VCIClientStateRepository, getCalculatedWalletState, enqueue]); // listen to changes of the wallet state
 
 	useEffect(() => {
 
-		if (!openID4VCIClientStateRepository || !api.isLoggedIn()) {
+		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress() || issuanceFlowInProgress()) {
 			return;
 		}
 		openID4VCIClientStateRepository.getAllStatesWithNonEmptyTransactionId().then(async (sessions) => {
@@ -736,19 +778,18 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			}
 			if (credsCollected.length > 0) {
-				setReceivedCredentialsArray(credsCollected);
+				enqueue(() => setReceivedCredentialsArray(credsCollected));
 			}
 			else if (stateUpdated) {
-				setCommitStateChanges(1);
+				enqueue(() => setCommitStateChanges(1));
 			}
 		})
 
-	}, [openID4VCIClientStateRepository, deferredCredentialRequestBuilder, tick, setCommitStateChanges])
+	}, [openID4VCIClientStateRepository, deferredCredentialRequestBuilder, tick, enqueue, commitStateChanges, receivedCredentialsArray, setReceivedCredentialsArray])
 
 	useEffect(() => {
 		setTimeout(() => {
 			setTick((current) => current + 1);
-			console.log(`Retrying in ${config.OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS}...`)
 		}, config.OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS * 1000);
 	}, [setTick, tick])
 
