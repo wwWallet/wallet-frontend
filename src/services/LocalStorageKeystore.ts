@@ -22,13 +22,18 @@ import type {
 } from "./keystore";
 import { MDoc } from "@auth0/mdl";
 import { WalletStateUtils } from "./WalletStateUtils";
-import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteKeypairEvent, addNewCredentialEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, foldOldEventsIntoBaseState } from "./WalletStateSchema";
+import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteCredentialIssuanceSessionEvent, addDeleteKeypairEvent, addNewCredentialEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, foldOldEventsIntoBaseState } from "./WalletStateSchema";
 import { PublicKeyCredentialCreation } from "../types/webauthn";
-import WebauthnInteractionDialogContext, { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
+import WebauthnInteractionDialogContext from "../context/WebauthnInteractionDialogContext";
 import { useTranslation } from "react-i18next";
-import { StorableCredential } from "@/lib/types/StorableCredential";
 import { PointG1 } from "wallet-common/dist/bbs/index";
 import { JWK } from "jose";
+
+type WalletState = CurrentSchema.WalletState;
+type WalletStatePresentation = CurrentSchema.WalletStatePresentation;
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
+type WalletStateCredential = CurrentSchema.WalletStateCredential;
+type WalletStateSettings = CurrentSchema.WalletStateSettings;
 
 
 type UserData = {
@@ -113,7 +118,7 @@ export interface LocalStorageKeystore {
 	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
-	getCalculatedWalletState(): CurrentSchema.WalletState | null,
+	getCalculatedWalletState(): WalletState | null,
 	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
@@ -124,20 +129,20 @@ export interface LocalStorageKeystore {
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getAllCredentials(): Promise<CurrentSchema.WalletStateCredential[] | null>,
+	getAllCredentials(): Promise<WalletStateCredential[] | null>,
 	addPresentations(presentations: { transactionId: number, data: string, usedCredentialIds: number[], audience: string, }[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getAllPresentations(): Promise<CurrentSchema.WalletStatePresentation[] | null>,
-	saveCredentialIssuanceSessions(issuanceSessions: CurrentSchema.WalletStateCredentialIssuanceSession[]): Promise<[
+	getAllPresentations(): Promise<WalletStatePresentation[] | null>,
+	saveCredentialIssuanceSessions(newIssuanceSessions: WalletStateCredentialIssuanceSession[], deletedSessions: number[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
 	]>,
-	getCredentialIssuanceSessionByState(state: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null>,
-	alterSettings(settings: CurrentSchema.WalletStateSettings): Promise<[
+	getCredentialIssuanceSessionByState(state: string): Promise<WalletStateCredentialIssuanceSession | null>,
+	alterSettings(settings: WalletStateSettings): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -157,7 +162,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const [tabId, setTabId, clearTabId] = useSessionStorage<string | null>("tabId", null);
 
 	const [mainKey, setMainKey, clearMainKey] = useSessionStorage<BufferSource | null>("mainKey", null);
-	const [calculatedWalletState, setCalculatedWalletState] = useState<CurrentSchema.WalletState | null>(null);
+	const [calculatedWalletState, setCalculatedWalletState] = useState<WalletState | null>(null);
 	const clearSessionStorage = useClearStorages(clearUserHandleB64u, clearMainKey, clearTabId);
 
 	const navigate = useNavigate();
@@ -284,7 +289,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		checkPrivateData();
 	}, [closeSessionTabLocal, globalUserHandleB64u]);
 
-	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, CurrentSchema.WalletState]> => {
+	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletState]> => {
 		if (mainKey && privateData) {
 			try {
 				return await keystore.openPrivateData(mainKey, privateData);
@@ -831,7 +836,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[editPrivateData]
 	);
 
-	const getCalculatedWalletState = useCallback((): CurrentSchema.WalletState | null => {
+	const getCalculatedWalletState = useCallback((): WalletState | null => {
 		return (calculatedWalletState);
 	}, [calculatedWalletState]);
 
@@ -854,7 +859,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [editPrivateData, openPrivateData])
 
 
-	const getAllCredentials = useCallback(async (): Promise<CurrentSchema.WalletStateCredential[] | null> => {
+	const getAllCredentials = useCallback(async (): Promise<WalletStateCredential[] | null> => {
 		return calculatedWalletState ? calculatedWalletState.credentials : null;
 	}, [calculatedWalletState]);
 
@@ -908,12 +913,12 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return [{}, newContainer];
 		})
 	}, [editPrivateData, openPrivateData])
-	const getAllPresentations = useCallback(async (): Promise<CurrentSchema.WalletStatePresentation[] | null> => {
+	const getAllPresentations = useCallback(async (): Promise<WalletStatePresentation[] | null> => {
 		return calculatedWalletState ? calculatedWalletState.presentations : null;
 	}, [calculatedWalletState]);
 
 
-	const saveCredentialIssuanceSessions = useCallback(async (issuanceSessions: CurrentSchema.WalletStateCredentialIssuanceSession[]): Promise<[
+	const saveCredentialIssuanceSessions = useCallback(async (newIssuanceSessions: WalletStateCredentialIssuanceSession[], deletedSessions: number[] = []): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -921,7 +926,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await foldOldEventsIntoBaseState(walletStateContainer);
 
-		for (const issuanceSession of issuanceSessions) {
+		for (const issuanceSession of newIssuanceSessions) {
 			walletStateContainer = await addSaveCredentialIssuanceSessionEvent(walletStateContainer,
 				issuanceSession.sessionId,
 				issuanceSession.credentialIssuerIdentifier,
@@ -935,6 +940,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				issuanceSession.created,
 			);
 		}
+		for (const sessionId of deletedSessions) {
+			walletStateContainer = await addDeleteCredentialIssuanceSessionEvent(walletStateContainer, sessionId);
+		}
 
 		return editPrivateData(async (originalContainer) => {
 			const { newContainer } = await keystore.updateWalletState(originalContainer, walletStateContainer);
@@ -942,11 +950,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		});
 	}, [editPrivateData, openPrivateData]);
 
-	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null> => {
-		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: CurrentSchema.WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
+	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
+		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
 	}, [editPrivateData, openPrivateData]);
 
-	const alterSettings = useCallback(async (settings: CurrentSchema.WalletStateSettings): Promise<[
+	const alterSettings = useCallback(async (settings: WalletStateSettings): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,

@@ -8,6 +8,6 @@ export interface IOpenID4VCIClientStateRepository {
 	create(s: WalletStateCredentialIssuanceSession): Promise<void>;
 	updateState(s: WalletStateCredentialIssuanceSession): Promise<void>;
 	getAllStatesWithNonEmptyTransactionId(): Promise<WalletStateCredentialIssuanceSession[]>;
-	cleanupExpired(): Promise<void>;
+	cleanupExpired(): Promise<number[]>;
 	commitStateChanges(): Promise<void>;
 }
