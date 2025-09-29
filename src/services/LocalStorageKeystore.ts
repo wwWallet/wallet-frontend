@@ -108,7 +108,7 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 	getAllPresentations(): Promise<WalletStatePresentation[] | null>,
-	saveCredentialIssuanceSessions(issuanceSessions: WalletStateCredentialIssuanceSession[]): Promise<[
+	saveCredentialIssuanceSessions(newIssuanceSessions: WalletStateCredentialIssuanceSession[], deletedSessions: number[]): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -707,7 +707,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [calculatedWalletState]);
 
 
-	const saveCredentialIssuanceSessions = useCallback(async (issuanceSessions: WalletStateCredentialIssuanceSession[]): Promise<[
+	const saveCredentialIssuanceSessions = useCallback(async (newIssuanceSessions: WalletStateCredentialIssuanceSession[], deletedSessions: number[] = []): Promise<[
 		{},
 		AsymmetricEncryptedContainer,
 		CommitCallback,
@@ -715,7 +715,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		let [walletStateContainer, ,] = await openPrivateData();
 		walletStateContainer = await WalletStateOperations.foldOldEventsIntoBaseState(walletStateContainer);
 
-		for (const issuanceSession of issuanceSessions) {
+		for (const issuanceSession of newIssuanceSessions) {
 			walletStateContainer = await WalletStateOperations.addSaveCredentialIssuanceSessionEvent(walletStateContainer,
 				issuanceSession.sessionId,
 				issuanceSession.credentialIssuerIdentifier,
@@ -728,6 +728,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				issuanceSession.credentialEndpoint,
 				issuanceSession.created,
 			);
+		}
+		for (const sessionId of deletedSessions) {
+			walletStateContainer = await WalletStateOperations.addDeleteCredentialIssuanceSessionEvent(walletStateContainer, sessionId);
 		}
 
 		return editPrivateData(async (originalContainer) => {
