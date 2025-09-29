@@ -14,6 +14,7 @@ export function useCredentialRequest() {
 	const { keystore, api } = useContext(SessionContext);
 
 	const credentialEndpointURLRef = useRef<string | null>(null);
+	const deferredCredentialEndpointURLRef = useRef<string | null>(null);
 	const accessTokenRef = useRef<string | null>(null);
 	const cNonceRef = useRef<string | null>(null);
 	const dpopNonceRef = useRef<string | null>(null);
@@ -54,9 +55,16 @@ export function useCredentialRequest() {
 		'Content-Type': 'application/json',
 	}), []);
 
-	const setCredentialEndpoint = useCallback((endpoint: string) => {
+	const setCredentialEndpoint = useCallback((endpoint: string | null) => {
+		deferredCredentialEndpointURLRef.current = null;
 		credentialEndpointURLRef.current = endpoint;
 	}, []);
+
+	const setDeferredCredentialEndpoint = useCallback((endpoint: string | null) => {
+		credentialEndpointURLRef.current = null;
+		deferredCredentialEndpointURLRef.current = endpoint;
+	}, []);
+
 
 	const setCNonce = useCallback((cNonce: string) => {
 		cNonceRef.current = cNonce;
@@ -88,7 +96,7 @@ export function useCredentialRequest() {
 	}, []);
 
 	const setDpopHeader = useCallback(async () => {
-		const credentialEndpointURL = credentialEndpointURLRef.current;
+		const credentialEndpointURL = credentialEndpointURLRef.current ?? deferredCredentialEndpointURLRef.current;
 		const dpopPublicKeyJwk = dpopPublicKeyJwkRef.current;
 		if (!dpopPublicKeyJwk) {
 			return;
@@ -123,6 +131,18 @@ export function useCredentialRequest() {
 		credentialIssuerIdentifierRef.current = id;
 	}, []);
 
+	const executeDeferredFetch = useCallback(async (transactionId: string): Promise<{ credentialResponse: any }> => {
+		try {
+			const credentialResponse = await httpProxy.post(deferredCredentialEndpointURLRef.current, { transaction_id: transactionId }, httpHeaders);
+			return { credentialResponse };
+		}
+		catch (err) {
+			console.error(err);
+			throw new Error("Deferred Credential Request failed");
+		}
+
+	}, [httpProxy]);
+
 	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jpt" | "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
@@ -133,7 +153,7 @@ export function useCredentialRequest() {
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
 
-		const credentialEndpointBody = { } as any;
+		const credentialEndpointBody = {} as any;
 		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size && credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE ?
 			OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE :
 			credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
@@ -290,6 +310,7 @@ export function useCredentialRequest() {
 
 	return useMemo(() => ({
 		setCredentialEndpoint,
+		setDeferredCredentialEndpoint,
 		setCNonce,
 		setAccessToken,
 		setDpopNonce,
@@ -299,9 +320,11 @@ export function useCredentialRequest() {
 		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
+		executeDeferredFetch,
 		execute,
 	}), [
 		setCredentialEndpoint,
+		setDeferredCredentialEndpoint,
 		setCNonce,
 		setAccessToken,
 		setDpopNonce,
@@ -311,6 +334,7 @@ export function useCredentialRequest() {
 		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
+		executeDeferredFetch,
 		execute,
 	]);
 }

@@ -931,7 +931,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				issuanceSession.tokenResponse,
 				issuanceSession.dpop,
 				issuanceSession.firstPartyAuthorization,
-				issuanceSession.created
+				issuanceSession.credentialEndpoint,
+				issuanceSession.created,
 			);
 		}
 

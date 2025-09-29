@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
 				strategies: 'injectManifest', // Uses `src/service-worker.js` for caching
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
-					maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+					maximumFileSizeToCacheInBytes: env.VITE_GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
 				},
 			}),
 
@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			sourcemap: env.VITE_GENERATE_SOURCEMAP === 'true',
+			minify: env.VITE_GENERATE_SOURCEMAP !== 'true',
 			rollupOptions: {
 				output: {
 					manualChunks: {

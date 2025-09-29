@@ -224,6 +224,9 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 	firstPartyAuthorization?: {
 		auth_session: string,
 	},
+	credentialEndpoint?: {
+		transactionId?: string,
+	},
 	created?: number
 ): Promise<WalletStateContainer> {
 
@@ -245,6 +248,7 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 				tokenResponse,
 				dpop,
 				firstPartyAuthorization,
+				credentialEndpoint,
 				created: created ?? Math.floor(Date.now() / 1000),
 			},
 		],
