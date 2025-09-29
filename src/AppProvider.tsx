@@ -6,6 +6,8 @@ import { CredentialsContextProvider } from './context/CredentialsContextProvider
 import { OpenID4VPContextProvider } from './context/OpenID4VPContextProvider';
 import { OpenID4VCIContextProvider } from './context/OpenID4VCIContextProvider';
 import { AppSettingsProvider } from './context/AppSettingsProvider';
+import { NotificationProvider } from './context/NotificationProvider';
+
 import UriHandler from './hocs/UriHandler';
 
 type RootProviderProps = {
@@ -21,7 +23,9 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 						<OpenID4VCIContextProvider>
 							<UriHandler>
 								<AppSettingsProvider>
-									{children}
+									<NotificationProvider>
+										{children}
+									</NotificationProvider>
 								</AppSettingsProvider>
 							</UriHandler>
 						</OpenID4VCIContextProvider>
