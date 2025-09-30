@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from 'react-i18next';
 import { AiOutlineClose } from "react-icons/ai";
 import NotificationContext, { NotificationType, NotifyPayload } from "./NotificationContext";
 import { setNotify } from "./notifier";
@@ -14,20 +15,13 @@ type NotificationItem = {
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 
-const DEFAULTS: Record<NotificationType, Required<Omit<NotificationItem, "id" | "type">>> = {
-	success: {
-		title: "Success",
-		message: "The operation completed successfully.",
-		duration: 4000,
-	},
-	newCredential: {
-		title: "New credential",
-		message: "A new credential has arrived.",
-		duration: 4000,
-	},
+const DEFAULTS: Record<NotificationType, { duration: number }> = {
+	success: { duration: 4000 },
+	newCredential: { duration: 4000 },
 };
 
 export const NotificationProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+	const { t } = useTranslation();
 	const [items, setItems] = useState<NotificationItem[]>([]);
 	const timersRef = useRef<Record<string, number>>({});
 	const MAX_STACK = 5;
@@ -53,8 +47,8 @@ export const NotificationProvider: React.FC<React.PropsWithChildren> = ({ childr
 			const id = uid();
 			const d = DEFAULTS[type];
 
-			const title = payload?.title ?? d.title;
-			const message = payload?.message ?? d.message;
+			const title = payload?.title ?? t(`notifications.${type}.title`);
+			const message = payload?.message ?? t(`notifications.${type}.message`);
 			const duration = payload?.duration ?? d.duration;
 
 			setItems((prev) => [{ id, type, title, message, duration }, ...prev].slice(0, MAX_STACK));

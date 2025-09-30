@@ -156,6 +156,16 @@
 		"message": "Sorry, the page you're looking for cannot be accessed",
 		"title": "Oops, page not found!"
 	},
+	"notifications": {
+		"newCredential": {
+			"message": "A new credential has arrived.",
+			"title": "New credential"
+		},
+		"success": {
+			"message": "The operation completed successfully.",
+			"title": "Success"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
