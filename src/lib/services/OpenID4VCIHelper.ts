@@ -104,15 +104,12 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 						if (parsedHeader.x5c) {
 							const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
 							const { payload } = await jwtVerify(metadata.signed_metadata, publicKey);
-							console.log('getCredentialIssuerMetadata return', { metadata: payload });
 							return { metadata: payload as OpenidCredentialIssuerMetadata };
 						}
-						console.log('getCredentialIssuerMetadata return null 1');
 						return null;
 					}
 					catch (err) {
 						console.error(err);
-						console.log('getCredentialIssuerMetadata return null 2', err);
 						return null;
 					}
 				}
@@ -120,7 +117,6 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			}
 			catch (err) {
 				console.error(err);
-				console.log('getCredentialIssuerMetadata return null 3', err);
 				return null;
 			}
 		},
