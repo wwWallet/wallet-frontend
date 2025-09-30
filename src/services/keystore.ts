@@ -1554,7 +1554,6 @@ async function addNewBbsKeypair(
 			},
 		};
 
-		console.log("addNewBbsKeypair: Before update private data")
 		return {
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
@@ -1583,7 +1582,6 @@ async function addNewBbsKeypair(
 			wrappedPrivateKey,
 		};
 
-		console.log("addNewBbsKeypair: Before update private data")
 		return {
 			publicJwk: publicKeyWithKid,
 			newPrivateData: await updatePrivateData(
@@ -1678,7 +1676,6 @@ export async function signSplitBbs(
 	c_host: bigint,
 	uiStateMachine: UiStateMachineFunction,
 ): Promise<BufferSource> {
-	console.log("signSplitBbs", issuedJpt);
 	const credParts = issuedJpt.split('.');
 	const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
 
