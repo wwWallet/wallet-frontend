@@ -158,7 +158,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const getWithLocalDbKey = useCallback(async (
 		path: string,
 		dbKey: string,
-		options?: { appToken?: string },
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 		forceIndexDB: boolean = false
 	): Promise<AxiosResponse> => {
 		console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
@@ -180,7 +180,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		const respBackend = await axios.get(
 			`${walletBackendUrl}${path}`,
 			{
-				headers: buildGetHeaders({}, { appToken: options?.appToken }),
+				headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
 				transformResponse,
 			},
 		);
@@ -193,14 +193,14 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const get = useCallback(async (
 		path: string,
 		userUuid?: string,
-		options?: { appToken?: string }
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 	): Promise<AxiosResponse> => {
 		return getWithLocalDbKey(path, sessionState?.uuid || userUuid, options);
 	}, [getWithLocalDbKey, sessionState?.uuid]);
 
 	const getExternalEntity = useCallback(async (
 		path: string,
-		options?: { appToken?: string },
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 		force: boolean = false
 	): Promise<AxiosResponse> => {
 		return getWithLocalDbKey(path, path, options, force);
@@ -225,7 +225,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const post = useCallback(async (
 		path: string,
 		body: object,
-		options?: { appToken?: string }
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 	): Promise<AxiosResponse> => {
 		try {
 			return await axios.post(
@@ -234,7 +234,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				{
 					headers: {
 						'Content-Type': 'application/json',
-						...buildMutationHeaders({}, { appToken: options?.appToken }),
+						...buildMutationHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
 					},
 					transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
 					transformResponse,
@@ -250,13 +250,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 	const del = useCallback((
 		path: string,
-		options?: { appToken?: string }
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 	): Promise<AxiosResponse> => {
 		try {
 			return axios.delete(
 				`${walletBackendUrl}${path}`,
 				{
-					headers: buildMutationHeaders({}, { appToken: options?.appToken }),
+					headers: buildMutationHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
 					transformResponse,
 				});
 		} catch (e) {
