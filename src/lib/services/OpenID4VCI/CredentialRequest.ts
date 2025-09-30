@@ -168,9 +168,7 @@ export function useCredentialRequest() {
 
 		try {
 			if (proofType === "jpt") {
-				console.log("before generateBbsKeypair");
 				const [{ publicJwk }, newPrivateData, keystoreCommit] = await keystore.generateBbsKeypair();
-				console.log("after generateBbsKeypair", publicJwk);
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 
