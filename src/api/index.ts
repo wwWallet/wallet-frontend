@@ -181,6 +181,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			`${walletBackendUrl}${path}`,
 			{
 				headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
+				validateStatus: status => (status >= 200 && status < 300) || status === 304,
 				transformResponse,
 			},
 		);
