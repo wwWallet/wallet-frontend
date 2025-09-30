@@ -672,7 +672,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const signSplitBbs = useCallback(
 		async (issuedJpt: string, t2bar: PointG1, c_host: bigint): Promise<BufferSource> => {
-			console.log("signSplitBbs", issuedJpt, t2bar, c_host);
 			const moveUiStateMachine = webauthnInteractionCtx.setup(
 				t("Sign credential presentation"),
 				state => {
