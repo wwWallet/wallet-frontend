@@ -195,7 +195,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	const requestedFields = requested?.fields ?? null;
 	const requestedDisplay = requested?.display ?? undefined;
 
-	const signedClaims = parsedCredential?.signedClaims;
+	const signedClaims = parsedCredential?.signedClaims ?? parsedCredential?.signedJptClaims?.simple;
 	const claims = parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
 
 	// Define custom claims to display from signedClaims if claims is missing
