@@ -1,4 +1,4 @@
-// RootProvider.tsx
+// AppProvider.tsx
 import React, { ReactNode } from 'react';
 import { StatusContextProvider } from './context/StatusContextProvider';
 import { SessionContextProvider } from './context/SessionContextProvider';
@@ -7,6 +7,7 @@ import { OpenID4VPContextProvider } from './context/OpenID4VPContextProvider';
 import { OpenID4VCIContextProvider } from './context/OpenID4VCIContextProvider';
 import { AppSettingsProvider } from './context/AppSettingsProvider';
 import { NotificationProvider } from './context/NotificationProvider';
+import { NativeWrapperProvider } from './context/NativeWrapper';
 
 import UriHandler from './hocs/UriHandler';
 
@@ -24,7 +25,9 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 							<UriHandler>
 								<AppSettingsProvider>
 									<NotificationProvider>
-										{children}
+										<NativeWrapperProvider>
+											{children}
+										</NativeWrapperProvider>
 									</NotificationProvider>
 								</AppSettingsProvider>
 							</UriHandler>

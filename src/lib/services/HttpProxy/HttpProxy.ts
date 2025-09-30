@@ -3,10 +3,12 @@ import axios from 'axios';
 import { IHttpProxy } from '../../interfaces/IHttpProxy';
 import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
+import { toU8 } from '@/util';
+
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
-const TIMEOUT = 100*1000;
+const TIMEOUT = 100 * 1000;
 
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
@@ -51,7 +53,22 @@ export function useHttpProxy(): IHttpProxy {
 						const isFresh = now < expiry;
 
 						if (online === null || isFresh) {
-							return cachedData;
+
+							if (isBinaryRequest && !cachedData?.__binary) {
+								// do nothing -> fall through to fetch
+							} else if (isBinaryRequest && cachedData?.__binary) {
+								// RECONSTRUCT a fresh Blob URL from the stored bytes and type
+								const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
+								const blobUrl = URL.createObjectURL(blob);
+
+								return {
+									status: cachedData.status || 200,
+									headers: cachedData.headers || {},
+									data: blobUrl,
+								};
+							} else {
+								return cachedData;
+							}
 						}
 					}
 
@@ -132,7 +149,13 @@ export function useHttpProxy(): IHttpProxy {
 
 						if (shouldCache) {
 							await addItem('proxyCache', cacheKey, {
-								data: responseToCache,
+								data: {
+									__binary: true,
+									status: response.status,
+									headers: sourceHeaders,
+									contentType: contentTypeHeader,
+									bytes: arrayBuffer,
+								},
 								expiry: now + maxAge,
 							}, 'proxyCache');
 						}

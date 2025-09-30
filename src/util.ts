@@ -1,4 +1,4 @@
-function toU8(b: BufferSource) {
+export function toU8(b: BufferSource) {
 	if (b instanceof ArrayBuffer) {
 		return new Uint8Array(b);
 	} else {
