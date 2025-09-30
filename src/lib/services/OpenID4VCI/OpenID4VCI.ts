@@ -562,11 +562,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw new Error("Only authorization_code grant is supported");
 			}
 
-			console.log("offer:", offer);
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
 			]);
-			console.log("credentialIssuerMetadata:", credentialIssuerMetadata);
 
 			const selectedConfigurationId = offer.credential_configuration_ids[0];
 			const selectedConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[selectedConfigurationId];
