@@ -134,16 +134,23 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		return resp;
 	}, [setPrivateDataEtag]);
 
-	const buildGetHeaders = useCallback((headers: { appToken?: string }): { [header: string]: string } => {
-		const authz = headers?.appToken || appToken;
+	const buildGetHeaders = useCallback((
+		headers: { [header: string]: string },
+		options: { appToken?: string },
+	): { [header: string]: string } => {
+		const authz = options?.appToken || appToken;
 		return {
+			...headers,
 			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
 		};
 	}, [appToken]);
 
-	const buildMutationHeaders = useCallback((headers: { appToken?: string }): { [header: string]: string } => {
+	const buildMutationHeaders = useCallback((
+		headers: { [header: string]: string },
+		options: { appToken?: string },
+	): { [header: string]: string } => {
 		return {
-			...buildGetHeaders(headers),
+			...buildGetHeaders(headers, options),
 			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
 		};
 	}, [buildGetHeaders, privateDataEtag]);
@@ -173,7 +180,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		const respBackend = await axios.get(
 			`${walletBackendUrl}${path}`,
 			{
-				headers: buildGetHeaders({ appToken: options?.appToken }),
+				headers: buildGetHeaders({}, { appToken: options?.appToken }),
 				transformResponse,
 			},
 		);
@@ -227,7 +234,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				{
 					headers: {
 						'Content-Type': 'application/json',
-						...buildMutationHeaders({ appToken: options?.appToken }),
+						...buildMutationHeaders({}, { appToken: options?.appToken }),
 					},
 					transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
 					transformResponse,
@@ -249,7 +256,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			return axios.delete(
 				`${walletBackendUrl}${path}`,
 				{
-					headers: buildMutationHeaders({ appToken: options?.appToken }),
+					headers: buildMutationHeaders({}, { appToken: options?.appToken }),
 					transformResponse,
 				});
 		} catch (e) {
