@@ -192,10 +192,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 	const get = useCallback(async (
 		path: string,
-		userUuid?: string,
-		options?: { appToken?: string, headers?: { [header: string]: string } },
+		options?: {
+			appToken?: string,
+			headers?: { [header: string]: string },
+			userUuid?: string,
+		},
 	): Promise<AxiosResponse> => {
-		return getWithLocalDbKey(path, sessionState?.uuid || userUuid, options);
+		return getWithLocalDbKey(path, sessionState?.uuid || options?.userUuid, options);
 	}, [getWithLocalDbKey, sessionState?.uuid]);
 
 	const getExternalEntity = useCallback(async (
@@ -213,7 +216,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		try {
 			// get('/storage/vc') on home page ('/')
 			// get('/storage/vp') on home page ('/')
-			await get('/user/session/account-info', userUuid, { appToken });
+			await get('/user/session/account-info', { appToken, userUuid });
 			await getExternalEntity('/verifier/all', { appToken }, false);
 			// getExternalEntity('/issuer/all') on credentialContext
 			// getCredentialIssuerMetadata() on credentialContext
