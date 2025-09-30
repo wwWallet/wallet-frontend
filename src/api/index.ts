@@ -458,8 +458,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	>> => {
 
 		try {
-			const getPrivateDataResponse = await get('/user/session/private-data');
-			if (privateDataEtag && getPrivateDataResponse.headers['x-private-data-etag'] && getPrivateDataResponse.headers['x-private-data-etag'] === privateDataEtag) {
+			const getPrivateDataResponse = await get('/user/session/private-data', { headers: { 'If-None-Match': privateDataEtag } });
+			if (getPrivateDataResponse.status === 304) {
 				return Ok.EMPTY; // already synced
 			}
 			const queryParams = new URLSearchParams(window.location.search);
