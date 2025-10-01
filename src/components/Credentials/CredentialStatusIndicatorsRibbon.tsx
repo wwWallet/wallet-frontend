@@ -21,7 +21,7 @@ function getPrivacyLevel(keypair: CredentialKeyPair, instances: Instance[]): Pri
   return 'low';
 };
 
-const CredentialType = ({ type }: { type: Type }) => {
+const CredentialType = memo(({ type }: { type: Type }) => {
 	let Icon: ReactElement;
 
 	switch (type) {
@@ -38,9 +38,9 @@ const CredentialType = ({ type }: { type: Type }) => {
 			{Icon}
 		</span>
 	)
-}
+})
 
-const CredentialPrivacyLevel = ({ level }: { level: PrivacyLevel }) => {
+const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 	const icons: Record<PrivacyLevel, ReactElement> = {
 		high: <IoShield size={16} />,
 		medium: <IoShieldHalf size={16} />,
@@ -52,7 +52,7 @@ const CredentialPrivacyLevel = ({ level }: { level: PrivacyLevel }) => {
 			{icons[level]}
 		</span>
 	)
-}
+})
 
 const CredentialUsages = memo(({ count }: { count: number }) => {
 	let Icon: ReactElement;
