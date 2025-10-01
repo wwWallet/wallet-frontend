@@ -22,20 +22,14 @@ function getPrivacyLevel(keypair: CredentialKeyPair, instances: Instance[]): Pri
 };
 
 const CredentialType = memo(({ type }: { type: Type }) => {
-	let Icon: ReactElement;
-
-	switch (type) {
-		case 'hw-bound':
-			Icon = <TbDeviceUsb size={18} />;
-			break;
-		case 'synced':
-			Icon = <MdOutlineSync size={18} />;
-			break;
-	}
+	const icons: Record<Type, ReactElement> = {
+		'hw-bound': <TbDeviceUsb size={18} />,
+		'synced': <MdOutlineSync size={18} />,
+	};
 
 	return (
 		<span>
-			{Icon}
+			{icons[type]}
 		</span>
 	)
 })
