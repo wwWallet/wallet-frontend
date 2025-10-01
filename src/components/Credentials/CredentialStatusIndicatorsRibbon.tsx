@@ -51,21 +51,25 @@ const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 const CredentialUsages = memo(({ count }: { count: number }) => {
 	let Icon: ReactElement;
 	let color: string;
+	let message: string | undefined;
 
 	if (count > 3) {
 		Icon = <TbVersions size={18} />;
 		color = 'text-green-500';
+		message = String(count);
 	} else if (count <= 3 && count > 0) {
 		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
 		color = 'text-yellow-500';
+		message = `${String(count)} (exp. soon)`;
 	} else {
 		Icon = <FaCircleXmark size={16} className="ml-[2px]" />;
 		color = 'text-red-500';
+		message = 'Expired'
 	}
 
 	return (
 		<span className={`flex gap-1 items-center ${color}`}>
-			{Icon} {count}
+			{Icon} {message}
 		</span>
 	)
 });
