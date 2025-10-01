@@ -599,7 +599,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	]> => (
 		await editPrivateData(async (originalContainer) => {
 			const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
-			const [{ proof_jwts }, newContainer] = await keystore.generateOpenid4vciProofs(
+			return await keystore.generateOpenid4vciProofs(
 				originalContainer,
 				config.DID_KEY_VERSION,
 				nonce,
@@ -607,7 +607,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				issuer,
 				requests.length
 			);
-			return [{ proof_jwts }, newContainer];
 		})
 	), [editPrivateData]);
 
@@ -618,12 +617,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			CommitCallback,
 		]> => (
 			await editPrivateData(async (originalContainer) => {
-				const [{ keypairs }, newContainer] = await keystore.generateKeypairs(
+				return await keystore.generateKeypairs(
 					originalContainer,
 					config.DID_KEY_VERSION,
 					n
 				);
-				return [{ keypairs }, newContainer];
 			})
 		),
 		[editPrivateData]
