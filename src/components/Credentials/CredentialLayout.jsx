@@ -70,14 +70,14 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 
 	const CredentialImageButton = ({
 		showRibbon,
-		className = "w-full object-cover",
+		className = "w-full object-cover rounded-xl",
 		onClick = () => setShowFullscreenImgPopup(true),
 		ariaLabel,
 		title,
 	}) => (
 		<button
 			id="show-full-screen-credential"
-			className="relative rounded-xl xm:rounded-lg w-full overflow-hidden transition-shadow shadow-md hover:shadow-lg cursor-pointer"
+			className="relative xm:rounded-lg w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer"
 			onClick={onClick}
 			aria-label={ariaLabel ?? credentialName}
 			title={title ?? t('pageCredentials.credentialFullScreenTitle', { friendlyName: credentialName })}
