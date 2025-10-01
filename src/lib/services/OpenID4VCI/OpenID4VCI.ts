@@ -23,7 +23,7 @@ import { VerifiableCredentialFormat } from 'wallet-common/dist/types';
 import { DataItem, parse } from '@auth0/mdl';
 import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
 import { COSEKeyToJWK } from "cose-kit";
-
+import { notify } from "@/context/notifier";
 
 type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
@@ -210,6 +210,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					await keystoreCommit();
 					enqueue(() => setCommitStateChanges(1));
 					// display notification
+					notify("newCredential");
 				}
 			}
 			catch (err) {
