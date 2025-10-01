@@ -196,7 +196,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 
 		// const presentationDefinition = fullPEX;
-		const credentialBytes = base64url.decode(credentialRef.current.credential);
+		const credentialBytes = base64url.decode(credentialRef.current.data);
 		const issuerSigned = cborDecode(credentialBytes);
 		// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 		const descriptor = { "id": "eu.europa.ec.eudi.pid.1" }

@@ -5,6 +5,7 @@ export interface IOpenID4VCIClientStateRepository {
 	getByCredentialIssuerIdentifierAndCredentialConfigurationId(credentialIssuerIdentifier: string, credentialConfigurationId: string): Promise<WalletStateCredentialIssuanceSession | null>;
 	create(s: WalletStateCredentialIssuanceSession): Promise<void>;
 	updateState(s: WalletStateCredentialIssuanceSession): Promise<void>;
-	cleanupExpired(): Promise<void>;
+	getAllStatesWithNonEmptyTransactionId(): Promise<WalletStateCredentialIssuanceSession[]>;
+	cleanupExpired(): Promise<number[]>;
 	commitStateChanges(): Promise<void>;
 }

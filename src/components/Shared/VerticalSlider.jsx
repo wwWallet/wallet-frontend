@@ -9,20 +9,19 @@ const VerticalSlider = ({
 	renderSlideContent,
 	initialIndex = 0,
 	onSlideChange,
-	padStepVh = 3,
-	padMaxVh = 9,
+	padStepPx = 35,
+	padMaxPx = 70,
 }) => {
 	const [activeIndex, setActiveIndex] = useState(initialIndex);
 
 	const paddingTop = useMemo(() => {
-		const raw = activeIndex * padStepVh;
-		const capped = Math.min(raw, padMaxVh);
-		return `${capped}vh`;
-	}, [activeIndex, padStepVh, padMaxVh]);
+		const raw = activeIndex * padStepPx;
+		return `${Math.min(raw, padMaxPx)}px`;
+	}, [activeIndex, padStepPx, padMaxPx]);
 
 	return (
 		<div
-			className={`relative w-full overflow-visible sm:px-14 h-[60vh]`}
+			className="relative w-full h-[30vh] sm:px-14 overflow-visible"
 			style={{
 				paddingTop,
 				transition: 'padding 280ms ease-in-out',
@@ -35,9 +34,8 @@ const VerticalSlider = ({
 				keyboard
 				mousewheel
 				grabCursor
-				centeredSlides
 				slidesPerView="auto"
-				spaceBetween={24}
+				spaceBetween={10}
 				initialSlide={initialIndex}
 				onSlideChange={(sw) => {
 					setActiveIndex(sw.activeIndex);
@@ -46,29 +44,41 @@ const VerticalSlider = ({
 				creativeEffect={{
 					perspective: true,
 					shadowPerProgress: false,
-					limitProgress: 3,
-					prev: { translate: [0, -50, -120], scale: 0.94 },
-					next: { translate: [0, 50, -120], scale: 0.94 },
+					limitProgress: 2,
+					prev: { translate: [0, -50, 0], scale: 0.86 },
+					next: { translate: [0, 50, 0], scale: 0.86 },
 				}}
 				className="h-full vertical-stack-swiper"
 			>
-				{items.map((item, i) => (
-					<SwiperSlide
-						key={item.batchId ?? item.id ?? i}
-						className={`!h-auto flex items-center justify-center ${Math.abs(activeIndex - (i)) > 2 && 'invisible pointer-events-none'
-							} ${activeIndex === i && 'overflow-visible-force'} `}
-					>
-						<div className="w-full h-full rounded-xl p-2">
-							{renderSlideContent(item, i)}
-						</div>
+				{items.map((item, i) => {
+					const isActive = i === activeIndex;
+					const isFar = Math.abs(activeIndex - i) > 2;
 
-						{items.length > 1 && activeIndex === i && (
-							<div className="absolute bottom-5 z-50 left-6 text-xs bg-gray-500/40 text-white dark:text-white px-2 py-1 rounded">
-								{activeIndex + 1}/{items.length}
+					return (
+						<SwiperSlide
+							key={item.batchId ?? item.id ?? i}
+							className="!h-auto flex items-center justify-center"
+							aria-hidden={isFar ? 'true' : 'false'}
+						>
+							<div
+								className={[
+									"w-full rounded-xl p-2 transition-all duration-300",
+									isFar ? "pointer-events-none" : "pointer-events-auto",
+									isActive ? "opacity-100" : "opacity-90",
+									isActive ? "" : "[filter:brightness(0.9)]",
+								].join(" ")}
+							>
+								{renderSlideContent(item, i)}
 							</div>
-						)}
-					</SwiperSlide>
-				))}
+
+							{items.length > 1 && isActive && (
+								<div className="absolute bottom-5 left-6 z-50 text-xs bg-black/40 text-white px-2 py-1 rounded">
+									{activeIndex + 1}/{items.length}
+								</div>
+							)}
+						</SwiperSlide>
+					);
+				})}
 			</Swiper>
 		</div>
 	);

@@ -28,6 +28,7 @@ export type WalletSessionEventTypeAttributes = (
 	| WalletSessionEventDeletePresentation
 	| WalletSessionEventAlterSettings
 	| WalletSessionEventSaveCredentialIssuanceSession
+	| WalletSessionEventDeleteCredentialIssuanceSession
 );
 
 export type WalletSessionEventNewCredential = {
@@ -107,9 +108,16 @@ export type WalletSessionEventSaveCredentialIssuanceSession = {
 	firstPartyAuthorization?: {
 		auth_session: string,
 	},
+	credentialEndpoint?: {
+		transactionId?: string,
+	},
 	created: number,
 }
 
+export type WalletSessionEventDeleteCredentialIssuanceSession = {
+	type: "delete_credential_issuance_session",
+	sessionId: number,
+}
 
 export type WalletState = {
 	schemaVersion: number,
@@ -163,6 +171,9 @@ export type WalletState = {
 		},
 		firstPartyAuthorization?: {
 			auth_session: string,
+		},
+		credentialEndpoint?: {
+			transactionId?: string,
 		},
 		created: number,
 	}[],
@@ -243,8 +254,11 @@ function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSe
 				tokenResponse: newEvent.tokenResponse,
 				dpop: newEvent.dpop,
 				firstPartyAuthorization: newEvent.firstPartyAuthorization,
+				credentialEndpoint: newEvent.credentialEndpoint,
 				created: newEvent.created,
 			}]);
+		case "delete_credential_issuance_session":
+			return state.filter((s) => s.sessionId !== newEvent.sessionId);
 		default:
 			return state;
 	}
@@ -308,6 +322,9 @@ const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> = {
 	save_credential_issuance_session: (a, b) => {
 		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "save_credential_issuance_session"), e => e.eventId);
 	},
+	delete_credential_issuance_session: (a, b) => {
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_credential_issuance_session"), e => e.eventId);
+	},
 };
 
 
@@ -323,6 +340,7 @@ async function mergeDivergentHistoriesWithStrategies(historyA: WalletSessionEven
 		delete_presentation: [[], []],
 		alter_settings: [[], []],
 		save_credential_issuance_session: [[], []],
+		delete_credential_issuance_session: [[], []],
 	};
 
 	for (const event of historyA) {
@@ -686,6 +704,9 @@ export namespace WalletStateOperations {
 		firstPartyAuthorization?: {
 			auth_session: string,
 		},
+		credentialEndpoint?: {
+			transactionId?: string,
+		},
 		created?: number
 	): Promise<WalletStateContainer> {
 
@@ -707,6 +728,7 @@ export namespace WalletStateOperations {
 					tokenResponse,
 					dpop,
 					firstPartyAuthorization,
+					credentialEndpoint,
 					created: created ?? Math.floor(Date.now() / 1000),
 				},
 			],
@@ -716,6 +738,27 @@ export namespace WalletStateOperations {
 		return newContainer;
 	}
 
+	export async function addDeleteCredentialIssuanceSessionEvent(container: WalletStateContainer,
+		sessionId: number,
+	): Promise<WalletStateContainer> {
+
+		await validateEventHistoryContinuity(container);
+
+		const newContainer: WalletStateContainer = {
+			lastEventHash: container.lastEventHash,
+			events: [
+				...container.events,
+				{
+					...await createWalletSessionEvent(container),
+					type: "delete_credential_issuance_session",
+					sessionId: sessionId,
+				},
+			],
+			S: container.S,
+		};
+		await validateEventHistoryContinuity(newContainer);
+		return newContainer;
+	}
 
 	export function walletStateReducer(state: WalletState, newEvent: WalletSessionEvent): WalletState {
 		if (newEvent.schemaVersion < state.schemaVersion) {
