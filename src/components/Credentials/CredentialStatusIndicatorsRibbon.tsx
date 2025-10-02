@@ -3,23 +3,73 @@ import { FaCircleXmark, FaTriangleExclamation } from 'react-icons/fa6';
 import { IoShield, IoShieldHalf, IoShieldOutline } from 'react-icons/io5';
 import { TbDeviceUsb, TbVersions } from 'react-icons/tb';
 import { MdOutlineSync } from 'react-icons/md';
-import { type Instance, type ExtendedVcEntity } from '@/context/CredentialsContext';
+import { type ExtendedVcEntity } from '@/context/CredentialsContext';
 import { type CredentialKeyPair } from '@/services/keystore';
+import { ParsedCredentialJpt } from 'wallet-common/dist/types';
+import { fromBase64Url } from '@/util';
 
 type Type = 'hw-bound' | 'synced';
 type PrivacyLevel = 'high' | 'medium' | 'low';
 
-function getCredentialType(keypair: CredentialKeyPair): Type | undefined {
-  if ('externalPrivateKey' in keypair) return 'hw-bound';
-  if ('wrappedPrivateKey' in keypair) return 'synced';
-  return undefined;
-};
+type StatusIndicators = {
+	type: Type | undefined;
+	privacyLevel: PrivacyLevel | undefined;
+	zeroSigCount: number | undefined;
+}
 
-function getPrivacyLevel(keypair: CredentialKeyPair, instances: Instance[]): PrivacyLevel {
-  if (keypair.alg === 'experimental/SplitBBSv2.1') return 'high';
-  if (instances.length > 1) return 'medium';
-  return 'low';
-};
+type KeyPairs = {
+	kid: string,
+	keypair: CredentialKeyPair,
+}[];
+
+function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: KeyPairs ): StatusIndicators {
+	const credentialKeyPair = keypairs?.find(kp => kp.kid === vcEntity.kid);
+
+	let kid: string, alg: string, keypair: CredentialKeyPair;
+
+	if (credentialKeyPair) {
+		kid = credentialKeyPair.kid;
+		keypair = credentialKeyPair.keypair;
+		alg = keypair.alg
+	} else {
+		if ('issuerHeader' in vcEntity.parsedCredential) {
+			const parsedCred = vcEntity.parsedCredential as ParsedCredentialJpt;
+			alg = parsedCred.issuerHeader.alg as string;
+		}
+
+		if (vcEntity.data) {
+			const credParts = vcEntity.data.split('.');
+			const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
+
+			kid = dpkJwk.kid;
+			keypair = keypairs.find(keypair => keypair.kid === dpkJwk.kid)?.keypair;
+		}
+	}
+
+	const type = (() => {
+		if (!keypair) return undefined;
+		if ('externalPrivateKey' in keypair) return 'hw-bound';
+		if ('wrappedPrivateKey' in keypair) return 'synced';
+		return undefined;
+	})();
+
+	const privacyLevel = (() => {
+		if (alg === 'experimental/SplitBBSv2.1') return 'high';
+		if (vcEntity.instances.length > 1) return 'medium';
+		return 'low';
+	})();
+
+	const zeroSigCount = (() => {
+		// if (privacyLevel === 'high') return undefined;
+		return vcEntity.instances?.filter(instance => instance.sigCount === 0).length || 0;
+	})();
+
+	return {
+		type,
+		privacyLevel,
+		zeroSigCount,
+	}
+}
 
 const CredentialType = memo(({ type }: { type: Type }) => {
 	const icons: Record<Type, ReactElement> = {
@@ -76,25 +126,13 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 
 export type CredentialStatusIndicatorsRibbonProps = {
 	vcEntity: ExtendedVcEntity;
-	walletStateKeypairs: {
-		kid: string,
-		keypair: CredentialKeyPair,
-	}[]
+	walletStateKeypairs: KeyPairs
 }
 
 const CredentialStatusIndicatorsRibbon = (
 	{ vcEntity, walletStateKeypairs }: CredentialStatusIndicatorsRibbonProps
 ) => {
-	const zeroSigCount = vcEntity.instances?.filter(instance => instance.sigCount === 0).length || 0;
-	const keypair = walletStateKeypairs?.find(kp => kp.kid === vcEntity.kid) ?? null;
-
-	let type: Type | undefined;
-	let privacyLevel: PrivacyLevel | undefined;
-
-	if (keypair) {
-		type = getCredentialType(keypair.keypair);
-		privacyLevel = getPrivacyLevel(keypair.keypair, vcEntity.instances);
-	}
+	const { type, privacyLevel, zeroSigCount} = getCredentialStatusIndicators(vcEntity, walletStateKeypairs);
 
 	const handleOnClick: MouseEventHandler = (event) => {
 		event.stopPropagation();
@@ -105,7 +143,7 @@ const CredentialStatusIndicatorsRibbon = (
 		<button onClick={handleOnClick} className="z-40 absolute top-[-5px] font-semibold right-[-5px] text-gray-900 dark:text-white text-xs py-1 px-3 flex gap-1 items-center rounded-lg border-2 border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-800">
 			{type && <CredentialType type={type} />}
 			{privacyLevel && <CredentialPrivacyLevel level={privacyLevel} />}
-			<CredentialUsages count={zeroSigCount} />
+			{zeroSigCount && <CredentialUsages count={zeroSigCount} />}
 		</button>
 	);
 };
