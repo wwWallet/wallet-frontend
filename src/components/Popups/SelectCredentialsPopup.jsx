@@ -35,7 +35,8 @@ const SelectableCredentialSlideCard = ({
 	vcEntity,
 	isActive,
 	isSelected,
-	onClick
+	onClick,
+	borderColor
 }) => {
 	const { t } = useTranslation();
 	const [imageLoaded, setImageLoaded] = useState(false);
@@ -65,6 +66,7 @@ const SelectableCredentialSlideCard = ({
 				className="w-full object-cover rounded-xl"
 				showRibbon={isActive}
 				onLoad={() => setImageLoaded(true)}
+				borderColor={borderColor}
 			/>
 
 			{imageLoaded && (
@@ -425,6 +427,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											isActive={currentSlide === index + 1}
 											isSelected={selectedCredential === vcEntity.batchId}
 											onClick={handleClick}
+											borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
 										/>
 									)}
 									onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
@@ -500,9 +503,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												vcEntity={vcEntity}
 												vcEntityInstances={vcEntity.instances}
 												parsedCredential={vcEntity.parsedCredential}
-												className="w-full object-cover rounded-xl"
+												className="w-full object-cover rounded-xl bg-red-500"
 												showRibbon={currentSummarySlide === i}
 												filter={filterPaths}
+												borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
 											/>
 										</div>
 									);
