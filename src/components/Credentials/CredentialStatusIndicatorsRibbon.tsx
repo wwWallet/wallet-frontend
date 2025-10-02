@@ -1,13 +1,12 @@
 import React, { memo, MouseEventHandler, ReactElement } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaCircleXmark, FaTriangleExclamation } from 'react-icons/fa6';
 import { IoShield, IoShieldHalf, IoShieldOutline } from 'react-icons/io5';
 import { TbDeviceUsb, TbVersions } from 'react-icons/tb';
-import { MdOutlineSync } from 'react-icons/md';
-import { type ExtendedVcEntity } from '@/context/CredentialsContext';
-import { type CredentialKeyPair } from '@/services/keystore';
 import { ParsedCredentialJpt } from 'wallet-common/dist/types';
 import { fromBase64Url } from '@/util';
-import { useTranslation } from 'react-i18next';
+import { type ExtendedVcEntity } from '@/context/CredentialsContext';
+import { type CredentialKeyPair } from '@/services/keystore';
 
 type Type = 'hw-bound' | 'synced';
 type PrivacyLevel = 'high' | 'medium' | 'low';
@@ -75,53 +74,62 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 const CredentialType = memo(({ type }: { type: Type }) => {
 	const { t } = useTranslation();
 
+	// TODO: Icons need accessible labels.
 	if (type === 'hw-bound') return (
-		<span className="p-1">
-			<TbDeviceUsb size={18} title={t('credentialStatusIndicators.type.hwBound')} />
+		<span className="p-1" title={t('credentialStatusIndicators.type.hwBound')}>
+			<TbDeviceUsb size={18} />
 		</span>
 	)
-})
+});
 
 const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 	const { t } = useTranslation();
 
+	const className = `privacy-level--${level}`;
+
+	// TODO: Icons need accessible labels.
 	const icons: Record<PrivacyLevel, ReactElement> = {
-		high: <IoShield size={16} title={t('credentialStatusIndicators.privacyLevel.high')} />,
-		medium: <IoShieldHalf size={16} title={t('credentialStatusIndicators.privacyLevel.medium')} />,
-		low: <IoShieldOutline size={16} title={t('credentialStatusIndicators.privacyLevel.low')} />,
+		high: <IoShield size={16} />,
+		medium: <IoShieldHalf size={16} />,
+		low: <IoShieldOutline size={16} />,
 	};
 
 	return (
-		<span className="p-1">
+		<span className={`p-1 ${className}`} title={t(`credentialStatusIndicators.privacyLevel.${level}`)}>
 			{icons[level]}
 		</span>
 	)
-})
+});
 
 const CredentialUsages = memo(({ count }: { count: number }) => {
 	const { t } = useTranslation();
 
 	let Icon: ReactElement;
 	let color: string;
-	let message: string | undefined;
+	let title: string;
+	let label: string | undefined;
 
+	// TODO: Icons need accessible labels.
 	if (count > 1) {
-		Icon = <TbVersions size={18} title={t('credentialStatusIndicators.usages.full')} />;
+		title = t('credentialStatusIndicators.usages.full');
+		Icon = <TbVersions size={18} />;
 		color = 'text-green-500';
-		message = String(count);
+		label = String(count);
 	} else if (count === 1) {
-		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" title={t('credentialStatusIndicators.usages.almostEmpty')} />;
+		title = t('credentialStatusIndicators.usages.almostEmpty');
+		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
 		color = 'text-yellow-500';
-		message = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;
+		label = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;
 	} else {
-		Icon = <FaCircleXmark size={16} className="ml-[2px]" title={t('credentialStatusIndicators.usages.empty')} />;
+		title = t('credentialStatusIndicators.usages.empty');
+		Icon = <FaCircleXmark size={16} className="ml-[2px]" />;
 		color = 'text-red-500';
-		message = t('credentialStatusIndicators.usages.almostEmptyLabel');
+		label = t('credentialStatusIndicators.usages.almostEmptyLabel');
 	}
 
 	return (
-		<span className={`p-1 flex gap-1 items-center ${color}`}>
-			{Icon} {message}
+		<span className={`p-1 flex gap-1 items-center ${color}`} title={title}>
+			{Icon} {label}
 		</span>
 	)
 });
@@ -148,6 +156,6 @@ const CredentialStatusIndicatorsRibbon = (
 			{zeroSigCount && <CredentialUsages count={zeroSigCount} />}
 		</button>
 	);
-};
+}
 
 export default CredentialStatusIndicatorsRibbon;
