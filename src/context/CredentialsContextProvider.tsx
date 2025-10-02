@@ -190,7 +190,7 @@ export const CredentialsContextProvider = ({ children }) => {
 				if (
 					!prev ||
 					prev.length !== storedCredentials.length ||
-					prev.some((vc, i) => vc.id !== storedCredentials[i].id)
+					prev.some((vc, i) => vc.batchId !== storedCredentials[i].batchId)
 				) {
 					return storedCredentials;
 				}
