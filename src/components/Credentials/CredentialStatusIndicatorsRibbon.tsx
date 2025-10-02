@@ -60,7 +60,7 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 	})();
 
 	const zeroSigCount = (() => {
-		// if (privacyLevel === 'high') return undefined;
+		if (privacyLevel === 'high') return undefined;
 		return vcEntity.instances?.filter(instance => instance.sigCount === 0).length || 0;
 	})();
 
