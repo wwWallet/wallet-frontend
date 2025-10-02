@@ -55,12 +55,12 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 
 	const privacyLevel = (() => {
 		if (alg === 'experimental/SplitBBSv2.1') return 'high';
-		if (vcEntity.instances?.filter(instance => instance.sigCount === 0).length > 1) return 'medium';
+		if (vcEntity.instances.length > 1) return 'medium';
 		return 'low';
 	})();
 
 	const zeroSigCount = (() => {
-		if (privacyLevel === 'high') return undefined;
+		if (privacyLevel !== 'medium') return undefined;
 		return vcEntity.instances?.filter(instance => instance.sigCount === 0).length || 0;
 	})();
 
@@ -132,7 +132,7 @@ export type CredentialStatusIndicatorsRibbonProps = {
 const CredentialStatusIndicatorsRibbon = (
 	{ vcEntity, walletStateKeypairs }: CredentialStatusIndicatorsRibbonProps
 ) => {
-	const { type, privacyLevel, zeroSigCount} = getCredentialStatusIndicators(vcEntity, walletStateKeypairs);
+	const { type, privacyLevel, zeroSigCount } = getCredentialStatusIndicators(vcEntity, walletStateKeypairs);
 
 	const handleOnClick: MouseEventHandler = (event) => {
 		event.stopPropagation();
