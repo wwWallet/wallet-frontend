@@ -72,14 +72,9 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 }
 
 const CredentialType = memo(({ type }: { type: Type }) => {
-	const icons: Record<Type, ReactElement> = {
-		'hw-bound': <TbDeviceUsb size={18} />,
-		'synced': <MdOutlineSync size={18} />,
-	};
-
-	return (
+	if (type === 'hw-bound') return (
 		<span>
-			{icons[type]}
+			<TbDeviceUsb size={18} />
 		</span>
 	)
 })
