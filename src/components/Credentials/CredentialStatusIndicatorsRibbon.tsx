@@ -7,6 +7,7 @@ import { type ExtendedVcEntity } from '@/context/CredentialsContext';
 import { type CredentialKeyPair } from '@/services/keystore';
 import { ParsedCredentialJpt } from 'wallet-common/dist/types';
 import { fromBase64Url } from '@/util';
+import { useTranslation } from 'react-i18next';
 
 type Type = 'hw-bound' | 'synced';
 type PrivacyLevel = 'high' | 'medium' | 'low';
@@ -72,18 +73,22 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 }
 
 const CredentialType = memo(({ type }: { type: Type }) => {
+	const { t } = useTranslation();
+
 	if (type === 'hw-bound') return (
 		<span className="p-1">
-			<TbDeviceUsb size={18} title="This credential is hardware bound" />
+			<TbDeviceUsb size={18} title={t('credentialStatusIndicators.type.hwBound')} />
 		</span>
 	)
 })
 
 const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
+	const { t } = useTranslation();
+
 	const icons: Record<PrivacyLevel, ReactElement> = {
-		high: <IoShield size={16} title="This credential has the highest privacy level" />,
-		medium: <IoShieldHalf size={16} title="This credential has a medium privacy level" />,
-		low: <IoShieldOutline size={16} title="This credential has a low privacy level" />,
+		high: <IoShield size={16} title={t('credentialStatusIndicators.privacyLevel.high')} />,
+		medium: <IoShieldHalf size={16} title={t('credentialStatusIndicators.privacyLevel.medium')} />,
+		low: <IoShieldOutline size={16} title={t('credentialStatusIndicators.privacyLevel.low')} />,
 	};
 
 	return (
@@ -94,22 +99,24 @@ const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 })
 
 const CredentialUsages = memo(({ count }: { count: number }) => {
+	const { t } = useTranslation();
+
 	let Icon: ReactElement;
 	let color: string;
 	let message: string | undefined;
 
 	if (count > 1) {
-		Icon = <TbVersions size={18} title="The number of uses left before this credential will need a refresh" />;
+		Icon = <TbVersions size={18} title={t('credentialStatusIndicators.usages.full')} />;
 		color = 'text-green-500';
 		message = String(count);
 	} else if (count === 1) {
-		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" title="This credential only has 1 use left before it needs to be refreshed" />;
+		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" title={t('credentialStatusIndicators.usages.almostEmpty')} />;
 		color = 'text-yellow-500';
-		message = `${String(count)} (refresh soon)`;
+		message = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;
 	} else {
-		Icon = <FaCircleXmark size={16} className="ml-[2px]" title="This credential is exhausted of uses and needs to be refreshed" />;
+		Icon = <FaCircleXmark size={16} className="ml-[2px]" title={t('credentialStatusIndicators.usages.empty')} />;
 		color = 'text-red-500';
-		message = 'Refresh required'
+		message = t('credentialStatusIndicators.usages.almostEmptyLabel');
 	}
 
 	return (

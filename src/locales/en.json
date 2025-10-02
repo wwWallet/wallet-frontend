@@ -49,6 +49,23 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"credentialStatusIndicators": {
+		"type": {
+			"hwBound": "This credential is hardware bound"
+		},
+		"privacyLevel": {
+			"high": "This credential has the highest privacy level",
+			"medium": "This credential has a medium privacy level",
+			"low": "This credential has a low privacy level"
+		},
+		"usages": {
+			"almostEmptyLabel": "(refresh soon)",
+			"emptyLabel": "Refresh required",
+			"full": "The number of uses left before this credential will need to be renewed",
+			"almostEmpty": "This credential only has 1 use left before it needs to be renewed",
+			"empty": "This credential is exhausted of uses and needs to be renewed"
+		}
+	},
 	"credentialInfo": {
 		"legendAriaLabel": "Claim legend",
 		"legendRequested": "Requested by verifier",
