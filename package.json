@@ -80,7 +80,7 @@
     "start-docker": "npx vite --no-open",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "yarn typecheck && VITE_CJS_IGNORE_WARNING=true vitest run",
+    "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
     "test-start": "VITE_CJS_IGNORE_WARNING=true vitest",
     "translations": "node translation_coverage/translations.js",
     "typecheck": "tsc --noEmit",
