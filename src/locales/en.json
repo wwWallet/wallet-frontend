@@ -49,6 +49,11 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"credentialInfo": {
+		"legendAriaLabel": "Claim legend",
+		"legendRequested": "Requested by verifier",
+		"legendRequired": "Required"
+	},
 	"expiredRibbon": {
 		"expired": "Expired"
 	},
@@ -151,6 +156,16 @@
 		"message": "Sorry, the page you're looking for cannot be accessed",
 		"title": "Oops, page not found!"
 	},
+	"notifications": {
+		"newCredential": {
+			"message": "A new credential has arrived.",
+			"title": "New credential"
+		},
+		"success": {
+			"message": "The operation completed successfully.",
+			"title": "Success"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
@@ -193,6 +208,11 @@
 		"presentationDetails": {
 			"title": "Presentation Details"
 		}
+	},
+	"pagePending": {
+		"description": "View pending issuance requests",
+		"noFound": "No pending issuance requests found",
+		"title": "Pending issuance requests"
 	},
 	"pageSendCredentials": {
 		"description": "Search and choose a verifier to share credentials with",
@@ -294,6 +314,11 @@
 		"errorInvalidDatatype": "Credential could not be parsed.",
 		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorNotSupportedCredentialType": "This type of credential is not supported."
+	},
+	"pendingTransactions": {
+		"subtitle": "Waiting for issuance to complete",
+		"title": "{{count}} pending credential(s)",
+		"view": "View details"
 	},
 	"pwaInstallPrompt": {
 		"button": {

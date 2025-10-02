@@ -9,6 +9,8 @@ import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { ParsedCredential } from "wallet-common/dist/types";
 import { CurrentSchema } from '@/services/WalletStateSchema';
 
+type WalletStateCredential = CurrentSchema.WalletStateCredential;
+
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);
@@ -24,6 +26,19 @@ export const CredentialsContextProvider = ({ children }) => {
 	const prevIsLoggedIn = useRef<boolean>(null);
 
 	const { getExternalEntity, getSession, get } = api;
+	const [pendingTransactions, setPendingTransactions] = useState(null);
+
+	useEffect(() => {
+		if (!getCalculatedWalletState) return;
+
+		const S = getCalculatedWalletState();
+		if (!S) return;
+
+		const sessionsWithTx = S.credentialIssuanceSessions.filter(
+			(session) => session.credentialEndpoint?.transactionId
+		);
+		setPendingTransactions(sessionsWithTx);
+	}, [getCalculatedWalletState]);
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
 		const trustedCertificates: string[] = [];
@@ -55,7 +70,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [isLoggedIn, httpProxy, helper]);
 
 
-	const parseCredential = useCallback(async (vcEntity: CurrentSchema.WalletStateCredential): Promise<ParsedCredential | null> => {
+	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
@@ -89,14 +104,21 @@ export const CredentialsContextProvider = ({ children }) => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 
-		const { credentials } = getCalculatedWalletState();
+		const S = getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		const { credentials } = S;
 		if (!credentials) {
 			return null;
 		}
 
-		const { presentations } = getCalculatedWalletState();
+		const { presentations } = S;
+		if (!presentations) {
+			return null;
+		}
 		// Create a map of instances grouped by credentialIdentifier
-		const instancesMap = credentials.reduce((acc: any, vcEntity: CurrentSchema.WalletStateCredential) => {
+		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletStateCredential) => {
 			if (!acc[vcEntity.batchId]) {
 				acc[vcEntity.batchId] = [];
 			}
@@ -170,7 +192,7 @@ export const CredentialsContextProvider = ({ children }) => {
 				if (
 					!prev ||
 					prev.length !== storedCredentials.length ||
-					prev.some((vc, i) => vc.id !== storedCredentials[i].id)
+					prev.some((vc, i) => vc.batchId !== storedCredentials[i].batchId)
 				) {
 					return storedCredentials;
 				}
@@ -198,7 +220,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine, pendingTransactions }}>
 				{children}
 			</CredentialsContext.Provider>
 		);

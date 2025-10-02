@@ -25,6 +25,7 @@ export type WalletSessionEventTypeAttributes = (
 	| WalletSessionEventDeletePresentation
 	| WalletSessionEventAlterSettings
 	| WalletSessionEventSaveCredentialIssuanceSession
+	| WalletSessionEventDeleteCredentialIssuanceSession
 );
 
 export type WalletSessionEventNewCredential = {
@@ -104,9 +105,16 @@ export type WalletSessionEventSaveCredentialIssuanceSession = {
 	firstPartyAuthorization?: {
 		auth_session: string,
 	},
+	credentialEndpoint?: {
+		transactionId?: string,
+	},
 	created: number,
 }
 
+export type WalletSessionEventDeleteCredentialIssuanceSession = {
+	type: "delete_credential_issuance_session",
+	sessionId: number,
+}
 
 export type WalletState = {
 	schemaVersion: number,
@@ -160,6 +168,9 @@ export type WalletState = {
 		},
 		firstPartyAuthorization?: {
 			auth_session: string,
+		},
+		credentialEndpoint?: {
+			transactionId?: string,
 		},
 		created: number,
 	}[],
@@ -254,8 +265,11 @@ function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSe
 				tokenResponse: newEvent.tokenResponse,
 				dpop: newEvent.dpop,
 				firstPartyAuthorization: newEvent.firstPartyAuthorization,
+				credentialEndpoint: newEvent.credentialEndpoint,
 				created: newEvent.created,
 			}]);
+		case "delete_credential_issuance_session":
+			return state.filter((s) => s.sessionId !== newEvent.sessionId);
 		default:
 			return state;
 	}
@@ -304,6 +318,9 @@ export const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> 
 	},
 	save_credential_issuance_session: (a, b) => {
 		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "save_credential_issuance_session"), e => e.eventId);
+	},
+	delete_credential_issuance_session: (a, b) => {
+		return deduplicateFromRightBy(a.concat(b).filter(e => e.type === "delete_credential_issuance_session"), e => e.eventId);
 	},
 };
 
@@ -437,6 +454,7 @@ export function createOperations(
 			delete_presentation: [[], []],
 			alter_settings: [[], []],
 			save_credential_issuance_session: [[], []],
+			delete_credential_issuance_session: [[], []],
 		};
 
 		for (const event of historyA) {

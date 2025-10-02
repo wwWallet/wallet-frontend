@@ -221,6 +221,9 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 	firstPartyAuthorization?: {
 		auth_session: string,
 	},
+	credentialEndpoint?: {
+		transactionId?: string,
+	},
 	created?: number
 ): Promise<WalletStateContainer> {
 
@@ -242,7 +245,30 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 				tokenResponse,
 				dpop,
 				firstPartyAuthorization,
+				credentialEndpoint,
 				created: created ?? Math.floor(Date.now() / 1000),
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
+export async function addDeleteCredentialIssuanceSessionEvent(container: WalletStateContainer,
+	sessionId: number,
+): Promise<WalletStateContainer> {
+
+	await validateEventHistoryContinuity(container);
+
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "delete_credential_issuance_session",
+				sessionId: sessionId,
 			},
 		],
 		S: container.S,

@@ -85,6 +85,11 @@ export const mergeStrategies: Record<SchemaV1.WalletSessionEvent["type"], MergeS
 		e => e.type === "save_credential_issuance_session",
 		e => e.eventId,
 	),
+	delete_credential_issuance_session: adaptStrategy(
+		v1strats.delete_credential_issuance_session,
+		e => e.type === "delete_credential_issuance_session",
+		e => e.eventId,
+	),
 };
 
 export function createOperations(
@@ -110,6 +115,7 @@ export function createOperations(
 				delete_presentation: [[], [], []],
 				alter_settings: [[], [], []],
 				save_credential_issuance_session: [[], [], []],
+				delete_credential_issuance_session: [[], [], []],
 			};
 
 			for (const event of mergedByEarlierSchemaVersions) {

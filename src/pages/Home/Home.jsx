@@ -31,9 +31,10 @@ import { useLocalStorage } from '@/hooks/useStorage';
 import ViewSelect from '@/components/Credentials/ViewSelect';
 
 import VerticalSlider from '@/components/Shared/VerticalSlider';
+import PendingTransactionsBanner from '@/components/Credentials/PendingTransactionsBanner';
 
 const Home = () => {
-	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide } = useContext(CredentialsContext);
+	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide, pendingTransactions } = useContext(CredentialsContext);
 	const { api, keystore } = useContext(SessionContext);
 	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
 	const screenType = useScreenType();
@@ -63,11 +64,17 @@ const Home = () => {
 				<div className="px-6 sm:px-12">
 					<div className='flex items-center justify-between gap-3'>
 						<H1 heading={t('common.navItemCredentials')} />
-						{screenType !== "desktop" && vcEntityList.length > 1 && (
+						{screenType !== "desktop" && vcEntityList?.length > 1 && (
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
 					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+					{(pendingTransactions?.length > 0) && (
+						<PendingTransactionsBanner
+							pendingTransactions={pendingTransactions}
+							onView={() => navigate('/pending')}
+						/>
+					)}
 				</div>
 				{vcEntityList ? (
 					<div className=''>
