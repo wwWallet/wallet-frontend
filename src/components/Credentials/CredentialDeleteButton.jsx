@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import StatusContext from '@/context/StatusContext';
 
-const CredentialDeleteButton = ({ onDelete }) => {
+const CredentialDeleteButton = ({ onDelete, additionalClassName }) => {
 	const { t } = useTranslation();
 	const { isOnline } = useContext(StatusContext);
 
@@ -19,9 +19,10 @@ const CredentialDeleteButton = ({ onDelete }) => {
 			variant="delete"
 			disabled={!isOnline}
 			title={!isOnline && t('common.offlineTitle')}
-			additionalClassName='xm:w-full'
+			additionalClassName={`mt-4 ${additionalClassName}`}
 		>
-			<MdDelete size={20} /> {t('pageCredentials.delete')}
+			<MdDelete size={20} className="mr-3" />
+			{t('pageCredentials.delete')}
 		</Button>
 	);
 };
