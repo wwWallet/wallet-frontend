@@ -113,18 +113,18 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 	if (count > 1) {
 		title = t('credentialStatusIndicators.usages.full');
 		Icon = <TbVersions size={18} />;
-		color = 'text-green-500';
+		color = 'text-green-700 dark:text-green-500';
 		label = String(count);
 	} else if (count === 1) {
 		title = t('credentialStatusIndicators.usages.almostEmpty');
 		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
-		color = 'text-yellow-500';
+		color = 'text-yellow-700 dark:text-yellow-500';
 		label = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;
 	} else {
 		title = t('credentialStatusIndicators.usages.empty');
 		Icon = <FaCircleXmark size={16} className="ml-[2px]" />;
-		color = 'text-red-500';
-		label = t('credentialStatusIndicators.usages.almostEmptyLabel');
+		color = 'text-red-700 dark:text-red-500';
+		label = t('credentialStatusIndicators.usages.emptyLabel');
 	}
 
 	return (
