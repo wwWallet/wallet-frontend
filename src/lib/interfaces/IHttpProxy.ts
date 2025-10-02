@@ -1,4 +1,12 @@
+export interface RequestHeaders {
+}
+
+export interface ResponseHeaders {
+	'dpop-nonce'?: string;
+	[other: string]: unknown;
+}
+
 export interface IHttpProxy {
-	get(url: string, headers?: Record<string, unknown>, options?: Record<string, unknown>): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
-	post(url: string, body: any, headers?: Record<string, unknown>): Promise<{ status: number, headers: Record<string, unknown>, data: unknown }>;
+	get(url: string, headers?: RequestHeaders, options?: Record<string, unknown>): Promise<{ status: number, headers: ResponseHeaders, data: unknown }>;
+	post(url: string, body: any, headers?: RequestHeaders): Promise<{ status: number, headers: ResponseHeaders, data: unknown }>;
 }

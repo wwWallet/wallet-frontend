@@ -76,7 +76,7 @@ export type WalletSessionEventDeletePresentation = {
 
 export type WalletSessionEventAlterSettings = {
 	type: "alter_settings",
-	settings: Record<string, unknown>,
+	settings: WalletStateSettings,
 }
 
 export type WalletSessionEventSaveCredentialIssuanceSession = {
@@ -143,7 +143,7 @@ export type WalletState = {
 		presentationTimestampSeconds: number,
 		audience: string,
 	}[],
-	settings: Record<string, unknown>,
+	settings: WalletStateSettings,
 	credentialIssuanceSessions: {
 		sessionId: number, // unique
 
@@ -182,8 +182,12 @@ export type WalletState = {
 export type WalletStateCredential = WalletState['credentials'][number];
 export type WalletStateKeypair = WalletState['keypairs'][number];
 export type WalletStatePresentation = WalletState['presentations'][number];
-export type WalletStateSettings = WalletState['settings'];
 export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
+
+export interface WalletStateSettings {
+	openidRefreshTokenMaxAgeInSeconds: string,
+	[other: string]: unknown,
+}
 
 function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
@@ -260,7 +264,7 @@ function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSe
 	}
 }
 
-function settingsReducer(state: WalletStateSettings = {}, newEvent: WalletSessionEvent) {
+function settingsReducer(state: WalletStateSettings, newEvent: WalletSessionEvent): WalletStateSettings {
 	switch (newEvent.type) {
 		case "alter_settings":
 			return { ...newEvent.settings };
@@ -497,7 +501,7 @@ export namespace WalletStateOperations {
 
 	export function initialWalletStateContainer(): WalletStateContainer {
 		return {
-			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { openidRefreshTokenMaxAgeInSeconds: 0 } },
+			S: { schemaVersion: SCHEMA_VERSION, credentials: [], presentations: [], keypairs: [], credentialIssuanceSessions: [], settings: { openidRefreshTokenMaxAgeInSeconds: '0' } },
 			events: [],
 			lastEventHash: "",
 		}
@@ -654,7 +658,7 @@ export namespace WalletStateOperations {
 		return newContainer;
 	}
 
-	export async function addAlterSettingsEvent(container: WalletStateContainer, settings: Record<string, string>): Promise<WalletStateContainer> {
+	export async function addAlterSettingsEvent(container: WalletStateContainer, settings: WalletStateSettings): Promise<WalletStateContainer> {
 		await validateEventHistoryContinuity(container);
 		const newContainer: WalletStateContainer = {
 			lastEventHash: container.lastEventHash,
@@ -756,7 +760,7 @@ export namespace WalletStateOperations {
 		return newContainer;
 	}
 
-	export function walletStateReducer(state: WalletState = { schemaVersion: SCHEMA_VERSION, credentials: [], keypairs: [], presentations: [], credentialIssuanceSessions: [], settings: {} }, newEvent: WalletSessionEvent): WalletState {
+	export function walletStateReducer(state: WalletState, newEvent: WalletSessionEvent): WalletState {
 		if (newEvent.schemaVersion < state.schemaVersion) {
 			if (!(newEvent.schemaVersion in walletStateReducerRegistry)) {
 				throw new Error(`Cannot apply WalletStateEvent v${newEvent.schemaVersion} to WalletState v${state.schemaVersion}: no reducer found`);

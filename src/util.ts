@@ -1,3 +1,10 @@
+/** Return the value unchanged. Useful for narrowing string literals into an
+enumerated union type, for example. */
+export function coerce<T>(value: T): T {
+	return value;
+}
+
+
 export function toU8(b: BufferSource) {
 	if (b instanceof ArrayBuffer) {
 		return new Uint8Array(b);
