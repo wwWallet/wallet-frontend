@@ -73,7 +73,7 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 
 const CredentialType = memo(({ type }: { type: Type }) => {
 	if (type === 'hw-bound') return (
-		<span>
+		<span className="p-1">
 			<TbDeviceUsb size={18} />
 		</span>
 	)
@@ -87,7 +87,7 @@ const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 	};
 
 	return (
-		<span>
+		<span className="p-1">
 			{icons[level]}
 		</span>
 	)
@@ -113,7 +113,7 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 	}
 
 	return (
-		<span className={`flex gap-1 items-center ${color}`}>
+		<span className={`p-1 flex gap-1 items-center ${color}`}>
 			{Icon} {message}
 		</span>
 	)
@@ -135,7 +135,7 @@ const CredentialStatusIndicatorsRibbon = (
 	}
 
 	return (
-		<button onClick={handleOnClick} className="z-40 absolute top-[-5px] font-semibold right-[-5px] text-gray-900 dark:text-white text-xs py-1 px-3 flex gap-1 items-center rounded-lg border-2 border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-800">
+		<button onClick={handleOnClick} className="z-40 absolute top-[-5px] font-semibold right-[-5px] text-gray-900 dark:text-white text-xs px-2 flex gap-1 items-center rounded-lg border-2 border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-800">
 			{type && <CredentialType type={type} />}
 			{privacyLevel && <CredentialPrivacyLevel level={privacyLevel} />}
 			{zeroSigCount && <CredentialUsages count={zeroSigCount} />}
