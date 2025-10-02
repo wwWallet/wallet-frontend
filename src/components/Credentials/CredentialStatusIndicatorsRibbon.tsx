@@ -55,7 +55,7 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 
 	const privacyLevel = (() => {
 		if (alg === 'experimental/SplitBBSv2.1') return 'high';
-		if (vcEntity.instances.length > 1) return 'medium';
+		if (vcEntity.instances?.filter(instance => instance.sigCount === 0).length > 1) return 'medium';
 		return 'low';
 	})();
 
