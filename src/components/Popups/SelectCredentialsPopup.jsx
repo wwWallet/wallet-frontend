@@ -537,9 +537,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			</div>
 
 			<div
-				className={`z-10 left-0 right-0 bg-gray-100 dark:bg-gray-700 border-t border-gray-500/30 dark:border-white/30 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
-					? 'sticky bottom-0 px-4 py-3'
-					: 'fixed bottom-0 px-6 pb-4 pt-4'
+				className={`z-10 left-0 right-0 border-t border-gray-500/30 dark:border-white/30 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
+					? 'bg-gray-50 dark:bg-gray-700 sticky bottom-0 px-4 py-3'
+					: 'bg-gray-100 dark:bg-gray-900 fixed bottom-0 px-6 pb-4 pt-4'
 					}`}
 			>
 				<Button
