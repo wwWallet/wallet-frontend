@@ -74,16 +74,16 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 const CredentialType = memo(({ type }: { type: Type }) => {
 	if (type === 'hw-bound') return (
 		<span className="p-1">
-			<TbDeviceUsb size={18} />
+			<TbDeviceUsb size={18} title="This credential is hardware bound" />
 		</span>
 	)
 })
 
 const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 	const icons: Record<PrivacyLevel, ReactElement> = {
-		high: <IoShield size={16} />,
-		medium: <IoShieldHalf size={16} />,
-		low: <IoShieldOutline size={16} />,
+		high: <IoShield size={16} title="This credential has the highest privacy level" />,
+		medium: <IoShieldHalf size={16} title="This credential has a medium privacy level" />,
+		low: <IoShieldOutline size={16} title="This credential has a low privacy level" />,
 	};
 
 	return (
@@ -98,18 +98,18 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 	let color: string;
 	let message: string | undefined;
 
-	if (count > 3) {
-		Icon = <TbVersions size={18} />;
+	if (count > 1) {
+		Icon = <TbVersions size={18} title="The number of uses left before this credential will need a refresh" />;
 		color = 'text-green-500';
 		message = String(count);
-	} else if (count <= 3 && count > 0) {
-		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
+	} else if (count === 1) {
+		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" title="This credential only has 1 use left before it needs to be refreshed" />;
 		color = 'text-yellow-500';
-		message = `${String(count)} (exp. soon)`;
+		message = `${String(count)} (refresh soon)`;
 	} else {
-		Icon = <FaCircleXmark size={16} className="ml-[2px]" />;
+		Icon = <FaCircleXmark size={16} className="ml-[2px]" title="This credential is exhausted of uses and needs to be refreshed" />;
 		color = 'text-red-500';
-		message = 'Expired'
+		message = 'Refresh required'
 	}
 
 	return (
