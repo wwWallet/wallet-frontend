@@ -361,7 +361,7 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 		"raw",
 		exportedMainKey,
 		"AES-GCM",
-		false,
+		true,
 		["decrypt", "wrapKey", "unwrapKey"],
 	);
 }
@@ -885,11 +885,10 @@ export async function upgradePrfKey(
 export async function addPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
-	[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
+	mainKey: CryptoKey,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
 	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-	const mainKey = await unwrapKey(existingUnwrapKey, privateData.mainKey, wrappedMainKey, true);
 	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
 
 	const keyInfo = await createPrfKey(
