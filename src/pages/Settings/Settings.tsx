@@ -1126,10 +1126,10 @@ const Settings = () => {
 											{
 												key: 'high',
 												Icon: PrivacyLevelIcon.High,
-												active: false,
+												active: false, // hasHardwareBbs,
 												label: t('High privacy credentials:'),
-												alg: null,
-												name: null,
+												alg: null, // COSE_ALG_SPLIT_BBS,
+												name: null, // hardwareBbsName,
 											},
 											{
 												key: 'medium',
