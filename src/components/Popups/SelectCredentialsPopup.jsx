@@ -195,6 +195,17 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
 	};
 
+	useEffect(() => {
+		const selectedId = currentSelectionMap[currentKey];
+		if (selectedId && vcEntities?.length) {
+			const idx = vcEntities.findIndex(v => v.batchId === selectedId);
+			if (idx !== -1 && activeSlideIndexByKey[currentKey] !== idx + 1) {
+				setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
+			}
+		}
+		// run when step or its vcEntities change
+	}, [currentKey, vcEntities, currentSelectionMap, activeSlideIndexByKey]);
+
 	const requestedFieldsPerCredential = useMemo(() => {
 
 		if (!popupState?.options) return {};
