@@ -35,7 +35,8 @@ const SelectableCredentialSlideCard = ({
 	vcEntity,
 	isActive,
 	isSelected,
-	onClick
+	onClick,
+	borderColor
 }) => {
 	const { t } = useTranslation();
 	const [imageLoaded, setImageLoaded] = useState(false);
@@ -65,6 +66,7 @@ const SelectableCredentialSlideCard = ({
 				className="w-full object-cover rounded-xl"
 				showRibbon={isActive}
 				onLoad={() => setImageLoaded(true)}
+				borderColor={borderColor}
 			/>
 
 			{imageLoaded && (
@@ -425,6 +427,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											isActive={currentSlide === index + 1}
 											isSelected={selectedCredential === vcEntity.batchId}
 											onClick={handleClick}
+											borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
 										/>
 									)}
 									onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
@@ -500,9 +503,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												vcEntity={vcEntity}
 												vcEntityInstances={vcEntity.instances}
 												parsedCredential={vcEntity.parsedCredential}
-												className="w-full object-cover rounded-xl"
+												className="w-full object-cover rounded-xl bg-red-500"
 												showRibbon={currentSummarySlide === i}
 												filter={filterPaths}
+												borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
 											/>
 										</div>
 									);
@@ -537,9 +541,9 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			</div>
 
 			<div
-				className={`z-10 left-0 right-0 bg-white dark:bg-gray-800 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
-					? 'sticky bottom-0 px-4 py-3'
-					: 'fixed bottom-0 px-6 pb-4 pt-4'
+				className={`z-10 left-0 right-0 border-t border-gray-500/30 dark:border-white/30 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
+					? 'bg-gray-50 dark:bg-gray-700 sticky bottom-0 px-4 py-3'
+					: 'bg-gray-100 dark:bg-gray-900 fixed bottom-0 px-6 pb-4 pt-4'
 					}`}
 			>
 				<Button
