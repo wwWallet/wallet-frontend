@@ -42,7 +42,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 
 	return (
 		<>
-			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex justify-around px-4 pt-4 pb-6 z-40 flex md:hidden shadow-2xl rounded-t-lg`}>
+			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-900 border-t border-gray-500/30 dark:border-white/30 flex justify-around px-4 pt-4 pb-6 z-40 flex md:hidden shadow-2xl rounded-t-lg`}>
 				{navItems.map(item => (
 					<button
 						id={`bottom-nav-item-${item.id}`}
