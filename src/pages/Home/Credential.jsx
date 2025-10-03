@@ -164,7 +164,7 @@ const Credential = () => {
 							{t('pageHistory.noFound')}
 						</p>
 					) : (
-						<HistoryList batchId={batchId} />
+						<HistoryList batchId={batchId} history={history} />
 					)}
 				</>
 		},

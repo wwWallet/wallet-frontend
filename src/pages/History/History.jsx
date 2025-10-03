@@ -29,7 +29,7 @@ const History = () => {
 					{t('pageHistory.noFound')}
 				</p>
 			) : (
-				<HistoryList />
+				<HistoryList history={history}/>
 			)}
 		</div>
 	);
