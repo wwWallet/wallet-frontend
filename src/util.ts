@@ -83,6 +83,53 @@ export function last<T>(arr: T[]): T | undefined {
 }
 
 /**
+	Like `Array.findIndex`, but returns the index past the end of the array
+	instead of -1 if no matching element is found.
+	*/
+export function findIndexOrEnd<T>(arr: T[], predicate: (element: T) => boolean): number {
+	const index = arr.findIndex(predicate);
+	if (index === -1) {
+		return arr.length;
+	} else {
+		return index;
+	}
+}
+
+/**
+	Split `arr` into two contiguous segments. The second segment begins with the
+	first element that satisfies the `predicate`.
+
+	If no element satisfies the `predicate`, then the first segment is a shallow
+	copy of `arr` and the second segment is empty.
+	*/
+export function splitWhen<T>(arr: T[], predicate: (element: T) => boolean): [T[], T[]] {
+	const splitIndex = findIndexOrEnd(arr, predicate);
+	return [arr.slice(0, splitIndex), arr.slice(splitIndex)];
+}
+
+/**
+	Filter `arr` for duplicates as determined by `f`, keeping the first element
+	of each duplicate class.
+	*/
+export function deduplicateBy<T, U extends (string | number | boolean | bigint | symbol)>(
+	arr: T[],
+	f: (element: T) => U,
+): T[] {
+	return [
+		...arr.reduce(
+			(map, e: T) => {
+				const key = f(e);
+				if (!map.has(key)) {
+					map.set(key, e);
+				}
+				return map;
+			},
+			new Map<U, T>(),
+		).values(),
+	];
+}
+
+/**
 	Filter `arr` for duplicates as determined by `f`, keeping the last element of
 	each duplicate class.
 	*/
