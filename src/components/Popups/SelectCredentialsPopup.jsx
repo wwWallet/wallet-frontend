@@ -186,8 +186,14 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 	const [showFullPurpose, setShowFullPurpose] = useState(false);
 	const [selectedCredential, setSelectedCredential] = useState(null);
 	const screenType = useScreenType();
-	const [currentSlide, setCurrentSlide] = useState(1);
+	const [activeSlideIndexByKey, setActiveSlideIndexByKey] = useState({});
+	const currentKey = keys[currentIndex];
+	const currentSlide = activeSlideIndexByKey[currentKey] ?? 1;
 	const [currentSummarySlide, setCurrentSummarySlide] = useState(0);
+
+	const handleSlideChange = (idx) => {
+		setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
+	};
 
 	const requestedFieldsPerCredential = useMemo(() => {
 
@@ -208,7 +214,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 	const reinitialize = useCallback(() => {
 		setCurrentIndex(0);
-		setCurrentSlide(1);
+		setActiveSlideIndexByKey({});
 		setCurrentSelectionMap({});
 		setSelectedCredential(null);
 		setPopupState((current) => ({ ...current, isOpen: false }));
@@ -416,7 +422,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</p>
 						<div>
 						</div>
-						<div className={`${screenType === 'desktop' && 'm-auto max-w-[700px]'}`}>
+						<div key={keys[currentIndex]} className={`${screenType === 'desktop' && 'm-auto max-w-[700px]'}`}>
 							{vcEntities && vcEntities.length ? (
 								<Slider
 									items={vcEntities}
@@ -430,7 +436,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
 										/>
 									)}
-									onSlideChange={(currentIndex) => setCurrentSlide(currentIndex + 1)}
+									initialSlide={currentSlide}
+									onSlideChange={handleSlideChange}
 									className='xm:px-4 px-16 sm:px-24 md:px-8'
 								/>
 							) : (
@@ -511,6 +518,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 										</div>
 									);
 								}}
+								initialSlide={currentSummarySlide + 1}
 								onSlideChange={(index) => setCurrentSummarySlide(index)}
 								className='xm:px-4 px-16 sm:px-24 md:px-8'
 							/>
