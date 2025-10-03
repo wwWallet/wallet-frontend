@@ -101,6 +101,9 @@ const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 	)
 });
 
+
+const USAGE_WARNING_THRESHOLD = 1;
+
 const CredentialUsages = memo(({ count }: { count: number }) => {
 	const { t } = useTranslation();
 
@@ -110,13 +113,13 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 	let label: string | undefined;
 
 	// TODO: Icons need accessible labels.
-	if (count > 1) {
+	if (count > USAGE_WARNING_THRESHOLD) {
 		title = t('credentialStatusIndicators.usages.full');
 		Icon = <TbVersions size={18} />;
 		color = 'text-green-700 dark:text-green-500';
 		label = String(count);
-	} else if (count === 1) {
-		title = t('credentialStatusIndicators.usages.almostEmpty');
+	} else if (count > 0) {
+		title = t('credentialStatusIndicators.usages.almostEmpty', { count });
 		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
 		color = 'text-yellow-700 dark:text-yellow-500';
 		label = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;
