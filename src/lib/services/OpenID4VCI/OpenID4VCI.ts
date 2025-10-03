@@ -12,7 +12,7 @@ import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './Op
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
 import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
-import { WalletStateCredentialIssuanceSession } from '@/services/WalletStateOperations';
+import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
 import type { CredentialConfigurationSupported } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +24,8 @@ import { DataItem, parse } from '@auth0/mdl';
 import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
 import { COSEKeyToJWK } from "cose-kit";
 import { notify } from "@/context/notifier";
+
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
 const redirectUri = config.OPENID4VCI_REDIRECT_URI as string;
 const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.split(',') as string[];

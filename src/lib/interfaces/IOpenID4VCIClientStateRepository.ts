@@ -1,4 +1,6 @@
-import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
+import { CurrentSchema } from "@/services/WalletStateSchema";
+
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
 export interface IOpenID4VCIClientStateRepository {
 	getByState(state: string): Promise<WalletStateCredentialIssuanceSession | null>;

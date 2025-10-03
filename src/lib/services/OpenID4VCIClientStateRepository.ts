@@ -1,10 +1,12 @@
 import { useContext, useCallback, useMemo, useRef, useEffect } from "react";
 import SessionContext from "@/context/SessionContext";
-import { WalletStateCredentialIssuanceSession } from "@/services/WalletStateOperations";
+import { CurrentSchema } from "@/services/WalletStateSchema";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
 import { OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS } from "@/config";
 import { last } from "@/util";
+
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
