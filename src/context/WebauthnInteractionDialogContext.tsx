@@ -105,6 +105,10 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 			: null
 	);
 
+	function abortError() {
+		return new Error('Aborted by user', { cause: { id: 'user-abort' } });
+	}
+
 	const setup: SetupFunction = ({ heading }) => {
 		return {
 			async beginGet(webauthnOptions, { bodyText }) {
@@ -114,7 +118,7 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 						bodyText,
 						onContinue: () => resolve(),
 						onCancel: () => {
-							reject(new Error('Aborted by user', { cause: { id: 'user-abort' } }));
+							reject(abortError());
 							resetState();
 						},
 					});
@@ -125,7 +129,7 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 						heading,
 						bodyText: t("Please interact with your authenticator..."),
 						onCancel: () => {
-							reject(new Error('Aborted by user', { cause: { id: 'user-abort' } }));
+							reject(abortError());
 							resetState();
 							abortController.abort();
 						},
