@@ -1,12 +1,12 @@
 import React, { memo, MouseEventHandler, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FaCircleXmark, FaTriangleExclamation } from 'react-icons/fa6';
-import { IoShield, IoShieldHalf, IoShieldOutline } from 'react-icons/io5';
 import { TbDeviceUsb, TbVersions } from 'react-icons/tb';
 import { ParsedCredentialJpt } from 'wallet-common/dist/types';
 import { fromBase64Url } from '@/util';
 import { type ExtendedVcEntity } from '@/context/CredentialsContext';
 import { type CredentialKeyPair } from '@/services/keystore';
+import { PrivacyLevelIcon } from '../PrivacyLevelIcon';
 
 type Type = 'hw-bound' | 'synced';
 type PrivacyLevel = 'high' | 'medium' | 'low';
@@ -89,9 +89,9 @@ const CredentialPrivacyLevel = memo(({ level }: { level: PrivacyLevel }) => {
 
 	// TODO: Icons need accessible labels.
 	const icons: Record<PrivacyLevel, ReactElement> = {
-		high: <IoShield size={16} />,
-		medium: <IoShieldHalf size={16} />,
-		low: <IoShieldOutline size={16} />,
+		high: <PrivacyLevelIcon.High size={16} />,
+		medium: <PrivacyLevelIcon.Medium size={16} />,
+		low: <PrivacyLevelIcon.Low size={16} />,
 	};
 
 	return (
