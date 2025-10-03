@@ -6,6 +6,10 @@ import { useTranslation } from 'react-i18next';
 
 
 export interface WebauthnDialog {
+	beginCreate(webauthnOptions: CredentialCreationOptions, dialogOptions: {
+		bodyText: React.ReactNode,
+	}): Promise<PublicKeyCredential>,
+
 	beginGet(webauthnOptions: CredentialRequestOptions, dialogOptions: {
 		bodyText: React.ReactNode,
 	}): Promise<PublicKeyCredential>,
@@ -111,6 +115,38 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 
 	const setup: SetupFunction = ({ heading }) => {
 		return {
+			async beginCreate(webauthnOptions, { bodyText }) {
+				await new Promise<void>((resolve, reject) => {
+					setDialogState({
+						heading,
+						bodyText,
+						onContinue: () => resolve(),
+						onCancel: () => {
+							reject(abortError());
+							resetState();
+						},
+					});
+				});
+				const abortController = new AbortController();
+				return new Promise(async (resolve, reject) => {
+					setDialogState({
+						heading,
+						bodyText: t("Please interact with your authenticator..."),
+						onCancel: () => {
+							reject(abortError());
+							resetState();
+							abortController.abort();
+						},
+					});
+					navigator.credentials.create({
+						...webauthnOptions,
+						signal: abortController.signal,
+					})
+						.then(cred => resolve(cred as PublicKeyCredential))
+						.catch(reject);
+				});
+			},
+
 			async beginGet(webauthnOptions, { bodyText }) {
 				await new Promise<void>((resolve, reject) => {
 					setDialogState({
