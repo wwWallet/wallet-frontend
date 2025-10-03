@@ -1007,15 +1007,14 @@ export async function getPrfKey(
 }
 
 async function addWebauthnSignKeypair(
+	container: OpenedContainer,
 	credential: PublicKeyCredential | null,
 	prfCredential: PublicKeyCredential | null,
-	mainKey: CryptoKey,
-	privateData: EncryptedContainer,
-): Promise<EncryptedContainer> {
+): Promise<OpenedContainer> {
 	const newKeypair = parseWebauthnSignGeneratedKey(credential) ?? parseWebauthnSignGeneratedKey(prfCredential);
 	if (newKeypair) {
-		const [newPrivateData,] = await updatePrivateData(
-			[privateData as AsymmetricEncryptedContainer, mainKey],
+		return updatePrivateData(
+			container,
 			async (privateData: PrivateData) => {
 				if (newKeypair && "arkg" in newKeypair) {
 					return addNewArkgSeedEvent(privateData, newKeypair.arkg);
@@ -1024,10 +1023,9 @@ async function addWebauthnSignKeypair(
 				}
 			},
 		);
-		return newPrivateData;
 
 	} else {
-		return privateData;
+		return container;
 	}
 }
 
@@ -1070,7 +1068,11 @@ export async function upgradePrfKey(
 		})),
 	};
 
-	return await addWebauthnSignKeypair(credential, prfCredential, mainKey, newPrivateData);
+	const [newNewPrivateData,] = await addWebauthnSignKeypair(
+		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
+		credential, prfCredential,
+	);
+	return newNewPrivateData;
 };
 
 export async function beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> {
@@ -1102,7 +1104,11 @@ export async function finishAddPrf(
 			keyInfo,
 		],
 	};
-	return addWebauthnSignKeypair(credential.credential, null, mainKey, newPrivateData);
+	const [newNewPrivateData,] = await addWebauthnSignKeypair(
+		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
+		credential.credential, null
+	);
+	return newNewPrivateData;
 }
 
 export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Array): EncryptedContainer {
