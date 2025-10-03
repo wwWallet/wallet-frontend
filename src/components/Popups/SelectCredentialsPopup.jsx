@@ -473,48 +473,49 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						})}
 
 						<div className={`${screenType === 'desktop' && 'max-w-[600px]'}`}>
-							<Slider
-								items={selectedVcEntities}
-								renderSlideContent={(vcEntity, i) => {
-									const descriptorId = Object.keys(currentSelectionMap).find(
-										(key) => currentSelectionMap[key] === vcEntity.batchId
-									);
+							<div className='py-[3px]'>
+								<Slider
+									items={selectedVcEntities}
+									renderSlideContent={(vcEntity, i) => {
+										const descriptorId = Object.keys(currentSelectionMap).find(
+											(key) => currentSelectionMap[key] === vcEntity.batchId
+										);
 
-									const fields = requestedFieldsPerCredential[descriptorId];
-									const hasValidPath = Array.isArray(fields) && fields[0]?.path[0];
+										const fields = requestedFieldsPerCredential[descriptorId];
+										const hasValidPath = Array.isArray(fields) && fields[0]?.path[0];
 
-									const requiredClaimPaths = (vcEntity.parsedCredential.metadata.credential?.TypeMetadata?.claims ?? [])
-										.filter(c => c?.required === true)
-										.map(c => normalizePath(c.path));
+										const requiredClaimPaths = (vcEntity.parsedCredential.metadata.credential?.TypeMetadata?.claims ?? [])
+											.filter(c => c?.required === true)
+											.map(c => normalizePath(c.path));
 
-									// Only merge when hasValidPath is true, otherwise leave undefined
-									const filterPaths = hasValidPath
-										? Array.from(
-											new Set([
-												...fields.map(f => JSON.stringify(normalizePath(f.path))),
-												...requiredClaimPaths.map(p => JSON.stringify(p))
-											])
-										).map(p => JSON.parse(p))
-										: undefined;
+										// Only merge when hasValidPath is true, otherwise leave undefined
+										const filterPaths = hasValidPath
+											? Array.from(
+												new Set([
+													...fields.map(f => JSON.stringify(normalizePath(f.path))),
+													...requiredClaimPaths.map(p => JSON.stringify(p))
+												])
+											).map(p => JSON.parse(p))
+											: undefined;
 
-									return (
-										<div className='py-1 w-full'>
-											<CredentialImage
-												vcEntity={vcEntity}
-												vcEntityInstances={vcEntity.instances}
-												parsedCredential={vcEntity.parsedCredential}
-												className="w-full object-cover rounded-xl bg-red-500"
-												showRibbon={currentSummarySlide === i}
-												filter={filterPaths}
-												borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
-											/>
-										</div>
-									);
-								}}
-								onSlideChange={(index) => setCurrentSummarySlide(index)}
-								className='xm:px-4 px-16 sm:px-24 md:px-8'
-							/>
-
+										return (
+											<div className='w-full'>
+												<CredentialImage
+													vcEntity={vcEntity}
+													vcEntityInstances={vcEntity.instances}
+													parsedCredential={vcEntity.parsedCredential}
+													className="w-full object-cover rounded-xl"
+													showRibbon={currentSummarySlide === i}
+													filter={filterPaths}
+													borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
+												/>
+											</div>
+										);
+									}}
+									onSlideChange={(index) => setCurrentSummarySlide(index)}
+									className='xm:px-4 px-16 sm:px-24 md:px-8'
+								/>
+							</div>
 							{selectedVcEntities?.[currentSummarySlide] ? (
 								<div className="flex flex-wrap justify-center items-center my-2">
 									<CredentialInfo
