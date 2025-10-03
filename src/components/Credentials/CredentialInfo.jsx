@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { IoIosSend } from "react-icons/io";
 import { TbAsterisk } from "react-icons/tb";
+import useScreenType from '../../hooks/useScreenType';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -190,6 +191,7 @@ const formatClaimValue = (value) => {
 
 const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
 	const { t, i18n } = useTranslation();
+	const screenType = useScreenType();
 	const { language, options: { fallbackLng } } = i18n;
 
 	const requestedFields = requested?.fields ?? null;
@@ -385,7 +387,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					<div
 						key={fullPath}
 						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${(isRequested || isRequired) && requestedDisplay === "highlight"
-							? 'bg-blue-50 dark:bg-gray-600 shadow'
+							? `bg-blue-50 shadow ${screenType === 'desktop' ? 'dark:bg-gray-600' : 'dark:bg-gray-800'}`
 							: ''
 							}`}
 					>
