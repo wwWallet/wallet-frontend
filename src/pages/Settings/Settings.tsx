@@ -12,10 +12,10 @@ import AppSettingsContext from '@/context/AppSettingsContext';
 import useScreenType from '../../hooks/useScreenType';
 
 import { UserData, WebauthnCredential } from '../../api/types';
-import { compareBy, toBase64Url } from '../../util';
+import { byteArrayEquals, compareBy, toBase64Url } from '../../util';
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { formatDate } from '../../functions/DateFormat';
-import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
+import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WebauthnSignArkgPublicSeed, WebauthnSignSplitBbsKeypair } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import Button from '../../components/Buttons/Button';
@@ -27,6 +27,11 @@ import LanguageSelector from '../../components/LanguageSelector/LanguageSelector
 import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
 import { FaLaptop, FaMobile } from "react-icons/fa";
 import { PrivacyLevelIcon } from '@/components/PrivacyLevelIcon';
+import { BiPlus } from 'react-icons/bi';
+import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS } from 'wallet-common/dist/cose';
+import WebauthnInteractionDialogContext from '@/context/WebauthnInteractionDialogContext';
+import { TbDeviceUsb } from 'react-icons/tb';
+import { MaybeNamed } from '@/services/WalletStateSchemaVersion3';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -478,14 +483,12 @@ const UnlockMainKey = ({
 
 const WebauthnCredentialItem = ({
 	credential,
-	hardwareKeypairs,
 	prfKeyInfo,
 	onDelete,
 	onRename,
 	onUpgradePrfKey,
 }: {
 	credential: WebauthnCredential,
-	hardwareKeypairs: { arkg?: boolean, bbs?: boolean },
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
@@ -502,6 +505,7 @@ const WebauthnCredentialItem = ({
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+	const credIdB64 = toBase64Url(credential.credentialId);
 
 	const handleDelete = async () => {
 		if (onDelete) {
@@ -604,23 +608,6 @@ const WebauthnCredentialItem = ({
 						&& <span className="font-semibold text-orange-500 ml-2">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
-				<p className="dark:text-white font-semibold">
-					{t('Hardware keypairs')}:
-				</p>
-				<ul className="grid grid-cols-[max-content,max-content] gap-2">
-					<li className="grid grid-cols-subgrid col-span-full items-baseline">
-						<PrivacyLevelIcon.High />
-						<span>{hardwareKeypairs.bbs ? t('High privacy: supported') : t('High privacy: not supported')}</span>
-					</li>
-					<li className="grid grid-cols-subgrid col-span-full items-baseline">
-						<PrivacyLevelIcon.Medium />
-						<span>{hardwareKeypairs.arkg ? t('Medium privacy: supported') : t('Medium privacy: not supported')}</span>
-					</li>
-					<li className="grid grid-cols-subgrid col-span-full items-baseline">
-						<PrivacyLevelIcon.Low />
-						<span>{hardwareKeypairs.arkg ? t('Low privacy: supported') : t('Low privacy: not supported')}</span>
-					</li>
-				</ul>
 			</div>
 
 			<div className="items-start	 flex inline-flex">
@@ -725,35 +712,24 @@ const Settings = () => {
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
 
+	const [registerWebauthnSigningKeyInProgress, setRegisterWebauthnSigningKeyInProgress] = useState(false);
+
+	const webauthnInteractionCtx = useContext(WebauthnInteractionDialogContext);
 	const walletState = keystore.getCalculatedWalletState();
 
-	const webauthnKeypairs: { [credId: string]: { arkg?: boolean, bbs?: boolean } } = (
-		walletState.splitBbsKeypairs.reduce(
-			(result, splitBbsKeypair) => {
-				const credId = toBase64Url(splitBbsKeypair.credentialId);
-				return {
-					...result,
-					[credId]: {
-						...result[credId],
-						arkg: true,
-					}
-				};
-			},
-			walletState.arkgSeeds.reduce(
-				(result, arkgSeed) => {
-					const credId = toBase64Url(arkgSeed.credentialId);
-					return {
-						...result,
-						[credId]: {
-							...result[credId],
-							arkg: true,
-						}
-					};
-				},
-				{},
-			),
-		)
-	);
+	const hasHardwareArkg = walletState.arkgSeeds.length > 0;
+	const hasHardwareBbs = walletState.splitBbsKeypairs.length > 0;
+	function findCredential(credentialId?: BufferSource): WebauthnCredential | undefined {
+		return credentialId
+			? userData?.webauthnCredentials?.find(cred => byteArrayEquals(cred.credentialId, credentialId))
+			: undefined;
+	}
+	function useHardwareKeyNickname(hardwareKey?: MaybeNamed<WebauthnSignArkgPublicSeed | WebauthnSignSplitBbsKeypair>): string {
+		const parentNickname = useWebauthnCredentialNickname(findCredential(hardwareKey?.credentialId));
+		return hardwareKey?.name ?? parentNickname;
+	}
+	const hardwareArkgName = useHardwareKeyNickname(walletState.arkgSeeds[0]);
+	const hardwareBbsName = useHardwareKeyNickname(walletState.splitBbsKeypairs[0]);
 
 	const deleteAccount = async () => {
 		try {
@@ -917,6 +893,79 @@ const Settings = () => {
 		}
 	};
 
+	const onRegisterWebauthnSigningKey = async (alg: number) => {
+		try {
+			setRegisterWebauthnSigningKeyInProgress(true);
+
+			async function webauthnRegisterRetryLoop(
+				heading: React.ReactNode,
+				options: CredentialCreationOptions,
+			): Promise<{ credential: PublicKeyCredential, name: string }> {
+				const webauthnDialog = webauthnInteractionCtx.setup({ heading });
+
+				let retry = true;
+				while (retry) {
+					try {
+						const credential = await webauthnDialog.beginCreate(options, {
+							bodyText: t('About to register a new hardware key.'),
+						});
+						const name = await webauthnDialog.input({
+							bodyText: t("Success! Please give this hardware key a name:"),
+							input: {
+								ariaLabel: t('registerHardwareKey.nicknameAriaLabel'),
+								autoFocus: true,
+								placeholder: t('registerHardwareKey.nicknamePlaceholder'),
+							},
+						});
+						webauthnDialog.success({
+							bodyText: t("Success! A new hardware key has been added."),
+						});
+						return { credential, name };
+
+					} catch (e) {
+						switch (e.cause?.id) {
+							case 'key-not-found': {
+								const result = await webauthnDialog.error({
+									bodyText: t("No key was generated. This authenticator might not support this signature algorithm. Please try a different one."),
+									buttons: {
+										retry: true,
+									},
+								});
+								retry = result.retry;
+							}
+
+							case 'user-abort':
+								throw e;
+
+							case 'err':
+							default: {
+								const result = await webauthnDialog.error({
+									bodyText: t("An error occurred!"),
+									buttons: {
+										retry: true,
+									},
+								});
+								retry = result.retry;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			const [newKeypair, newPrivateData, keystoreCommit] = await keystore.registerWebauthnSignKeypair(alg, async options => {
+				return await webauthnRegisterRetryLoop(t('Register new hardware key'), options);
+			});
+			if (newKeypair) {
+				await api.updatePrivateData(newPrivateData);
+				await keystoreCommit();
+			}
+
+		} finally {
+			setRegisterWebauthnSigningKeyInProgress(false);
+		}
+	};
+
 	return (
 		<>
 			<div className="px-6 sm:px-12 w-full">
@@ -995,7 +1044,6 @@ const Settings = () => {
 									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
 									onRename={onRenameWebauthnCredential}
 									onUpgradePrfKey={onUpgradePrfKey}
-									hardwareKeypairs={webauthnKeypairs[toBase64Url(loggedInPasskey.credentialId)]}
 								/>
 							)}
 						</div>
@@ -1053,13 +1101,74 @@ const Settings = () => {
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
 													onUpgradePrfKey={onUpgradePrfKey}
-													hardwareKeypairs={webauthnKeypairs[toBase64Url(cred.credentialId)]}
 												/>
 											))}
 										{userData.webauthnCredentials
 											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
 												<p className='dark:text-white'>{t('pageSettings.noOtherPasskeys')}</p>
 											)}
+									</ul>
+								</div>
+
+								<div className="pt-4">
+									<H3 heading={<>{t('Hardware keypairs')} <TbDeviceUsb className="inline" /></>} />
+									<p className="mb-2">
+										<Trans
+											i18nKey="New credentials are bound to a hardware key if an eligible hardware key is registered, otherwise new credentials are bound to a cloud-synced software key. Credentials bound to a hardware key are marked with a <securityKeyIcon/> icon."
+											components={{
+												securityKeyIcon: <TbDeviceUsb className="inline" />,
+											}}
+										/>
+									</p>
+									<p className="mb-4">
+										{t('Only one hardware key per credential category is currently supported.')}
+									</p>
+									<ul className="grid grid-cols-[max-content,max-content,max-content,max-content] gap-4">
+										{[
+											{
+												key: 'high',
+												Icon: PrivacyLevelIcon.High,
+												active: hasHardwareBbs,
+												label: t('High privacy credentials:'),
+												alg: COSE_ALG_SPLIT_BBS,
+												name: hardwareBbsName,
+											},
+											{
+												key: 'medium',
+												Icon: PrivacyLevelIcon.Medium,
+												active: hasHardwareArkg,
+												label: t('Medium privacy credentials:'),
+												alg: COSE_ALG_ESP256_ARKG,
+												name: hardwareArkgName,
+											},
+											{
+												key: 'low',
+												Icon: PrivacyLevelIcon.Low,
+												active: hasHardwareArkg,
+												label: t('Low privacy credentials:'),
+												alg: COSE_ALG_ESP256_ARKG,
+												name: hardwareArkgName,
+											},
+										].map(({ key, Icon, active, label, alg, name }) =>
+											<li key={key} className="grid grid-cols-subgrid col-span-full items-baseline">
+												<Icon />
+												<span>{label}</span>
+												<span>
+													{active
+														? <><TbDeviceUsb className="inline" /> {t('Hardware key: {{name}}', { name })}</>
+														: t('Software key')
+													}
+												</span>
+												{!active &&
+													<Button
+														variant="primary"
+														disabled={registerWebauthnSigningKeyInProgress}
+														onClick={() => onRegisterWebauthnSigningKey(alg)}
+													>
+														<BiPlus /> {t('Add hardware key')}
+													</Button>}
+											</li>
+										)}
 									</ul>
 								</div>
 

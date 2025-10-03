@@ -1046,6 +1046,39 @@ async function addWebauthnSignKeypair(
 	}
 }
 
+export async function registerWebauthnSignKeypair(
+	container: OpenedContainer,
+	rp: PublicKeyCredentialRpEntity,
+	user: PublicKeyCredentialUserEntity,
+	alg: number,
+	executeWebauthn: (options: CredentialCreationOptions) => Promise<{ credential: PublicKeyCredential, name: string }>,
+): Promise<[NewWebauthnSignKeypair, OpenedContainer]> {
+	const { credential, name } = await executeWebauthn({
+		publicKey: {
+			rp,
+			user,
+			// This challenge won't actually be checked - we only need the signing key, not the parent authentication key
+			challenge: crypto.getRandomValues(new Uint8Array(32)),
+			authenticatorSelection: {
+				residentKey: 'discouraged',
+				userVerification: 'required',
+			},
+			// Algorithm of parent credential doesn't matter since this we won't use this authentication key
+			pubKeyCredParams: [-7, -8, -257, -35, -36, -53].map(alg => ({ type: 'public-key', alg })),
+			extensions: {
+				sign: {
+					generateKey: { algorithms: [alg] },
+				},
+			},
+		},
+	});
+	const [newKeypair, newContainer] = await addWebauthnSignKeypair(container, credential, null, name);
+	if (!newKeypair) {
+		throw new Error('Key not found', { cause: { id: 'key-not-found' } });
+	}
+	return [newKeypair, newContainer];
+}
+
 export async function upgradePrfKey(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential | null,

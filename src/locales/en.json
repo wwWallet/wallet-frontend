@@ -359,6 +359,12 @@
 		"all": "All",
 		"recent": "Recent"
 	},
+	"registerHardwareKey": {
+		"giveNickname": "Please give this hardware key a name:",
+		"messageInteract": "Please interact with your authenticator...",
+		"nicknameAriaLabel": "Name for new hardware key",
+		"nicknamePlaceholder": "Hardware key name"
+	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",

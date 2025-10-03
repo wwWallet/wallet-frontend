@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import * as config from "../config";
 import { useClearStorages, useLocalStorage, useSessionStorage } from "../hooks/useStorage";
-import { toBase64Url } from "../util";
+import { byteArrayEquals, toBase64Url } from "../util";
 import { useIndexedDb } from "../hooks/useIndexedDb";
 import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 
@@ -102,6 +102,14 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
+	registerWebauthnSignKeypair(
+		alg: number,
+		executeWebauthn: (options: CredentialCreationOptions) => Promise<{ credential: PublicKeyCredential, name: string }>,
+	): Promise<[
+		keystore.NewWebauthnSignKeypair | null,
+		AsymmetricEncryptedContainer,
+		CommitCallback,
+	]>
 	generateKeypairs(n: number): Promise<[
 		{ keypairs: keystore.CredentialKeyPair[] },
 		AsymmetricEncryptedContainer,
@@ -720,6 +728,42 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		})
 	), [editPrivateData]);
 
+	const currentUser: CachedUser | undefined = useMemo(
+		() => {
+			if (userHandleB64u) {
+				return cachedUsers.find(u => u.userHandleB64u === userHandleB64u);
+			} else {
+				return undefined;
+			}
+		},
+		[cachedUsers, userHandleB64u],
+	);
+
+	const registerWebauthnSignKeypair = async (
+		alg: number,
+		executeWebauthn: (options: CredentialCreationOptions) => Promise<{ credential: PublicKeyCredential, name: string }>,
+	) => {
+		return editPrivateData(async originalContainer => {
+			if (!currentUser?.displayName) {
+				throw new Error('User display name not set');
+			}
+			const displayName = currentUser.displayName;
+			return keystore.registerWebauthnSignKeypair(
+				originalContainer,
+				{ id: config.WEBAUTHN_RPID, name: config.WEBAUTHN_RPID },
+				{
+					// Very important! Don't use the real user handle, or existing
+					// credentials on the authenticator may be overwritten.
+					id: crypto.getRandomValues(new Uint8Array(32)),
+					name: displayName,
+					displayName,
+				},
+				alg,
+				executeWebauthn,
+			);
+		});
+	};
+
 	const generateKeypairs = useCallback(
 		async (n: number): Promise<[
 			{ keypairs: keystore.CredentialKeyPair[] },
@@ -907,6 +951,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		signJwtPresentation,
 		signSplitBbs,
 		generateOpenid4vciProofs,
+		registerWebauthnSignKeypair,
 		generateKeypairs,
 		generateBbsKeypair,
 		generateDeviceResponse,
