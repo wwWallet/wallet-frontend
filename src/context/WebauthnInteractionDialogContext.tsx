@@ -14,6 +14,11 @@ export interface WebauthnDialog {
 		bodyText: React.ReactNode,
 	}): Promise<PublicKeyCredential>,
 
+	input(options: {
+		bodyText: React.ReactNode,
+		input: WebauthnInteractionDialogProps["input"],
+	}): Promise<string>,
+
 	error(options: {
 		bodyText: React.ReactNode,
 		buttons: {
@@ -42,20 +47,23 @@ const WebauthnInteractionDialogContext: React.Context<WebauthnInteractionDialogC
 type WebauthnInteractionDialogProps = {
 	bodyText: React.ReactNode,
 	heading: React.ReactNode,
+	input?: { ariaLabel?: string, autoFocus: boolean, placeholder: string },
 	onCancel: () => void,
 	onClose?: () => void,
-	onContinue?: () => void,
+	onContinue?: (input: string) => void,
 	onRetry?: () => void,
 };
 function WebauthnInteractionDialog({
 	bodyText,
 	heading,
+	input,
 	onCancel,
 	onClose,
 	onContinue,
 	onRetry,
 }: WebauthnInteractionDialogProps): React.ReactNode | null {
 	const { t } = useTranslation();
+	const [inputValue, setInputValue] = useState("");
 	return (
 		<Dialog
 			open={true}
@@ -68,30 +76,44 @@ function WebauthnInteractionDialog({
 
 			<p className="mb-2 dark:text-white">{bodyText}</p>
 
-			<div className="pt-2 flex justify-center gap-2">
-				{onClose
-					? <Button onClick={onClose}>
-						{t('common.action-close')}
-					</Button>
-					: <Button onClick={onCancel}>
-						{t('common.cancel')}
-					</Button>
+			<form method="dialog" onSubmit={() => onContinue(inputValue)}>
+				{input &&
+					<input
+						type="text"
+						className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
+						aria-label={input?.ariaLabel}
+						autoFocus={input?.autoFocus ?? false}
+						onChange={(event) => setInputValue(event.target.value)}
+						placeholder={input?.placeholder}
+						value={inputValue}
+					/>
 				}
 
-				{onContinue
-					? <Button variant="primary" onClick={onContinue}>
-						{t('common.continue')}
-					</Button>
-					: <></>
-				}
+				<div className="pt-2 flex justify-center gap-2">
+					{onClose
+						? <Button onClick={onClose}>
+							{t('common.action-close')}
+						</Button>
+						: <Button onClick={onCancel}>
+							{t('common.cancel')}
+						</Button>
+					}
 
-				{onRetry
-					? <Button variant="primary" onClick={onRetry}>
-						{t('common.tryAgain')}
-					</Button>
-					: <></>
-				}
-			</div>
+					{onContinue
+						? <Button variant="primary" onClick={() => onContinue(inputValue)}>
+							{t('common.continue')}
+						</Button>
+						: <></>
+					}
+
+					{onRetry
+						? <Button variant="primary" onClick={onRetry}>
+							{t('common.tryAgain')}
+						</Button>
+						: <></>
+					}
+				</div>
+			</form>
 		</Dialog>
 	);
 }
@@ -176,6 +198,21 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 					})
 						.then(cred => resolve(cred as PublicKeyCredential))
 						.catch(reject);
+				});
+			},
+
+			input({ bodyText, input }) {
+				return new Promise((resolve, reject) => {
+					setDialogState({
+						heading,
+						bodyText,
+						input,
+						onCancel() {
+							reject(abortError());
+							resetState();
+						},
+						onContinue: resolve,
+					});
 				});
 			},
 
