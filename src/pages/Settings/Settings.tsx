@@ -26,6 +26,7 @@ import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
 import { FaLaptop, FaMobile } from "react-icons/fa";
+import { PrivacyLevelIcon } from '@/components/PrivacyLevelIcon';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -477,12 +478,14 @@ const UnlockMainKey = ({
 
 const WebauthnCredentialItem = ({
 	credential,
+	hardwareKeypairs,
 	prfKeyInfo,
 	onDelete,
 	onRename,
 	onUpgradePrfKey,
 }: {
 	credential: WebauthnCredential,
+	hardwareKeypairs: { arkg?: boolean, bbs?: boolean },
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
@@ -601,6 +604,23 @@ const WebauthnCredentialItem = ({
 						&& <span className="font-semibold text-orange-500 ml-2">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
+				<p className="dark:text-white font-semibold">
+					{t('Hardware keypairs')}:
+				</p>
+				<ul className="grid grid-cols-[max-content,max-content] gap-2">
+					<li className="grid grid-cols-subgrid col-span-full items-baseline">
+						<PrivacyLevelIcon.High />
+						<span>{hardwareKeypairs.bbs ? t('High privacy: supported') : t('High privacy: not supported')}</span>
+					</li>
+					<li className="grid grid-cols-subgrid col-span-full items-baseline">
+						<PrivacyLevelIcon.Medium />
+						<span>{hardwareKeypairs.arkg ? t('Medium privacy: supported') : t('Medium privacy: not supported')}</span>
+					</li>
+					<li className="grid grid-cols-subgrid col-span-full items-baseline">
+						<PrivacyLevelIcon.Low />
+						<span>{hardwareKeypairs.arkg ? t('Low privacy: supported') : t('Low privacy: not supported')}</span>
+					</li>
+				</ul>
 			</div>
 
 			<div className="items-start	 flex inline-flex">
@@ -704,6 +724,36 @@ const Settings = () => {
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
+
+	const walletState = keystore.getCalculatedWalletState();
+
+	const webauthnKeypairs: { [credId: string]: { arkg?: boolean, bbs?: boolean } } = (
+		walletState.splitBbsKeypairs.reduce(
+			(result, splitBbsKeypair) => {
+				const credId = toBase64Url(splitBbsKeypair.credentialId);
+				return {
+					...result,
+					[credId]: {
+						...result[credId],
+						arkg: true,
+					}
+				};
+			},
+			walletState.arkgSeeds.reduce(
+				(result, arkgSeed) => {
+					const credId = toBase64Url(arkgSeed.credentialId);
+					return {
+						...result,
+						[credId]: {
+							...result[credId],
+							arkg: true,
+						}
+					};
+				},
+				{},
+			),
+		)
+	);
 
 	const deleteAccount = async () => {
 		try {
@@ -945,6 +995,7 @@ const Settings = () => {
 									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
 									onRename={onRenameWebauthnCredential}
 									onUpgradePrfKey={onUpgradePrfKey}
+									hardwareKeypairs={webauthnKeypairs[toBase64Url(loggedInPasskey.credentialId)]}
 								/>
 							)}
 						</div>
@@ -1002,6 +1053,7 @@ const Settings = () => {
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
 													onUpgradePrfKey={onUpgradePrfKey}
+													hardwareKeypairs={webauthnKeypairs[toBase64Url(cred.credentialId)]}
 												/>
 											))}
 										{userData.webauthnCredentials
