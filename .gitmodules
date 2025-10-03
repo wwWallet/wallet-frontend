@@ -1,4 +1,0 @@
-[submodule "lib/jose"]
-	path = lib/jose
-	url = https://github.com/wwWallet/wallet-frontend.git
-	branch = lib-jose/fido-sign-extension
