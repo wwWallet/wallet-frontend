@@ -17,7 +17,7 @@
     "did-resolver": "^4.1.0",
     "firebase": "^10.1.0",
     "i18next": "^23.2.11",
-    "jose": "./lib/jose",
+    "jose": "git+https://github.com/wwWallet/wallet-frontend.git#227269319a9d9c3da40779ea1c4b0dc1e710d7b7",
     "jsonpath-plus": "^9.0.0",
     "jsonpointer": "^5.0.1",
     "key-did-resolver": "^3.0.0",

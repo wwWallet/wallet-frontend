@@ -5341,9 +5341,6 @@ jiti@^1.21.6:
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-1.21.7.tgz#9dd81043424a3d28458b193d965f0d18a2300ba9"
   integrity sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==
 
-jose@./lib/jose:
-  version "4.14.4"
-
 jose@^4.14.4, jose@^4.14.6, jose@^4.15.5:
   version "4.15.9"
   resolved "https://registry.yarnpkg.com/jose/-/jose-4.15.9.tgz#9b68eda29e9a0614c042fa29387196c7dd800100"
@@ -5353,6 +5350,10 @@ jose@^5.9.6:
   version "5.10.0"
   resolved "https://registry.yarnpkg.com/jose/-/jose-5.10.0.tgz#c37346a099d6467c401351a9a0c2161e0f52c4be"
   integrity sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==
+
+"jose@git+https://github.com/wwWallet/wallet-frontend.git#227269319a9d9c3da40779ea1c4b0dc1e710d7b7":
+  version "4.14.4"
+  resolved "git+https://github.com/wwWallet/wallet-frontend.git#227269319a9d9c3da40779ea1c4b0dc1e710d7b7"
 
 js-base64@^3.7.6:
   version "3.7.7"
