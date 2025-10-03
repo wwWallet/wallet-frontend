@@ -365,6 +365,18 @@ async function mergeDivergentHistoriesWithStrategies(
 		return [];
 
 	} else {
+		// Merge events one schema version at a time. Each schema version may define
+		// its own merge strategies for the event types defined in that version, so
+		// we cannot in general merge version 1 events with the version 3 merge
+		// strategy, for example.
+		//
+		// For each schema version traversed, the events merged so far are
+		// accumulated into the `mergedByEarlierSchemaVersions` argument to
+		// subsequent schema versions. This way, later schema versions can still
+		// de-duplicate against events of earlier versions: for instance, a v2
+		// "delete_credential" event can be de-duplicated against a v1
+		// "delete_credential" event with the same `credentialId`.
+
 		const firstSchemaVersion = Math.min(...[
 			historyA[0]?.schemaVersion,
 			historyB[0]?.schemaVersion,

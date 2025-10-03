@@ -30,11 +30,10 @@ import { PointG1 } from "wallet-common/dist/bbs/index";
 import { JWK } from "jose";
 
 type WalletState = CurrentSchema.WalletState;
-type WalletStatePresentation = CurrentSchema.WalletStatePresentation;
-type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
+type WalletStatePresentation = CurrentSchema.WalletStatePresentation;
 type WalletStateSettings = CurrentSchema.WalletStateSettings;
-
 
 type UserData = {
 	displayName: string;

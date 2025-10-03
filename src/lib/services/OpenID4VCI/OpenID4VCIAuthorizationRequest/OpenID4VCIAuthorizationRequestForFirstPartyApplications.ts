@@ -8,6 +8,7 @@ import SessionContext from "@/context/SessionContext";
 import OpenID4VPContext from "@/context/OpenID4VPContext";
 import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
+import CredentialsContext from "@/context/CredentialsContext";
 
 
 export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
@@ -16,6 +17,7 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openI
 	const { openID4VP } = useContext(OpenID4VPContext);
 
 	const { keystore } = useContext(SessionContext);
+	const { vcEntityList } = useContext(CredentialsContext);
 
 	const generate = useCallback(
 		async (
@@ -63,7 +65,7 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openI
 						const { auth_session, presentation } = err?.data;
 
 						// this function should prompt the user for presentation selection
-						const result = await openID4VP.handleAuthorizationRequest("openid4vp:" + presentation).then((res) => {
+						const result = await openID4VP.handleAuthorizationRequest("openid4vp:" + presentation, vcEntityList).then((res) => {
 							if ('error' in res) {
 								return;
 							}
@@ -71,7 +73,7 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openI
 							const jsonedMap = Object.fromEntries(res.conformantCredentialsMap);
 							return openID4VP.promptForCredentialSelection(jsonedMap, config.credentialIssuerMetadata.credential_issuer, "");
 						}).then((selectionMap) => {
-							return openID4VP.sendAuthorizationResponse(selectionMap);
+							return openID4VP.sendAuthorizationResponse(selectionMap, vcEntityList);
 						});
 
 						if (!('presentation_during_issuance_session' in result)) {
@@ -111,7 +113,7 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openI
 
 			throw new Error("First party app authorization failed");
 		},
-		[httpProxy, keystore, openID4VCIClientStateRepository, openID4VP]
+		[httpProxy, keystore, openID4VCIClientStateRepository, openID4VP, vcEntityList]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);

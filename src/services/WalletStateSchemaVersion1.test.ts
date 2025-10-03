@@ -5,19 +5,19 @@ import { WalletStateContainer, WalletStateOperations } from "./WalletStateSchema
 
 
 /**
-	 "Fossilize" the given values: encode them as JSON and print an assignment
-	 statement to the console that parses the value back. The printed statement
-	 can then be used to replace the construction of the value in tests, in order
-	 to test backwards compatibility with values created in earlier versions of
-	 the app.
+	"Fossilize" the given values: encode them as JSON and print an assignment
+	statement to the console that parses the value back. The printed statement
+	can then be used to replace the construction of the value in tests, in order
+	to test backwards compatibility with values created in earlier versions of
+	the app.
 
-	 To use: Add a statement like `fossilize({ container, container1, container2
-	 });` to a test, then run the test. Copy the output from the console and
-	 replace the construction of the values (and the `fossilize` call) with the
-	 fossilized versions, but keep assertions and further post-processing of the
-	 value(s). Adjust the `unknown` types to the original types of the serialized
-	 values.
-	 */
+	To use: Add a statement like `fossilize({ container, container1, container2
+	});` to a test, then run the test. Copy the output from the console and
+	replace the construction of the values (and the `fossilize` call) with the
+	fossilized versions, but keep assertions and further post-processing of the
+	value(s). Adjust the `unknown` types to the original types of the serialized
+	values.
+	*/
 export function fossilize(containers: { [name: string]: WalletStateContainer }) {
 	Object.keys(containers).forEach(name => {
 		const container = containers[name];
@@ -457,7 +457,7 @@ describe("WalletStateSchemaVersion1", () => {
 		const containerv1: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":2869811535,\"parentHash\":\"\",\"timestampSeconds\":1758141039,\"type\":\"new_credential\",\"credentialId\":3893673824,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":4148212910,\"parentHash\":\"9efc476407b39f3e4ea38965203bfefd99de3114887cb4635520a5fdbcba74dd\",\"timestampSeconds\":1758141039,\"type\":\"new_credential\",\"credentialId\":1597171040,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[],\"presentations\":[],\"keypairs\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
 
 		const e2Hash = await WalletStateOperations.calculateEventHash(containerv1.events[1]);
-		const container = await foldOldEventsIntoBaseState(containerv1, -1);
+		let container = await foldOldEventsIntoBaseState(containerv1, -1);
 		assert.strictEqual(container.lastEventHash, e2Hash);
 	});
 

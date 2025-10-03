@@ -1,7 +1,6 @@
 import { assert, describe, it } from "vitest";
 import { WalletStateContainer, WalletStateOperations } from "./WalletStateSchemaVersion2";
-import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeletePresentationEvent, addNewCredentialEvent, addNewKeypairEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, mergeEventHistories, SchemaV2 } from "./WalletStateSchema";
-import { CredentialKeyPair } from "./keystore";
+import { mergeEventHistories, SchemaV2 } from "./WalletStateSchema";
 import { jsonParseTaggedBinary } from "@/util";
 
 

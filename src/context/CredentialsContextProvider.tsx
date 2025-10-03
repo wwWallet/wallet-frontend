@@ -9,6 +9,8 @@ import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { ParsedCredential } from "wallet-common/dist/types";
 import { CurrentSchema } from '@/services/WalletStateSchema';
 
+type WalletStateCredential = CurrentSchema.WalletStateCredential;
+
 
 export const CredentialsContextProvider = ({ children }) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);
@@ -68,7 +70,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	}, [isLoggedIn, httpProxy, helper]);
 
 
-	const parseCredential = useCallback(async (vcEntity: CurrentSchema.WalletStateCredential): Promise<ParsedCredential | null> => {
+	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
 		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
@@ -116,7 +118,7 @@ export const CredentialsContextProvider = ({ children }) => {
 			return null;
 		}
 		// Create a map of instances grouped by credentialIdentifier
-		const instancesMap = credentials.reduce((acc: any, vcEntity: CurrentSchema.WalletStateCredential) => {
+		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletStateCredential) => {
 			if (!acc[vcEntity.batchId]) {
 				acc[vcEntity.batchId] = [];
 			}
@@ -192,7 +194,7 @@ export const CredentialsContextProvider = ({ children }) => {
 				if (
 					!prev ||
 					prev.length !== storedCredentials.length ||
-					prev.some((vc, i) => vc.id !== storedCredentials[i].id)
+					prev.some((vc, i) => vc.batchId !== storedCredentials[i].batchId)
 				) {
 					return storedCredentials;
 				}
