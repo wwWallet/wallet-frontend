@@ -32,6 +32,7 @@ export type WalletSessionEventTypeAttributesV3 = (
 export type WalletSessionEventNewArkgSeed = {
 	type: "new_arkg_seed",
 	arkgSeed: WebauthnSignArkgPublicSeed,
+	name?: string,
 }
 
 export type WalletSessionEventDeleteArkgSeed = {
@@ -42,6 +43,7 @@ export type WalletSessionEventDeleteArkgSeed = {
 export type WalletSessionEventNewSplitBbsKeypair = {
 	type: "new_split_bbs_keypair",
 	splitBbsKeypair: WebauthnSignSplitBbsKeypair,
+	name?: string,
 }
 
 export type WalletSessionEventDeleteSplitBbsKeypair = {
@@ -49,9 +51,10 @@ export type WalletSessionEventDeleteSplitBbsKeypair = {
 	credentialId: Uint8Array,
 }
 
+export type MaybeNamed<T> = T & { name?: string };
 export type WalletStateV3 = SchemaV2.WalletState & {
-	arkgSeeds: WebauthnSignArkgPublicSeed[],
-	splitBbsKeypairs: WebauthnSignSplitBbsKeypair[],
+	arkgSeeds: MaybeNamed<WebauthnSignArkgPublicSeed>[],
+	splitBbsKeypairs: MaybeNamed<WebauthnSignSplitBbsKeypair>[],
 }
 export type WalletStateV3OrEarlier = SchemaV2.WalletState | WalletStateV3;
 export type WalletState = WalletStateV3;
@@ -130,10 +133,10 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 		}
 	}
 
-	function arkgSeedsReducer(state: WebauthnSignArkgPublicSeed[] = [], newEvent: WalletSessionEvent) {
+	function arkgSeedsReducer(state: MaybeNamed<WebauthnSignArkgPublicSeed>[] = [], newEvent: WalletSessionEvent) {
 		switch (newEvent.type) {
 			case "new_arkg_seed":
-				return state.concat([newEvent.arkgSeed]);
+				return state.concat([{ ...newEvent.arkgSeed, name: newEvent.name}]);
 			case "delete_arkg_seed":
 				return state.filter((s) => !byteArrayEquals(s.credentialId, newEvent.credentialId));
 			default:
@@ -141,10 +144,10 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 		}
 	}
 
-	function splitBbsKeypairsReducer(state: WebauthnSignSplitBbsKeypair[] = [], newEvent: WalletSessionEvent) {
+	function splitBbsKeypairsReducer(state: MaybeNamed<WebauthnSignSplitBbsKeypair>[] = [], newEvent: WalletSessionEvent) {
 		switch (newEvent.type) {
 			case "new_split_bbs_keypair":
-				return state.concat([newEvent.splitBbsKeypair]);
+				return state.concat([{ ...newEvent.splitBbsKeypair, name: newEvent.name }]);
 			case "delete_split_bbs_keypair":
 				return state.filter((s) => !byteArrayEquals(s.credentialId, newEvent.credentialId));
 			default:

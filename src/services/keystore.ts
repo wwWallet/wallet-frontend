@@ -1023,6 +1023,7 @@ async function addWebauthnSignKeypair(
 	container: OpenedContainer,
 	credential: PublicKeyCredential | null,
 	prfCredential: PublicKeyCredential | null,
+	name: string | null,
 ): Promise<[NewWebauthnSignKeypair, OpenedContainer]> {
 	const newKeypair = parseWebauthnSignGeneratedKey(credential) ?? parseWebauthnSignGeneratedKey(prfCredential);
 	if (newKeypair) {
@@ -1030,9 +1031,9 @@ async function addWebauthnSignKeypair(
 			container,
 			async (privateData: PrivateData) => {
 				if (newKeypair && "arkg" in newKeypair) {
-					return addNewArkgSeedEvent(privateData, newKeypair.arkg);
+					return addNewArkgSeedEvent(privateData, newKeypair.arkg, name);
 				} else if (newKeypair && "splitBbs" in newKeypair) {
-					return addNewSplitBbsKeypairEvent(privateData, newKeypair.splitBbs);
+					return addNewSplitBbsKeypairEvent(privateData, newKeypair.splitBbs, name);
 				} else {
 					return privateData;
 				}

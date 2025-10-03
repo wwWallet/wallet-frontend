@@ -283,6 +283,7 @@ export async function addDeleteCredentialIssuanceSessionEvent(container: WalletS
 export async function addNewArkgSeedEvent(
 	container: WalletStateContainer,
 	arkgSeed: WebauthnSignArkgPublicSeed,
+	name: string | null,
 ): Promise<WalletStateContainer> {
 	return {
 		...container,
@@ -292,13 +293,15 @@ export async function addNewArkgSeedEvent(
 				...await createWalletSessionEvent(container),
 				type: "new_arkg_seed",
 				arkgSeed,
-			}]
+				name,
+			}],
 	};
 }
 
 export async function addNewSplitBbsKeypairEvent(
 	container: WalletStateContainer,
 	splitBbsKeypair: WebauthnSignSplitBbsKeypair,
+	name: string | null,
 ): Promise<WalletStateContainer> {
 	return {
 		...container,
@@ -308,7 +311,8 @@ export async function addNewSplitBbsKeypairEvent(
 				...await createWalletSessionEvent(container),
 				type: "new_split_bbs_keypair",
 				splitBbsKeypair,
-			}]
+				name,
+			}],
 	};
 }
 
