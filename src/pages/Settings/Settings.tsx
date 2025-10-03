@@ -15,7 +15,7 @@ import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { formatDate } from '../../functions/DateFormat';
-import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
+import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import Button from '../../components/Buttons/Button';
@@ -53,13 +53,9 @@ type UpgradePrfState = (
 );
 
 const WebauthnRegistation = ({
-	unwrappingKey,
 	onSuccess,
-	wrappedMainKey,
 }: {
-	unwrappingKey?: CryptoKey,
 	onSuccess: () => void,
-	wrappedMainKey?: WrappedKeyInfo,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -70,7 +66,6 @@ const WebauthnRegistation = ({
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
-	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const screenType = useScreenType();
 
 	const stateChooseNickname = Boolean(beginData) && !resolvePrfRetryPrompt;
@@ -126,11 +121,10 @@ const WebauthnRegistation = ({
 		event.preventDefault();
 		console.log("onFinish", event);
 
-		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
+		if (beginData && pendingCredential) {
 			try {
 				const [newPrivateData, keystoreCommit] = await keystore.finishAddPrf(
 					pendingCredential,
-					[unwrappingKey, wrappedMainKey],
 					async () => {
 						return new Promise<boolean>((resolve, reject) => {
 							setResolvePrfRetryPrompt(() => resolve);
@@ -176,7 +170,7 @@ const WebauthnRegistation = ({
 				onCancel();
 			}
 		} else {
-			console.error("Invalid state:", beginData, pendingCredential, unwrappingKey, wrappedMainKey);
+			console.error("Invalid state:", beginData, pendingCredential);
 		}
 	};
 
@@ -196,9 +190,17 @@ const WebauthnRegistation = ({
 						id={`add-passkey-settings-${hint}`}
 						onClick={() => onBegin(hint)}
 						variant="primary"
-						disabled={registrationInProgress || !unlocked || !isOnline}
-						ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-						title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+						disabled={registrationInProgress || !isOnline}
+						ariaLabel={(
+							!isOnline
+								? t("common.offlineTitle")
+								: (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "")
+						)}
+						title={(
+							!isOnline
+								? t("common.offlineTitle")
+								: (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "")
+						)}
 					>
 						<div className="flex items-center">
 							<Icon size={20} />
@@ -318,7 +320,7 @@ const UnlockMainKey = ({
 	unlocked,
 }: {
 	onLock: () => void,
-	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
+	onUnlock: () => void,
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
@@ -343,7 +345,7 @@ const UnlockMainKey = ({
 		async () => {
 			setInProgress(true);
 			try {
-				const [unwrappingKey, wrappedMainKey] = await keystore.getPasswordOrPrfKeyFromSession(
+				await keystore.getPasswordOrPrfKeyFromSession(
 					() => new Promise<string>(resolve => {
 						setResolvePasswordPromise(() => resolve);
 					}).finally(() => {
@@ -352,7 +354,7 @@ const UnlockMainKey = ({
 					}),
 					async () => true,
 				);
-				onUnlock(unwrappingKey, wrappedMainKey);
+				onUnlock();
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e?.cause?.errorId) {
@@ -403,21 +405,21 @@ const UnlockMainKey = ({
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
+				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
+				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
 			>
 				<div className="flex items-center">
 					{unlocked
 						? <>
 							<BsUnlock size={20} />
 							<span className='hidden md:block ml-2'>
-								{t('pageSettings.lockPasskeyManagement')}
+								{t('pageSettings.lockSensitive')}
 							</span>
 						</>
 						: <>
 							<BsLock size={20} />
 							<span className='hidden md:block ml-2'>
-								{t('pageSettings.unlockPasskeyManagement')}
+								{t('pageSettings.unlockSensitive')}
 							</span>
 						</>
 					}
@@ -479,14 +481,12 @@ const WebauthnCredentialItem = ({
 	onDelete,
 	onRename,
 	onUpgradePrfKey,
-	unlocked
 }: {
 	credential: WebauthnCredential,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
-	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
@@ -645,9 +645,9 @@ const WebauthnCredentialItem = ({
 							id="rename-passkey"
 							onClick={() => setEditing(true)}
 							variant="secondary"
-							disabled={(onDelete && !unlocked) || !isOnline}
+							disabled={!isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-							title={!isOnline ? t("common.offlineTitle") : onDelete && !unlocked && t("pageSettings.passkeyItem.renameButtonTitleLocked")}
+							title={!isOnline ? t("common.offlineTitle") : ""}
 						>
 							<FaEdit size={16} className="mr-2" />
 							{t('pageSettings.passkeyItem.rename')}
@@ -660,9 +660,9 @@ const WebauthnCredentialItem = ({
 						id="delete-passkey"
 						onClick={openDeleteConfirmation}
 						variant="delete"
-						disabled={!unlocked || !isOnline}
+						disabled={!isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-						title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
 					>
 						<FaTrash size={16} />
@@ -692,9 +692,7 @@ const Settings = () => {
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
-	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
-	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
-	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
+	const [unlocked, setUnlocked] = useState(false);
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -725,6 +723,8 @@ const Settings = () => {
 
 	const handleDelete = async () => {
 		if (unlocked) {
+			// NOTE: Unlocking is purely a client-side safeguard against accidents.
+			// It is not enforced on the server side and can be easily bypassed.
 			setLoading(true);
 			await deleteAccount();
 			closeDeleteConfirmation();
@@ -945,7 +945,6 @@ const Settings = () => {
 									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
 									onRename={onRenameWebauthnCredential}
 									onUpgradePrfKey={onUpgradePrfKey}
-									unlocked={unlocked}
 								/>
 							)}
 						</div>
@@ -984,27 +983,12 @@ const Settings = () => {
 						</div>
 						<div className="mt-2 mb-2 py-2">
 							<H2 heading={t('pageSettings.title.manageAcount')}>
-								<UnlockMainKey
-									unlocked={unlocked}
-									onLock={() => {
-										setUnwrappingKey(null);
-										setWrappedMainKey(null);
-									}}
-									onUnlock={(unwrappingKey, wrappedMainKey) => {
-										setUnwrappingKey(unwrappingKey);
-										setWrappedMainKey(wrappedMainKey);
-									}}
-								/>
 							</H2>
 							<div className='mb-2'>
 								<div className="pt-4">
 									<H3 heading={t('pageSettings.title.manageOtherPasskeys')}>
 									</H3>
-									<WebauthnRegistation
-										unwrappingKey={unwrappingKey}
-										wrappedMainKey={wrappedMainKey}
-										onSuccess={() => refreshData()}
-									/>
+									<WebauthnRegistation onSuccess={() => refreshData()} />
 									<ul className="mt-4">
 
 										{userData.webauthnCredentials
@@ -1018,7 +1002,6 @@ const Settings = () => {
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
 													onUpgradePrfKey={onUpgradePrfKey}
-													unlocked={unlocked}
 												/>
 											))}
 										{userData.webauthnCredentials
@@ -1029,7 +1012,13 @@ const Settings = () => {
 								</div>
 
 								<div className="pt-4">
-									<H3 heading={t('pageSettings.deleteAccount.title')} />
+									<H3 heading={t('pageSettings.deleteAccount.title')}>
+										<UnlockMainKey
+											unlocked={unlocked}
+											onLock={() => setUnlocked(false)}
+											onUnlock={() => setUnlocked(true)}
+										/>
+									</H3>
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>

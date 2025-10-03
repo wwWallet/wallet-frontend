@@ -71,7 +71,6 @@ export interface LocalStorageKeystore {
 	beginAddPrf(createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential>,
 	finishAddPrf(
 		credential: PrecreatedPublicKeyCredential,
-		[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
 	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
@@ -236,6 +235,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, userHandleB64u],
 	);
 
+	async function assertKeystoreOpen(): Promise<[EncryptedContainer, CryptoKey]> {
+		if (privateData && mainKey) {
+			return [privateData, await keystore.importMainKey(mainKey)];
+		} else {
+			throw new Error("Key store is closed.", { cause: 'keystore_closed' });
+		}
+	}
+
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
 	useEffect(
@@ -289,56 +296,50 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [closeSessionTabLocal, globalUserHandleB64u]);
 
 	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletState]> => {
-		if (mainKey && privateData) {
-			try {
-				return await keystore.openPrivateData(mainKey, privateData);
-			}
-			catch (err) {
-				console.error(err);
-				console.log("Navigating to login-state to handle JWE decryption failure");
-				const queryParams = new URLSearchParams(window.location.search);
-				queryParams.delete('user');
-				queryParams.delete('sync');
+		const [privateData, mainKey] = await assertKeystoreOpen();
+		try {
+			return await keystore.openPrivateData(mainKey, privateData);
+		}
+		catch (err) {
+			console.error(err);
+			console.log("Navigating to login-state to handle JWE decryption failure");
+			const queryParams = new URLSearchParams(window.location.search);
+			queryParams.delete('user');
+			queryParams.delete('sync');
 
-				queryParams.append('user', userHandleB64u);
-				queryParams.append('sync', 'fail');
-				navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
-				return null;
-			}
-		} else {
-			throw new Error("Private data not present in storage.");
+			queryParams.append('user', userHandleB64u);
+			queryParams.append('sync', 'fail');
+			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+			return null;
 		}
 	}, [mainKey, privateData]);
 
 	const editPrivateData = useCallback(async <T>(
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
 	): Promise<[T, AsymmetricEncryptedContainer, CommitCallback]> => {
-		if (mainKey && privateData) {
-			const [result, [newPrivateData, newMainKey]] = await action(
-				[
-					keystore.assertAsymmetricEncryptedContainer(privateData),
-					await keystore.importMainKey(mainKey),
-				],
-			);
-			// after private data update, the calculated wallet state must be re-computed
-			const [, , newCalculatedWalletState] = await keystore.openPrivateData(await keystore.exportMainKey(newMainKey), newPrivateData);
-			return [
-				result,
-				newPrivateData,
-				async () => {
-					await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
-					setCalculatedWalletState(newCalculatedWalletState);
-					setPrivateData(newPrivateData);
-					setMainKey(await keystore.exportMainKey(newMainKey));
-				},
-			];
-		} else {
-			throw new Error("Private data not present in storage.");
-		}
+		const [privateData, mainKey] = await assertKeystoreOpen();
+		const [result, [newPrivateData, newMainKey]] = await action(
+			[
+				keystore.assertAsymmetricEncryptedContainer(privateData),
+				mainKey,
+			],
+		);
+		// after private data update, the calculated wallet state must be re-computed
+		const [, , newCalculatedWalletState] = await keystore.openPrivateData(newMainKey, newPrivateData);
+		return [
+			result,
+			newPrivateData,
+			async () => {
+				await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
+				setCalculatedWalletState(newCalculatedWalletState);
+				setPrivateData(newPrivateData);
+				setMainKey(await keystore.exportMainKey(newMainKey));
+			},
+		];
 	}, [mainKey, privateData, setPrivateData, setMainKey]);
 
 	const finishUnlock = useCallback(async (
-		{ exportedMainKey, privateData }: UnlockSuccess,
+		{ mainKey, privateData }: UnlockSuccess,
 		user: CachedUser | UserData | null,
 	): Promise<void> => {
 		if (user) {
@@ -374,10 +375,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			});
 		}
 
-		setMainKey(exportedMainKey);
+		setMainKey(await keystore.exportMainKey(mainKey));
 		setPrivateData(privateData);
 		// after private data update, the calculated wallet state must be re-computed
-		const [, , newCalculatedWalletState] = await keystore.openPrivateData(exportedMainKey, privateData);
+		const [, , newCalculatedWalletState] = await keystore.openPrivateData(mainKey, privateData);
 		setCalculatedWalletState(newCalculatedWalletState);
 	}, [
 		setUserHandleB64u,
@@ -492,15 +493,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const finishAddPrf = useCallback(
 		async (
 			credential: PrecreatedPublicKeyCredential,
-			[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[EncryptedContainer, CommitCallback]> => {
-			const newPrivateData = await keystore.finishAddPrf(
-				privateData,
-				credential,
-				[existingUnwrapKey, wrappedMainKey],
-				promptForPrfRetry,
-			);
+			const [privateData, mainKey] = await assertKeystoreOpen();
+			const newPrivateData = await keystore.finishAddPrf(privateData, credential, mainKey, promptForPrfRetry);
 			return [
 				newPrivateData,
 				async () => {
@@ -757,7 +753,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	]> => (
 		await editPrivateData(async (originalContainer) => {
 			const { nonce, audience, issuer } = requests[0]; // the first row is enough since the nonce remains the same
-			const [{ proof_jwts }, newContainer] = await keystore.generateOpenid4vciProofs(
+			return await keystore.generateOpenid4vciProofs(
 				originalContainer,
 				config.DID_KEY_VERSION,
 				nonce,
@@ -811,7 +807,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				),
 				requests.length,
 			);
-			return [{ proof_jwts }, newContainer];
 		})
 	), [editPrivateData]);
 
@@ -822,12 +817,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			CommitCallback,
 		]> => (
 			await editPrivateData(async (originalContainer) => {
-				const [{ keypairs }, newContainer] = await keystore.generateKeypairs(
+				return await keystore.generateKeypairs(
 					originalContainer,
 					config.DID_KEY_VERSION,
 					n,
 				);
-				return [{ keypairs }, newContainer];
 			})
 		),
 		[editPrivateData]
