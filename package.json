@@ -14,6 +14,7 @@
     "axios": "^1.4.0",
     "dcql": "^0.4.2",
     "wallet-common": "git+https://github.com/wwWallet/wallet-common.git#4ab0808b84a0aeb590600cfd21dc9c16abcbb5f5",
+    "cbor-web": "^9.0.2",
     "cose-kit": "^1.7.1",
     "did-resolver": "^4.1.0",
     "firebase": "^10.1.0",
