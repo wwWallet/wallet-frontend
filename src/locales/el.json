@@ -211,10 +211,7 @@
 			"message": "Είστε σίγουροι ότι θέλετε να διαγράψετε <strong>τον λογαριασμό σας</strong>;",
 			"title": "Διαγραφή λογαριασμού"
 		},
-		"deletePasskeyButtonTitleLocked": "Δεν μπορείτε να προσθέσετε κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
-		"lockPasskeyManagement": "Κλείδωμα διαχείρισης κλειδιών πρόσβασης",
-		"lockPasskeyManagementTitle": "Κάντε κλικ για να κλειδώσετε τη διαχείριση κλειδιών πρόσβασης",
 		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
 		"passkeyItem": {
 			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
@@ -223,7 +220,6 @@
 			"cancelChangesAriaLabel": "Ακύρωση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"created": "Δημιουργήθηκε",
 			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
-			"deleteButtonTitleLocked": "Δεν μπορείτε να διαγράψετε κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 			"deleteButtonTitleUnlocked": "Κάντε κλικ για να διαγράψετε το κλειδί πρόσβασης {{passkeyLabel}}",
 			"lastUsed": "Τελευταία Χρήση",
 			"messageDeletePasskey": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί πρόσβασης <strong>{{nickname}}</strong>;",
@@ -235,7 +231,6 @@
 			"prfUpgradeAriaLabel": "Αναβάθμιση κλειδιού πρόσβασης {{passkeyLabel}}",
 			"rename": "Μετονομασία",
 			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
-			"renameButtonTitleLocked": "Δεν μπορείτε να επεξεργαστείτε το κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
 		},
@@ -259,8 +254,6 @@
 			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockPasskeyManagement": "Ξεκλείδωμα Διαχείρισης",
-		"unlockPasskeyManagementTitle": "Κάντε κλικ για Ξεκλείδωμα Διαχείρισης",
 		"unlockPassword": {
 			"description": "Παρακαλώ εισάγετε τον κωδικό σας για να ξεκλειδώσετε το wallet.",
 			"passwordInputAriaLabel": "Κωδικός",

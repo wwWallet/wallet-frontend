@@ -205,10 +205,7 @@
 			"message": "Tem a certeza que quer eliminar <strong>a sua conta</strong>?",
 			"title": "Eliminar conta"
 		},
-		"deletePasskeyButtonTitleLocked": "Não é possível adicionar chave de acesso com gestão bloqueada.",
 		"description": "Consulte informação da conta e gira chaves de acesso",
-		"lockPasskeyManagement": "Bloquear gestão",
-		"lockPasskeyManagementTitle": "Clique para bloquear gestão de chaves de acesso",
 		"noOtherPasskeys": "Não há mais chaves de acesso nesta conta.",
 		"passkeyItem": {
 			"canEncrypt": "Pode encriptar",
@@ -217,7 +214,6 @@
 			"cancelChangesAriaLabel": "Cancelar alterações à chave de acesso {{passkeyLabel}}",
 			"created": "Criada",
 			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
-			"deleteButtonTitleLocked": "Não é possível eliminar chave de acesso com gestão bloqueada.",
 			"deleteButtonTitleUnlocked": "Clique para eliminar a chave de acesso {{passkeyLabel}}",
 			"lastUsed": "Última utilização",
 			"messageDeletePasskey": "Tem a certeza que deseja eliminar a chave de acesso <strong>{{nickname}}</strong>?",
@@ -229,7 +225,6 @@
 			"prfUpgradeAriaLabel": "Atualizar chave de acesso {{passkeyLabel}}",
 			"rename": "Renomear",
 			"renameAriaLabel": "Renomear chave de acesso {{passkeyLabel}}",
-			"renameButtonTitleLocked": "Não é possível alterar chave de acesso com gestão bloqueada.",
 			"saveChangesAriaLabel": "Guardar alterações para chave de acesso {{passkeyLabel}}",
 			"unnamed": "Chave de acesso sem nome"
 		},
@@ -253,8 +248,6 @@
 			"manageOtherPasskeys": "Gerir outras chaves de acesso",
 			"rememberIssuer": "Relembrar issuer"
 		},
-		"unlockPasskeyManagement": "Desbloquear gestão",
-		"unlockPasskeyManagementTitle": "Clique para desbloquear gestão",
 		"unlockPassword": {
 			"description": "Por favor, introduza a sua palavra-passe para desbloquear a gestão da carteira.",
 			"passwordInputAriaLabel": "Palavra-passe",
