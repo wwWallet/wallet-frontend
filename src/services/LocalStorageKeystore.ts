@@ -600,65 +600,65 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[privateData, setPrivateData]
 	);
 
+	async function webauthnSignRetryLoop(
+		heading: React.ReactNode,
+		options: CredentialRequestOptions,
+	): Promise<PublicKeyCredential> {
+		const webauthnDialog = webauthnInteractionCtx.setup({ heading });
+
+		let retry = true;
+		while (retry) {
+			try {
+				const result = await webauthnDialog.beginGet(options, {
+					bodyText: t('To proceed, please authenticate with your passkey.'),
+				});
+				webauthnDialog.success({
+					bodyText: t("Success! Please wait..."),
+				});
+				return result;
+
+			} catch (e) {
+				switch (e.cause?.id) {
+					case 'signature-not-found': {
+						const result = await webauthnDialog.error({
+							bodyText: t("An error occurred: Signature not found."),
+							buttons: {
+								retry: true,
+							},
+						});
+						retry = result.retry;
+					}
+
+					case 'user-abort':
+						throw e;
+
+					case 'err':
+					default: {
+						const result = await webauthnDialog.error({
+							bodyText: t("An error occurred!"),
+							buttons: {
+								retry: true,
+							},
+						});
+						retry = result.retry;
+						break;
+					}
+				}
+			}
+		}
+	}
+
 	const signJwtPresentation = useCallback(
 		async (nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> => {
-			const moveUiStateMachine = webauthnInteractionCtx.setup(
-				t("Sign credential presentation"),
-				state => {
-					switch (state.id) {
-						case 'intro':
-							return {
-								bodyText: t('To proceed, please authenticate with your passkey.'),
-								buttons: {
-									continue: 'intro:ok',
-								},
-							};
-
-						case 'webauthn-begin':
-							return {
-								bodyText: t("Please interact with your authenticator..."),
-							};
-
-						case 'err':
-							return {
-								bodyText: t("An error occurred!"),
-								buttons: {
-									retry: true,
-								},
-							};
-
-						case 'err:ext:sign:signature-not-found':
-							return {
-								bodyText: t("An error occurred: Signature not found."),
-								buttons: {
-									retry: true,
-								},
-							};
-
-						case 'success':
-							return {
-								bodyText: t("Success! Please wait..."),
-							};
-
-						default:
-							throw new Error('Unknown WebAuthn interaction state:', { cause: state });
-					}
-				},
-			);
-
-			return await keystore.signJwtPresentation(
+			return keystore.signJwtPresentation(
 				await openPrivateData(),
 				nonce,
 				audience,
 				verifiableCredentials,
-				async event => {
-					if (event.id === "success") {
-						moveUiStateMachine(event);
-						return { id: "success:ok" };
-					} else {
-						return moveUiStateMachine(event);
-					}
-				},
+				async options => webauthnSignRetryLoop(
+					t("Sign credential presentation"),
+					options,
+				),
 				transactionDataResponseParams,
 			);
 		},
@@ -667,63 +667,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const signSplitBbs = useCallback(
 		async (issuedJpt: string, t2bar: PointG1, c_host: bigint): Promise<BufferSource> => {
-			const moveUiStateMachine = webauthnInteractionCtx.setup(
-				t("Sign credential presentation"),
-				state => {
-					switch (state.id) {
-						case 'intro':
-							return {
-								bodyText: t('To proceed, please authenticate with your passkey.'),
-								buttons: {
-									continue: 'intro:ok',
-								},
-							};
-
-						case 'webauthn-begin':
-							return {
-								bodyText: t("Please interact with your authenticator..."),
-							};
-
-						case 'err':
-							return {
-								bodyText: t("An error occurred!"),
-								buttons: {
-									retry: true,
-								},
-							};
-
-						case 'err:ext:sign:signature-not-found':
-							return {
-								bodyText: t("An error occurred: Signature not found."),
-								buttons: {
-									retry: true,
-								},
-							};
-
-						case 'success':
-							return {
-								bodyText: t("Success! Please wait..."),
-							};
-
-						default:
-							throw new Error('Unknown WebAuthn interaction state:', { cause: state });
-					}
-				},
-			);
 			return await keystore.signSplitBbs(
 				await openPrivateData(),
 				issuedJpt,
 				t2bar,
 				c_host,
-				async event => {
-					if (event.id === "success") {
-						moveUiStateMachine(event);
-						return { id: "success:ok" };
-					} else {
-						return moveUiStateMachine(event);
-					}
-				},
-			);
+				options => webauthnSignRetryLoop(
+					t("Sign credential presentation"),
+					options,
+				));
 		},
 		[openPrivateData]
 	);
@@ -759,51 +711,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				nonce,
 				audience,
 				issuer,
-				(index: number) => webauthnInteractionCtx.setup(
+				(index: number) => async options => webauthnSignRetryLoop(
 					t("Sign credential issuance ({{currentNumber}} of {{totalNumber}})", { currentNumber: index + 1, totalNumber: requests.length }),
-					state => {
-						switch (state.id) {
-							case 'intro':
-								return {
-									bodyText: t('To proceed, please authenticate with your passkey.'),
-									buttons: {
-										continue: 'intro:ok',
-									},
-								};
-
-							case 'webauthn-begin':
-								return {
-									bodyText: t("Please interact with your authenticator..."),
-								};
-
-							case 'err':
-								return {
-									bodyText: t("An error occurred!"),
-									buttons: {
-										retry: true,
-									},
-								};
-
-							case 'err:ext:sign:signature-not-found':
-								return {
-									bodyText: t("An error occurred: Signature not found."),
-									buttons: {
-										retry: true,
-									},
-								};
-
-							case 'success':
-								return {
-									bodyText: t("Your credential has been issued successfully."),
-									buttons: {
-										continue: 'success:ok',
-									},
-								};
-
-							default:
-								throw new Error('Unknown WebAuthn interaction state:', { cause: state });
-						}
-					},
+					options,
 				),
 				requests.length,
 			);

@@ -26,7 +26,6 @@ import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
 import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS, COSE_CRV_BLS12_381, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "../coseConstants";
-import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 import { getCipherSuite, PointG1 } from "wallet-common/dist/bbs/index";
 
 type WalletState = CurrentSchema.WalletState;
@@ -309,86 +308,58 @@ export type PrivateData = WalletStateContainer;
 function makeWebauthnSignFunction(
 	rpId: string,
 	{ publicKey, externalPrivateKey }: CredentialKeyPairWithExternalPrivateKey,
-	uiStateMachine: UiStateMachineFunction,
+	executeWebauthn: (options: CredentialRequestOptions) => Promise<PublicKeyCredential>,
 ): (alg: any, key: any, data: Uint8Array) => Promise<Uint8Array> {
 	const prehashAlgs = [COSE_ALG_ESP256_ARKG];
 	const parsedKeyRef = cbor.decode(externalPrivateKey.keyRef);
 	const shouldPrehash = prehashAlgs.includes(parsedKeyRef.get(3));
 
 	return async (alg, _key, data) => {
-		let uiStatePromise = uiStateMachine({ id: 'intro', chosenCredentialId: externalPrivateKey.credentialId });
-		let signature = null;
-
-		while (true) {
-			const eventResponse = await uiStatePromise;
-			switch (eventResponse?.id) {
-				case 'intro:ok':
-				case 'retry':
-					try {
-						const webauthnArgs = {
-							publicKey: {
-								rpId: rpId,
-								challenge: crypto.getRandomValues(new Uint8Array(32)),
-								allowCredentials: [{ type: "public-key" as "public-key", id: externalPrivateKey.credentialId }],
-								extensions: {
-									sign: {
-										sign: {
-											keyHandleByCredential: {
-												[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
-											},
-											tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
-										},
+		async function createWebauthnArgs() {
+			try {
+				return {
+					publicKey: {
+						rpId: rpId,
+						challenge: crypto.getRandomValues(new Uint8Array(32)),
+						allowCredentials: [{ type: "public-key" as "public-key", id: externalPrivateKey.credentialId }],
+						extensions: {
+							sign: {
+								sign: {
+									keyHandleByCredential: {
+										[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
 									},
-								} as AuthenticationExtensionsClientInputs,
+									tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
+								},
 							},
-						};
-						uiStatePromise = uiStateMachine({ id: 'webauthn-begin', webauthnArgs });
-					} catch (e) {
-						console.error("Failed to create WebAuthn arguments:", e);
-						uiStatePromise = uiStateMachine({ id: 'err', err: e });
-					}
-					break;
-
-				case 'webauthn-begin:ok':
-					const pkc = eventResponse.credential;
-					try {
-						const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
-						const sig = authData?.extensions?.sign?.get(6);
-						if (sig) {
-							switch (alg) {
-								case "ES256":
-									switch (publicKey.crv) {
-										case "P-256":
-											console.log("Reformatting signature for signature algorithm:", alg, "and public key:", publicKey);
-											signature = derSignatureToRaw(sig);
-											break;
-									}
-									break;
-							}
-							if (signature === null) {
-								console.log("Will not reformat signature for signature algorithm:", alg, "and public key:", publicKey);
-								signature = sig;
-							}
-							uiStatePromise = uiStateMachine({ id: 'success' });
-						} else {
-							uiStatePromise = uiStateMachine({ id: 'err:ext:sign:signature-not-found', credential: pkc, authData });
-						}
-					} catch (e) {
-						console.error("Failed to extract signature from WebAuthn response:", e);
-						uiStatePromise = uiStateMachine({ id: 'err', err: e, credential: pkc });
-					}
-					break;
-
-				case 'cancel':
-					throw new Error("Canceled by user", { cause: eventResponse.cause ?? 'canceled_by_user' });
-
-				case 'success:ok':
-					return signature;
-
-				default:
-					console.log("Unknown state:", eventResponse);
-					throw new Error("Unknown state", { cause: eventResponse });
+						} as AuthenticationExtensionsClientInputs,
+					},
+				};
+			} catch (e) {
+				throw new Error('Failed to create WebAuthn arguments:', { cause: { id: 'create-args-failed' } });
 			}
+		}
+		const pkc = await executeWebauthn(await createWebauthnArgs());
+		try {
+			const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
+			const sig = authData?.extensions?.sign?.get(6);
+			if (sig) {
+				switch (alg) {
+					case "ES256":
+						switch (publicKey.crv) {
+							case "P-256":
+								console.log("Reformatting signature for signature algorithm:", alg, "and public key:", publicKey);
+								return derSignatureToRaw(sig);
+						}
+						break;
+				}
+				console.log("Will not reformat signature for signature algorithm:", alg, "and public key:", publicKey);
+				return sig;
+			} else {
+				throw new Error('Signature not found', { cause: { id: 'signature-not-found' } });
+			}
+		} catch (e) {
+			console.error("Failed to extract signature from WebAuthn response:", e);
+			throw new Error('Signature not found', { cause: { id: 'error', err: e, credential: pkc } });
 		}
 	};
 }
@@ -1599,7 +1570,7 @@ export async function signJwtPresentation(
 	nonce: string,
 	audience: string,
 	verifiableCredentials: any[],
-	uiStateMachine: UiStateMachineFunction,
+	executeWebauthn: (options: CredentialRequestOptions) => Promise<PublicKeyCredential>,
 	transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] },
 ): Promise<{ vpjwt: string }> {
 	const hasher = (data: string | ArrayBuffer, alg: string) => {
@@ -1640,7 +1611,7 @@ export async function signJwtPresentation(
 		} else {
 			return signJwt.sign(
 				null as jose.KeyLike,
-				{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair, uiStateMachine) },
+				{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair, executeWebauthn) },
 			);
 		}
 	}
@@ -1666,7 +1637,7 @@ export async function signSplitBbs(
 	issuedJpt: string,
 	t2bar: PointG1,
 	c_host: bigint,
-	uiStateMachine: UiStateMachineFunction,
+	executeWebauthn: (options: CredentialRequestOptions) => Promise<PublicKeyCredential>,
 ): Promise<BufferSource> {
 	const credParts = issuedJpt.split('.');
 	const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
@@ -1696,7 +1667,7 @@ export async function signSplitBbs(
 						keyRef: toU8(cbor.encodeCanonical(keyRef)),
 					},
 				},
-				uiStateMachine,
+				executeWebauthn,
 			);
 
 			const sig = await signFunc("experimental/SplitBBSv2.1", null, toU8(I2OSP(c_host, 32)));
@@ -1726,7 +1697,7 @@ export async function generateOpenid4vciProofs(
 	nonce: string,
 	audience: string,
 	issuer: string,
-	setupUiStateMachine: (i: number) => UiStateMachineFunction,
+	executeWebauthn: (index: number) => (options: CredentialRequestOptions) => Promise<PublicKeyCredential>,
 	numberOfKeyPairs: number = 1,
 ): Promise<[{ proof_jwts: string[] }, OpenedContainer]> {
 	const deriveKid = async (publicKey: CryptoKey) => {
@@ -1739,7 +1710,6 @@ export async function generateOpenid4vciProofs(
 	const proof_jwts = await sequentialAll(keypairs.map((keypair, index) => {
 		return async () => {
 			const privateKey = privateKeys[index];
-			const moveUiStateMachine = setupUiStateMachine(index);
 			const performSignature = async (signJwt: SignJWT, privateKey: CryptoKey, keypair: CredentialKeyPair) => {
 				if (privateKey) {
 					return signJwt.sign(privateKey);
@@ -1747,7 +1717,7 @@ export async function generateOpenid4vciProofs(
 				} else if ("externalPrivateKey" in keypair) {
 					return signJwt.sign(
 						null as jose.KeyLike,
-						{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair, moveUiStateMachine) },
+						{ signFunction: makeWebauthnSignFunction(config.WEBAUTHN_RPID, keypair, executeWebauthn(index)) },
 					);
 
 				} else {
@@ -1767,10 +1737,7 @@ export async function generateOpenid4vciProofs(
 					jwk: { ...keypair.publicKey, kid: keypair.kid, key_ops: ['verify'] } as JWK,
 				});
 
-			const jws = await performSignature(signJwt, privateKey, keypair);
-			moveUiStateMachine({ id: 'success:dismiss' });
-
-			return jws;
+			return await performSignature(signJwt, privateKey, keypair);
 		}
 	}));
 

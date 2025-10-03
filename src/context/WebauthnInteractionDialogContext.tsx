@@ -1,27 +1,30 @@
 import React, { createContext, useState } from 'react';
 
-import { WebauthnInteractionEvent, WebauthnInteractionEventResponse } from '../webauthn';
-
 import Dialog from '../components/Dialog';
 import Button from '../components/Buttons/Button';
 import { useTranslation } from 'react-i18next';
 
 
-type MappedDialogState = {
-	bodyText: React.ReactNode,
-	buttons?: {
-		cancel?: boolean,
-		continue?: 'intro:ok' | 'success:ok',
-		retry?: boolean,
-	},
-};
+export interface WebauthnDialog {
+	beginGet(webauthnOptions: CredentialRequestOptions, dialogOptions: {
+		bodyText: React.ReactNode,
+	}): Promise<PublicKeyCredential>,
 
-export type UiStateMachineFunction = (event: WebauthnInteractionEvent) => Promise<WebauthnInteractionEventResponse>;
+	error(options: {
+		bodyText: React.ReactNode,
+		buttons: {
+			retry: boolean,
+		},
+	}): Promise<{ retry: boolean }>,
 
-type SetupFunction = (
+	success(options: {
+		bodyText: React.ReactNode,
+	}): Promise<void>,
+}
+
+type SetupFunction = (options: {
 	heading: React.ReactNode,
-	mapState: (state: WebauthnInteractionEvent) => MappedDialogState,
-) => UiStateMachineFunction;
+}) => WebauthnDialog;
 
 export type WebauthnInteractionDialogContextValue = {
 	setup: SetupFunction,
@@ -32,120 +35,139 @@ const WebauthnInteractionDialogContext: React.Context<WebauthnInteractionDialogC
 });
 
 
-type WebauthnInteractionDialogProps = MappedDialogState & {
+type WebauthnInteractionDialogProps = {
+	bodyText: React.ReactNode,
 	heading: React.ReactNode,
-	resolveResponse: (response: WebauthnInteractionEventResponse) => void,
 	onCancel: () => void,
-	state: WebauthnInteractionEvent | null,
+	onClose?: () => void,
+	onContinue?: () => void,
+	onRetry?: () => void,
 };
 function WebauthnInteractionDialog({
 	bodyText,
-	buttons,
 	heading,
 	onCancel,
-	resolveResponse,
-	state,
+	onClose,
+	onContinue,
+	onRetry,
 }: WebauthnInteractionDialogProps): React.ReactNode | null {
 	const { t } = useTranslation();
+	return (
+		<Dialog
+			open={true}
+			onCancel={onCancel}
+		>
+			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+				{heading}
+			</h2>
+			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 
-	if (state === null) {
-		return null;
-	} else {
-		return (
-			<Dialog
-				open={true}
-				onCancel={onCancel}
-			>
-				<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-					{heading}
-				</h2>
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+			<p className="mb-2 dark:text-white">{bodyText}</p>
 
-				<p className="mb-2 dark:text-white">{bodyText}</p>
+			<div className="pt-2 flex justify-center gap-2">
+				{onClose
+					? <Button onClick={onClose}>
+						{t('common.action-close')}
+					</Button>
+					: <Button onClick={onCancel}>
+						{t('common.cancel')}
+					</Button>
+				}
 
-				<div className="pt-2 flex justify-center gap-2">
-					{buttons?.cancel ?? true
-						? <Button onClick={onCancel}>
-							{t('common.cancel')}
-						</Button>
-						: <></>
-					}
+				{onContinue
+					? <Button variant="primary" onClick={onContinue}>
+						{t('common.continue')}
+					</Button>
+					: <></>
+				}
 
-					{buttons?.continue
-						? <Button variant="primary" onClick={() => resolveResponse({ id: buttons.continue })}>
-							{t('common.continue')}
-						</Button>
-						: <></>
-					}
-
-					{buttons?.retry
-						? <Button variant="primary" onClick={() => resolveResponse({ id: 'retry' })}>
-							{t('common.tryAgain')}
-						</Button>
-						: <></>
-					}
-				</div>
-			</Dialog>
-		);
-	}
+				{onRetry
+					? <Button variant="primary" onClick={onRetry}>
+						{t('common.tryAgain')}
+					</Button>
+					: <></>
+				}
+			</div>
+		</Dialog>
+	);
 }
 
 export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialogContextValue, React.ReactNode | null] => {
-	const [state, setState] = useState<WebauthnInteractionEvent>(null);
-	const [heading, setHeading] = useState(null);
-	const [mapDialogState, setMapDialogState] = useState<(state: WebauthnInteractionEvent) => MappedDialogState>(null);
-	const [resolveResponse, setResolveResponse] = useState<(response: WebauthnInteractionEventResponse) => void>(null);
+	const [dialogState, setDialogState] = useState<WebauthnInteractionDialogProps | null>(null);
+	const { t } = useTranslation();
 	const resetState = () => {
-		setHeading(null);
-		setMapDialogState(null);
-		setResolveResponse(null);
-		setState(null);
-	};
-
-	const onCancel = () => {
-		if (resolveResponse) {
-			resolveResponse("err" in state ? { id: 'cancel', cause: state.err } : { id: 'cancel' });
-		}
-		resetState();
+		setDialogState(null);
 	};
 
 	const dialog = (
-		mapDialogState && state
-			? <WebauthnInteractionDialog
-				heading={heading} {...mapDialogState(state)}
-				resolveResponse={resolveResponse}
-				onCancel={onCancel}
-				state={state}
-			/>
+		dialogState
+			? <WebauthnInteractionDialog {...dialogState} />
 			: null
 	);
 
-	const setup: SetupFunction = (heading, mapState) => async (event: WebauthnInteractionEvent) => {
-		setHeading(heading);
-		setMapDialogState(() => mapState);
-		return new Promise<WebauthnInteractionEventResponse>((resolve, reject) => {
-			switch (event.id) {
-				case 'webauthn-begin':
-					navigator.credentials.get(event.webauthnArgs)
-						.then(pkc => resolve({ id: 'webauthn-begin:ok', credential: pkc as PublicKeyCredential }))
-						.catch(e => {
-							setState({ id: 'err', err: e });
-							return Promise.reject(e);
-						})
-						;
-					setState(event);
-					setResolveResponse(() => resolve);
-					break;
+	const setup: SetupFunction = ({ heading }) => {
+		return {
+			async beginGet(webauthnOptions, { bodyText }) {
+				await new Promise<void>((resolve, reject) => {
+					setDialogState({
+						heading,
+						bodyText,
+						onContinue: () => resolve(),
+						onCancel: () => {
+							reject(new Error('Aborted by user', { cause: { id: 'user-abort' } }));
+							resetState();
+						},
+					});
+				});
+				const abortController = new AbortController();
+				return new Promise(async (resolve, reject) => {
+					setDialogState({
+						heading,
+						bodyText: t("Please interact with your authenticator..."),
+						onCancel: () => {
+							reject(new Error('Aborted by user', { cause: { id: 'user-abort' } }));
+							resetState();
+							abortController.abort();
+						},
+					});
+					navigator.credentials.get({
+						...webauthnOptions,
+						signal: abortController.signal,
+					})
+						.then(cred => resolve(cred as PublicKeyCredential))
+						.catch(reject);
+				});
+			},
 
-				case 'success:dismiss':
-					resetState();
-					break;
+			error({ bodyText, buttons }) {
+				return new Promise((resolve, _reject) => {
+					setDialogState({
+						heading,
+						bodyText,
+						onCancel: () => {
+							resolve({ retry: false });
+							resetState();
+						},
+						onRetry: buttons.retry ? () => resolve({ retry: true }) : null,
+					});
+				});
+			},
 
-				default:
-					setState(event);
-					setResolveResponse(() => resolve);
-			}
-		});
+			success({ bodyText }) {
+				return new Promise((resolve, _reject) => {
+					const onCancel = () => {
+						resolve();
+						resetState();
+					};
+					setDialogState({
+						heading,
+						bodyText,
+						onCancel,
+						onClose: onCancel,
+					});
+				});
+			},
+		};
 	};
 
 	return [
