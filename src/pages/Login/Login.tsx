@@ -406,7 +406,7 @@ const WebauthnSignupLogin = ({
 								{
 									prfRetryAccepted
 										? (
-											<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
+											<p className="dark:text-white pb-3">{t('webauthn.messageInteract')}</p>
 										)
 										: (
 											<>
@@ -470,7 +470,7 @@ const WebauthnSignupLogin = ({
 								)
 								: (
 									<>
-										<p className="dark:text-white pb-3">{t('registerPasskey.messageInteract')}</p>
+										<p className="dark:text-white pb-3">{t('webauthn.messageInteract')}</p>
 										<Button
 											id="cancel-in-progress-prf-loginsignup"
 											onClick={onCancel}

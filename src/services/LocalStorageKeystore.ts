@@ -618,10 +618,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		while (retry) {
 			try {
 				const result = await webauthnDialog.beginGet(options, {
-					bodyText: t('To proceed, please authenticate with your passkey.'),
+					bodyText: t('signPresentation.usePasskey'),
 				});
 				webauthnDialog.success({
-					bodyText: t("Success! Please wait..."),
+					bodyText: t('signPresentation.success'),
 				});
 				return result;
 
@@ -629,7 +629,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				switch (e.cause?.id) {
 					case 'signature-not-found': {
 						const result = await webauthnDialog.error({
-							bodyText: t("An error occurred: Signature not found."),
+							bodyText: t('signPresentation.errorSignatureNotFound'),
 							buttons: {
 								retry: true,
 							},
@@ -643,7 +643,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					case 'err':
 					default: {
 						const result = await webauthnDialog.error({
-							bodyText: t("An error occurred!"),
+							bodyText: t('signPresentation.errorUnknown'),
 							buttons: {
 								retry: true,
 							},
@@ -664,7 +664,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				audience,
 				verifiableCredentials,
 				async options => webauthnSignRetryLoop(
-					t("Sign credential presentation"),
+					t('signPresentation.heading'),
 					options,
 				),
 				transactionDataResponseParams,
@@ -681,7 +681,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				t2bar,
 				c_host,
 				options => webauthnSignRetryLoop(
-					t("Sign credential presentation"),
+					t('signPresentation.heading'),
 					options,
 				));
 		},
@@ -720,7 +720,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				audience,
 				issuer,
 				(index: number) => async options => webauthnSignRetryLoop(
-					t("Sign credential issuance ({{currentNumber}} of {{totalNumber}})", { currentNumber: index + 1, totalNumber: requests.length }),
+					t("signIssuance.heading", { currentNumber: index + 1, totalNumber: requests.length }),
 					options,
 				),
 				requests.length,

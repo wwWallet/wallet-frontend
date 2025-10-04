@@ -267,6 +267,18 @@
 			"title": "Delete account"
 		},
 		"description": "View account information and manage passkeys",
+		"hardwareKeys": {
+			"add": "Add hardware key",
+			"description": "New credentials are bound to a hardware key if an eligible hardware key is registered, otherwise new credentials are bound to a cloud-synced software key. Credentials bound to a hardware key are marked with a <securityKeyIcon/> icon.",
+			"hardwareKeyDescription_one": "Hardware key: <strong>{{name}}</strong> bound to {{count}} credential",
+			"hardwareKeyDescription_other": "Hardware key: <strong>{{name}}</strong> bound to {{count}} credentials",
+			"heading": "Hardware keypairs",
+			"labelHigh": "High privacy credentials:",
+			"labelLow": "Low privacy credentials:",
+			"labelMedium": "Medium privacy credentials:",
+			"onlyOne": "Only one hardware key per credential category is currently supported.",
+			"softwareKey": "Software key"
+		},
 		"lockSensitive": "Lock sensitive actions",
 		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
@@ -360,17 +372,20 @@
 		"recent": "Recent"
 	},
 	"registerHardwareKey": {
-		"giveNickname": "Please give this hardware key a name:",
-		"messageInteract": "Please interact with your authenticator...",
+		"errorKeyNotFound": "No key was generated. This authenticator might not support this signature algorithm. Please try a different one.",
+		"errorUnknown": "An error occurred!",
+		"heading": "Register new hardware key",
+		"intro": "About to register a new hardware key.",
 		"nicknameAriaLabel": "Name for new hardware key",
-		"nicknamePlaceholder": "Hardware key name"
+		"nicknamePlaceholder": "Hardware key name",
+		"success": "Success! A new hardware key has been added.",
+		"successGiveName": "Success! Please give this hardware key a name:"
 	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",
 		"messageDone": "Almost done!",
 		"messageErrorTryAgain": "Something went wrong, please try again.<br/> Please note that you need to use the same passkey you created in the previous step.",
-		"messageInteract": "Please interact with your authenticator...",
 		"messageInteractNewPasskey": "Please authenticate with the new passkey...",
 		"messageSuccess": "Success!",
 		"nicknameAriaLabel": "Nickname for new credential",
@@ -400,6 +415,16 @@
 		"navItemLogout": "Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
+	},
+	"signIssuance": {
+		"heading": "Sign credential issuance ({{currentNumber}} of {{totalNumber}})"
+	},
+	"signPresentation": {
+		"errorSignatureNotFound": "An error occurred: Signature not found.",
+		"errorUnknown": "An error occurred!",
+		"heading": "Sign credential presentation",
+		"success": "Success! Please wait...",
+		"usePasskey": "To proceed, please authenticate with your passkey."
 	},
 	"syncPopup": {
 		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to see what's new.",
@@ -431,6 +456,9 @@
 			"verticalSlider": "Vertical Slider"
 		},
 		"view": "View"
+	},
+	"webauthn": {
+		"messageInteract": "Please interact with your authenticator..."
 	},
 	"welcomeModal": {
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",

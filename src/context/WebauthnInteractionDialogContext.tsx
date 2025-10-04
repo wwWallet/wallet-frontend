@@ -153,7 +153,7 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 				return new Promise(async (resolve, reject) => {
 					setDialogState({
 						heading,
-						bodyText: t("Please interact with your authenticator..."),
+						bodyText: t('webauthn.messageInteract'),
 						onCancel: () => {
 							reject(abortError());
 							resetState();
@@ -185,7 +185,7 @@ export const useWebauthnInteractionDialogContext = (): [WebauthnInteractionDialo
 				return new Promise(async (resolve, reject) => {
 					setDialogState({
 						heading,
-						bodyText: t("Please interact with your authenticator..."),
+						bodyText: t('webauthn.messageInteract'),
 						onCancel: () => {
 							reject(abortError());
 							resetState();
