@@ -243,7 +243,7 @@ const WebauthnRegistation = ({
 						)
 						: (
 							<>
-								<p className='dark:text-white'>{t('registerPasskey.messageInteract')}</p>
+								<p className='dark:text-white'>{t('webauthn.messageInteract')}</p>
 							</>
 						)
 					}
@@ -914,10 +914,10 @@ const Settings = () => {
 				while (retry) {
 					try {
 						const credential = await webauthnDialog.beginCreate(options, {
-							bodyText: t('About to register a new hardware key.'),
+							bodyText: t('registerHardwareKey.intro'),
 						});
 						const name = await webauthnDialog.input({
-							bodyText: t("Success! Please give this hardware key a name:"),
+							bodyText: t('registerHardwareKey.successGiveName'),
 							input: {
 								ariaLabel: t('registerHardwareKey.nicknameAriaLabel'),
 								autoFocus: true,
@@ -925,7 +925,7 @@ const Settings = () => {
 							},
 						});
 						webauthnDialog.success({
-							bodyText: t("Success! A new hardware key has been added."),
+							bodyText: t('registerHardwareKey.success'),
 						});
 						return { credential, name };
 
@@ -933,7 +933,7 @@ const Settings = () => {
 						switch (e.cause?.id) {
 							case 'key-not-found': {
 								const result = await webauthnDialog.error({
-									bodyText: t("No key was generated. This authenticator might not support this signature algorithm. Please try a different one."),
+									bodyText: t('registerHardwareKey.errorKeyNotFound'),
 									buttons: {
 										retry: true,
 									},
@@ -947,7 +947,7 @@ const Settings = () => {
 							case 'err':
 							default: {
 								const result = await webauthnDialog.error({
-									bodyText: t("An error occurred!"),
+									bodyText: t('registerHardwareKey.errorUnknown'),
 									buttons: {
 										retry: true,
 									},
@@ -961,7 +961,7 @@ const Settings = () => {
 			}
 
 			const [newKeypair, newPrivateData, keystoreCommit] = await keystore.registerWebauthnSignKeypair(alg, async options => {
-				return await webauthnRegisterRetryLoop(t('Register new hardware key'), options);
+				return await webauthnRegisterRetryLoop(t('registerHardwareKey.heading'), options);
 			});
 			if (newKeypair) {
 				await api.updatePrivateData(newPrivateData);
@@ -1118,17 +1118,15 @@ const Settings = () => {
 								</div>
 
 								<div className="pt-4">
-									<H3 heading={<>{t('Hardware keypairs')} <TbDeviceUsb className="inline" /></>} />
+									<H3 heading={<>{t('pageSettings.hardwareKeys.heading')} <TbDeviceUsb className="inline" /></>} />
 									<p className="mb-2">
 										<Trans
-											i18nKey="New credentials are bound to a hardware key if an eligible hardware key is registered, otherwise new credentials are bound to a cloud-synced software key. Credentials bound to a hardware key are marked with a <securityKeyIcon/> icon."
-											components={{
-												securityKeyIcon: <TbDeviceUsb className="inline" />,
-											}}
+											i18nKey="pageSettings.hardwareKeys.description"
+											components={{ securityKeyIcon: <TbDeviceUsb className="inline" /> }}
 										/>
 									</p>
 									<p className="mb-4">
-										{t('Only one hardware key per credential category is currently supported.')}
+										{t('pageSettings.hardwareKeys.onlyOne')}
 									</p>
 									<ul className="grid grid-cols-[max-content,max-content,max-content,max-content] gap-4">
 										{[
@@ -1136,7 +1134,7 @@ const Settings = () => {
 												key: 'high',
 												Icon: PrivacyLevelIcon.High,
 												active: false, // hasHardwareBbs,
-												label: t('High privacy credentials:'),
+												label: t('pageSettings.hardwareKeys.labelHigh'),
 												alg: null, // COSE_ALG_SPLIT_BBS,
 												name: null, // hardwareBbsName,
 												uses: 0, // hardwareBbsUses,
@@ -1145,7 +1143,7 @@ const Settings = () => {
 												key: 'medium',
 												Icon: PrivacyLevelIcon.Medium,
 												active: hasHardwareArkg,
-												label: t('Medium privacy credentials:'),
+												label: t('pageSettings.hardwareKeys.labelMedium'),
 												alg: COSE_ALG_ESP256_ARKG,
 												name: hardwareArkgName,
 												uses: hardwareArkgUses,
@@ -1154,7 +1152,7 @@ const Settings = () => {
 												key: 'low',
 												Icon: PrivacyLevelIcon.Low,
 												active: hasHardwareArkg,
-												label: t('Low privacy credentials:'),
+												label: t('pageSettings.hardwareKeys.labelLow'),
 												alg: COSE_ALG_ESP256_ARKG,
 												name: hardwareArkgName,
 												uses: hardwareArkgUses,
@@ -1169,17 +1167,12 @@ const Settings = () => {
 															<TbDeviceUsb className="inline" />
 															{' '}
 															<Trans
-																i18nKey="Hardware key: <strong>{{name}}</strong> bound to {{count}} credentials"
-																components={{
-																	strong: <strong />,
-																}}
-																values={{
-																	name,
-																	count: uses,
-																}}
+																i18nKey="pageSettings.hardwareKeys.hardwareKeyDescription"
+																components={{ strong: <strong /> }}
+																values={{ name, count: uses }}
 															/>
 														</>
-														: t('Software key')
+														: t('pageSettings.hardwareKeys.softwareKey')
 													}
 												</span>
 												{!active && (
@@ -1189,13 +1182,13 @@ const Settings = () => {
 															disabled={registerWebauthnSigningKeyInProgress}
 															onClick={() => onRegisterWebauthnSigningKey(alg)}
 														>
-															<BiPlus /> {t('Add hardware key')}
+															<BiPlus /> {t('pageSettings.hardwareKeys.add')}
 														</Button>
 														: <Button
 															variant="primary"
 															disabled={true}
 														>
-															<BiPlus /> {t('Not yet supported')}
+															<BiPlus /> {t('pageSettings.hardwareKeys.notYetSupported')}
 														</Button>
 												)}
 											</li>

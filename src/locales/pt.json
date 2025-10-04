@@ -281,7 +281,6 @@
 		"giveNickname": "Dê um nome a esta credencial:",
 		"messageDone": "Quase pronto!",
 		"messageErrorTryAgain": "Algo correu mal. Por favor, tente novamente.<br/> Note que tem que usar a chave de acesso que criou no passo anterior.",
-		"messageInteract": "Por favor, interaja com o seu autenticador...",
 		"messageInteractNewPasskey": "Por favor, autentique-se com a nova chave de acesso...",
 		"messageSuccess": "Sucesso!",
 		"nicknameAriaLabel": "Nome para nova credencial",
@@ -318,6 +317,9 @@
 	},
 	"updateNotification": {
 		"description": "Nova versão disponível!"
+	},
+	"webauthn": {
+		"messageInteract": "Por favor, interaja com o seu autenticador..."
 	},
 	"welcomeModal": {
 		"description": "Explore a <strong> $t(common.walletName) </strong>, a sua ferramenta para gerir credenciais digitais. Consulte, apresente e acompanhe todas as suas credenciais com facilidade!",
