@@ -32,6 +32,8 @@ import { COSE_ALG_ESP256_ARKG, COSE_ALG_SPLIT_BBS } from 'wallet-common/dist/cos
 import WebauthnInteractionDialogContext from '@/context/WebauthnInteractionDialogContext';
 import { TbDeviceUsb } from 'react-icons/tb';
 import { MaybeNamed } from '@/services/WalletStateSchemaVersion3';
+import { parseJwp } from 'wallet-common/dist/jwp';
+
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -730,6 +732,33 @@ const Settings = () => {
 	}
 	const hardwareArkgName = useHardwareKeyNickname(walletState.arkgSeeds[0]);
 	const hardwareBbsName = useHardwareKeyNickname(walletState.splitBbsKeypairs[0]);
+	const hardwareArkgUses = hasHardwareArkg
+		? walletState.credentials.filter(cred => {
+			const keypair = walletState.keypairs.find(kp => kp.kid === cred.kid)?.keypair;
+			return keypair
+				&& "externalPrivateKey" in keypair
+				&& byteArrayEquals(keypair.externalPrivateKey.credentialId, walletState.arkgSeeds[0].credentialId);
+		}).length
+		: 0;
+	const hardwareBbsUses = hasHardwareBbs
+		? walletState.credentials.filter(cred => {
+			try {
+				if (cred.format === "dc+jpt") {
+					const { proof: [, dpk] } = parseJwp(cred.data);
+					if (dpk) {
+						const kid = JSON.parse(new TextDecoder().decode(dpk))?.kid;
+						const keypair = walletState.keypairs.find(kp => kp.kid === kid)?.keypair;
+						return keypair
+							&& "externalPrivateKey" in keypair
+							&& byteArrayEquals(keypair.externalPrivateKey.credentialId, walletState.splitBbsKeypairs[0].credentialId);
+					}
+				}
+				return false;
+			} catch (e) {
+				return false;
+			}
+		}).length
+		: 0;
 
 	const deleteAccount = async () => {
 		try {
@@ -1132,6 +1161,7 @@ const Settings = () => {
 												label: t('High privacy credentials:'),
 												alg: COSE_ALG_SPLIT_BBS,
 												name: hardwareBbsName,
+												uses: hardwareBbsUses,
 											},
 											{
 												key: 'medium',
@@ -1140,6 +1170,7 @@ const Settings = () => {
 												label: t('Medium privacy credentials:'),
 												alg: COSE_ALG_ESP256_ARKG,
 												name: hardwareArkgName,
+												uses: hardwareArkgUses,
 											},
 											{
 												key: 'low',
@@ -1148,14 +1179,28 @@ const Settings = () => {
 												label: t('Low privacy credentials:'),
 												alg: COSE_ALG_ESP256_ARKG,
 												name: hardwareArkgName,
+												uses: hardwareArkgUses,
 											},
-										].map(({ key, Icon, active, label, alg, name }) =>
+										].map(({ key, Icon, active, label, alg, name, uses }) =>
 											<li key={key} className="grid grid-cols-subgrid col-span-full items-baseline">
 												<Icon />
 												<span>{label}</span>
 												<span>
 													{active
-														? <><TbDeviceUsb className="inline" /> {t('Hardware key: {{name}}', { name })}</>
+														? <>
+															<TbDeviceUsb className="inline" />
+															{' '}
+															<Trans
+																i18nKey="Hardware key: <strong>{{name}}</strong> bound to {{count}} credentials"
+																components={{
+																	strong: <strong />,
+																}}
+																values={{
+																	name,
+																	count: uses,
+																}}
+															/>
+														</>
 														: t('Software key')
 													}
 												</span>
