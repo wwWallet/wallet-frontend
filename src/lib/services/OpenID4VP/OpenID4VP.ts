@@ -23,6 +23,7 @@ import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
+import { ClaimPath, presentSplitBbs } from "wallet-common/dist/jpt";
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
@@ -166,6 +167,15 @@ export function useOpenID4VP({
 
 			for (const vc of vcList) {
 				try {
+					if (vc.format === VerifiableCredentialFormat.DC_JPT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_JPT in descriptor.format)) {
+						const result = await parseCredential(vc);
+						if ('error' in result) continue;
+						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedJptClaims.simple)) {
+							conformingVcList.push(vc.batchId);
+							continue;
+						}
+					}
+
 					if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
 						(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
 						const result = await parseCredential(vc);
@@ -268,9 +278,34 @@ export function useOpenID4VP({
 						batchId: vc.batchId,
 						cryptographic_holder_binding: true
 					};
+
+				} else if (vc.format === VerifiableCredentialFormat.DC_JPT) {
+					const parsedCredential = await parseCredential(vc);
+					if (!("signedJptClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+					}
+					const { issuerHeader, signedJptClaims } = parsedCredential;;
+					shaped.vct = issuerHeader.vct;
+					if (shaped.vct.endsWith(':dc:jpt')) {
+						shaped.vct = shaped.vct.substring(0, shaped.vct.length - 7); // TODO: Unhack this
+					}
+					shaped.claims = signedJptClaims.simple;
+					shaped.cryptographic_holder_binding = true;
+					shaped.batchId = vc.batchId;
+					shaped.credential_format = 'dc+sd-jwt'; // TODO: Unhack this
+					for (const credQuery of dcqlJson.credentials) {
+						if (credQuery.format === 'dc+jpt') {
+							credQuery.format = 'dc+sd-jwt'; // TODO: Unhack this
+						}
+					}
+
 				} else {
 					// --- SD-JWT shaping ---
-					const { signedClaims } = await parseCredential(vc);
+					const parsedCredential = await parseCredential(vc);
+					if (!("signedClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+					}
+					const { signedClaims } = parsedCredential;;
 					shaped.vct = signedClaims.vct;
 					shaped.claims = signedClaims;
 					shaped.cryptographic_holder_binding = true;
@@ -513,6 +548,52 @@ export function useOpenID4VP({
 
 				originalVCs.push(vcEntity);
 
+			} else if (vcEntity.format === VerifiableCredentialFormat.DC_JPT) {
+				const descriptor = presentationDefinition.input_descriptors.find(desc => desc.id === descriptor_id);
+				const allPaths = descriptor.constraints.fields.flatMap(field => field.path);
+				let presentationPaths = dcqlClaimPathsFromPresentationDefinitionPaths(allPaths);
+
+				let transactionDataResponseParams;
+				if (transaction_data) {
+					const [res, err] = await TransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
+						.generateTransactionDataResponse(transaction_data);
+					if (err) {
+						throw err;
+					}
+					transactionDataResponseParams = { ...res };
+				}
+
+				const vpjpt = await presentSplitBbs(
+					vcEntity.data,
+					{
+						alg: 'experimental/SplitBBSv2.1',
+						nonce,
+						aud: client_id,
+						...transactionDataResponseParams,
+					},
+					presentationPaths,
+					(t2bar, c_host) => keystore.signSplitBbs(vcEntity.data, t2bar, c_host),
+				);
+				selectedVCs.push(vpjpt);
+				generatedVPs.push(vpjpt);
+
+				if (selectionMap.size > 1) {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: vcEntity.format,
+						path: `$[${i++}]`
+					});
+				}
+				else {
+					descriptorMap.push({
+						id: descriptor_id,
+						format: vcEntity.format,
+						path: `$`
+					});
+				}
+
+				originalVCs.push(vcEntity);
+
 			} else if (vcEntity.format === VerifiableCredentialFormat.MSO_MDOC) {
 				console.log("Response uri = ", response_uri);
 
@@ -552,6 +633,9 @@ export function useOpenID4VP({
 					path: `$`
 				});
 				originalVCs.push(vcEntity);
+
+			} else {
+				throw new Error("Unimplemented credential format: " + vcEntity.format);
 			}
 		}
 
@@ -668,7 +752,11 @@ export function useOpenID4VP({
 				if (!descriptor) {
 					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
 				}
-				const { signedClaims } = await parseCredential(vcEntity);
+				const parsedCredential = await parseCredential(vcEntity);
+				if (!("signedClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+				}
+				const { signedClaims } = parsedCredential;
 
 				let paths: string[][];
 
@@ -749,6 +837,79 @@ export function useOpenID4VP({
 
 				selectedVCs.push(presentation);
 				generatedVPs.push(vpjwt);
+				originalVCs.push(vcEntity);
+			}
+
+			else if (vcEntity.format === VerifiableCredentialFormat.DC_JPT) {
+				const descriptor = dcql_query.credentials.find(c => c.id === selectionKey);
+				if (!descriptor) {
+					throw new Error(`No DCQL descriptor for id ${selectionKey}`);
+				}
+				const parsedCredential = await parseCredential(vcEntity);
+				if (!("signedJptClaims" in parsedCredential)) {
+						throw new Error("Unexpected result format of parseCredential");
+				}
+				const { issuerHeader, signedJptClaims } = parsedCredential;
+
+				let paths: string[][];
+
+				if (!descriptor.claims || descriptor.claims.length === 0) {
+					// All claims are requested, get keys from signedClaims
+					paths = Object.keys(signedJptClaims).map(key => [key]);
+				} else {
+					// Specific claims requested
+					paths = descriptor.claims.map(cl => cl.path);
+				}
+
+				const shaped = {
+					credential_format: 'dc+sd-jwt', // TODO: Unhack this
+					vct: issuerHeader.vct.endsWith(':dc:jpt') ? issuerHeader.vct.substring(0, issuerHeader.vct.length - 7) : issuerHeader.vct, // TODO: Unhack this
+					cryptographic_holder_binding: true,
+					claims: !descriptor.claims || descriptor.claims.length === 0
+						? signedJptClaims.simple // include all claims
+						: Object.fromEntries(
+							Object.entries(signedJptClaims.simple).filter(([k]) =>
+								descriptor.claims.some(cl => cl.path.includes(k))
+							)
+						)
+				};
+				for (const credQuery of dcql_query.credentials) {
+					if (credQuery.format === 'dc+jpt') {
+						credQuery.format = 'dc+sd-jwt'; // TODO: Unhack this
+					}
+				}
+				const presResult = DcqlPresentationResult.fromDcqlPresentation(
+					{ [selectionKey]: [shaped] },
+					{ dcqlQuery: dcql_query }
+				);
+				if (!presResult.credential_matches[selectionKey]?.success) {
+					throw new Error(`Presentation for '${selectionKey}' did not satisfy DCQL`);
+				}
+
+				let transactionDataResponseParams;
+				if (transaction_data) {
+					const [res, err] = await TransactionDataResponse({ descriptor_id: selectionKey, dcql_query: dcql_query })
+						.generateTransactionDataResponse(transaction_data);
+					if (err) {
+						throw err;
+					}
+					transactionDataResponseParams = { ...res };
+				}
+
+				const vpjpt = await presentSplitBbs(
+					vcEntity.data,
+					{
+						alg: 'experimental/SplitBBSv2.1',
+						nonce,
+						aud: client_id,
+						...transactionDataResponseParams,
+					},
+					paths,
+					(t2bar, c_host) => keystore.signSplitBbs(vcEntity.data, t2bar, c_host),
+				);
+
+				selectedVCs.push(vpjpt);
+				generatedVPs.push(vpjpt);
 				originalVCs.push(vcEntity);
 			}
 
@@ -843,6 +1004,17 @@ export function useOpenID4VP({
 		return { formData, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
 	}
 
+	function dcqlClaimPathsFromPresentationDefinitionPaths(paths: string[]): ClaimPath[] {
+		return paths.map((path: string) => {
+			if (path.includes("[")) {
+				let matches = [...path.matchAll(/\['(.*?)'\]/g)];
+				let prefix = path.replace(/\['.*$/, '').replace(/^\$\./, '');
+				return [...prefix.split('.'), ...matches.map(match => match[1])];
+			} else {
+				return path.replace(/^\$\./, '').split('.');
+			}
+		});
+	};
 
 	const handleAuthorizationRequest = useCallback(async (
 		url: string,

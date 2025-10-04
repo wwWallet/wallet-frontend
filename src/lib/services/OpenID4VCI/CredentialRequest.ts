@@ -143,7 +143,7 @@ export function useCredentialRequest() {
 
 	}, [httpProxy]);
 
-	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
+	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jpt" | "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
@@ -167,7 +167,19 @@ export function useCredentialRequest() {
 		let proofsToSend: string[] = [];
 
 		try {
-			if (proofType === "jwt") {
+			if (proofType === "jpt") {
+				const [{ publicJwk }, newPrivateData, keystoreCommit] = await keystore.generateBbsKeypair();
+				await updatePrivateData(newPrivateData);
+				await keystoreCommit();
+
+				const requestKeyAttestationResponse = await requestKeyAttestation([publicJwk], c_nonce);
+				if (!requestKeyAttestationResponse) {
+					throw new Error("Failed to get key attestation from wallet-backend-server");
+				}
+				keyAttestation = requestKeyAttestationResponse.key_attestation;
+			}
+
+			else if (proofType === "jwt") {
 				const inputs = [];
 				for (let i = 0; i < numberOfProofs; i++) {
 					inputs.push({
@@ -178,6 +190,7 @@ export function useCredentialRequest() {
 				}
 				proofs = inputs;
 			}
+
 			else if (proofType === "attestation") {
 				const numberOfKeypairsToGenerate = numberOfProofs;
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);

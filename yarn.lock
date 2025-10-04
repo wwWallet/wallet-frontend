@@ -1928,10 +1928,22 @@
   dependencies:
     "@noble/hashes" "1.7.1"
 
+"@noble/curves@^1.9.4":
+  version "1.9.4"
+  resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.9.4.tgz#a748c6837ee7854a558cc3b951aedd87a5e7d6a5"
+  integrity sha512-2bKONnuM53lINoDrSmK8qP8W271ms7pygDhZt4SiLOoLwBtoHqeCFi6RG42V8zd3mLHuJFhU/Bmaqo4nX0/kBw==
+  dependencies:
+    "@noble/hashes" "1.8.0"
+
 "@noble/hashes@1.7.1", "@noble/hashes@^1.4.0":
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.7.1.tgz#5738f6d765710921e7a751e00c20ae091ed8db0f"
   integrity sha512-B8XBPsn4vT/KJAGqDzbwztd+6Yte3P4V7iafm24bxgDe/mlRuK6xmWPuCNrKt2vDafZ8MfJLlchDG/vYafQEjQ==
+
+"@noble/hashes@1.8.0":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.8.0.tgz#cee43d801fcef9644b11b8194857695acd5f815a"
+  integrity sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -3474,6 +3486,11 @@ cbor-extract@^2.2.0:
     "@cbor-extract/cbor-extract-linux-arm64" "2.2.0"
     "@cbor-extract/cbor-extract-linux-x64" "2.2.0"
     "@cbor-extract/cbor-extract-win32-x64" "2.2.0"
+
+cbor-web@^9.0.2:
+  version "9.0.2"
+  resolved "https://registry.yarnpkg.com/cbor-web/-/cbor-web-9.0.2.tgz#1915f1ef1a72ea905db07480f71cf12ff601c661"
+  integrity sha512-N6gU2GsJS8RR5gy1d9wQcSPgn9FGJFY7KNvdDRlwHfz6kCxrQr2TDnrjXHmr6TFSl6Fd0FC4zRnityEldjRGvQ==
 
 cbor-x@^1.5.4, cbor-x@^1.5.9:
   version "1.6.0"
@@ -5334,10 +5351,14 @@ jose@^5.9.6:
   resolved "https://registry.yarnpkg.com/jose/-/jose-5.10.0.tgz#c37346a099d6467c401351a9a0c2161e0f52c4be"
   integrity sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==
 
+"jose@git+https://github.com/wwWallet/wallet-frontend.git#227269319a9d9c3da40779ea1c4b0dc1e710d7b7":
+  version "4.14.4"
+  resolved "git+https://github.com/wwWallet/wallet-frontend.git#227269319a9d9c3da40779ea1c4b0dc1e710d7b7"
+
 js-base64@^3.7.6:
-  version "3.7.8"
-  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.8.tgz#af44496bc09fa178ed9c4adf67eb2b46f5c6d2a4"
-  integrity sha512-hNngCeKxIUQiEUN3GPJOkz4wF/YvdUdbNL9hsBcMQTkKzboD7T/q3OYOuuPZLUE6dBxSGpwhk5mwuDud7JVAow==
+  version "3.7.7"
+  resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.7.7.tgz#e51b84bf78fbf5702b9541e2cb7bfcb893b43e79"
+  integrity sha512-7rCnleh0z2CkXhH67J8K1Ytz0b2Y+yxTPL+/KOJoa20hfnVQ/3/T6W/KflYI4bRHRagNeXeU2bkNGI3v1oS/lw==
 
 "js-tokens@^3.0.0 || ^4.0.0", js-tokens@^4.0.0:
   version "4.0.0"
@@ -6391,9 +6412,9 @@ react-modal@^3.16.1:
     warning "^4.0.3"
 
 react-qr-code@^2.0.15:
-  version "2.0.18"
-  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.18.tgz#237de8fbab537885d6b2b10f4fd5318b371e3b17"
-  integrity sha512-v1Jqz7urLMhkO6jkgJuBYhnqvXagzceg3qJUWayuCK/c6LTIonpWbwxR1f1APGd4xrW/QcQEovNrAojbUz65Tg==
+  version "2.0.15"
+  resolved "https://registry.yarnpkg.com/react-qr-code/-/react-qr-code-2.0.15.tgz#fbfc12952c504bcd64275647e9d1ea63251742ce"
+  integrity sha512-MkZcjEXqVKqXEIMVE0mbcGgDpkfSdd8zhuzXEl9QzYeNcw8Hq2oVIzDLWuZN2PQBwM5PWjc2S31K8Q1UbcFMfw==
   dependencies:
     prop-types "^15.8.1"
     qr.js "0.0.0"
@@ -7671,11 +7692,12 @@ w3c-xmlserializer@^5.0.0:
   dependencies:
     xml-name-validator "^5.0.0"
 
-"wallet-common@git+https://github.com/wwWallet/wallet-common.git#379e9314f6bcbf21206bd55a6191d9ab5f0360fd":
+"wallet-common@git+https://github.com/wwWallet/wallet-common.git#df02265877e3a8107d9a8be5e1b05b2ca43cf51b":
   version "0.0.1"
-  resolved "git+https://github.com/wwWallet/wallet-common.git#379e9314f6bcbf21206bd55a6191d9ab5f0360fd"
+  resolved "git+https://github.com/wwWallet/wallet-common.git#df02265877e3a8107d9a8be5e1b05b2ca43cf51b"
   dependencies:
     "@auth0/mdl" "^2.2.0"
+    "@noble/curves" "^1.9.4"
     "@sd-jwt/core" "^0.10.0"
     "@sd-jwt/sd-jwt-vc" "^0.13.0"
     ajv "^8.17.1"
@@ -7683,6 +7705,7 @@ w3c-xmlserializer@^5.0.0:
     asn1js "^3.0.5"
     axios "^1.7.9"
     buffer "^6.0.3"
+    cbor-web "^9.0.2"
     cose-kit "^1.7.1"
     jose "^5.9.6"
     jsonpointer "^5.0.1"

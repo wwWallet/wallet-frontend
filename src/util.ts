@@ -4,12 +4,95 @@ export function coerce<T>(value: T): T {
 	return value;
 }
 
-
-export function toU8(b: BufferSource) {
-	if (b instanceof ArrayBuffer) {
-		return new Uint8Array(b);
-	} else {
+export function toU8(b: BufferSource): Uint8Array {
+	if (b instanceof Uint8Array) {
+		return b;
+	} else if ("buffer" in b) {
 		return new Uint8Array(b.buffer);
+	} else if ("byteLength" in b) {
+		const u = new Uint8Array(b);
+		if (u.length === b.byteLength) {
+			return u;
+		}
+	}
+	throw new Error(`Unknown binary type: ${typeof b} ${b}`, { cause: b })
+}
+
+export function toHex(b: BufferSource): string {
+	return toU8(b).reduce((s, byte) => s + byte.toString(16).padStart(2, '0'), '');
+}
+
+export const HEX_ERR_LENGTH_ODD = 'LENGTH_ODD';
+export const HEX_ERR_INVALID_DIGITS = 'INVALID_DIGITS';
+
+export function fromHex(hex: string): Uint8Array {
+	/* eslint-disable no-bitwise */
+
+	const normalized = hex.replaceAll(' ', '');
+
+	if (normalized.length % 2 !== 0) {
+		throw Error(`Invalid hex string: ${hex}`, { cause: HEX_ERR_LENGTH_ODD });
+
+	} else if (!normalized.match(/^[a-fA-F0-9]*$/u)) {
+		throw Error(`Invalid hex string: ${hex}`, { cause: HEX_ERR_INVALID_DIGITS });
+
+	} else {
+		return new Uint8Array(
+			normalized
+				.split('')
+				.reduce(
+					(bytes, digit, i) => {
+						if (i % 2 === 0) {
+							bytes.push(parseInt(digit, 16) << 4);
+						} else {
+							bytes[bytes.length - 1] |= parseInt(digit, 16);
+						}
+						return bytes;
+					},
+					[],
+				)
+		);
+	}
+};
+
+export function concat(...bs: BufferSource[]): ArrayBuffer {
+	const bu8 = bs.map(toU8);
+	const result = new Uint8Array(bu8.reduce((len, b) => len + b.length, 0));
+	bu8.reduce(
+		(offset, b) => {
+			result.set(b, offset);
+			return offset + b.length;
+		},
+		0,
+	);
+	return result.buffer;
+}
+
+/**
+	Convert a big-endian octet string to a nonnegative integer.
+
+	@see https://www.rfc-editor.org/rfc/rfc8017.html#section-4.2
+	*/
+export function OS2IP(binary: BufferSource): bigint {
+	return toU8(binary).reduce(
+		(result: bigint, b: number) => (result << 8n) + BigInt(b),
+		0n,
+	);
+}
+
+/**
+	Convert a nonnegative integer to a big-endian octet string of a specified length.
+
+	@see https://www.rfc-editor.org/rfc/rfc8017.html#section-4.1
+	*/
+export function I2OSP(a: bigint | number, length: number): ArrayBuffer {
+	if (typeof a === 'number') {
+		return I2OSP(BigInt(a), length);
+	} else {
+		return new Uint8Array(length).map(
+			(_, i: number): number =>
+				Number(BigInt.asUintN(8, a >> (BigInt(length - 1 - i) * 8n)))
+		).buffer;
 	}
 }
 
@@ -269,4 +352,16 @@ export function getElementPropValue(
 export function sanitizeId(value: string | number): string {
 	const str = String(value);
 	return str.replace(/[^a-zA-Z0-9-_]/g, "");
+}
+
+/**
+ * Evaluate the given promises sequentially, rather than in parallel, and return
+ * a list of their results in order.
+ */
+export async function sequentialAll<T>(beginPromises: (() => Promise<T>)[]): Promise<T[]> {
+	const results: T[] = [];
+	for (const beginPromise of beginPromises) {
+		results.push(await beginPromise());
+	}
+	return results;
 }
