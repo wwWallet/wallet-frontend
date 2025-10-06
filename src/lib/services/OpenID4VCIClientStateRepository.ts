@@ -1,4 +1,4 @@
-import { useContext, useCallback, useMemo, useRef, useEffect } from "react";
+import { useContext, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import SessionContext from "@/context/SessionContext";
 import { CurrentSchema } from "@/services/WalletStateSchema";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
@@ -15,6 +15,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	const { getCalculatedWalletState, saveCredentialIssuanceSessions } = keystore;
 	// key: sessionId
 	const sessions = useRef<Map<number, WalletStateCredentialIssuanceSession>>(null);
+	const [initialized, setInitialized] = useState<boolean>(false);
 
 	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
 		if (!getCalculatedWalletState) {
@@ -32,23 +33,25 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		if (!S) {
 			return;
 		}
-		if (sessions.current === null || sessions.current.size === 0) {
-			sessions.current = new Map<number, WalletStateCredentialIssuanceSession>();
-			S.credentialIssuanceSessions.map((session) => {
-				sessions.current.set(session.sessionId, session);
-			});
-		}
-		else {
-			S.credentialIssuanceSessions.map((session) => {
-				if (!sessions.current.has(session.sessionId)) {
-					sessions.current.set(session.sessionId, session);
-				}
-			});
-		}
-	}, [getCalculatedWalletState]);
+
+		const x = new Map();
+		S.credentialIssuanceSessions.map((session) => {
+			x.set(session.sessionId, session);
+		});
+		sessions.current = x;
+		setInitialized(true);
+	}, [getCalculatedWalletState, setInitialized]);
+
+	useEffect(() => {
+		loadSessions();
+	}, [loadSessions]);
+
+	const isInitialized = useCallback(() => {
+		return (initialized);
+	}, [initialized]);
+
 
 	const cleanupExpired = useCallback(async (): Promise<number[]> => {
-		loadSessions();
 		if (!sessions.current) {
 			return;
 		}
@@ -73,7 +76,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			}
 		}
 		return deletedSessions;
-	}, [getRememberIssuerAge, loadSessions]);
+	}, [getRememberIssuerAge]);
 
 	const commitStateChanges = useCallback(async (): Promise<void> => {
 		const S = getCalculatedWalletState();
@@ -96,9 +99,8 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		credentialIssuer: string,
 		credentialConfigurationId: string
 	): Promise<WalletStateCredentialIssuanceSession | null> => {
-		loadSessions();
 		if (!sessions.current) {
-			return;
+			return null;
 		}
 		const r = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer);
 		const res = last(r);
@@ -109,7 +111,6 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 
 	const getByState = useCallback(
 		async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
-			loadSessions();
 			if (!sessions.current) {
 				return null;
 			}
@@ -117,14 +118,11 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			const res = last(r);
 			return res ? res : null;
 		},
-		[loadSessions]
+		[]
 	);
-
-
 
 	const create = useCallback(
 		async (state: WalletStateCredentialIssuanceSession): Promise<void> => {
-			loadSessions();
 			if (!sessions.current) {
 				return;
 			}
@@ -139,12 +137,11 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			const sessionId = WalletStateUtils.getRandomUint32();
 			sessions.current.set(sessionId, { ...state });
 		},
-		[loadSessions]
+		[]
 	);
 
 	const updateState = useCallback(
 		async (newState: WalletStateCredentialIssuanceSession): Promise<void> => {
-			loadSessions();
 			if (!sessions.current) {
 				return;
 			}
@@ -154,12 +151,11 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			}
 			sessions.current.set(fetched.sessionId, newState);
 		},
-		[getByState, loadSessions]
+		[getByState, isInitialized]
 	);
 
 	const getAllStatesWithNonEmptyTransactionId = useCallback(
 		async (): Promise<WalletStateCredentialIssuanceSession[]> => {
-			loadSessions();
 			if (!sessions.current) {
 				return [];
 			}
@@ -169,10 +165,11 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 				);
 			return pendingTransactions;
 		}
-		, [loadSessions]);
+		, []);
 
 	return useMemo(() => {
 		return {
+			isInitialized: isInitialized,
 			getByCredentialIssuerIdentifierAndCredentialConfigurationId,
 			getByState,
 			cleanupExpired,
@@ -182,6 +179,8 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			getAllStatesWithNonEmptyTransactionId,
 		}
 	}, [
+		isInitialized,
+		sessions,
 		getByCredentialIssuerIdentifierAndCredentialConfigurationId,
 		getByState,
 		cleanupExpired,
