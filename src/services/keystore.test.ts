@@ -226,7 +226,7 @@ describe("The keystore", () => {
 	it("can decrypt a container encrypted with the exported main key.", async () => {
 		const privateData: keystore.AsymmetricEncryptedContainer = jsonParseTaggedBinary('{"mainKey":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BLOz9XVZgYGrlg0vLSIWqNGyR6d5H2Djy9BlIb6bBhUIvRUSw9MU_CFmEwtDP9nRGZhQTdn0_rBmhUSvczY5Xq0"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"unwrapKey":{"format":"raw","unwrapAlgo":"AES-KW","unwrappedKeyAlgo":{"name":"AES-GCM","length":256}}},"prfKeys":[{"credentialId":{"$b64u":"L36kS042hbgmDGkvMt_8abWT0n93IxW5HQB5YKfq0W0nPZQDehu07Qk9L0Aw5C76"},"prfSalt":{"$b64u":"_JMrkAUh64gigXqI--DWoUlgP3zqTCLS2uQASAhutxA"},"hkdfSalt":{"$b64u":"j_sssVxuQMTXzzUj5899uAxVVIEf87FFT6Vrn-ckPxw"},"hkdfInfo":{"$b64u":"ZURpcGxvbWFzIFBSRg"},"algorithm":{"name":"AES-GCM","length":256},"keypair":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BAnaAJXU1ja9ddHcWBVqDpLBQWY4wF3KB1Av92rqFdfWx6XWKSzNLsgKlrZnLJN7xo3pOwhJTXAXqxowPykzvx8"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"privateKey":{"unwrapKey":{"format":"jwk","wrappedKey":{"$b64u":"FWhWa7XO_Mqjpr0FhyR_HZcJmgcpoPIsOSdPllVNmsGnnALJ6rj1278lxTW-HEOAsdxUK2K7njciF2e7L4nsGu0ZJ4LqsXkD7a47YLJ75hg9nH1kesbPunyS7rGBsVtKI9WxiZYxDwhiIqIPYRDGJbUXJQG-zunxo1KERsu4me_rsBmOuwqfesDvMllrm1wTY-R0h7UhIpFa2wTCXmW7pRPx3Pbvw7GAhWBBd6hpvWsUsOtCGSN9ujw6IUi5itB8xAcMCB2KbRuCicJa0MCsnyOOtUnsG-YzJFr4W-0FNT8UGvM"},"unwrapAlgo":{"name":"AES-GCM","iv":{"$b64u":"MbbvhJZyE8YP710b"}},"unwrappedKeyAlgo":{"name":"ECDH","namedCurve":"P-256"}}}},"unwrapKey":{"wrappedKey":{"$b64u":"mX8ltiUrf9mcAVNvGsGRPNApPznShZuT6OVVwGOhlN9jCVwTdfnibQ"},"unwrappingKey":{"deriveKey":{"algorithm":{"name":"ECDH"},"derivedKeyAlgorithm":{"name":"AES-KW","length":256}}}}}],"jwe":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJHaVBvaHA3N2ZjTGdjQUk2IiwidGFnIjoiandra0JsZ3poNU9hQTlVRHZ2WjZZUSJ9.Yq3lXLcWG3r8BM3cJrSRnVoeTe8ExoOfx4G4-mDE-AQ.LIW70vnZ-sLVxOJN.ZfSpTX7wmo-wRjjTBzYkHThcFY4d3upjg19y3AeBfIxmwuu9OJA60bAk-_-e_-OWkeb1ucOyJej_W5-xvEZwoh-30yHxeZEG6iGL1QS__6RZ56EX-rgaGAG65A_AjF-On_7_4IGNY5wuAnmb3HEYdiMFSx-IA1vqox-cNjra7HPLYfpMJq7HABTTO0nnQkgp_K3kNrFazLXbMU97dL39UoYk0L6fAN6DLJi0ngaTO6SYS6jMZ6dIS45Bny0OkqLC51rBpMsvXvlCnKg-skmTuzovWqNepKRiSKwlfwXpRSal5bNDDK4U8pQkDD2qs93Stk5ZJgOL0enP-Ydq8XQ_E3nz-bUdnmmrNme5yqpdxF8UF61zQrG4oMGh9bi_rtA1-xnAp4S3pA53mS0G_3Z1fLEsk7Bl1gOWvxAQBIUetc0NePIl8JMm-3ayZiewK20JUfwYFgLPKJx2cPIBWJRVRYHVIMCvIKDJzQU9jnDQrv7njA2d0t3r_kXlw2w56rpWUixZhR6jivTOOf5tPN3zpBCgyMWiki7GBYBPnFcoLUfTYMKUWxEfqL4owRIYA15MzmsM6XuTvCBar-9sa13n4B8gBEZ0KUWxopeyGh1lKkOgrQq1y742hGUkUZcptgkZWSSUTo2rIiBXbZsiNmjBUE7bfSw5Y3kUYrrSsAwJ1K-kao0dxi45yYw9-hUcyWk2nZiY3BJfmOKAXh7a8dyf13JQg7HCdsCL-B32hG63l6x4ePHjx-46vMS3I6EDvUkRo3YdtV7Ed6WExrCz6-TmKluAHDt1LuuWFZ6uPz-T4PVBw2LpUEL7ijull3RM0bblL1xWSrzU3hV5XjOm6UhVJQt36hfdCCt0MOr6_L2CJMsoGLqZKSMprfhqcm9KfgdfOWtpMPuaeg1uSuEjhE4MZ2sdogIetMboCG7pdzXsAwXtqDARkIoqYZDfuD5IPVO3fXED7G5-umg0UqgYGV1TwjoiPc9paHET8AZbvm5ZGe0bruipGZayZZVdjdXjq8zpJrMnMDQYMD9dZKmq8u4kvFBWA_1PZhvxHKKpom2ZiQILRTUMLFbwsIrfcomjtcnSPvmfl4cnlv0c4gXOF7SXRMRWDgmPfh-iwlVIFLOgVJZp0PjBeukYjUczf_VbP53a1YDhso9Hxr1TiqrDFIt3b0IDYrHsBPfH6UkYdp53pnbidh0fPSffNUxLqi9wqLi1VuN3QYx8nkktH-1T8WKWcXlXu6YyMvdu3u5CIMf3Iu9KS8IFQt0j0ciSa4U_c2zRfV_1QoX8fTeRUUY2G1f6jtSahlrQ1RF1mQ0i_dbNQV3n6WCB2WiFKrEE46MlrvsKYnyenba2Buh-NXKyEU4ZbC0x4hbcUyOkxKMMlQb5tAY5DnOvUW5Yz7RiWoaUSxexb6N3F39ZAgMnBoT6E8KfZt0AXkYVlVHb0olywp6l9VAXU_1doCHXMfX9M57OZHZ0tlwRDZPXWxXCp95GBddV5Ga2vLPbOu-D6jalWWeblZ7U8KOAVkrcySHv5Wr8FAVGinshGSDZQRnfSoe8d1Le-TSMc5xL4FSf7iJ4CbKWl5k5blYqEKC2bVK3kYBX3DofcRsXsjeuVPgxGoFuIfTbYEP7sFnbzSzTLkuXMj4SyGbWryvuTAvu_cbYKHm3XaWuX3piSQO26UB0NKWXVJtnCrqe1bscOxvS281cYceLoLatQroRwg.sxVqxz76jcSvdKUtHbxXwA"}');
 
-		const [{ exportedMainKey: exportedMainKeyBuffer },] = await keystore.unlockPrf(
+		const [{ mainKey },] = await keystore.unlockPrf(
 			privateData,
 			mockPrfCredential({
 				id: privateData.prfKeys[0].credentialId,
@@ -234,16 +234,19 @@ describe("The keystore", () => {
 			}),
 			async () => false,
 		);
-		const exportedMainKey = new Uint8Array(exportedMainKeyBuffer);
-		const [privateDataContent, mainKey] = await keystore.openPrivateData(exportedMainKey, privateData);
+		const exportedMainKey = new Uint8Array(await keystore.exportMainKey(mainKey));
+		const [privateDataContent, mainKey2] = await keystore.openPrivateData(mainKey, privateData);
 		const { publicKey } = privateDataContent.S.keypairs[0].keypair;
 		assert.isDefined(publicKey);
 		assert.isNotNull(publicKey);
-		assert.isDefined(mainKey);
-		assert.isNotNull(mainKey);
+		assert.isDefined(mainKey2);
+		assert.isNotNull(mainKey2);
 
 		await asyncAssertThrows(
-			() => keystore.openPrivateData(new Uint8Array([exportedMainKey[0] ^ 0x01, ...exportedMainKey.slice(1)]), privateData),
+			async () => keystore.openPrivateData(
+				await keystore.importMainKey(new Uint8Array([exportedMainKey[0] ^ 0x01, ...exportedMainKey.slice(1)])),
+				privateData,
+			),
 			"Expected unlock with incorrect main key to fail",
 		);
 	});
@@ -255,8 +258,7 @@ describe("The keystore", () => {
 			id: privateData.prfKeys[0].credentialId,
 			prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 		});
-		const [{ exportedMainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
-		const mainKey = await keystore.importMainKey(exportedMainKey);
+		const [{ mainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		const test = async (didKeyVersion: DidKeyVersion) => {
 			const [{ proof_jwts }, [newPrivateData, newMainKey]] = await keystore.generateOpenid4vciProofs(
 				[privateData, mainKey],
@@ -265,8 +267,7 @@ describe("The keystore", () => {
 				"test-audience",
 				"test-issuer",
 			);
-			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
-			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
+			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			const { kid, publicKey: publicKeyJwk } = calculatedState.keypairs[0].keypair;
 			const publicKey = await jose.importJWK(publicKeyJwk)
 			const { protectedHeader } = await jose.jwtVerify(proof_jwts[0], publicKey, { audience: "test-audience", issuer: "test-issuer" });
@@ -283,8 +284,7 @@ describe("The keystore", () => {
 			id: privateData.prfKeys[0].credentialId,
 			prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 		});
-		const [{ exportedMainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
-		const mainKey = await keystore.importMainKey(exportedMainKey);
+		const [{ mainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		const numKeys = 1 + crypto.getRandomValues(new Uint8Array(1))[0] % 3;
 		const test = async (didKeyVersion: DidKeyVersion) => {
 			const [{ keypairs }, [newPrivateData, newMainKey]] = await keystore.generateKeypairs(
@@ -293,8 +293,7 @@ describe("The keystore", () => {
 				numKeys,
 			);
 			assert.equal(keypairs.length, numKeys);
-			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
-			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
+			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			for (const { kid, publicKey, wrappedPrivateKey } of keypairs) {
 				const { publicKey: storedPublicKey } = calculatedState.keypairs.filter((keypair) => keypair.kid === kid)[0].keypair;
 				assert.deepEqual(publicKey, storedPublicKey);
@@ -354,7 +353,7 @@ describe("The keystore", () => {
 		const privateData: keystore.AsymmetricEncryptedContainer = jsonParseTaggedBinary('{"mainKey":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BNunIeN4Js_iBvCDJEVOz8869zluTVLGhIGoXTdAq3inUGOsDGnQh5jlN_PHGqGEdAOfCbbfgFGFGGiSTMzr1-k"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"unwrapKey":{"format":"raw","unwrapAlgo":"AES-KW","unwrappedKeyAlgo":{"name":"AES-GCM","length":256}}},"passwordKey":{"pbkdf2Params":{"name":"PBKDF2","hash":"SHA-256","iterations":1000,"salt":{"$b64u":"u8SbZmq3whLjddp0bZguopZmoXvwyQoXcEGClemCp8I"}},"algorithm":{"name":"AES-GCM","length":256},"keypair":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BOFaP7mYez0NKiBQU2dDpN-t05AadNKfjvJ7-T0cXVlMjj21ehNNMv6j3jk2lZnu4F3W9xNXBdIVS2haA0aKnpA"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"privateKey":{"unwrapKey":{"format":"jwk","wrappedKey":{"$b64u":"qWDkpdWnlTleshhlM3CxAsSFua0vQYniF3e3dmT5_-eaqArvhZyItUEWU3dHgenL1R7j5wh4dPy3oudC1xNvfCBHDrOy_YoOrOx1cbHhehge2ITHDo2frgMBuhm1s62_MUp56b38QfQIOTTLrmKQBYL2sWprPFMp2I8S2a-d3MR1jXdPnvupS_vgRTJ2fXbVB62DfE7U1OxADSSFprUt0bxbbCC7GS4hEkVV9nYf5BRB_q19DDpb1HMwz7_nYfLJidqt6Nx_WUag5BZddw99-dSh6mp0bASQGtCA6zpwFIV91U8"},"unwrapAlgo":{"name":"AES-GCM","iv":{"$b64u":"F8E9s7NxPhAtzbnE"}},"unwrappedKeyAlgo":{"name":"ECDH","namedCurve":"P-256"}}}},"unwrapKey":{"wrappedKey":{"$b64u":"gEM0ic_pgCIZGlheJfHho08vWOngHWuSMDOJJPa0cv3une2aIGpuDA"},"unwrappingKey":{"deriveKey":{"algorithm":{"name":"ECDH"},"derivedKeyAlgorithm":{"name":"AES-KW","length":256}}}}},"prfKeys":[],"jwe":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJuRDhmTWdZVXdSUF9nU3VGIiwidGFnIjoiaVdSRnFsb0FneTdEaElVRDBqTVBmdyJ9.-XD8oZjK6o1VMHlpe-AazEyC9Sij2UIkyUizlAc2u3w.SSwBLZhoAc1KyA_0.GJSciNkM99lF0oguOizZ1TtzrAkFBDelPSKtZVTOE0AUl1566Hmh8SHmvS0_jKtJjayFBhxoHk-44292gPIXzViEY8DCndwLMjG9BivHr19vOy1B8TxGl_4pUPjDRjKQWovyo_Z4vfUkKEWg7BEbLNw5kQ783AyvixQo1dh6GHC5dt-LIDMREMCw7ZRtE2jM6PhTMfFBKJ54QP16T6no6ULTm-DWfKVdmwPLnz9esNY9-sDC49GmZce9H-AoDLa0RFTE1KH70YBfaFrOpYkrSxMOJyjfpvbOLIuYc7IGLmjnQKLuH7jb-fKZDvGZiHh010qrOFgeINIoG7KzThbe0EHgCukmIG8KlTcILZJj29fYFM6QQPxHTOe4KqyzAAVtcMzCRMSKOZdounGPDJlRsrnedhqDviV7bqoGgSkH2YJXXcNfS2MfAxm0fGKdcuVJ7xfCo9e5c8CKOXw73suzxsTHHl6YjZhqhdNYgWQLCjDaF83wlowb-x2MxZr2pJ4Zrf-1jHgFQbp-8vI8yoGghyslZmSOTMg6dZj_ueBtgCP--dUVB7kprbspJ3oNmuEO1dsw4lsUrdwaHFDaVYDkYjLZBdfzDzdcx7SJ8sQQANKt3vtNmgveRnjEaZ0aHrIbEy6OYIllApTbaGqrRETZohXHdwrBIudO0MScjESOcEvAuXYc8xPFUynXKvn3xl6Iuhsk_bt-gZeOoV-S1SVfEvV4zK9BfjsrRqPzQGzDM8048-_eraKiCWjZppe4XU3m-RSZS5fyt1Z5XsPsw5ZQov2GM-aKNqkho27NkhaXuN4L-xMoc56WUShgCk20vcO2r36yHjZYf2OONrsDVnJZNDSl3SxmXB5uGW_l0YgyPrm6MNnFN3bvVmSUy9M3VH15t2vFfDKCwoHJzHcMdFy5TOv8ZmQNai2Xi4eNUs4723QXlIy3intYb4HEAaMDsE85nrtMjRCmjXOc28eB-2mRXs1m-3umAo2rqLVO88ZdJuTXkbwW_eU6gXEdGtmJ06RJ6N6BhHhm1GYFjHl4c1h7Jqr_ELZexor3Dd0DA8EcTV8F0dIAz1dVzraXMK0KNft6gDsRXXCZ88--syLAo2ayyqO39m8NZca_rH6h72e2J2UZ8h1qPoseHCuoSa95YpkrcP0FMWAMYVNeW0T69R2pNusByoc1FlTayo8Ms25HlS-vax3ylJHHOkU82dmHcGeqRJHT6gnk9LRc3B8E3t_GjeVPao0qzOGX-hqB6yFS_K3lHFN1yQ73PDji8GvJq3oBPdvFO7NvfH_X19HTl2rxXqgwvy-mfsd4CP0AphI9NO1erFKXNfUkgBVibO5emZqakkWmFknog2T8QyFEzCDR2awqUTlcRfvd1HkG4qBPKdIV9f-d8iw9PNcTwk2IFLjy4Lx2dVen6_eWBnJJu-5wdYp1f3UKQapr28hFVwdqGXIbpNYXsMPf7XYmLGOjkLnwtamS4pKwn7UYkPUKfmwQELDOJgLHWVUc9POuF4GUqUZNhRh0y0GxinZ_w-tbAtJjysrniqED8pHsxHSTCZ85wR5Lha41c_yvlchybgjLQ_IgM4TzIk_ZolKbdR5XUKoj2yGEU8-XkAhutDbHCJwFglbYTY7Y8ZwO7QVGFlbHFqWSTnwCB_3lw8V1PUxyxymcRgBhSSjsJxx8LIR1Lx5qKYTZZqPeWpLKGrtJVyB_nRarVFtHEg.QBUeKjmFep5cwbdOM8Ikug"}');
 		assert.strictEqual(privateData.prfKeys.length, 0);
 
-		const [passwordKey,] = await keystore.getPasswordKey(privateData, "Asdf123!");
+		const [{ mainKey }, ] = await keystore.unlockPassword(privateData, "Asdf123!");
 
 		const credentialId = fromBase64("iy755++V64pc9quxa20eVs2mwwwsJcbmlql0OKHMpA1w/hWAlMIPjosYmgJuh0Y+");
 		const newPrivateData = await keystore.addPrf(
@@ -363,7 +362,7 @@ describe("The keystore", () => {
 				id: credentialId,
 				prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
 			}),
-			[passwordKey, privateData.passwordKey],
+			mainKey,
 			async () => false,
 		);
 
@@ -376,7 +375,7 @@ describe("The keystore", () => {
 		const privateData: keystore.AsymmetricEncryptedContainer = jsonParseTaggedBinary('{"mainKey":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BLOz9XVZgYGrlg0vLSIWqNGyR6d5H2Djy9BlIb6bBhUIvRUSw9MU_CFmEwtDP9nRGZhQTdn0_rBmhUSvczY5Xq0"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"unwrapKey":{"format":"raw","unwrapAlgo":"AES-KW","unwrappedKeyAlgo":{"name":"AES-GCM","length":256}}},"prfKeys":[{"credentialId":{"$b64u":"L36kS042hbgmDGkvMt_8abWT0n93IxW5HQB5YKfq0W0nPZQDehu07Qk9L0Aw5C76"},"prfSalt":{"$b64u":"_JMrkAUh64gigXqI--DWoUlgP3zqTCLS2uQASAhutxA"},"hkdfSalt":{"$b64u":"j_sssVxuQMTXzzUj5899uAxVVIEf87FFT6Vrn-ckPxw"},"hkdfInfo":{"$b64u":"ZURpcGxvbWFzIFBSRg"},"algorithm":{"name":"AES-GCM","length":256},"keypair":{"publicKey":{"importKey":{"format":"raw","keyData":{"$b64u":"BAnaAJXU1ja9ddHcWBVqDpLBQWY4wF3KB1Av92rqFdfWx6XWKSzNLsgKlrZnLJN7xo3pOwhJTXAXqxowPykzvx8"},"algorithm":{"name":"ECDH","namedCurve":"P-256"}}},"privateKey":{"unwrapKey":{"format":"jwk","wrappedKey":{"$b64u":"FWhWa7XO_Mqjpr0FhyR_HZcJmgcpoPIsOSdPllVNmsGnnALJ6rj1278lxTW-HEOAsdxUK2K7njciF2e7L4nsGu0ZJ4LqsXkD7a47YLJ75hg9nH1kesbPunyS7rGBsVtKI9WxiZYxDwhiIqIPYRDGJbUXJQG-zunxo1KERsu4me_rsBmOuwqfesDvMllrm1wTY-R0h7UhIpFa2wTCXmW7pRPx3Pbvw7GAhWBBd6hpvWsUsOtCGSN9ujw6IUi5itB8xAcMCB2KbRuCicJa0MCsnyOOtUnsG-YzJFr4W-0FNT8UGvM"},"unwrapAlgo":{"name":"AES-GCM","iv":{"$b64u":"MbbvhJZyE8YP710b"}},"unwrappedKeyAlgo":{"name":"ECDH","namedCurve":"P-256"}}}},"unwrapKey":{"wrappedKey":{"$b64u":"mX8ltiUrf9mcAVNvGsGRPNApPznShZuT6OVVwGOhlN9jCVwTdfnibQ"},"unwrappingKey":{"deriveKey":{"algorithm":{"name":"ECDH"},"derivedKeyAlgorithm":{"name":"AES-KW","length":256}}}}}],"jwe":"eyJhbGciOiJBMjU2R0NNS1ciLCJlbmMiOiJBMjU2R0NNIiwiaXYiOiJHaVBvaHA3N2ZjTGdjQUk2IiwidGFnIjoiandra0JsZ3poNU9hQTlVRHZ2WjZZUSJ9.Yq3lXLcWG3r8BM3cJrSRnVoeTe8ExoOfx4G4-mDE-AQ.LIW70vnZ-sLVxOJN.ZfSpTX7wmo-wRjjTBzYkHThcFY4d3upjg19y3AeBfIxmwuu9OJA60bAk-_-e_-OWkeb1ucOyJej_W5-xvEZwoh-30yHxeZEG6iGL1QS__6RZ56EX-rgaGAG65A_AjF-On_7_4IGNY5wuAnmb3HEYdiMFSx-IA1vqox-cNjra7HPLYfpMJq7HABTTO0nnQkgp_K3kNrFazLXbMU97dL39UoYk0L6fAN6DLJi0ngaTO6SYS6jMZ6dIS45Bny0OkqLC51rBpMsvXvlCnKg-skmTuzovWqNepKRiSKwlfwXpRSal5bNDDK4U8pQkDD2qs93Stk5ZJgOL0enP-Ydq8XQ_E3nz-bUdnmmrNme5yqpdxF8UF61zQrG4oMGh9bi_rtA1-xnAp4S3pA53mS0G_3Z1fLEsk7Bl1gOWvxAQBIUetc0NePIl8JMm-3ayZiewK20JUfwYFgLPKJx2cPIBWJRVRYHVIMCvIKDJzQU9jnDQrv7njA2d0t3r_kXlw2w56rpWUixZhR6jivTOOf5tPN3zpBCgyMWiki7GBYBPnFcoLUfTYMKUWxEfqL4owRIYA15MzmsM6XuTvCBar-9sa13n4B8gBEZ0KUWxopeyGh1lKkOgrQq1y742hGUkUZcptgkZWSSUTo2rIiBXbZsiNmjBUE7bfSw5Y3kUYrrSsAwJ1K-kao0dxi45yYw9-hUcyWk2nZiY3BJfmOKAXh7a8dyf13JQg7HCdsCL-B32hG63l6x4ePHjx-46vMS3I6EDvUkRo3YdtV7Ed6WExrCz6-TmKluAHDt1LuuWFZ6uPz-T4PVBw2LpUEL7ijull3RM0bblL1xWSrzU3hV5XjOm6UhVJQt36hfdCCt0MOr6_L2CJMsoGLqZKSMprfhqcm9KfgdfOWtpMPuaeg1uSuEjhE4MZ2sdogIetMboCG7pdzXsAwXtqDARkIoqYZDfuD5IPVO3fXED7G5-umg0UqgYGV1TwjoiPc9paHET8AZbvm5ZGe0bruipGZayZZVdjdXjq8zpJrMnMDQYMD9dZKmq8u4kvFBWA_1PZhvxHKKpom2ZiQILRTUMLFbwsIrfcomjtcnSPvmfl4cnlv0c4gXOF7SXRMRWDgmPfh-iwlVIFLOgVJZp0PjBeukYjUczf_VbP53a1YDhso9Hxr1TiqrDFIt3b0IDYrHsBPfH6UkYdp53pnbidh0fPSffNUxLqi9wqLi1VuN3QYx8nkktH-1T8WKWcXlXu6YyMvdu3u5CIMf3Iu9KS8IFQt0j0ciSa4U_c2zRfV_1QoX8fTeRUUY2G1f6jtSahlrQ1RF1mQ0i_dbNQV3n6WCB2WiFKrEE46MlrvsKYnyenba2Buh-NXKyEU4ZbC0x4hbcUyOkxKMMlQb5tAY5DnOvUW5Yz7RiWoaUSxexb6N3F39ZAgMnBoT6E8KfZt0AXkYVlVHb0olywp6l9VAXU_1doCHXMfX9M57OZHZ0tlwRDZPXWxXCp95GBddV5Ga2vLPbOu-D6jalWWeblZ7U8KOAVkrcySHv5Wr8FAVGinshGSDZQRnfSoe8d1Le-TSMc5xL4FSf7iJ4CbKWl5k5blYqEKC2bVK3kYBX3DofcRsXsjeuVPgxGoFuIfTbYEP7sFnbzSzTLkuXMj4SyGbWryvuTAvu_cbYKHm3XaWuX3piSQO26UB0NKWXVJtnCrqe1bscOxvS281cYceLoLatQroRwg.sxVqxz76jcSvdKUtHbxXwA"}');
 		assert.strictEqual(privateData.prfKeys.length, 1);
 
-		const [prfKey, keyInfo,] = await keystore.getPrfKey(
+		const [{ mainKey }, ] = await keystore.unlockPrf(
 			privateData,
 			mockPrfCredential({
 				id: privateData.prfKeys[0].credentialId,
@@ -392,7 +391,7 @@ describe("The keystore", () => {
 				id: newCredentialId,
 				prfOutput: fromBase64("GaxIW4JdJT1WT2tltTHzoNnSpjGQNokmHmJbe9DxlSg="),
 			}),
-			[prfKey, keyInfo as keystore.WebauthnPrfEncryptionKeyInfoV2],
+			mainKey,
 			async () => false,
 		);
 
@@ -522,7 +521,7 @@ describe("The keystore", () => {
 			assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
 
 			const [oldUnlocked,] = await keystore.unlockPrf(privateData, mockCredential1, async () => false);
-			const [oldPrivateDataContent,,] = await keystore.openPrivateData(oldUnlocked.exportedMainKey, oldUnlocked.privateData);
+			const [oldPrivateDataContent,,] = await keystore.openPrivateData(oldUnlocked.mainKey, oldUnlocked.privateData);
 			const oldKid = oldPrivateDataContent.S.keypairs[0].kid;
 
 			for (const [unlocked, newPrivateData2] of [
@@ -532,7 +531,10 @@ describe("The keystore", () => {
 			]) {
 				assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
 				assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");
-				const [privateDataContent,] = await keystore.openPrivateData(unlocked.exportedMainKey, unlocked.privateData);
+				const [privateDataContent,] = await keystore.openPrivateData(
+					unlocked.mainKey,
+					unlocked.privateData,
+				);
 				const newKid = privateDataContent.S.keypairs[0].kid;
 				assert.notStrictEqual(privateDataContent.S.keypairs.filter(k => k.kid === newKid)[0].kid, oldPrivateDataContent.S.keypairs.filter(k => k.kid === oldKid)[0].kid);
 				assert.notDeepEqual(privateDataContent.S.keypairs.filter(k => k.kid === newKid)[0].keypair.publicKey, oldPrivateDataContent.S.keypairs.filter(k => k.kid === oldKid)[0].keypair.publicKey);
