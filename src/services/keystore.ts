@@ -1087,7 +1087,7 @@ export async function upgradePrfKey(
 
 	const [,[newNewPrivateData]] = await addWebauthnSignKeypair(
 		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
-		credential, prfCredential,
+		credential, prfCredential, null,
 	);
 	return newNewPrivateData;
 };
@@ -1123,7 +1123,7 @@ export async function finishAddPrf(
 	};
 	const [,[newNewPrivateData]] = await addWebauthnSignKeypair(
 		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
-		credential.credential, null
+		credential.credential, null, null
 	);
 	return newNewPrivateData;
 }
@@ -1217,10 +1217,10 @@ export async function init(
 	const splitBbsKeypair = (webauthnSignGeneratedKey && "splitBbs" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.splitBbs : null;
 	let state = WalletStateOperations.initialWalletStateContainer();
 	if (arkgSeed) {
-		state = await addNewArkgSeedEvent(state, arkgSeed);
+		state = await addNewArkgSeedEvent(state, arkgSeed, null);
 	}
 	if (splitBbsKeypair) {
-		state = await addNewSplitBbsKeypairEvent(state, splitBbsKeypair);
+		state = await addNewSplitBbsKeypairEvent(state, splitBbsKeypair, null);
 	}
 	const privateData: EncryptedContainer = {
 		...keyInfo,
