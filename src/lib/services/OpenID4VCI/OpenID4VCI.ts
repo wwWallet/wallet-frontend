@@ -33,40 +33,6 @@ const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.sp
 
 const textDecoder = new TextDecoder();
 
-export function useWriterQueue() {
-	const queueRef = useRef<Array<() => void>>([]);
-	const hasPendingRef = useRef(false);
-
-	const [, forceRender] = useReducer((x) => x + 1, 0);
-
-	const enqueue = (job: () => void) => {
-		queueRef.current.push(job);
-		hasPendingRef.current = true;
-	}
-
-	useLayoutEffect(() => {
-		if (!hasPendingRef.current) return;
-
-		const job = queueRef.current.shift();
-		hasPendingRef.current = false;
-
-		if (job) job();
-
-		if (queueRef.current.length > 0) {
-			hasPendingRef.current = true;
-			forceRender();
-		}
-	});
-
-	return {
-		enqueue,
-		hasPending: () => queueRef.current.length > 0,
-		clear: () => {
-			queueRef.current.length = 0;
-			hasPendingRef.current = false;
-		},
-	};
-}
 
 export const deriveHolderKidFromCredential = async (credential: string, format: string) => {
 	if (format === VerifiableCredentialFormat.VC_SDJWT || format === VerifiableCredentialFormat.DC_SDJWT) {
