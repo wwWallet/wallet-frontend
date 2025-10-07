@@ -8,6 +8,7 @@ type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
 type CredentialEngine = {
 	credentialParsingEngine: ParsingEngineI;
+	jptVerifier: CredentialVerifier;
 	sdJwtVerifier: CredentialVerifier;
 	msoMdocVerifier: CredentialVerifier;
 };
