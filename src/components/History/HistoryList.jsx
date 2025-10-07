@@ -55,7 +55,7 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 		<>
 			<div className="py-2 w-full">
 				{title && groups.length > 0 && <H3 heading={title} />}
-				<div className="overflow-auto space-y-2" style={{ maxHeight: '85vh' }}>
+				<div className="space-y-2">
 					{(limit ? sorted.slice(0, limit) : sorted).map(item => (
 						<button
 							id={`credential-history-item-${item[0].presentation.transactionId}`}

@@ -164,7 +164,9 @@ const Credential = () => {
 							{t('pageHistory.noFound')}
 						</p>
 					) : (
-						<HistoryList batchId={batchId} history={history} />
+						<div className="max-h-[45vh] overflow-y-auto custom-scrollbar px-2">
+							<HistoryList batchId={batchId} history={history} />
+						</div>
 					)}
 				</>
 		},
