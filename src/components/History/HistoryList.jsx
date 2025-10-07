@@ -11,6 +11,9 @@ import SessionContext from '@/context/SessionContext';
 import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { reverse, compareBy } from '@/util';
 
+// Utils
+import prettyDomain from '@/utils/prettyDomain';
+
 /** ------------------ Pure view (NO data fetching here) ------------------ */
 function HistoryListView({ batchId = null, title = '', limit = null, history = {} }) {
 	const navigate = useNavigate();
@@ -61,7 +64,7 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 							style={{ wordBreak: 'break-all' }}
 							onClick={() => handleHistoryItemClick(item)}
 						>
-							<div className="font-bold">{item[0].presentation.audience}</div>
+							<div className="font-bold">{prettyDomain(item[0].presentation.audience)}</div>
 							<div>{formatDate(item[0].presentation.presentationTimestampSeconds)}</div>
 						</button>
 					))}
