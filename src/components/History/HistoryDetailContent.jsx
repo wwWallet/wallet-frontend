@@ -35,7 +35,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 			<div className='flex items-center gap-2 px-2 mb-4'>
 				<VerifierIcon size={40} className="text-white bg-primary dark:bg-primary-light p-2 rounded-md shrink-0" />
 				<div>
-					<p className='text-md font-semibold text-gray-700 dark:text-white'>{prettyDomain(historyItem[0].presentation.audience)} </p>
+					<p className='font-bold text-primary dark:text-white'>{prettyDomain(historyItem[0].presentation.audience)} </p>
 					<p className='text-sm text-gray-700 dark:text-gray-300'>{formatDate(historyItem[0].presentation.presentationTimestampSeconds)}</p>
 				</div>
 			</div>
