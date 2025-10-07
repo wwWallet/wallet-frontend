@@ -760,7 +760,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				setTick((current) => current + 1);
 			});
 		}, config.OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS * 1000);
-	}, [setTick, openID4VCIHelper, openID4VCIClientStateRepository, deferredCredentialRequestBuilder, tick, commitStateChanges, receivedCredentialsArray, setReceivedCredentialsArray])
+	}, [tick])
 
 	return useMemo(() => {
 		return {
