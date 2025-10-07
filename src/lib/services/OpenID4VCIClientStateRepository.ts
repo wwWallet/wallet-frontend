@@ -29,6 +29,9 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 	}, [getCalculatedWalletState]);
 
 	const loadSessions = useCallback(() => {
+		if (initialized) {
+			return;
+		}
 		const S = getCalculatedWalletState();
 		if (!S) {
 			return;
