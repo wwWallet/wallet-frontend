@@ -56,7 +56,7 @@ const Pending = () => {
 			<PageDescription description={t("pagePending.description")} />
 
 			<div className="py-2 w-full">
-				<div className="overflow-auto space-y-2" style={{ maxHeight: "85vh" }}>
+				<div className="space-y-2">
 					{[...pendingTransactions]
 						.sort(reverse(compareBy(pt => pt.created)))
 						.map(pt => {
