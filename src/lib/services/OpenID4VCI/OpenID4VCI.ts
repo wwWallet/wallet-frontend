@@ -262,6 +262,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				setCommitStateChanges(1);
 				return;
 			}
+			await openID4VCIClientStateRepository.updateState(flowState);
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
