@@ -37,7 +37,7 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 			alg = parsedCred.issuerHeader.alg as string;
 		}
 
-		if (vcEntity.data) {
+		if (vcEntity.data && vcEntity.format === 'dc+jpt') {
 			const credParts = vcEntity.data.split('.');
 			const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
 
