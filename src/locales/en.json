@@ -377,7 +377,7 @@
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
 	"syncPopup": {
-		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to see what's new.",
+		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to sync your wallet.",
 		"title": "Synchronize Wallet"
 	},
 	"tourGuide": {
