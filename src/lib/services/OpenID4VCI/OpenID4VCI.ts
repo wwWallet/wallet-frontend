@@ -25,6 +25,7 @@ import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
 import { COSEKeyToJWK } from "cose-kit";
 import { notify } from "@/context/notifier";
 import { IOpenID4VCIClientStateRepository } from '@/lib/interfaces/IOpenID4VCIClientStateRepository';
+import { useNavigate } from 'react-router-dom';
 
 type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
@@ -70,6 +71,7 @@ export const deriveHolderKidFromCredential = async (credential: string, format: 
 export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup, openID4VCIClientStateRepository }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }) => void, openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository }): IOpenID4VCI {
 	const { search } = useLocation();
 	const params = new URLSearchParams(search);
+	const navigate = useNavigate();
 
 	const verificationFlowInProgress = () => params.has("request_uri") && params.has("client_id");
 	const issuanceFlowInProgress = () => params.has("code");
@@ -260,6 +262,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				console.log("Updated S: ", s);
 				await openID4VCIClientStateRepository.cleanupExpired();
 				setCommitStateChanges(1);
+				navigate("/");
 				return;
 			}
 			await openID4VCIClientStateRepository.updateState(flowState);
