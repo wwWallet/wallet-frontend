@@ -1150,7 +1150,7 @@ const Settings = () => {
 									<p className="mb-4">
 										{t('pageSettings.hardwareKeys.onlyOne')}
 									</p>
-									<ul className="grid grid-cols-[max-content,max-content,max-content,max-content] gap-4">
+									<ul className="grid grid-cols-[min-content,auto] 2xs:grid-cols-[min-content,auto,min-content] md:grid-cols-[min-content,auto,auto,auto,min-content] gap-4">
 										{[
 											{
 												key: 'high',
@@ -1182,10 +1182,10 @@ const Settings = () => {
 										].map(({ key, Icon, active, label, alg, name, uses }) =>
 											<li key={key} className="grid grid-cols-subgrid col-span-full items-baseline">
 												<Icon />
-												<span>{label}</span>
-												<span>
+												<span className="grid grid-cols-subgrid 2xs:col-span-2 md:col-span-4 items-baseline">
+													<span className="2xs:col-span-2 md:col-span-1 items-baseline">{label}</span>
 													{active
-														? <>
+														? <span className="2xs:col-span-2 md:col-span-4">
 															<TbDeviceUsb className="inline" />
 															{' '}
 															<Trans
@@ -1193,18 +1193,20 @@ const Settings = () => {
 																components={{ strong: <strong /> }}
 																values={{ name, count: uses }}
 															/>
+														</span>
+														: <>
+															{t('pageSettings.hardwareKeys.softwareKey')}
+															<Button
+																variant="primary"
+																additionalClassName="whitespace-nowrap"
+																disabled={registerWebauthnSigningKeyInProgress}
+																onClick={() => onRegisterWebauthnSigningKey(alg)}
+															>
+																<BiPlus /> {t('pageSettings.hardwareKeys.add')}
+															</Button>
 														</>
-														: t('pageSettings.hardwareKeys.softwareKey')
 													}
 												</span>
-												{!active &&
-													<Button
-														variant="primary"
-														disabled={registerWebauthnSigningKeyInProgress}
-														onClick={() => onRegisterWebauthnSigningKey(alg)}
-													>
-														<BiPlus /> {t('pageSettings.hardwareKeys.add')}
-													</Button>}
 											</li>
 										)}
 									</ul>
