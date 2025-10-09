@@ -1,7 +1,7 @@
 // src/indexedDB.ts
 import localforage from 'localforage';
-import { UserId } from './api/types';
-import { fromBase64Url } from './util';
+// import { UserId } from './api/types';
+// import { fromBase64Url } from './util';
 
 const stores = {
 	users: localforage.createInstance({
@@ -34,7 +34,6 @@ const stores = {
 	}),
 };
 
-const PROXY_DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 /** Paths to exclude from IndexedDB cache logic */
 export const EXCLUDED_INDEXEDDB_PATHS = new Set([
@@ -79,55 +78,55 @@ export async function initializeDataSource(): Promise<void> {
 	}
 }
 
-async function migrateDataSource(): Promise<void> {
-	await migration1();
-}
+// async function migrateDataSource(): Promise<void> {
+// 	await migration1();
+// }
 
 /** Re-key the local databases from numeric user ID to uuid */
-async function migration1(): Promise<void> {
-	const UserHandleToUserID = localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'UserHandleToUserID',
-	});
-	await UserHandleToUserID.ready();
-	await stores.users.ready();
-	const userHandles = await UserHandleToUserID.keys();
-	await Promise.all(userHandles.map(async (userHandleB64u) => {
-		const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
-		const userNumericId: string = (await UserHandleToUserID.getItem(userHandleB64u)).toString();
-		console.log("Migrating UserHandleToUserID:", [userHandleB64u, userNumericId]);
+// async function migration1(): Promise<void> {
+// 	const UserHandleToUserID = localforage.createInstance({
+// 		name: 'AppDataSource',
+// 		storeName: 'UserHandleToUserID',
+// 	});
+// 	await UserHandleToUserID.ready();
+// 	await stores.users.ready();
+// 	const userHandles = await UserHandleToUserID.keys();
+// 	await Promise.all(userHandles.map(async (userHandleB64u) => {
+// 		const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
+// 		const userNumericId: string = (await UserHandleToUserID.getItem(userHandleB64u)).toString();
+// 		console.log("Migrating UserHandleToUserID:", [userHandleB64u, userNumericId]);
 
-		const user: any = await stores.users.getItem(userNumericId);
-		if (user) {
-			user.uuid = userId.id;
-			delete user["id"];
-			delete user["webauthnUserHandle"];
-			await stores.users.setItem(user.uuid, user);
-			await stores.users.removeItem(userNumericId);
-		}
+// 		const user: any = await stores.users.getItem(userNumericId);
+// 		if (user) {
+// 			user.uuid = userId.id;
+// 			delete user["id"];
+// 			delete user["webauthnUserHandle"];
+// 			await stores.users.setItem(user.uuid, user);
+// 			await stores.users.removeItem(userNumericId);
+// 		}
 
-		const accountInfo: any = await stores.accountInfo.getItem(userNumericId);
-		if (accountInfo) {
-			accountInfo.uuid = userId.id;
-			delete accountInfo["webauthnUserHandle"];
-			await stores.accountInfo.setItem(user.uuid, accountInfo);
-			await stores.accountInfo.removeItem(userNumericId);
-		}
+// 		const accountInfo: any = await stores.accountInfo.getItem(userNumericId);
+// 		if (accountInfo) {
+// 			accountInfo.uuid = userId.id;
+// 			delete accountInfo["webauthnUserHandle"];
+// 			await stores.accountInfo.setItem(user.uuid, accountInfo);
+// 			await stores.accountInfo.removeItem(userNumericId);
+// 		}
 
-		const vc: any = await stores.vc.getItem(userNumericId);
-		if (vc) {
-			await stores.vc.setItem(user.uuid, vc);
-			await stores.vc.removeItem(userNumericId);
-		}
+// 		const vc: any = await stores.vc.getItem(userNumericId);
+// 		if (vc) {
+// 			await stores.vc.setItem(user.uuid, vc);
+// 			await stores.vc.removeItem(userNumericId);
+// 		}
 
-		const vp: any = await stores.vp.getItem(userNumericId);
-		if (vp) {
-			await stores.vp.setItem(user.uuid, vp);
-			await stores.vp.removeItem(userNumericId);
-		}
-	}));
-	await UserHandleToUserID.dropInstance();
-}
+// 		const vp: any = await stores.vp.getItem(userNumericId);
+// 		if (vp) {
+// 			await stores.vp.setItem(user.uuid, vp);
+// 			await stores.vp.removeItem(userNumericId);
+// 		}
+// 	}));
+// 	await UserHandleToUserID.dropInstance();
+// }
 
 export async function addItem(storeName: string, key: any, value: any, forceMappedStoreName?: string): Promise<void> {
 	try {

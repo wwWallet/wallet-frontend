@@ -1,6 +1,6 @@
 import { assert, describe, it } from "vitest";
 import { CredentialKeyPair } from "./keystore";
-import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeletePresentationEvent, addNewCredentialEvent, addNewKeypairEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, findMergeBase, foldNextEvent, foldOldEventsIntoBaseState, mergeEventHistories, SchemaV1, SchemaV2 } from "./WalletStateSchema";
+import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeletePresentationEvent, addNewCredentialEvent, addNewKeypairEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, findMergeBase, foldNextEvent, foldOldEventsIntoBaseState, mergeEventHistories, SchemaV1 } from "./WalletStateSchema";
 import { jsonParseTaggedBinary, last } from "@/util";
 
 

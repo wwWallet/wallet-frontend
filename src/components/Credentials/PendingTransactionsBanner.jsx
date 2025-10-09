@@ -1,24 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { LuClock, LuX, LuChevronRight } from "react-icons/lu";
 import { PiClockCounterClockwiseBold } from "react-icons/pi";
 import Button from "../Buttons/Button";
 
 export default function PendingTransactionsBanner({ pendingTransactions = [], onView }) {
 	const { t } = useTranslation();
-	const [dismissed, setDismissed] = useState(false);
 
 	const count = pendingTransactions?.length ?? 0;
-	const preview = useMemo(() => {
-		const items = pendingTransactions.slice(0, 3).map((s, i) => {
-			const id = s?.credentialEndpoint?.transactionId || `tx-${i + 1}`;
-			const label = s?.issuerName || id.substring(0, 8);
-			return { id, label };
-		});
-		return items;
-	}, [pendingTransactions]);
-
-	if (!count || dismissed) return null;
+	if (!count) return null;
 
 	return (
 		<div

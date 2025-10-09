@@ -12,9 +12,8 @@ import { WalletStateUtils } from "@/services/WalletStateUtils";
 export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
-	const { keystore, api, isLoggedIn } = useContext(SessionContext);
+	const { keystore } = useContext(SessionContext);
 	const { getCalculatedWalletState } = keystore;
-	const { get } = api;
 
 	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
 		if (!getCalculatedWalletState) {

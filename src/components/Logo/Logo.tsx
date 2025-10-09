@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import * as config from '../../config';
 import { useTranslation } from 'react-i18next';
-import { env } from 'process';
 
 interface LogoProps {
 	type?: string; // Determines the type of logo (classic or white)

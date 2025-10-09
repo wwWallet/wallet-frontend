@@ -242,7 +242,7 @@ export function useOpenID4VP({
 				if (vc.format === VerifiableCredentialFormat.MSO_MDOC) {
 					const credentialBytes = base64url.decode(vc.data);
 					const issuerSigned = cborDecode(credentialBytes);
-					const [header, _, payload, sig] = issuerSigned.get('issuerAuth') as Array<Uint8Array>;
+					const [, payload] = issuerSigned.get('issuerAuth') as Array<Uint8Array>;
 					const decodedIssuerAuthPayload = cborDecode(payload);
 					const docType = decodedIssuerAuthPayload.data.get('docType');
 					const envelope = {
@@ -988,14 +988,14 @@ export function useOpenID4VP({
 		sessionStorage.setItem("last_used_nonce", S.nonce);
 
 
-		let formData, generatedVPs, presentationSubmission, filteredVCEntities;
+		let formData, generatedVPs, filteredVCEntities;
 
 		if (S.presentation_definition) {
-			({ formData, generatedVPs, presentationSubmission, filteredVCEntities } =
+			({ formData, generatedVPs, filteredVCEntities } =
 				await handlePresentationExchangeFlow(S, selectionMap, vcEntityList));
 		}
 		else {
-			({ formData, generatedVPs, presentationSubmission, filteredVCEntities } =
+			({ formData, generatedVPs, filteredVCEntities } =
 				await handleDCQLFlow(S, selectionMap, vcEntityList));
 		}
 

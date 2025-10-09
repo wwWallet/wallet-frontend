@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';

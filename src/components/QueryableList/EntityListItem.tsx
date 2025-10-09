@@ -1,5 +1,4 @@
 import React from 'react';
-import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
 import { useProxiedImage } from '@/hooks/useProxiedImage'
 type EntityListItemProps = {
@@ -9,7 +8,6 @@ type EntityListItemProps = {
 };
 
 const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItemProps) => {
-	const proxy = useHttpProxy();
 
 	const primaryLogoSrc = useProxiedImage(primaryData?.logo?.uri);
 	const secondaryImageSrc = useProxiedImage(secondaryData?.logo?.uri);
