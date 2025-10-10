@@ -24,8 +24,17 @@ type SessionState = {
 	showWelcome: boolean,
 }
 
+type LoginWebauthnError = (
+	'canceled'
+	| 'loginKeystoreFailed'
+	| 'passkeyInvalid'
+	| 'passkeyLoginFailedServerError'
+	| 'passkeyLoginFailedTryAgain'
+	| 'x-private-data-etag'
+);
 type SignupWebauthnError = (
-	'passkeySignupFailedServerError'
+	'canceled'
+	| 'passkeySignupFailedServerError'
 	| 'passkeySignupFailedTryAgain'
 	| 'passkeySignupFinishFailedServerError'
 	| 'passkeySignupKeystoreFailed'
@@ -64,9 +73,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
-	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
-	>,
+	): Promise<Result<void, LoginWebauthnError>>,
 	signupWebauthn(
 		name: string,
 		keystore: LocalStorageKeystore,
@@ -488,13 +495,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		cachedUser: CachedUser | undefined
-	): Promise<Result<void,
-		| 'loginKeystoreFailed'
-		| 'passkeyInvalid'
-		| 'passkeyLoginFailedTryAgain'
-		| 'passkeyLoginFailedServerError'
-		| 'x-private-data-etag'
-	>> => {
+	): Promise<Result<void, LoginWebauthnError>> => {
 		try {
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
@@ -600,8 +601,14 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 						await setSession(finishResp, credential, 'login');
 						return Ok.EMPTY;
 					} catch (e) {
-						console.error("Failed to open keystore", e);
-						return Err('loginKeystoreFailed');
+						switch (e?.cause?.errorId) {
+							case 'canceled':
+								return Err('canceled');
+
+							default:
+								console.error("Failed to open keystore", e);
+								return Err('loginKeystoreFailed');
+						}
 					}
 
 				} catch (e) {
@@ -629,37 +636,25 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			console.log("begin", beginData);
 
 			try {
-				const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-				const credential = retryFrom?.credential || await navigator.credentials.create({
-					...beginData.createOptions,
-					publicKey: {
-						...beginData.createOptions.publicKey,
-						user: {
-							...beginData.createOptions.publicKey.user,
-							name,
-							displayName: name,
-						},
-						extensions: {
-							prf: {
-								eval: {
-									first: prfSalt,
+				try {
+					const [credential, privateData] = await keystore.initWebauthn(
+						retryFrom?.credential ?? {
+							...beginData.createOptions,
+							publicKey: {
+								...beginData.createOptions.publicKey,
+								user: {
+									...beginData.createOptions.publicKey.user,
+									name,
+									displayName: name,
 								},
+								hints: webauthnHints,
+								authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, webauthnHints),
 							},
 						},
-						hints: webauthnHints,
-						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, webauthnHints),
-					},
-				}) as PublicKeyCredential;
-				const response = credential.response as AuthenticatorAttestationResponse;
-				console.log("created", credential);
-
-				try {
-					const privateData = await keystore.initPrf(
-						credential,
-						prfSalt,
 						promptForPrfRetry,
 						{ displayName: name, userHandle: beginData.createOptions.publicKey.user.id },
 					);
+					const response = credential.response;
 
 					try {
 						const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
@@ -687,12 +682,19 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					}
 
 				} catch (e) {
-					if (e?.cause?.errorId === "prf_retry_failed") {
-						return Err({ errorId: 'prfRetryFailed', retryFrom: { credential, beginData } });
-					} else if (e?.cause?.errorId === "prf_not_supported") {
-						return Err('passkeySignupPrfNotSupported');
-					} else {
-						return Err('passkeySignupKeystoreFailed');
+					switch (e?.cause?.errorId) {
+						case "canceled":
+							return Err('canceled');
+
+						case "prf_retry_failed":
+							return Err({ errorId: 'prfRetryFailed', retryFrom: { credential: e.cause.credential, beginData } });
+
+						case "prf_not_supported":
+							return Err('passkeySignupPrfNotSupported');
+
+						default:
+							console.error("Signup failed", e);
+							return Err('passkeySignupKeystoreFailed');
 					}
 				}
 

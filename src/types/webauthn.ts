@@ -1,4 +1,35 @@
-export {}; // Make sure the file is a module instead of a script, othwerwise `declare global` is not allowed
+export type PublicKeyCredentialCreation = PublicKeyCredential & { response: AuthenticatorAttestationResponse };
+export type PublicKeyCredentialAssertion = PublicKeyCredential & { response: AuthenticatorAssertionResponse };
+
+
+export interface AuthenticationExtensionsSignInputs {
+	generateKey?: AuthenticationExtensionsSignGenerateKeyInputs;
+	sign?: AuthenticationExtensionsSignSignInputs;
+}
+
+export interface AuthenticationExtensionsSignGenerateKeyInputs {
+	algorithms: COSEAlgorithmIdentifier[];
+	tbs?: BufferSource;
+}
+
+export interface AuthenticationExtensionsSignSignInputs {
+	tbs: BufferSource;
+	keyHandleByCredential: { [credentialId: string]: COSEKeyRef };
+}
+
+export type COSEKeyRef = BufferSource;
+
+interface AuthenticationExtensionsSignOutputs {
+	generatedKey?: AuthenticationExtensionsSignGeneratedKey;
+	signature?: ArrayBuffer;
+};
+
+interface AuthenticationExtensionsSignGeneratedKey {
+	publicKey: ArrayBuffer;
+	keyHandle: ArrayBuffer;
+};
+
+
 
 declare global {
 	// The below polyfill seems not needed for
@@ -14,5 +45,22 @@ declare global {
 		rpId?: string;
 		timeout?: number;
 		userVerification?: UserVerificationRequirement;
+	}
+
+	export interface AuthenticationExtensionsClientInputs {
+		sign?: AuthenticationExtensionsSignInputs;
+	}
+
+	export interface AuthenticationExtensionsClientOutputs {
+		sign?: AuthenticationExtensionsSignOutputs;
+	}
+}
+
+
+export function toArrayBuffer(buf: BufferSource): ArrayBuffer {
+	if (buf instanceof ArrayBuffer) {
+		return buf;
+	} else {
+		return buf.buffer;
 	}
 }

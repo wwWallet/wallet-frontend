@@ -19,7 +19,6 @@ export interface WalletSessionEvent {
 
 export interface WalletStateOperations<S extends WalletState, E extends WalletSessionEvent> {
 	initialWalletStateContainer(): WalletStateContainer<S, E>;
-	migrateState(state: WalletState): S;
 	walletStateReducer(state: S, newEvent: E): S;
 	calculateEventHash(event: E): Promise<string>;
 	mergeDivergentHistoriesWithStrategies(

@@ -116,6 +116,7 @@ export type WalletSessionEventDeleteCredentialIssuanceSession = {
 	sessionId: number,
 }
 
+
 export type WalletState = {
 	schemaVersion: number,
 	credentials: {
@@ -412,30 +413,16 @@ export function createOperations(
 		}
 	}
 
-	function migrateState(state: WalletSchemaCommon.WalletState): WalletState {
-		if ((state?.schemaVersion ?? 1) <= SCHEMA_VERSION) {
-			return {
-				...state,
-				schemaVersion: SCHEMA_VERSION,
-			} as unknown as WalletState;
-		} else {
-			throw new Error(`Cannot migrate state with schemaVersion ${state?.schemaVersion} to version ${SCHEMA_VERSION}`);
-		}
-	}
-
 	function walletStateReducer(state: WalletState, newEvent: WalletSessionEvent): WalletState {
-		if (newEvent.schemaVersion === state.schemaVersion) {
-			return {
-				schemaVersion: newEvent.schemaVersion,
-				credentials: credentialReducer(state.credentials, newEvent),
-				keypairs: keypairReducer(state.keypairs, newEvent),
-				presentations: presentationReducer(state.presentations, newEvent),
-				credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
-				settings: settingsReducer(state.settings, newEvent)
-			};
-		} else {
-			return walletStateReducer(migrateState(state), newEvent);
-		}
+		return {
+			...state,
+			schemaVersion: newEvent.schemaVersion,
+			credentials: credentialReducer(state.credentials, newEvent),
+			keypairs: keypairReducer(state.keypairs, newEvent),
+			presentations: presentationReducer(state.presentations, newEvent),
+			credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
+			settings: settingsReducer(state.settings, newEvent)
+		};
 	}
 
 	async function mergeDivergentHistoriesWithStrategies(
@@ -478,7 +465,6 @@ export function createOperations(
 
 	return {
 		initialWalletStateContainer,
-		migrateState,
 		calculateEventHash,
 		reparent,
 		rebuildEventHistory,

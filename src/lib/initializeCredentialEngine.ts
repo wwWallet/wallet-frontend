@@ -1,6 +1,6 @@
 import { CLOCK_TOLERANCE } from "../config";
 import { IHttpProxy } from "./interfaces/IHttpProxy";
-import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
+import { ParsingEngine, JptDcParser, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier, JptDcVerifier } from "wallet-common";
 import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
 
 export async function initializeCredentialEngine(
@@ -31,12 +31,14 @@ export async function initializeCredentialEngine(
 	});
 
 	const credentialParsingEngine = ParsingEngine();
+	credentialParsingEngine.register(JptDcParser({ context: ctx, httpClient: httpProxy }));
 	credentialParsingEngine.register(SDJWTVCParser({ context: ctx, httpClient: httpProxy }));
 	credentialParsingEngine.register(MsoMdocParser({ context: ctx, httpClient: httpProxy }));
 
 	const pkResolverEngine = PublicKeyResolverEngine();
+	const jptVerifier = JptDcVerifier({ context: ctx, pkResolverEngine: pkResolverEngine, httpClient: httpProxy, issuerPublicKeys: [] });
 	const sdJwtVerifier = SDJWTVCVerifier({ context: ctx, pkResolverEngine: pkResolverEngine, httpClient: httpProxy });
 	const msoMdocVerifier = MsoMdocVerifier({ context: ctx, pkResolverEngine: pkResolverEngine });
 
-	return { credentialParsingEngine, sdJwtVerifier, msoMdocVerifier };
+	return { credentialParsingEngine, jptVerifier, sdJwtVerifier, msoMdocVerifier };
 }

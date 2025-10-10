@@ -223,7 +223,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				id === flowState.credentialConfigurationId
 			)[0];
 
-			let selectedProofType: 'attestation' | 'jwt' = 'jwt'; // default
+			let selectedProofType: 'attestation' | 'jwt' | 'jpt' = 'jwt'; // default
 			for (const proof_type of openid4vciProofTypePrecedence) {
 				if (proof_type === 'attestation' && credConf?.proof_types_supported?.attestation) {
 					selectedProofType = 'attestation';
@@ -233,9 +233,13 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					selectedProofType = 'jwt';
 					break;
 				}
+				else if (proof_type === 'jpt' && credConf?.proof_types_supported?.jpt) {
+					selectedProofType = 'jpt';
+					break;
+				}
 			}
 
-			console.log("Selected proof type = ", selectedProofType);
+			console.log("Selected proof type = ", selectedProofType, openid4vciProofTypePrecedence, credConf);
 
 			const { credentialResponse } = await credentialRequestBuilder.execute(flowState.credentialConfigurationId, selectedProofType);
 

@@ -96,7 +96,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
 					pathCredentialIssuer,
 					OpenidCredentialIssuerMetadataSchema,
-					useCache,
+					false,
 				);
 				if (metadata.signed_metadata) {
 					try {
