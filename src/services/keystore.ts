@@ -1918,7 +1918,7 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 	return { deviceResponseMDoc };
 }
 
-function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
+export function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 	: NewWebauthnSignKeypair | null {
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {

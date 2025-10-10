@@ -16,7 +16,7 @@ import { byteArrayEquals, compareBy, toBase64Url } from '../../util';
 import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
 import { formatDate } from '../../functions/DateFormat';
 import type { PrecreatedPublicKeyCredential, WebauthnPrfEncryptionKeyInfo, WebauthnSignArkgPublicSeed, WebauthnSignSplitBbsKeypair } from '../../services/keystore';
-import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
+import { isPrfKeyV2, parseWebauthnSignGeneratedKey, serializePrivateData } from '../../services/keystore';
 
 import Button from '../../components/Buttons/Button';
 import DeletePopup from '../../components/Popups/DeletePopup';
@@ -938,6 +938,11 @@ const Settings = () => {
 						const credential = await webauthnDialog.beginCreate(options, {
 							bodyText: t('registerHardwareKey.intro'),
 						});
+						const generatedKey = parseWebauthnSignGeneratedKey(credential);
+						if (!generatedKey) {
+							throw new Error('Key not found', { cause: { id: 'key-not-found' } });
+						}
+
 						const name = await webauthnDialog.input({
 							bodyText: t('registerHardwareKey.successGiveName'),
 							input: {
