@@ -21,7 +21,7 @@
 		"continue": "Continue",
 		"delete": "Delete",
 		"externalPasskey": "Passkey on a security key",
-		"hybridPasskey": "Passkey on another device",
+		"hybridPasskey": "Passkey on nearby device",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
