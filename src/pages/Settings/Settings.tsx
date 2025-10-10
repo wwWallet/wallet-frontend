@@ -961,6 +961,7 @@ const Settings = () => {
 									},
 								});
 								retry = result.retry;
+								break;
 							}
 
 							case 'user-abort':
