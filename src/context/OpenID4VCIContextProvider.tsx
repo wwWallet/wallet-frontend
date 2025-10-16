@@ -27,7 +27,7 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		}), [popupConsentState]);
+		}), []);
 
 	const hidePopupConsent = useCallback(() => {
 		setPopupConsentState((prevState) => ({
