@@ -367,7 +367,7 @@ export function createOperations(
 	): Promise<WalletSchemaCommon.WalletSessionEvent[]> {
 		const newEvents: WalletSchemaCommon.WalletSessionEvent[] = [];
 		for (let i = 0; i < events.length; i++) {
-			if (i == 0) {
+			if (i === 0) {
 				newEvents.push({
 					...events[0],
 					parentHash: lastEventHash,

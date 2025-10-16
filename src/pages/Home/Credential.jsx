@@ -142,7 +142,7 @@ const Credential = () => {
 				setShareWithQr(false);
 				return;
 			}
-			if (vcEntity.format == "mso_mdoc") {
+			if (vcEntity.format === "mso_mdoc") {
 				setShareWithQr(true);
 			} else {
 				setShareWithQr(false);

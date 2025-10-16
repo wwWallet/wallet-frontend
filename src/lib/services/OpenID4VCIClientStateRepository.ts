@@ -164,7 +164,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			}
 			const pendingTransactions = Array.from(sessions.current.values())
 				.filter((session: WalletStateCredentialIssuanceSession) =>
-					session.credentialEndpoint && session.credentialEndpoint.transactionId != undefined && typeof session.credentialEndpoint.transactionId === 'string'
+					session.credentialEndpoint && session.credentialEndpoint.transactionId !== undefined && typeof session.credentialEndpoint.transactionId === 'string'
 				);
 			return pendingTransactions;
 		}

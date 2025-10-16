@@ -87,7 +87,7 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 			authorizationRequestURL.searchParams.set('request_uri', request_uri);
 			authorizationRequestURL.searchParams.set('client_id', config.clientId);
 			const age = await getRememberIssuerAge();
-			if (age != null && age == 0) {
+			if (age != null && age === 0) {
 				authorizationRequestURL.searchParams.set('prompt', 'login');
 			}
 
