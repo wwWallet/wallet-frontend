@@ -4,7 +4,7 @@ import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
 
-const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null, onLoad, borderColor=undefined }) => {
+const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null, onLoad, borderColor = undefined }) => {
 	const [imageSrc, setImageSrc] = useState(undefined);
 
 	useEffect(() => {
@@ -38,7 +38,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 		loadImage();
 
 		return () => { isMounted = false };
-	}, [vcEntity, filter]);
+	}, [vcEntity, filter, onLoad]);
 
 	return (
 		<>
