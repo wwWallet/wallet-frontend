@@ -139,7 +139,7 @@ export function useCredentialRequest() {
 			throw new Error("Deferred Credential Request failed");
 		}
 
-	}, [httpProxy]);
+	}, [httpProxy, httpHeaders]);
 
 	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
