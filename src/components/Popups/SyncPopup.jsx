@@ -15,7 +15,6 @@ const WebauthnLogin = ({
 	const { api, keystore } = useContext(SessionContext);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
-	const from = '/';
 	const { t } = useTranslation();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +51,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t, from],
+		[api, keystore, navigate, t],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {
