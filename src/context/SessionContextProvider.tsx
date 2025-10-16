@@ -16,11 +16,11 @@ export const SessionContextProvider = ({ children }) => {
 	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
 
 	// A unique id for each logged in tab
-	const [globalTabId, setGlobalTabId, clearGlobalTabId] = useLocalStorage<string | null>("globalTabId", null);
-	const [tabId, setTabId, clearTabId] = useSessionStorage<string | null>("tabId", null);
+	const [globalTabId] = useLocalStorage<string | null>("globalTabId", null);
+	const [tabId] = useSessionStorage<string | null>("tabId", null);
 
-	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
-	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();

@@ -7,10 +7,6 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import SessionContext from '@/context/SessionContext';
 
-// Utility functions
-import { formatDate } from '@/functions/DateFormat';
-import { extractPresentations } from '@/functions/extractPresentations';
-
 // Hooks
 import useFetchPresentations from '@/hooks/useFetchPresentations';
 

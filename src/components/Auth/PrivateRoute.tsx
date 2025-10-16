@@ -147,7 +147,7 @@ export function NotificationPermissionWarning(): React.ReactNode {
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactNode => {
 	const { isOnline } = useContext(StatusContext);
-	const { api, isLoggedIn, keystore, logout } = useContext(SessionContext);
+	const { api, isLoggedIn, keystore } = useContext(SessionContext);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [tokenSentInSession, setTokenSentInSession,] = api.useClearOnClearSession(useSessionStorage('tokenSentInSession', null));

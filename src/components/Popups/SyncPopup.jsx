@@ -1,15 +1,12 @@
 // MessagePopup.js
 import React, { useContext, useState, useCallback } from 'react';
-import { FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
-import StatusContext from '@/context/StatusContext';
-import { useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
 import { GoPasskeyFill } from 'react-icons/go';
-import { MdOutlineSyncLock } from "react-icons/md";
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -18,7 +15,6 @@ const WebauthnLogin = ({
 	const { api, keystore } = useContext(SessionContext);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
-	const location = useLocation();
 	const from = '/';
 	const { t } = useTranslation();
 
@@ -103,17 +99,11 @@ const SyncPopup = ({ message, onClose }) => {
 	const { description } = message || {};
 	const { t } = useTranslation();
 
-	const { isOnline } = useContext(StatusContext);
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const { keystore } = useContext(SessionContext);
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search || '/';
-
-
-	const IconComponent = FaCheckCircle;
-	const color = 'green-500';
-
 
 	const getfilteredUser = () => {
 		const queryParams = new URLSearchParams(from);
@@ -135,7 +125,7 @@ const SyncPopup = ({ message, onClose }) => {
 
 		return [null, false, authenticated === 'true'];
 	};
-	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
+	const [filteredUser] = getfilteredUser();
 
 	if (!filteredUser) {
 		return;

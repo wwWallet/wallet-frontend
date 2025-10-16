@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { FaRegCircle, FaCheckCircle, FaInfo, FaIdCard } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -76,14 +76,6 @@ const SelectableCredentialSlideCard = ({
 			)}
 		</button>
 	);
-};
-
-const formatTitle = (title) => {
-	if (title) {
-		return title.replace(/([a-z])([A-Z])/g, '$1 $2');
-	} else {
-		return;
-	}
 };
 
 const normalizePath = (path) => {

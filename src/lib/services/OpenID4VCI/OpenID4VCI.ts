@@ -4,8 +4,7 @@ import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
-import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useCallback, useMemo, useEffect, useRef, useState, useContext, useReducer, useLayoutEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
 import { useLocation } from "react-router-dom";
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
@@ -219,7 +218,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				await credentialRequestBuilder.setDpopHeader();
 			}
 
-			const [_credConfId, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
+			const [, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
 				id === flowState.credentialConfigurationId
 			)[0];
 
@@ -651,7 +650,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const credsCollected = [];
 			let stateUpdated = false;
 			for (const s of sessions) {
-				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId }, tokenResponse: { data: { access_token, expiration_timestamp } } } = s;
+				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId }, tokenResponse: { data: { access_token } } } = s;
 				const { metadata } = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
 				const now = Math.floor(new Date().getTime() / 1000);
 				console.log("Transaction id: ", transactionId)
@@ -719,7 +718,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					]);
 					credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 					credentialConfigurationIdRef.current = s.credentialConfigurationId;
-					let warnings = [];
+					// let warnings = [];
 					for (const rawCredential of credentialArray) {
 
 						const result = await credentialEngine.credentialParsingEngine.parse(
@@ -733,7 +732,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						if (result.success) {
 							if (result.value.warnings && result.value.warnings.length > 0) {
 								console.warn(`Credential had warnings:`, result.value.warnings);
-								warnings = result.value.warnings;
+								// warnings = result.value.warnings;
 							}
 						} else {
 							console.error(`Credential failed to parse:`, result.error, result.message);

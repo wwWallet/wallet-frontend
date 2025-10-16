@@ -1,5 +1,5 @@
 // External libraries
-import React, { useContext, useEffect, useState } from 'react';
+import React from 'react';
 import { VerifierIcon } from '@/assets/images/verifier_icon';
 
 // Components
@@ -9,17 +9,12 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 
 import useScreenType from '../../hooks/useScreenType';
 
-import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
-import { CredentialVerificationError } from "wallet-common/dist/error";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
-
 import prettyDomain from '@/utils/prettyDomain';
 import { formatDate } from '@/functions/DateFormat';
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
 	const screenType = useScreenType();
-	const httpProxy = useHttpProxy();
 
 	const renderSlideContent = (vcEntity, index) => (
 		<div
