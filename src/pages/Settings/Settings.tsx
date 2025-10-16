@@ -887,7 +887,7 @@ const Settings = () => {
 			if (isNaN(parseInt(newMaxAge))) {
 				throw new Error("Update token max age: newMaxAge is not a number");
 			}
-			const [{ }, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
 				openidRefreshTokenMaxAgeInSeconds: newMaxAge,
 			});
 			await api.updatePrivateData(newPrivateData);
