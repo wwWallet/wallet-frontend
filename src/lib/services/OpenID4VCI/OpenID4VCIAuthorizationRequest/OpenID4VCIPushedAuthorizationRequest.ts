@@ -102,7 +102,7 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 			await openID4VCIClientStateRepository.commitStateChanges();
 			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository, getRememberIssuerAge]
+		[httpProxy, openID4VCIClientStateRepository, keystore, getRememberIssuerAge]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);
