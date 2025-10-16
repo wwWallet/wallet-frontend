@@ -20,8 +20,10 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 	const screenType = useScreenType();
 
 	// normalize in case history is [] (some callers return [] on empty)
-	const normalized = (history && !Array.isArray(history)) ? history : {};
-	const groups = useMemo(() => Object.values(normalized), [normalized]);
+	const groups = useMemo(() => {
+		const normalized = (history && !Array.isArray(history)) ? history : {};
+		return Object.values(normalized);
+	}, [history]);
 
 	const [isImageModalOpen, setImageModalOpen] = useState(false);
 	const [selectedByBatch, setSelectedByBatch] = useState(null);
