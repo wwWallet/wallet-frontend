@@ -217,7 +217,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 
 			if (currentKey === 'preview' || currentKey === 'summary') {
-				if (!vcEntities?.length || currentKey !== keys[currentIndex]) {
+				if (currentKey !== keys[currentIndex]) {
 					setVcEntities([]);
 				}
 				return;
