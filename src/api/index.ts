@@ -271,6 +271,41 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		}
 	}, [buildMutationHeaders]);
 
+	const syncPrivateData = useCallback(async (
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>> => {
+
+		try {
+			const getPrivateDataResponse = await get('/user/session/private-data', { headers: { 'If-None-Match': privateDataEtag } });
+			if (getPrivateDataResponse.status === 304) {
+				return Ok.EMPTY; // already synced
+			}
+			const queryParams = new URLSearchParams(window.location.search);
+			queryParams.delete('user');
+			queryParams.delete('sync');
+
+			queryParams.append('user', cachedUser.userHandleB64u);
+			queryParams.append('sync', 'fail');
+
+			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+			return Err('syncFailed');
+			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
+			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+		}
+		catch (err) {
+			console.error(err);
+			return Err('syncFailed');
+		}
+
+	}, [privateDataEtag, get, navigate]);
+
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
 			setSessionState((prevState) => ({
@@ -338,7 +373,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			}
 			throw e;
 		}
-	}, [post, updatePrivateDataEtag, cachedUsers, userHandle]);
+	}, [post, updatePrivateDataEtag, cachedUsers, userHandle, syncPrivateData]);
 
 	const login = useCallback(async (
 		username: string,
@@ -446,42 +481,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			throw error;
 		}
 	}, [post]);
-
-	const syncPrivateData = useCallback(async (
-		cachedUser: CachedUser | undefined
-	): Promise<Result<void,
-		| 'syncFailed'
-		| 'loginKeystoreFailed'
-		| 'passkeyInvalid'
-		| 'passkeyLoginFailedTryAgain'
-		| 'passkeyLoginFailedServerError'
-		| 'x-private-data-etag'
-	>> => {
-
-		try {
-			const getPrivateDataResponse = await get('/user/session/private-data', { headers: { 'If-None-Match': privateDataEtag } });
-			if (getPrivateDataResponse.status === 304) {
-				return Ok.EMPTY; // already synced
-			}
-			const queryParams = new URLSearchParams(window.location.search);
-			queryParams.delete('user');
-			queryParams.delete('sync');
-
-			queryParams.append('user', cachedUser.userHandleB64u);
-			queryParams.append('sync', 'fail');
-
-			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
-			return Err('syncFailed');
-			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
-			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
-		}
-		catch (err) {
-			console.error(err);
-			return Err('syncFailed');
-		}
-
-	}, [privateDataEtag, get]);
-
 
 	const loginWebauthn = useCallback(async (
 		keystore: LocalStorageKeystore,
