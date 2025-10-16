@@ -23,13 +23,14 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const assumedChunkSize = 512;
 
 	const { keystore, api } = useContext(SessionContext);
-	const { post } = api;
+	const { updatePrivateData } = api;
+	const { addPresentations, generateDeviceResponseWithProximity } = keystore;
 
 	const storeVerifiablePresentation = useCallback(
 		async (presentation: string, _presentationSubmission: any, usedCredentialId: number, audience: string) => {
 			try {
 				const transactionId = WalletStateUtils.getRandomUint32();
-				const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations([presentation].map((vpData, _index) => {
+				const [, newPrivateData, keystoreCommit] = await addPresentations([presentation].map((vpData, _index) => {
 					console.log("Presentation: ")
 
 					return {
@@ -39,7 +40,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 						audience: audience,
 					}
 				}));
-				await api.updatePrivateData(newPrivateData);
+				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
 				console.log("Presentations added")
 
@@ -47,7 +48,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				console.log("Failed to reach server: Presentation history not stored");
 			}
 		},
-		[post]
+		[updatePrivateData, addPresentations]
 	);
 
 
@@ -170,7 +171,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 
 		return fieldKeys;
-	}, [keystore]);
+	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
 		const fullPEX = {
@@ -214,7 +215,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		const encoded = cborEncode(m);
 		const mdoc = parse(encoded);
 
-		const { deviceResponseMDoc } = await keystore.generateDeviceResponseWithProximity(mdoc, fullPEX, sessionTranscriptBytesRef.current);
+		const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc, fullPEX, sessionTranscriptBytesRef.current);
 
 		// encrypt mdoc response
 		const ivEncryption = new Uint8Array([
@@ -263,7 +264,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		/* @ts-ignore */
 		await nativeWrapper.bluetoothTerminate();
 		return;
-	}, []);
+	}, [generateDeviceResponseWithProximity, storeVerifiablePresentation]);
 
 	const terminateSession = useCallback(
 		async (): Promise<void> => {
