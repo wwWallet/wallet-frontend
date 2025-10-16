@@ -56,7 +56,7 @@ export const NotificationProvider: React.FC<React.PropsWithChildren> = ({ childr
 			setTimeout(() => schedule(id, duration), 0);
 			return id;
 		},
-		[schedule]
+		[schedule, t]
 	);
 
 	const notify = useCallback(
