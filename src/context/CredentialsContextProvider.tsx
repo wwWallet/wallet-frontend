@@ -25,7 +25,7 @@ export const CredentialsContextProvider = ({ children }) => {
 	// const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
 
-	const { getExternalEntity, getSession, get } = api;
+	const { getExternalEntity } = api;
 	const [pendingTransactions, setPendingTransactions] = useState(null);
 
 	useEffect(() => {
@@ -67,7 +67,7 @@ export const CredentialsContextProvider = ({ children }) => {
 			}
 		}
 		prevIsLoggedIn.current = isLoggedIn;
-	}, [isLoggedIn, httpProxy, helper]);
+	}, [isLoggedIn, httpProxy, helper, initializeEngine]);
 
 
 	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
@@ -176,7 +176,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Sorting by id
 		filteredVcEntityList.reverse();
 		return filteredVcEntityList;
-	}, [httpProxy, helper, getCalculatedWalletState, get, parseCredential, credentialEngine]);
+	}, [getCalculatedWalletState, parseCredential, credentialEngine]);
 
 
 	const getData = useCallback(async () => {
@@ -203,7 +203,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	}, [getSession, fetchVcData, setVcEntityList]);
+	}, [fetchVcData, setVcEntityList]);
 
 	useEffect(() => {
 		if (!getCalculatedWalletState || !credentialEngine || !isLoggedIn) {
