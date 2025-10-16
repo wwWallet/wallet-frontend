@@ -134,38 +134,38 @@ export const CredentialsContextProvider = ({ children }) => {
 		// Filter and map the fetched list in one go
 		let filteredVcEntityList = await Promise.all(
 			credentials
-				.filter((vcEntity) => {
+				.filter((credential) => {
 					// Apply filtering by batchId if provided
-					if (batchId && vcEntity.batchId !== batchId) {
+					if (batchId && credential.batchId !== batchId) {
 						return false;
 					}
 					// Include only the first instance (instanceId === 0)
-					return vcEntity.instanceId === 0;
+					return credential.instanceId === 0;
 				})
-				.map(async (vcEntity) => {
+				.map(async (credential) => {
 					// Parse the credential to get parsedCredential
-					const parsedCredential = await parseCredential(vcEntity);
+					const parsedCredential = await parseCredential(credential);
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.data, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: credential.data, opts: {} });
 							case VerifiableCredentialFormat.DC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.data, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: credential.data, opts: {} });
 							case VerifiableCredentialFormat.MSO_MDOC:
-								return msoMdocVerifier.verify({ rawCredential: vcEntity.data, opts: {} });
+								return msoMdocVerifier.verify({ rawCredential: credential.data, opts: {} });
 						}
 					})();
 
 					// Attach the instances array from the map and add parsedCredential
 					return {
-						...vcEntity,
-						instances: instancesMap[vcEntity.batchId],
+						...credential,
+						instances: instancesMap[credential.batchId],
 						parsedCredential,
 						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
-						sigCount: instancesMap[vcEntity.batchId].reduce((acc: number, curr: Instance) =>
+						sigCount: instancesMap[credential.batchId].reduce((acc: number, curr: Instance) =>
 							acc + curr.sigCount
 							, 0),
 					};
