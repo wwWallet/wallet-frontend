@@ -147,7 +147,6 @@ export function useOpenID4VP({
 
 		for (const descriptor of presentation_definition.input_descriptors) {
 			const conformingVcList = [];
-			// descriptorPurpose = descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
 
 			// Capture the per-iteration value to avoid no-loop-func
 			const localDescriptorPurpose =
