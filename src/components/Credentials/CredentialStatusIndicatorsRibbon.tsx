@@ -114,12 +114,12 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 
 	// TODO: Icons need accessible labels.
 	if (count > USAGE_WARNING_THRESHOLD) {
-		title = t('credentialStatusIndicators.usages.full');
+		title = t('credentialStatusIndicators.usages.full', { count });
 		Icon = <TbVersions size={18} />;
 		color = 'text-green-700 dark:text-green-500';
 		label = String(count);
 	} else if (count > 0) {
-		title = t('credentialStatusIndicators.usages.almostEmpty', { count });
+		title = t('credentialStatusIndicators.usages.almostEmpty');
 		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
 		color = 'text-yellow-700 dark:text-yellow-500';
 		label = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;

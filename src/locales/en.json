@@ -52,20 +52,19 @@
 	},
 	"credentialStatusIndicators": {
 		"type": {
-			"hwBound": "This credential is hardware bound"
+			"hwBound": "Requires physical security key"
 		},
 		"privacyLevel": {
-			"high": "This credential has the highest privacy level",
-			"medium": "This credential has a medium privacy level",
-			"low": "This credential has a low privacy level"
+			"high": "Non-tracable credential (high privacy)",
+			"medium": "Limited-use credential (medium privacy)",
+			"low": "Reusable credential (low privacy)"
 		},
 		"usages": {
-			"almostEmptyLabel": "(refresh soon)",
-			"emptyLabel": "Refresh required",
-			"full": "The number of uses left before this credential will need to be renewed",
-			"almostEmpty_one": "This credential only has 1 use left before it needs to be renewed",
-			"almostEmpty_other": "This credential only has {{count}} uses left before it needs to be renewed",
-			"empty": "This credential is exhausted of uses and needs to be renewed"
+			"almostEmptyLabel": "(renew soon)",
+			"emptyLabel": "Renewal required",
+			"full": "This credential has {{count}} uses left before it needs to be renewed",
+			"almostEmpty": "Renew credential soon",
+			"empty": "No uses remaining. Renew credential."
 		}
 	},
 	"credentialInfo": {
