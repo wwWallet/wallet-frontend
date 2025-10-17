@@ -159,6 +159,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		}
 	}, []));
 
+	const readPrivateDataFromIdb = useCallback(async (userHandleB64u: string): Promise<EncryptedContainer | null> => {
+		const result = await idb.read(['privateData'], (tx) => {
+			const store = tx.objectStore("privateData");
+			return store.get(userHandleB64u);
+		});
+		return result ? result.content : null;
+	}, [idb]);
+
 	useEffect(() => {
 		if (userHandleB64u) {
 			readPrivateDataFromIdb(userHandleB64u).then((val) => {
@@ -167,28 +175,20 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				}
 			})
 		}
-	}, [userHandleB64u]);
+	}, [userHandleB64u, readPrivateDataFromIdb]);
 
 
-	const writePrivateDataOnIdb = async (privateData: EncryptedContainer | null, userHandleB64u: string) => {
+	const writePrivateDataOnIdb = useCallback(async (privateData: EncryptedContainer | null, userHandleB64u: string) => {
 		await idb.write(["privateData"], (tx) => {
 			const store = tx.objectStore("privateData");
 			return store.put({ userHandle: userHandleB64u, content: privateData });
 		})
-	}
+	}, [idb]);
 
-	const readPrivateDataFromIdb = async (userHandleB64u: string): Promise<EncryptedContainer | null> => {
-		const result = await idb.read(['privateData'], (tx) => {
-			const store = tx.objectStore("privateData");
-			return store.get(userHandleB64u);
-		});
-		return result ? result.content : null;
-	}
-
-	const clearPrivateData = async (userHandleB64u: string) => {
+	const clearPrivateData = useCallback(async (userHandleB64u: string) => {
 		setPrivateData(null);
 		await writePrivateDataOnIdb(null, userHandleB64u);
-	}
+	}, [writePrivateDataOnIdb]);
 
 	const closeSessionTabLocal = useCallback(
 		async (): Promise<void> => {
@@ -210,13 +210,13 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[idb, clearGlobalUserHandleB64u, clearGlobalTabId, clearPrivateData, setCalculatedWalletState, userHandleB64u],
 	);
 
-	async function assertKeystoreOpen(): Promise<[EncryptedContainer, CryptoKey]> {
+	const assertKeystoreOpen = useCallback(async (): Promise<[EncryptedContainer, CryptoKey]> => {
 		if (privateData && mainKey) {
 			return [privateData, await keystore.importMainKey(mainKey)];
 		} else {
 			throw new Error("Key store is closed.", { cause: 'keystore_closed' });
 		}
-	}
+	}, [privateData, mainKey]);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
@@ -268,7 +268,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		};
 
 		checkPrivateData();
-	}, [closeSessionTabLocal, globalUserHandleB64u]);
+	}, [closeSessionTabLocal, globalUserHandleB64u, readPrivateDataFromIdb]);
 
 	const openPrivateData = useCallback(async (): Promise<[PrivateData, CryptoKey, WalletState]> => {
 		const [privateData, mainKey] = await assertKeystoreOpen();
@@ -287,7 +287,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
 			return null;
 		}
-	}, [mainKey, privateData]);
+	}, [assertKeystoreOpen, navigate, userHandleB64u]);
 
 	const editPrivateData = useCallback(async <T>(
 		action: (container: OpenedContainer) => Promise<[T, OpenedContainer]>,
@@ -311,7 +311,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				setMainKey(await keystore.exportMainKey(newMainKey));
 			},
 		];
-	}, [mainKey, privateData, setPrivateData, setMainKey]);
+	}, [setPrivateData, setMainKey, assertKeystoreOpen, userHandleB64u, writePrivateDataOnIdb]);
 
 	const finishUnlock = useCallback(async (
 		{ mainKey, privateData }: UnlockSuccess,
@@ -364,7 +364,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		setCalculatedWalletState,
 		setTabId,
 		setGlobalTabId,
-		tabId
+		tabId,
+		writePrivateDataOnIdb
 	]);
 
 
@@ -377,7 +378,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				setCalculatedWalletState(newCalculatedWalletState);
 			});
 		}
-	}, [mainKey, privateData, calculatedWalletState]);
+	}, [mainKey, privateData, calculatedWalletState, openPrivateData]);
 
 	const init = useCallback(async (
 		mainKey: CryptoKey,
@@ -412,7 +413,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					: null
 			);
 		},
-		[finishUnlock, setPrivateData]
+		[finishUnlock, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
 	);
 
 	const initPrf = useCallback(
@@ -473,7 +474,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				},
 			];
 		},
-		[privateData, setPrivateData]
+		[setPrivateData, writePrivateDataOnIdb, userHandleB64u, assertKeystoreOpen]
 	);
 
 	const deletePrf = useCallback(
@@ -487,7 +488,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				},
 			];
 		},
-		[privateData, setPrivateData]
+		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
 	);
 
 	const unlockPrf = useCallback(
@@ -511,7 +512,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					: null
 			);
 		},
-		[finishUnlock, setPrivateData]
+		[finishUnlock, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
 	);
 
 	const getPasswordOrPrfKeyFromSession = useCallback(
@@ -565,7 +566,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				throw new Error("Session not initialized");
 			}
 		},
-		[privateData, setPrivateData]
+		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
 	);
 
 	const signJwtPresentation = useCallback(
@@ -680,7 +681,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return [{}, newContainer];
 		});
 
-	}, [editPrivateData, getAllCredentials, calculatedWalletState]);
+	}, [editPrivateData, openPrivateData, calculatedWalletState]);
 
 
 	const addPresentations = useCallback(async (presentations: { transactionId: number, data: string, usedCredentialIds: number[], audience: string, }[]): Promise<[
@@ -745,7 +746,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const getCredentialIssuanceSessionByState = useCallback(async (state: string): Promise<WalletStateCredentialIssuanceSession | null> => {
 		return calculatedWalletState ? calculatedWalletState.credentialIssuanceSessions.filter((s: WalletStateCredentialIssuanceSession) => s.state === state)[0] : null;
-	}, [editPrivateData, openPrivateData]);
+	}, [calculatedWalletState]);
 
 	const alterSettings = useCallback(async (settings: WalletStateSettings): Promise<[
 		{},

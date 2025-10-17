@@ -25,6 +25,27 @@ import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
 import { WalletStateCredential } from "@/services/WalletStateSchemaVersion1";
 
+const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
+	if (S.client_metadata.jwks) {
+		const rp_eph_pub_jwk = S.client_metadata.jwks.keys.filter(k => k.use === 'enc')[0];
+		if (!rp_eph_pub_jwk) {
+			throw new Error("Could not find Relying Party public key for encryption");
+		}
+		return { rp_eph_pub_jwk };
+	}
+	if (S.client_metadata.jwks_uri) {
+		const response = await axios.get(S.client_metadata.jwks_uri).catch(() => null);
+		if (response && 'keys' in response.data) {
+			const rp_eph_pub_jwk = response.data.keys.filter((k) => k.use === 'enc')[0];
+			if (!rp_eph_pub_jwk) {
+				throw new Error("Could not find Relying Party public key for encryption");
+			}
+			return { rp_eph_pub_jwk };
+		}
+	}
+	throw new Error("Could not find Relying Party public key for encryption");
+};
+
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
 	showStatusPopup,
@@ -47,44 +68,7 @@ export function useOpenID4VP({
 	const httpProxy = useHttpProxy();
 	const { parseCredential } = useContext(CredentialsContext);
 	const { keystore, api } = useContext(SessionContext);
-	const { getCalculatedWalletState } = keystore;
 	const { t } = useTranslation();
-	const { post } = api;
-
-	const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
-		if (S.client_metadata.jwks) {
-			const rp_eph_pub_jwk = S.client_metadata.jwks.keys.filter(k => k.use === 'enc')[0];
-			if (!rp_eph_pub_jwk) {
-				throw new Error("Could not find Relying Party public key for encryption");
-			}
-			return { rp_eph_pub_jwk };
-		}
-		if (S.client_metadata.jwks_uri) {
-			const response = await axios.get(S.client_metadata.jwks_uri).catch(() => null);
-			if (response && 'keys' in response.data) {
-				const rp_eph_pub_jwk = response.data.keys.filter((k) => k.use === 'enc')[0];
-				if (!rp_eph_pub_jwk) {
-					throw new Error("Could not find Relying Party public key for encryption");
-				}
-				return { rp_eph_pub_jwk };
-			}
-		}
-		throw new Error("Could not find Relying Party public key for encryption");
-	};
-
-	const storeVerifiablePresentation = useCallback(
-		async (presentation: string, presentationSubmission: any, identifiersOfIncludedCredentials: string[], audience: string) => {
-			await post('/storage/vp', {
-				presentationIdentifier: generateRandomIdentifier(32),
-				presentation,
-				presentationSubmission,
-				includedVerifiableCredentialIdentifiers: identifiersOfIncludedCredentials,
-				audience,
-				issuanceDate: new Date().toISOString(),
-			});
-		},
-		[post]
-	);
 
 
 	const promptForCredentialSelection = useCallback(
@@ -163,7 +147,11 @@ export function useOpenID4VP({
 
 		for (const descriptor of presentation_definition.input_descriptors) {
 			const conformingVcList = [];
-			descriptorPurpose = descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
+
+			// Capture the per-iteration value to avoid no-loop-func
+			const localDescriptorPurpose =
+				descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
+			descriptorPurpose = localDescriptorPurpose;
 
 			for (const vc of vcList) {
 				try {
@@ -219,8 +207,8 @@ export function useOpenID4VP({
 
 			const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
 				name: field.name || field.path[0],
-				purpose: field.purpose || descriptorPurpose,
-				path: field.path[0]
+				purpose: field.purpose || localDescriptorPurpose,
+				path: field.path[0],
 			}));
 			mapping.set(descriptor.id, { credentials: conformingVcList, requestedFields: requestedFieldDetails });
 		}
@@ -228,10 +216,11 @@ export function useOpenID4VP({
 		return { mapping, descriptorPurpose };
 	}
 
-	async function matchCredentialsToDCQL(vcList: ExtendedVcEntity[], dcqlJson: any, t: any): Promise<
+	const matchCredentialsToDCQL = useCallback(async (vcList: ExtendedVcEntity[], dcqlJson: any, t: any
+	): Promise<
 		| { mapping: Map<string, { credentials: number[]; requestedFields: { name: string; purpose: string }[] }>; descriptorPurpose: string }
 		| { error: HandleAuthorizationRequestError }
-	> {
+	> => {
 
 		const descriptorPurpose = dcqlJson.credential_sets?.[0]?.purpose || t('selectCredentialPopup.purposeNotSpecified');
 
@@ -295,7 +284,7 @@ export function useOpenID4VP({
 		function hasValidMatch(credId: string): boolean {
 			const match = matches[credId];
 			if (match?.success === false) {
-				match.failed_credentials.map((failedCreds) => {
+				match.failed_credentials.forEach((failedCreds) => {
 					if (failedCreds.meta.success === false) {
 						console.error("DCQL metadata issues: ", failedCreds.meta.issues);
 					}
@@ -344,7 +333,7 @@ export function useOpenID4VP({
 			return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
 		}
 		return { mapping, descriptorPurpose };
-	}
+	}, [parseCredential]);
 
 	async function verifyHostnameAndCerts(request_uri: string, response_uri: string, parsedHeader: any) {
 		if (new URL(request_uri).hostname !== new URL(response_uri).hostname) {
@@ -437,7 +426,7 @@ export function useOpenID4VP({
 		return result;
 	}
 
-	async function handlePresentationExchangeFlow(S, selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) {
+	const handlePresentationExchangeFlow = useCallback(async (S, selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
 		const presentationDefinition = S.presentation_definition;
 		const response_uri = S.response_uri;
 		const client_id = S.client_id;
@@ -585,7 +574,7 @@ export function useOpenID4VP({
 		const credentialIdentifiers = originalVCs.map(vc => vc.batchId);
 
 		return { formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
-	}
+	}, [keystore]);
 
 	function convertDcqlToPresentationDefinition(dcql_query) {
 		const pdId = crypto.randomUUID();
@@ -639,7 +628,7 @@ export function useOpenID4VP({
 		return frame;
 	}
 
-	async function handleDCQLFlow(S, selectionMap, vcEntityList: ExtendedVcEntity[]) {
+	const handleDCQLFlow = useCallback(async (S, selectionMap, vcEntityList: ExtendedVcEntity[]) => {
 		const { dcql_query, client_id, nonce, response_uri, transaction_data } = S;
 		let apu = undefined;
 		let apv = undefined;
@@ -836,7 +825,7 @@ export function useOpenID4VP({
 		}
 
 		return { formData, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
-	}
+	}, [keystore, parseCredential]);
 
 
 	const handleAuthorizationRequest = useCallback(async (
@@ -972,7 +961,13 @@ export function useOpenID4VP({
 			verifierPurpose: descriptorPurpose,
 			parsedTransactionData,
 		};
-	}, [httpProxy, parseCredential, openID4VPRelyingPartyStateRepository]);
+	}, [
+		httpProxy,
+		parseCredential,
+		openID4VPRelyingPartyStateRepository,
+		matchCredentialsToDCQL,
+		t,
+	]);
 
 	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
 		const S = await openID4VPRelyingPartyStateRepository.retrieve();
@@ -995,7 +990,7 @@ export function useOpenID4VP({
 		}
 
 		const transactionId = WalletStateUtils.getRandomUint32();
-		const [{ }, newPrivateData, keystoreCommit] = await keystore.addPresentations(generatedVPs.map((vpData, index) => {
+		const [, newPrivateData, keystoreCommit] = await keystore.addPresentations(generatedVPs.map((vpData, index) => {
 			console.log("Presentation: ")
 
 			return {
@@ -1034,7 +1029,15 @@ export function useOpenID4VP({
 			}, 'error');
 			return {};
 		}
-	}, [httpProxy, openID4VPRelyingPartyStateRepository, storeVerifiablePresentation, showStatusPopup, getCalculatedWalletState]);
+	}, [
+		httpProxy,
+		openID4VPRelyingPartyStateRepository,
+		showStatusPopup,
+		api,
+		keystore,
+		handleDCQLFlow,
+		handlePresentationExchangeFlow,
+	]);
 
 	return useMemo(() => {
 		return {
