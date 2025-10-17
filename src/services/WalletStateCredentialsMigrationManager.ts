@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useCallback } from "react"
 import { WalletStateCredential } from "./WalletStateSchemaVersion1";
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
@@ -12,7 +12,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 	const { getCalculatedWalletState, addCredentials } = keystore;
 	const { get, del, updatePrivateData } = api;
 
-	const migrateVerifiableCredentialTable = async () => {
+	const migrateVerifiableCredentialTable = useCallback(async () => {
 
 		if (!isLoggedIn || migrated.current || getCalculatedWalletState() === null) {
 			return;
@@ -49,7 +49,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			}
 		}));
 		console.log("Transformed credentials = ", transformedVcEntities)
-		const [{ }, newPrivateData, keystoreCommit] = await addCredentials(transformedVcEntities);
+		const [, newPrivateData, keystoreCommit] = await addCredentials(transformedVcEntities);
 		await updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
@@ -57,14 +57,14 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 		// receive all stored credentials from wallet-backend-server
 		// update WalletStateContainer (PrivateData)
 		// after successful update, delete all stored credentials from wallet-backend-server
-	}
+	}, [isLoggedIn, getCalculatedWalletState, get, addCredentials, updatePrivateData]);
 
 	useEffect(() => {
 		if (updatePrivateData && addCredentials && getCalculatedWalletState && isOnline && !migrated.current) {
 			migrateVerifiableCredentialTable();
 			console.log("migrating credentials...")
 		}
-	}, [updatePrivateData, addCredentials, getCalculatedWalletState, isOnline]);
+	}, [updatePrivateData, addCredentials, getCalculatedWalletState, isOnline, migrateVerifiableCredentialTable]);
 
 	useEffect(() => {
 		if (!migrated.current) {
@@ -90,7 +90,7 @@ export function useWalletStateCredentialsMigrationManager(keystore: LocalStorage
 			}
 
 		})
-	}, [get, isOnline]);
+	}, [get, del, isOnline]);
 
 	useEffect(() => {
 		migrated.current = false;
