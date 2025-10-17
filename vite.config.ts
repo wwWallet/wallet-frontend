@@ -1,26 +1,21 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
-import eslint from 'vite-plugin-eslint';
+import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
 
 export default defineConfig(({ mode }) => {
-	const env = loadEnv(mode, process.cwd(), '')
+	const env = loadEnv(mode, process.cwd(), '');
 	return {
 		base: '/',
 		plugins: [
 			react(),
 			svgr(),
-			eslint({
-				include: ['src/**/*.{js,jsx,ts,tsx}'],
-				// make feedback visible
-				lintOnStart: true,		// run at server start
-				emitWarning: true,		// print warnings to terminal
-				emitError: true,			// print errors to terminal
-				// don’t kill dev
-				failOnWarning: false,
-				failOnError: false,
+			checker({
+				eslint: {
+					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
+				}
 			}),
 			ManifestPlugin(env),
 			RobotsTxtPlugin(env),
