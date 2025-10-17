@@ -31,6 +31,8 @@ export const UriHandler = ({ children }) => {
 	const { openID4VP } = useContext(OpenID4VPContext);
 
 	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse } = openID4VCI;
+	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
+
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
@@ -61,7 +63,7 @@ export const UriHandler = ({ children }) => {
 		if (u) {
 			setCachedUser(u);
 		}
-	}, [getCachedUsers, getUserHandleB64u, setCachedUser, cachedUser, isLoggedIn]);
+	}, [keystore, getCachedUsers, getUserHandleB64u, setCachedUser, cachedUser, isLoggedIn]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -120,9 +122,11 @@ export const UriHandler = ({ children }) => {
 	}, [redirectUri]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !url || !t || !openID4VCI || !openID4VP || !vcEntityList || !synced) {
-			return;
-		}
+		if (
+			!isLoggedIn || !url || !t || !vcEntityList || !synced ||
+			!handleCredentialOffer || !generateAuthorizationRequest || !handleAuthorizationResponse ||
+			!handleAuthorizationRequest || !promptForCredentialSelection || !sendAuthorizationResponse
+		) return;
 
 		async function handle(urlToCheck: string) {
 			const u = new URL(urlToCheck);
@@ -158,7 +162,7 @@ export const UriHandler = ({ children }) => {
 			}
 			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
 				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
-				await openID4VP.handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
+				await handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
 					console.log("Result = ", result);
 					if ('error' in result) {
 						if (result.error === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
@@ -176,13 +180,13 @@ export const UriHandler = ({ children }) => {
 					const { conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData } = result;
 					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
 					console.log("Prompting for selection..")
-					return openID4VP.promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData);
+					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData);
 				}).then((selection) => {
 					if (!(selection instanceof Map)) {
 						return;
 					}
 					console.log("Selection = ", selection);
-					return openID4VP.sendAuthorizationResponse(selection, vcEntityList);
+					return sendAuthorizationResponse(selection, vcEntityList);
 
 				}).then((res) => {
 					if (res && 'url' in res && res.url) {
@@ -210,7 +214,24 @@ export const UriHandler = ({ children }) => {
 		if (getCalculatedWalletState()) {
 			handle(url);
 		}
-	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList, synced, getCalculatedWalletState]);
+	}, [
+		url,
+		t,
+		isLoggedIn,
+		setRedirectUri,
+		vcEntityList,
+		synced,
+		getCalculatedWalletState,
+		usedAuthorizationCodes,
+		usedRequestUris,
+		// depend on methods, not whole context objects
+		handleCredentialOffer,
+		generateAuthorizationRequest,
+		handleAuthorizationResponse,
+		handleAuthorizationRequest,
+		promptForCredentialSelection,
+		sendAuthorizationResponse,
+	]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);

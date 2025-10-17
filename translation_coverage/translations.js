@@ -32,7 +32,7 @@ constructLeafNames(locales['en'], '', leafNames);
 const coverageResults = {};
 
 for (const lc in locales) {
-	if (lc == 'en') {
+	if (lc === 'en') {
 		continue;
 	}
 	console.log(`\x1b[32m- ${lc} detected\x1b[0m`);

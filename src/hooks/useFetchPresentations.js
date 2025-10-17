@@ -97,7 +97,7 @@ const useFetchPresentations = (keystore, batchId = null, transactionId = null) =
 		};
 
 		fetchPresentations();
-	}, [keystore, batchId, transactionId]);
+	}, [keystore, batchId, transactionId, credentialEngine, parseCredential]);
 
 	return history;
 };

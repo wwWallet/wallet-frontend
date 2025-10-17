@@ -38,12 +38,12 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		}
 
 		const x = new Map();
-		S.credentialIssuanceSessions.map((session) => {
+		S.credentialIssuanceSessions.forEach((session) => {
 			x.set(session.sessionId, session);
 		});
 		sessions.current = x;
 		setInitialized(true);
-	}, [getCalculatedWalletState, setInitialized]);
+	}, [getCalculatedWalletState, setInitialized, initialized]);
 
 	useEffect(() => {
 		loadSessions();
@@ -90,7 +90,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			return;
 		}
 		const deletedSessions = await cleanupExpired();
-		const [{ }, newPrivateData, keystoreCommit] = await saveCredentialIssuanceSessions(Array.from(sessions.current.values()), deletedSessions);
+		const [, newPrivateData, keystoreCommit] = await saveCredentialIssuanceSessions(Array.from(sessions.current.values()), deletedSessions);
 		await api.updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		console.log("CHANGES WRITTEN")
@@ -140,7 +140,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			const sessionId = WalletStateUtils.getRandomUint32();
 			sessions.current.set(sessionId, { ...state });
 		},
-		[]
+		[getByCredentialIssuerIdentifierAndCredentialConfigurationId]
 	);
 
 	const updateState = useCallback(
@@ -154,7 +154,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			}
 			sessions.current.set(fetched.sessionId, newState);
 		},
-		[getByState, isInitialized]
+		[getByState]
 	);
 
 	const getAllStatesWithNonEmptyTransactionId = useCallback(
@@ -164,7 +164,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			}
 			const pendingTransactions = Array.from(sessions.current.values())
 				.filter((session: WalletStateCredentialIssuanceSession) =>
-					session.credentialEndpoint && session.credentialEndpoint.transactionId != undefined && typeof session.credentialEndpoint.transactionId === 'string'
+					session.credentialEndpoint && session.credentialEndpoint.transactionId !== undefined && typeof session.credentialEndpoint.transactionId === 'string'
 				);
 			return pendingTransactions;
 		}
@@ -183,7 +183,6 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		}
 	}, [
 		isInitialized,
-		sessions,
 		getByCredentialIssuerIdentifierAndCredentialConfigurationId,
 		getByState,
 		cleanupExpired,

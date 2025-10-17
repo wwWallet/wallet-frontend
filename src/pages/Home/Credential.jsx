@@ -53,7 +53,7 @@ const Credential = () => {
 		if (vcEntity === undefined) {
 			navigate(`/${window.location.search}`, { replace: true });
 		}
-	}, [vcEntity]);
+	}, [vcEntity, navigate]);
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
@@ -142,7 +142,7 @@ const Credential = () => {
 				setShareWithQr(false);
 				return;
 			}
-			if (vcEntity.format == "mso_mdoc") {
+			if (vcEntity.format === "mso_mdoc") {
 				setShareWithQr(true);
 			} else {
 				setShareWithQr(false);

@@ -1349,7 +1349,7 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, did, wrappedPrivateKey } = keypair.keypair;
+	const { alg, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
 	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
 

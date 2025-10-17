@@ -14,7 +14,7 @@ import HistoryList from '../../components/History/HistoryList';
 import PageDescription from '../../components/Shared/PageDescription';
 
 const History = () => {
-	const { api, keystore } = useContext(SessionContext);
+	const { keystore } = useContext(SessionContext);
 	const history = useFetchPresentations(keystore);
 
 	const { t } = useTranslation();

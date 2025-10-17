@@ -132,7 +132,8 @@ const formatClaimValue = (value) => {
 	const renderImg = (src) => (
 		<img
 			src={src}
-			alt="Claim image"
+			alt=""
+			aria-hidden="true"
 			className="max-h-10 max-w-full rounded border"
 		/>
 	);

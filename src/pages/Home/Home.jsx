@@ -1,15 +1,10 @@
 // External libraries
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
-import { BsFillGrid1X2Fill } from "react-icons/bs";
-import { BiSolidCarousel } from "react-icons/bi";
-import { BsSubstack } from "react-icons/bs";
 
 // Contexts
-import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import AppSettingsContext from "@/context/AppSettingsContext";
 
@@ -18,7 +13,6 @@ import useScreenType from '../../hooks/useScreenType';
 
 // Components
 import { H1 } from '../../components/Shared/Heading';
-import CredentialImage from '../../components/Credentials/CredentialImage';
 import AddCredentialCard from '../../components/Credentials/AddCredentialCard';
 import HistoryList from '../../components/History/HistoryList';
 import Slider from '../../components/Shared/Slider';
@@ -26,20 +20,16 @@ import { CredentialCardSkeleton } from '@/components/Skeletons';
 import CredentialGridCard from '@/components/Credentials/CredentialGridCard';
 import CredentialSlideCard from '@/components/Credentials/CredentialSlideCard';
 
-import { useLocalStorage } from '@/hooks/useStorage';
-
 import ViewSelect from '@/components/Credentials/ViewSelect';
 
 import VerticalSlider from '@/components/Shared/VerticalSlider';
 import PendingTransactionsBanner from '@/components/Credentials/PendingTransactionsBanner';
 
 const Home = () => {
-	const { vcEntityList, latestCredentials, getData, currentSlide, setCurrentSlide, pendingTransactions } = useContext(CredentialsContext);
-	const { api, keystore } = useContext(SessionContext);
+	const { vcEntityList, latestCredentials, currentSlide, setCurrentSlide, pendingTransactions } = useContext(CredentialsContext);
 	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
 	const screenType = useScreenType();
 
-	const [viewOpen, setViewOpen] = useState(false);
 	const mobileVcHomeView = settings.mobileVcHomeView;
 
 	const navigate = useNavigate();
@@ -55,7 +45,6 @@ const Home = () => {
 
 	const setView = (v) => {
 		setMobileVcHomeView(v);
-		setViewOpen(false);
 	};
 
 	return (

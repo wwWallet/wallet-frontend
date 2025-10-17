@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback, useContext } from "react";
+import React, { useState, useCallback, useContext } from "react";
 import { useOpenID4VCI } from "../lib/services/OpenID4VCI/OpenID4VCI";
 import OpenID4VCIContext from "./OpenID4VCIContext";
 import IssuanceConsentPopup from "@/components/Popups/IssuanceConsentPopup";
@@ -27,7 +27,7 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		}), [popupConsentState]);
+		}), []);
 
 	const hidePopupConsent = useCallback(() => {
 		setPopupConsentState((prevState) => ({

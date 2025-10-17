@@ -12,9 +12,8 @@ import { WalletStateUtils } from "@/services/WalletStateUtils";
 export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
-	const { keystore, api, isLoggedIn } = useContext(SessionContext);
+	const { keystore } = useContext(SessionContext);
 	const { getCalculatedWalletState } = keystore;
-	const { get } = api;
 
 	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
 		if (!getCalculatedWalletState) {
@@ -88,7 +87,7 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 			authorizationRequestURL.searchParams.set('request_uri', request_uri);
 			authorizationRequestURL.searchParams.set('client_id', config.clientId);
 			const age = await getRememberIssuerAge();
-			if (age != null && age == 0) {
+			if (age != null && age === 0) {
 				authorizationRequestURL.searchParams.set('prompt', 'login');
 			}
 
@@ -103,7 +102,7 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 			await openID4VCIClientStateRepository.commitStateChanges();
 			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository, getRememberIssuerAge]
+		[httpProxy, openID4VCIClientStateRepository, keystore, getRememberIssuerAge]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);

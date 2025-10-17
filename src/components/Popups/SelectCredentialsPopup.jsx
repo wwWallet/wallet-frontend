@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useContext, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
 import { FaRegCircle, FaCheckCircle, FaInfo, FaIdCard } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -76,14 +76,6 @@ const SelectableCredentialSlideCard = ({
 			)}
 		</button>
 	);
-};
-
-const formatTitle = (title) => {
-	if (title) {
-		return title.replace(/([a-z])([A-Z])/g, '$1 $2');
-	} else {
-		return;
-	}
 };
 
 const normalizePath = (path) => {
@@ -225,7 +217,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			}
 
 			if (currentKey === 'preview' || currentKey === 'summary') {
-				if (!vcEntities?.length || currentKey !== keys[currentIndex]) {
+				if (currentKey !== keys[currentIndex]) {
 					setVcEntities([]);
 				}
 				return;
@@ -573,8 +565,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
 						variant="primary"
-						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential == undefined}
-						title={selectedCredential == undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
+						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential === undefined}
+						title={selectedCredential === undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
 							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}
 					>
 						{keys[currentIndex] === 'summary'

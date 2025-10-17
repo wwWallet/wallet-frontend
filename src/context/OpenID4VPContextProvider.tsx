@@ -44,7 +44,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		}), [popupState]);
+		}), []);
 
 	const showPopupConsent = useCallback((options): Promise<boolean> =>
 		new Promise((resolve, reject) => {
@@ -54,7 +54,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		}), [popupConsentState]);
+		}), []);
 
 	const hidePopup = useCallback(() => {
 		setPopupState((prevState) => ({
@@ -97,7 +97,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		async (options: Record<string, unknown>): Promise<boolean> => {
 			return showPopupConsent(options);
 		},
-		[showPopup]
+		[showPopupConsent]
 	);
 
 	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup });

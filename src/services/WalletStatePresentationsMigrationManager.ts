@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react"
+import { useEffect, useMemo, useRef, useCallback } from "react"
 import { WalletStatePresentation } from "./WalletStateSchemaVersion1";
 import { LocalStorageKeystore } from "./LocalStorageKeystore";
 import { BackendApi } from "@/api";
@@ -21,7 +21,7 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 		}
 	}
 
-	const migrateVerifiablePresentationsTable = async () => {
+	const migrateVerifiablePresentationsTable = useCallback(async () => {
 
 		if (!isLoggedIn || migrated.current || getCalculatedWalletState() === null) {
 			return;
@@ -33,18 +33,18 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 		}
 
 
-		const response = await api.get('/storage/vp');
+		const response = await get('/storage/vp');
 		const vpEntityList = response.data.vp_list;
 		if (vpEntityList.length === 0) {
 			migrated.current = true;
 			return;
 		}
 
-		const fetchVcResponse = await api.get('/storage/vc');
+		const fetchVcResponse = await get('/storage/vc');
 		const vcEntityList = fetchVcResponse.data.vc_list;
 
 		let transformedVpEntities: WalletStatePresentation[] = []
-		vpEntityList.map(({ presentationIdentifier, presentation, presentationSubmission, includedVerifiableCredentialIdentifiers, audience, issuanceDate }) => {
+		vpEntityList.forEach(({ presentationIdentifier, presentation, presentationSubmission, includedVerifiableCredentialIdentifiers, audience, issuanceDate }) => {
 			const transactionId = WalletStateUtils.getRandomUint32();
 			let parsedPresentationsArray = null;
 			if (presentation.startsWith("b64:")) {
@@ -59,7 +59,7 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 			if (!parsedPresentationsArray) {
 				return;
 			}
-			includedVerifiableCredentialIdentifiers.map((identifier, index) => {
+			includedVerifiableCredentialIdentifiers.forEach((identifier, index) => {
 				transformedVpEntities.push({
 					data: parsedPresentationsArray[index],
 					presentationId: WalletStateUtils.getRandomUint32(),
@@ -74,7 +74,7 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 
 		});
 		console.log("Transformed presentations = ", transformedVpEntities)
-		const [{ }, newPrivateData, keystoreCommit] = await addPresentations(transformedVpEntities);
+		const [, newPrivateData, keystoreCommit] = await addPresentations(transformedVpEntities);
 		await updatePrivateData(newPrivateData);
 		await keystoreCommit();
 		migrated.current = true;
@@ -82,14 +82,14 @@ export function useWalletStatePresentationsMigrationManager(keystore: LocalStora
 		// receive all stored credentials from wallet-backend-server
 		// update WalletStateContainer (PrivateData)
 		// after successful update, delete all stored presentations from wallet-backend-server
-	}
+	}, [isLoggedIn, getCalculatedWalletState, get, addPresentations, updatePrivateData]);
 
 	useEffect(() => {
 		if (get && updatePrivateData && getCalculatedWalletState && isOnline && !migrated.current) {
 			migrateVerifiablePresentationsTable();
 			console.log("migrating credentials...")
 		}
-	}, [get, updatePrivateData, getCalculatedWalletState, isOnline]);
+	}, [get, updatePrivateData, getCalculatedWalletState, isOnline, migrateVerifiablePresentationsTable]);
 
 	useEffect(() => {
 		migrated.current = false;

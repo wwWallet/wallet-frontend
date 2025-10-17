@@ -162,7 +162,7 @@ export function useTokenRequest() {
 				},
 			},
 		};
-	}, [httpProxy, httpHeaders]);
+	}, [httpProxy, httpHeaders, setDpopHeader]);
 
 	return useMemo(() => ({
 		setClientId,

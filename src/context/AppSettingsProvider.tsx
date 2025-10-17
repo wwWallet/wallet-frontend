@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import AppSettingsContext, { ColorScheme, Settings } from "./AppSettingsContext";
 import { useLocalStorage } from "@/hooks/useStorage";
 
@@ -43,11 +43,15 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
 		};
 	}, [settings.colorScheme]);
 
-	const setColorScheme = (t: ColorScheme) =>
-		setSettings((prev) => ({ ...prev, colorScheme: t }));
+	const setColorScheme = useCallback(
+		(t: ColorScheme) => setSettings((prev) => ({ ...prev, colorScheme: t })),
+		[setSettings]
+	);
 
-	const setMobileVcHomeView = (v: Settings['mobileVcHomeView']) =>
-		setSettings((prev) => ({ ...prev, mobileVcHomeView: v }));
+	const setMobileVcHomeView = useCallback(
+		(v: Settings["mobileVcHomeView"]) => setSettings((prev) => ({ ...prev, mobileVcHomeView: v })),
+		[setSettings]
+	);
 
 	const resolvedColorScheme: "light" | "dark" = useMemo(
 		() => (settings.colorScheme === "system" ? systemPref : settings.colorScheme),
@@ -66,7 +70,7 @@ export const AppSettingsProvider = ({ children }: { children: React.ReactNode })
 
 	const value = useMemo(
 		() => ({ settings, resolvedColorScheme, setColorScheme, setMobileVcHomeView }),
-		[settings, resolvedColorScheme]
+		[settings, resolvedColorScheme, setColorScheme, setMobileVcHomeView]
 	);
 
 	return (
