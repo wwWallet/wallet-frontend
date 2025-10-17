@@ -12,7 +12,16 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			react(),
 			svgr(),
-			eslint(),
+			eslint({
+				include: ['src/**/*.{js,jsx,ts,tsx}'],
+				// make feedback visible
+				lintOnStart: true,		// run at server start
+				emitWarning: true,		// print warnings to terminal
+				emitError: true,			// print errors to terminal
+				// don’t kill dev
+				failOnWarning: false,
+				failOnError: false,
+			}),
 			ManifestPlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),
