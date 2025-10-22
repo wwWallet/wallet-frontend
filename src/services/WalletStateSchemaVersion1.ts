@@ -1,4 +1,4 @@
-import { CredentialKeyPair } from "./keystore";
+import { WrappedPrivateKey } from "./keystore";
 import { JWK } from "jose";
 import { sha256 } from "./WalletStateUtils";
 import { compareBy, deduplicateFromRightBy, maxByKey } from "@/util";
@@ -43,6 +43,14 @@ export type WalletSessionEventNewCredential = {
 export type WalletSessionEventDeleteCredential = {
 	type: "delete_credential",
 	credentialId: number,
+}
+
+export type CredentialKeyPair = {
+	kid: string,
+	did: string,
+	alg: string,
+	publicKey: JWK,
+	wrappedPrivateKey: WrappedPrivateKey,
 }
 
 export type WalletSessionEventNewKeypair = {

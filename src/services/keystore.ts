@@ -15,9 +15,10 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { addNewKeypairEvent, CurrentSchema, foldState, SchemaV1 } from "./WalletStateSchema";
+import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, getSchema, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 
 type WalletState = CurrentSchema.WalletState;
+type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
 type WalletStateContainer = CurrentSchema.WalletStateContainer;
 
 
@@ -204,10 +205,21 @@ export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | Pri
 	);
 }
 
-export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateData): privateData is PrivateDataV1 {
+export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateDataV2 | CurrentSchema.WalletStateContainer): privateData is PrivateDataV1 {
 	return (
 		"keypairs" in privateData
 	);
+}
+
+export function isKeystoreV2PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateDataV2 | CurrentSchema.WalletStateContainer): privateData is PrivateDataV2 {
+	if (!isKeystoreV0PrivateData(privateData as KeystoreV0PrivateData | PrivateDataV1) && !isKeystoreV1PrivateData(privateData)) {
+		return (
+			"events" in privateData &&
+			"S" in privateData &&
+			(privateData.S.keypairs.length > 0 && privateData.S.keypairs.filter((k) => "wrappedPrivateKey" in k.keypair).length > 0)
+		)
+	}
+	return false;
 }
 
 export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): PrivateDataV1 {
@@ -228,7 +240,8 @@ export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | Privat
 	}
 }
 
-export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): PrivateData {
+
+export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateDataV2): PrivateDataV2 {
 	if (isKeystoreV1PrivateData(privateData)) {
 		const initialWalletContainer = SchemaV1.WalletStateOperations.initialWalletStateContainer();
 		initialWalletContainer.S.keypairs = Object.values(privateData.keypairs).map((keypair) => {
@@ -240,7 +253,49 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): 
 	}
 }
 
+export async function migrateV2PrivateData(privateData: PrivateDataV2 | CurrentSchema.WalletStateContainer, encryptionKey: CryptoKey): Promise<PrivateData> {
+	if (isKeystoreV2PrivateData(privateData)) {
+		const privateDataCopy = { ...privateData };
+		const foldedState = privateDataCopy.events.reduce(
+			(s, e) => getSchema(e.schemaVersion).walletStateReducer(s, e),
+			privateDataCopy.S,
+		) as SchemaV2.WalletState;
+
+		const unwrappedKeypairs = await Promise.all(foldedState.keypairs.map(async (k) => {
+			const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey);
+			const jwk = await crypto.subtle.exportKey("jwk", unwrapped) as JWK;
+			const keypair: CredentialKeyPair = {
+				kid: k.kid,
+				did: k.keypair.did,
+				alg: k.keypair.alg,
+				publicKey: k.keypair.publicKey,
+				privateKey: jwk,
+			};
+			return {
+				kid: k.kid,
+				keypair: keypair,
+			}
+		}));
+
+		for (const { kid, keypair } of unwrappedKeypairs) {
+			privateData = await addDeleteKeypairEvent(privateData as CurrentSchema.WalletStateContainer, kid);
+			privateData = await addNewKeypairEvent(privateData, kid, keypair);
+		}
+		return privateData as CurrentSchema.WalletStateContainer;
+	} else {
+		return privateData;
+	}
+}
+
 export type CredentialKeyPair = {
+	kid: string,
+	did: string,
+	alg: string,
+	publicKey: JWK,
+	privateKey: JWK,
+}
+
+export type CredentialKeyPairV1 = {
 	kid: string,
 	did: string,
 	alg: string,
@@ -248,7 +303,7 @@ export type CredentialKeyPair = {
 	wrappedPrivateKey: WrappedPrivateKey,
 }
 
-type WrappedPrivateKey = {
+export type WrappedPrivateKey = {
 	privateKey: BufferSource,
 	aesGcmParams: AesGcmParams,
 	unwrappedKeyAlgo: EcKeyImportParams,
@@ -256,11 +311,12 @@ type WrappedPrivateKey = {
 
 export type PrivateDataV1 = {
 	keypairs: {
-		[kid: string]: CredentialKeyPair,
+		[kid: string]: CredentialKeyPairV1,
 	},
 }
 
 export type PrivateData = WalletStateContainer;
+export type PrivateDataV2 = WalletStateContainerV2;
 
 export async function parsePrivateData(privateData: BufferSource): Promise<EncryptedContainer> {
 	return jsonParseTaggedBinary(new TextDecoder().decode(privateData));
@@ -298,7 +354,6 @@ export async function updatePrivateData(
 	[privateData, currentMainKey]: OpenedContainer,
 	update: (
 		privateData: PrivateData,
-		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
 	) => Promise<PrivateData>,
 ): Promise<OpenedContainer> {
 	const {
@@ -307,23 +362,12 @@ export async function updatePrivateData(
 		privateKey: newMainPrivateKey,
 	} = await createAsymmetricMainKey();
 
-	const privateDataContent = await decryptPrivateData(privateData.jwe, currentMainKey);
-	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey>) => {
-		const privateKey = await unwrapPrivateKey(wrappedPrivateKey, currentMainKey, true);
-		const newPrivateKey = await update(privateKey);
-		return await wrapPrivateKey(newPrivateKey, currentMainKey);
-	};
-
-	const newPrivateDataContent = await rewrapPrivateKeys(
-		await update(privateDataContent, updateWrappedPrivateKey),
-		currentMainKey,
-		newMainKey,
-	);
+	const privateDataContent = await update(await decryptPrivateData(privateData.jwe, currentMainKey));
 
 	return [
 		{
 			mainKey: newMainPublicKeyInfo,
-			jwe: await encryptPrivateData(newPrivateDataContent, newMainKey),
+			jwe: await encryptPrivateData(privateDataContent, newMainKey),
 			passwordKey: privateData.passwordKey && {
 				...privateData.passwordKey,
 				...await encapsulateKey(
@@ -536,19 +580,6 @@ async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKe
 	);
 };
 
-async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
-	const privateKeyAesGcmParams: AesGcmParams = {
-		name: "AES-GCM",
-		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
-		additionalData: new Uint8Array([]),
-		tagLength: 128,
-	};
-	return {
-		privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
-		aesGcmParams: privateKeyAesGcmParams,
-		unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-	};
-};
 
 async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
 	const cleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
@@ -558,62 +589,16 @@ async function encryptPrivateData(privateData: PrivateData, encryptionKey: Crypt
 };
 
 async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
-	return migrateV1PrivateData(
-		migrateV0PrivateData(
-			jsonParseTaggedBinary(
-				new TextDecoder().decode(
-					(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
-				))
-		));
+	return migrateV2PrivateData(
+		migrateV1PrivateData(
+			migrateV0PrivateData(
+				jsonParseTaggedBinary(
+					new TextDecoder().decode(
+						(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
+					))
+			)), encryptionKey);
 };
 
-async function rewrapPrivateKeys(
-	privateData: PrivateData,
-	fromKey: CryptoKey,
-	toKey: CryptoKey,
-): Promise<PrivateData> {
-	const rewrappedKeys: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
-		Object.values(privateData.S.keypairs).map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => ({
-			kid,
-			keypair: {
-				...keypair,
-				wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-			},
-		}))
-	);
-
-	const newCredentialKeypairEvents = privateData.events.filter(e => e.type === 'new_keypair');
-	const rewrappedKeysFromEvents: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
-		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => ({
-			kid,
-			keypair: {
-				...keypair,
-				wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-			},
-		}))
-	);
-
-	return {
-		...privateData,
-		lastEventHash: privateData.lastEventHash ?? "",
-		S: {
-			...privateData.S,
-			keypairs: rewrappedKeys,
-		},
-		events: privateData.events.map((e) => {
-			if (e.type === "new_keypair") {
-				const rewrappedKeypair = rewrappedKeysFromEvents.filter((k) => k.kid === e.kid)[0];
-				if (rewrappedKeypair) {
-					return {
-						...e,
-						keypair: rewrappedKeypair.keypair,
-					}
-				}
-			}
-			return e;
-		}),
-	};
-}
 
 async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInfo): Promise<CryptoKey> {
 	const keyMaterial = await crypto.subtle.importKey(
@@ -992,7 +977,7 @@ export async function init(
 ): Promise<UnlockSuccess> {
 	const privateData: EncryptedContainer = {
 		...keyInfo,
-		jwe: await encryptPrivateData(SchemaV1.WalletStateOperations.initialWalletStateContainer(), mainKey),
+		jwe: await encryptPrivateData(SchemaV3.WalletStateOperations.initialWalletStateContainer(), mainKey),
 	};
 	return await unlock(mainKey, privateData);
 }
@@ -1127,7 +1112,7 @@ async function addNewCredentialKeypairs(
 			['sign']
 		);
 		const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
-		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
+		const privateKeyJwk = await crypto.subtle.exportKey('jwk', privateKey) as JWK;
 		const did = await createDid(publicKey, didKeyVersion);
 		const kid = await deriveKid(publicKey, did);
 
@@ -1136,7 +1121,7 @@ async function addNewCredentialKeypairs(
 			did,
 			alg: "ES256",
 			publicKey: publicKeyJwk,
-			wrappedPrivateKey,
+			privateKey: privateKeyJwk,
 		};
 
 		return { kid, keypair, privateKey };
@@ -1199,8 +1184,14 @@ export async function signJwtPresentation([privateData, mainKey, calculatedState
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
-	const { alg, wrappedPrivateKey } = keypair.keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
+	const { alg, privateKey } = keypair.keypair;
+	const importedPrivateKey = await crypto.subtle.importKey(
+		'jwk',
+		privateKey,
+		{ name: 'ECDSA', namedCurve: 'P-256' },
+		true,
+		['sign']
+	);
 	const sdJwt = verifiableCredentials[0];
 	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
 	const kbJWT = await new SignJWT({
@@ -1213,7 +1204,7 @@ export async function signJwtPresentation([privateData, mainKey, calculatedState
 			typ: "kb+jwt",
 			alg: alg
 		})
-		.sign(privateKey);
+		.sign(importedPrivateKey);
 
 	const jws = sdJwt + kbJWT;
 	return { vpjwt: jws };
@@ -1307,9 +1298,8 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, wrappedPrivateKey } = keypair.keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const { alg, privateKey } = keypair.keypair;
+	const privateKeyJwk = privateKey;
 
 	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
@@ -1349,9 +1339,8 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, wrappedPrivateKey } = keypair.keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const { alg, privateKey } = keypair.keypair;
+	const privateKeyJwk = privateKey;
 
 	const options = getCborEncodeDecodeOptions();
 	options.variableMapSize = true;
