@@ -15,7 +15,6 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
 - 🔐 [PRF Compatibility](#prf-compatibility)
-- 🔥 [Firebase](#firebase)
 - 🎨 [Tailwind CSS](#tailwind-css)
 - 💡 [Contributing](#contributing)
 
@@ -72,15 +71,6 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_WS_URL: The URL of the websocket service.
   - VITE_WALLET_BACKEND_URL: The URL of your backend service.
   - VITE_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
-  - VITE_FIREBASE_ENABLED: Enable of disable Firebase (`true` or `false`) for push notifications. If left empty, it will be handled as `false`.
-  - VITE_FIREBASE_VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
-  - VITE_FIREBASE_API_KEY: Your API key for Firebase.
-  - VITE_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
-  - VITE_FIREBASE_PROJECT_ID: Your Firebase project ID.
-  - VITE_FIREBASE_STORAGE_BUCKET: Your Firebase storage bucket.
-  - VITE_FIREBASE_MESSAGING_SENDER_ID: Your Firebase Messaging Sender ID.
-  - VITE_FIREBASE_APP_ID: Your Firebase App ID.
-  - VITE_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
   - VITE_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
   - VITE_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
   - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
@@ -97,39 +87,6 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
   - VITE_WELLKNOWN_APPLE_APPIDS: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
   - VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
-
-
-- Set up Firebase (optional)
-
-  a. Create a Firebase Project
-    - Go to the Firebase Console (https://console.firebase.google.com/).
-    - Click "Add Project" to create a new Firebase project.
-    - Configure your project settings.
-
-  b. Configure Firebase for Web
-    - After creating the project, Add app and select "Web."
-    - Register your app with a name (e.g., "MyApp").
-    - Firebase will provide you with a configuration `firebaseConfig` object; keep this handy.
-
-  c. Get Service Account Key
-  - Navigate to "Project settings" > "Service accounts."
-  - Under the "Firebase Admin SDK" section, click "Generate new private key" to download the JSON file.
-  - in root of wallet-backend paste this file inside the `keys/` folder if the folder does not exist, then create it with name `firebaseConfig.json`
-  - The file name should be the same with the `notifications.serviceAccount` JSON attribute on the configuration of the wallet-backend-server which is located on the `config/` folder. That being said, the `notifications.serviceAccount` JSON attribute should be set to `firebaseConfig.json`
-  - The `notifications.enabled` JSON attribute on the wallet-backend-server configuration should be set to `true`
-
-
-  d. Generate VAPID Key
-  - Navigate to "Project settings" > "Service accounts > Cloud Messaging."
-  - Scroll down to the "Web configuration" section.
-  - You should see an option to generate a new VAPID key. Click the "Generate" button.
-  - After generating the VAPID key, you'll see it displayed on the screen.
-  - Save this VAPID key securely, as you'll need it in your frontend.
-
-  e. Fill config variables
-  - With your `firebaseConfig` and the VAPID KEY now you can fill the wallet-frontend `.env`.
-  - Also navigate to `wallet-frontend/public/firebase-messaging-sw.js` and replace the `firebaseConfig` with yours.
-
 
 - Install dependencies:
     ```bash
@@ -390,18 +347,6 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 - iOS supports PRF extension starting with the **iOS 18** release.
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
-
-## 🔥Firebase
-
-This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
-
-1. **Firebase Configuration (`src/firebase.js`):**
-
-    The `firebase.js` file in the `src` directory and provide your Firebase configuration details. This file initializes the Firebase app and sets up the messaging service.
-
-2. **Firebase Messaging Service Worker (`public/firebase-messaging-sw.js`):**
-
-    This service worker is responsible for handling background messages and notification clicks. When a background message is received, it triggers a notification, and when the user clicks on a notification, it can perform custom actions.
 
 ## 🎨Tailwind CSS
 
