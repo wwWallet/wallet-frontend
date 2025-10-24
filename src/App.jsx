@@ -3,13 +3,11 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
-import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
-import useNewCredentialListener from './hooks/useNewCredentialListener';
 import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
@@ -41,14 +39,11 @@ const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
 function App() {
 	const location = useLocation();
-	const { notification, clearNotification } = useNewCredentialListener();
-
 	return (
 		<>
 			<BackgroundNotificationClickHandler />
 			<Snowfalling />
 			<Suspense fallback={<Spinner />}>
-				<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
 				<UpdateNotification />
 				<Routes>
 					<Route element={
