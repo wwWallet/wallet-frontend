@@ -1,4 +1,4 @@
-// components/Notifications/NotificationPermissionWarning.tsx
+// components/Notifications/NotificationOfflineWarning.tsx
 import React, { useContext } from 'react';
 import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
@@ -7,7 +7,7 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import { useSessionStorage } from '@/hooks/useStorage';
 
-function NotificationPermissionWarning(): React.ReactElement | null {
+function NotificationOfflineWarning(): React.ReactElement | null {
 	useTranslation(); // This ensures reactivity to language changes
 
 	const { isOnline } = useContext(StatusContext);
@@ -56,4 +56,4 @@ function NotificationPermissionWarning(): React.ReactElement | null {
 	);
 }
 
-export default NotificationPermissionWarning;
+export default NotificationOfflineWarning;
