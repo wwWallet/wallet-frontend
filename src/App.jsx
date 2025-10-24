@@ -12,44 +12,6 @@ import CredentialDetails from './pages/Home/CredentialDetails';
 import useNewCredentialListener from './hooks/useNewCredentialListener';
 import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
-const reactLazyWithNonDefaultExports = (load, ...names) => {
-	const nonDefaults = (names ?? []).map(name => {
-		const handles = {
-			name,
-			resolve: null,
-			reject: null,
-			promise: null,
-		};
-		handles.promise = new Promise((resolve, reject) => {
-			handles.resolve = resolve;
-			handles.reject = reject;
-		});
-		return handles;
-	});
-
-	const loadDefault = () => {
-		return load()
-			.then(module => {
-				nonDefaults.forEach(({ name, resolve }) => {
-					resolve({ default: module[name] });
-				});
-				return module;
-			})
-			.catch(err => {
-				nonDefaults.forEach(({ reject }) => {
-					reject(err);
-				});
-				return Promise.reject(err);
-			});
-	};
-
-	const defaultExport = React.lazy(loadDefault);
-	nonDefaults.forEach(({ promise, name }) => {
-		defaultExport[name] = React.lazy(() => promise);
-	});
-	return defaultExport;
-};
-
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
 		Promise.all([
@@ -59,10 +21,8 @@ const lazyWithDelay = (importFunction, delay = 1000) => {
 	);
 };
 
-const PrivateRoute = reactLazyWithNonDefaultExports(
-	() => import('./components/Auth/PrivateRoute'),
-	'NotificationPermissionWarning',
-);
+const PrivateRoute = React.lazy(() => import('./components/Auth/PrivateRoute'));
+const NotificationPermissionWarning = React.lazy(() => import('./components/Notifications/NotificationPermissionWarning'));
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
@@ -95,8 +55,8 @@ function App() {
 						<PrivateRoute>
 							<Layout>
 								<Suspense fallback={<Spinner size='small' />}>
-									<PrivateRoute.NotificationPermissionWarning />
 									<FadeInContentTransition appear reanimateKey={location.pathname}>
+										<NotificationPermissionWarning />
 										<Outlet />
 									</FadeInContentTransition>
 								</Suspense>
