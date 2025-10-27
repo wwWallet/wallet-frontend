@@ -3,7 +3,7 @@ import { compareBy, last, splitWhen } from "@/util";
 
 import * as SchemaV1 from "./WalletStateSchemaVersion1";
 import * as SchemaV2 from "./WalletStateSchemaVersion2";
-import * as SchemaV3 from "./WalletStateSchemaVersion2";
+import * as SchemaV3 from "./WalletStateSchemaVersion3";
 import * as CurrentSchema from "./WalletStateSchemaVersion3";
 import { WalletSessionEvent, WalletState, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
 import * as WalletSchemaCommon from "./WalletStateSchemaCommon";
