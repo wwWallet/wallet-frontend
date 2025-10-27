@@ -286,10 +286,10 @@ describe("The keystore", () => {
 			);
 			assert.equal(keypairs.length, numKeys);
 			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
-			for (const { kid, publicKey, wrappedPrivateKey } of keypairs) {
+			for (const { kid, publicKey, privateKey } of keypairs) {
 				const { publicKey: storedPublicKey } = calculatedState.keypairs.filter((keypair) => keypair.kid === kid)[0].keypair;
 				assert.deepEqual(publicKey, storedPublicKey);
-				assert.isOk(wrappedPrivateKey);
+				assert.isOk(privateKey);
 			}
 		};
 		it("p256-pub.", async () => test("p256-pub"));
@@ -437,7 +437,7 @@ describe("The keystore", () => {
 		it("when the update is a no-op.", async () => {
 			const [newPrivateData, newMainKey] = await keystore.updatePrivateData(
 				[privateData, oldMainKeys[0]],
-				async (privateData, updateWrappedPrivateKey) =>
+				async (privateData) =>
 					// No-op
 					privateData,
 			);
@@ -470,7 +470,7 @@ describe("The keystore", () => {
 		it("when the update replaces the user's key pair.", async () => {
 			const [newPrivateData, newMainKey] = await keystore.updatePrivateData(
 				[privateData, oldMainKeys[0]],
-				async (privateData, updateWrappedPrivateKey) => {
+				async (privateData) => {
 					const { publicKey, privateKey } = await crypto.subtle.generateKey(
 						{ name: "ECDSA", namedCurve: "P-256" },
 						true,
@@ -479,10 +479,6 @@ describe("The keystore", () => {
 					const publicKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", publicKey) as jose.JWK;
 					const did = util.createDid(publicKeyJwk);
 					const kid = did;
-					const wrappedPrivateKey = await updateWrappedPrivateKey(
-						privateData.S.keypairs[0].keypair.wrappedPrivateKey,
-						async () => privateKey,
-					);
 					const firstKeyPair = privateData.S.keypairs[0];
 					firstKeyPair.kid = kid;
 					firstKeyPair.keypair = {
@@ -491,7 +487,7 @@ describe("The keystore", () => {
 						did,
 						alg: "ES256",
 						// verificationMethod: did + "#" + did.split(':')[2],
-						wrappedPrivateKey,
+						privateKey,
 					};
 					return privateData;
 				},

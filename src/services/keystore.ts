@@ -211,12 +211,17 @@ export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | Pri
 	);
 }
 
-export function isKeystoreV2PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateDataV2 | CurrentSchema.WalletStateContainer): privateData is PrivateDataV2 {
+export function isKeystoreV2PrivateData(privateData: PrivateDataV1 | PrivateDataV2): privateData is PrivateDataV2 {
 	if (!isKeystoreV0PrivateData(privateData as KeystoreV0PrivateData | PrivateDataV1) && !isKeystoreV1PrivateData(privateData)) {
+		const privateDataCopy = { ...privateData };
+		const foldedState = privateDataCopy.events.reduce(
+			(s, e) => getSchema(e.schemaVersion).walletStateReducer(s, e),
+			privateDataCopy.S,
+		) as SchemaV2.WalletState;
 		return (
 			"events" in privateData &&
 			"S" in privateData &&
-			(privateData.S.keypairs.length > 0 && privateData.S.keypairs.filter((k) => "wrappedPrivateKey" in k.keypair).length > 0)
+			(foldedState.keypairs.length > 0 && foldedState.keypairs.filter((k) => "wrappedPrivateKey" in k.keypair).length > 0)
 		)
 	}
 	return false;
@@ -253,16 +258,16 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateDataV2)
 	}
 }
 
-export async function migrateV2PrivateData(privateData: PrivateDataV2 | CurrentSchema.WalletStateContainer, encryptionKey: CryptoKey): Promise<PrivateData> {
-	if (isKeystoreV2PrivateData(privateData)) {
+export async function migrateV3PrivateData(privateData: PrivateDataV2 | PrivateData, encryptionKey: CryptoKey): Promise<PrivateData> {
+	if (isKeystoreV2PrivateData(privateData as PrivateDataV2)) {
 		const privateDataCopy = { ...privateData };
-		const foldedState = privateDataCopy.events.reduce(
+		const foldedState = privateData.events.reduce(
 			(s, e) => getSchema(e.schemaVersion).walletStateReducer(s, e),
 			privateDataCopy.S,
 		) as SchemaV2.WalletState;
 
 		const unwrappedKeypairs = await Promise.all(foldedState.keypairs.map(async (k) => {
-			const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey);
+			const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey, true);
 			const jwk = await crypto.subtle.exportKey("jwk", unwrapped) as JWK;
 			const keypair: CredentialKeyPair = {
 				kid: k.kid,
@@ -283,7 +288,7 @@ export async function migrateV2PrivateData(privateData: PrivateDataV2 | CurrentS
 		}
 		return privateData as CurrentSchema.WalletStateContainer;
 	} else {
-		return privateData;
+		return privateData as CurrentSchema.WalletStateContainer;
 	}
 }
 
@@ -589,7 +594,7 @@ async function encryptPrivateData(privateData: PrivateData, encryptionKey: Crypt
 };
 
 async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
-	return migrateV2PrivateData(
+	return migrateV3PrivateData(
 		migrateV1PrivateData(
 			migrateV0PrivateData(
 				jsonParseTaggedBinary(
