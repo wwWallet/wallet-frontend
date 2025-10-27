@@ -23,7 +23,7 @@ import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
-import { WalletStateCredential } from "@/services/WalletStateSchemaVersion1";
+import { WalletStateCredential } from "@/services/WalletStateSchemaVersion3";
 
 const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 	if (S.client_metadata.jwks) {
