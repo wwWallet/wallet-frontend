@@ -477,6 +477,7 @@ describe("The keystore", () => {
 						['sign', 'verify']
 					);
 					const publicKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", publicKey) as jose.JWK;
+					const privateKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", privateKey) as jose.JWK;
 					const did = util.createDid(publicKeyJwk);
 					const kid = did;
 					const firstKeyPair = privateData.S.keypairs[0];
@@ -487,7 +488,7 @@ describe("The keystore", () => {
 						did,
 						alg: "ES256",
 						// verificationMethod: did + "#" + did.split(':')[2],
-						privateKey,
+						privateKey: privateKeyJwk,
 					};
 					return privateData;
 				},
