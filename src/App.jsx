@@ -8,7 +8,6 @@ import Spinner from './components/Shared/Spinner';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
-import BackgroundNotificationClickHandler from './components/Notifications/BackgroundNotificationClickHandler';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
@@ -41,7 +40,6 @@ function App() {
 	const location = useLocation();
 	return (
 		<>
-			<BackgroundNotificationClickHandler />
 			<Snowfalling />
 			<Suspense fallback={<Spinner />}>
 				<UpdateNotification />
