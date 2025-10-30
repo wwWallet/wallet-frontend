@@ -209,7 +209,7 @@ export const CredentialsContextProvider = ({ children }) => {
 		if (!getCalculatedWalletState || !credentialEngine || !isLoggedIn) {
 			return;
 		}
-		console.log("Triggerring getData()", getCalculatedWalletState())
+		console.log("Triggerring getData()")
 		getData();
 	}, [getData, getCalculatedWalletState, credentialEngine, isLoggedIn]);
 

@@ -199,7 +199,89 @@ export interface WalletStateSettings {
 	[other: string]: unknown,
 }
 
+function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
+	switch (newEvent.type) {
+		case "new_credential":
+			return state.concat([{
+				credentialId: newEvent.credentialId,
+				data: newEvent.data,
+				format: newEvent.format,
+				kid: newEvent.kid,
+				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
+				credentialConfigurationId: newEvent.credentialConfigurationId,
+				instanceId: newEvent.instanceId,
+				batchId: newEvent.batchId,
+			}]);
+		case "delete_credential":
+			return state.filter((cred) => cred.credentialId !== newEvent.credentialId);
+		default:
+			return state;
+	}
+}
 
+function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent) {
+	switch (newEvent.type) {
+		case "new_keypair":
+			return state.concat([{
+				kid: newEvent.kid,
+				keypair: newEvent.keypair,
+			}]);
+		case "delete_keypair":
+			return state.filter((k) => k.kid !== newEvent.kid);
+		default:
+			return state;
+	}
+}
+
+
+function presentationReducer(state: WalletStatePresentation[] = [], newEvent: WalletSessionEvent) {
+	switch (newEvent.type) {
+		case "new_presentation":
+			return state.concat([{
+				presentationId: newEvent.presentationId,
+				data: newEvent.data,
+				usedCredentialIds: newEvent.usedCredentialIds,
+				transactionId: newEvent.transactionId,
+				presentationTimestampSeconds: newEvent.presentationTimestampSeconds,
+				audience: newEvent.audience,
+			}]);
+		case "delete_presentation":
+			return state.filter((k) => k.presentationId !== newEvent.presentationId);
+		default:
+			return state;
+	}
+}
+
+function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
+	switch (newEvent.type) {
+		case "save_credential_issuance_session":
+			return state.filter((s) => s.sessionId !== newEvent.sessionId).concat([{
+				sessionId: newEvent.sessionId,
+				state: newEvent.state,
+				code_verifier: newEvent.code_verifier,
+				credentialConfigurationId: newEvent.credentialConfigurationId,
+				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
+				tokenResponse: newEvent.tokenResponse,
+				dpop: newEvent.dpop,
+				firstPartyAuthorization: newEvent.firstPartyAuthorization,
+				credentialEndpoint: newEvent.credentialEndpoint,
+				created: newEvent.created,
+			}]);
+		case "delete_credential_issuance_session":
+			return state.filter((s) => s.sessionId !== newEvent.sessionId);
+		default:
+			return state;
+	}
+}
+
+function settingsReducer(state: WalletStateSettings, newEvent: WalletSessionEvent): WalletStateSettings {
+	switch (newEvent.type) {
+		case "alter_settings":
+			return { ...newEvent.settings };
+		default:
+			return state;
+	}
+}
 
 const v2strats = SchemaV2.mergeStrategies;
 
@@ -227,11 +309,27 @@ export function createOperations(
 			lastEventHash: "",
 		}
 	}
+
+	function walletStateReducer(state: WalletState, newEvent: WalletSessionEvent): WalletState {
+		if (newEvent.schemaVersion === state.schemaVersion) {
+			return {
+				schemaVersion: newEvent.schemaVersion,
+				credentials: credentialReducer(state.credentials, newEvent),
+				keypairs: keypairReducer(state.keypairs, newEvent),
+				presentations: presentationReducer(state.presentations, newEvent),
+				credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
+				settings: settingsReducer(state.settings, newEvent)
+			};
+		} else {
+			return walletStateReducer(migrateState(state), newEvent);
+		}
+	}
 	const v2ops = SchemaV2.createOperations(SCHEMA_VERSION, mergeStrategies);
 	return {
 		...v2ops,
 		migrateState,
 		initialWalletStateContainer,
+		walletStateReducer,
 	};
 }
 
