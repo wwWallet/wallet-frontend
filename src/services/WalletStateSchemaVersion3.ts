@@ -28,35 +28,16 @@ export type WalletStateContainer = {
 export type WalletSessionEvent = WalletSchemaCommon.WalletSessionEvent & WalletSessionEventTypeAttributes;
 
 export type WalletSessionEventTypeAttributes = (
-	WalletSessionEventNewCredential
-	| WalletSessionEventDeleteCredential
+	SchemaV2.WalletSessionEventNewCredential
+	| SchemaV2.WalletSessionEventDeleteCredential
 	| WalletSessionEventNewKeypair
-	| WalletSessionEventDeleteKeypair
-	| WalletSessionEventNewPresentation
-	| WalletSessionEventDeletePresentation
-	| WalletSessionEventAlterSettings
-	| WalletSessionEventSaveCredentialIssuanceSession
-	| WalletSessionEventDeleteCredentialIssuanceSession
+	| SchemaV2.WalletSessionEventDeleteKeypair
+	| SchemaV2.WalletSessionEventNewPresentation
+	| SchemaV2.WalletSessionEventDeletePresentation
+	| SchemaV2.WalletSessionEventAlterSettings
+	| SchemaV2.WalletSessionEventSaveCredentialIssuanceSession
+	| SchemaV2.WalletSessionEventDeleteCredentialIssuanceSession
 );
-
-export type WalletSessionEventNewCredential = {
-	type: "new_credential",
-	credentialId: number,
-	format: string,
-	data: string,
-	batchId: number,
-	kid: string,
-	instanceId: number,
-	credentialIssuerIdentifier: string,
-	credentialConfigurationId: string,
-}
-
-export type WalletSessionEventDeleteCredential = {
-	type: "delete_credential",
-	credentialId: number,
-}
-
-
 
 export type WalletSessionEventNewKeypair = {
 	type: "new_keypair",
@@ -64,227 +45,27 @@ export type WalletSessionEventNewKeypair = {
 	keypair: CredentialKeyPair,
 }
 
-export type WalletSessionEventDeleteKeypair = {
-	type: "delete_keypair",
-	kid: string,
-}
-
-export type WalletSessionEventNewPresentation = {
-	type: "new_presentation",
-	presentationId: number,
-	transactionId: number,
-	data: string,
-	usedCredentialIds: number[],
-	presentationTimestampSeconds: number,
-	audience: string,
-}
-
-export type WalletSessionEventDeletePresentation = {
-	type: "delete_presentation",
-	presentationId: number,
-}
-
-export type WalletSessionEventAlterSettings = {
-	type: "alter_settings",
-	settings: WalletStateSettings,
-}
-
-export type WalletSessionEventSaveCredentialIssuanceSession = {
-	type: "save_credential_issuance_session",
-	sessionId: number,
-
-	credentialIssuerIdentifier: string,
-	state: string,
-	code_verifier: string,
-	credentialConfigurationId: string,
-	tokenResponse?: {
-		data: {
-			access_token: string,
-			expiration_timestamp: number,
-			c_nonce: string,
-			c_nonce_expiration_timestamp: number,
-			refresh_token?: string,
-		},
-		headers: {
-			"dpop-nonce"?: string,
-		}
-	},
-	dpop?: {
-		dpopJti: string,
-		dpopPrivateKeyJwk: JWK,
-		dpopPublicKeyJwk?: JWK,
-		dpopAlg: string,
-	},
-	firstPartyAuthorization?: {
-		auth_session: string,
-	},
-	credentialEndpoint?: {
-		transactionId?: string,
-	},
-	created: number,
-}
-
-export type WalletSessionEventDeleteCredentialIssuanceSession = {
-	type: "delete_credential_issuance_session",
-	sessionId: number,
-}
-
-export type WalletState = {
-	schemaVersion: number,
-	credentials: {
-		credentialId: number,
-		format: string,
-		data: string,
-		kid: string,
-		instanceId: number,
-		batchId: number,
-		credentialIssuerIdentifier: string,
-		credentialConfigurationId: string,
-	}[],
+export type WalletState = Omit<SchemaV2.WalletState, "keypairs"> & {
 	keypairs: {
 		kid: string,
 		keypair: CredentialKeyPair,
 	}[],
-	presentations: {
-		presentationId: number,
-		transactionId: number, // one transaction can be associated with more than one presentations
-		data: string,
-		usedCredentialIds: number[],
-		presentationTimestampSeconds: number,
-		audience: string,
-	}[],
-	settings: WalletStateSettings,
-	credentialIssuanceSessions: {
-		sessionId: number, // unique
-
-		credentialIssuerIdentifier: string,
-		state: string,
-		code_verifier: string,
-		credentialConfigurationId: string,
-		tokenResponse?: {
-			data: {
-				access_token: string,
-				expiration_timestamp: number,
-				c_nonce: string,
-				c_nonce_expiration_timestamp: number,
-				refresh_token?: string,
-			},
-			headers: {
-				"dpop-nonce"?: string,
-			}
-		},
-		dpop?: {
-			dpopJti: string,
-			dpopPrivateKeyJwk: JWK,
-			dpopPublicKeyJwk?: JWK,
-			dpopAlg: string,
-		},
-		firstPartyAuthorization?: {
-			auth_session: string,
-		},
-		credentialEndpoint?: {
-			transactionId?: string,
-		},
-		created: number,
-	}[],
 }
 
-export type WalletStateCredential = WalletState['credentials'][number];
 export type WalletStateKeypair = WalletState['keypairs'][number];
-export type WalletStatePresentation = WalletState['presentations'][number];
-export type WalletStateCredentialIssuanceSession = WalletState['credentialIssuanceSessions'][number];
 
-export interface WalletStateSettings {
-	openidRefreshTokenMaxAgeInSeconds: string,
-	[other: string]: unknown,
-}
-
-function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
-	switch (newEvent.type) {
-		case "new_credential":
-			return state.concat([{
-				credentialId: newEvent.credentialId,
-				data: newEvent.data,
-				format: newEvent.format,
-				kid: newEvent.kid,
-				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
-				credentialConfigurationId: newEvent.credentialConfigurationId,
-				instanceId: newEvent.instanceId,
-				batchId: newEvent.batchId,
-			}]);
-		case "delete_credential":
-			return state.filter((cred) => cred.credentialId !== newEvent.credentialId);
-		default:
-			return state;
-	}
-}
-
-function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent) {
-	switch (newEvent.type) {
-		case "new_keypair":
-			return state.concat([{
-				kid: newEvent.kid,
-				keypair: newEvent.keypair,
-			}]);
-		case "delete_keypair":
-			return state.filter((k) => k.kid !== newEvent.kid);
-		default:
-			return state;
-	}
-}
-
-
-function presentationReducer(state: WalletStatePresentation[] = [], newEvent: WalletSessionEvent) {
-	switch (newEvent.type) {
-		case "new_presentation":
-			return state.concat([{
-				presentationId: newEvent.presentationId,
-				data: newEvent.data,
-				usedCredentialIds: newEvent.usedCredentialIds,
-				transactionId: newEvent.transactionId,
-				presentationTimestampSeconds: newEvent.presentationTimestampSeconds,
-				audience: newEvent.audience,
-			}]);
-		case "delete_presentation":
-			return state.filter((k) => k.presentationId !== newEvent.presentationId);
-		default:
-			return state;
-	}
-}
-
-function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
-	switch (newEvent.type) {
-		case "save_credential_issuance_session":
-			return state.filter((s) => s.sessionId !== newEvent.sessionId).concat([{
-				sessionId: newEvent.sessionId,
-				state: newEvent.state,
-				code_verifier: newEvent.code_verifier,
-				credentialConfigurationId: newEvent.credentialConfigurationId,
-				credentialIssuerIdentifier: newEvent.credentialIssuerIdentifier,
-				tokenResponse: newEvent.tokenResponse,
-				dpop: newEvent.dpop,
-				firstPartyAuthorization: newEvent.firstPartyAuthorization,
-				credentialEndpoint: newEvent.credentialEndpoint,
-				created: newEvent.created,
-			}]);
-		case "delete_credential_issuance_session":
-			return state.filter((s) => s.sessionId !== newEvent.sessionId);
-		default:
-			return state;
-	}
-}
-
-function settingsReducer(state: WalletStateSettings, newEvent: WalletSessionEvent): WalletStateSettings {
-	switch (newEvent.type) {
-		case "alter_settings":
-			return { ...newEvent.settings };
-		default:
-			return state;
-	}
+function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent): WalletStateKeypair[] {
+	// Runtime logic is identical to V2. The only difference is between
+	// `SchemaV2.WalletStateKeypair.keypair.wrappedPrivateKey` and
+	// `SchemaV3.WalletStateKeypair.keypair.privateKey`, but the reducer logic
+	// doesn't access those fields. So we can just coerce the types.
+	return SchemaV2.keypairReducer(
+		state as unknown as SchemaV2.WalletStateKeypair[],
+		newEvent as SchemaV2.WalletSessionEvent,
+	) as unknown as WalletStateKeypair[];
 }
 
 const v2strats = SchemaV2.mergeStrategies;
-
 
 export function createOperations(
 	SCHEMA_VERSION: number,
@@ -312,18 +93,29 @@ export function createOperations(
 
 	function walletStateReducer(state: WalletState, newEvent: WalletSessionEvent): WalletState {
 		if (newEvent.schemaVersion === state.schemaVersion) {
-			return {
-				schemaVersion: newEvent.schemaVersion,
-				credentials: credentialReducer(state.credentials, newEvent),
-				keypairs: keypairReducer(state.keypairs, newEvent),
-				presentations: presentationReducer(state.presentations, newEvent),
-				credentialIssuanceSessions: credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
-				settings: settingsReducer(state.settings, newEvent)
-			};
+			if (newEvent.type === "new_keypair" || newEvent.type === "delete_keypair") {
+				return {
+					...state,
+					schemaVersion: newEvent.schemaVersion,
+					keypairs: keypairReducer(state.keypairs, newEvent),
+				};
+			} else {
+				// newEvent is type narrowed here to be one of the SchemaV2 event types
+				// (but with `schemaVersion: 3`), so we can use the V2 reducers natively
+				return {
+					...state,
+					schemaVersion: newEvent.schemaVersion,
+					credentials: SchemaV2.credentialReducer(state.credentials, newEvent),
+					presentations: SchemaV2.presentationReducer(state.presentations, newEvent),
+					credentialIssuanceSessions: SchemaV2.credentialIssuanceSessionReducer(state.credentialIssuanceSessions, newEvent),
+					settings: SchemaV2.settingsReducer(state.settings, newEvent)
+				};
+			}
 		} else {
 			return walletStateReducer(migrateState(state), newEvent);
 		}
 	}
+
 	const v2ops = SchemaV2.createOperations(SCHEMA_VERSION, mergeStrategies);
 	return {
 		...v2ops,
