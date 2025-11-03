@@ -369,7 +369,8 @@
 		"specificClaimsRequested": "The verifier has requested specific claims of the credential.",
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary",
-		"transactionDataExample": "Accept example transaction data terms & conditions"
+		"transactionDataExample": "Accept example transaction data terms & conditions",
+		"signedDocuments": "Documents to be Signed: "
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
