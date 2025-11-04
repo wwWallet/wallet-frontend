@@ -12,7 +12,7 @@ import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { reverse, compareBy } from '@/util';
 
 // Utils
-import prettyDomain from '@/utils/prettyDomain';
+import { prettyDomain } from '@/utils/prettyDomain';
 
 /** ------------------ Pure view (NO data fetching here) ------------------ */
 function HistoryListView({ batchId = null, title = '', limit = null, history = {} }) {
