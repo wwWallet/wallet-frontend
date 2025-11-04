@@ -1,6 +1,6 @@
 import axios from 'axios';
 import jsonpointer from 'jsonpointer';
-import { formatDate } from '@/utils/formatDate';
+import { formatDate } from '@/utils';
 import customTemplate from '../../assets/images/custom_template.svg';
 
 async function getBase64Image(url) {

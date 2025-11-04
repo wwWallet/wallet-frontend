@@ -9,11 +9,10 @@ import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
-import { truncateByWords } from '@/utils/truncateByWords';
 import { MdFactCheck } from "react-icons/md";
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
-import { prettyDomain } from '@/utils/prettyDomain';
+import { prettyDomain, truncateByWords } from '@/utils';
 
 const SelectableCredentialSlideCard = ({
 	vcEntity,

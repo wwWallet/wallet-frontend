@@ -2,7 +2,6 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useScreenType from '../../hooks/useScreenType';
-import { formatDate } from '@/utils/formatDate';
 import { H3 } from '../Shared/Heading';
 import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
 
@@ -12,7 +11,7 @@ import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { reverse, compareBy } from '@/util';
 
 // Utils
-import { prettyDomain } from '@/utils/prettyDomain';
+import { formatDate,prettyDomain } from '@/utils';
 
 /** ------------------ Pure view (NO data fetching here) ------------------ */
 function HistoryListView({ batchId = null, title = '', limit = null, history = {} }) {
