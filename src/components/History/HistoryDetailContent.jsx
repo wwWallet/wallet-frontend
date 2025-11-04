@@ -10,7 +10,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import useScreenType from '../../hooks/useScreenType';
 
 import prettyDomain from '@/utils/prettyDomain';
-import { formatDate } from '@/utils/DateFormat';
+import { formatDate } from '@/utils/formatDate';
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);

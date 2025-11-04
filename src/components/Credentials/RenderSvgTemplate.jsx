@@ -1,6 +1,6 @@
 import axios from 'axios';
 import jsonpointer from 'jsonpointer';
-import { formatDate } from '../../utils/DateFormat';
+import { formatDate } from '@/utils/formatDate';
 
 const renderSvgTemplate = async ({ beautifiedForm, credentialImageSvgTemplateURL, claims }) => {
 
