@@ -1,4 +1,4 @@
-const prettyDomain = (raw) => {
+export const prettyDomain = (raw) => {
 	if (!raw) return '';
 	let value = raw.trim();
 
@@ -12,5 +12,3 @@ const prettyDomain = (raw) => {
 		return value;
 	}
 };
-
-export default prettyDomain;
