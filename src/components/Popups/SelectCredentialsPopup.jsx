@@ -9,7 +9,7 @@ import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
-import { truncateByWords } from '@/functions/truncateWords';
+import { truncateByWords } from '@/utils/truncateWords';
 import { MdFactCheck } from "react-icons/md";
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';

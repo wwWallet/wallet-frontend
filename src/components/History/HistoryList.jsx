@@ -2,7 +2,7 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useScreenType from '../../hooks/useScreenType';
-import { formatDate } from '../../functions/DateFormat';
+import { formatDate } from '../../utils/DateFormat';
 import { H3 } from '../Shared/Heading';
 import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
 
