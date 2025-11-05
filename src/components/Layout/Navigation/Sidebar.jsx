@@ -83,10 +83,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 					</div>
 				</div>
 				<div>
-					<div className="hidden md:flex md:gap-2 justify-between items-center">
-						<Logo type='white' aClassName='mb-2 mr-2 w-5/12' imgClassName='object-contain' />
+					<div className="hidden md:flex md:gap-4 justify-between items-center mb-4">
+						<Logo type='white' aClassName='w-4/12' imgClassName='object-contain' />
 						<a href={('/')}
-							className="text-white text-xl font-bold cursor-pointer w-7/12"
+							className="text-white text-xl font-bold cursor-pointer w-8/12"
 						>
 							{t('common.walletName')}
 						</a>
