@@ -8,30 +8,10 @@ export function generateManifest(env): Partial<ManifestOptions> {
 		"name": env.VITE_STATIC_NAME || 'wwWallet',
 		"icons": [
 			{
-				"src": "wallet_16.png",
-				"sizes": "16x16",
-				"type": "image/png"
+				"src": "logo.svg",
+				"sizes": "16x16 32x32 64x64 192x192 512x512",
+				"type": "image/svg+xml",
 			},
-			{
-				"src": "wallet_32.png",
-				"sizes": "32x32",
-				"type": "image/png"
-			},
-			{
-				"src": "wallet_64.png",
-				"sizes": "64x64",
-				"type": "image/png"
-			},
-			{
-				"src": "wallet_192.png",
-				"sizes": "192x192",
-				"type": "image/png"
-			},
-			{
-				"src": "wallet_512.png",
-				"sizes": "512x512",
-				"type": "image/png"
-			}
 		],
 		"screenshots": [
 			{
