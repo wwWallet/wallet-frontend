@@ -19,31 +19,31 @@ const Logo: React.FC<LogoProps> = ({
 	const { t } = useTranslation();
 	const [logoUrl, setLogoUrl] = useState<string>('/logo_border.svg');
 
-  useEffect(() => {
+	useEffect(() => {
 		if (type === 'white') return;
 
-    const html = document.documentElement;
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (
-          mutation.type === "attributes" &&
-          mutation.attributeName === "data-theme"
-        ) {
-          const theme = html.getAttribute("data-theme");
+		const html = document.documentElement;
+		const observer = new MutationObserver((mutations) => {
+		for (const mutation of mutations) {
+			if (
+				mutation.type === "attributes" &&
+				mutation.attributeName === "data-theme"
+			) {
+				const theme = html.getAttribute("data-theme");
 
-					setLogoUrl(
-						theme === "light" || theme === ""
+				setLogoUrl(
+					theme === "light" || theme === ""
 						? '/logo.svg'
 						: '/logo_border.svg'
 					);
-        }
-      }
-    });
+				}
+			}
+		});
 
-    observer.observe(html, { attributes: true, attributeFilter: ["data-theme"] });
+		observer.observe(html, { attributes: true, attributeFilter: ["data-theme"] });
 
-    return () => observer.disconnect();
-  }, [type]);
+		return () => observer.disconnect();
+	}, [type]);
 
 	const Img = () => <img src={logoUrl} alt={alt || t('common.walletName')} className={imgClassName} />
 
