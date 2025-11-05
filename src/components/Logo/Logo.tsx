@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface LogoProps {
-	type?: string; // Determines the type of logo (classic or white)
+	type?: 'normal' | 'border'; // Determines the type of logo (border or normal)
 	clickable?: boolean;
 	alt?: string;
 	aClassName?: string; // Class for the <a> element
