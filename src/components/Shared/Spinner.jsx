@@ -22,7 +22,7 @@ const Spinner = ({ size = 'large' }) => {
 			<div className={`relative ${currentSize.container}`}>
 				<div className={`absolute rounded-full ${currentSize.container} border-t-4 border-b-4 animate-spin ${currentSize.opacity}`} />
 				<div className={`absolute inset-0 flex items-center justify-center ${currentSize.opacity}`}>
-					<img src="/wallet_192.png" alt="Loading..." className={`object-contain ${currentSize.image}`} />
+					<img src="/logo.svg" alt="Loading..." className={`object-contain ${currentSize.image}`} />
 				</div>
 			</div>
 		</div>
