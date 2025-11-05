@@ -45,8 +45,8 @@ const Logo: React.FC<LogoProps> = ({
 				`/logo_christmas.png`;
 		}
 		return type === 'white' ?
-			`/wallet_white.png` :
-			`/logo.png`;
+			`/logo_border.svg` :
+			`/logo.svg`;
 	})();
 
 	return (
