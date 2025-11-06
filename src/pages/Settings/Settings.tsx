@@ -741,7 +741,7 @@ const Settings = () => {
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
-    const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
+	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
 
 	const { getCalculatedWalletState } = keystore;
 
@@ -908,7 +908,7 @@ const Settings = () => {
 		}
 	};
 
-    const handleObliviousChange = async (useOblivious: string) => {
+	const handleObliviousChange = async (useOblivious: string) => {
 		try {
 			if (!['true', 'false'].includes(useOblivious)) {
 				throw new Error("Update useOblivious: invalid value");
@@ -1045,7 +1045,7 @@ const Settings = () => {
 								)}
 							</div>
 						</div>
-                        <div className="my-2 py-2">
+						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.oblivious.title')} />
 							<p className='mb-2 dark:text-white'>
 								{t('pageSettings.oblivious.description')}

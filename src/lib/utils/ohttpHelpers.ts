@@ -291,6 +291,6 @@ export const encryptedHttpRequest = async (relayUrl: string, keysInfo: HpkeConfi
 	);
 
 	const decodedResponse = decodeKnownLengthResponse(plaintextBhttp);
-  //const bodyText = new TextDecoder().decode(decodedResponse.body);
+	//const bodyText = new TextDecoder().decode(decodedResponse.body);
 	return decodedResponse;
 }

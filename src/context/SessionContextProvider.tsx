@@ -74,8 +74,6 @@ export const SessionContextProvider = ({ children }) => {
 				// Delay setWalletStateLoaded till then.
 				async function fetchKeyConfigAndUpdate() {
 					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
-					console.log("Key config fetched:");
-					console.log(keyConfig);
 					setObliviousKeyConfig(keyConfig);
 					setWalletStateLoaded(true);
 				}
@@ -103,7 +101,7 @@ export const SessionContextProvider = ({ children }) => {
 
 
 	if ((api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded))) {
-      return <></>
+	  return <></>
 	}
 	return (
 		<SessionContext.Provider value={value}>
