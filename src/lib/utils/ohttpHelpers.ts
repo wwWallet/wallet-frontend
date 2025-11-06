@@ -1,7 +1,7 @@
 import { CipherSuite, HkdfSha256, Aes128Gcm } from '@hpke/core'
 import { DhkemX25519HkdfSha256 } from '@hpke/dhkem-x25519'
 import axios from 'axios'
-import { decodeKnownLengthRequest, decodeKnownLengthResponse, encodeKnownLengthRequest, headersFromObject } from './bhttp';
+import { decodeKnownLengthResponse, encodeKnownLengthRequest, headersFromObject } from './bhttp';
 import { RequestHeaders } from '../interfaces/IHttpProxy';
 
 export type HpkeConfig = {
@@ -150,7 +150,7 @@ async function decryptEncapsulatedResponse(
 	const secret = await sender.export(exporterCtx, L); // length = max(Nn, Nk)
 
 	// RFC 9458 §4.4 steps 3–5: HKDF( salt=enc||responseNonce )
-	const kdf: any = (suite as any).kdf;
+	//const kdf: any = (suite as any).kdf;
 	const salt = concat(encU8, responseNonce);
 	// const prk  = await kdf.extract(toArrayBuffer(salt), secret);
 	// const aeadKey   = await kdf.expand(prk, new TextEncoder().encode("key"),   Nk);
@@ -291,6 +291,6 @@ export const encryptedHttpRequest = async (relayUrl: string, keysInfo: HpkeConfi
 	);
 
 	const decodedResponse = decodeKnownLengthResponse(plaintextBhttp);
-	const bodyText = new TextDecoder().decode(decodedResponse.body);
+  //const bodyText = new TextDecoder().decode(decodedResponse.body);
 	return decodedResponse;
 }
