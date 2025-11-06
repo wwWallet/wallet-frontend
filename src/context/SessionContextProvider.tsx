@@ -101,7 +101,7 @@ export const SessionContextProvider = ({ children }) => {
 
 
 	if ((api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded))) {
-	  return <></>
+		return <></>
 	}
 	return (
 		<SessionContext.Provider value={value}>
