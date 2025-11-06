@@ -350,6 +350,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				async function mergeWithLocalEncryptedPrivateData(container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
 					const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
 					const localUser = await getItem("users", userId.id);
+					if (!localUser) {
+						return container;
+					}
 					const localPrivateData: Uint8Array = localUser.privateData;
 					const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
 					const stringifiedLocalPrivateData = jsonStringifyTaggedBinary(localPrivateData);
@@ -370,7 +373,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 					return container;
 				}
 				const { privateData, mainKey } = unlockSuccess;
-				const [unlockedContainer,,] = await keystore.openPrivateData(mainKey, privateData);
+				const [unlockedContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
 				const [encryptedContainer, newMainKey, decryptedWalletState] = await mergeWithLocalEncryptedPrivateData([privateData, mainKey, unlockedContainer]);
 				const foldedState = foldState(decryptedWalletState);
 				newEncryptedContainer = encryptedContainer;
@@ -568,7 +571,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				);
 			}
 			else {
-				const [unlockPrfResult, ] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
+				const [unlockPrfResult,] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
 				const updatedPrivateData = await finishUnlock(unlockPrfResult, user, credential, promptForPrfRetry);
 				return (
 					updatedPrivateData
