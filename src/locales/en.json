@@ -252,9 +252,9 @@
 		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"oblivious": {
-			"gunet": "GUnet Gateway",
 			"description": "Select a private gateway to use Oblivious HTTP",
 			"disabled": "Do not use Oblivious HTTP",
+			"gunet": "GUnet Gateway",
 			"successMessage": "Saved",
 			"title": "Oblivious HTTP"
 		},
