@@ -1061,7 +1061,7 @@ const Settings = () => {
 											title={!isOnline ? t("common.offlineTitle") : undefined}
 										>
 											<option value="false">{t('pageSettings.oblivious.disabled')}</option>
-											<option value="true">{t('pageSettings.oblivious.cloudflare')}</option>
+											<option value="true">{t('pageSettings.oblivious.gunet')}</option>
 										</select>
 										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
 											<IoIosArrowDown className='dark:text-white' />

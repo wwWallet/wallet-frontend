@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { AiOutlineLogout } from "react-icons/ai";
-import { FaWallet, FaUserCircle } from "react-icons/fa";
+import { FaWallet, FaUserCircle, FaShieldAlt} from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useScreenType from '../../../hooks/useScreenType';
@@ -40,7 +40,7 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 
 const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
-	const { api, logout } = useContext(SessionContext);
+	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
@@ -100,6 +100,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<div className='pr-2 border-r border-white/20'>
 								<ConnectionStatusIcon size='small' />
 							</div>
+							{ obliviousKeyConfig !== null && (
+								<FaShieldAlt size={28} className="shrink-0 pr-2 border-r border-white/20" title={t('sidebar.obliviousEnabled')}/>
+							)}
 
 							<FaUserCircle className="shrink-0" size={20} title={displayName || username} />
 							<span
