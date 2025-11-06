@@ -354,10 +354,29 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options?: { appToken?: string }
 	): Promise<void> => {
 		try {
+			async function writeOnIndexedDB() {
+				if (!userHandle) {
+					return;
+				}
+				const userId = UserId.fromUserHandle(fromBase64Url(userHandle));
+				const userObject = await getItem("users", userId.id);
+				if (!userObject) {
+					throw new Error(`Could not find user with userHandle ${userHandle} on indexedDB 'users' table`);
+				}
+				userObject.privateData = serializePrivateData(newPrivateData);
+				await addItem("users", userId.id, userObject);
+			}
+
+			if (!isOnline) {
+				await writeOnIndexedDB();
+				console.log("Cannot write to remote keystore while offline");
+				return;
+			}
 			const updateResp = updatePrivateDataEtag(
 				await post('/user/session/private-data', serializePrivateData(newPrivateData), options),
 			);
 			if (updateResp.status === 204) {
+				await writeOnIndexedDB();
 				return;
 			} else {
 				console.error("Failed to update private data", updateResp.status, updateResp);
@@ -373,7 +392,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			}
 			throw e;
 		}
-	}, [post, updatePrivateDataEtag, cachedUsers, userHandle, syncPrivateData]);
+	}, [post, updatePrivateDataEtag, cachedUsers, userHandle, syncPrivateData, isOnline]);
 
 	const login = useCallback(async (
 		username: string,
