@@ -1427,6 +1427,25 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
+"@hpke/common@^1.8.1":
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/@hpke/common/-/common-1.8.1.tgz#555fb3c13e92783c8364cf9ea25272a6723e598c"
+  integrity sha512-PSI4QSxH8XDli0TqAsWycVfrLLCM/bBe+hVlJwtuJJiKIvCaFS3CXX/WtRfJceLJye9NHc2J7GvHVCY9B1BEbA==
+
+"@hpke/core@^1.7.4":
+  version "1.7.4"
+  resolved "https://registry.yarnpkg.com/@hpke/core/-/core-1.7.4.tgz#22e8e7d53e98fc775fbefb7be2b781d9b9face7f"
+  integrity sha512-1BfPQB7unq/tNx7eznmoFgmJlMFnymdLNNt2CQX/L8oYOfmc1+cFEItpXZ90mgthW7tB2oksy/G7Xh1t569qzA==
+  dependencies:
+    "@hpke/common" "^1.8.1"
+
+"@hpke/dhkem-x25519@^1.6.4":
+  version "1.6.4"
+  resolved "https://registry.yarnpkg.com/@hpke/dhkem-x25519/-/dhkem-x25519-1.6.4.tgz#e120bf97ba31eda3cbd81083704295bec28673cc"
+  integrity sha512-TTkZ3hjMDO6TweSTSAN/qL30WubOXJXTe/1eNL4cprlGokcjJq3SldcePI2BbC1eOYq903N1X6zwDjVG5OelfA==
+  dependencies:
+    "@hpke/common" "^1.8.1"
+
 "@humanwhocodes/config-array@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.13.0.tgz#fb907624df3256d04b9aa2df50d7aa97ec648748"

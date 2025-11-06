@@ -741,6 +741,9 @@ const Settings = () => {
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
+	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
+
+	const { getCalculatedWalletState } = keystore;
 
 	const deleteAccount = async () => {
 		try {
@@ -888,6 +891,7 @@ const Settings = () => {
 				throw new Error("Update token max age: newMaxAge is not a number");
 			}
 			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+				...getCalculatedWalletState().settings,
 				openidRefreshTokenMaxAgeInSeconds: newMaxAge,
 			});
 			await api.updatePrivateData(newPrivateData);
@@ -903,6 +907,29 @@ const Settings = () => {
 			console.error('Failed to update settings', error);
 		}
 	};
+
+	const handleObliviousChange = async (useOblivious: string) => {
+		try {
+			if (!['true', 'false'].includes(useOblivious)) {
+				throw new Error("Update useOblivious: invalid value");
+			}
+			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+				...getCalculatedWalletState().settings,
+				useOblivious: useOblivious.toString(),
+			});
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+
+			console.log('Settings updated successfully');
+			setObliviousSettingsMessage(t('pageSettings.oblivious.successMessage'));
+			setTimeout(() => {
+				setObliviousSettingsMessage('');
+			}, 3000);
+			refreshData();
+		} catch (error) {
+			console.error('Failed to update settings', error);
+		}
+	}
 
 	return (
 		<>
@@ -1014,6 +1041,36 @@ const Settings = () => {
 								{successMessage && (
 									<div className="text-md text-green-500">
 										{successMessage}
+									</div>
+								)}
+							</div>
+						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.oblivious.title')} />
+							<p className='mb-2 dark:text-white'>
+								{t('pageSettings.oblivious.description')}
+							</p>
+							<div className='flex gap-2 items-center'>
+								<div className="relative inline-block min-w-36 text-gray-700">
+									<div className="relative">
+										<select
+											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											defaultValue={userData.settings.useOblivious}
+											onChange={(e) => handleObliviousChange(e.target.value)}
+											disabled={!isOnline}
+											title={!isOnline ? t("common.offlineTitle") : undefined}
+										>
+											<option value="false">{t('pageSettings.oblivious.disabled')}</option>
+											<option value="true">{t('pageSettings.oblivious.gunet')}</option>
+										</select>
+										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
+											<IoIosArrowDown className='dark:text-white' />
+										</span>
+									</div>
+								</div>
+								{obliviousSettingsMessage && (
+									<div className="text-md text-green-500">
+										{obliviousSettingsMessage}
 									</div>
 								)}
 							</div>

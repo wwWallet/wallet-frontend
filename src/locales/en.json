@@ -251,6 +251,13 @@
 		"lockSensitive": "Lock sensitive actions",
 		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
+		"oblivious": {
+			"description": "Select a private gateway to use Oblivious HTTP",
+			"disabled": "Do not use Oblivious HTTP",
+			"gunet": "GUnet Gateway",
+			"successMessage": "Saved",
+			"title": "Oblivious HTTP"
+		},
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
@@ -374,6 +381,7 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
+		"obliviousEnabled": "Private requests with Oblivious HTTP enabled",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
