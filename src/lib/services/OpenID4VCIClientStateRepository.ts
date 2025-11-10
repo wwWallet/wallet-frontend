@@ -3,7 +3,7 @@ import SessionContext from "@/context/SessionContext";
 import { CurrentSchema } from "@/services/WalletStateSchema";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
-import { OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS } from "@/config";
+import { CLOCK_TOLERANCE, OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS } from "@/config";
 import { last } from "@/util";
 
 type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
@@ -68,11 +68,11 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		const deletedSessions = [];
 		for (const [k, v] of sessions.current) {
 			if (v.created && typeof v.created === 'number') {
-				if (v?.credentialEndpoint?.transactionId && now - v.created > OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) {
+				if (v?.credentialEndpoint?.transactionId && now - v.created > OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS + CLOCK_TOLERANCE) {
 					sessions.current.delete(k);
 					deletedSessions.push(k);
 				}
-				else if (!v?.credentialEndpoint?.transactionId && now - v.created > rememberIssuerForSeconds) {
+				else if (!v?.credentialEndpoint?.transactionId && now - v.created > rememberIssuerForSeconds + CLOCK_TOLERANCE) {
 					sessions.current.delete(k);
 					deletedSessions.push(k);
 				}

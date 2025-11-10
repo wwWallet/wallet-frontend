@@ -1,4 +1,4 @@
-import { CredentialKeyPair } from "./keystore";
+import { WrappedPrivateKey } from "./keystore";
 import { JWK } from "jose";
 import { sha256 } from "./WalletStateUtils";
 import { compareBy, deduplicateFromRightBy, maxByKey } from "@/util";
@@ -43,6 +43,14 @@ export type WalletSessionEventNewCredential = {
 export type WalletSessionEventDeleteCredential = {
 	type: "delete_credential",
 	credentialId: number,
+}
+
+export type CredentialKeyPair = {
+	kid: string,
+	did: string,
+	alg: string,
+	publicKey: JWK,
+	wrappedPrivateKey: WrappedPrivateKey,
 }
 
 export type WalletSessionEventNewKeypair = {
@@ -200,7 +208,7 @@ function normalize(obj: any) {
 	return obj;
 }
 
-function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
+export function credentialReducer(state: WalletStateCredential[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_credential":
 			return state.concat([{
@@ -220,7 +228,7 @@ function credentialReducer(state: WalletStateCredential[] = [], newEvent: Wallet
 	}
 }
 
-function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent) {
+export function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_keypair":
 			return state.concat([{
@@ -235,7 +243,7 @@ function keypairReducer(state: WalletStateKeypair[] = [], newEvent: WalletSessio
 }
 
 
-function presentationReducer(state: WalletStatePresentation[] = [], newEvent: WalletSessionEvent) {
+export function presentationReducer(state: WalletStatePresentation[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "new_presentation":
 			return state.concat([{
@@ -253,7 +261,7 @@ function presentationReducer(state: WalletStatePresentation[] = [], newEvent: Wa
 	}
 }
 
-function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
+export function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSession[] = [], newEvent: WalletSessionEvent) {
 	switch (newEvent.type) {
 		case "save_credential_issuance_session":
 			return state.filter((s) => s.sessionId !== newEvent.sessionId).concat([{
@@ -275,7 +283,7 @@ function credentialIssuanceSessionReducer(state: WalletStateCredentialIssuanceSe
 	}
 }
 
-function settingsReducer(state: WalletStateSettings, newEvent: WalletSessionEvent): WalletStateSettings {
+export function settingsReducer(state: WalletStateSettings, newEvent: WalletSessionEvent): WalletStateSettings {
 	switch (newEvent.type) {
 		case "alter_settings":
 			return { ...newEvent.settings };
