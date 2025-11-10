@@ -8,7 +8,7 @@ export function generateManifest(env): Partial<ManifestOptions> {
 		"name": env.VITE_STATIC_NAME || 'wwWallet',
 		"icons": [
 			{
-				"src": "logo.svg",
+				"src": "logo_light.svg",
 				"sizes": "16x16 32x32 64x64 192x192 512x512",
 				"type": "image/svg+xml",
 			},
