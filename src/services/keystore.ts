@@ -15,7 +15,7 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, getSchema, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
+import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -211,22 +211,6 @@ export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | Pri
 	);
 }
 
-export function isKeystoreV2PrivateData(privateData: PrivateDataV1 | PrivateDataV2): privateData is PrivateDataV2 {
-	if (!isKeystoreV0PrivateData(privateData as KeystoreV0PrivateData | PrivateDataV1) && !isKeystoreV1PrivateData(privateData)) {
-		const privateDataCopy = { ...privateData };
-		const foldedState = privateDataCopy.events.reduce(
-			(s, e) => getSchema(e.schemaVersion).walletStateReducer(s, e),
-			privateDataCopy.S,
-		) as SchemaV2.WalletState;
-		return (
-			"events" in privateData &&
-			"S" in privateData &&
-			(foldedState.keypairs.length > 0 && foldedState.keypairs.filter((k) => "wrappedPrivateKey" in k.keypair).length > 0)
-		)
-	}
-	return false;
-}
-
 export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): PrivateDataV1 {
 	if (isKeystoreV0PrivateData(privateData)) {
 		return {
@@ -259,37 +243,30 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateDataV2)
 }
 
 export async function migrateV3PrivateData(privateData: PrivateDataV2 | PrivateData, encryptionKey: CryptoKey): Promise<PrivateData> {
-	if (isKeystoreV2PrivateData(privateData as PrivateDataV2)) {
-		const privateDataCopy = { ...privateData };
-		const foldedState = privateData.events.reduce(
-			(s, e) => getSchema(e.schemaVersion).walletStateReducer(s, e),
-			privateDataCopy.S,
-		) as SchemaV2.WalletState;
-
-		const unwrappedKeypairs = await Promise.all(foldedState.keypairs.map(async (k) => {
-			const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey, true);
-			const jwk = await crypto.subtle.exportKey("jwk", unwrapped) as JWK;
-			const keypair: CredentialKeyPair = {
-				kid: k.kid,
-				did: k.keypair.did,
-				alg: k.keypair.alg,
-				publicKey: k.keypair.publicKey,
-				privateKey: jwk,
-			};
-			return {
-				kid: k.kid,
-				keypair: keypair,
-			}
-		}));
-
-		for (const { kid, keypair } of unwrappedKeypairs) {
-			privateData = await addDeleteKeypairEvent(privateData as CurrentSchema.WalletStateContainer, kid);
-			privateData = await addNewKeypairEvent(privateData, kid, keypair);
+	const state = foldState(privateData);
+	const wrappedKeypairs = state.keypairs
+		.filter(k => "wrappedPrivateKey" in k.keypair) as unknown as SchemaV2.WalletState["keypairs"];
+	const unwrappedKeypairs = await Promise.all(wrappedKeypairs.map(async (k) => {
+		const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey, true);
+		const jwk = await crypto.subtle.exportKey("jwk", unwrapped) as JWK;
+		const keypair: CredentialKeyPair = {
+			kid: k.kid,
+			did: k.keypair.did,
+			alg: k.keypair.alg,
+			publicKey: k.keypair.publicKey,
+			privateKey: jwk,
+		};
+		return {
+			kid: k.kid,
+			keypair: keypair,
 		}
-		return privateData as CurrentSchema.WalletStateContainer;
-	} else {
-		return privateData as CurrentSchema.WalletStateContainer;
+	}));
+
+	for (const { kid, keypair } of unwrappedKeypairs) {
+		privateData = await addDeleteKeypairEvent(privateData as CurrentSchema.WalletStateContainer, kid);
+		privateData = await addNewKeypairEvent(privateData, kid, keypair);
 	}
+	return privateData;
 }
 
 export type CredentialKeyPair = {
@@ -335,7 +312,7 @@ async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ ke
 	const mainKey = currentMainKey || await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
 		true,
-		["decrypt", "encrypt", "wrapKey"],
+		["decrypt", "encrypt", "wrapKey", "unwrapKey"],
 	);
 
 	const [mainPublicKeyInfo, mainPrivateKey] = await generateEncapsulationKeypair();
