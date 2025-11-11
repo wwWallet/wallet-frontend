@@ -5,12 +5,12 @@ import sharp from 'sharp';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 
 function findLogoFile(baseDir: string, name: string): string|null {
-  const svgPath = path.join(baseDir, `${name}.svg`);
-  const pngPath = path.join(baseDir, `${name}.png`);
+	const svgPath = path.join(baseDir, `${name}.svg`);
+	const pngPath = path.join(baseDir, `${name}.png`);
 
-  if (fs.existsSync(svgPath)) return svgPath;
-  if (fs.existsSync(pngPath)) return pngPath;
-  return null;
+	if (fs.existsSync(svgPath)) return svgPath;
+	if (fs.existsSync(pngPath)) return pngPath;
+	return null;
 }
 
 type GenerateAllIconsOptions = {
@@ -38,7 +38,7 @@ async function generateAllIcons({
 	}
 
 	const logoDarkPath  = findLogoFile(sourceDir, 'logo_dark');
-  if (!logoDarkPath) {
+	if (!logoDarkPath) {
 		throw new Error("dark mode logo not found");
 	}
 
