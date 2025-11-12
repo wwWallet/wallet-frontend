@@ -16,7 +16,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			)}
 
 			<div className="flex-grow flex flex-col items-center justify-center px-6 py-8">
-				<Logo aClassName='mb-6' imgClassName='w-40' />
+				<Logo aClassName='mb-6' imgClassName='w-20' />
 
 				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
 					{heading}
