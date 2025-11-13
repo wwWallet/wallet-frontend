@@ -7,7 +7,7 @@ const getSystemPref = (): "light" | "dark" =>
 		? "dark"
 		: "light";
 
-export const AppSettingsProvider = ({ children }: { children: React.ReactNode }) => {
+export const AppSettingsProvider = ({ children }: React.PropsWithChildren) => {
 	const [settings, setSettings] = useLocalStorage<Settings>("settings", {
 		colorScheme: "system",
 		mobileVcHomeView: "horizontal-slider",

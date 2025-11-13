@@ -20,7 +20,7 @@ const DEFAULTS: Record<NotificationType, { duration: number }> = {
 	newCredential: { duration: 4000 },
 };
 
-export const NotificationProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const NotificationProvider = ({ children }: React.PropsWithChildren) => {
 	const { t } = useTranslation();
 	const [items, setItems] = useState<NotificationItem[]>([]);
 	const timersRef = useRef<Record<string, number>>({});
