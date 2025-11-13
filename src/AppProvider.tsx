@@ -15,8 +15,8 @@ import { AppSettingsProvider } from './context/AppSettingsProvider';
 import { NotificationProvider } from './context/NotificationProvider';
 
 // Hocs
-import UriHandler from './hocs/UriHandler';
-import { NativeWrapperProvider } from './hocs/NativeWrapper';
+import { UriHandlerProvider } from './hocs/UriHandlerProvider';
+import { NativeWrapperProvider } from './hocs/NativeWrapperProvider';
 
 type RootProviderProps = {
 	children: ReactNode;
@@ -30,7 +30,7 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 					<I18nextProvider i18n={i18n}>
 						<OpenID4VPContextProvider>
 							<OpenID4VCIContextProvider>
-								<UriHandler>
+								<UriHandlerProvider>
 									<AppSettingsProvider>
 										<NotificationProvider>
 											<NativeWrapperProvider>
@@ -38,7 +38,7 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 											</NativeWrapperProvider>
 										</NotificationProvider>
 									</AppSettingsProvider>
-								</UriHandler>
+								</UriHandlerProvider>
 							</OpenID4VCIContextProvider>
 						</OpenID4VPContextProvider>
 					</I18nextProvider>
