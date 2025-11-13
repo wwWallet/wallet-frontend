@@ -12,7 +12,7 @@ import { CurrentSchema } from '@/services/WalletStateSchema';
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
 
-export const CredentialsContextProvider = ({ children }) => {
+export const CredentialsContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { api, keystore, isLoggedIn } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
 	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());

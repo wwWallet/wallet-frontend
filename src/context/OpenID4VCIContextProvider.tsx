@@ -6,7 +6,7 @@ import MessagePopup from "@/components/Popups/MessagePopup";
 import SessionContext from "./SessionContext";
 import { useOpenID4VCIClientStateRepository } from "@/lib/services/OpenID4VCIClientStateRepository";
 
-export const OpenID4VCIContextProvider = ({ children }) => {
+export const OpenID4VCIContextProvider = ({ children }: React.PropsWithChildren) => {
 
 	const { isLoggedIn } = useContext(SessionContext);
 	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
