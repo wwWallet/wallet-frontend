@@ -76,8 +76,8 @@ export const SessionContextProvider = ({ children }) => {
 	}, [globalTabId, tabId, clearSession, api, keystore]);
 
 	useEffect(() => {
-		if ((appToken === "" && isLoggedIn && isOnline) || // is logged-in when offline but now user is online again
-			(appToken !== "" && appToken !== null && isLoggedIn && !isOnline)) { // is logged-in when online but now the user has lost connection
+		if ((appToken === "" && isLoggedIn === true && isOnline === true) || // is logged-in when offline but now user is online again
+			(appToken !== "" && appToken !== null && isLoggedIn === true && isOnline === false)) { // is logged-in when online but now the user has lost connection
 			logout();
 		}
 
