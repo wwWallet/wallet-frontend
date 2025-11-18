@@ -432,7 +432,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		// initialize calculated wallet state
 		if (mainKey && privateData && calculatedWalletState === null) {
 			openPrivateData().then(([, , newCalculatedWalletState]) => {
-				console.log("Calculated wallet state = ", newCalculatedWalletState);
 
 				setCalculatedWalletState(newCalculatedWalletState);
 			});

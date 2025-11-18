@@ -49,6 +49,8 @@ ssl_keys/*
 
 variables.vars
 
+public/icons
+public/logo_*.svg
 public/manifest.json
 public/robots.txt
 public/sitemap.xml

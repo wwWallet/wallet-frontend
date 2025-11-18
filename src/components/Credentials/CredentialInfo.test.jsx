@@ -38,7 +38,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["firstname"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "First Name",
 									"description": "The first name of the individual"
 								}
@@ -49,7 +49,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["address", "street_address"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "Street Address",
 									"description": "The street address of the individual"
 								}
@@ -60,7 +60,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["address", "locality", "city"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "City",
 									"description": "The city of the individual's address"
 								}
@@ -71,7 +71,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["date_of_birth"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "Date of Birth",
 									"description": "The birthdate of the individual"
 								}
@@ -82,7 +82,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["expiry_date"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "Expiry Date",
 									"description": "The Expiry Date"
 								}
@@ -93,7 +93,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["age_over_18"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "Over 18",
 									"description": "Indicates if the individual is over the age of 18"
 								}
@@ -104,7 +104,7 @@ describe('CredentialInfo Component', () => {
 							"path": ["grade"],
 							"display": [
 								{
-									"lang": "en-US",
+									"locale": "en-US",
 									"label": "Grade",
 									"description": "The current grade level of the individual"
 								}
@@ -225,12 +225,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["firstname"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "First Name",
 										"description": "The first name of the individual"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Όνομα",
 										"description": "Το όνομα του ατόμου"
 									}
@@ -241,12 +241,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["address", "street_address"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "Street Address",
 										"description": "The street address of the individual"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Διεύθυνση",
 										"description": "Η διεύθυνση του ατόμου"
 									}
@@ -257,12 +257,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["address", "locality", "city"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "City",
 										"description": "The city of the individual's address"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Πόλη",
 										"description": "Η πόλη της διεύθυνσης του ατόμου"
 									}
@@ -273,12 +273,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["date_of_birth"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "Date of Birth",
 										"description": "The birthdate of the individual"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Ημερομηνία Γέννησης",
 										"description": "Η ημερομηνία γέννησης του ατόμου"
 									}
@@ -289,12 +289,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["age_over_18"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "Over 18",
 										"description": "Indicates if the individual is over the age of 18"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Άνω των 18",
 										"description": "Δηλώνει εάν το άτομο είναι άνω των 18 ετών"
 									}
@@ -305,12 +305,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["grade"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "Grade",
 										"description": "The current grade level of the individual"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Βαθμίδα",
 										"description": "Η τρέχουσα βαθμίδα του ατόμου"
 									}
@@ -321,12 +321,12 @@ describe('CredentialInfo Component', () => {
 								"path": ["expiry_date"],
 								"display": [
 									{
-										"lang": "en-US",
+										"locale": "en-US",
 										"label": "Expiry Date",
 										"description": "The expiry date of the credential"
 									},
 									{
-										"lang": "el-GR",
+										"locale": "el-GR",
 										"label": "Ημερομηνία Λήξης",
 										"description": "Η ημερομηνία λήξης του πιστοποιητικού"
 									}

@@ -34,8 +34,8 @@ const Legend = ({ showRequired, showRequested, t }) => {
 
 const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
 	const match =
-		displayArray.find(d => getLanguage(d.lang) === lang) ||
-		displayArray.find(d => getLanguage(d.lang) === fallbackLang) ||
+		displayArray.find(d => getLanguage(d.locale) === lang) ||
+		displayArray.find(d => getLanguage(d.locale) === fallbackLang) ||
 		displayArray[0] || {};
 
 	return {
@@ -124,7 +124,7 @@ const expandDisplayClaims = (claims, signedClaims) => {
 const isDisplayClaim = (claim) => {
 	if (!Array.isArray(claim.path)) return false;
 	if (!Array.isArray(claim.display)) return false;
-	return claim.display.some(d => d.lang && d.label);
+	return claim.display.some(d => d.locale && d.label);
 };
 
 const formatClaimValue = (value) => {
@@ -204,12 +204,12 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	// Define custom claims to display from signedClaims if claims is missing
 	const customClaims = fallbackClaims ? fallbackClaims :
 		[
-			{ path: ['given_name'], display: [{ lang: 'en', label: 'Given Name' }] },
-			{ path: ['family_name'], display: [{ lang: 'en', label: 'Family Name' }] },
-			{ path: ['birth_date'], display: [{ lang: 'en', label: 'Birth Date' }] },
-			{ path: ['document_number'], display: [{ lang: 'en', label: 'Document Number' }] },
-			{ path: ['issuance_date'], display: [{ lang: 'en', label: 'Issuance Date' }] },
-			{ path: ['expiry_date'], display: [{ lang: 'en', label: 'Expiry Date' }] },
+			{ path: ['given_name'], display: [{ locale: 'en', label: 'Given Name' }] },
+			{ path: ['family_name'], display: [{ locale: 'en', label: 'Family Name' }] },
+			{ path: ['birth_date'], display: [{ locale: 'en', label: 'Birth Date' }] },
+			{ path: ['document_number'], display: [{ locale: 'en', label: 'Document Number' }] },
+			{ path: ['issuance_date'], display: [{ locale: 'en', label: 'Issuance Date' }] },
+			{ path: ['expiry_date'], display: [{ locale: 'en', label: 'Expiry Date' }] },
 		];
 
 	const existingCustomClaims = customClaims.filter(field => getValueByPath(field.path, signedClaims) !== undefined);
@@ -271,13 +271,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				if (!claim.display || !claim.display.some(d => d.label)) {
 					expandedDisplayClaims[claimIdx] = {
 						...claim,
-						display: [{ lang: 'en', label: joined, description: '' }]
+						display: [{ locale: 'en', label: joined, description: '' }]
 					};
 				}
 			} else if (value !== undefined) {
 				syntheticClaims.push({
 					path: pathArr,
-					display: [{ lang: 'en', label: joined, description: '' }]
+					display: [{ locale: 'en', label: joined, description: '' }]
 				});
 			}
 		});

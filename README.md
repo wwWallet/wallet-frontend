@@ -1,4 +1,4 @@
-<img src="https://demo.wwwallet.org/wallet_192.png" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
+<img src="./branding/logo_dark.svg" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
 
 # wwWallet
 
@@ -227,7 +227,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>MacOS</td>
       <td>Internal</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -340,6 +340,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
 
 **\*Notes:**
+- Additional information about WebAuthn browser compatibility, can be found on Yubico's [WebAuthn](https://developers.yubico.com/WebAuthn/WebAuthn_Browser_Support/) and [PRF](https://developers.yubico.com/WebAuthn/Concepts/PRF_Extension/Developers_Guide_to_PRF.html) Developers page.
 - ✅-marked scenarios have been confirmed using the latest public releases of relevant browsers, operating systems, and other dependencies at the time of testing.
 - In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
   For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.\*

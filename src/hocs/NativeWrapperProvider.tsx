@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
@@ -15,7 +15,7 @@ declare global {
 }
 
 
-export const NativeWrapperProvider = ({ children }) => {
+export const NativeWrapperProvider = ({ children }: React.PropsWithChildren) => {
 	const keystore = useLocalStorageKeystore(keystoreEvents);
 
 	useEffect(

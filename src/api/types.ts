@@ -47,4 +47,5 @@ export type WebauthnCredential = {
 
 export type UserSettings = {
 	openidRefreshTokenMaxAgeInSeconds: number;
+	useOblivious: string;
 }

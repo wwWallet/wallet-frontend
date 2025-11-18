@@ -9,7 +9,7 @@ import SessionContext from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
 
 
-export const OpenID4VPContextProvider = ({ children }) => {
+export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
 	const { isLoggedIn } = useContext<any>(SessionContext);
 

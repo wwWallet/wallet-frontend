@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useContext, useEffect, useCallback, useRef, useMemo, useState } from 'react';
 
 import StatusContext from './StatusContext';
 import { useApi } from '../api';
@@ -8,12 +8,18 @@ import SessionContext, { SessionContextValue } from './SessionContext';
 import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
 import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
+import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
+import { OHTTP_KEY_CONFIG } from '@/config';
 
-export const SessionContextProvider = ({ children }) => {
+export const SessionContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
+	const { getCalculatedWalletState } = keystore;
 	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
+
+	const [walletStateLoaded, setWalletStateLoaded] = useState<boolean>(false);
+	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig>(null);
 
 	// A unique id for each logged in tab
 	const [globalTabId] = useLocalStorage<string | null>("globalTabId", null);
@@ -62,12 +68,32 @@ export const SessionContextProvider = ({ children }) => {
 		};
 	}, []);
 
+	useEffect(() => {
+		const S = getCalculatedWalletState();
+		if (S) {
+			if (S.settings['useOblivious'] === "true") {
+				// To use oblivious, keys must be fetched.
+				// Delay setWalletStateLoaded till then.
+				async function fetchKeyConfigAndUpdate() {
+					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
+					setObliviousKeyConfig(keyConfig);
+					setWalletStateLoaded(true);
+				}
+				fetchKeyConfigAndUpdate();
+			} else {
+				setObliviousKeyConfig(null);
+				setWalletStateLoaded(true);
+			}
+		}
+	}, [getCalculatedWalletState]);
+
 	const value: SessionContextValue = useMemo(() => ({
 		api,
 		isLoggedIn: isLoggedIn,
 		keystore,
 		logout,
-	}), [api, keystore, logout, isLoggedIn]);
+		obliviousKeyConfig
+	}), [api, keystore, logout, isLoggedIn, obliviousKeyConfig]);
 
 	useEffect(() => {
 		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
@@ -83,7 +109,7 @@ export const SessionContextProvider = ({ children }) => {
 
 	}, [appToken, isLoggedIn, isOnline, logout])
 
-	if (api.isLoggedIn() === true && keystore.isOpen() === false) {
+	if ((api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded))) {
 		return <></>
 	}
 	return (
