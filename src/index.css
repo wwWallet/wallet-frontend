@@ -84,13 +84,9 @@ body {
 	/* Light mode background */
 }
 
-@media (prefers-color-scheme: dark) {
-
-	html,
-	body {
-		background-color: rgb(17 24 39);
-		/* Dark mode background */
-	}
+html.dark,
+html.dark body {
+	background-color: rgb(17 24 39);
 }
 
 /* Custom scrollbar */
