@@ -14,7 +14,7 @@ const Legend = ({ showRequired, showRequested, t }) => {
 			className="mb-2 flex justify-end"
 			aria-label={t('credentialInfo.legendAriaLabel')}
 		>
-			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-sm dark:border-gray-400/40'>
+			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-xs dark:border-gray-400/40'>
 				{showRequired && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
 						<span>{t('credentialInfo.legendRequired')}</span>
@@ -134,13 +134,13 @@ const formatClaimValue = (value) => {
 			src={src}
 			alt=""
 			aria-hidden="true"
-			className="max-h-10 max-w-full rounded border"
+			className="max-h-10 max-w-full rounded-sm border"
 		/>
 	);
 
 	const renderJson = (v) => (
 		<div className="w-full">
-			<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
+			<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded-sm px-2 rounded-xl">
 				<JsonViewer value={v} />
 			</div>
 		</div>
@@ -387,8 +387,8 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div
 						key={fullPath}
-						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${(isRequested || isRequired) && requestedDisplay === "highlight"
-							? `bg-blue-50 shadow ${screenType === 'desktop' ? 'dark:bg-gray-600' : 'dark:bg-gray-800'}`
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded-sm ${(isRequested || isRequired) && requestedDisplay === "highlight"
+							? `bg-blue-50 shadow-sm ${screenType === 'desktop' ? 'dark:bg-gray-600' : 'dark:bg-gray-800'}`
 							: ''
 							}`}
 					>
@@ -411,13 +411,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 								<div className='flex'>
 									{isRequired && (
 										<TbAsterisk
-											className="text-primary dark:text-white flex-shrin"
+											className="text-primary dark:text-white shrink-0"
 										/>
 									)}
 									{isRequested && (
 										<IoIosSend
 											title="Requested by verifier"
-											className="text-primary dark:text-white flex-shrink-0"
+											className="text-primary dark:text-white shrink-0"
 										/>
 									)}
 								</div>

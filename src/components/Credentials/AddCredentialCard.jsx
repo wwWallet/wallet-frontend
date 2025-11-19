@@ -11,10 +11,10 @@ const AddCredentialCard = ({ onClick }) => {
 		<button
 			id="add-credential-card"
 			onClick={onClick}
-			className="step-1 relative w-full aspect-[1.6] rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 text-white"
+			className="step-1 relative w-full aspect-[1.6] rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 text-white"
 		>
 			{/* Decorative background layers */}
-			<div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-0" />
+			<div className="absolute inset-0 bg-white/10 backdrop-blur-xs z-0" />
 			<div className="absolute inset-0 bg-[radial-gradient(circle,_rgba(255,255,255,0.06)_1px,_transparent_1px)] bg-[size:20px_20px] pointer-events-none z-0" />
 
 			<div className="relative z-10 flex flex-col justify-between h-full w-full p-4">
