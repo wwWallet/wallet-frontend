@@ -6,6 +6,7 @@
   "dependencies": {
     "@auth0/mdl": "^2.2.0",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
+    "@fontsource/inter": "^5.2.8",
     "@hpke/core": "^1.7.4",
     "@hpke/dhkem-x25519": "^1.6.4",
     "@sd-jwt/core": "^0.10.0",
