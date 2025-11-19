@@ -7,13 +7,6 @@
 
 /* Theme Variables */
 @theme {
-	/* border Radius*/
-	--radius-xl: 1rem;
-
-	/* Spacing tokens */
-	--spacing-55: 55px;
-
-	/* Colors */
 	--color-primary-dark: #003476;
 	--color-primary-dark-hover: #003476;
 	--color-primary: #0750af;
