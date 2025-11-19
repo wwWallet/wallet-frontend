@@ -1,6 +1,74 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@variant 2xs (@media (min-width: 360px));
+@variant xm (@media (max-width: 479px));
+
+/* Theme Variables */
+@theme {
+	/* border Radius*/
+	--radius-xl: 1rem;
+
+	/* Spacing tokens */
+	--spacing-55: 55px;
+
+	/* Colors */
+	--color-primary-dark: #003476;
+	--color-primary-dark-hover: #003476;
+	--color-primary: #0750af;
+	--color-primary-hover: #004195;
+	--color-primary-light: #1d6fdb;
+	--color-primary-light-hover: #0f59ba;
+	--color-extra-light: #42b6e9;
+	--color-extra-light-hover: #2cabe3;
+}
+
+/* Keyframes */
+@keyframes slide-in-up {
+	0% {
+		transform: translateY(100%);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes slide-in-down {
+	0% {
+		transform: translateY(-100%);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes quick-blur {
+	0% {
+		filter: blur(2px);
+	}
+
+	100% {
+		filter: blur(0);
+	}
+}
+
+/* Animations */
+@layer utilities {
+	.animate-slide-in-up {
+		animation: slide-in-up 0.5s ease-out forwards;
+	}
+
+	.animate-slide-in-down {
+		animation: slide-in-down 0.5s ease-out forwards;
+	}
+
+	.animate-quick-blur {
+		animation: quick-blur 0.3s ease-in;
+	}
+}
 
 /* Font family and rendered font appear smoother */
 * {
