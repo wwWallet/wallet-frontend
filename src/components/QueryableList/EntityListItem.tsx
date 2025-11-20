@@ -60,7 +60,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-gray-200 dark:bg-gray-600 whitespace-nowrap">
 					{secondaryImageSrc && (
 						<div
-							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-gray-200"
+							className="h-5 w-5 flex justify-center items-center rounded-xs shrink-0 border-[0.5px] border-gray-200"
 							style={issuerLogoStyle}
 						>
 							<img

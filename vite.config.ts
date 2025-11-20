@@ -4,6 +4,7 @@ import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
@@ -11,6 +12,7 @@ export default defineConfig(({ mode }) => {
 		base: '/',
 		plugins: [
 			react(),
+			tailwindcss(),
 			svgr(),
 			checker({
 				eslint: {

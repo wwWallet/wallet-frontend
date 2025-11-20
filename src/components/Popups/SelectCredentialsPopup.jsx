@@ -324,7 +324,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 									<span className="text-primary text-sm font-bold dark:text-white block">
 										{t('selectCredentialPopup.requestingParty')}
 									</span>
-									<span className="w-max font-semibold text-primary dark:text-white rounded border border-primary dark:border-white p-1 break-all block">
+									<span className="w-max font-semibold text-primary dark:text-white rounded-sm border border-primary dark:border-white p-1 break-all block">
 										{prettyDomain(popupState.options.verifierDomainName)}
 									</span>
 								</div>
@@ -375,7 +375,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												</span>
 												<span
 													title={descriptorId}
-													className="font-semibold bg-gray-100 dark:bg-gray-600 px-1 rounded border border-gray-400 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
+													className="font-semibold bg-gray-100 dark:bg-gray-600 px-1 rounded-sm border border-gray-400 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
 												>
 													{descriptorId}
 												</span>

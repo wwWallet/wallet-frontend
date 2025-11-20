@@ -74,7 +74,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white dark:inputDarkModeOverride w-full py-1.5 pl-10 pr-3"
+				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white dark:inputDarkModeOverride w-full py-1.5 pl-10 pr-3"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -493,7 +493,7 @@ const WebauthnSignupLogin = ({
 									/>
 									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
 										<div
-											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											className={`text-red-500 grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
 										>
 											{t('loginSignup.reachedLengthLimit')}
@@ -595,7 +595,7 @@ const WebauthnSignupLogin = ({
 										<div className="absolute -right-7 flex items-center ml-2 group">
 											<FaQuestionCircle className={`w-4 h-4 text-gray-600 dark:text-gray-400 cursor-pointer opacity-50 ${screenType === 'desktop' ? 'hover:opacity-100' : ''}`} aria-hidden="true" />
 
-											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
+											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded-sm bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
 												{helpText}
 											</div>
 										</div>
@@ -728,11 +728,11 @@ const Auth = () => {
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
 
-				<div className='absolute text-gray-500 dark:text-white top-0 left-5'>
+				<div className='absolute text-gray-500 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 
-				<div className='absolute top-0 right-3'>
+				<div className='absolute top-5 right-3'>
 					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
 

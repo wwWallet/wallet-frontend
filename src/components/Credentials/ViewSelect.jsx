@@ -45,7 +45,7 @@ export default function ViewSelect({ value, onChange }) {
 				aria-haspopup="menu"
 				aria-expanded={open}
 				aria-label={t("viewSelect.aria.toggle")}
-				className="flex items-center gap-1 px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 hover:dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+				className="flex items-center gap-1 px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 hover:dark:bg-gray-700 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500"
 			>
 				<SelectedIcon className="w-5 h-5" />
 				{t("viewSelect.view")}
