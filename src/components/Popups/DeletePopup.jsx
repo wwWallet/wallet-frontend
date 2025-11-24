@@ -11,14 +11,14 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 	return (
 		<PopupLayout isOpen={isOpen} onClose={onClose} loading={loading}>
 			<div className="flex items-start justify-between mb-2">
-				<h2 className="text-lg font-bold text-red-500">
+				<h2 className="text-lg font-bold text-c-lm-red dark:text-c-dm-red">
 					<FaTrash size={20} className="inline mr-1" />
 					{t('pageSettings.title.confirmDeletePopup')}
 				</h2>
 				<button
 					id="dismiss-delete-popup"
 					type="button"
-					className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+					className="text-c-lm-gray-900 dark:text-c-dm-gray-100 bg-transparent hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600 transition-all rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center"
 					onClick={onClose}
 				>
 					<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
@@ -26,12 +26,11 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 					</svg>
 				</button>
 			</div>
-			<hr className="mb-2 border-t border-red-500/80" />
-			<p className="mb-2 mt-4 text-gray-700 dark:text-white">{message}</p>
+			<hr className="mb-2 border-t border-c-lm-red dark:border-c-dm-red" />
+			<p className="mb-2 mt-4 text-c-lm-gray-800 dark:text-c-dm-gray-200">{message}</p>
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button
 					id="close-delete-popup"
-					variant="cancel"
 					onClick={onClose}
 				>
 					{t('common.cancel')}

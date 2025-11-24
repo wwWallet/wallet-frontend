@@ -11,7 +11,7 @@ const AddCredentialCard = ({ onClick }) => {
 		<button
 			id="add-credential-card"
 			onClick={onClick}
-			className="step-1 relative w-full aspect-[1.6] rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all bg-gradient-to-br from-gray-300 via-gray-400 to-gray-500 text-white"
+			className="step-1 relative w-full aspect-[1.6] rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all bg-gradient-to-br from-c-lm-gray-600 via-c-lm-gray-700 to-c-lm-gray-800 text-c-lm-gray-100 dark:from-c-dm-gray-600 dark:via-c-dm-gray-700 dark:to-c-dm-gray-800"
 		>
 			{/* Decorative background layers */}
 			<div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-0" />
@@ -24,7 +24,7 @@ const AddCredentialCard = ({ onClick }) => {
 				</div>
 
 				<div className="flex flex-col items-center justify-center text-center grow">
-					<BsPlusCircle className="text-white text-4xl md:text-2xl lg:text-4xl" />
+					<BsPlusCircle className="text-c-lm-gray-100 text-4xl md:text-2xl lg:text-4xl" />
 					<span className="mt-2 text-base md:text-xs lg:text-sm font-semibold">
 						{t('pageCredentials.addCard.text')}
 					</span>

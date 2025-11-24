@@ -23,7 +23,7 @@ const CredentialJson = ({ parsedCredential }) => {
 
 	return (
 		<div className="w-full py-2 relative">
-			<div className="json-container h-80 resize-y overflow-auto min-h-32 bg-white dark:bg-gray-800 dark:text-white border rounded p-2 text-sm rounded-xl transition filter duration-200 relative">
+			<div className="json-container h-80 resize-y overflow-auto min-h-32 bg-inherit text-inherit border border-c-lm-gray-400 dark:border-c-dm-gray-600 p-2 text-sm rounded-lg transition filter duration-200 relative">
 				<button
 					id="copy-dataset"
 					onClick={handleCopy}

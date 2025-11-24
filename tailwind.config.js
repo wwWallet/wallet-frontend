@@ -12,14 +12,95 @@ const config = {
 				'55': 55,
 			},
 			colors: {
-				'primary-dark': '#003476',
-				'primary-dark-hover': '#003476',
-				'primary': '#0750AF',
-				'primary-hover': '#004195',
-				'primary-light': '#1D6FDB',
-				'primary-light-hover': '#0F59BA',
-				'extra-light': '#42B6E9',
-				'extra-light-hover': '#2CABE3',
+				"primary": "hsl(217, 66%, 32%)",
+				"primary-hover": "hsl(217, 66%, 42%)",
+
+				"secondary": "hsl(217, 66%, 32%)",
+				"secondary-hover": "hsl(217, 66%, 42%)",
+
+				"primary-dark": "hsl(217, 66<%, 32%)",
+
+				"primary-light": "hsl(217, 66%, 48%)",
+				"primary-light-hover": "hsl(216, 85%, 39%)",
+
+				"extra-light": "hsl(198, 79%, 59%)",
+				"extra-light-hover": "hsl(197, 61%, 61%)",
+
+				"c-lm-red": "hsl(3, 76%, 42%)",
+				"c-lm-red-hover": "hsl(3, 76%, 48%)",
+				"c-lm-red-light": "hsl(3, 76%, 93%)",
+				"c-lm-red-dark": "hsl(3, 75%, 38%)",
+				"c-lm-red-dark-hover": "hsl(3, 75%, 48%)",
+
+				"c-dm-red": "hsl(3, 100%, 54%)",
+				"c-dm-red-hover": "hsl(3, 100%, 60%)",
+				"c-dm-red-light": "hsl(3, 100%, 95%)",
+				"c-dm-red-dark": "hsl(3, 100%, 40%)",
+				"c-dm-red-dark-hover": "hsl(3, 100%, 48%)",
+
+				"c-lm-orange": "hsl(35, 100%, 50%)",
+				"c-lm-orange-bg": "hsl(35, 100%, 50%)",
+
+				"c-dm-orange": "hsl(36, 100%, 52%)",
+				"c-dm-orange-bg": "hsl(36, 100%, 52%)",
+
+				"c-lm-yellow": "hsl(48, 100%, 50%)",
+				"c-dm-yellow": "hsl(50, 100%, 52%)",
+
+				"c-lm-green": "hsl(135, 64%, 27%)",
+				"c-lm-green-bg": "hsl(135, 64%, 27%)",
+
+				"c-dm-green": "hsl(135, 64%, 50%)",
+				"c-dm-green-bg": "hsl(135, 64%, 50%)",
+
+				"c-lm-mint": "hsl(177, 100%, 39%)",
+				"c-dm-mint": "hsl(178, 72%, 65%)",
+
+				"c-lm-teal": "hsl(189, 61%, 48%)",
+				"c-dm-teal": "hsl(189, 72%, 56%)",
+
+				"c-lm-cyan": "hsl(199, 78%, 55%)",
+				"c-dm-cyan": "hsl(197, 100%, 70%)",
+
+				"c-lm-blue": "hsl(211, 96%, 28%)",
+				"c-dm-blue": "hsl(210, 100%, 52%)",
+
+				"c-lm-indigo": "hsl(241, 61%, 59%)",
+				"c-dm-indigo": "hsl(241, 73%, 63%)",
+
+				"c-lm-purple": "hsl(280, 68%, 60%)",
+				"c-dm-purple": "hsl(280, 85%, 65%)",
+
+				"c-lm-pink": "hsl(349, 100%, 59%)",
+				"c-dm-pink": "hsl(348, 100%, 61%)",
+
+				"c-lm-gray": {
+					'50':   "hsl(0, 0%, 100%)",
+					'100':  "hsl(220, 8%, 100%)",
+					'200':  "hsl(220, 8%, 97.6%)",
+					'300':  "hsl(220, 8%, 93.3%)",
+					'400':  "hsl(220, 8%, 88.6%)",
+					'500':  "hsl(220, 8%, 80.8%)",
+					'600':  "hsl(220, 8%, 66.7%)",
+					'700':  "hsl(220, 8%, 47.1%)",
+					'800':  "hsl(220, 8%, 21.2%)",
+					'900':  "hsl(220, 8%, 0%)",
+					'950':  "hsl(0, 0%, 0%)"
+				},
+				"c-dm-gray": {
+					'50':   "hsl(0, 0%, 100%)",
+					'100':  "hsl(220, 6%, 92.2%)",
+					'200':  "hsl(220, 7%, 79.6%)",
+					'300':  "hsl(220, 3%, 63.3%)",
+					'400':  "hsl(220, 2%, 50.4%)",
+					'500':  "hsl(220, 3%, 27.6%)",
+					'600':  "hsl(220, 4%, 20.6%)",
+					'700':  "hsl(220, 5%, 14.3%)",
+					'800':  "hsl(220, 9%, 10.2%)",
+					'900':  "hsl(220, 20%, 5.7%)",
+					'950':  "hsl(0, 0%, 0%)"
+				}
+
 			},
 			screens: {
 				'2xs': '360px',

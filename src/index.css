@@ -9,20 +9,17 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* Global Background */
 html,
 body {
-	background-color: rgb(243 244 246);
+	background-color: #FFFFFF;
 	/* Light mode background */
 }
 
-@media (prefers-color-scheme: dark) {
-
-	html,
-	body {
-		background-color: rgb(17 24 39);
-		/* Dark mode background */
-	}
+html.dark,
+body.dark,
+html.dark body {
+	background-color: #0E0F11;
+	/* Dark mode background */
 }
 
 /* Custom scrollbar */

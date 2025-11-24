@@ -103,7 +103,7 @@ const QueryableList = <T extends object>({
 			</div>
 			{recentCredentialConfigurations.length > 0 && recentList.length > 0 && !searchQuery && <H3 heading={t("queryableList.all")} />}
 			{filteredList.length === 0 ? (
-				<p className="text-gray-700 dark:text-gray-300 mt-4">
+				<p className="text-c-lm-gray-800 dark:text-c-dm-gray-200 mt-4">
 					{t(translationPrefix + ".noFound")}
 				</p>
 			) : (

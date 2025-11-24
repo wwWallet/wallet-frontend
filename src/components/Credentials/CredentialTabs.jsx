@@ -2,12 +2,12 @@ import React from 'react';
 
 const CredentialTabs = ({ tabs, activeTab, onTabChange }) => {
 	return (
-		<div className="flex space-x-4 border-b dark:border-gray-700">
+		<div className="flex space-x-4 border-b border-c-lm-gray-400 dark:border-c-dm-gray-600">
 			{tabs.map((tab, index) => (
 				<button
 					id={`credential-tab-${index}`}
 					key={index}
-					className={`py-2 px-4 ${activeTab === index ? 'bg-primary dark:bg-primary-light text-white rounded-t-lg' : 'text-primary dark:text-primary-light'}`}
+					className={`py-2 px-4 ${activeTab === index ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 text-c-lm-gray-900 dark:text-c-dm-gray-100 rounded-t-lg' : 'text-c-lm-gray-900 dark:text-c-dm-gray-100'}`}
 					onClick={() => onTabChange(index)}
 				>
 					{tab.label}

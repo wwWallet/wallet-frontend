@@ -24,7 +24,7 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 						{t('selectCredentialPopup.signedDocuments')}
 					</span>
 					<p></p>
-					<div className="flex w-full border rounded-md dark:border-gray-400 bg-gray-100 dark:bg-gray-600 p-2">
+					<div className="flex w-full border rounded-md dark:border-gray-400 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 p-2">
 						<div className="w-5/6 flex items-center">
 							<ul className="flex flex-col list-disc">
 								{req.documentDigests.map((digest, index) => (

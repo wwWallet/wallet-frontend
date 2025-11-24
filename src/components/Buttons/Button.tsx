@@ -1,5 +1,7 @@
 import React from 'react';
 
+import AnimatedLinkText from '@/components/Shared/AnimatedLinkText';
+
 export type Variant = (
 	'primary'
 	| 'secondary'
@@ -11,18 +13,35 @@ export type Variant = (
 	| 'custom'
 );
 
+type Size = (
+	'sm'
+	| 'md'
+	| 'lg'
+	| 'xl'
+	| '2xl'
+);
+
+type TextSize = (
+	'sm'
+	| 'md'
+	| 'lg'
+);
+
 export type Props = {
 	id?: string,
 	type?: 'button' | 'reset' | 'submit',
 	children?: React.ReactNode,
 	onClick?: React.MouseEventHandler<HTMLButtonElement>,
 	variant?: Variant,
+	size?: Size,
+	square?: boolean,
+	textSize?: TextSize,
 	additionalClassName?: string,
 	disabled?: boolean,
 	ariaLabel?: string,
-	name?: string,
 	title?: string,
-	value?: string,
+	linkLineSize?: 'regular-small' | 'small' | 'mid' | 'large',
+	linkClassName?: string,
 };
 
 const Button = ({
@@ -31,33 +50,78 @@ const Button = ({
 	children,
 	onClick,
 	variant = 'custom',
+	size = 'md',
+	square = false,
+	textSize = 'sm',
 	additionalClassName = '',
 	disabled = false,
 	ariaLabel,
-	name,
 	title,
-	value,
+	linkLineSize = 'regular-small',
+	linkClassName = 'text-c-lm-gray-900 dark:text-c-dm-gray-100',
 }: Props) => {
 
+	if (variant === 'link') {
+		return (
+			<button
+			id={id}
+			type={type}
+			{...(onClick && { onClick: onClick })}
+			{...(disabled && { disabled })}
+			className={`${additionalClassName} group`}
+			{...(ariaLabel && { 'aria-label': ariaLabel })}
+			{...(title && { title })}
+			>
+				<AnimatedLinkText
+				className={linkClassName}
+				size={linkLineSize}
+				text={children}
+				/>
+			</button>
+		)
+	}
+
 	const getVariantClassName = () => {
-		const commonClasses = 'rounded-lg shadow-sm text-sm px-4 py-2 text-center flex flex-row flex-nowrap items-center justify-center';
+		let sizeClasses = '';
+		if (size === 'sm') {
+			sizeClasses = square ? 'p-1' : 'px-3 py-1';
+		} else if (size === 'md') {
+			sizeClasses = square ? 'p-2' : 'px-4 py-2';
+		} else if (size === 'lg') {
+			sizeClasses = square ? 'px-3 ' : 'px-5 py-3';
+		} else if (size === 'xl') {
+			sizeClasses = square ? 'p-3.5' : 'px-6 py-3.5';
+		} else if (size === '2xl') {
+			sizeClasses = square ? 'p-5' : 'px-8 py-5';
+		} else {
+			sizeClasses = square ? 'p-2' : 'px-4 py-2';
+		}
+
+		let textSizeClasses = '';
+		if (textSize === 'sm') {
+			textSizeClasses = 'text-sm';
+		} else if (textSize === 'md') {
+			textSizeClasses = 'text-md';
+		} else if (textSize === 'lg') {
+			textSizeClasses = 'text-lg';
+		}
+
+		const commonClasses = `rounded-lg shadow-sm text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 ${textSizeClasses}`;
+		const disabledClasses = 'grayscale opacity-80 cursor-not-allowed';
+
 		switch (variant) {
 			case 'primary':
-				return `${commonClasses} text-white ${!disabled ? "bg-primary hover:bg-primary-hover dark:text-white dark:hover:bg-primary-light-hover dark:bg-primary-light" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
+				return `${commonClasses} ${sizeClasses} text-white bg-primary border-primary ${!disabled ? "hover:bg-primary-hover hover:border-primary-hover" : disabledClasses}`;
 			case 'secondary':
-				return `${commonClasses} text-white ${!disabled ? "bg-primary-light hover:bg-primary-light-hover dark:bg-extra-light dark:hover:bg-primary-light" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
+				return `${commonClasses} ${sizeClasses} text-white dark:text-black bg-primary-light dark:bg-extra-light border-primary-light dark:border-extra-light ${!disabled ? "dark:hover:text-white hover:bg-primary hover:border-primary dark:hover:bg-primary-light dark:hover:border-primary-light" : disabledClasses}`;
 			case 'tertiary':
-				return `${commonClasses} text-gray-700 bg-gray-100 hover:bg-gray-200`;
-			case 'cancel':
-				return `${commonClasses} ${!disabled ? "text-gray-900 bg-gray-300 hover:bg-gray-400" : "text-white bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-gray-100 dark:text-c-dm-gray-900 bg-c-lm-gray-900 dark:bg-c-dm-gray-100 border-c-lm-gray-900 dark:border-c-dm-gray-800 ${!disabled ? "hover:bg-c-lm-gray-800 dark:hover:bg-c-dm-gray-200 hover:border-c-lm-gray-800 dark:hover:border-clm-gray-200" : disabledClasses}`;
 			case 'delete':
-				return `${commonClasses} ${!disabled ? "text-white bg-red-600 hover:bg-red-700" : "text-red-400 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"}`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-red-light dark:text-c-dm-red-light bg-c-lm-red-dark dark:bg-c-dm-red-dark border-c-lm-red-dark dark:border-c-dm-red-dark ${!disabled ? "hover:bg-c-lm-red-dark-hover dark:hover:bg-c-dm-red-dark-hover hover:border-c-lm-red-dark-hover dark:hover:border-c-dm-red-dark-hover" : disabledClasses}`;
 			case 'outline':
-				return `bg-white rounded-lg px-4 py-[0.4375rem] text-sm flex flex-row flex-nowrap items-center justify-center border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed'}`;
-			case 'link':
-				return `font-semibold ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-100 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border-c-lm-gray-600 dark:border-c-dm-gray-400 ${!disabled ? 'hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500' : disabledClasses}`;
 			default:
-				return `${commonClasses}`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-100 bg-c-lm-gray-600 dark:bg-c-dm-gray-500 border-c-lm-gray-600 dark:border-c-dm-gray-500 ${!disabled ? "hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-600 hover:border-c-lm-gray-400 dark:hover:border-c-dm-gray-600" : disabledClasses}`;
 		}
 	};
 
@@ -72,9 +136,7 @@ const Button = ({
 			{...(disabled && { disabled })}
 			className={className}
 			{...(ariaLabel && { 'aria-label': ariaLabel })}
-			{...(name && { name })}
 			{...(title && { title })}
-			{...(value && { value })}
 		>
 			{children}
 		</button>

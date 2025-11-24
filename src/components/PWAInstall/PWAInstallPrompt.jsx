@@ -14,19 +14,18 @@ const PWAInstallPrompt = () => {
 	return (
 		pwaInstallable && !hidePwaPrompt && (
 			<div className={`w-full flex justify-center ${screenType === 'desktop' && 'mt-5'}`}>
-				<div className='flex bg-gray-600 m-3 p-3 rounded-md shadow justify-between w-full sm:w-96'>
-					<div className='flex items-center'>
+				<div className='flex bg-c-lm-gray-300 dark:bg-c-dm-gray-700 m-3 p-3 rounded-lg shadow justify-between w-full sm:w-96'>
+					<div className='flex items-center text-c-lm-gray-900 dark:text-c-dm-gray-100'>
 						{screenType !== 'desktop' ? (
-							<MdInstallMobile className='text-white mr-2' size={32} />
+							<MdInstallMobile className='mr-2' size={32} />
 						) : (
-							<MdInstallDesktop className='text-white mr-2' size={32} />
+							<MdInstallDesktop className='mr-2' size={32} />
 						)}
-						<a href="/" className={`text-white font-semibold cursor-pointer transition-all duration-300 text-sm`}>
+						<a href="/" className={`font-semibold cursor-pointer transition-all duration-300 text-sm`}>
 							{t('pwaInstallPrompt.message')}
 						</a>
 					</div>
 					<div className='flex items-center space-y'>
-
 						<Button
 							id="install-pwa-installable"
 							variant="tertiary"
@@ -35,14 +34,17 @@ const PWAInstallPrompt = () => {
 						>
 							{t('pwaInstallPrompt.button.install')}
 						</Button>
-						<button
+						<Button
 							id="close-pwa-installable"
 							className='text-white'
+							variant='cancel'
+							square={true}
+							size='sm'
 							title={t('pwaInstallPrompt.button.closeTitle')}
 							onClick={dismissPwaPrompt}
 						>
 							<IoClose size={25} />
-						</button>
+						</Button>
 					</div>
 				</div>
 			</div>

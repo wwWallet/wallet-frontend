@@ -10,6 +10,7 @@ import QrScanner from 'qr-scanner';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
+import Button from '../Buttons/Button';
 
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
@@ -163,24 +164,24 @@ const QRScanner = ({ onClose }) => {
 			{hasCameraPermission === false ? (
 				<>
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
-						<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+						<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
 							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
 
-						<button
+						<Button
 							id="close-qr-code-scanner-perm"
-							type="button"
-							className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+							variant="outline"
+							square={true}
 							onClick={handleClose}
 						>
 							<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
 								<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
 							</svg>
-						</button>
+						</Button>
 					</div>
-					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
-					<p className='text-red-600 dark:text-red-500'>
+					<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+					<p className='text-c-lm-red dark:text-c-dm-red'>
 						{t('qrCodeScanner.cameraPermissionAllow')}
 					</p>
 				</>
@@ -195,34 +196,32 @@ const QRScanner = ({ onClose }) => {
 									className="mr-2 mb-2"
 									aria-label="Go back to the previous page"
 								>
-									<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+									<FaArrowLeft size={20} className="text-2xl text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 								</button>
 								<H1 heading={t('qrCodeScanner.title')} hr={false} />
 							</div>
 						) : (
-							<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+							<div className="flex items-start justify-between border-b rounded-t border-c-lm-gray-400 dark:border-c-dm-gray-600">
 
-								<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+								<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
 									<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
 									{t('qrCodeScanner.title')}
 								</h2>
-								<button
+								<Button
 									id="close-qr-code-scanner"
-									type="button"
-									className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
 									onClick={handleClose}
 								>
 									<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
 										<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
 									</svg>
-								</button>
-								<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+								</Button>
+								<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
 							</div>
 						)}
 
 
 						{screenType !== 'mobile' && (
-							<p className="italic pd-2 text-gray-700 dark:text-gray-300">
+							<p className="italic pd-2 text-c-lm-gray-800 dark:text-c-dm-gray-200">
 								{t('qrCodeScanner.description')}
 							</p>
 						)}
@@ -260,7 +259,7 @@ const QRScanner = ({ onClose }) => {
 							<button
 								id="zoom-out-qr-code-scanner"
 								type="button"
-								className="text-gray-500 dark:text-gray-200 mr-2 mt-2 cursor-pointer"
+								className="text-c-lm-gray-800 dark:text-c-dm-gray-200 mr-2 mt-2 cursor-pointer"
 								onClick={handleZoomOut}
 							>
 								<RiZoomOutFill size={30} />
@@ -272,12 +271,12 @@ const QRScanner = ({ onClose }) => {
 								step="0.1"
 								value={zoomLevel}
 								onChange={handleZoomChange}
-								className="w-full h-2 bg-gray-200 rounded-lg cursor-pointer dark:bg-gray-700 mt-2"
+								className="w-full h-2 bg-c-lm-gray-200 rounded-lg cursor-pointer dark:bg-c-dm-gray-700 mt-2"
 							/>
 							<button
 								id="zoom-in-qr-code-scanner"
 								type="button"
-								className="text-gray-500 dark:text-gray-200 ml-2 mt-2 cursor-pointer"
+								className="text-c-lm-gray-800 dark:text-c-dm-gray-200 ml-2 mt-2 cursor-pointer"
 								onClick={handleZoomIn}
 							>
 								<RiZoomInFill size={30} />
@@ -286,7 +285,7 @@ const QRScanner = ({ onClose }) => {
 								<button
 									id="switch-camera-qr-code-scanner"
 									type="button"
-									className="text-gray-500 dark:text-gray-200 text-sm ml-4 mt-2"
+									className="text-c-lm-gray-800 dark:text-c-dm-gray-200 text-sm ml-4 mt-2"
 									onClick={switchCamera}
 								>
 									<PiCameraRotateFill size={30} />

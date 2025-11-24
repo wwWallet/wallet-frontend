@@ -140,7 +140,7 @@ const formatClaimValue = (value) => {
 
 	const renderJson = (v) => (
 		<div className="w-full">
-			<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded px-2 rounded-xl">
+			<div className="max-h-40 resize-y bg-white dark:bg-c-dm-gray-800 overflow-auto border rounded px-2 rounded-xl">
 				<JsonViewer value={v} />
 			</div>
 		</div>
@@ -374,10 +374,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div key={fullPath} className="w-full">
 						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
-							<summary className="cursor-pointer font-semibold text-primary dark:text-white w-full">
+							<summary className="cursor-pointer font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 w-full">
 								{label}
 							</summary>
-							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-primary dark:border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
+							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-c-lm-gray-900 dark:border-c-dm-gray-100 text-c-lm-gray-900 dark:text-c-dm-gray-100">
 								{renderClaims(value, [...currentPath, key])}
 							</div>
 						</details>
@@ -388,13 +388,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					<div
 						key={fullPath}
 						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${(isRequested || isRequired) && requestedDisplay === "highlight"
-							? `bg-blue-50 shadow ${screenType === 'desktop' ? 'dark:bg-gray-600' : 'dark:bg-gray-800'}`
+							? `bg-c-lm-gray-300 shadow ${screenType === 'desktop' ? 'dark:bg-c-dm-gray-700' : 'dark:bg-c-dm-gray-800'}`
 							: ''
 							}`}
 					>
 						<div
 							className={
-								`font-semibold text-primary dark:text-white w-1/2 break-words` +
+								`font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 w-1/2 break-words` +
 								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -411,13 +411,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 								<div className='flex'>
 									{isRequired && (
 										<TbAsterisk
-											className="text-primary dark:text-white flex-shrin"
+											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 flex-shrin"
 										/>
 									)}
 									{isRequested && (
 										<IoIosSend
 											title="Requested by verifier"
-											className="text-primary dark:text-white flex-shrink-0"
+											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 flex-shrink-0"
 										/>
 									)}
 								</div>

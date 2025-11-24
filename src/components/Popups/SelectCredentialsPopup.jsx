@@ -55,7 +55,7 @@ const SelectableCredentialSlideCard = ({
 			{imageLoaded && (
 				<>
 					<div
-						className={`absolute inset-0 rounded-xl transition-opacity bg-white/50 ${isSelected ? 'opacity-0' : 'opacity-50'
+						className={`absolute inset-0 rounded-xl transition-opacity bg-c-lm-gray-400 dark:bg-c-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-50'
 							}`}
 					/>
 					<div className="absolute bottom-4 right-4 z-60">
@@ -97,10 +97,10 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 						<div className="flex flex-col items-center">
 							<div
 								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive
-									? 'text-white bg-primary dark:bg-primary-light border-2 border-primary dark:border-primary-light'
+									? 'text-white bg-primary dark:bg-primary-light border border-primary dark:border-primary-light'
 									: isCurrent
-										? 'text-primary dark:text-white dark:bg-gray-700 border-2 border-primary dark:border-primary-light'
-										: 'text-gray-400 border-2 border-gray-400 dark:border-gray-400'
+										? 'text-primary dark:text-white dark:bg-c-dm-gray-700 border border-primary dark:border-primary-light'
+										: 'text-gray-400 border border-c-lm-gray-400 dark:border-c-dm-gray-400'
 									}`}
 							>
 								{index === 0 ? (
@@ -113,9 +113,9 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 							</div>
 						</div>
 						{index < totalSteps - 1 && (
-							<div className="flex-auto h-[2px] bg-gray-400">
+							<div className="flex-auto h-[2px] bg-c-lm-gray-400 dark:bg-c-dm-gray-400">
 								<div
-									className={`h-[2px] ${isActive ? 'bg-primary dark:bg-primary-light' : ''} transition-all duration-300`}
+									className={`h-[2px] ${isActive ? 'text-c-lm-gray-900 dark:text-c-dm-gray-100' : ''} transition-all duration-300`}
 									style={{ width: isActive ? '100%' : '0%' }}
 								></div>
 							</div>
@@ -140,7 +140,7 @@ const StepTitle = ({ currentKey, t }) => {
 	}
 
 	return (
-		<h2 className="text-lg font-bold mb-2 text-primary dark:text-white flex flex-wrap items-center gap-2 leading-tight">
+		<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100 flex flex-wrap items-center gap-2 leading-tight">
 			<span className="inline-flex items-center gap-2">
 				{icon}
 				{t('selectCredentialPopup.baseTitle')} - {text}
@@ -309,22 +309,22 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{stepTitles && (
 					<StepTitle currentKey={keys[currentIndex]} t={t} />
 				)}
-				<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+				<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
 
 				{/* Preview step */}
 				{keys[currentIndex] === 'preview' && (
 					<>
-						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-2">
+						<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 italic text-sm mt-3 mb-2">
 							{t('selectCredentialPopup.previewDescription')}
 						</p>
 						<div className="flex flex-col gap-2">
 
 							{popupState?.options?.verifierDomainName && (
-								<div className="flex flex-wrap gap-1 items-center text-gray-700 text-sm dark:text-white">
-									<span className="text-primary text-sm font-bold dark:text-white block">
+								<div className="flex flex-wrap gap-1 items-center text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100">
+									<span className="text-c-lm-gray-900 dark:text-c-dm-gray-100 text-sm font-bold block">
 										{t('selectCredentialPopup.requestingParty')}
 									</span>
-									<span className="w-max font-semibold text-primary dark:text-white rounded border border-primary dark:border-white p-1 break-all block">
+									<span className="w-max font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 rounded border border-c-lm-gray-400 dark:border-c-dm-gray-600 p-1 break-all block">
 										{prettyDomain(popupState.options.verifierDomainName)}
 									</span>
 								</div>
@@ -334,8 +334,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
 
 								return (
-									<p className="pd-2 text-gray-700 text-sm dark:text-white">
-										<span className="text-primary text-sm font-bold dark:text-white">
+									<p className="pd-2 text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100">
+										<span className="text-sm font-bold text-c-lm-gray-900 dark:text-c-dm-gray-100">
 											{t('selectCredentialPopup.purpose')}
 										</span>
 										<span className="font-medium">
@@ -362,7 +362,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							})}
 
 							<div>
-								<p className="text-primary dark:text-white text-sm font-bold">
+								<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 text-sm font-bold">
 									{t('selectCredentialPopup.requestedCredentialsFieldsTitle')}
 								</p>
 								{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
@@ -370,17 +370,17 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 										<div key={descriptorId} className="my">
 											<div className="flex flex-row gap-1 text-sm text-gray-700 dark:text-white my-1">
 												<span className="flex items-center gap-1 font-bold">
-													<FaIdCard className="text-primary dark:text-primary-light" />
+													<FaIdCard className="text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 													{t('selectCredentialPopup.request')}
 												</span>
 												<span
 													title={descriptorId}
-													className="font-semibold bg-gray-100 dark:bg-gray-600 px-1 rounded border border-gray-400 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
+													className="font-semibold bg-c-lm-gray-100 dark:bg-c-dm-gray-900 px-1 rounded border border-c-lm-gray-400 dark:border-c-dm-gray-600 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
 												>
 													{descriptorId}
 												</span>
 											</div>
-											<p className="text-sm text-gray-700 font-normal dark:text-white list-disc ml-4">
+											<p className="text-sm font-normal text-c-lm-gray-900 dark:text-c-dm-gray-100 list-disc ml-4">
 												{!fields[0].path[0] ? (
 													<span>
 														{t('selectCredentialPopup.allClaimsRequested')}
@@ -403,7 +403,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Selection step */}
 				{keys[currentIndex] !== 'preview' && keys[currentIndex] !== 'summary' && (
 					<>
-						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
+						<p className="text-c-lm-gray-100 dark:text-c-dm-gray-900 italic text-sm mt-3 mb-4">
 							{t('selectCredentialPopup.selectDescription')}
 						</p>
 						<div>
@@ -419,7 +419,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											isActive={currentSlide === index + 1}
 											isSelected={selectedCredential === vcEntity.batchId}
 											onClick={handleClick}
-											borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
+											borderColor={screenType === 'desktop' ? 'border-c-lm-gray-400 dark:border-c-dm-gray-600' : undefined}
 										/>
 									)}
 									initialSlide={currentSlide}
@@ -431,7 +431,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 
 							)}
 							{vcEntities?.[currentSlide - 1] ? (
-								<div className="flex flex-wrap justify-center flex flex-row justify-center items-center my-2">
+								<div className="flex flex-wrap justify-center flex-row items-center my-2">
 									<CredentialInfo
 										parsedCredential={vcEntities[currentSlide - 1].parsedCredential}
 										mainClassName={"text-xs w-full"}
@@ -453,7 +453,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Summary step */}
 				{keys[currentIndex] === 'summary' && (
 					<>
-						<p className="text-gray-700 italic dark:text-white text-sm mt-3 mb-4">
+						<p className="text-c-lm-gray-100 dark:text-c-dm-gray-900 italic text-sm mt-3 mb-4">
 							<Trans
 								i18nKey="selectCredentialPopup.summaryDescription"
 								components={{ strong: <strong /> }}
@@ -500,7 +500,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 													className="w-full object-cover rounded-xl"
 													showRibbon={currentSummarySlide === i}
 													filter={filterPaths}
-													borderColor={screenType === 'desktop' ? 'border-gray-50 dark:border-gray-700' : undefined}
+													borderColor={screenType === 'desktop' ? 'border-c-lm-gray-400 dark:border-c-dm-gray-600' : undefined}
 												/>
 											</div>
 										);
@@ -536,15 +536,14 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			</div>
 
 			<div
-				className={`z-10 left-0 right-0 border-t border-gray-500/30 dark:border-white/30 shadow-2xl rounded-t-lg flex justify-between ${screenType === 'desktop'
-					? 'bg-gray-50 dark:bg-gray-700 sticky bottom-0 px-4 py-3'
-					: 'bg-gray-100 dark:bg-gray-900 fixed bottom-0 px-6 pb-4 pt-4'
+				className={`z-10 left-0 right-0 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600 shadow-2xl flex justify-between ${screenType === 'desktop'
+					? 'sticky bottom-0 px-4 py-3'
+					: 'fixed bottom-0 px-6 pb-4 pt-4'
 					}`}
 			>
 				<Button
 					id="cancel-select-credentials"
 					onClick={onClose}
-					variant="cancel"
 					className="mr-2"
 				>
 					{t('common.cancel')}
@@ -554,7 +553,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					{currentIndex > 0 && (
 						<Button
 							id="previous-select-credentials"
-							variant="secondary"
+							variant="outline"
 							onClick={goToPreviousSelection}>
 							{t('common.previous')}
 						</Button>
@@ -563,7 +562,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					<Button
 						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
-						variant="primary"
+						variant="tertiary"
 						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential === undefined}
 						title={selectedCredential === undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
 							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}

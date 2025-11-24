@@ -25,8 +25,8 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 
 	const usageClass =
 		zeroSigCount === 0
-			? 'text-orange-600 dark:text-orange-500'
-			: 'text-green-600 dark:text-green-500';
+			? 'text-c-lm-orange dark:text-c-dm-orange'
+			: 'text-c-lm-green dark:text-c-dm-green';
 
 	return (
 		<div
@@ -127,7 +127,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				</div>
 				{screenType === 'mobile' && (
 					<div className='flex flex-start flex-col gap-1'>
-						<p className='text-xl font-bold text-primary dark:text-white'>{credentialName}</p>
+						<p className='text-xl font-bold text-c-lm-gray-900 dark:text-c-dm-gray-100'>{credentialName}</p>
 						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
 					</div>
@@ -157,9 +157,9 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
-					textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
+					textColorClass="text-c-lm-gray-700 dark:text-c-dm-gray-300 dark:hover:text-primary-light hover:underline"
 				>
-					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-primary dark:text-primary-light" />
+					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
 
 					<H1 heading={credentialName} hr={false} />
 				</H1>
@@ -171,7 +171,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 						className="mr-2 mb-2"
 						aria-label="Go back to the previous page"
 					>
-						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+						<FaArrowLeft size={20} className="text-2xl text-inherit" />
 					</button>
 					{title && <H1 heading={title} hr={false} />}
 				</div>

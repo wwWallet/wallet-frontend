@@ -7,7 +7,7 @@ const PageDescription = ({ description }) => {
 	return (
 		<>
 			{screenType !== 'mobile' && (
-				<p className="italic pd-2 text-gray-700 dark:text-gray-300">{description}</p>
+				<p className="italic pd-2 text-c-lm-gray-800 dark:text-c-dm-gray-200">{description}</p>
 			)}
 		</>
 	);

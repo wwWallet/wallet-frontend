@@ -42,12 +42,12 @@ const BottomNav = ({ isOpen, toggle }) => {
 
 	return (
 		<>
-			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-gray-100 dark:bg-gray-900 border-t border-gray-500/30 dark:border-white/30 flex justify-around px-4 pt-4 pb-6 z-40 flex md:hidden shadow-2xl rounded-t-lg`}>
+			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-inherit border-t border-c-lm-gray-400 dark:border-c-dm-gray-600 justify-around px-4 pt-4 pb-6 z-40 md:hidden`}>
 				{navItems.map(item => (
 					<button
 						id={`bottom-nav-item-${item.id}`}
 						key={item.path}
-						className={`${item.stepClass} ${item.isQR ? 'bg-primary-dark dark:bg-primary-light text-white dark:text-white rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center w-[20%]`} ${isActive(item) && !isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+						className={`${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-black rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center w-[20%] ${isActive(item) && !isOpen ? 'text-black dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
 						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>
@@ -72,7 +72,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				<button
 					id="bottom-nav-item-profile"
 					key={t("common.navItemProfile")}
-					className={`cursor-pointer flex flex-col items-center w-[20%] relative ${isOpen ? 'text-primary dark:text-white' : 'text-gray-400 dark:text-gray-400'} transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center w-[20%] relative ${isOpen ? 'text-black dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
 					onClick={toggle}
 					title={t("common.navItemProfile")}
 				>

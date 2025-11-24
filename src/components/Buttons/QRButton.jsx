@@ -12,10 +12,10 @@ const QRButton = ({ openQRScanner, isSmallScreen }) => {
 				<Button
 					id="open-qr-scanner"
 					onClick={openQRScanner}
-					variant="primary"
+					variant="tertiary"
 					additionalClassName={`step-2`}
 				>
-					<BsQrCodeScan size={20} className="text-white" />
+					<BsQrCodeScan size={20} className="text-inherit" />
 				</Button>
 			</div>
 

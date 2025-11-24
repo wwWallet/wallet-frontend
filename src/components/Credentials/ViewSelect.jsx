@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { BiSolidCarousel } from "react-icons/bi";
 import { MdTableRows } from "react-icons/md";
 import { TbCarouselVerticalFilled } from "react-icons/tb";
+import Button from "../Buttons/Button";
 
 const viewOptions = [
 	{ value: "horizontal-slider", Icon: BiSolidCarousel, labelKey: "viewSelect.options.horizontalSlider" },
@@ -36,27 +37,28 @@ export default function ViewSelect({ value, onChange }) {
 	const SelectedIcon = selected.Icon;
 
 	return (
-		<div className="relative inline-block text-gray-700 dark:text-white text-sm">
-			<button
+		<div className="relative inline-block text-c-lm-gray-900 dark:text-c-dm-gray-100 text-sm">
+			<Button
 				id="credential-view-select"
 				ref={triggerRef}
 				type="button"
+				variant="outline"
+				size="sm"
 				onClick={() => setOpen((o) => !o)}
 				aria-haspopup="menu"
 				aria-expanded={open}
 				aria-label={t("viewSelect.aria.toggle")}
-				className="flex items-center gap-1 px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 hover:dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
 			>
 				<SelectedIcon className="w-5 h-5" />
 				{t("viewSelect.view")}
-			</button>
+			</Button>
 
 			{open && (
 				<div
 					ref={menuRef}
 					role="menu"
 					aria-label={t("viewSelect.aria.menuLabel")}
-					className="absolute right-0 mt-2 min-w-44 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50"
+					className="absolute right-0 mt-2 min-w-44 border border-c-lm-gray-400 dark:border-c-dm-gray-600 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg shadow-lg z-50"
 				>
 					{viewOptions.map((opt) => {
 						const label = t(opt.labelKey);
@@ -69,7 +71,7 @@ export default function ViewSelect({ value, onChange }) {
 								role="menuitemradio"
 								aria-checked={isActive}
 								aria-label={t("viewSelect.aria.option", { label })}
-								className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left ${isActive ? "bg-primary-light text-white font-semibold" : "hover:bg-gray-100 dark:hover:bg-gray-700"
+								className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left ${isActive ? "bg-primary dark:bg-primary-light text-white font-semibold" : "hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600"
 									}`}
 								onClick={() => {
 									onChange(opt.value);

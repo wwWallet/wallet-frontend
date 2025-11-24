@@ -118,19 +118,19 @@ function PinInput({ isOpen, setIsOpen }) {
 
 	return (
 		<PopupLayout isOpen={isOpen} onClose={false}>
-			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
+			<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
 				<FaLock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
-			<hr className="mb-2 border-t border-primary/80 border-white/80" />
+			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
 			<p className="italic pd-2 text-gray-700 dark:text-white">
 				{t('PinInputPopup.description')}
 			</p>
 
 			{errMessage && (
-				<p className='text-sm text-red-600'>{errMessage}</p>
+				<p className='text-sm text-c-lm-red dark:text-c-dm-red'>aaa{errMessage}</p>
 			)}
-			<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
+			<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
 				{pin.map((digit, index) => (
 					<input
 						type="text"
@@ -141,7 +141,7 @@ function PinInput({ isOpen, setIsOpen }) {
 						onClick={() => handleInputClick(index)}
 						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
 						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride"
+						className="w-10 px-3 mx-1 my-2 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 rounded-md focus:outline-none"
 						ref={inputRefs[index]}
 					/>
 				))}
@@ -150,14 +150,13 @@ function PinInput({ isOpen, setIsOpen }) {
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button
 					id="cancel-pin-input"
-					variant="cancel"
 					onClick={handleCancel}
 				>
 					{t('common.cancel')}
 				</Button>
 				<Button
 					id="submit-pin-input"
-					variant="primary"
+					variant="tertiary"
 					onClick={handleSubmit}
 				>
 					{t('common.submit')}

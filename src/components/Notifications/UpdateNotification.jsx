@@ -21,22 +21,22 @@ const UpdateNotification = () => {
 	if (!visible) return null;
 
 	return (
-		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-green-600 bg-opacity-80 z-50 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 animate-slide-in-up sm:animate-slide-in-down">
+		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-c-lm-green dark:bg-c-dm-green z-50 text-white dark:text-black px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 space-x-2 animate-slide-in-up sm:animate-slide-in-down">
 			<MdNotifications
 				size={22}
-				className="text-white"
+				className="text-inherit"
 			/>
 			{t('updateNotification.description')}
 			<Button
 				id="reload-update-notification"
-				variant="tertiary"
+				variant="outline"
 				onClick={handleReload}
 			>
 				{t('common.refresh')}
 			</Button>
 			<button
 				id="close-update-notification"
-				className="ml-2 text-white hover:text-gray-300"
+				className="ml-2 text-inherit p-2 rounded hover:bg-c-dm-green-bg dark:hover:bg-c-lm-green-bg"
 				onClick={handleClose}
 			>
 				<FaTimes />

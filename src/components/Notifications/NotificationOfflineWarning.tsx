@@ -19,21 +19,21 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 	};
 
 	const show = isOnline === false && isMessageOfflineVisible === false;
-	if (!show) return null;
+	// if (!show) return null;
 
 	return (
 		show
 			? (
 				<div className="px-6 sm:px-12 w-full">
-					<div className="bg-orange-100 shadow-lg p-4 rounded-lg mb-4 flex items-center">
-						<div className="mr-4 text-orange-500">
+					<div className="bg-c-lm-orange-bg dark:bg-c-dm-orange-bg shadow-sm p-4 rounded-lg mb-4 flex items-center">
+						<div className="mr-4 text-c-lm-orange dark:text-c-dm-orange">
 							<FaExclamationTriangle size={24} />
 						</div>
 
 						{isOnline === false && isMessageOfflineVisible === false && (
 							<>
 								<div className="flex-grow">
-									<p className='text-sm text-gray-800'>
+									<p className='text-sm text-black dark:text-white'>
 										<Trans
 											i18nKey="layout.messageOffline"
 											components={{ strong: <strong /> }}
@@ -42,10 +42,10 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 								</div>
 								<button
 									id="close-message-offline"
-									className="ml-2 text-gray-800"
+									className="ml-2 text-black dark:text-white"
 									onClick={handleCloseMessageOffline}
 								>
-									<FaTimes size={24} />
+									<FaTimes size={20} />
 								</button>
 							</>
 						)}

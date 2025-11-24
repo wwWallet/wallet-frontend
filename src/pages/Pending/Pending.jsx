@@ -43,7 +43,7 @@ const Pending = () => {
 			<div className="px-6 sm:px-12 w-full">
 				<H1 heading={t("pagePending.title")} />
 				<PageDescription description={t("pagePending.description")} />
-				<p className="text-gray-700 dark:text-white mt-4">
+				<p className="text-c-lm-gray-800 dark:text-c-dm-gray-200 mt-4">
 					{t("pagePending.noFound")}
 				</p>
 			</div>
@@ -68,12 +68,12 @@ const Pending = () => {
 							return (
 								<div
 									key={pt.credentialEndpoint.transactionId}
-									className="text-sm px-4 py-2 dark:text-white border border-gray-300 shadow-sm dark:border-gray-600 rounded-md w-full text-left"
+									className="text-sm px-4 py-2 dark:text-c-dm-gray-100 shadow border border-c-lm-gray-400 dark:border-c-dm-gray-600 rounded-md w-full text-left"
 								>
 									<div className="flex gap-2 items-center">
 
-										<PiClockCounterClockwiseBold className="h-8 w-8 text-orange-500" />
-										<div className="w-px h-12 bg-gray-300 dark:bg-gray-600" />
+										<PiClockCounterClockwiseBold className="h-8 w-8 text-c-lm-orange dark:text-c-dm-orange" />
+										<div className="w-px h-12 bg-c-lm-gray-300 dark:bg-c-dm-gray-700" />
 										<div>
 											<p className="font-semibold">{`${cred}`}</p>
 											<p className="font-semibold">{`${issuer}`}</p>

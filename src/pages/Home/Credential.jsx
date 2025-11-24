@@ -160,7 +160,7 @@ const Credential = () => {
 			component:
 				<>
 					{history.length === 0 ? (
-						<p className="text-gray-700 dark:text-white">
+						<p className="text-c-lm-gray-900 dark:text-white">
 							{t('pageHistory.noFound')}
 						</p>
 					) : (
@@ -239,14 +239,14 @@ const Credential = () => {
 								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
 									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
 								</div>
-								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-c-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
 									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
 								</div>
 							</span>}
 							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100} /></span>}
 							{![1, 2].includes(mdocQRStatus) &&
-								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-c-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
 								</div>}
 						</span>
