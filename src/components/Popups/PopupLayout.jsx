@@ -24,7 +24,7 @@ const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, chi
 			isOpen={isOpen}
 			onRequestClose={onClose}
 			className={`relative overflow-y-auto overflow-x-hidden bg-c-lm-gray-100 dark:bg-c-dm-gray-900 border border-c-lm-gray-400 dark:border-c-dm-gray-600 ${fullScreen ? 'flex flex-col space-between w-full h-full' : 'w-full sm:w-1/2 md:w-5/12 lg:w-1/3 max-h-[90vh] rounded-lg shadow-lg m-4'}`}
-			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50' : 'bg-black bg-opacity-50 backdrop-blur-xs z-50'}`}
+			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50' : 'bg-black/50 backdrop-blur-xs z-50'}`}
 			bodyOpenClassName="overflow-hidden"
 			shouldCloseOnOverlayClick={shouldCloseOnOverlayClick}
 		>
