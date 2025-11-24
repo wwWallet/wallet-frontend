@@ -3,7 +3,7 @@ import PopupLayout from './PopupLayout';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import useScreenType from '../../hooks/useScreenType';
-import { MdWarning } from "react-icons/md";
+import { TriangleAlert } from 'lucide-react';
 
 function GenericConsentPopup({ popupConsentState, setPopupConsentState, showConsentPopup, hidePopupConsent }) {
 	const { t, i18n } = useTranslation();
@@ -49,7 +49,7 @@ function GenericConsentPopup({ popupConsentState, setPopupConsentState, showCons
 					<ul className='text-sm text-c-lm-gray-800 dark:text-c-dm-gray-200 list-disc ml-1 mb-4'>
 						{popupConsentState?.options?.warnings?.map(warning => (
 							<li className='flex gap-3 items-center'>
-								<MdWarning />
+								<TriangleAlert />
 								{i18n.exists(`parsing.${warning.code}`) ? t(`parsing.${warning.code}`) : warning.code}
 							</li>
 						))}

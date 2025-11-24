@@ -7,7 +7,7 @@ import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 import { H1 } from "../../components/Shared/Heading";
 import PageDescription from "../../components/Shared/PageDescription";
-import { PiClockCounterClockwiseBold } from "react-icons/pi";
+import { History } from "lucide-react";
 
 const Pending = () => {
 	const { t } = useTranslation();
@@ -72,7 +72,7 @@ const Pending = () => {
 								>
 									<div className="flex gap-2 items-center">
 
-										<PiClockCounterClockwiseBold className="h-8 w-8 text-c-lm-orange dark:text-c-dm-orange" />
+										<History className="h-8 w-8 text-c-lm-orange dark:text-c-dm-orange" />
 										<div className="w-px h-12 bg-c-lm-gray-300 dark:bg-c-dm-gray-700" />
 										<div>
 											<p className="font-semibold">{`${cred}`}</p>

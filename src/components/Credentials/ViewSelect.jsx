@@ -1,14 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { BiSolidCarousel } from "react-icons/bi";
-import { MdTableRows } from "react-icons/md";
-import { TbCarouselVerticalFilled } from "react-icons/tb";
 import Button from "../Buttons/Button";
+import { GalleryHorizontal, GalleryVertical, Rows2 } from "lucide-react";
 
 const viewOptions = [
-	{ value: "horizontal-slider", Icon: BiSolidCarousel, labelKey: "viewSelect.options.horizontalSlider" },
-	{ value: "vertical-slider", Icon: TbCarouselVerticalFilled, labelKey: "viewSelect.options.verticalSlider" },
-	{ value: "list", Icon: MdTableRows, labelKey: "viewSelect.options.list" },
+	{ value: "horizontal-slider", Icon: GalleryHorizontal, labelKey: "viewSelect.options.horizontalSlider" },
+	{ value: "vertical-slider", Icon: GalleryVertical, labelKey: "viewSelect.options.verticalSlider" },
+	{ value: "list", Icon: Rows2, labelKey: "viewSelect.options.list" },
 ];
 
 export default function ViewSelect({ value, onChange }) {

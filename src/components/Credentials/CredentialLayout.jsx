@@ -2,8 +2,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
-import { PiCardsBold } from "react-icons/pi";
 import i18n from '@/i18n';
 
 // Hooks
@@ -19,6 +17,7 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
+import { ArrowLeft, ArrowRight, Layers2, TriangleAlert } from 'lucide-react';
 
 const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	if (zeroSigCount === null || sigTotal === null) return null;
@@ -33,7 +32,7 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 			className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'
 				}`}
 		>
-			<PiCardsBold size={18} className="mr-1" />
+			<Layers2 size={18} className="mr-1" />
 			<p className="font-base">
 				<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
 				<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
@@ -135,9 +134,9 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			</div>
 
 			{screenType === 'mobile' && vcEntity?.isExpired && (
-				<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
-					<div className="mr-2 text-orange-500">
-						<FaExclamationTriangle size={18} />
+				<div className="bg-c-lm-orange-bg dark:bg-c-dm-orange-bg text-black mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
+					<div className="mr-2 ">
+						<TriangleAlert size={18} />
 					</div>
 					<p>{t('pageCredentials.details.expired')}</p>
 				</div>
@@ -158,8 +157,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
 					textColorClass="text-c-lm-gray-700 dark:text-c-dm-gray-300 hover:underline"
-				>
-					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
+				>					<ArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
 
 					<H1 heading={credentialName} hr={false} />
 				</H1>
@@ -171,7 +169,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 						className="mr-2 mb-2"
 						aria-label="Go back to the previous page"
 					>
-						<FaArrowLeft size={20} className="text-2xl text-inherit" />
+						<ArrowLeft size={20} className="text-2xl text-inherit" />
 					</button>
 					{title && <H1 heading={title} hr={false} />}
 				</div>

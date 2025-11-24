@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Webcam from 'react-webcam';
-import { FaArrowLeft } from "react-icons/fa";
-import { BsQrCodeScan } from 'react-icons/bs';
-import { PiCameraRotateFill } from 'react-icons/pi';
 import { useTranslation } from 'react-i18next';
-import { FaCheckCircle } from "react-icons/fa";
-import { RiZoomInFill, RiZoomOutFill } from "react-icons/ri";
 import QrScanner from 'qr-scanner';
 import PopupLayout from '../Popups/PopupLayout';
 import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
 import Button from '../Buttons/Button';
+import { ArrowLeft, CheckCircle, QrCode, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
 
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
@@ -165,7 +161,7 @@ const QRScanner = ({ onClose }) => {
 				<>
 					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
-							<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
+							<QrCode size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}
 						</h2>
 
@@ -196,7 +192,7 @@ const QRScanner = ({ onClose }) => {
 									className="mr-2 mb-2"
 									aria-label="Go back to the previous page"
 								>
-									<FaArrowLeft size={20} className="text-2xl text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+									<ArrowLeft size={20} className="text-2xl text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 								</button>
 								<H1 heading={t('qrCodeScanner.title')} hr={false} />
 							</div>
@@ -204,7 +200,7 @@ const QRScanner = ({ onClose }) => {
 							<div className="flex items-start justify-between border-b rounded-t border-c-lm-gray-400 dark:border-c-dm-gray-600">
 
 								<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
-									<BsQrCodeScan size={20} className="inline mr-1 mb-1" />
+									<QrCode size={20} className="inline mr-1 mb-1" />
 									{t('qrCodeScanner.title')}
 								</h2>
 								<Button
@@ -248,7 +244,7 @@ const QRScanner = ({ onClose }) => {
 							/>
 							{qrDetected && (
 								<div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-									<FaCheckCircle size={100} color="green" />
+									<CheckCircle size={100} color="green" />
 								</div>
 							)}
 						</div>
@@ -262,7 +258,7 @@ const QRScanner = ({ onClose }) => {
 								className="text-c-lm-gray-800 dark:text-c-dm-gray-200 mr-2 mt-2 cursor-pointer"
 								onClick={handleZoomOut}
 							>
-								<RiZoomOutFill size={30} />
+								<ZoomOut size={30} />
 							</button>
 							<input
 								type="range"
@@ -279,7 +275,7 @@ const QRScanner = ({ onClose }) => {
 								className="text-c-lm-gray-800 dark:text-c-dm-gray-200 ml-2 mt-2 cursor-pointer"
 								onClick={handleZoomIn}
 							>
-								<RiZoomInFill size={30} />
+								<ZoomIn size={30} />
 							</button>
 							{devices.length > 1 && (
 								<button
@@ -288,7 +284,7 @@ const QRScanner = ({ onClose }) => {
 									className="text-c-lm-gray-800 dark:text-c-dm-gray-200 text-sm ml-4 mt-2"
 									onClick={switchCamera}
 								>
-									<PiCameraRotateFill size={30} />
+									<RotateCw size={30} />
 								</button>
 							)}
 						</div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
-import { FaRegCircle, FaCheckCircle, FaInfo, FaIdCard } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import CredentialImage from '../Credentials/CredentialImage';
 import CredentialInfo from '../Credentials/CredentialInfo';
@@ -9,10 +8,10 @@ import useScreenType from '../../hooks/useScreenType';
 import Slider from '../Shared/Slider';
 import CredentialCardSkeleton from '../Skeletons/CredentialCardSkeleton';
 import { CredentialInfoSkeleton } from '../Skeletons';
-import { MdFactCheck } from "react-icons/md";
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
 import { prettyDomain, truncateByWords } from '@/utils';
+import { BookCheck, CheckCircle, Circle, IdCard, Info } from 'lucide-react';
 
 const SelectableCredentialSlideCard = ({
 	vcEntity,
@@ -60,12 +59,12 @@ const SelectableCredentialSlideCard = ({
 					/>
 					<div className="absolute bottom-4 right-4 z-60">
 						{isSelected ? (
-							<FaCheckCircle
+							<CheckCircle
 								size={30}
 								className="z-50 rounded-full bg-white text-primary"
 							/>
 						) : (
-							<FaRegCircle
+							<Circle
 								size={30}
 								className="z-50 rounded-full bg-white/50 text-primary"
 							/>
@@ -104,11 +103,11 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 									}`}
 							>
 								{index === 0 ? (
-									<FaInfo className="text-sm" />
+									<Info className="text-sm" />
 								) : index === totalSteps - 1 ? (
-									<MdFactCheck className="text-lg" />
+									<BookCheck className="text-lg" />
 								) : (
-									<FaIdCard className="text-base" />
+									<IdCard className="text-base" />
 								)}
 							</div>
 						</div>
@@ -128,14 +127,14 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 };
 
 const StepTitle = ({ currentKey, t }) => {
-	let icon = <FaIdCard className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
+	let icon = <IdCard className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
 	let text = t('selectCredentialPopup.selectTitle');
 
 	if (currentKey === 'preview') {
-		icon = <FaInfo className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+		icon = <Info className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.previewTitle');
 	} else if (currentKey === 'summary') {
-		icon = <MdFactCheck className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
+		icon = <BookCheck className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.summaryTitle');
 	}
 
@@ -370,7 +369,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 										<div key={descriptorId} className="my">
 											<div className="flex flex-row gap-1 text-sm text-gray-700 dark:text-white my-1">
 												<span className="flex items-center gap-1 font-bold">
-													<FaIdCard className="text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+													<IdCard className="text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 													{t('selectCredentialPopup.request')}
 												</span>
 												<span

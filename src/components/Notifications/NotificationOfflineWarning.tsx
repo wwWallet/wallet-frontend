@@ -1,11 +1,11 @@
 // components/Notifications/NotificationOfflineWarning.tsx
 import React, { useContext } from 'react';
-import { FaExclamationTriangle, FaTimes } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import { useSessionStorage } from '@/hooks/useStorage';
+import { TriangleAlert, X } from 'lucide-react';
 
 function NotificationOfflineWarning(): React.ReactElement | null {
 	useTranslation(); // This ensures reactivity to language changes
@@ -27,7 +27,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 				<div className="px-6 sm:px-12 w-full">
 					<div className="bg-c-lm-orange-bg dark:bg-c-dm-orange-bg shadow-sm p-4 rounded-lg mb-4 flex items-center">
 						<div className="mr-4 text-c-lm-orange dark:text-c-dm-orange">
-							<FaExclamationTriangle size={24} />
+							<TriangleAlert size={24} />
 						</div>
 
 						{isOnline === false && isMessageOfflineVisible === false && (
@@ -45,7 +45,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 									className="ml-2 text-c-lm-gray-900 dark:text-white"
 									onClick={handleCloseMessageOffline}
 								>
-									<FaTimes size={20} />
+									<X size={20} />
 								</button>
 							</>
 						)}

@@ -1,15 +1,15 @@
 // MessagePopup.js
 import React from 'react';
-import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
+import { CheckCircle, Info } from 'lucide-react';
 
 const MessagePopup = ({ type, message, onClose }) => {
 	const { title, description } = message || {};
 	const { t } = useTranslation();
 
-	const IconComponent = type === 'error' ? FaExclamationCircle : FaCheckCircle;
+	const IconComponent = type === 'error' ? Info : CheckCircle;
 	const color = type === 'error' ? 'c-lm-red dark:c-dm-red' : 'c-lm-green dark:c-dm-green';
 
 	return (

@@ -6,7 +6,7 @@ import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
-import { GoPasskeyFill } from 'react-icons/go';
+import { UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -81,7 +81,7 @@ const WebauthnLogin = ({
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						<GoPasskeyFill className="inline text-xl mr-2" />
+						<UserLock className="inline text-xl mr-2" />
 						{isSubmitting
 							? t('loginSignup.submitting')
 							: t('common.continue')}

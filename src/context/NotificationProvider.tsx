@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from 'react-i18next';
-import { AiOutlineClose } from "react-icons/ai";
 import NotificationContext, { NotificationType, NotifyPayload } from "./NotificationContext";
 import { setNotify } from "./notifier";
+import { X } from "lucide-react";
 
 type NotificationItem = {
 	id: string;
@@ -153,7 +153,7 @@ const Toast: React.FC<{
 				aria-label="Dismiss"
 				className="shrink-0 rounded-md p-1 hover:bg-black/5"
 			>
-				<AiOutlineClose size={16} />
+				<X size={16} />
 			</button>
 		</div>
 	);

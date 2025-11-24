@@ -2,7 +2,6 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { BsQrCode, BsCheckCircle } from "react-icons/bs";
 import QRCode from "react-qr-code";
 import i18n from '@/i18n';
 
@@ -29,6 +28,7 @@ import CredentialImage from '../../components/Credentials/CredentialImage';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
+import { BookCheck, QrCode } from 'lucide-react';
 
 const Credential = () => {
 	const { batchId } = useParams();
@@ -208,7 +208,7 @@ const Credential = () => {
 					)}
 				</div>
 				<div className='px-2 w-full'>
-					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
+					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
 						<div className="flex items-start justify-between mb-2">
 							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
@@ -244,7 +244,7 @@ const Credential = () => {
 									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
 								</div>
 							</span>}
-							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100} /></span>}
+							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BookCheck color='green' size={100} /></span>}
 							{![1, 2].includes(mdocQRStatus) &&
 								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-c-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>

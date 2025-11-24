@@ -3,9 +3,8 @@ import { formatDate } from '@/utils';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
-import { IoIosSend } from "react-icons/io";
-import { TbAsterisk } from "react-icons/tb";
 import useScreenType from '../../hooks/useScreenType';
+import { Asterisk, Send } from 'lucide-react';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -18,13 +17,13 @@ const Legend = ({ showRequired, showRequested, t }) => {
 				{showRequired && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
 						<span>{t('credentialInfo.legendRequired')}</span>
-						<TbAsterisk className="text-primary dark:text-white" aria-hidden="true" />
+						<Asterisk className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
 				{showRequested && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequested')}>
 						<span>{t('credentialInfo.legendRequested')}</span>
-						<IoIosSend className="text-primary dark:text-white" aria-hidden="true" />
+						<Send className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
 			</div>
@@ -410,12 +409,12 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 							{(isRequested || isRequired) && (
 								<div className='flex'>
 									{isRequired && (
-										<TbAsterisk
+										<Asterisk
 											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 flex-shrin"
 										/>
 									)}
 									{isRequested && (
-										<IoIosSend
+										<Send
 											title="Requested by verifier"
 											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 flex-shrink-0"
 										/>

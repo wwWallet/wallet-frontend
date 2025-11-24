@@ -2,7 +2,7 @@ import React from "react";
 
 import { useTranslation } from "react-i18next";
 import { languageOptions } from "./languages";
-import { IoIosArrowDown } from "react-icons/io";
+import {  ChevronDown } from "lucide-react";
 
 type LanguageSelectorProps = {
 	className?: string;
@@ -55,7 +55,7 @@ const LanguageSelector = ({
 					))}
 				</select>
 				<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
-					<IoIosArrowDown className="dark:text-white" />
+					<ChevronDown size={18} className="dark:text-white" />
 				</span>
 			</div>
 		);

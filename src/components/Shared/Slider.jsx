@@ -1,9 +1,9 @@
 // External libraries
 import React, { useState, useRef } from 'react';
-import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useTranslation } from 'react-i18next';
 import { EffectCards, Keyboard } from 'swiper/modules';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Styles
 import 'swiper/css';
@@ -61,7 +61,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 								: t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })
 						}
 					>
-						<SlArrowLeft size={22} />
+						<ChevronLeft size={22} />
 					</button>
 
 					<button
@@ -81,7 +81,7 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 								: t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })
 						}
 					>
-						<SlArrowRight size={22} />
+						<ChevronRight size={22} />
 					</button>
 
 					<div className={`absolute bottom-3 z-10 left-2 ${className}`}>

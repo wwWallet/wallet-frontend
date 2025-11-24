@@ -1,9 +1,9 @@
 // DeletePopup.js
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaTrash } from 'react-icons/fa';
 import PopupLayout from './PopupLayout';
 import Button from '../Buttons/Button';
+import { Trash2 } from 'lucide-react';
 
 const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 	const { t } = useTranslation();
@@ -12,7 +12,7 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 		<PopupLayout isOpen={isOpen} onClose={onClose} loading={loading}>
 			<div className="flex items-start justify-between mb-2">
 				<h2 className="text-lg font-bold text-c-lm-red dark:text-c-dm-red">
-					<FaTrash size={20} className="inline mr-1" />
+					<Trash2 size={20} className="inline mr-1" />
 					{t('pageSettings.title.confirmDeletePopup')}
 				</h2>
 				<button

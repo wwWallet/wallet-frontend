@@ -1,8 +1,8 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { FaHandshake } from "react-icons/fa";
 import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
+import { Handshake } from 'lucide-react';
 
 const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 	const { t } = useTranslation();
@@ -16,7 +16,7 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 		>
 			<div className="sm:px-6">
 				<h2 className="text-3xl text-center font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-50">
-					<FaHandshake size={40} className="inline mr-2 mb-1" />
+					<Handshake size={40} className="inline mr-2 mb-1" />
 					{t('welcomeModal.title')}
 				</h2>
 			</div>

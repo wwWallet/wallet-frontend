@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
-import { FaXmark } from "react-icons/fa6";
+import { XIcon } from 'lucide-react';
 
 const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => {
 	const { connectivity } = useContext(StatusContext);
@@ -39,7 +39,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 			))}
 			{quality === 0 ? (
 				<div className="absolute inset-0 flex items-center justify-center">
-					<FaXmark size={16} className="text-gray-400 absolute bottom-[-4px] right-[-4px] bg-current border rounded-lg border-gray-400" />
+					<XIcon size={16} className="text-c-lm-gray-500 absolute bottom-[-4px] right-[-4px] bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg border border-c-lm-gray-500" />
 				</div>
 			) : quality === null && (
 				<div className="absolute inset-0 flex items-center justify-center bg-opacity-30">

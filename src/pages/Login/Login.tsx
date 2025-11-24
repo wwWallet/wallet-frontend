@@ -1,8 +1,5 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaQuestionCircle } from 'react-icons/fa';
-import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash } from 'react-icons/go';
-import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
@@ -22,7 +19,7 @@ import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 import useScreenType from '@/hooks/useScreenType';
-import { CircleQuestionMark, Key, Smartphone, Trash2, UserLock } from 'lucide-react';
+import { CircleQuestionMark, Eye, EyeOff, Info, Key, Lock, LockKeyholeOpen, Smartphone, Trash2, User, UserLock } from 'lucide-react';
 
 
 const FormInputRow = ({
@@ -43,7 +40,7 @@ const FormInputRow = ({
 const PasswordCriterionMessage = ({ text, ok }) => (
 	<div className={ok ? "text-c-lm-green dark:text-c-dm-green" : "text-c-lm-red dark:text-c-dm-red"}>
 		<p className="text-sm">
-			<AiOutlineUnlock className="inline-block mr-2" />
+			<LockKeyholeOpen className="inline-block mr-2" />
 			{text}
 		</p>
 	</div>
@@ -97,7 +94,7 @@ const FormInputField = ({
 						title={show ? (t('common.passwordHideTitle')) : (t('common.passwordShowTitle'))}
 						disabled={disabled}
 					>
-						{show ? <FaEyeSlash className='dark:text-white' /> : <FaEye className='dark:text-white' />}
+						{show ? <EyeOff className='dark:text-white' /> : <Eye className='dark:text-white' />}
 					</button>
 				</div>
 			)}
@@ -149,7 +146,7 @@ const UsernamePasswordForm = ({
 	return (
 		<>
 			<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-				<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
+				<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={User}>
 					<FormInputField
 						ariaLabel="Username"
 						name="username"
@@ -161,7 +158,7 @@ const UsernamePasswordForm = ({
 					/>
 				</FormInputRow>
 
-				<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
+				<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={Lock}>
 					<FormInputField
 						ariaLabel="Password"
 						name="password"
@@ -175,7 +172,7 @@ const UsernamePasswordForm = ({
 				</FormInputRow>
 
 				{choosePassword && (
-					<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+					<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={Lock}>
 						<FormInputField
 							ariaLabel="Confirm Password"
 							name="confirmPassword"
@@ -479,7 +476,7 @@ const WebauthnSignupLogin = ({
 					<>
 						{!isLogin && (
 							<>
-								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={FaUser}>
+								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={User}>
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
@@ -740,7 +737,7 @@ const Auth = () => {
 
 				{isOnline === false && (
 					<p className="text-sm font-light text-c-lm-gray-900 dark:text-gray-200 italic mb-2">
-						<FaInfoCircle size={14} className="text-md inline-block text-c-lm-gray-900 mr-2" />
+						<Info size={14} className="text-md inline-block text-c-lm-gray-900 mr-2" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}

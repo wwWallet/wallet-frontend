@@ -1,8 +1,8 @@
 import React from 'react';
-import { FaShare } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
+import { Share } from 'lucide-react';
 
 const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMessage }) => {
 	const { t } = useTranslation();
@@ -10,7 +10,7 @@ const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMess
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} loading={loading}>
 			<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
-				<FaShare size={20} className="inline mr-1 mb-1" />
+				<Share size={20} className="inline mr-1 mb-1" />
 				{popupTitle}
 			</h2>
 			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />

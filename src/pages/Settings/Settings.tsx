@@ -1,9 +1,5 @@
 import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { BsLock, BsMoonFill, BsSunFill, BsUnlock } from 'react-icons/bs';
-import { MdNotifications } from "react-icons/md";
-import { IoIosArrowDown } from "react-icons/io";
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -23,8 +19,7 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
-import { FaLaptop, FaMobile } from "react-icons/fa";
+import {  Bell, ChevronDown, Edit, Key, Laptop, Lock, LockOpen, Moon, RefreshCcw, Smartphone, Sun, Trash2, UserLock } from 'lucide-react';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -218,9 +213,9 @@ const WebauthnRegistation = ({
 			<span className="flex-grow">{t('pageSettings.addPasskey')}</span>
 			{
 				[
-					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
-					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
-					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
+					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: UserLock },
+					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: Key },
+					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: Smartphone },
 				].map(({ Icon, hint, btnLabel }) => (
 					<Button
 						key={hint}
@@ -240,7 +235,7 @@ const WebauthnRegistation = ({
 						)}
 					>
 						<div className="flex items-center">
-							<Icon size={20} />
+							<Icon size={18} />
 							<span className='hidden md:block ml-2'>
 								{btnLabel}
 							</span>
@@ -446,13 +441,13 @@ const UnlockMainKey = ({
 				<div className="flex items-center">
 					{unlocked
 						? <>
-							<BsUnlock size={20} />
+							<LockOpen size={18} />
 							<span className='hidden md:block ml-2'>
 								{t('pageSettings.lockSensitive')}
 							</span>
 						</>
 						: <>
-							<BsLock size={20} />
+							<Lock size={18} />
 							<span className='hidden md:block ml-2'>
 								{t('pageSettings.unlockSensitive')}
 							</span>
@@ -645,7 +640,7 @@ const WebauthnCredentialItem = ({
 						onClick={() => onUpgradePrfKey(prfKeyInfo)}
 						aria-label={t('pageSettings.passkeyItem.prfUpgradeAriaLabel', { passkeyLabel: currentLabel })}
 					>
-						<FaSyncAlt size={16} /> {t('pageSettings.passkeyItem.prfUpgrade')}
+						<RefreshCcw size={18} /> {t('pageSettings.passkeyItem.prfUpgrade')}
 					</Button>
 				}
 
@@ -680,7 +675,7 @@ const WebauthnCredentialItem = ({
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							title={!isOnline ? t("common.offlineTitle") : ""}
 						>
-							<FaEdit size={16} className="mr-2" />
+							<Edit size={18} className="mr-2" />
 							{t('pageSettings.passkeyItem.rename')}
 						</Button>
 					)
@@ -696,7 +691,7 @@ const WebauthnCredentialItem = ({
 						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
 					>
-						<FaTrash size={16} />
+						<Trash2 size={18} />
 					</Button>
 				)}
 				<DeletePopup
@@ -960,7 +955,7 @@ const Settings = () => {
 									additionalClassName={`border border-c-lm-gray-400 dark:border-c-dm-gray-600 hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 dark:text-white ${settings.colorScheme === 'light' ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 border-black dark:border-white' : 'bg-c-lm-gray-200 dark:bg-c-dm-gray-800'}`}
 
 								>
-									<BsSunFill className='mr-2' />
+									<Sun size={18} className='mr-2' />
 									{t('pageSettings.appearance.colorScheme.light')}
 								</Button>
 
@@ -973,7 +968,7 @@ const Settings = () => {
 									additionalClassName={`border border-c-lm-gray-400 dark:border-c-dm-gray-600 hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 dark:text-white ${settings.colorScheme === 'dark' ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 border-black dark:border-white' : 'bg-c-lm-gray-200 dark:bg-c-dm-gray-800'}`}
 
 								>
-									<BsMoonFill className='mr-2' />
+									<Moon size={18} className='mr-2' />
 									{t('pageSettings.appearance.colorScheme.dark')}
 								</Button>
 
@@ -986,9 +981,9 @@ const Settings = () => {
 									additionalClassName={`border border-c-lm-gray-400 dark:border-c-dm-gray-600 hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 dark:text-white ${settings.colorScheme === 'system' ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 border-black dark:border-white' : 'bg-c-lm-gray-200 dark:bg-c-dm-gray-800'}`}
 								>
 									{screenType === 'desktop' ? (
-										<FaLaptop className='mr-2' />
+										<Laptop size={18} className='mr-2' />
 									) : (
-										<FaMobile className='mr-2' />
+										<Smartphone size={18} className='mr-2' />
 									)}
 									{t('pageSettings.appearance.colorScheme.system')}
 								</Button>
@@ -1028,7 +1023,7 @@ const Settings = () => {
 											<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
 										</select>
 										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
-											<IoIosArrowDown className='dark:text-white' />
+											<ChevronDown size={18} className='dark:text-white' />
 										</span>
 									</div>
 								</div>
@@ -1058,7 +1053,7 @@ const Settings = () => {
 											<option value="true">{t('pageSettings.oblivious.gunet')}</option>
 										</select>
 										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
-											<IoIosArrowDown className='dark:text-white' />
+											<ChevronDown size={18} className='dark:text-white' />
 										</span>
 									</div>
 								</div>
@@ -1117,6 +1112,7 @@ const Settings = () => {
 										disabled={!unlocked || !isOnline}
 										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
 									>
+										<Trash2 size={18} />
 										{t('pageSettings.deleteAccount.buttonText')}
 									</Button>
 								</div>
@@ -1127,7 +1123,7 @@ const Settings = () => {
 							<div className='relative'>
 								<H2 heading={t('pageSettings.title.appVersion')} />
 								{updateAvailable && (
-									<MdNotifications
+									<Bell
 										size={22}
 										className="text-green-500 absolute top-0 left-[105px]"
 									/>

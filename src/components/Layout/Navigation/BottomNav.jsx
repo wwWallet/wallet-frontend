@@ -1,15 +1,12 @@
 import React, { useContext } from 'react';
-import { FaWallet, FaUserCircle } from "react-icons/fa";
-import { IoIosAddCircle, IoIosSend } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MdNotifications } from "react-icons/md";
 import StatusContext from '@/context/StatusContext';
-import { BsQrCodeScan } from 'react-icons/bs';
 import { useQRScanner } from '../../../hooks/useQRScanner';
 import QRCodeScanner from '../../QRCodeScanner/QRCodeScanner';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
+import { Bell, PlusCircle, QrCode, Send, UserCircle, Wallet } from 'lucide-react';
 
 const BottomNav = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
@@ -20,10 +17,10 @@ const BottomNav = ({ isOpen, toggle }) => {
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <FaWallet size={30} />, id: 'credentials', path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
-		{ icon: <IoIosAddCircle size={30} />, id: 'add', path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
-		{ icon: <BsQrCodeScan size={19} />, id: 'qr', path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
-		{ icon: <IoIosSend size={30} />, id: 'send', path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
+		{ icon: <Wallet size={20} />, id: 'credentials', path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
+		{ icon: <PlusCircle size={20} />, id: 'add', path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
+		{ icon: <QrCode size={20} />, id: 'qr', path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
+		{ icon: <Send size={20} />, id: 'send', path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
 	];
 
 	const handleNavigate = (path) => {
@@ -47,7 +44,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 					<button
 						id={`bottom-nav-item-${item.id}`}
 						key={item.path}
-						className={`${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-c-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center w-[20%] ${isActive(item) && !isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
+						className={`${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-c-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center gap-1 w-[20%] ${isActive(item) && !isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
 						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>
@@ -64,7 +61,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 								active={isActive(item)}
 							/>
 						</div>
-						<span className="hidden 2xs:block text-xs">
+						<span className={`hidden 2xs:block text-xs ${isActive(item) && !isOpen ? 'font-medium' : ''}`}>
 							{item.label}
 						</span>
 					</button>
@@ -76,14 +73,15 @@ const BottomNav = ({ isOpen, toggle }) => {
 					onClick={toggle}
 					title={t("common.navItemProfile")}
 				>
-					<FaUserCircle size={26} />
+					<UserCircle size={26} />
 					<span className="hidden 2xs:block text-xs">
 						{t("common.navItemProfile")}
 					</span>
 					{updateAvailable && (
-						<MdNotifications
-							size={22}
-							className="text-green-500 absolute top-[-10px] right-0"
+						<Bell
+							size={16}
+							fill='currentColor'
+							className="text-c-lm-green dark:text-c-dm-green absolute top-[-5px] right-[5px]"
 						/>
 					)}
 				</button>

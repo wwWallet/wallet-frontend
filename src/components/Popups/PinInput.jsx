@@ -1,12 +1,12 @@
 // PinInput.js
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import SessionContext from '@/context/SessionContext';
 import PopupLayout from './PopupLayout';
 import { last } from '@/util';
+import { Lock } from 'lucide-react';
 
 function PinInput({ isOpen, setIsOpen }) {
 	const { api } = useContext(SessionContext);
@@ -119,7 +119,7 @@ function PinInput({ isOpen, setIsOpen }) {
 	return (
 		<PopupLayout isOpen={isOpen} onClose={false}>
 			<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
-				<FaLock size={20} className="inline mr-1 mb-1" />
+				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
 			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />

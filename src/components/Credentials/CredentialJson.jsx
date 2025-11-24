@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaCopy } from 'react-icons/fa';
 import JsonViewer from '../JsonViewer/JsonViewer';
+import { Copy } from 'lucide-react';
 
 const CredentialJson = ({ parsedCredential }) => {
 	const { t } = useTranslation();
@@ -31,7 +31,7 @@ const CredentialJson = ({ parsedCredential }) => {
 					aria-label={t("pageCredentials.copyDatasetToClipboard")}
 					className="sticky float-right top-0 z-10 text-c-lm-gray-800 hover:text-c-lm-gray-700 dark:text-c-dm-gray-100 hover:dark:text-c-dm-gray-300 px-2 py-1"
 				>
-					<FaCopy size={18} />
+					<Copy size={18} />
 				</button>
 				<JsonViewer value={parsedCredential.signedClaims} />
 			</div>

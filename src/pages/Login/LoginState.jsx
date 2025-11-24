@@ -1,7 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FaInfoCircle } from 'react-icons/fa';
-import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -12,6 +10,7 @@ import Button from '../../components/Buttons/Button';
 import LoginPageLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
+import { Info, UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -87,7 +86,7 @@ const WebauthnLogin = ({
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						<GoPasskeyFill className="inline text-xl mr-2" />
+						<UserLock className="inline text-xl mr-2" />
 						{isSubmitting
 							? t('loginSignup.submitting')
 							: t('common.continue')}
@@ -158,7 +157,7 @@ const LoginState = () => {
 				</div>
 				{isOnline === false && (
 					<p className="text-sm font-light text-c-lm-gray-800 dark:text-c-dm-gray-200 italic mb-2">
-						<FaInfoCircle size={14} className="text-md inline-block text-c-lm-gray-800 dark:text-c-dm-gray-200 mr-2" />
+						<Info size={14} className="text-md inline-block text-c-lm-gray-800 dark:text-c-dm-gray-200 mr-2" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}
