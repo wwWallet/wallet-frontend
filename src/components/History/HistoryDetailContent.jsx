@@ -27,7 +27,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 	return (
 		<div className="py-2 w-full">
 			<div className='flex items-center gap-2 px-2 mb-4'>
-				<VerifierIcon size={40} className="text-white bg-primary dark:bg-primary-light p-2 rounded-md shrink-0" />
+				<VerifierIcon size={40} className="text-white bg-primary p-2 rounded-md shrink-0" />
 				<div>
 					<p className='font-bold text-c-lm-gray-900 dark:text-c-dm-gray-100'>{prettyDomain(historyItem[0].presentation.audience)} </p>
 					<p className='text-sm text-c-lm-gray-800 dark:text-c-dm-gray-200'>{formatDate(historyItem[0].presentation.presentationTimestampSeconds)}</p>

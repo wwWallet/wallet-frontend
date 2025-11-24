@@ -15,21 +15,20 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
 		>
 			<div className="sm:px-6">
-				<h2 className="text-3xl text-center font-bold mb-2 text-primary dark:text-primary-liborder-primary-light">
+				<h2 className="text-3xl text-center font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-50">
 					<FaHandshake size={40} className="inline mr-2 mb-1" />
 					{t('welcomeModal.title')}
 				</h2>
-				<hr className=" border-t border-primary/80 dark:border-primary-light/80" />
 			</div>
 			<div className="px-4 py-2 sm:px-6">
-				<p className="pt-2 text-md text-center text-gray-700 dark:text-white">
+				<p className="pt-2 text-md text-center text-c-lm-gray-800 dark:text-c-dm-gray-50">
 					<Trans
 						i18nKey="welcomeModal.description"
 						components={{ strong: <strong /> }}
 					/>
 				</p>
 			</div>
-			<p className="text-center text-gray-700 dark:text-white mb-4">
+			<p className="text-center text-c-lm-gray-800 dark:text-c-dm-gray-50 mb-4">
 				{t('welcomeModal.question')}
 			</p>
 

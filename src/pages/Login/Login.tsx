@@ -721,7 +721,7 @@ const Auth = () => {
 			<Trans
 				i18nKey="loginSignup.welcomeMessage"
 				components={{
-					highlight: <span className="text-primary dark:text-primary-light" />
+					highlight: <span className="text-primary dark:text-brand-400" />
 				}}
 			/>
 		}>

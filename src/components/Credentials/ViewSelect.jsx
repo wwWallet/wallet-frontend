@@ -71,7 +71,7 @@ export default function ViewSelect({ value, onChange }) {
 								role="menuitemradio"
 								aria-checked={isActive}
 								aria-label={t("viewSelect.aria.option", { label })}
-								className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left ${isActive ? "bg-primary dark:bg-primary-light text-white font-semibold" : "hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600"
+								className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left ${isActive ? "bg-primary  text-white font-semibold" : "hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600"
 									}`}
 								onClick={() => {
 									onChange(opt.value);

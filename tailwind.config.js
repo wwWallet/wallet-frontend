@@ -1,5 +1,13 @@
 /** @type {import('tailwindcss').Config} */
 
+const brandColor = {
+	"300": "hsl(217, 5%, 66%)",
+	"400": "hsl(217, 40%, 45%)",
+	"500": "hsl(217, 66%, 32%)",
+	"600": "hsl(217, 40%, 30%)",
+	"700": "hsl(217, 10%, 33%)",
+};
+
 const config = {
 	darkMode: "class",
 	content: ["./src/**/*.{js,jsx,ts,tsx}"],
@@ -12,19 +20,10 @@ const config = {
 				'55': 55,
 			},
 			colors: {
-				"primary": "hsl(217, 66%, 32%)",
-				"primary-hover": "hsl(217, 66%, 42%)",
+				"primary": brandColor['500'],
+				"primary-hover": brandColor['600'],
 
-				"secondary": "hsl(217, 66%, 32%)",
-				"secondary-hover": "hsl(217, 66%, 42%)",
-
-				"primary-dark": "hsl(217, 66<%, 32%)",
-
-				"primary-light": "hsl(217, 66%, 48%)",
-				"primary-light-hover": "hsl(216, 85%, 39%)",
-
-				"extra-light": "hsl(198, 79%, 59%)",
-				"extra-light-hover": "hsl(197, 61%, 61%)",
+				"brand": brandColor,
 
 				"c-lm-red": "hsl(3, 76%, 42%)",
 				"c-lm-red-hover": "hsl(3, 76%, 48%)",
@@ -84,7 +83,7 @@ const config = {
 					'600':  "hsl(220, 8%, 66.7%)",
 					'700':  "hsl(220, 8%, 47.1%)",
 					'800':  "hsl(220, 8%, 21.2%)",
-					'900':  "hsl(220, 8%, 0%)",
+					'900':  "hsl(220, 20%, 5.7%)",
 					'950':  "hsl(0, 0%, 0%)"
 				},
 				"c-dm-gray": {

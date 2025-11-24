@@ -157,7 +157,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
-					textColorClass="text-c-lm-gray-700 dark:text-c-dm-gray-300 dark:hover:text-primary-light hover:underline"
+					textColorClass="text-c-lm-gray-700 dark:text-c-dm-gray-300 hover:underline"
 				>
 					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
 

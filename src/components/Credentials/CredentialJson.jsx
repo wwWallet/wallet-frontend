@@ -29,7 +29,7 @@ const CredentialJson = ({ parsedCredential }) => {
 					onClick={handleCopy}
 					title={t("pageCredentials.copyDatasetToClipboard")}
 					aria-label={t("pageCredentials.copyDatasetToClipboard")}
-					className="sticky float-right top-0 z-10 text-primary-light hover:text-primary-light-hover dark:text-white hover:dark:text-gray-200 px-2 py-1"
+					className="sticky float-right top-0 z-10 text-c-lm-gray-800 hover:text-c-lm-gray-700 dark:text-c-dm-gray-100 hover:dark:text-c-dm-gray-300 px-2 py-1"
 				>
 					<FaCopy size={18} />
 				</button>

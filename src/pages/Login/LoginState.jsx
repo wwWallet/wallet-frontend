@@ -142,7 +142,7 @@ const LoginState = () => {
 			<Trans
 				i18nKey="loginState.welcomeBackMessage"
 				components={{
-					highlight: <span className="text-primary dark:text-primary-light" />
+					highlight: <span className="text-primary dark:text-brand-400" />
 				}}
 			/>
 		}>

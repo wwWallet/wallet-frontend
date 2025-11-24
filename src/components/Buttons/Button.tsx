@@ -106,22 +106,22 @@ const Button = ({
 			textSizeClasses = 'text-lg';
 		}
 
-		const commonClasses = `rounded-lg shadow-sm text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 ${textSizeClasses}`;
-		const disabledClasses = 'grayscale opacity-80 cursor-not-allowed';
+		const disabledClasses = !disabled ? 'hover:brightness-[0.85] dark:hover:brightness-[1.15]' : 'grayscale opacity-75 cursor-not-allowed';
+		const commonClasses = `rounded-lg shadow-sm text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 ${textSizeClasses} ${disabledClasses}`;
 
 		switch (variant) {
 			case 'primary':
-				return `${commonClasses} ${sizeClasses} text-white bg-primary border-primary ${!disabled ? "hover:bg-primary-hover hover:border-primary-hover" : disabledClasses}`;
+				return `${commonClasses} ${sizeClasses} text-white bg-primary border-primary`;
 			case 'secondary':
-				return `${commonClasses} ${sizeClasses} text-white dark:text-black bg-primary-light dark:bg-extra-light border-primary-light dark:border-extra-light ${!disabled ? "dark:hover:text-white hover:bg-primary hover:border-primary dark:hover:bg-primary-light dark:hover:border-primary-light" : disabledClasses}`;
+				return `${commonClasses} ${sizeClasses} text-white dark:text-white bg-brand-400 dark:bg-brand-600 border-brand-400 dark:border-brand-600`;
 			case 'tertiary':
-				return `${commonClasses} ${sizeClasses} text-c-lm-gray-100 dark:text-c-dm-gray-900 bg-c-lm-gray-900 dark:bg-c-dm-gray-100 border-c-lm-gray-900 dark:border-c-dm-gray-800 ${!disabled ? "hover:bg-c-lm-gray-800 dark:hover:bg-c-dm-gray-200 hover:border-c-lm-gray-800 dark:hover:border-clm-gray-200" : disabledClasses}`;
+				return `${commonClasses} ${sizeClasses} text-white dark:text-c-dm-gray-900 bg-c-lm-gray-900 dark:bg-c-dm-gray-100 border-c-lm-gray-900 dark:border-c-dm-gray-800`;
 			case 'delete':
-				return `${commonClasses} ${sizeClasses} text-c-lm-red-light dark:text-c-dm-red-light bg-c-lm-red-dark dark:bg-c-dm-red-dark border-c-lm-red-dark dark:border-c-dm-red-dark ${!disabled ? "hover:bg-c-lm-red-dark-hover dark:hover:bg-c-dm-red-dark-hover hover:border-c-lm-red-dark-hover dark:hover:border-c-dm-red-dark-hover" : disabledClasses}`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-red-light dark:text-c-dm-red-light bg-c-lm-red-dark dark:bg-c-dm-red-dark border-c-lm-red-dark dark:border-c-dm-red-dark`;
 			case 'outline':
-				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-100 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border-c-lm-gray-600 dark:border-c-dm-gray-400 ${!disabled ? 'hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500' : disabledClasses}`;
+				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border-c-lm-gray-600 dark:border-c-dm-gray-400`;
 			default:
-				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-100 bg-c-lm-gray-600 dark:bg-c-dm-gray-500 border-c-lm-gray-600 dark:border-c-dm-gray-500 ${!disabled ? "hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-600 hover:border-c-lm-gray-400 dark:hover:border-c-dm-gray-600" : disabledClasses}`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-50 bg-brand-300 dark:bg-brand-700 border-brand-300 dark:border-brand-700`;
 		}
 	};
 
