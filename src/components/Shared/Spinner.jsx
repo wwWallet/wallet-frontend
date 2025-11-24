@@ -6,8 +6,8 @@ const Spinner = ({ size = 'large' }) => {
 
 	const sizes = {
 		'large': {
-			container: 'h-40 w-40',
-			image: 'w-30',
+			container: 'h-32 w-32',
+			image: 'w-32',
 			opacity: 'opacity-100',
 		},
 		'small': {
@@ -22,7 +22,7 @@ const Spinner = ({ size = 'large' }) => {
 	return (
 		<div className="flex justify-center items-center h-[100dvh] bg-c-lm-gray-200 dark:bg-c-dm-gray-800" role="status" aria-live="polite">
 			<div className={`relative ${currentSize.container}`}>
-				<LoaderCircle strokeWidth={1.25} className={`absolute rounded-full ${currentSize.container} animate-spin ${currentSize.opacity}`} />
+				<LoaderCircle strokeWidth={1.25} className={`absolute rounded-full ${currentSize.container} text-brand-500 animate-spin ${currentSize.opacity}`} />
 				<div className={`absolute inset-0 scale-50 flex items-center justify-center ${currentSize.opacity}`}>
 					<Logo clickable={false} alt="Loading..." imgClassName={`${currentSize.image}`} />
 				</div>
