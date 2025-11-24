@@ -42,7 +42,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 					<XIcon size={16} className="text-c-lm-gray-500 absolute bottom-[-4px] right-[-4px] bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg border border-c-lm-gray-500" />
 				</div>
 			) : quality === null && (
-				<div className="absolute inset-0 flex items-center justify-center bg-opacity-30">
+				<div className="absolute inset-0 flex items-center justify-center">
 					<div className={`h-4 w-4 border-[2px] border-t-transparent dark:border-t-transparent ${connectingSpinner} absolute bottom-0 rounded-full animate-spin`} />
 				</div>
 			)}

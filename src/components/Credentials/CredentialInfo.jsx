@@ -13,7 +13,7 @@ const Legend = ({ showRequired, showRequested, t }) => {
 			className="mb-2 flex justify-end"
 			aria-label={t('credentialInfo.legendAriaLabel')}
 		>
-			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-sm dark:border-gray-400/40'>
+			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-xs dark:border-gray-400/40'>
 				{showRequired && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
 						<span>{t('credentialInfo.legendRequired')}</span>
@@ -133,7 +133,7 @@ const formatClaimValue = (value) => {
 			src={src}
 			alt=""
 			aria-hidden="true"
-			className="max-h-10 max-w-full rounded border"
+			className="max-h-10 max-w-full rounded-sm border"
 		/>
 	);
 
@@ -393,7 +393,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					>
 						<div
 							className={
-								`font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 w-1/2 break-words` +
+								`font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 w-1/2 wrap-break-word` +
 								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -401,7 +401,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 						</div>
 						<div
 							className={
-								`text-gray-700 dark:text-white w-1/2 flex justify-between items-start break-words` +
+								`text-gray-700 dark:text-white w-1/2 flex justify-between items-start wrap-break-word` +
 								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -416,7 +416,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 									{isRequested && (
 										<Send
 											title="Requested by verifier"
-											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 flex-shrink-0"
+											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 shrink-0"
 										/>
 									)}
 								</div>

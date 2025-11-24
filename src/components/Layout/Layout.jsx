@@ -15,7 +15,7 @@ const Layout = ({ children }) => {
 			{/* Header */}
 			{!isOpen && <Header />}
 
-			<div className={`w-full md:w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
+			<div className={`w-full md:w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col grow `}>
 				{/* Content */}
 				<div className="w-full flex-grow bg-c-lm-gray-100 dark:bg-c-dm-gray-900 py-6 md:mt-0 md:pt-6">
 					{children}

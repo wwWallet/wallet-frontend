@@ -488,7 +488,7 @@ const WebauthnSignupLogin = ({
 									/>
 									<div className={`flex flex-row flex-nowrap text-c-lm-gray-500 text-sm italic ${nameByteLimitReached ? 'text-c-lm-red' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
 										<div
-											className={`text-c-lm-red dark:text-c-dm-red flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											className={`text-c-lm-red dark:text-c-dm-red grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
 										>
 											{t('loginSignup.reachedLengthLimit')}
