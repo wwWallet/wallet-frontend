@@ -83,7 +83,7 @@ const QueryableList = <T extends object>({
 							<Button
 								id={`querylist-recent-${sanitizeId(getElementPropValue(el, identifierField as string) as string)}`}
 								variant="outline"
-								additionalClassName="break-words w-full text-left"
+								additionalClassName="wrap-break-word w-full text-left"
 								key={getElementPropValue(el, identifierField as string)}
 								{...(onClick &&
 									identifierField && {
@@ -112,7 +112,7 @@ const QueryableList = <T extends object>({
 						<Button
 							id={`querylist-all-${sanitizeId(getElementPropValue(el, identifierField as string) as string)}`}
 							variant="outline"
-							additionalClassName="break-words w-full text-left"
+							additionalClassName="wrap-break-word w-full text-left"
 							key={getElementPropValue(el, identifierField as string)}
 							{...(onClick &&
 								identifierField && {

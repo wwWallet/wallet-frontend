@@ -32,7 +32,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 
 						{isOnline === false && isMessageOfflineVisible === false && (
 							<>
-								<div className="flex-grow">
+								<div className="grow">
 									<p className='text-sm text-c-lm-gray-900 dark:text-white'>
 										<Trans
 											i18nKey="layout.messageOffline"

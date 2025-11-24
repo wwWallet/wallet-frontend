@@ -127,14 +127,14 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 };
 
 const StepTitle = ({ currentKey, t }) => {
-	let icon = <IdCard className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
+	let icon = <IdCard className="w-6 h-6 shrink-0 align-text-bottom" />;
 	let text = t('selectCredentialPopup.selectTitle');
 
 	if (currentKey === 'preview') {
-		icon = <Info className="w-[1.25rem] h-[1.25rem] shrink-0 align-text-bottom" />;
+		icon = <Info className="w-5 h-5 shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.previewTitle');
 	} else if (currentKey === 'summary') {
-		icon = <BookCheck className="w-[1.5rem] h-[1.5rem] shrink-0 align-text-bottom" />;
+		icon = <BookCheck className="w-6 h-6 shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.summaryTitle');
 	}
 

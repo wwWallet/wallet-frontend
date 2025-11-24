@@ -32,7 +32,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 		: { backgroundColor: 'white' };
 
 	return (
-		<span className="flex flex-col justify-between w-full gap-2 leading-tight break-words">
+		<span className="flex flex-col justify-between w-full gap-2 leading-tight wrap-break-word">
 			<span className="flex justify-start items-center gap-2 w-full">
 				<div
 					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-c-lm-gray-400 rounded-md shrink-0"

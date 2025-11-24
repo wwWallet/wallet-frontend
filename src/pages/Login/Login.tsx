@@ -727,11 +727,11 @@ const Auth = () => {
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
 
-				<div className='absolute text-c-lm-gray-900 dark:text-white top-0 left-5'>
+				<div className='absolute text-c-lm-gray-900 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 
-				<div className='absolute top-0 right-3'>
+				<div className='absolute top-5 right-5'>
 					<LanguageSelector className='min-w-12 text-sm text-c-lm-gray-900 dark:text-white cursor-pointer bg-white dark:bg-c-dm-gray-900 appearance-none' />
 				</div>
 

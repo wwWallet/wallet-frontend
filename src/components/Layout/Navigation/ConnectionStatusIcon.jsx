@@ -43,7 +43,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 				</div>
 			) : quality === null && (
 				<div className="absolute inset-0 flex items-center justify-center">
-					<div className={`h-4 w-4 border-[2px] border-t-transparent dark:border-t-transparent ${connectingSpinner} absolute bottom-0 rounded-full animate-spin`} />
+					<div className={`h-4 w-4 border-2 border-t-transparent dark:border-t-transparent ${connectingSpinner} absolute bottom-0 rounded-full animate-spin`} />
 				</div>
 			)}
 		</div>

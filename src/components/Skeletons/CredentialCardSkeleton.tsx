@@ -7,7 +7,7 @@
 import React from 'react';
 
 const CredentialCardSkeleton = () => (
-	<div className="animate-pulse bg-gradient-to-tr from-c-lm-gray-600 via-c-lm-gray-700 to-c-lm-gray-800 text-c-lm-gray-100 dark:from-c-dm-gray-600 dark:via-c-dm-gray-700 dark:to-c-dm-gray-800 shadow rounded-xl overflow-hidden aspect-[829/504] w-full">
+	<div className="animate-pulse bg-linear-to-tr from-c-lm-gray-600 via-c-lm-gray-700 to-c-lm-gray-800 text-c-lm-gray-100 dark:from-c-dm-gray-600 dark:via-c-dm-gray-700 dark:to-c-dm-gray-800 shadow rounded-xl overflow-hidden aspect-829/504 w-full">
 		<div className="h-[60%] w-full bg-transparent"></div>
 		<div className="flex flex-col justify-around h-[40%] px-4 py-3 space-y-2">
 			<div className="h-[30%] w-3/4 bg-white/30 dark:bg-white/15 rounded"></div>

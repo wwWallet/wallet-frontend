@@ -85,7 +85,7 @@ export const NotificationProvider = ({ children }: React.PropsWithChildren) => {
 		<NotificationContext.Provider value={api}>
 			{children}
 			{createPortal(
-				<div className="fixed inset-0 pointer-events-none z-[9999]">
+				<div className="fixed inset-0 pointer-events-none z-9999">
 					<div className="absolute top-4 left-4 right-4 flex items-end flex-col gap-2">
 						{items.map((n) => (
 							<Toast
