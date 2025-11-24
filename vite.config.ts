@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
 			MobileWrapperWKAppLinksPlugin(env),
 			VitePWA({
 				registerType: 'autoUpdate',
+				injectRegister: null,
 				srcDir: 'src',
 				filename: 'service-worker.js', // Custom service worker (MUST exist in `src/`)
 				strategies: 'injectManifest', // Uses `src/service-worker.js` for caching
