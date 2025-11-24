@@ -21,7 +21,7 @@ const UpdateNotification = () => {
 	if (!visible) return null;
 
 	return (
-		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-c-lm-green dark:bg-c-dm-green z-50 text-white dark:text-black px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 space-x-2 animate-slide-in-up sm:animate-slide-in-down">
+		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-c-lm-green dark:bg-c-dm-green z-50 text-white dark:text-c-lm-gray-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 space-x-2 animate-slide-in-up sm:animate-slide-in-down">
 			<MdNotifications
 				size={22}
 				className="text-inherit"

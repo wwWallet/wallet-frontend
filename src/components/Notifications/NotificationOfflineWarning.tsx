@@ -33,7 +33,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 						{isOnline === false && isMessageOfflineVisible === false && (
 							<>
 								<div className="flex-grow">
-									<p className='text-sm text-black dark:text-white'>
+									<p className='text-sm text-c-lm-gray-900 dark:text-white'>
 										<Trans
 											i18nKey="layout.messageOffline"
 											components={{ strong: <strong /> }}
@@ -42,7 +42,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 								</div>
 								<button
 									id="close-message-offline"
-									className="ml-2 text-black dark:text-white"
+									className="ml-2 text-c-lm-gray-900 dark:text-white"
 									onClick={handleCloseMessageOffline}
 								>
 									<FaTimes size={20} />

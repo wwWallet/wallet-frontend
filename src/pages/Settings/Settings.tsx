@@ -630,7 +630,7 @@ const WebauthnCredentialItem = ({
 					</span>
 					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
 					{needsPrfUpgrade
-						&& <span className="py-0.5 px-2 rounded bg-c-lm-orange dark:bg-c-dm-orange text-black font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
+						&& <span className="py-0.5 px-2 rounded bg-c-lm-orange dark:bg-c-dm-orange text-c-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
 			</div>

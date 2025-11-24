@@ -18,7 +18,7 @@ const defaults: DefaultableProps = {
 	flexAlignItems: "center",
 	flexJustifyContent: "between",
 	hr: true,
-	textColorClass: "text-black dark:text-white",
+	textColorClass: "text-c-lm-gray-900 dark:text-white",
 }
 
 
@@ -44,7 +44,7 @@ export const H1 = withDefaults(defaults, (props: Props) => (
 
 export const H2 = withDefaults({
 	...defaults,
-	textColorClass: "text-black dark:text-white"
+	textColorClass: "text-c-lm-gray-900 dark:text-white"
 }, (props: Props) => (
 	<>
 		<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>

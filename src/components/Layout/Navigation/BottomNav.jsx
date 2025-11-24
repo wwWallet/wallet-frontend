@@ -47,7 +47,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 					<button
 						id={`bottom-nav-item-${item.id}`}
 						key={item.path}
-						className={`${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-black rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center w-[20%] ${isActive(item) && !isOpen ? 'text-black dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
+						className={`${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-c-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center w-[20%] ${isActive(item) && !isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
 						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>
@@ -72,7 +72,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				<button
 					id="bottom-nav-item-profile"
 					key={t("common.navItemProfile")}
-					className={`cursor-pointer flex flex-col items-center w-[20%] relative ${isOpen ? 'text-black dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center w-[20%] relative ${isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
 					onClick={toggle}
 					title={t("common.navItemProfile")}
 				>

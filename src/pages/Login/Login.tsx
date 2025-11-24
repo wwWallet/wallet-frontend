@@ -405,7 +405,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-black dark:text-white">{t('registerPasskey.messageDone')}</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-c-lm-gray-900 dark:text-white">{t('registerPasskey.messageDone')}</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? t('loginSignup.authOnceMoreLogin')
