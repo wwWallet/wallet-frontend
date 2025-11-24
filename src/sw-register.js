@@ -1,3 +1,5 @@
+const appMode = import.meta.env.MODE || 'development';
+
 const tt = window.trustedTypes || window.TrustedTypes;
 
 const swPolicy = tt
@@ -11,7 +13,7 @@ const swPolicy = tt
 	})
 	: null;
 
-if ('serviceWorker' in navigator) {
+if (appMode === 'production' && 'serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
 		const swUrl = '/service-worker.js';
 		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swUrl) : swUrl;
