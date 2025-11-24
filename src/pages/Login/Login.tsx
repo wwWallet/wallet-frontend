@@ -561,7 +561,6 @@ const WebauthnSignupLogin = ({
 						{!isLoginCache && (
 							[
 								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: UserLock, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: UserLock, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
 								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: Key, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
 								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: Smartphone, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
 							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
