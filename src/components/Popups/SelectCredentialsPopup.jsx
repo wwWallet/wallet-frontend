@@ -562,7 +562,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 					<Button
 						id={`${keys[currentIndex] === 'summary' ? 'send' : 'next'}-select-credentials`}
 						onClick={goToNextSelection}
-						variant="tertiary"
+						variant="primary"
 						disabled={keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview' && selectedCredential === undefined}
 						title={selectedCredential === undefined && keys[currentIndex] !== 'summary' && keys[currentIndex] !== 'preview'
 							? t('selectCredentialPopup.nextButtonDisabledTitle') : ''}

@@ -425,7 +425,7 @@ const WebauthnSignupLogin = ({
 									<Button
 										id="continue-prf-loginsignup"
 										onClick={() => resolvePrfRetryPrompt(true)}
-										variant="tertiary"
+										variant="primary"
 										disabled={prfRetryAccepted}
 									>
 										{t('common.continue')}
@@ -517,7 +517,7 @@ const WebauthnSignupLogin = ({
 											<Button
 												id={`login-cached-user-${index}-loginsignup`}
 												onClick={() => onLoginCachedUser(cachedUser)}
-												variant="tertiary"
+												variant="primary"
 												disabled={isSubmitting}
 												additionalClassName="w-full"
 												ariaLabel={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}

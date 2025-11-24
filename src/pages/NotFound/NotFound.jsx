@@ -32,7 +32,7 @@ const NotFound = () => {
 						<Button
 							id="navigate-home"
 							onClick={handleBackToHome}
-							variant="tertiary"
+							variant="primary"
 							additionalClassName='w-full'
 						>
 							{t('notFound.homeButton')}

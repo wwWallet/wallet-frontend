@@ -28,7 +28,7 @@ const PWAInstallPrompt = () => {
 					<div className='flex items-center space-y'>
 						<Button
 							id="install-pwa-installable"
-							variant="tertiary"
+							variant="primary"
 							additionalClassName='text-sm mr-2'
 							onClick={() => pwaInstallable.prompt()}
 						>

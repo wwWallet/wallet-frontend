@@ -27,7 +27,7 @@ const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMess
 				</Button>
 				<Button
 					id="continue-redirect-popup"
-					variant="tertiary"
+					variant="primary"
 					onClick={() => handleContinue()}
 				>
 					{t('common.continue')}

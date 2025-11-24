@@ -291,7 +291,7 @@ const WebauthnRegistation = ({
 							<Button
 								id="save-add-passkey-settings"
 								type="submit"
-								variant="tertiary"
+								variant="primary"
 								disabled={isSubmitting}
 							>
 								{t('common.save')}
@@ -321,7 +321,7 @@ const WebauthnRegistation = ({
 					<Button
 						id="continue-prf-passkey-settings"
 						onClick={() => resolvePrfRetryPrompt(true)}
-						variant="tertiary"
+						variant="primary"
 						disabled={prfRetryAccepted}
 					>
 						{t('common.continue')}
@@ -438,7 +438,7 @@ const UnlockMainKey = ({
 			<Button
 				id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
 				onClick={unlocked ? onLock : onBeginUnlock}
-				variant="tertiary"
+				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
 				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
 				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
@@ -489,7 +489,7 @@ const UnlockMainKey = ({
 						<Button
 							id="submit-password-management-settings"
 							type="submit"
-							variant='tertiary'
+							variant='primary'
 							disabled={isSubmittingPassword}
 						>
 							{t('common.submit')}
@@ -665,7 +665,7 @@ const WebauthnCredentialItem = ({
 								id="save-editing-settings"
 								type="submit"
 								disabled={submitting}
-								variant="tertiary"
+								variant="primary"
 							>
 								{t('common.save')}
 							</Button>
@@ -675,7 +675,7 @@ const WebauthnCredentialItem = ({
 						<Button
 							id="rename-passkey"
 							onClick={() => setEditing(true)}
-							variant="tertiary"
+							variant="primary"
 							disabled={!isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							title={!isOnline ? t("common.offlineTitle") : ""}
@@ -1204,7 +1204,7 @@ const Settings = () => {
 									{t('common.cancel')}
 								</Button>
 								<Button
-									variant='tertiary'
+									variant='primary'
 									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
 									>
 									{t('common.tryAgain')}

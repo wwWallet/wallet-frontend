@@ -156,7 +156,7 @@ function PinInput({ isOpen, setIsOpen }) {
 				</Button>
 				<Button
 					id="submit-pin-input"
-					variant="tertiary"
+					variant="primary"
 					onClick={handleSubmit}
 				>
 					{t('common.submit')}

@@ -42,7 +42,7 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 				</Button>
 				<Button
 					id="start-tour-welcome-modal"
-					variant="tertiary"
+					variant="primary"
 					onClick={onStartTour}
 				>
 					{t("welcomeModal.startTourButton")}
