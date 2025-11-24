@@ -16,7 +16,6 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 				<Button
 					id="dismiss-history-detail-popup"
 					square={true}
-					variant='cancel'
 					onClick={onClose}
 				>
 					<svg

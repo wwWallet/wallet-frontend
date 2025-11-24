@@ -36,8 +36,6 @@ const PWAInstallPrompt = () => {
 						</Button>
 						<Button
 							id="close-pwa-installable"
-							className='text-white'
-							variant='cancel'
 							square={true}
 							size='sm'
 							title={t('pwaInstallPrompt.button.closeTitle')}

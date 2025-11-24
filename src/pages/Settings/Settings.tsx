@@ -481,7 +481,6 @@ const UnlockMainKey = ({
 					<div className='flex gap-2 justify-center align-center'>
 						<Button
 							id="cancel-password-management-settings"
-							variant='cancel'
 							onClick={onCancelPassword}
 							disabled={isSubmittingPassword}
 						>
@@ -1185,7 +1184,6 @@ const Settings = () => {
 							</p>
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
-									variant='cancel'
 									onClick={onCancelUpgradePrfKey}
 									>
 										{t('common.cancel')}
@@ -1201,7 +1199,6 @@ const Settings = () => {
 							/>
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
-									variant='cancel'
 									onClick={onCancelUpgradePrfKey}
 									>
 									{t('common.cancel')}

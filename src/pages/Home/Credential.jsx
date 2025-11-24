@@ -240,7 +240,7 @@ const Credential = () => {
 									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
 								</div>
 								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-c-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
-									<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
+									<Button onClick={cancelShare}>{t('common.cancel')}</Button>
 									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
 								</div>
 							</span>}
