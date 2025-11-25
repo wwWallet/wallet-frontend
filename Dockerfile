@@ -20,7 +20,7 @@ FROM builder-base AS builder
 COPY --from=test /home/node/app/package.json /dev/null
 
 COPY . .
-RUN NODE_OPTIONS=--max-old-space-size=3072 yarn build
+RUN --mount=type=secret,id=wallet_frontend_envfile,dst=/home/node/app/.env,required=false NODE_OPTIONS=--max-old-space-size=2048 yarn build
 
 
 FROM nginx:alpine AS deploy
