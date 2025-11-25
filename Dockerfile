@@ -5,7 +5,7 @@ RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 WORKDIR /home/node/app
 
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
-COPY package.json yarn.lock .
+COPY package.json yarn.lock ./
 RUN yarn cache clean -f && yarn install --frozen-lockfile
 
 FROM builder-base AS test
@@ -32,4 +32,4 @@ COPY --from=builder /home/node/app/dist/ .
 
 EXPOSE 80
 
-CMD nginx -g "daemon off;"
+CMD ["nginx", "-g", "daemon off;"]
