@@ -12,7 +12,7 @@ const WecomeModal = ({ isOpen, onStartTour, onClose }) => {
 			isOpen={isOpen}
 			onRequestClose={onClose}
 			className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow-lg m-4 w-full lg:w-1/3 sm:w-2/3 relative"
-			overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+			overlayClassName="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
 		>
 			<div className="sm:px-6">
 				<h2 className="text-3xl text-center font-bold mb-2 text-primary dark:text-white">

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
+import React from 'react';
 import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
-
+import { useProxiedImage } from '@/hooks/useProxiedImage'
 type EntityListItemProps = {
 	primaryData: any;
 	secondaryData?: any;
@@ -9,34 +8,9 @@ type EntityListItemProps = {
 };
 
 const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItemProps) => {
-	const proxy = useHttpProxy();
 
-	const [primaryLogoSrc, setPrimaryLogoSrc] = useState<string | null>(null);
-	const [secondaryImageSrc, setSecondaryImageSrc] = useState<string | null>(null);
-
-	// Load primary logo
-	useEffect(() => {
-		const url = primaryData?.logo?.uri;
-		if (typeof url === 'string' && url.trim() !== '') {
-			proxy.get(url, {}, { useCache: true }).then(res => {
-				if (typeof res?.data === 'string') {
-					setPrimaryLogoSrc(res.data);
-				}
-			});
-		}
-	}, [primaryData?.logo?.uri]);
-
-	// Load secondary logo
-	useEffect(() => {
-		const url = secondaryData?.logo?.uri;
-		if (typeof url === 'string' && url.trim() !== '') {
-			proxy.get(url, {}, { useCache: true }).then(res => {
-				if (typeof res?.data === 'string') {
-					setSecondaryImageSrc(res.data);
-				}
-			});
-		}
-	}, [secondaryData?.logo?.uri]);
+	const primaryLogoSrc = useProxiedImage(primaryData?.logo?.uri);
+	const secondaryImageSrc = useProxiedImage(secondaryData?.logo?.uri);
 
 	const hasTextColor = !!primaryData.text_color;
 	const hasBackgroundColor = !!primaryData.background_color;
@@ -86,7 +60,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-gray-200 dark:bg-gray-600 whitespace-nowrap">
 					{secondaryImageSrc && (
 						<div
-							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-gray-200"
+							className="h-5 w-5 flex justify-center items-center rounded-xs shrink-0 border-[0.5px] border-gray-200"
 							style={issuerLogoStyle}
 						>
 							<img

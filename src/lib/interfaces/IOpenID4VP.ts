@@ -1,10 +1,30 @@
+import { ExtendedVcEntity } from "@/context/CredentialsContext";
+import { ParsedTransactionData } from "../services/OpenID4VP/TransactionData/parseTransactionData";
+
 export interface IOpenID4VP {
-	handleAuthorizationRequest(url: string): Promise<{ conformantCredentialsMap: Map<string, string[]>, verifierDomainName: string } | { error: HandleAuthorizationRequestError }>;
-	promptForCredentialSelection(conformantCredentialsMap: { [x: string]: string[] }, verifierDomainName: string, verifierPurpose: string): Promise<Map<string, string>>;
-	sendAuthorizationResponse(selectionMap: Map<string, string>): Promise<{ url?: string } | { presentation_during_issuance_session: string }>;
+	handleAuthorizationRequest(
+		url: string,
+		vcEntitylist: ExtendedVcEntity[],
+	): Promise<
+		{
+			conformantCredentialsMap: Map<string, any>,
+			verifierDomainName: string,
+			verifierPurpose: string,
+			parsedTransactionData: ParsedTransactionData[] | null,
+		}
+		| { error: HandleAuthorizationRequestError }
+	>;
+	promptForCredentialSelection(
+		conformantCredentialsMap: { [x: string]: number[] },
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData?: ParsedTransactionData[],
+	): Promise<Map<string, number>>;
+	sendAuthorizationResponse(selectionMap: Map<string, number>, vcEntitylist: ExtendedVcEntity[]): Promise<{ url?: string } | { presentation_during_issuance_session: string }>;
 }
 
 export enum HandleAuthorizationRequestError {
+	NON_SUPPORTED_CLIENT_ID_SCHEME = "non_supported_client_id_scheme",
 	INSUFFICIENT_CREDENTIALS = "insufficient_credentials",
 	MISSING_PRESENTATION_DEFINITION = "missing_presentation_definition",
 	MISSING_PRESENTATION_DEFINITION_URI = "missing_presentation_definition_uri",

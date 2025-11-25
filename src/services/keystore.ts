@@ -15,6 +15,12 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
+import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
+
+type WalletState = CurrentSchema.WalletState;
+type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
+type WalletStateContainer = CurrentSchema.WalletStateContainer;
+
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
@@ -71,7 +77,7 @@ export function assertAsymmetricEncryptedContainer(privateData: EncryptedContain
 	if (isAsymmetricEncryptedContainer(privateData)) {
 		return privateData;
 	} else {
-		throw new Error("Keystore must be upgraded to asymmetric format");
+		throw new Error("Keystore must be upgraded to asymmetric format", { cause: 'keystore_not_asymmetric' });
 	}
 }
 
@@ -189,7 +195,7 @@ export type KeystoreV0PrivateData = KeystoreV0PublicData & {
 	wrappedPrivateKey: WrappedPrivateKey,
 }
 
-export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | PrivateData): privateData is KeystoreV0PrivateData {
+export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): privateData is KeystoreV0PrivateData {
 	return (
 		"publicKey" in privateData
 		&& "did" in privateData
@@ -199,7 +205,13 @@ export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | Pri
 	);
 }
 
-export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | PrivateData): PrivateData {
+export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateDataV2 | CurrentSchema.WalletStateContainer): privateData is PrivateDataV1 {
+	return (
+		"keypairs" in privateData
+	);
+}
+
+export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): PrivateDataV1 {
 	if (isKeystoreV0PrivateData(privateData)) {
 		return {
 			keypairs: {
@@ -217,7 +229,55 @@ export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | Privat
 	}
 }
 
+
+export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateDataV2): PrivateDataV2 {
+	if (isKeystoreV1PrivateData(privateData)) {
+		const initialWalletContainer = SchemaV1.WalletStateOperations.initialWalletStateContainer();
+		initialWalletContainer.S.keypairs = Object.values(privateData.keypairs).map((keypair) => {
+			return { kid: keypair.kid, keypair: { ...keypair } };
+		});
+		return initialWalletContainer;
+	} else {
+		return privateData;
+	}
+}
+
+export async function migrateV3PrivateData(privateData: PrivateDataV2 | PrivateData, encryptionKey: CryptoKey): Promise<PrivateData> {
+	const state = foldState(privateData);
+	const wrappedKeypairs = state.keypairs
+		.filter(k => "wrappedPrivateKey" in k.keypair) as unknown as SchemaV2.WalletState["keypairs"];
+	const unwrappedKeypairs = await Promise.all(wrappedKeypairs.map(async (k) => {
+		const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey, true);
+		const jwk = await crypto.subtle.exportKey("jwk", unwrapped) as JWK;
+		const keypair: CredentialKeyPair = {
+			kid: k.kid,
+			did: k.keypair.did,
+			alg: k.keypair.alg,
+			publicKey: k.keypair.publicKey,
+			privateKey: jwk,
+		};
+		return {
+			kid: k.kid,
+			keypair: keypair,
+		}
+	}));
+
+	for (const { kid, keypair } of unwrappedKeypairs) {
+		privateData = await addDeleteKeypairEvent(privateData as CurrentSchema.WalletStateContainer, kid);
+		privateData = await addNewKeypairEvent(privateData, kid, keypair);
+	}
+	return privateData;
+}
+
 export type CredentialKeyPair = {
+	kid: string,
+	did: string,
+	alg: string,
+	publicKey: JWK,
+	privateKey: JWK,
+}
+
+export type CredentialKeyPairV1 = {
 	kid: string,
 	did: string,
 	alg: string,
@@ -225,18 +285,20 @@ export type CredentialKeyPair = {
 	wrappedPrivateKey: WrappedPrivateKey,
 }
 
-type WrappedPrivateKey = {
+export type WrappedPrivateKey = {
 	privateKey: BufferSource,
 	aesGcmParams: AesGcmParams,
 	unwrappedKeyAlgo: EcKeyImportParams,
 }
 
-export type PrivateData = {
+export type PrivateDataV1 = {
 	keypairs: {
-		[kid: string]: CredentialKeyPair,
+		[kid: string]: CredentialKeyPairV1,
 	},
 }
 
+export type PrivateData = WalletStateContainer;
+export type PrivateDataV2 = WalletStateContainerV2;
 
 export async function parsePrivateData(privateData: BufferSource): Promise<EncryptedContainer> {
 	return jsonParseTaggedBinary(new TextDecoder().decode(privateData));
@@ -250,7 +312,7 @@ async function createAsymmetricMainKey(currentMainKey?: CryptoKey): Promise<{ ke
 	const mainKey = currentMainKey || await crypto.subtle.generateKey(
 		{ name: "AES-GCM", length: 256 },
 		true,
-		["decrypt", "encrypt", "wrapKey"],
+		["decrypt", "encrypt", "wrapKey", "unwrapKey"],
 	);
 
 	const [mainPublicKeyInfo, mainPrivateKey] = await generateEncapsulationKeypair();
@@ -274,36 +336,20 @@ export async function updatePrivateData(
 	[privateData, currentMainKey]: OpenedContainer,
 	update: (
 		privateData: PrivateData,
-		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
 	) => Promise<PrivateData>,
 ): Promise<OpenedContainer> {
-	if (!isAsymmetricEncryptedContainer(privateData)) {
-		throw new Error("EncryptedContainer is not fully asymmetric-encrypted");
-	}
-
 	const {
 		keyInfo: newMainPublicKeyInfo,
 		mainKey: newMainKey,
 		privateKey: newMainPrivateKey,
 	} = await createAsymmetricMainKey();
 
-	const privateDataContent = await decryptPrivateData(privateData.jwe, currentMainKey);
-	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey>) => {
-		const privateKey = await unwrapPrivateKey(wrappedPrivateKey, currentMainKey, true);
-		const newPrivateKey = await update(privateKey);
-		return await wrapPrivateKey(newPrivateKey, currentMainKey);
-	};
-
-	const newPrivateDataContent = await rewrapPrivateKeys(
-		await update(privateDataContent, updateWrappedPrivateKey),
-		currentMainKey,
-		newMainKey,
-	);
+	const privateDataContent = await update(await decryptPrivateData(privateData.jwe, currentMainKey));
 
 	return [
 		{
 			mainKey: newMainPublicKeyInfo,
-			jwe: await encryptPrivateData(newPrivateDataContent, newMainKey),
+			jwe: await encryptPrivateData(privateDataContent, newMainKey),
 			passwordKey: privateData.passwordKey && {
 				...privateData.passwordKey,
 				...await encapsulateKey(
@@ -341,14 +387,15 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 		"raw",
 		exportedMainKey,
 		"AES-GCM",
-		false,
+		true,
 		["decrypt", "wrapKey", "unwrapKey"],
 	);
 }
 
-export async function openPrivateData(exportedMainKey: BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey]> {
-	const mainKey = await importMainKey(exportedMainKey);
-	return [await decryptPrivateData(privateData.jwe, mainKey), mainKey];
+export async function openPrivateData(mainKey: CryptoKey, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, WalletState]> {
+	const openedPrivateData = await decryptPrivateData(privateData.jwe, mainKey);
+	const calculatedState = foldState(openedPrivateData);
+	return [openedPrivateData, mainKey, calculatedState];
 }
 
 async function generateEncapsulationKeypair(): Promise<[EncapsulationPublicKeyInfo, CryptoKey]> {
@@ -515,19 +562,6 @@ async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKe
 	);
 };
 
-async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
-	const privateKeyAesGcmParams: AesGcmParams = {
-		name: "AES-GCM",
-		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
-		additionalData: new Uint8Array([]),
-		tagLength: 128,
-	};
-	return {
-		privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
-		aesGcmParams: privateKeyAesGcmParams,
-		unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-	};
-};
 
 async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
 	const cleartext = new TextEncoder().encode(jsonStringifyTaggedBinary(privateData));
@@ -537,39 +571,16 @@ async function encryptPrivateData(privateData: PrivateData, encryptionKey: Crypt
 };
 
 async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
-	return migrateV0PrivateData(
-		jsonParseTaggedBinary(
-			new TextDecoder().decode(
-				(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
-			))
-	);
+	return migrateV3PrivateData(
+		migrateV1PrivateData(
+			migrateV0PrivateData(
+				jsonParseTaggedBinary(
+					new TextDecoder().decode(
+						(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
+					))
+			)), encryptionKey);
 };
 
-async function rewrapPrivateKeys(
-	privateData: PrivateData,
-	fromKey: CryptoKey,
-	toKey: CryptoKey,
-): Promise<PrivateData> {
-	const rewrappedKeys: [string, CredentialKeyPair][] = await Promise.all(
-		Object.entries(privateData.keypairs).map(async ([kid, keypair]): Promise<[string, CredentialKeyPair]> => [
-			kid,
-			{
-				...keypair,
-				wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-			},
-		])
-	);
-	return {
-		...privateData,
-		keypairs: rewrappedKeys.reduce(
-			(result, [kid, keypair]) => {
-				result[kid] = keypair;
-				return result;
-			},
-			{},
-		),
-	};
-}
 
 async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInfo): Promise<CryptoKey> {
 	const keyMaterial = await crypto.subtle.importKey(
@@ -841,11 +852,10 @@ export async function upgradePrfKey(
 export async function addPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
-	[existingUnwrapKey, wrappedMainKey]: [CryptoKey, WrappedKeyInfo],
+	mainKey: CryptoKey,
 	promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 ): Promise<EncryptedContainer> {
 	const prfSalt = crypto.getRandomValues(new Uint8Array(32))
-	const mainKey = await unwrapKey(existingUnwrapKey, privateData.mainKey, wrappedMainKey, true);
 	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
 
 	const keyInfo = await createPrfKey(
@@ -874,14 +884,13 @@ export function deletePrf(privateData: EncryptedContainer, credentialId: Uint8Ar
 }
 
 export type UnlockSuccess = {
-	exportedMainKey: ArrayBuffer,
+	mainKey: CryptoKey,
 	privateData: EncryptedContainer,
 }
 export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer): Promise<UnlockSuccess> {
 	await decryptPrivateData(privateData.jwe, mainKey); // Throw error if decryption fails
-	const exportedMainKey = await exportMainKey(mainKey);
 	return {
-		exportedMainKey,
+		mainKey,
 		privateData,
 	};
 }
@@ -913,7 +922,7 @@ export async function unlockPassword(
 	}
 	const passwordKey = await derivePasswordKey(password, keyInfo);
 	const mainKey = isAsymmetricPasswordKeyInfo(keyInfo)
-		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, true, ["decrypt", "unwrapKey"])
+		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(passwordKey, null, keyInfo.mainKey, true);
 
 	const newPrivateData = (
@@ -932,7 +941,7 @@ export async function unlockPrf(
 ): Promise<[UnlockSuccess, EncryptedContainer | null]> {
 	const [prfKey, keyInfo, prfCredential] = await getPrfKey(privateData, credential, promptForPrfRetry);
 	const mainKey = isPrfKeyV2(keyInfo)
-		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "unwrapKey"])
+		? await decapsulateKey(prfKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
 		: await unwrapKey(prfKey, null, keyInfo.mainKey, true);
 
 	const newPrivateData = (
@@ -950,7 +959,7 @@ export async function init(
 ): Promise<UnlockSuccess> {
 	const privateData: EncryptedContainer = {
 		...keyInfo,
-		jwe: await encryptPrivateData({ keypairs: {} }, mainKey),
+		jwe: await encryptPrivateData(SchemaV3.WalletStateOperations.initialWalletStateContainer(), mainKey),
 	};
 	return await unlock(mainKey, privateData);
 }
@@ -1049,6 +1058,24 @@ async function createW3CDID(publicKey: CryptoKey): Promise<{ didKeyString: strin
 	return { didKeyString };
 }
 
+export async function updateWalletState(
+	[privateData, mainKey]: OpenedContainer,
+	walletStateContainer: WalletStateContainer,
+): Promise<{ newContainer: OpenedContainer }> {
+
+	return {
+		newContainer: await updatePrivateData(
+			[privateData, mainKey],
+			async (privateData: PrivateData) => {
+				return {
+					...privateData,
+					...walletStateContainer,
+				}
+			}
+		)
+	}
+}
+
 async function addNewCredentialKeypairs(
 	[privateData, mainKey]: OpenedContainer,
 	didKeyVersion: DidKeyVersion,
@@ -1067,7 +1094,7 @@ async function addNewCredentialKeypairs(
 			['sign']
 		);
 		const publicKeyJwk: JWK = await crypto.subtle.exportKey("jwk", publicKey) as JWK;
-		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
+		const privateKeyJwk = await crypto.subtle.exportKey('jwk', privateKey) as JWK;
 		const did = await createDid(publicKey, didKeyVersion);
 		const kid = await deriveKid(publicKey, did);
 
@@ -1076,7 +1103,7 @@ async function addNewCredentialKeypairs(
 			did,
 			alg: "ES256",
 			publicKey: publicKeyJwk,
-			wrappedPrivateKey,
+			privateKey: privateKeyJwk,
 		};
 
 		return { kid, keypair, privateKey };
@@ -1092,18 +1119,16 @@ async function addNewCredentialKeypairs(
 			[privateData, mainKey],
 			async (privateData: PrivateData) => {
 
-				const combinedKeypairs = {
-					...privateData.keypairs
-				};
-
+				// append events
 				for (const { kid, keypair } of keypairsWithPrivateKeys) {
-					combinedKeypairs[kid] = keypair;
+					privateData = await addNewKeypairEvent(privateData, kid, keypair);
 				}
+
 				return {
 					...privateData,
-					keypairs: {
-						...combinedKeypairs
-					},
+					S: privateData.S,
+					events: privateData.events,
+					lastEventHash: privateData.lastEventHash ?? "",
 				}
 			}
 		),
@@ -1120,7 +1145,7 @@ async function createDid(publicKey: CryptoKey, didKeyVersion: DidKeyVersion): Pr
 	}
 }
 
-export async function signJwtPresentation([privateData, mainKey]: [PrivateData, CryptoKey], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
+export async function signJwtPresentation([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> {
 	const hasher = (data: string | ArrayBuffer, alg: string) => {
 		const encoded =
 			typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
@@ -1137,12 +1162,18 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 
 	const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
 
-	const keypair = privateData.keypairs[kid];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
-	const { alg, wrappedPrivateKey } = keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
+	const { alg, privateKey } = keypair.keypair;
+	const importedPrivateKey = await crypto.subtle.importKey(
+		'jwk',
+		privateKey,
+		{ name: 'ECDSA', namedCurve: 'P-256' },
+		true,
+		['sign']
+	);
 	const sdJwt = verifiableCredentials[0];
 	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
 	const kbJWT = await new SignJWT({
@@ -1155,7 +1186,7 @@ export async function signJwtPresentation([privateData, mainKey]: [PrivateData, 
 			typ: "kb+jwt",
 			alg: alg
 		})
-		.sign(privateKey);
+		.sign(importedPrivateKey);
 
 	const jws = sdJwt + kbJWT;
 	return { vpjwt: jws };
@@ -1182,8 +1213,8 @@ export async function generateOpenid4vciProofs(
 			nonce: nonce,
 			aud: audience,
 			iss: issuer,
-			iat: config.CLOCK_TOLERANCE ? Math.floor(new Date().getTime() / 1000) - config.CLOCK_TOLERANCE : Math.floor(new Date().getTime() / 1000),
 		})
+			.setIssuedAt()
 			.setProtectedHeader({
 				alg: keypair.alg,
 				typ: "openid4vci-proof+jwt",
@@ -1211,7 +1242,7 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
 
 	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
 		DataItem.fromData(
@@ -1243,15 +1274,14 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
 	// get the keypair based on the jwk Thumbprint
-	const keypair = privateData.keypairs[kid];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
 	console.log("Found keypair = ", keypair);
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, wrappedPrivateKey } = keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const { alg, privateKey } = keypair.keypair;
+	const privateKeyJwk = privateKey;
 
 	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
@@ -1265,7 +1295,7 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 		mdocGeneratedNonce
 	);
 
-	const uint8ArrayToHexString = (uint8Array: any) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
+	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
@@ -1276,7 +1306,7 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 	return { deviceResponseMDoc };
 }
 
-export async function generateDeviceResponseWithProximity([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
 	// extract the COSE device public key from mdoc
 	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
 	const deviceKeyInfo = p.data.get('deviceKeyInfo');
@@ -1286,14 +1316,13 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 
 	// get the keypair based on the jwk Thumbprint
-	const keypair = privateData.keypairs[kid];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, did, wrappedPrivateKey } = keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const { alg, privateKey } = keypair.keypair;
+	const privateKeyJwk = privateKey;
 
 	const options = getCborEncodeDecodeOptions();
 	options.variableMapSize = true;

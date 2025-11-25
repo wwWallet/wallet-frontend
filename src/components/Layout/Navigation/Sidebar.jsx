@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { AiOutlineLogout } from "react-icons/ai";
-import { FaWallet, FaUserCircle } from "react-icons/fa";
+import { FaWallet, FaUserCircle, FaShieldAlt} from "react-icons/fa";
 import { IoIosTime, IoIosAddCircle, IoIosSend, IoMdSettings } from "react-icons/io";
 import { useLocation, useNavigate } from 'react-router-dom';
 import useScreenType from '../../../hooks/useScreenType';
@@ -10,9 +10,12 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import { MdNotifications } from "react-icons/md";
 import ConnectionStatusIcon from './ConnectionStatusIcon';
+import CredentialsContext from '@/context/CredentialsContext';
+import CounterBadge from '@/components/Shared/CounterBadge';
 
-const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, notificationIcon, className = '' }) => {
+const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
+
 	return (
 		<button
 			id={`sidebar-item-${id}`}
@@ -25,9 +28,10 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 					{label}
 				</span>
 			</div>
-			{notificationIcon && (
-				<div className="flex items-center">
+			{(notificationIcon || typeof counter === 'number') && (
+				<div className="relative flex items-center gap-2">
 					{notificationIcon}
+					<CounterBadge count={counter} active={isActive} ariaLabel="pending" />
 				</div>
 			)}
 		</button>
@@ -36,7 +40,8 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 
 const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
-	const { api, logout } = useContext(SessionContext);
+	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
+	const { pendingTransactions } = useContext(CredentialsContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -61,15 +66,15 @@ const Sidebar = ({ isOpen, toggle }) => {
 	return (
 		<div
 			className={`${isOpen && screenType !== 'desktop'
-				? 'w-full flex flex-col justify-between fixed h-dvh z-30 bg-primary dark:bg-primary-hover text-white p-4 pb-24 md:pb-0 overflow-y-auto'
-				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary dark:bg-primary-hover text-white h-dvh py-8 px-7 overflow-y-auto'
+				? 'w-full flex flex-col justify-between fixed h-dvh z-30 bg-primary-dark dark:bg-primary-dark-hover text-white p-4 pb-24 md:pb-0 overflow-y-auto'
+				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary-dark dark:bg-primary-dark-hover text-white h-dvh py-8 px-7 overflow-y-auto'
 				}`}
 		>
 			{/* Header and Nav */}
 			<div style={{ display: 'flex', flexDirection: 'column' }} className="flex flex-col space-between">
 				<div className="md:hidden flex items-center justify-between mb-4">
 					<div className='flex items-center'>
-						<Logo type='white' aClassName='mr-2' imgClassName='w-10 h-auto' />
+						<Logo type='dark' aClassName='mr-2' imgClassName='w-10 h-auto' />
 						<a href={('/')}
 							className="text-white text-xl font-bold cursor-pointer"
 						>
@@ -78,10 +83,10 @@ const Sidebar = ({ isOpen, toggle }) => {
 					</div>
 				</div>
 				<div>
-					<div className="hidden md:flex md:gap-2 justify-between items-center">
-						<Logo type='white' aClassName='mb-2 mr-2 w-5/12' imgClassName='object-contain' />
+					<div className="hidden md:flex md:gap-4 justify-between items-center mb-4">
+						<Logo type='dark' aClassName='w-4/12' imgClassName='object-contain' />
 						<a href={('/')}
-							className="text-white text-xl font-bold cursor-pointer w-7/12"
+							className="text-white text-xl font-bold cursor-pointer w-8/12"
 						>
 							{t('common.walletName')}
 						</a>
@@ -95,6 +100,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 							<div className='pr-2 border-r border-white/20'>
 								<ConnectionStatusIcon size='small' />
 							</div>
+							{ obliviousKeyConfig !== null && (
+								<FaShieldAlt size={28} className="shrink-0 pr-2 border-r border-white/20" title={t('sidebar.obliviousEnabled')}/>
+							)}
 
 							<FaUserCircle className="shrink-0" size={20} title={displayName || username} />
 							<span
@@ -116,7 +124,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 							handleNavigate={handleNavigate}
 							icon={FaWallet}
 							label={t("common.navItemCredentials")}
-							className="step-2 hidden md:block"
+							className="step-2 hidden md:flex"
+							counter={pendingTransactions?.length ?? undefined}
 						/>
 
 						<NavItem
@@ -126,7 +135,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							handleNavigate={handleNavigate}
 							icon={IoIosAddCircle}
 							label={t("common.navItemAddCredentials")}
-							className="step-3 hidden md:block"
+							className="step-3 hidden md:flex"
 						/>
 
 						<NavItem
@@ -136,7 +145,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							handleNavigate={handleNavigate}
 							icon={IoIosSend}
 							label={t("common.navItemSendCredentials")}
-							className="step-5 hidden md:block"
+							className="step-5 hidden md:flex"
 						/>
 
 						<NavItem

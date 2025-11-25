@@ -40,7 +40,7 @@ const Button = ({
 }: Props) => {
 
 	const getVariantClassName = () => {
-		const commonClasses = 'rounded-lg shadow-sm text-sm px-4 py-2 text-center flex flex-row flex-nowrap items-center justify-center';
+		const commonClasses = 'rounded-lg shadow-xs text-sm px-4 py-2 text-center flex flex-row flex-nowrap items-center justify-center';
 		switch (variant) {
 			case 'primary':
 				return `${commonClasses} text-white ${!disabled ? "bg-primary hover:bg-primary-hover dark:text-white dark:hover:bg-primary-light-hover dark:bg-primary-light" : "bg-gray-300 cursor-not-allowed hover:bg-gray-300"}`;
@@ -53,9 +53,9 @@ const Button = ({
 			case 'delete':
 				return `${commonClasses} ${!disabled ? "text-white bg-red-600 hover:bg-red-700" : "text-red-400 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"}`;
 			case 'outline':
-				return `bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed'}`;
+				return `bg-white rounded-lg px-4 py-[0.4375rem] text-sm flex flex-row flex-nowrap items-center justify-center border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed'}`;
 			case 'link':
-				return `font-medium ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
+				return `font-semibold ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
 			default:
 				return `${commonClasses}`;
 		}

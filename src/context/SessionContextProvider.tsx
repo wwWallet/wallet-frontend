@@ -1,15 +1,32 @@
-import React, { useContext, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useContext, useEffect, useCallback, useRef, useMemo, useState } from 'react';
 
 import StatusContext from './StatusContext';
 import { useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
+import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
+import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
+import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
+import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
+import { OHTTP_KEY_CONFIG } from '@/config';
 
-export const SessionContextProvider = ({ children }) => {
+export const SessionContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
+	const { getCalculatedWalletState } = keystore;
+	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
+
+	const [walletStateLoaded, setWalletStateLoaded] = useState<boolean>(false);
+	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig>(null);
+
+	// A unique id for each logged in tab
+	const [globalTabId] = useLocalStorage<string | null>("globalTabId", null);
+	const [tabId] = useSessionStorage<string | null>("tabId", null);
+
+	useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
@@ -17,7 +34,7 @@ export const SessionContextProvider = ({ children }) => {
 	// Memoize clearSession using useCallback
 	const clearSession = useCallback(async () => {
 		window.history.replaceState({}, '', `${window.location.pathname}`);
-		console.log('Clear Session');
+		console.log('[Session Context] Clear Session');
 		api.clearSession();
 	}, [api]);
 
@@ -27,9 +44,10 @@ export const SessionContextProvider = ({ children }) => {
 	}, [clearSession]);
 
 	// The close() will dispatch Event CloseSessionTabLocal in order to call the clearSession
-	const logout = async () => {
+	const logout = useCallback(async () => {
+		console.log('[Session Context] Close Keystore');
 		await keystore.close();
-	};
+	}, [keystore]);
 
 	useEffect(() => {
 		// Handler function that calls the current clearSession function
@@ -48,13 +66,43 @@ export const SessionContextProvider = ({ children }) => {
 		};
 	}, []);
 
+	useEffect(() => {
+		const S = getCalculatedWalletState();
+		if (S) {
+			if (S.settings['useOblivious'] === "true") {
+				// To use oblivious, keys must be fetched.
+				// Delay setWalletStateLoaded till then.
+				async function fetchKeyConfigAndUpdate() {
+					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
+					setObliviousKeyConfig(keyConfig);
+					setWalletStateLoaded(true);
+				}
+				fetchKeyConfigAndUpdate();
+			} else {
+				setObliviousKeyConfig(null);
+				setWalletStateLoaded(true);
+			}
+		}
+	}, [getCalculatedWalletState]);
+
 	const value: SessionContextValue = useMemo(() => ({
 		api,
-		isLoggedIn: api.isLoggedIn() && keystore.isOpen(),
+		isLoggedIn: isLoggedIn,
 		keystore,
 		logout,
-	}), [api, keystore, logout]);
+		obliviousKeyConfig
+	}), [api, keystore, logout, isLoggedIn, obliviousKeyConfig]);
 
+	useEffect(() => {
+		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
+			clearSession();
+		}
+	}, [globalTabId, tabId, clearSession, api, keystore]);
+
+
+	if ((api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded))) {
+		return <></>
+	}
 	return (
 		<SessionContext.Provider value={value}>
 			{children}

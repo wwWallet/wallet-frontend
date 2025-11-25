@@ -1,29 +1,37 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
-import eslint from 'vite-plugin-eslint';
+import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
-import { ManifestPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
+import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
-	const env = loadEnv(mode, process.cwd(), '')
+	const env = loadEnv(mode, process.cwd(), '');
 	return {
 		base: '/',
 		plugins: [
 			react(),
+			tailwindcss(),
 			svgr(),
-			eslint(),
+			checker({
+				eslint: {
+					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
+				}
+			}),
 			ManifestPlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),
+			MobileWrapperWKAppLinksPlugin(env),
 			VitePWA({
 				registerType: 'autoUpdate',
+				injectRegister: null,
 				srcDir: 'src',
 				filename: 'service-worker.js', // Custom service worker (MUST exist in `src/`)
 				strategies: 'injectManifest', // Uses `src/service-worker.js` for caching
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
-					maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+					maximumFileSizeToCacheInBytes: env.VITE_GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
 				},
 			}),
 
@@ -71,6 +79,7 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			sourcemap: env.VITE_GENERATE_SOURCEMAP === 'true',
+			minify: env.VITE_GENERATE_SOURCEMAP !== 'true'
 		},
 	}
 });

@@ -1,4 +1,4 @@
-<img src="https://demo.wwwallet.org/wallet_192.png" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
+<img src="./branding/logo_dark.svg" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
 
 # wwWallet
 
@@ -12,9 +12,9 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - ✨ [Features](#features)
 - 🔍 [Prerequisites](#prerequisites)
 - 📦 [Installation](#installation)
+- ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
 - 🔐 [PRF Compatibility](#prf-compatibility)
-- 🔥 [Firebase](#firebase)
 - 🎨 [Tailwind CSS](#tailwind-css)
 - 💡 [Contributing](#contributing)
 
@@ -71,15 +71,6 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_WS_URL: The URL of the websocket service.
   - VITE_WALLET_BACKEND_URL: The URL of your backend service.
   - VITE_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
-  - VITE_FIREBASE_ENABLED: Enable of disable Firebase (`true` or `false`) for push notifications. If left empty, it will be handled as `false`.
-  - VITE_FIREBASE_VAPIDKEY: Your Vapid key (public key for cloud messaging firebase) for push notifications.
-  - VITE_FIREBASE_API_KEY: Your API key for Firebase.
-  - VITE_FIREBASE_AUTH_DOMAIN: Your Firebase authentication domain.
-  - VITE_FIREBASE_PROJECT_ID: Your Firebase project ID.
-  - VITE_FIREBASE_STORAGE_BUCKET: Your Firebase storage bucket.
-  - VITE_FIREBASE_MESSAGING_SENDER_ID: Your Firebase Messaging Sender ID.
-  - VITE_FIREBASE_APP_ID: Your Firebase App ID.
-  - VITE_FIREBASE_MEASUREMENT_ID: Your Firebase Measurement ID.
   - VITE_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
   - VITE_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
   - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
@@ -93,49 +84,45 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_STATIC_NAME: The installation's public name
   - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
   - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
-
-
-- Set up Firebase (optional)
-
-  a. Create a Firebase Project
-    - Go to the Firebase Console (https://console.firebase.google.com/).
-    - Click "Add Project" to create a new Firebase project.
-    - Configure your project settings.
-
-  b. Configure Firebase for Web
-    - After creating the project, Add app and select "Web."
-    - Register your app with a name (e.g., "MyApp").
-    - Firebase will provide you with a configuration `firebaseConfig` object; keep this handy.
-
-  c. Get Service Account Key
-  - Navigate to "Project settings" > "Service accounts."
-  - Under the "Firebase Admin SDK" section, click "Generate new private key" to download the JSON file.
-  - in root of wallet-backend paste this file inside the `keys/` folder if the folder does not exist, then create it with name `firebaseConfig.json`
-  - The file name should be the same with the `notifications.serviceAccount` JSON attribute on the configuration of the wallet-backend-server which is located on the `config/` folder. That being said, the `notifications.serviceAccount` JSON attribute should be set to `firebaseConfig.json`
-  - The `notifications.enabled` JSON attribute on the wallet-backend-server configuration should be set to `true`
-
-
-  d. Generate VAPID Key
-  - Navigate to "Project settings" > "Service accounts > Cloud Messaging."
-  - Scroll down to the "Web configuration" section.
-  - You should see an option to generate a new VAPID key. Click the "Generate" button.
-  - After generating the VAPID key, you'll see it displayed on the screen.
-  - Save this VAPID key securely, as you'll need it in your frontend.
-
-  e. Fill config variables
-  - With your `firebaseConfig` and the VAPID KEY now you can fill the wallet-frontend `.env`.
-  - Also navigate to `wallet-frontend/public/firebase-messaging-sw.js` and replace the `firebaseConfig` with yours.
-
+  - VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
+  - VITE_WELLKNOWN_APPLE_APPIDS: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
+  - VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
 
 - Install dependencies:
-   ```bash
-   yarn install
-   ```
+    ```bash
+    yarn install
+    ```
+
 - Start the development server:
 
-   ```bash
-   yarn start
-   ```
+    ```bash
+    yarn start
+    ```
+
+## ✅Pre-commit Hook
+
+We use [pre-commit](https://pre-commit.com/) to enforce our `.editorconfig` before code is committed.
+
+### One-time setup
+
+```
+# install pre-commit if you don’t already have it
+pip install pre-commit       # or brew install pre-commit / pipx install pre-commit
+
+# enable the git hook in this repo
+pre-commit install
+
+# optional: clean up the repo on demand
+pre-commit run --all-files
+
+git add -A
+```
+
+### What happens on commit
+
+- Auto-fixers run (e.g. add final newlines).
+- After the auto-fixers, the editorconfig-checker runs inside Docker to validate all staged files.
+- If violations remain, fix them manually until the commit passes.
 
 ## 🚀Usage
 
@@ -160,15 +147,15 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <th colspan="4">PRF Compatibility</th>
     </tr>
     <tr>
-      <th style="display:flex;align-items:center;border:none;"><img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
-	  		<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
-				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
-				<img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
-			</th>
-			<th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
+      <th style="display:flex;align-items:center;border:none;">
+        <img  src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Google_Chrome_icon_%28February_2022%29.svg/240px-Google_Chrome_icon_%28February_2022%29.svg.png" alt="Chrome" height="24"/>
+        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/5/51/Brave_icon_lionface.png" alt="Brave" height="24"/>
+        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Microsoft_Edge_logo_%282019%29.svg/128px-Microsoft_Edge_logo_%282019%29.svg.png" alt="Microsoft Edge" height="24"/>
+        <img style="margin-left:5px;" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Opera_2015_icon.svg/240px-Opera_2015_icon.svg.png" alt="Opera" height="24"/>
+      </th>
+      <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Firefox_logo%2C_2019.svg/250px-Firefox_logo%2C_2019.svg.png" alt="Firefox" height="24"/></th>
       <th><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Safari_browser_logo.svg/129px-Safari_browser_logo.svg.png" alt="Safari" height="24"/></th>
     </tr>
-	</th>
   </thead>
   <tbody>
     <tr>
@@ -240,7 +227,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>MacOS</td>
       <td>Internal</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -353,6 +340,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 <sup>[1]</sup> **Note on Android with FIDO Security Keys over USB:** It's essential to have **Google Play Services (GPS) version 24.08.12 or later**.
 
 **\*Notes:**
+- Additional information about WebAuthn browser compatibility, can be found on Yubico's [WebAuthn](https://developers.yubico.com/WebAuthn/WebAuthn_Browser_Support/) and [PRF](https://developers.yubico.com/WebAuthn/Concepts/PRF_Extension/Developers_Guide_to_PRF.html) Developers page.
 - ✅-marked scenarios have been confirmed using the latest public releases of relevant browsers, operating systems, and other dependencies at the time of testing.
 - In this table, we use the term "FIDO Security Key" to refer to compatible security keys. It's important to understand that any security key should work with the hmac-secret extension, provided it supports this feature.
   For a detailed list of security key models that support hmac-secret, you can refer to the [FIDO MDS Explorer](https://opotonniee.github.io/fido-mds-explorer/), where hmac-secret support is listed under metadataStatement > authenticatorGetInfo > extensions.\*
@@ -360,18 +348,6 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
 - iOS supports PRF extension starting with the **iOS 18** release.
 
 The wwWallet is committed to delivering a secure and adaptable authentication experience with an emphasis on PRF extension compatibility.
-
-## 🔥Firebase
-
-This application uses Firebase for authentication and messaging features. To integrate Firebase into your project, follow these steps:
-
-1. **Firebase Configuration (`src/firebase.js`):**
-
-   The `firebase.js` file in the `src` directory and provide your Firebase configuration details. This file initializes the Firebase app and sets up the messaging service.
-
-2. **Firebase Messaging Service Worker (`public/firebase-messaging-sw.js`):**
-
-   This service worker is responsible for handling background messages and notification clicks. When a background message is received, it triggers a notification, and when the user clicks on a notification, it can perform custom actions.
 
 ## 🎨Tailwind CSS
 

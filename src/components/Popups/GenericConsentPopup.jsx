@@ -1,18 +1,8 @@
 import React, { useEffect, useCallback } from 'react';
 import PopupLayout from './PopupLayout';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import useScreenType from '../../hooks/useScreenType';
-
-const formatTitle = (title) => {
-	if (title) {
-		return title.replace(/([a-z])([A-Z])/g, '$1 $2');
-	} else {
-		return;
-	}
-};
-
-
 
 function GenericConsentPopup({ popupConsentState, setPopupConsentState, showConsentPopup, hidePopupConsent }) {
 	const { t } = useTranslation();

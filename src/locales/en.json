@@ -21,7 +21,7 @@
 		"continue": "Continue",
 		"delete": "Delete",
 		"externalPasskey": "Passkey on a security key",
-		"hybridPasskey": "Passkey on another device",
+		"hybridPasskey": "Passkey on nearby device",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
@@ -49,6 +49,11 @@
 		"tryAgain": "Try again",
 		"walletName": "wwWallet"
 	},
+	"credentialInfo": {
+		"legendAriaLabel": "Claim legend",
+		"legendRequested": "Requested by verifier",
+		"legendRequired": "Required"
+	},
 	"expiredRibbon": {
 		"expired": "Expired"
 	},
@@ -70,6 +75,7 @@
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
+		"choosePasskeyPlatform": "Select your preferred passkey type",
 		"choosePasskeyUsername": "What should we call you?",
 		"confirmPasswordLabel": "Confirm Password",
 		"enterPasskeyName": "Choose a name for yourself",
@@ -85,8 +91,9 @@
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"loginSubmit": "Login",
+		"loginTitle": "Login with a Passkey",
 		"messageOffline": "You are offline. Some features may not be available.",
-		"newHereQuestion": "New here? ",
+		"newHereQuestion": "Don't have an account? ",
 		"number": "At least one number",
 		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
@@ -149,6 +156,16 @@
 		"message": "Sorry, the page you're looking for cannot be accessed",
 		"title": "Oops, page not found!"
 	},
+	"notifications": {
+		"newCredential": {
+			"message": "A new credential has arrived.",
+			"title": "New credential"
+		},
+		"success": {
+			"message": "The operation completed successfully.",
+			"title": "Success"
+		}
+	},
 	"pageAddCredentials": {
 		"description": "Search and choose the credential you want to issue",
 		"noFound": "No matching issuers found.",
@@ -192,6 +209,11 @@
 			"title": "Presentation Details"
 		}
 	},
+	"pagePending": {
+		"description": "View pending issuance requests",
+		"noFound": "No pending issuance requests found",
+		"title": "Pending issuance requests"
+	},
 	"pageSendCredentials": {
 		"description": "Search and choose a verifier to share credentials with",
 		"noFound": "No matching verifiers found.",
@@ -208,6 +230,16 @@
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
 			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
 		},
+		"appearance": {
+			"colorScheme": {
+				"dark": "Dark",
+				"description": "Choose if appearance should be light or dark, or follow your device settings.",
+				"light": "Light",
+				"system": "System",
+				"title": "Color Scheme"
+			},
+			"title": "Appearance"
+		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
 			"deleteButtonTitleLocked": "You cannot delete your account while locked",
@@ -215,11 +247,17 @@
 			"message": "Are you sure you want to delete <strong>your Account</strong> ?",
 			"title": "Delete account"
 		},
-		"deletePasskeyButtonTitleLocked": "You cannot add passkey while locked",
 		"description": "View account information and manage passkeys",
-		"lockPasskeyManagement": "Lock passkey management",
-		"lockPasskeyManagementTitle": "Click to Lock passkey management",
+		"lockSensitive": "Lock sensitive actions",
+		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
+		"oblivious": {
+			"description": "Select a private gateway to use Oblivious HTTP",
+			"disabled": "Do not use Oblivious HTTP",
+			"gunet": "GUnet Gateway",
+			"successMessage": "Saved",
+			"title": "Oblivious HTTP"
+		},
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
@@ -227,7 +265,6 @@
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
-			"deleteButtonTitleLocked": "You cannot delete passkey while locked",
 			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
 			"messageDeletePasskey": "Are you sure you want to delete <strong>{{nickname}}</strong> passkey?",
@@ -239,7 +276,6 @@
 			"prfUpgradeAriaLabel": "Upgrade passkey {{passkeyLabel}}",
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
-			"renameButtonTitleLocked": "You cannot edit passkey while locked",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
 			"unnamed": "Unnamed passkey"
 		},
@@ -263,14 +299,14 @@
 			"manageOtherPasskeys": "Manage other Passkeys",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockPasskeyManagement": "Unlock management",
-		"unlockPasskeyManagementTitle": "Click to Unlock management",
 		"unlockPassword": {
 			"description": "Please enter your password to unlock the wallet.",
 			"passwordInputAriaLabel": "Password",
 			"passwordInputPlaceholder": "Password",
 			"title": "Enter password"
 		},
+		"unlockSensitive": "Unlock sensitive actions",
+		"unlockSensitiveTitle": "Click to unlock sensitive actions",
 		"upgradePrfKey": {
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",
@@ -282,6 +318,11 @@
 		"errorInvalidDatatype": "Credential could not be parsed.",
 		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorNotSupportedCredentialType": "This type of credential is not supported."
+	},
+	"pendingTransactions": {
+		"subtitle": "Waiting for issuance to complete",
+		"title": "{{count}} pending credential(s)",
+		"view": "View details"
 	},
 	"pwaInstallPrompt": {
 		"button": {
@@ -319,6 +360,7 @@
 		"passkeyCreated": "Your passkey has been created."
 	},
 	"selectCredentialPopup": {
+		"allClaimsRequested": "The verifier has requested all claims of the credential.",
 		"baseTitle": "Send Credentials",
 		"credentialSelectTitle": "Click to select the {{friendlyName}}",
 		"nextButtonDisabledTitle": "You need to select a Credential to proceed",
@@ -326,17 +368,26 @@
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
-		"requestedCredentialsFieldsTitle": "Requested Credentials/Fields:",
+		"request": "Request:",
+		"requestedCredentialsFieldsTitle": "Requested fields:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
-		"selectTitle": "Select: ",
-		"summaryDescription": "You are about to share the selected credential(s) below, <strong>including only the requested fields</strong>.",
-		"summaryTitle": "Summary"
+		"selectTitle": "Select",
+		"signedDocuments": "Documents to be Signed: ",
+		"specificClaimsRequested": "The verifier has requested specific claims of the credential.",
+		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
+		"summaryTitle": "Summary",
+		"transactionDataExample": "Accept example transaction data terms & conditions"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
+		"obliviousEnabled": "Private requests with Oblivious HTTP enabled",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
+	},
+	"syncPopup": {
+		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to sync your wallet.",
+		"title": "Synchronize Wallet"
 	},
 	"tourGuide": {
 		"closeTourButton": "Close Tour",
@@ -351,6 +402,19 @@
 	},
 	"updateNotification": {
 		"description": "New Version is available!"
+	},
+	"viewSelect": {
+		"aria": {
+			"menuLabel": "Credential view options",
+			"option": "View: {{label}}",
+			"toggle": "Change view"
+		},
+		"options": {
+			"horizontalSlider": "Horizontal Slider",
+			"list": "List",
+			"verticalSlider": "Vertical Slider"
+		},
+		"view": "View"
 	},
 	"welcomeModal": {
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",

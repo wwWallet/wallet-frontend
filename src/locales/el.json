@@ -66,6 +66,7 @@
 		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό; ",
 		"authOnceMoreLogin": "Για να ολοκληρώσετε το ξεκλείδωμα του wallet αυθεντικοποιηθείτε με το κλειδί πρόσβασής σας μία ακόμη φορά.",
 		"capitalLetter": "Τουλάχιστον ένα κεφαλαίο γράμμα",
+		"choosePasskeyPlatform": "Επιλέξτε το είδος κλειδιού πρόσβασης που προτιμάτε",
 		"choosePasskeyUsername": "Πώς να σας αποκαλούμε;",
 		"confirmPasswordLabel": "Επιβεβαίωση Κωδικού",
 		"enterPasskeyName": "Επιλέξτε ένα όνομα για εσάς",
@@ -81,8 +82,9 @@
 		"loginKeystoreFailed": "Απέτυχε η προσπέλαση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"loginLocalKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"loginSubmit": "Σύνδεση",
+		"loginTitle": "Σύνδεση με Κλειδί Πρόσβασης",
 		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
-		"newHereQuestion": "Πρώτη φορά εδώ; ",
+		"newHereQuestion": "Δεν έχετε λογαριασμό; ",
 		"number": "Τουλάχιστον ένας αριθμός",
 		"or": "Ή",
 		"passkeyInvalid": "Άγνωστο κλειδί πρόσβασης, πιθανώς διαγράφηκε από τον χρήστη.",
@@ -209,10 +211,7 @@
 			"message": "Είστε σίγουροι ότι θέλετε να διαγράψετε <strong>τον λογαριασμό σας</strong>;",
 			"title": "Διαγραφή λογαριασμού"
 		},
-		"deletePasskeyButtonTitleLocked": "Δεν μπορείτε να προσθέσετε κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
-		"lockPasskeyManagement": "Κλείδωμα διαχείρισης κλειδιών πρόσβασης",
-		"lockPasskeyManagementTitle": "Κάντε κλικ για να κλειδώσετε τη διαχείριση κλειδιών πρόσβασης",
 		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
 		"passkeyItem": {
 			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
@@ -221,7 +220,6 @@
 			"cancelChangesAriaLabel": "Ακύρωση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"created": "Δημιουργήθηκε",
 			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
-			"deleteButtonTitleLocked": "Δεν μπορείτε να διαγράψετε κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 			"deleteButtonTitleUnlocked": "Κάντε κλικ για να διαγράψετε το κλειδί πρόσβασης {{passkeyLabel}}",
 			"lastUsed": "Τελευταία Χρήση",
 			"messageDeletePasskey": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί πρόσβασης <strong>{{nickname}}</strong>;",
@@ -233,7 +231,6 @@
 			"prfUpgradeAriaLabel": "Αναβάθμιση κλειδιού πρόσβασης {{passkeyLabel}}",
 			"rename": "Μετονομασία",
 			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
-			"renameButtonTitleLocked": "Δεν μπορείτε να επεξεργαστείτε το κλειδί πρόσβασης ενώ είναι κλειδωμένο",
 			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
 		},
@@ -257,8 +254,6 @@
 			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockPasskeyManagement": "Ξεκλείδωμα Διαχείρισης",
-		"unlockPasskeyManagementTitle": "Κάντε κλικ για Ξεκλείδωμα Διαχείρισης",
 		"unlockPassword": {
 			"description": "Παρακαλώ εισάγετε τον κωδικό σας για να ξεκλειδώσετε το wallet.",
 			"passwordInputAriaLabel": "Κωδικός",
@@ -313,17 +308,20 @@
 		"passkeyCreated": "Το κλειδί πρόσβασής σας δημιουργήθηκε."
 	},
 	"selectCredentialPopup": {
+		"allClaimsRequested": "Ο verifier έχει ζητήσει όλα τα πεδία του πιστοποιητικού.",
+		"baseTitle": "Αποστολή Πιστοποιητικών",
 		"credentialSelectTitle": "Κάντε κλικ για να επιλέξετε το {{friendlyName}}",
 		"nextButtonDisabledTitle": "Πρέπει να επιλέξετε ένα Πιστοποιητικό για να συνεχίσετε",
-		"previewDescription": "Θα σας ζητηθεί να επιλέξετε credentials που πληρούν τις παρακάτω απαιτήσεις.",
+		"previewDescription": "Θα σας ζητηθεί να επιλέξετε πιστοποιητικά που πληρούν τις παρακάτω απαιτήσεις.",
 		"previewTitle": "Προεπισκόπηση",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": "Μη ορισμένο purpose από τον verifier.",
-		"requestedCredentialsFieldsTitle": "Ζητούμενα credentials/πεδία:",
+		"request": "Αίτημα:",
+		"requestedCredentialsFieldsTitle": "Ζητούμενα πεδία:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Επιλέξτε το Πιστοποιητικό που θέλετε να στείλετε.",
-		"selectTitle": "Επιλογή: ",
-		"summaryDescription": "Πρόκειται να μοιραστείτε τα παρακάτω επιλεγμένα credentials, <strong>συμπεριλαμβάνοντας μόνο τα αιτούμενα πεδία</strong>.",
+		"selectTitle": "Επιλογή",
+		"summaryDescription": "Πρόκειται να μοιραστείτε <strong>μόνο τα παρακάτω πεδία</strong> από τα επιλεγμένα πιστοποιητικά.",
 		"summaryTitle": "Σύνοψη"
 	},
 	"sidebar": {

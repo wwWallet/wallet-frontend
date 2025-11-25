@@ -1,47 +1,60 @@
 import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
-import { getItem } from '../indexedDB';
 import SessionContext from './SessionContext';
-import { compareBy, reverse } from '../util';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
 import { CredentialVerificationError } from "wallet-common/dist/error";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
-import CredentialsContext, { ExtendedVcEntity } from "./CredentialsContext";
+import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsContext";
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { ParsedCredential } from "wallet-common/dist/types";
+import { CurrentSchema } from '@/services/WalletStateSchema';
 
-export const CredentialsContextProvider = ({ children }) => {
-	const { api, isLoggedIn } = useContext(SessionContext);
+type WalletStateCredential = CurrentSchema.WalletStateCredential;
+
+
+export const CredentialsContextProvider = ({ children }: React.PropsWithChildren) => {
+	const { api, keystore, isLoggedIn } = useContext(SessionContext);
 	const [vcEntityList, setVcEntityList] = useState<ExtendedVcEntity[] | null>(null);
 	const [latestCredentials, setLatestCredentials] = useState<Set<number>>(new Set());
 	const [currentSlide, setCurrentSlide] = useState<number>(1);
 	const httpProxy = useHttpProxy();
 	const helper = useOpenID4VCIHelper();
-
-	const [isPollingActive, setIsPollingActive] = useState<boolean>(false);
-	const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-	const [credentialEngineReady, setCredentialEngineReady] = useState<any>(false);
-	const engineRef = useRef<any>(null);
+	const credentialNumber = useRef<number | null>(null)
+	const { getCalculatedWalletState } = keystore;
+	const [credentialEngine, setCredentialEngine] = useState<any | null>(null);
+	// const engineRef = useRef<any>(null);
 	const prevIsLoggedIn = useRef<boolean>(null);
 
-	const { getExternalEntity, getSession, get } = api;
+	const { getExternalEntity } = api;
+	const [pendingTransactions, setPendingTransactions] = useState(null);
+
+	useEffect(() => {
+		if (!getCalculatedWalletState) return;
+
+		const S = getCalculatedWalletState();
+		if (!S) return;
+
+		const sessionsWithTx = S.credentialIssuanceSessions.filter(
+			(session) => session.credentialEndpoint?.transactionId
+		);
+		setPendingTransactions(sessionsWithTx);
+	}, [getCalculatedWalletState]);
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
-		try {
-			const engine = await initializeCredentialEngine(
-				httpProxy,
-				helper,
-				() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
-				[],
-				useCache
-			);
-			setCredentialEngineReady(true);
-			engineRef.current = engine;
-		} catch (err) {
-			console.error("[CredentialsContext] Engine init failed:", err);
-		}
-	}, [getExternalEntity, httpProxy, helper]);
+		const trustedCertificates: string[] = [];
+
+		const engine = await initializeCredentialEngine(
+			httpProxy,
+			helper,
+			() => getExternalEntity("/issuer/all", undefined, useCache).then(res => res.data),
+			trustedCertificates,
+			useCache,
+			(issuerIdentifier: string) => {
+				console.log(`[CredentialsContext] Issuer metadata resolved for: ${issuerIdentifier}`);
+			}
+		);
+		setCredentialEngine(engine);
+	}, [httpProxy, helper, getExternalEntity]);
 
 	useEffect(() => {
 		if (httpProxy && helper) {
@@ -56,20 +69,25 @@ export const CredentialsContextProvider = ({ children }) => {
 		prevIsLoggedIn.current = isLoggedIn;
 	}, [isLoggedIn, httpProxy, helper, initializeEngine]);
 
-	const stopPolling = useCallback(() => {
-		if (intervalRef.current) {
-			clearInterval(intervalRef.current);
-			intervalRef.current = null;
-			setIsPollingActive(false);
-			console.log("Polling stopped.");
-		}
-	}, []);
 
-	const parseCredential = useCallback(async (rawCredential: unknown): Promise<ParsedCredential | null> => {
-		const engine = engineRef.current;
+	const parseCredential = useCallback(async (vcEntity: WalletStateCredential): Promise<ParsedCredential | null> => {
+		const engine = credentialEngine;
 		if (!engine) return null;
 		try {
-			const result = await engine.credentialParsingEngine.parse({ rawCredential });
+
+			const {
+				data,
+				credentialIssuerIdentifier,
+				credentialConfigurationId,
+			} = vcEntity;
+
+			const result = await credentialEngine.credentialParsingEngine.parse({
+				rawCredential: data,
+				credentialIssuer: {
+					credentialIssuerIdentifier: credentialIssuerIdentifier,
+					credentialConfigurationId: credentialConfigurationId,
+				},
+			});
 			if (result.success) {
 				return result.value;
 			}
@@ -80,23 +98,34 @@ export const CredentialsContextProvider = ({ children }) => {
 			return null;
 		}
 
-	}, []);
+	}, [credentialEngine]);
 
-	const fetchVcData = useCallback(async (credentialId?: string): Promise<ExtendedVcEntity[]> => {
-		const engine = engineRef.current;
-		if (!engine) return [];
+	const fetchVcData = useCallback(async (batchId?: number): Promise<ExtendedVcEntity[] | null> => {
+		const engine = credentialEngine;
+		if (!engine) return null;
 
-		const response = await get('/storage/vc');
-		const fetchedVcList = response.data.vc_list;
+		const S = getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		const { credentials } = S;
+		if (!credentials) {
+			return null;
+		}
 
+		const { presentations } = S;
+		if (!presentations) {
+			return null;
+		}
 		// Create a map of instances grouped by credentialIdentifier
-		const instancesMap = fetchedVcList.reduce((acc, vcEntity) => {
-			if (!acc[vcEntity.credentialIdentifier]) {
-				acc[vcEntity.credentialIdentifier] = [];
+		const instancesMap = credentials.reduce((acc: any, vcEntity: WalletStateCredential) => {
+			if (!acc[vcEntity.batchId]) {
+				acc[vcEntity.batchId] = [];
 			}
-			acc[vcEntity.credentialIdentifier].push({
+
+			acc[vcEntity.batchId].push({
 				instanceId: vcEntity.instanceId,
-				sigCount: vcEntity.sigCount
+				sigCount: presentations.filter(x => x.usedCredentialIds.includes(vcEntity.credentialId)).length,
 			});
 			return acc;
 		}, {});
@@ -104,122 +133,94 @@ export const CredentialsContextProvider = ({ children }) => {
 		const { sdJwtVerifier, msoMdocVerifier } = engine;
 		// Filter and map the fetched list in one go
 		let filteredVcEntityList = await Promise.all(
-			fetchedVcList
-				.filter((vcEntity) => {
-					// Apply filtering by credentialId if provided
-					if (credentialId && vcEntity.credentialIdentifier !== credentialId) {
+			credentials
+				.filter((credential) => {
+					// Apply filtering by batchId if provided
+					if (batchId && credential.batchId !== batchId) {
 						return false;
 					}
 					// Include only the first instance (instanceId === 0)
-					return vcEntity.instanceId === 0;
+					return credential.instanceId === 0;
 				})
-				.map(async (vcEntity) => {
+				.map(async (credential) => {
 					// Parse the credential to get parsedCredential
-					const parsedCredential = await parseCredential(vcEntity.credential);
+					const parsedCredential = await parseCredential(credential);
 					if (parsedCredential === null) { // filter out the non parsable credentials
 						return null;
 					}
 					const result = await (async () => {
 						switch (parsedCredential.metadata.credential.format) {
 							case VerifiableCredentialFormat.VC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: credential.data, opts: {} });
 							case VerifiableCredentialFormat.DC_SDJWT:
-								return sdJwtVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return sdJwtVerifier.verify({ rawCredential: credential.data, opts: {} });
 							case VerifiableCredentialFormat.MSO_MDOC:
-								return msoMdocVerifier.verify({ rawCredential: vcEntity.credential, opts: {} });
+								return msoMdocVerifier.verify({ rawCredential: credential.data, opts: {} });
 						}
 					})();
 
 					// Attach the instances array from the map and add parsedCredential
 					return {
-						...vcEntity,
-						instances: instancesMap[vcEntity.credentialIdentifier],
+						...credential,
+						instances: instancesMap[credential.batchId],
 						parsedCredential,
 						isExpired: result.success === false && result.error === CredentialVerificationError.ExpiredCredential,
+						sigCount: instancesMap[credential.batchId].reduce((acc: number, curr: Instance) =>
+							acc + curr.sigCount
+							, 0),
 					};
 				})
 		);
 		filteredVcEntityList = filteredVcEntityList.filter((vcEntity) => vcEntity !== null);
 
 		// Sorting by id
-		filteredVcEntityList.sort(reverse(compareBy((vc) => vc.id)));
+		filteredVcEntityList.reverse();
 		return filteredVcEntityList;
-	}, [get, parseCredential]);
+	}, [getCalculatedWalletState, parseCredential, credentialEngine]);
 
-	const updateVcListAndLatestCredentials = (vcEntityList: ExtendedVcEntity[]) => {
-		setLatestCredentials(new Set(vcEntityList.filter(vc => vc.id === vcEntityList[0].id).map(vc => vc.id)));
 
-		setTimeout(() => {
-			setLatestCredentials(new Set());
-		}, 2000);
-
-		setVcEntityList(vcEntityList);
-	};
-
-	const pollForCredentials = useCallback(() => {
-		if (isPollingActive) {
-			console.log('Polling is already active. Restarting polling.');
-			stopPolling();
-		}
-
-		setIsPollingActive(true);
-		let attempts = 0;
-		intervalRef.current = setInterval(async () => {
-			attempts += 1;
-			const userId = getSession().uuid;
-			const previousVcList = await getItem("vc", userId);
-			const previousSize = previousVcList.vc_list.length;
-
-			const vcEntityList = await fetchVcData();
-			if (previousSize < vcEntityList.length) {
-				console.log('Found new credentials, stopping polling');
-				stopPolling();
-				updateVcListAndLatestCredentials(vcEntityList);
-			}
-
-			if (attempts >= 5) {
-				console.log('Max attempts reached, stopping polling');
-				stopPolling();
-			}
-		}, 1000);
-	}, [getSession, fetchVcData, isPollingActive, stopPolling]);
-
-	const getData = useCallback(async (shouldPoll = false) => {
+	const getData = useCallback(async () => {
 		try {
-			const userId = getSession().uuid;
-			const previousVcList = await getItem("vc", userId);
-			const uniqueIdentifiers = new Set(previousVcList?.vc_list.map(vc => vc.credentialIdentifier));
-			const previousSize = uniqueIdentifiers.size;
-
-			const vcEntityList = await fetchVcData();
-			const newCredentialsFound = previousSize < vcEntityList.length;
-
-			if (shouldPoll && !newCredentialsFound) {
-				window.history.replaceState({}, '', `/`);
-				console.log("No new credentials, starting polling");
-				setVcEntityList(vcEntityList);
-				pollForCredentials();
-			} else if (newCredentialsFound) {
-				window.history.replaceState({}, '', `/`);
-				stopPolling();
-				console.log("Found new credentials, no need to poll");
-				updateVcListAndLatestCredentials(vcEntityList);
-			} else {
-				setVcEntityList(vcEntityList);
+			const storedCredentials = await fetchVcData();
+			if (storedCredentials != null && (credentialNumber.current !== null && storedCredentials.length > credentialNumber.current)) {
+				setLatestCredentials(storedCredentials.length > 0 ? new Set([storedCredentials[0].batchId]) : new Set());
+				setTimeout(() => {
+					setLatestCredentials(new Set());
+				}, 2000);
 			}
+			setVcEntityList((prev) => {
+				if (
+					!prev ||
+					prev.length !== storedCredentials.length ||
+					prev.some((vc, i) => vc.batchId !== storedCredentials[i].batchId)
+				) {
+					return storedCredentials;
+				}
+				return prev;
+			});
+			credentialNumber.current = storedCredentials?.length;
+
 		} catch (error) {
 			console.error('Failed to fetch data', error);
 		}
-	}, [getSession, fetchVcData, pollForCredentials, stopPolling]);
+	}, [fetchVcData, setVcEntityList]);
 
-	if (isLoggedIn && !credentialEngineReady) {
+	useEffect(() => {
+		if (!getCalculatedWalletState || !credentialEngine || !isLoggedIn) {
+			return;
+		}
+		console.log("Triggerring getData()")
+		getData();
+	}, [getData, getCalculatedWalletState, credentialEngine, isLoggedIn]);
+
+	if (isLoggedIn && !credentialEngine) {
 		return (
 			<></>
 		);
 	}
 	else {
 		return (
-			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine: engineRef.current }}>
+			<CredentialsContext.Provider value={{ vcEntityList, latestCredentials, fetchVcData, getData, currentSlide, setCurrentSlide, parseCredential, credentialEngine, pendingTransactions }}>
 				{children}
 			</CredentialsContext.Provider>
 		);

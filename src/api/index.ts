@@ -6,11 +6,12 @@ import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
-import { useEffect, useCallback, useMemo,useRef } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
-import { addItem, getItem } from '../indexedDB';
+import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
-import { withHintsFromAllowCredentials } from '@/util-webauthn';
+import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -82,17 +83,29 @@ export interface BackendApi {
 	removeEventListener(type: ApiEventType, listener: EventListener, options?: boolean | EventListenerOptions): void,
 	/** Register a storage hook handle to be cleared when `useApi().clearSession()` is invoked. */
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
+
+	syncPrivateData(
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>>;
 }
 
-export function useApi(isOnline: boolean | null): BackendApi {
+export function useApi(isOnlineProp: boolean = true): BackendApi {
+	const isOnline = useMemo(() => isOnlineProp === null ? true : isOnlineProp, [isOnlineProp]);
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
+	const [userHandle,] = useSessionStorage<string | null>("userHandle", null);
+	const [cachedUsers] = useLocalStorage<CachedUser[] | null>("cachedUsers", null);
+
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
-	const onlineRef = useRef<boolean>(isOnline !== false);
 
-	useEffect(() => {
-		onlineRef.current = isOnline !== false;
-	}, [isOnline]);
+	const navigate = useNavigate();
 
 	/**
 	 * Synchronization tag for the encrypted private data. To prevent data loss,
@@ -121,16 +134,23 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		return resp;
 	}, [setPrivateDataEtag]);
 
-	const buildGetHeaders = useCallback((headers: { appToken?: string }): { [header: string]: string } => {
-		const authz = headers?.appToken || appToken;
+	const buildGetHeaders = useCallback((
+		headers: { [header: string]: string },
+		options: { appToken?: string },
+	): { [header: string]: string } => {
+		const authz = options?.appToken || appToken;
 		return {
+			...headers,
 			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
 		};
 	}, [appToken]);
 
-	const buildMutationHeaders = useCallback((headers: { appToken?: string }): { [header: string]: string } => {
+	const buildMutationHeaders = useCallback((
+		headers: { [header: string]: string },
+		options: { appToken?: string },
+	): { [header: string]: string } => {
 		return {
-			...buildGetHeaders(headers),
+			...buildGetHeaders(headers, options),
 			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
 		};
 	}, [buildGetHeaders, privateDataEtag]);
@@ -138,19 +158,19 @@ export function useApi(isOnline: boolean | null): BackendApi {
 	const getWithLocalDbKey = useCallback(async (
 		path: string,
 		dbKey: string,
-		options?: { appToken?: string },
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 		forceIndexDB: boolean = false
 	): Promise<AxiosResponse> => {
-		console.log(`Get: ${path} ${onlineRef.current ? 'online' : 'offline'} mode ${onlineRef.current}`);
+		console.log(`Get: ${path} ${isOnline ? 'online' : 'offline'} mode ${isOnline}`);
 
 		// Offline case
-		if (!onlineRef.current) {
+		if (!isOnline && !EXCLUDED_INDEXEDDB_PATHS.has(path)) {
 			return {
 				data: await getItem(path, dbKey),
 			} as AxiosResponse;
 		}
 
-		if (forceIndexDB) {
+		if (forceIndexDB && !EXCLUDED_INDEXEDDB_PATHS.has(path)) {
 			const data = await getItem(path, dbKey);
 			if (data) {
 				return { data } as AxiosResponse;
@@ -160,25 +180,31 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		const respBackend = await axios.get(
 			`${walletBackendUrl}${path}`,
 			{
-				headers: buildGetHeaders({ appToken: options?.appToken }),
+				headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
+				validateStatus: status => (status >= 200 && status < 300) || status === 304,
 				transformResponse,
 			},
 		);
-		await addItem(path, dbKey, respBackend.data);
+		if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
+			await addItem(path, dbKey, respBackend.data);
+		}
 		return respBackend;
-	}, [buildGetHeaders]);
+	}, [buildGetHeaders, isOnline]);
 
 	const get = useCallback(async (
 		path: string,
-		userUuid?: string,
-		options?: { appToken?: string }
+		options?: {
+			appToken?: string,
+			headers?: { [header: string]: string },
+			userUuid?: string,
+		},
 	): Promise<AxiosResponse> => {
-		return getWithLocalDbKey(path, sessionState?.uuid || userUuid, options);
+		return getWithLocalDbKey(path, sessionState?.uuid || options?.userUuid, options);
 	}, [getWithLocalDbKey, sessionState?.uuid]);
 
 	const getExternalEntity = useCallback(async (
 		path: string,
-		options?: { appToken?: string },
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 		force: boolean = false
 	): Promise<AxiosResponse> => {
 		return getWithLocalDbKey(path, path, options, force);
@@ -191,7 +217,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		try {
 			// get('/storage/vc') on home page ('/')
 			// get('/storage/vp') on home page ('/')
-			await get('/user/session/account-info', userUuid, { appToken });
+			await get('/user/session/account-info', { appToken, userUuid });
 			await getExternalEntity('/verifier/all', { appToken }, false);
 			// getExternalEntity('/issuer/all') on credentialContext
 			// getCredentialIssuerMetadata() on credentialContext
@@ -203,7 +229,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 	const post = useCallback(async (
 		path: string,
 		body: object,
-		options?: { appToken?: string }
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 	): Promise<AxiosResponse> => {
 		try {
 			return await axios.post(
@@ -212,7 +238,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 				{
 					headers: {
 						'Content-Type': 'application/json',
-						...buildMutationHeaders({ appToken: options?.appToken }),
+						...buildMutationHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
 					},
 					transformRequest: (data, headers) => jsonStringifyTaggedBinary(data),
 					transformResponse,
@@ -228,13 +254,13 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 	const del = useCallback((
 		path: string,
-		options?: { appToken?: string }
+		options?: { appToken?: string, headers?: { [header: string]: string } },
 	): Promise<AxiosResponse> => {
 		try {
 			return axios.delete(
 				`${walletBackendUrl}${path}`,
 				{
-					headers: buildMutationHeaders({ appToken: options?.appToken }),
+					headers: buildMutationHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
 					transformResponse,
 				});
 		} catch (e) {
@@ -244,6 +270,41 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			throw e;
 		}
 	}, [buildMutationHeaders]);
+
+	const syncPrivateData = useCallback(async (
+		cachedUser: CachedUser | undefined
+	): Promise<Result<void,
+		| 'syncFailed'
+		| 'loginKeystoreFailed'
+		| 'passkeyInvalid'
+		| 'passkeyLoginFailedTryAgain'
+		| 'passkeyLoginFailedServerError'
+		| 'x-private-data-etag'
+	>> => {
+
+		try {
+			const getPrivateDataResponse = await get('/user/session/private-data', { headers: { 'If-None-Match': privateDataEtag } });
+			if (getPrivateDataResponse.status === 304) {
+				return Ok.EMPTY; // already synced
+			}
+			const queryParams = new URLSearchParams(window.location.search);
+			queryParams.delete('user');
+			queryParams.delete('sync');
+
+			queryParams.append('user', cachedUser.userHandleB64u);
+			queryParams.append('sync', 'fail');
+
+			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
+			return Err('syncFailed');
+			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
+			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
+		}
+		catch (err) {
+			console.error(err);
+			return Err('syncFailed');
+		}
+
+	}, [privateDataEtag, get, navigate]);
 
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
@@ -283,10 +344,10 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		});
 
 		await addItem('users', response.data.uuid, response.data);
-		if (onlineRef.current) {
+		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-	}, [setAppToken, setSessionState, fetchInitialData]);
+	}, [setAppToken, setSessionState, fetchInitialData, isOnline]);
 
 	const updatePrivateData = useCallback(async (
 		newPrivateData: EncryptedContainer,
@@ -304,12 +365,15 @@ export function useApi(isOnline: boolean | null): BackendApi {
 			}
 		} catch (e) {
 			console.error("Failed to update private data", e, e?.response?.status);
-			if (e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) {
-				throw new Error("Private data version conflict", { cause: 'x-private-data-etag' });
+			if ((e?.response?.status === 412 && (e?.headers ?? {})['x-private-data-etag']) || (e.cause === 'x-private-data-etag')) {
+				console.error("Private data version conflict", { cause: 'x-private-data-etag' });
+				const cachedUser = cachedUsers.filter((u) => u.userHandleB64u === userHandle)[0];
+				await syncPrivateData(cachedUser);
+				return;
 			}
 			throw e;
 		}
-	}, [post, updatePrivateDataEtag]);
+	}, [post, updatePrivateDataEtag, cachedUsers, userHandle, syncPrivateData]);
 
 	const login = useCallback(async (
 		username: string,
@@ -435,7 +499,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
-				if (onlineRef.current) {
+				if (isOnline) {
 					const beginResp = await post('/user/login-webauthn-begin', {});
 					console.log("begin", beginResp);
 					return beginResp.data;
@@ -471,7 +535,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 				try {
 					const finishResp = await (async () => {
-						if (onlineRef.current) {
+						if (isOnline) {
 							return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
 								challengeId: beginData.challengeId,
 								credential: {
@@ -550,7 +614,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 		} catch (e) {
 			return Err('passkeyLoginFailedServerError');
 		}
-	}, [post, updatePrivateDataEtag, updatePrivateData, setSession]);
+	}, [post, updatePrivateDataEtag, updatePrivateData, setSession, isOnline]);
 
 	const signupWebauthn = useCallback(async (
 		name: string,
@@ -582,6 +646,7 @@ export function useApi(isOnline: boolean | null): BackendApi {
 							},
 						},
 						hints: webauthnHints,
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, webauthnHints),
 					},
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAttestationResponse;
@@ -690,6 +755,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 		addEventListener,
 		removeEventListener,
+
+		syncPrivateData,
 	}), [
 		del,
 		get,
@@ -716,6 +783,8 @@ export function useApi(isOnline: boolean | null): BackendApi {
 
 		addEventListener,
 		removeEventListener,
+
+		syncPrivateData,
 	]);
 
 	return {

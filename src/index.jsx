@@ -4,7 +4,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import ConsoleBehavior from './ConsoleBehavior';
 import { initializeDataSource } from './indexedDB';
-import * as firebaseSW from './firebase';
 import Modal from 'react-modal';
 import './index.css';
 import { BrowserRouter } from "react-router-dom";
@@ -23,11 +22,14 @@ initializeDataSource()
 // Create root and render app
 const root = createRoot(document.getElementById('root'));
 root.render(
-	<BrowserRouter>
+	<BrowserRouter
+		future={{
+			v7_startTransition: true,
+			v7_relativeSplatPath: true,
+		}}
+	>
 		<AppProvider>
 			<App />
 		</AppProvider>
 	</BrowserRouter>
 );
-
-firebaseSW.register()

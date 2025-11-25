@@ -1,19 +1,21 @@
 import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { BsLock, BsPlusCircle, BsUnlock } from 'react-icons/bs';
+import { BsLock, BsMoonFill, BsSunFill, BsUnlock } from 'react-icons/bs';
 import { MdNotifications } from "react-icons/md";
 import { IoIosArrowDown } from "react-icons/io";
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import AppSettingsContext from '@/context/AppSettingsContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
 import { UserData, WebauthnCredential } from '../../api/types';
 import { compareBy, toBase64Url } from '../../util';
-import { formatDate } from '../../functions/DateFormat';
-import type { WebauthnPrfEncryptionKeyInfo, WrappedKeyInfo } from '../../services/keystore';
+import { withAuthenticatorAttachmentFromHints } from '@/util-webauthn';
+import { formatDate } from '@/utils';
+import type { WebauthnPrfEncryptionKeyInfo } from '../../services/keystore';
 import { isPrfKeyV2, serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
@@ -22,6 +24,7 @@ import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
+import { FaLaptop, FaMobile } from "react-icons/fa";
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -75,7 +78,7 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center rounded md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700"
+			className="p-4 pt-8 text-center rounded-sm md:space-y-6 sm:p-8 bg-white rounded-lg shadow-sm dark:bg-gray-700"
 			style={{ minWidth: '30%' }}
 			onCancel={onCancel}
 		>
@@ -85,13 +88,9 @@ const Dialog = ({
 };
 
 const WebauthnRegistation = ({
-	unwrappingKey,
 	onSuccess,
-	wrappedMainKey,
 }: {
-	unwrappingKey?: CryptoKey,
 	onSuccess: () => void,
-	wrappedMainKey?: WrappedKeyInfo,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -103,7 +102,6 @@ const WebauthnRegistation = ({
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<null | ((accept: boolean) => void)>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
-	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
 	const screenType = useScreenType();
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
@@ -121,11 +119,13 @@ const WebauthnRegistation = ({
 			if (beginData.challengeId) {
 				setBeginData(beginData);
 
+				const hints = [webauthnHint];
 				const createOptions = {
 					...beginData.createOptions,
 					publicKey: {
 						...beginData.createOptions.publicKey,
-						hints: [webauthnHint],
+						hints,
+						authenticatorSelection: withAuthenticatorAttachmentFromHints(beginData.createOptions.publicKey.authenticatorSelection, hints),
 					},
 				};
 
@@ -158,11 +158,10 @@ const WebauthnRegistation = ({
 		event.preventDefault();
 		console.log("onFinish", event);
 
-		if (beginData && pendingCredential && unwrappingKey && wrappedMainKey) {
+		if (beginData && pendingCredential) {
 			try {
 				const [newPrivateData, keystoreCommit] = await keystore.addPrf(
 					pendingCredential,
-					[unwrappingKey, wrappedMainKey],
 					async () => {
 						setNeedPrfRetry(true);
 						return new Promise<boolean>((resolve, reject) => {
@@ -208,7 +207,7 @@ const WebauthnRegistation = ({
 				onCancel();
 			}
 		} else {
-			console.error("Invalid state:", beginData, pendingCredential, unwrappingKey, wrappedMainKey);
+			console.error("Invalid state:", beginData, pendingCredential);
 		}
 	};
 
@@ -216,7 +215,7 @@ const WebauthnRegistation = ({
 
 	return (
 		<div className="flex flex-row flex-wrap items-baseline gap-2">
-			<span className="flex-grow">{t('pageSettings.addPasskey')}</span>
+			<span className="grow">{t('pageSettings.addPasskey')}</span>
 			{
 				[
 					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
@@ -228,9 +227,17 @@ const WebauthnRegistation = ({
 						id={`add-passkey-settings-${hint}`}
 						onClick={() => onBegin(hint)}
 						variant="primary"
-						disabled={registrationInProgress || !unlocked || !isOnline}
-						ariaLabel={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
-						title={unlocked && !isOnline ? t("common.offlineTitle") : unlocked ? (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "") : t("pageSettings.deletePasskeyButtonTitleLocked")}
+						disabled={registrationInProgress || !isOnline}
+						ariaLabel={(
+							!isOnline
+								? t("common.offlineTitle")
+								: (screenType !== 'desktop' ? t('pageSettings.addPasskey') : "")
+						)}
+						title={(
+							!isOnline
+								? t("common.offlineTitle")
+								: (screenType !== 'desktop' ? t('pageSettings.addPasskeyTitle') : "")
+						)}
 					>
 						<div className="flex items-center">
 							<Icon size={20} />
@@ -254,7 +261,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
 									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -350,7 +357,7 @@ const UnlockMainKey = ({
 	unlocked,
 }: {
 	onLock: () => void,
-	onUnlock: (unwrappingKey: CryptoKey, wrappedMainKey: WrappedKeyInfo) => void,
+	onUnlock: () => void,
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
@@ -375,7 +382,7 @@ const UnlockMainKey = ({
 		async () => {
 			setInProgress(true);
 			try {
-				const [unwrappingKey, wrappedMainKey] = await keystore.getPasswordOrPrfKeyFromSession(
+				await keystore.getPasswordOrPrfKeyFromSession(
 					() => new Promise<string>(resolve => {
 						setResolvePasswordPromise(() => resolve);
 					}).finally(() => {
@@ -384,7 +391,7 @@ const UnlockMainKey = ({
 					}),
 					async () => true,
 				);
-				onUnlock(unwrappingKey, wrappedMainKey);
+				onUnlock();
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e?.cause?.errorId) {
@@ -435,21 +442,21 @@ const UnlockMainKey = ({
 				onClick={unlocked ? onLock : onBeginUnlock}
 				variant="primary"
 				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockPasskeyManagement') : t('pageSettings.unlockPasskeyManagement'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockPasskeyManagementTitle') : t('pageSettings.unlockPasskeyManagementTitle'))}
+				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
+				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
 			>
 				<div className="flex items-center">
 					{unlocked
 						? <>
 							<BsUnlock size={20} />
 							<span className='hidden md:block ml-2'>
-								{t('pageSettings.lockPasskeyManagement')}
+								{t('pageSettings.lockSensitive')}
 							</span>
 						</>
 						: <>
 							<BsLock size={20} />
 							<span className='hidden md:block ml-2'>
-								{t('pageSettings.unlockPasskeyManagement')}
+								{t('pageSettings.unlockSensitive')}
 							</span>
 						</>
 					}
@@ -464,7 +471,7 @@ const UnlockMainKey = ({
 					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
 					<input
 						type="password"
-						className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
+						className="shadow-xs appearance-none border rounded-sm py-2 px-3 text-gray-700 leading-tight"
 						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
 						autoFocus={true}
 						disabled={isSubmittingPassword}
@@ -511,14 +518,12 @@ const WebauthnCredentialItem = ({
 	onDelete,
 	onRename,
 	onUpgradePrfKey,
-	unlocked
 }: {
 	credential: WebauthnCredential,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
-	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const [nickname, setNickname] = useState(credential.nickname || '');
@@ -587,7 +592,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
@@ -677,9 +682,9 @@ const WebauthnCredentialItem = ({
 							id="rename-passkey"
 							onClick={() => setEditing(true)}
 							variant="secondary"
-							disabled={(onDelete && !unlocked) || !isOnline}
+							disabled={!isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-							title={!isOnline ? t("common.offlineTitle") : onDelete && !unlocked && t("pageSettings.passkeyItem.renameButtonTitleLocked")}
+							title={!isOnline ? t("common.offlineTitle") : ""}
 						>
 							<FaEdit size={16} className="mr-2" />
 							{t('pageSettings.passkeyItem.rename')}
@@ -692,9 +697,9 @@ const WebauthnCredentialItem = ({
 						id="delete-passkey"
 						onClick={openDeleteConfirmation}
 						variant="delete"
-						disabled={!unlocked || !isOnline}
+						disabled={!isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-						title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.passkeyItem.deleteButtonTitleLocked") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
+						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 						additionalClassName='ml-2 py-2.5'
 					>
 						<FaTrash size={16} />
@@ -721,21 +726,24 @@ const WebauthnCredentialItem = ({
 const Settings = () => {
 	const { isOnline, updateAvailable } = useContext(StatusContext);
 	const { api, logout, keystore } = useContext(SessionContext);
+	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
-	const [unwrappingKey, setUnwrappingKey] = useState<CryptoKey | null>(null);
-	const [wrappedMainKey, setWrappedMainKey] = useState<WrappedKeyInfo | null>(null);
-	const unlocked = Boolean(unwrappingKey && wrappedMainKey);
+	const [unlocked, setUnlocked] = useState(false);
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const screenType = useScreenType();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
+	const [obliviousSettingsMessage, setObliviousSettingsMessage] = useState('');
+
+	const { getCalculatedWalletState } = keystore;
 
 	const deleteAccount = async () => {
 		try {
@@ -755,6 +763,8 @@ const Settings = () => {
 
 	const handleDelete = async () => {
 		if (unlocked) {
+			// NOTE: Unlocking is purely a client-side safeguard against accidents.
+			// It is not enforced on the server side and can be easily bypassed.
 			setLoading(true);
 			await deleteAccount();
 			closeDeleteConfirmation();
@@ -767,8 +777,13 @@ const Settings = () => {
 			keystore; // eslint-disable-line @typescript-eslint/no-unused-expressions -- Silence react-hooks/exhaustive-deps
 			try {
 				const response = await api.get('/user/session/account-info');
-				console.log(response.data);
-				setUserData(response.data);
+				const s = keystore.getCalculatedWalletState();
+				const userData = {
+					...response.data,
+					settings: s.settings,
+				};
+				console.log(userData);
+				setUserData(userData);
 				dispatchEvent(new CustomEvent("settingsChanged"));
 			} catch (error) {
 				console.error('Failed to fetch data', error);
@@ -872,9 +887,16 @@ const Settings = () => {
 
 	const handleTokenMaxAgeChange = async (newMaxAge: string) => {
 		try {
-			await api.post('/user/session/settings', {
-				openidRefreshTokenMaxAgeInSeconds: parseInt(newMaxAge),
+			if (isNaN(parseInt(newMaxAge))) {
+				throw new Error("Update token max age: newMaxAge is not a number");
+			}
+			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+				...getCalculatedWalletState().settings,
+				openidRefreshTokenMaxAgeInSeconds: newMaxAge,
 			});
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+
 			console.log('Settings updated successfully');
 			setSuccessMessage(t('pageSettings.rememberIssuer.successMessage'));
 			setTimeout(() => {
@@ -886,9 +908,32 @@ const Settings = () => {
 		}
 	};
 
+	const handleObliviousChange = async (useOblivious: string) => {
+		try {
+			if (!['true', 'false'].includes(useOblivious)) {
+				throw new Error("Update useOblivious: invalid value");
+			}
+			const [, newPrivateData, keystoreCommit] = await keystore.alterSettings({
+				...getCalculatedWalletState().settings,
+				useOblivious: useOblivious.toString(),
+			});
+			await api.updatePrivateData(newPrivateData);
+			await keystoreCommit();
+
+			console.log('Settings updated successfully');
+			setObliviousSettingsMessage(t('pageSettings.oblivious.successMessage'));
+			setTimeout(() => {
+				setObliviousSettingsMessage('');
+			}, 3000);
+			refreshData();
+		} catch (error) {
+			console.error('Failed to update settings', error);
+		}
+	}
+
 	return (
 		<>
-			<div className="sm:px-6 w-full">
+			<div className="px-6 sm:px-12 w-full">
 				{userData && (
 					<>
 						<H1 heading={t('common.navItemSettings')} />
@@ -898,8 +943,61 @@ const Settings = () => {
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36 text-gray-700">
 								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
+									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
+							</div>
+						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.appearance.title')} />
+							<div className='pt-4'>
+								<H3 heading={t('pageSettings.appearance.colorScheme.title')}>
+								</H3>
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.appearance.colorScheme.description')}
+								</p>
+							</div>
+							<div className="flex gap-2">
+								<Button
+									id="color-scheme-light"
+									onClick={() => setColorScheme('light')}
+									variant='custom'
+									ariaLabel={t('pageSettings.appearance.colorScheme.light')}
+									title={t('pageSettings.appearance.colorScheme.light')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'light' ? 'bg-gray-100 border border-primary dark:border-primary-light' : 'bg-white '}`}
+
+								>
+									<BsSunFill className='mr-2' />
+									{t('pageSettings.appearance.colorScheme.light')}
+								</Button>
+
+								<Button
+									id="color-scheme-dark"
+									onClick={() => setColorScheme('dark')}
+									variant="custom"
+									ariaLabel={t('pageSettings.appearance.colorScheme.dark')}
+									title={t('pageSettings.appearance.colorScheme.dark')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'dark' ? 'dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white dark:bg-gray-800'}`}
+
+								>
+									<BsMoonFill className='mr-2' />
+									{t('pageSettings.appearance.colorScheme.dark')}
+								</Button>
+
+								<Button
+									id="color-scheme-system"
+									onClick={() => setColorScheme('system')}
+									variant="custom"
+									ariaLabel={t('pageSettings.appearance.colorScheme.system')}
+									title={t('pageSettings.appearance.colorScheme.system')}
+									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'system' ? 'bg-gray-100 dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white  dark:bg-gray-800'}`}
+								>
+									{screenType === 'desktop' ? (
+										<FaLaptop className='mr-2' />
+									) : (
+										<FaMobile className='mr-2' />
+									)}
+									{t('pageSettings.appearance.colorScheme.system')}
+								</Button>
 							</div>
 						</div>
 						<div className="my-2 py-2">
@@ -911,7 +1009,6 @@ const Settings = () => {
 									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
 									onRename={onRenameWebauthnCredential}
 									onUpgradePrfKey={onUpgradePrfKey}
-									unlocked={unlocked}
 								/>
 							)}
 						</div>
@@ -924,7 +1021,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36 text-gray-700">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 											disabled={!isOnline}
@@ -948,29 +1045,44 @@ const Settings = () => {
 								)}
 							</div>
 						</div>
+						<div className="my-2 py-2">
+							<H2 heading={t('pageSettings.oblivious.title')} />
+							<p className='mb-2 dark:text-white'>
+								{t('pageSettings.oblivious.description')}
+							</p>
+							<div className='flex gap-2 items-center'>
+								<div className="relative inline-block min-w-36 text-gray-700">
+									<div className="relative">
+										<select
+											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											defaultValue={userData.settings.useOblivious}
+											onChange={(e) => handleObliviousChange(e.target.value)}
+											disabled={!isOnline}
+											title={!isOnline ? t("common.offlineTitle") : undefined}
+										>
+											<option value="false">{t('pageSettings.oblivious.disabled')}</option>
+											<option value="true">{t('pageSettings.oblivious.gunet')}</option>
+										</select>
+										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
+											<IoIosArrowDown className='dark:text-white' />
+										</span>
+									</div>
+								</div>
+								{obliviousSettingsMessage && (
+									<div className="text-md text-green-500">
+										{obliviousSettingsMessage}
+									</div>
+								)}
+							</div>
+						</div>
 						<div className="mt-2 mb-2 py-2">
 							<H2 heading={t('pageSettings.title.manageAcount')}>
-								<UnlockMainKey
-									unlocked={unlocked}
-									onLock={() => {
-										setUnwrappingKey(null);
-										setWrappedMainKey(null);
-									}}
-									onUnlock={(unwrappingKey, wrappedMainKey) => {
-										setUnwrappingKey(unwrappingKey);
-										setWrappedMainKey(wrappedMainKey);
-									}}
-								/>
 							</H2>
 							<div className='mb-2'>
 								<div className="pt-4">
 									<H3 heading={t('pageSettings.title.manageOtherPasskeys')}>
 									</H3>
-									<WebauthnRegistation
-										unwrappingKey={unwrappingKey}
-										wrappedMainKey={wrappedMainKey}
-										onSuccess={() => refreshData()}
-									/>
+									<WebauthnRegistation onSuccess={() => refreshData()} />
 									<ul className="mt-4">
 
 										{userData.webauthnCredentials
@@ -984,7 +1096,6 @@ const Settings = () => {
 													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
 													onRename={onRenameWebauthnCredential}
 													onUpgradePrfKey={onUpgradePrfKey}
-													unlocked={unlocked}
 												/>
 											))}
 										{userData.webauthnCredentials
@@ -995,7 +1106,13 @@ const Settings = () => {
 								</div>
 
 								<div className="pt-4">
-									<H3 heading={t('pageSettings.deleteAccount.title')} />
+									<H3 heading={t('pageSettings.deleteAccount.title')}>
+										<UnlockMainKey
+											unlocked={unlocked}
+											onLock={() => setUnlocked(false)}
+											onUnlock={() => setUnlocked(true)}
+										/>
+									</H3>
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>

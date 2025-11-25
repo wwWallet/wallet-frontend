@@ -6,5 +6,5 @@ export interface IOpenID4VCIHelper {
 	getAuthorizationServerMetadata(credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null>;
 	getCredentialIssuerMetadata(credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null>;
 	getMdocIacas(credentialIssuerIdentifier: string, metadata?: OpenidCredentialIssuerMetadata, useCache?: boolean): Promise<MdocIacasResponse | null>;
-	fetchIssuerMetadataAndCertificates(getIssuers: () => Promise<Record<string, unknown>[]>, onCertificates: (pemCertificates: string[]) => void, shouldUseCache: boolean): Promise<void>;
+	fetchIssuerMetadataAndCertificates(getIssuers: () => Promise<Record<string, unknown>[]>, onCertificates: (pemCertificates: string[]) => void, shouldUseCache: boolean, onIssuerMetadataResolved?: (issuerIdentifier: string, metadata: OpenidCredentialIssuerMetadata) => void): Promise<void>;
 }

@@ -1,9 +1,11 @@
-import { JWK, KeyLike } from "jose";
+import { compactDecrypt, CompactDecryptResult, exportJWK, generateKeyPair, JWK, KeyLike } from "jose";
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
 import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
+import { OpenidCredentialIssuerMetadata } from "wallet-common";
+import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -11,6 +13,7 @@ export function useCredentialRequest() {
 	const { keystore, api } = useContext(SessionContext);
 
 	const credentialEndpointURLRef = useRef<string | null>(null);
+	const deferredCredentialEndpointURLRef = useRef<string | null>(null);
 	const accessTokenRef = useRef<string | null>(null);
 	const cNonceRef = useRef<string | null>(null);
 	const dpopNonceRef = useRef<string | null>(null);
@@ -18,10 +21,13 @@ export function useCredentialRequest() {
 	const dpopPublicKeyJwkRef = useRef<JWK | null>(null);
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
+	const credentialConfigurationIdRef = useRef<string | null>(null);
 
-	const { post ,updatePrivateData } = api;
+	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
-	const requestKeyAttestation = useCallback( async (jwks: JWK[], nonce: string) => {
+	const { post, updatePrivateData } = api;
+
+	const requestKeyAttestation = useCallback(async (jwks: JWK[], nonce: string) => {
 		try {
 			const response = await post("/wallet-provider/key-attestation/generate", {
 				jwks,
@@ -40,16 +46,23 @@ export function useCredentialRequest() {
 			console.log(err);
 			return null;
 		}
-	},[post]
-);
+	}, [post]
+	);
 
 	const httpHeaders = useMemo(() => ({
 		'Content-Type': 'application/json',
 	}), []);
 
-	const setCredentialEndpoint = useCallback((endpoint: string) => {
+	const setCredentialEndpoint = useCallback((endpoint: string | null) => {
+		deferredCredentialEndpointURLRef.current = null;
 		credentialEndpointURLRef.current = endpoint;
 	}, []);
+
+	const setDeferredCredentialEndpoint = useCallback((endpoint: string | null) => {
+		credentialEndpointURLRef.current = null;
+		deferredCredentialEndpointURLRef.current = endpoint;
+	}, []);
+
 
 	const setCNonce = useCallback((cNonce: string) => {
 		cNonceRef.current = cNonce;
@@ -76,8 +89,12 @@ export function useCredentialRequest() {
 		jtiRef.current = id;
 	}, []);
 
+	const setCredentialConfigurationId = useCallback((id: string) => {
+		credentialConfigurationIdRef.current = id;
+	}, []);
+
 	const setDpopHeader = useCallback(async () => {
-		const credentialEndpointURL = credentialEndpointURLRef.current;
+		const credentialEndpointURL = credentialEndpointURLRef.current ?? deferredCredentialEndpointURLRef.current;
 		const dpopPublicKeyJwk = dpopPublicKeyJwkRef.current;
 		if (!dpopPublicKeyJwk) {
 			return;
@@ -112,20 +129,32 @@ export function useCredentialRequest() {
 		credentialIssuerIdentifierRef.current = id;
 	}, []);
 
+	const executeDeferredFetch = useCallback(async (transactionId: string): Promise<{ credentialResponse: any }> => {
+		try {
+			const credentialResponse = await httpProxy.post(deferredCredentialEndpointURLRef.current, { transaction_id: transactionId }, httpHeaders);
+			return { credentialResponse };
+		}
+		catch (err) {
+			console.error(err);
+			throw new Error("Deferred Credential Request failed");
+		}
+
+	}, [httpProxy, httpHeaders]);
+
 	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
 		const credentialIssuerIdentifier = credentialIssuerIdentifierRef.current;
 		const c_nonce = cNonceRef.current;
 
-		const [credentialIssuerMetadata, clientId ] = await Promise.all([
+		const [credentialIssuerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 			openID4VCIHelper.getClientId(credentialIssuerIdentifier),
 		]);
 
-		const credentialEndpointBody = {
-			"format": credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId].format,
-		} as any;
-		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+		const credentialEndpointBody = {} as any;
+		const numberOfProofs = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size && credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size > OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE ?
+			OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE :
+			credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
 		let proofs: {
 			nonce: string,
 			issuer: string,
@@ -133,12 +162,14 @@ export function useCredentialRequest() {
 		}[] | null = null;
 		let keyAttestation: string | null = null;
 
+		let proofsToSend: string[] = [];
+
 		try {
 			if (proofType === "jwt") {
 				const inputs = [];
 				for (let i = 0; i < numberOfProofs; i++) {
 					inputs.push({
-						nonce: c_nonce,
+						nonce: c_nonce ?? undefined,
 						issuer: clientId.client_id,
 						audience: credentialIssuerMetadata.metadata.credential_issuer
 					})
@@ -146,7 +177,7 @@ export function useCredentialRequest() {
 				proofs = inputs;
 			}
 			else if (proofType === "attestation") {
-				const numberOfKeypairsToGenerate = credentialIssuerMetadata.metadata.batch_credential_issuance?.batch_size ?? 1;
+				const numberOfKeypairsToGenerate = numberOfProofs;
 				const [{ keypairs }, newPrivateData, keystoreCommit] = await keystore.generateKeypairs(numberOfKeypairsToGenerate);
 				await updatePrivateData(newPrivateData);
 				await keystoreCommit();
@@ -159,19 +190,26 @@ export function useCredentialRequest() {
 				keyAttestation = requestKeyAttestationResponse.key_attestation;
 			}
 
-			if (proofs) {
-				const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
-				await updatePrivateData(newPrivateData);
-				await keystoreCommit();
+			if (cachedProofs || proofs) {
+				if (cachedProofs) {
+					proofsToSend = cachedProofs as string[];
+				}
+				else if (!cachedProofs && proofs) {
+					const [{ proof_jwts }, newPrivateData, keystoreCommit] = await keystore.generateOpenid4vciProofs(proofs);
+					await updatePrivateData(newPrivateData);
+					await keystoreCommit();
+					proofsToSend = proof_jwts;
+				}
+
 				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
 					credentialEndpointBody.proofs = {
-						jwt: proof_jwts
+						jwt: proofsToSend
 					}
 				}
 				else {
 					credentialEndpointBody.proof = {
 						proof_type: "jwt",
-						jwt: proof_jwts[0]
+						jwt: proofsToSend[0]
 					};
 				}
 			}
@@ -190,49 +228,96 @@ export function useCredentialRequest() {
 			throw new Error("Failed to generate proof");
 		}
 
+		credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 
 		credentialEndpointBody.credential_configuration_id = credentialConfigurationId;
 
 		console.log("Credential endpoint body = ", credentialEndpointBody);
 
-		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
+		let encryptionRequested = false;
+		const ephemeralKeypair = await generateKeyPair('ECDH-ES');
 
+		if (credentialIssuerMetadata.metadata.credential_response_encryption) {
+			encryptionRequested = true;
+			if (!credentialIssuerMetadata.metadata.credential_response_encryption.alg_values_supported.includes('ECDH-ES')) {
+				throw new Error("Unsupported credential_response_encryption.alg_values_supported. ['ECDH-ES'] are supported");
+			}
+			if (!credentialIssuerMetadata.metadata.credential_response_encryption.enc_values_supported.includes('A128CBC-HS256')) {
+				throw new Error("Unsupported credential_response_encryption.enc_values_supported. ['A128CBC-HS256'] are supported");
+			}
+
+			const ephemeralPublicKeyJwk = await exportJWK(ephemeralKeypair.publicKey);
+			credentialEndpointBody.credential_response_encryption = {
+				alg: 'ECDH-ES',
+				enc: 'A128CBC-HS256',
+				jwk: { ...ephemeralPublicKeyJwk, "use": "enc", },
+			};
+		}
+
+		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
+		if (encryptionRequested && credentialResponse.headers['content-type'] === 'application/jwt') {
+			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
+			if (result.err) {
+				throw new Error("Credential Response decryption failed");
+			}
+			const { plaintext } = result.data as CompactDecryptResult;
+			const payload = JSON.parse(new TextDecoder().decode(plaintext));
+			credentialResponse.data = payload;
+		}
 		if (credentialResponse.status !== 200) {
 			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
-			if (credentialResponse.headers?.["www-authenticate"] && (credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") && "dpop-nonce" in credentialResponse.headers) {
+			if (credentialResponse.headers?.["www-authenticate"] && (
+				(credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") ||
+				(credentialResponse.headers?.["www-authenticate"] as string).includes("use_dpop_nonce")
+			) && "dpop-nonce" in credentialResponse.headers) {
 				console.log("Calling credentialRequest with new dpop-nonce....")
 
 				setDpopNonce(credentialResponse.headers?.["dpop-nonce"] as string);
 				await setDpopHeader();
 				// response.headers['dpop-nonce'] = credentialResponse.err.headers["dpop-nonce"];
-				return await execute(credentialConfigurationId, proofType, proofs);
+				return await execute(credentialConfigurationId, proofType, proofsToSend);
 			}
 			throw new Error("Credential Request failed");
 		}
+
+		// const credentialResponseData = credentialResponse.data as { credentials: { credential: string }[] };
+
+
+
+		// receivedCredentialsArrayRef.current = credentialArray;
+		console.log("Credential response: ", credentialResponse);
 		return { credentialResponse };
 	}, [updatePrivateData, httpProxy, keystore, openID4VCIHelper, setDpopHeader, setDpopNonce, httpHeaders, requestKeyAttestation]);
 
+
+
 	return useMemo(() => ({
 		setCredentialEndpoint,
+		setDeferredCredentialEndpoint,
 		setCNonce,
 		setAccessToken,
 		setDpopNonce,
 		setDpopPrivateKey,
 		setDpopPublicKeyJwk,
 		setDpopJti,
+		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
+		executeDeferredFetch,
 		execute,
 	}), [
 		setCredentialEndpoint,
+		setDeferredCredentialEndpoint,
 		setCNonce,
 		setAccessToken,
 		setDpopNonce,
 		setDpopPrivateKey,
 		setDpopPublicKeyJwk,
 		setDpopJti,
+		setCredentialConfigurationId,
 		setDpopHeader,
 		setCredentialIssuerIdentifier,
+		executeDeferredFetch,
 		execute,
 	]);
 }

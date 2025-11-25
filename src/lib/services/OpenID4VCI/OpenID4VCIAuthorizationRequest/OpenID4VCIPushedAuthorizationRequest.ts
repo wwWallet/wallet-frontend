@@ -1,19 +1,30 @@
 import { IOpenID4VCIAuthorizationRequest } from "../../../interfaces/IOpenID4VCIAuthorizationRequest";
-import { OpenidAuthorizationServerMetadata } from "../../../schemas/OpenidAuthorizationServerMetadataSchema";
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
 import pkce from 'pkce-challenge';
-import { OpenidCredentialIssuerMetadata } from "../../../schemas/OpenidCredentialIssuerMetadataSchema";
 import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
-import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "@/context/SessionContext";
+import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
 
-export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizationRequest {
+
+export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
-	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 	const { keystore } = useContext(SessionContext);
+	const { getCalculatedWalletState } = keystore;
+
+	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
+		if (!getCalculatedWalletState) {
+			return null;
+		}
+		const S = getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		return parseInt(S.settings['openidRefreshTokenMaxAgeInSeconds']);
+	}, [getCalculatedWalletState]);
 
 	const generate = useCallback(
 		async (
@@ -72,12 +83,26 @@ export function useOpenID4VCIPushedAuthorizationRequest(): IOpenID4VCIAuthorizat
 				throw new Error("Pushed Authorization request failed. Reason: " + JSON.stringify(res.data))
 			}
 			const { request_uri } = res.data;
-			const authorizationRequestURL = `${config.authorizationServerMetadata.authorization_endpoint}?request_uri=${request_uri}&client_id=${config.clientId}`
+			const authorizationRequestURL = new URL(config.authorizationServerMetadata.authorization_endpoint);
+			authorizationRequestURL.searchParams.set('request_uri', request_uri);
+			authorizationRequestURL.searchParams.set('client_id', config.clientId);
+			const age = await getRememberIssuerAge();
+			if (age != null && age === 0) {
+				authorizationRequestURL.searchParams.set('prompt', 'login');
+			}
 
-			await openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId))
-			return { authorizationRequestURL };
+			await openID4VCIClientStateRepository.create({
+				sessionId: WalletStateUtils.getRandomUint32(),
+				credentialIssuerIdentifier: config.credentialIssuerIdentifier,
+				state,
+				code_verifier,
+				credentialConfigurationId,
+				created: Math.floor(Date.now() / 1000),
+			});
+			await openID4VCIClientStateRepository.commitStateChanges();
+			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore]
+		[httpProxy, openID4VCIClientStateRepository, keystore, getRememberIssuerAge]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);

@@ -1,5 +1,5 @@
 import { JWK } from "jose";
-import { PresentationDefinitionType } from "./presentationDefinition.type";
+import { PresentationDefinitionType, DcqlQueryType } from "./presentationDefinition.type";
 import * as z from 'zod';
 
 export enum ResponseMode {
@@ -30,6 +30,7 @@ export class OpenID4VPRelyingPartyState {
 		public client_metadata: ClientMetadata,
 		public response_mode: ResponseMode,
 		public transaction_data: string[],
+		public dcql_query: DcqlQueryType
 	) { }
 
 	public serialize(): string {
@@ -42,11 +43,12 @@ export class OpenID4VPRelyingPartyState {
 			client_metadata: this.client_metadata,
 			response_mode: this.response_mode,
 			transaction_data: this.transaction_data,
+			dcql_query: this.dcql_query
 		});
 	}
 
 	public static deserialize(storedValue: string): OpenID4VPRelyingPartyState {
-		const { presentation_definition, nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
-		return new OpenID4VPRelyingPartyState(presentation_definition, nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data);
+		const { presentation_definition, nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
+		return new OpenID4VPRelyingPartyState(presentation_definition, nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query);
 	}
 }

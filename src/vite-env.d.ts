@@ -5,15 +5,6 @@ interface ImportMetaEnv {
 	readonly VITE_WS_URL: string;
 	readonly VITE_WALLET_BACKEND_URL: string;
 	readonly VITE_LOGIN_WITH_PASSWORD: string;
-	readonly VITE_FIREBASE_ENABLED: string;
-	readonly VITE_FIREBASE_VAPIDKEY: string;
-	readonly VITE_FIREBASE_API_KEY: string;
-	readonly VITE_FIREBASE_AUTH_DOMAIN: string;
-	readonly VITE_FIREBASE_PROJECT_ID: string;
-	readonly VITE_FIREBASE_STORAGE_BUCKET: string;
-	readonly VITE_FIREBASE_MESSAGING_SENDER_ID: string;
-	readonly VITE_FIREBASE_APP_ID: string;
-	readonly VITE_FIREBASE_MEASUREMENT_ID: string;
 	readonly VITE_DID_KEY_VERSION: string;
 	readonly VITE_APP_VERSION: string;
 	readonly VITE_GENERATE_SOURCEMAP: string;
@@ -31,7 +22,11 @@ interface ImportMetaEnv {
 	readonly VITE_STATIC_NAME: string;
 	readonly VITE_I18N_WALLET_NAME_OVERRIDE: string;
 	readonly VITE_OPENID4VCI_PROOF_TYPE_PRECEDENCE: string;
+	readonly VITE_FOLD_EVENT_HISTORY_AFTER_SECONDS: string;
 	readonly VITE_DISPLAY_ISSUANCE_WARNINGS: string;
+	readonly VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: string;
+	readonly VITE_OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS: string;
+	readonly VITE_OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS: string;
 }
 
 interface ImportMeta {

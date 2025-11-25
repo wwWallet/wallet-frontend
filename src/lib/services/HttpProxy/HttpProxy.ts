@@ -1,11 +1,17 @@
 import { useMemo, useRef, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { IHttpProxy } from '../../interfaces/IHttpProxy';
+import { IHttpProxy, RequestHeaders, ResponseHeaders } from '../../interfaces/IHttpProxy';
 import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
+import { encryptedHttpRequest, toArrayBuffer } from '@/lib/utils/ohttpHelpers';
+import { OHTTP_RELAY } from "@/config";
+import SessionContext from '@/context/SessionContext';
+import { toU8 } from '@/util';
+
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
+const TIMEOUT = 100 * 1000;
 
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
@@ -20,6 +26,8 @@ const parseCacheControl = (header: string) =>
 
 export function useHttpProxy(): IHttpProxy {
 	const { isOnline } = useContext(StatusContext);
+	const { obliviousKeyConfig } = useContext(SessionContext);
+
 	const isOnlineRef = useRef(isOnline);
 
 	useEffect(() => {
@@ -29,9 +37,9 @@ export function useHttpProxy(): IHttpProxy {
 	const proxy = useMemo(() => ({
 		async get(
 			url: string,
-			headers: Record<string, string> = {},
+			headers: RequestHeaders = {},
 			options?: { useCache?: boolean; }
-		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
+		): Promise<{ status: number; headers: ResponseHeaders; data: unknown }> {
 			const useCache = options?.useCache;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;
@@ -50,7 +58,22 @@ export function useHttpProxy(): IHttpProxy {
 						const isFresh = now < expiry;
 
 						if (online === null || isFresh) {
-							return cachedData;
+
+							if (isBinaryRequest && !cachedData?.__binary) {
+								// do nothing -> fall through to fetch
+							} else if (isBinaryRequest && cachedData?.__binary) {
+								// RECONSTRUCT a fresh Blob URL from the stored bytes and type
+								const blob = new Blob([toU8(cachedData.bytes)], { type: cachedData.contentType || 'application/octet-stream' });
+								const blobUrl = URL.createObjectURL(blob);
+
+								return {
+									status: cachedData.status || 200,
+									headers: cachedData.headers || {},
+									data: blobUrl,
+								};
+							} else {
+								return cachedData;
+							}
 						}
 					}
 
@@ -81,18 +104,52 @@ export function useHttpProxy(): IHttpProxy {
 
 			const requestPromise = (async () => {
 				try {
-					const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
-						headers,
-						url,
-						method: 'get',
-					}, {
-						timeout: 2500,
-						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
-						},
-						...(isBinaryRequest && { responseType: 'arraybuffer' }),
+					let response;
+					const shouldUseOblivious = obliviousKeyConfig !== null;
+					if (shouldUseOblivious) {
+						console.log("Using oblivious");
+						const keyConfig = obliviousKeyConfig;
+						if (keyConfig === null) {
+							throw new Error("Oblivious HTTP configuration error");
+						}
+						response = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
+							method: 'GET',
+							headers,
+							url,
+						})
+						response.data = response.body;
+						if (isBinaryRequest) {
+							response = {
+								...response,
+								data: toArrayBuffer(response.body)
+							}
+						} else {
+							response = {
+								data: {...response}
+							};
+							const responseHeader = response?.data?.headers?.['content-type'];
+							console.log("Content-Type parsed: ", responseHeader);
+							if (responseHeader && responseHeader.trim().startsWith('application/json')) {
+								response.data.data = JSON.parse(new TextDecoder().decode(response.data.data));
+							} else {
+								response.data.data = new TextDecoder().decode(response.data.data);
+							}
+						}
+					} else {
+						response = await axios.post(`${walletBackendServerUrl}/proxy`, {
+							headers,
+							url,
+							method: 'get',
+						}, {
+							timeout: TIMEOUT,
+							headers: {
+								Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
+							},
+							...(isBinaryRequest && { responseType: 'arraybuffer' }),
+						}
+						);
 					}
-					);
+
 
 					const res = response.data;
 
@@ -131,7 +188,13 @@ export function useHttpProxy(): IHttpProxy {
 
 						if (shouldCache) {
 							await addItem('proxyCache', cacheKey, {
-								data: responseToCache,
+								data: {
+									__binary: true,
+									status: response.status,
+									headers: sourceHeaders,
+									contentType: contentTypeHeader,
+									bytes: arrayBuffer,
+								},
 								expiry: now + maxAge,
 							}, 'proxyCache');
 						}
@@ -190,20 +253,49 @@ export function useHttpProxy(): IHttpProxy {
 			body: any,
 			headers: Record<string, string>
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
+			let response;
 			try {
-				const response = await axios.post(`${walletBackendServerUrl}/proxy`, {
-					headers: headers,
-					url: url,
-					method: 'post',
-					data: body,
-				}, {
-					timeout: 2500,
-					headers: {
-						Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+				const shouldUseOblivious = obliviousKeyConfig !== null;
+				if (shouldUseOblivious) {
+					console.log("Using oblivious");
+					const keyConfig = obliviousKeyConfig;
+					if (keyConfig === null) {
+						throw new Error("Oblivious HTTP configuration error");
 					}
-				});
+					response = await encryptedHttpRequest(OHTTP_RELAY, keyConfig, {
+						method: 'POST',
+						headers,
+						url,
+						body
+					})
+					response.data = response.body;
+					response = {
+						data: { ...response }
+					};
+					const responseHeader = response?.data?.headers?.['content-type'];
+					console.log("Content-Type parsed: ", responseHeader);
+					if (responseHeader && responseHeader.trim().startsWith('application/json')) {
+						response.data.data = JSON.parse(new TextDecoder().decode(response.data.data));
+					} else {
+						response.data.data = new TextDecoder().decode(response.data.data);
+					}
+				} else {
+					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
+						headers: headers,
+						url: url,
+						method: 'post',
+						data: body,
+					}, {
+						timeout: TIMEOUT,
+						headers: {
+							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+						}
+					});
+				}
 				return response.data;
 			} catch (err) {
+				console.log("Post failed");
+				console.log(JSON.stringify(err, Object.getOwnPropertyNames(err)));
 				return {
 					data: err.response.data.data,
 					headers: err.response.data.headers,
@@ -211,7 +303,7 @@ export function useHttpProxy(): IHttpProxy {
 				};
 			}
 		},
-	}), []);
+	}), [obliviousKeyConfig]);
 
 	return proxy;
 }

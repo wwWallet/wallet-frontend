@@ -11,12 +11,35 @@ import EntityListItem from '@/components/QueryableList/EntityListItem';
 
 const SendCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
-	const { api } = useContext(SessionContext);
+	const { api, keystore } = useContext(SessionContext);
+
 	const [verifiers, setVerifiers] = useState(null);
 	const [showRedirectPopup, setShowRedirectPopup] = useState(false);
 	const [selectedVerifier, setSelectedVerifier] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const { t } = useTranslation();
+
+	const getUser = () => {
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return null;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		return u;
+	}
+
+	const syncPrivateData = async () => {
+		const cachedUser = getUser();
+		if (!cachedUser) {
+			throw new Error("Could not get cached user");
+		}
+		const result = await api.syncPrivateData(cachedUser);
+		console.log("Result: ", result)
+		if (!result.ok) {
+			throw new Error("PrivateData needs synchronization");
+		}
+		return {};
+	}
 
 	useEffect(() => {
 		const fetchVerifiers = async () => {
@@ -45,21 +68,23 @@ const SendCredentials = () => {
 	};
 
 	const handleContinue = () => {
-		setLoading(true);
+		syncPrivateData().then(() => {
+			setLoading(true);
 
-		console.log('Continue with:', selectedVerifier);
+			console.log('Continue with:', selectedVerifier);
 
-		if (selectedVerifier) {
-			window.location.href = selectedVerifier.url;
-		}
+			if (selectedVerifier) {
+				window.location.href = selectedVerifier.url;
+			}
 
-		setLoading(false);
-		setShowRedirectPopup(false);
+			setLoading(false);
+			setShowRedirectPopup(false);
+		}).catch((err) => console.error(err));
 	};
 
 	return (
 		<>
-			<div className="sm:px-6 w-full">
+			<div className="px-6 sm:px-12 w-full">
 				<H1 heading={t('common.navItemSendCredentials')} />
 				<PageDescription description={t('pageSendCredentials.description')} />
 
