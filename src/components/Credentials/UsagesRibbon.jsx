@@ -8,8 +8,8 @@ const UsagesRibbon = ({ vcEntityInstances, borderColor }) => {
 	return (
 		<>
 			{vcEntityInstances &&
-				<div className={`z-40 absolute top-[-5px] font-semibold right-[-5px] text-xs py-1 px-3 flex gap-1 items-center rounded-lg border ${borderColor ?? 'border-gray-100 dark:border-gray-900'} ${zeroSigCount === 0 ? 'text-c-lm-gray-900 bg-c-lm-orange dark:bg-c-dm-orange' : 'text-white dark:text-c-lm-gray-900 bg-c-lm-green dark:bg-c-dm-green'}`}>
-					<GalleryHorizontalEnd size={18} /> {zeroSigCount}
+				<div className={`z-40 absolute top-[-5px] font-semibold right-[-5px] text-xs py-1 px-3 flex gap-1 items-center rounded-lg border-2 ${borderColor ?? 'border-c-lm-gray-100 dark:border-c-dm-gray-900'} ${zeroSigCount === 0 ? 'text-c-lm-gray-900 bg-c-lm-orange dark:bg-c-dm-orange' : 'text-white dark:text-c-lm-gray-900 bg-c-lm-green dark:bg-c-dm-green'}`}>
+					<GalleryHorizontalEnd size={16} /> {zeroSigCount}
 				</div>
 			}
 		</>

@@ -11,7 +11,7 @@ import { CredentialInfoSkeleton } from '../Skeletons';
 import { useCredentialName } from '@/hooks/useCredentialName';
 import i18n from '@/i18n';
 import { prettyDomain, truncateByWords } from '@/utils';
-import { BookCheck, CheckCircle, Circle, IdCard, Info } from 'lucide-react';
+import { BookCheck, CheckCircle, Circle, IdCard, View } from 'lucide-react';
 
 const SelectableCredentialSlideCard = ({
 	vcEntity,
@@ -103,11 +103,11 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 									}`}
 							>
 								{index === 0 ? (
-									<Info className="text-sm" />
+									<View size={20} className="text-sm" />
 								) : index === totalSteps - 1 ? (
-									<BookCheck className="text-lg" />
+									<BookCheck size={20} className="text-lg" />
 								) : (
-									<IdCard className="text-base" />
+									<IdCard size={20} className="text-base" />
 								)}
 							</div>
 						</div>
@@ -127,21 +127,17 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 };
 
 const StepTitle = ({ currentKey, t }) => {
-	let icon = <IdCard className="w-6 h-6 shrink-0 align-text-bottom" />;
 	let text = t('selectCredentialPopup.selectTitle');
 
 	if (currentKey === 'preview') {
-		icon = <Info className="w-5 h-5 shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.previewTitle');
 	} else if (currentKey === 'summary') {
-		icon = <BookCheck className="w-6 h-6 shrink-0 align-text-bottom" />;
 		text = t('selectCredentialPopup.summaryTitle');
 	}
 
 	return (
-		<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100 flex flex-wrap items-center gap-2 leading-tight">
+		<h2 className="text-lg font-bold mt-4 mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100 flex flex-wrap items-center gap-2 leading-tight">
 			<span className="inline-flex items-center gap-2">
-				{icon}
 				{t('selectCredentialPopup.baseTitle')} - {text}
 			</span>
 		</h2>
@@ -402,7 +398,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Selection step */}
 				{keys[currentIndex] !== 'preview' && keys[currentIndex] !== 'summary' && (
 					<>
-						<p className="text-c-lm-gray-100 dark:text-c-dm-gray-900 italic text-sm mt-3 mb-4">
+						<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 italic text-sm mt-3 mb-4">
 							{t('selectCredentialPopup.selectDescription')}
 						</p>
 						<div>
@@ -452,7 +448,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Summary step */}
 				{keys[currentIndex] === 'summary' && (
 					<>
-						<p className="text-c-lm-gray-100 dark:text-c-dm-gray-900 italic text-sm mt-3 mb-4">
+						<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 italic text-sm mt-3 mb-4">
 							<Trans
 								i18nKey="selectCredentialPopup.summaryDescription"
 								components={{ strong: <strong /> }}

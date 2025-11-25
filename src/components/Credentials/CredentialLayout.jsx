@@ -17,7 +17,7 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
-import { ArrowLeft, ArrowRight, Layers2, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, ArrowRight, GalleryHorizontalEnd, TriangleAlert } from 'lucide-react';
 
 const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	if (zeroSigCount === null || sigTotal === null) return null;
@@ -32,7 +32,7 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 			className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'
 				}`}
 		>
-			<Layers2 size={18} className="mr-1" />
+			<GalleryHorizontalEnd size={18} className="mr-1" />
 			<p className="font-base">
 				<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
 				<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}

@@ -46,6 +46,7 @@ export default function AnimatedLinkText({
         before:bg-current before:origin-top-left
         before:transition-transform before:duration-250 before:ease-[cubic-bezier(.215,.61,.355,1)]
         before:scale-x-0 group-hover:before:scale-x-100
+				hover:cursor-pointer
         ${sizeClasses}
         ${className}
     `.replace(/\s+/g, ' ').trim(); // Clean up whitespace for the className string

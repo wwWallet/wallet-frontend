@@ -11,8 +11,10 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 	return (
 		<PopupLayout isOpen={isOpen} onClose={onClose} loading={loading}>
 			<div className="flex items-start justify-between mb-2">
-				<h2 className="text-lg font-bold text-c-lm-red dark:text-c-dm-red">
-					<Trash2 size={20} className="inline mr-1" />
+				<h2 className="flex items-center text-lg font-bold text-c-lm-gray-900 dark:text-c-dm-gray-50">
+					<div className={`inline p-1 rounded-full mr-1 bg-c-lm-red dark:bg-c-dm-red text-white`}>
+						<Trash2 size={20} />
+					</div>
 					{t('pageSettings.title.confirmDeletePopup')}
 				</h2>
 				<button
@@ -26,7 +28,7 @@ const DeletePopup = ({ isOpen, onConfirm, onClose, message, loading }) => {
 					</svg>
 				</button>
 			</div>
-			<hr className="mb-2 border-t border-c-lm-red dark:border-c-dm-red" />
+			<hr className="mb-2 border-t border-c-lm-gray-500 dark:border-c-dm-gray-500" />
 			<p className="mb-2 mt-4 text-c-lm-gray-800 dark:text-c-dm-gray-200">{message}</p>
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button

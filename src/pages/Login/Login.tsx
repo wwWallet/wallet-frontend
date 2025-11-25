@@ -19,7 +19,7 @@ import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 import useScreenType from '@/hooks/useScreenType';
-import { CircleQuestionMark, Eye, EyeOff, Info, Key, Lock, LockKeyholeOpen, Smartphone, Trash2, User, UserLock } from 'lucide-react';
+import { CircleQuestionMark, Eye, EyeOff, Info, Key, Lock, LockKeyholeOpen, Smartphone, User, UserLock, X } from 'lucide-react';
 
 
 const FormInputRow = ({
@@ -533,7 +533,6 @@ const WebauthnSignupLogin = ({
 											<Button
 												id={`forget-cached-user-${index}-loginsignup`}
 												onClick={() => onForgetCachedUser(cachedUser)}
-												variant="delete"
 												size="xl"
 												square={true}
 												textSize="md"
@@ -541,7 +540,7 @@ const WebauthnSignupLogin = ({
 												ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 											>
-												<Trash2 size={20} className="text-xl" />
+												<X size={20} className="text-xl" />
 											</Button>
 										</div>
 									</li>

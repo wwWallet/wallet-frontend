@@ -23,7 +23,7 @@ const Legend = ({ showRequired, showRequested, t }) => {
 				{showRequested && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequested')}>
 						<span>{t('credentialInfo.legendRequested')}</span>
-						<Send className="text-primary dark:text-white" aria-hidden="true" />
+						<Send size={14} className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
 			</div>
@@ -415,6 +415,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 									)}
 									{isRequested && (
 										<Send
+											size={14}
 											title="Requested by verifier"
 											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 shrink-0"
 										/>

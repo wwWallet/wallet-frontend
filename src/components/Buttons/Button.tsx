@@ -106,7 +106,7 @@ const Button = ({
 			textSizeClasses = 'text-lg';
 		}
 
-		const disabledClasses = !disabled ? 'hover:brightness-[0.85] dark:hover:brightness-[1.15]' : 'grayscale opacity-75 cursor-not-allowed';
+		const disabledClasses = !disabled ? 'hover:cursor-pointer hover:brightness-[0.85] dark:hover:brightness-[1.15]' : 'grayscale opacity-75 cursor-not-allowed';
 		const commonClasses = `rounded-lg shadow-xs text-center font-medium flex flex-row flex-nowrap items-center justify-center gap-2 border transition-color duration-150 ${textSizeClasses} ${disabledClasses}`;
 
 		switch (variant) {

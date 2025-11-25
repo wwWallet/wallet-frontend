@@ -22,9 +22,9 @@ const Spinner = ({ size = 'large' }) => {
 	return (
 		<div className="flex justify-center items-center h-dvh bg-c-lm-gray-200 dark:bg-c-dm-gray-800" role="status" aria-live="polite">
 			<div className={`relative ${currentSize.container}`}>
-				<LoaderCircle strokeWidth={1.25} className={`absolute rounded-full ${currentSize.container} text-brand-500 animate-spin ${currentSize.opacity}`} />
-				<div className={`absolute inset-0 scale-50 flex items-center justify-center ${currentSize.opacity}`}>
-					<Logo clickable={false} alt="Loading..." imgClassName={`${currentSize.image}`} />
+				<LoaderCircle strokeWidth={1} className={`absolute rounded-full ${currentSize.container} text-brand-500 dark:text-white animate-spin ${currentSize.opacity}`} />
+				<div className={`absolute inset-0 scale-60 flex items-center justify-center ${currentSize.opacity}`}>
+					<Logo clickable={false}  alt="Loading..." imgClassName={`${currentSize.image}`} />
 				</div>
 			</div>
 		</div>
