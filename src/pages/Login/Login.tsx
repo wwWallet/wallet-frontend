@@ -508,12 +508,13 @@ const WebauthnSignupLogin = ({
 								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser, index) => (
 									<li
 										key={cachedUser.userHandleB64u}
-										className="w-full flex flex-row gap-2"
+										className="w-full flex flex-row items-center gap-2"
 									>
 										<div className="flex flex-1 min-w-0">
 											<Button
 												id={`login-cached-user-${index}-loginsignup`}
 												onClick={() => onLoginCachedUser(cachedUser)}
+												size="xl"
 												variant="primary"
 												disabled={isSubmitting}
 												additionalClassName="w-full"
@@ -533,9 +534,8 @@ const WebauthnSignupLogin = ({
 											<Button
 												id={`forget-cached-user-${index}-loginsignup`}
 												onClick={() => onForgetCachedUser(cachedUser)}
-												size="xl"
 												square={true}
-												textSize="md"
+												size="xl"
 												disabled={isSubmitting}
 												ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
@@ -736,7 +736,7 @@ const Auth = () => {
 
 				{isOnline === false && (
 					<p className="text-sm font-light text-c-lm-gray-900 dark:text-gray-200 italic mb-2">
-						<Info size={14} className="text-md inline-block text-c-lm-gray-900 mr-2" />
+						<Info size={14} className="text-md inline-block mr-1" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}
