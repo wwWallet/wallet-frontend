@@ -68,7 +68,7 @@ const Pending = () => {
 							return (
 								<div
 									key={pt.credentialEndpoint.transactionId}
-									className="text-sm px-4 py-2 dark:text-white border border-gray-300 shadow-sm dark:border-gray-600 rounded-md w-full text-left"
+									className="text-sm px-4 py-2 dark:text-white border border-gray-300 shadow-xs dark:border-gray-600 rounded-md w-full text-left"
 								>
 									<div className="flex gap-2 items-center">
 

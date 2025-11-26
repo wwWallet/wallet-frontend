@@ -78,7 +78,7 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center rounded md:space-y-6 sm:p-8 bg-white rounded-lg shadow dark:bg-gray-700"
+			className="p-4 pt-8 text-center rounded-sm md:space-y-6 sm:p-8 bg-white rounded-lg shadow-sm dark:bg-gray-700"
 			style={{ minWidth: '30%' }}
 			onCancel={onCancel}
 		>
@@ -215,7 +215,7 @@ const WebauthnRegistation = ({
 
 	return (
 		<div className="flex flex-row flex-wrap items-baseline gap-2">
-			<span className="flex-grow">{t('pageSettings.addPasskey')}</span>
+			<span className="grow">{t('pageSettings.addPasskey')}</span>
 			{
 				[
 					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
@@ -261,7 +261,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
 									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -471,7 +471,7 @@ const UnlockMainKey = ({
 					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
 					<input
 						type="password"
-						className="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight"
+						className="shadow-xs appearance-none border rounded-sm py-2 px-3 text-gray-700 leading-tight"
 						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
 						autoFocus={true}
 						disabled={isSubmittingPassword}
@@ -592,7 +592,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36"
+									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
@@ -943,7 +943,7 @@ const Settings = () => {
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36 text-gray-700">
 								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
+									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
 							</div>
 						</div>
@@ -1021,7 +1021,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36 text-gray-700">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 										>
@@ -1052,7 +1052,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36 text-gray-700">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.useOblivious}
 											onChange={(e) => handleObliviousChange(e.target.value)}
 											disabled={!isOnline}

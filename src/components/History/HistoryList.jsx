@@ -61,7 +61,7 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 						<button
 							id={`credential-history-item-${item[0].presentation.transactionId}`}
 							key={item[0].presentation.transactionId}
-							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-sm dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
+							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-xs dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
 							style={{ wordBreak: 'break-all' }}
 							onClick={() => handleHistoryItemClick(item)}
 						>

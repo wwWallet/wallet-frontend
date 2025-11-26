@@ -14,7 +14,7 @@ const PWAInstallPrompt = () => {
 	return (
 		pwaInstallable && !hidePwaPrompt && (
 			<div className={`w-full flex justify-center ${screenType === 'desktop' && 'mt-5'}`}>
-				<div className='flex bg-gray-600 m-3 p-3 rounded-md shadow justify-between w-full sm:w-96'>
+				<div className='flex bg-gray-600 m-3 p-3 rounded-md shadow-sm justify-between w-full sm:w-96'>
 					<div className='flex items-center'>
 						{screenType !== 'desktop' ? (
 							<MdInstallMobile className='text-white mr-2' size={32} />

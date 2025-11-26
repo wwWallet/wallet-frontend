@@ -147,7 +147,7 @@ const LoginState = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
+			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow-sm dark:bg-gray-800">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
