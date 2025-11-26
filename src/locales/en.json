@@ -368,6 +368,7 @@
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
+		"qcRequest": "This transaction requests the creation of signature certificates according to the Terms and Conditions (T&C) of the QTSP",
 		"request": "Request:",
 		"requestedCredentialsFieldsTitle": "Requested fields:",
 		"requestingParty": "Requesting Party: ",
