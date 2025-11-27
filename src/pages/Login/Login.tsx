@@ -504,7 +504,7 @@ const WebauthnSignupLogin = ({
 							</>)}
 
 						{isLoginCache && (
-							<ul className="overflow-y-auto overflow-x-hidden max-h-28 px-2 custom-scrollbar flex flex-col gap-2">
+							<ul className="overflow-y-auto overflow-x-hidden max-h-32 px-2 custom-scrollbar flex flex-col gap-2">
 								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser, index) => (
 									<li
 										key={cachedUser.userHandleB64u}
