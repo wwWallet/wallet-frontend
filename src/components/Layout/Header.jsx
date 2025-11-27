@@ -7,7 +7,7 @@ const Header = () => {
 	const { t } = useTranslation();
 
 	return (
-		<header className="sticky top-0 z-50 w-full bg-inherit text-inherit flex items-center justify-between shadow-md md:hidden border-b border-c-lm-gray-400 dark:border-c-dm-gray-600 transition-all duration-300 p-3">
+		<header className="sticky top-0 z-50 w-full bg-inherit text-inherit flex items-center justify-between md:hidden border-b border-c-lm-gray-400 dark:border-c-dm-gray-600 transition-all duration-300 p-3">
 			<ConnectionStatusIcon size='small' className="transition-all duration-300" />
 			<div className="flex items-center">
 				<Logo type='dark' aClassName='mr-2' imgClassName="cursor-pointer transition-all duration-300 w-8" />
