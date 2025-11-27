@@ -69,11 +69,11 @@ const BottomNav = ({ isOpen, toggle }) => {
 				<button
 					id="bottom-nav-item-profile"
 					key={t("common.navItemProfile")}
-					className={`cursor-pointer flex flex-col items-center w-[20%] relative ${isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
+					className={`cursor-pointer flex flex-col items-center gap-1 w-[20%] relative ${isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
 					onClick={toggle}
 					title={t("common.navItemProfile")}
 				>
-					<UserCircle size={26} />
+					<UserCircle size={20} />
 					<span className="hidden 2xs:block text-xs">
 						{t("common.navItemProfile")}
 					</span>
