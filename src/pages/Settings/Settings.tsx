@@ -256,7 +256,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="my-4 w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
+									className="my-4 w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -464,7 +464,7 @@ const UnlockMainKey = ({
 					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
 					<input
 						type="password"
-						className="my-4 w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
+						className="my-4 w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
 						autoFocus={true}
 						disabled={isSubmittingPassword}
@@ -582,7 +582,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="w-36 px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
+									className="w-36 px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
@@ -625,7 +625,7 @@ const WebauthnCredentialItem = ({
 					</span>
 					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
 					{needsPrfUpgrade
-						&& <span className="py-0.5 px-2 rounded bg-c-lm-orange dark:bg-c-dm-orange text-c-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
+						&& <span className="py-1 px-2 rounded bg-c-lm-orange dark:bg-c-dm-orange text-c-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
 			</div>
@@ -932,7 +932,7 @@ const Settings = () => {
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36 text-gray-700">
 								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
+									<LanguageSelector className="h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
 							</div>
 						</div>
@@ -1007,10 +1007,10 @@ const Settings = () => {
 								{t('pageSettings.rememberIssuer.description')}
 							</p>
 							<div className='flex gap-2 items-center'>
-								<div className="relative inline-block min-w-36 text-gray-700">
+								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 											disabled={!isOnline}
@@ -1043,7 +1043,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36 text-gray-700">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 text-c-lm-gray-900 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.useOblivious}
 											onChange={(e) => handleObliviousChange(e.target.value)}
 											disabled={!isOnline}
