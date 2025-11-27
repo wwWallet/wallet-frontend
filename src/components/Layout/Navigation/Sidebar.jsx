@@ -17,8 +17,11 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 		<button
 			id={`sidebar-item-${id}`}
 			onClick={() => handleNavigate(path)}
-			className={`cursor-pointer flex items-center justify-between space-x-2 mb-2 p-2 rounded-lg w-full ${isActive ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500' : 'hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-500 transition-colors'} ${className}`}
+			className={`relative cursor-pointer flex items-center justify-between space-x-2 mb-2 p-2 rounded-lg w-full hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-500 ${isActive ? 'bg-c-lm-gray-400 dark:bg-c-dm-gray-600' : 'transition-colors'} ${className}`}
 		>
+			{isActive && (
+				<div role="presentation" className="absolute left-[-8px] top-[50%] h-[90%] translate-y-[-50%] w-1 rounded-sm bg-brand-300 dark:bg-brand-400"></div>
+			)}
 			<div className="flex items-center space-x-2 text-left">
 				{Icon && <Icon className="shrink-0 m-1" size={20} />}
 				<span>

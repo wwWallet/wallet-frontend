@@ -44,13 +44,12 @@ const BottomNav = ({ isOpen, toggle }) => {
 					<button
 						id={`bottom-nav-item-${item.id}`}
 						key={item.path}
-						className={`${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-c-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center gap-1 w-[20%] ${isActive(item) && !isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
+						className={`relative ${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-c-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center gap-1 w-[20%] ${isActive(item) && !isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
 						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>
-
 						<div className="relative">
-						{item.icon}
+							{item.icon}
 							{/* top-right floating badge */}
 							<CounterBadge
 								count={item.counter}
@@ -64,12 +63,15 @@ const BottomNav = ({ isOpen, toggle }) => {
 						<span className={`hidden 2xs:block text-xs ${isActive(item) && !isOpen ? 'font-medium' : ''}`}>
 							{item.label}
 						</span>
+						{isActive(item) && !isOpen && (
+							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-300 dark:bg-brand-400"></div>
+						)}
 					</button>
 				))}
 				<button
 					id="bottom-nav-item-profile"
 					key={t("common.navItemProfile")}
-					className={`cursor-pointer flex flex-col items-center gap-1 w-[20%] relative ${isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
+					className={`relative cursor-pointer flex flex-col items-center gap-1 w-[20%] relative ${isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
 					onClick={toggle}
 					title={t("common.navItemProfile")}
 				>
@@ -84,6 +86,9 @@ const BottomNav = ({ isOpen, toggle }) => {
 							className="text-c-lm-green dark:text-c-dm-green absolute top-[-5px] right-[5px]"
 						/>
 					)}
+					{isOpen && (
+							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-300 dark:bg-brand-400"></div>
+						)}
 				</button>
 			</div>
 			{/* QR Code Scanner Modal */}
