@@ -20,7 +20,7 @@ const Spinner = ({ size = 'large' }) => {
 	const currentSize = sizes[size] || sizes.large;
 
 	return (
-		<div className="flex justify-center items-center h-dvh bg-c-lm-gray-200 dark:bg-c-dm-gray-900" role="status" aria-live="polite">
+		<div className="flex justify-center items-center h-dvh w-dvw bg-c-lm-gray-200 dark:bg-c-dm-gray-900" role="status" aria-live="polite">
 			<div className={`relative ${currentSize.container}`}>
 				<LoaderCircle strokeWidth={1} className={`absolute rounded-full ${currentSize.container} text-brand-500 dark:text-white animate-spin ${currentSize.opacity}`} />
 				<div className={`absolute inset-0 scale-60 flex items-center justify-center ${currentSize.opacity}`}>
