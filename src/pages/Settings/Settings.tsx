@@ -1127,7 +1127,7 @@ const Settings = () => {
 											reloadButton:
 												<button
 													id="reload-update-version"
-													className='text-primary dark:text-brand-400 underline'
+													className='text-primary dark:text-brand-light underline'
 													onClick={() => window.location.reload()}
 												/>,
 											strong: <strong />,

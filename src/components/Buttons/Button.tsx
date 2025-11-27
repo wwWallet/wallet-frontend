@@ -113,7 +113,7 @@ const Button = ({
 			case 'primary':
 				return `${commonClasses} ${sizeClasses} text-white bg-primary border-primary`;
 			case 'secondary':
-				return `${commonClasses} ${sizeClasses} text-white dark:text-white bg-brand-400 dark:bg-brand-600 border-brand-400 dark:border-brand-600`;
+				return `${commonClasses} ${sizeClasses} text-white dark:text-white bg-brand-light dark:bg-brand-dark border-brand-light dark:border-brand-dark`;
 			case 'tertiary':
 				return `${commonClasses} ${sizeClasses} text-white dark:text-c-dm-gray-900 bg-c-lm-gray-900 dark:bg-c-dm-gray-100 border-c-lm-gray-900 dark:border-c-dm-gray-800`;
 			case 'delete':
@@ -121,7 +121,7 @@ const Button = ({
 			case 'outline':
 				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border-c-lm-gray-600 dark:border-c-dm-gray-400`;
 			default:
-				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-50 bg-brand-300 dark:bg-brand-700 border-brand-300 dark:border-brand-700`;
+				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-50 bg-brand-lighter dark:bg-brand-darker border-brand-lighter dark:border-brand-darker`;
 		}
 	};
 

@@ -64,7 +64,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 							{item.label}
 						</span>
 						{isActive(item) && !isOpen && (
-							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-300 dark:bg-brand-400"></div>
+							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-lighter dark:bg-brand-light"></div>
 						)}
 					</button>
 				))}
@@ -87,7 +87,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 						/>
 					)}
 					{isOpen && (
-							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-300 dark:bg-brand-400"></div>
+							<div role="presentation" className="absolute bottom-[-12px] left-[50%]  translate-x-[-50%] w-2 h-2 rounded-full bg-brand-lighter dark:bg-brand-light"></div>
 						)}
 				</button>
 			</div>

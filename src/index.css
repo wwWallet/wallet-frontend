@@ -5,18 +5,26 @@
 @variant 2xs (@media (min-width: 360px));
 @variant xm (@media (max-width: 479px));
 
+:root {
+	--w-brand-color: hsl(217, 66%, 32%);
+	--w-brand-color-light: hsl(217, 46%, 45%);
+	--w-brand-color-lighter: hsl(217, 27%, 60%);
+	--w-brand-color-dark: hsl(217, 42%, 42%);
+	--w-brand-color-darker: hsl(217, 16%, 40%);
+}
+
 /* Theme Variables */
 @theme {
 	--border-radius-xl: 1rem;
 
-	--color-brand-300: hsl(217 5% 66%);
-	--color-brand-400: hsl(217 40% 45%);
-	--color-brand-500: hsl(217 66% 32%);
-	--color-brand-600: hsl(217 40% 30%);
-	--color-brand-700: hsl(217 10% 33%);
+	--color-brand-lighter: var(--w-brand-color-lighter);
+	--color-brand-light: var(--w-brand-color-light);
+	--color-brand-base: var(--w-brand-color);
+	--color-brand-dark: var(--w-brand-color-dark);
+	--color-brand-darker: var(--w-brand-color-darker);
 
-	--color-primary: var(--color-brand-500);
-	--color-primary-hover: var(--color-brand-600);
+	--color-primary: var(--color-brand-base);
+	--color-primary-hover: var(--color-brand-dark);
 
 	--color-c-lm-red: hsl(3 76% 42%);
 	--color-c-lm-red-hover: hsl(3 76% 48%);

@@ -99,7 +99,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 									? 'text-white bg-primary border border-primary'
 									: isCurrent
 										? 'text-primary dark:text-white dark:bg-c-dm-gray-700 border border-primary'
-										: 'text-brand-300 dark:text-brand-300 border border-brand-300 dark:border-brand-700'
+										: 'text-brand-lighter dark:text-brand-lighter border border-brand-lighter dark:border-brand-darker'
 									}`}
 							>
 								{index === 0 ? (
@@ -112,9 +112,9 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 							</div>
 						</div>
 						{index < totalSteps - 1 && (
-							<div className="flex-auto h-[2px] bg-brand-300 dark:bg-brand-700">
+							<div className="flex-auto h-[2px] bg-brand-lighter dark:bg-brand-darker">
 								<div
-									className={`flex-auto h-[2px] ${isActive ? 'bg-brand-400' : ''} transition-all duration-300`}
+									className={`flex-auto h-[2px] ${isActive ? 'bg-brand-light' : ''} transition-all duration-300`}
 									style={{ width: isActive ? '100%' : '0%' }}
 								></div>
 							</div>
@@ -341,7 +341,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 												{' '}
 												<button
 													onClick={() => setShowFullPurpose(!showFullPurpose)}
-													className="text-primary dark:text-brand-400 font-medium hover:underline inline"
+													className="text-primary dark:text-brand-light font-medium hover:underline inline"
 												>
 													{showFullPurpose ? t('common.showLess') : t('common.showMore')}
 												</button>

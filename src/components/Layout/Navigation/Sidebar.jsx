@@ -20,7 +20,7 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 			className={`relative cursor-pointer flex items-center justify-between space-x-2 mb-2 p-2 rounded-lg w-full hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 ${isActive ? 'bg-c-lm-gray-400 dark:bg-c-dm-gray-600' : 'transition-colors'} ${className}`}
 		>
 			{isActive && (
-				<div role="presentation" className="absolute left-[-8px] top-[50%] h-[90%] translate-y-[-50%] w-1 rounded-sm bg-brand-500 dark:bg-brand-400"></div>
+				<div role="presentation" className="absolute left-[-8px] top-[50%] h-[90%] translate-y-[-50%] w-1 rounded-sm bg-brand-base dark:bg-brand-light"></div>
 			)}
 			<div className="flex items-center space-x-2 text-left">
 				{Icon && <Icon className="shrink-0 m-1" size={20} />}
