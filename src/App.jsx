@@ -8,7 +8,6 @@ import Spinner from './components/Shared/Spinner';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
-import Button from './components/Buttons/Button';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
