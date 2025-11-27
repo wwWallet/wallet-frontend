@@ -54,7 +54,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 
 		return (
 			<div className={`${indentClass} break-all`}>
-				<span className="text-gray-800 dark:text-white">{name && `"${name}"`}:</span>{' '}
+				<span className="text-c-lm-gray-800 dark:text-c-dm-gray-200">{name && `"${name}"`}:</span>{' '}
 				<span className={valueClass}>{displayValue}</span>
 				{shouldTruncate && (
 					<button

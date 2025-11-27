@@ -29,7 +29,7 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 
 	return (
 		<div
-			className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'
+			className={`flex items-center text-c-lm-gray-800 dark:text-c-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'
 				}`}
 		>
 			<GalleryHorizontalEnd size={18} className="mr-1" />

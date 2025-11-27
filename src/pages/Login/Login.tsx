@@ -722,7 +722,7 @@ const Auth = () => {
 			/>
 		}>
 			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-c-dm-gray-900 border border-c-lm-gray-400 dark:border-c-dm-gray-600">
-				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-c-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
 
@@ -735,7 +735,7 @@ const Auth = () => {
 				</div>
 
 				{isOnline === false && (
-					<p className="text-sm font-light text-c-lm-gray-900 dark:text-gray-200 italic mb-2">
+					<p className="text-sm font-light text-c-lm-gray-900 dark:text-c-dm-gray-100 italic mb-2">
 						<Info size={14} className="text-md inline-block mr-1" />
 						{t('loginSignup.messageOffline')}
 					</p>
@@ -767,7 +767,7 @@ const Auth = () => {
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-c-lm-gray-900 dark:text-gray-200 text-center">
+					<p className="text-sm font-light text-c-lm-gray-900 dark:text-c-dm-gray-100 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
@@ -780,7 +780,7 @@ const Auth = () => {
 						</Button>
 					</p>
 				) : (
-					<p className="text-sm font-light text-c-lm-gray-900 dark:text-gray-200 cursor-pointer">
+					<p className="text-sm font-light text-c-lm-gray-900 dark:text-c-dm-gray-100 cursor-pointer">
 						<Button
 							id="useOtherAccount-switch-loginsignup"
 							variant="link"

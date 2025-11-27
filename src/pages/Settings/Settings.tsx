@@ -492,7 +492,7 @@ const UnlockMainKey = ({
 					</div>
 
 					{error &&
-						<p className="text-red-500 mt-2">
+						<p className="text-c-lm-red dark:text-c-dm-red mt-2">
 							{error}
 						</p>
 					}
@@ -930,7 +930,7 @@ const Settings = () => {
 
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.title.language')} />
-							<div className="relative inline-block min-w-36 text-gray-700">
+							<div className="relative inline-block min-w-36">
 								<div className="relative">
 									<LanguageSelector className="h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
@@ -1017,7 +1017,7 @@ const Settings = () => {
 									</div>
 								</div>
 								{successMessage && (
-									<div className="text-md text-green-500">
+									<div className="text-md text-c-lm-green dark:text-c-dm-green">
 										{successMessage}
 									</div>
 								)}
@@ -1029,7 +1029,7 @@ const Settings = () => {
 								{t('pageSettings.oblivious.description')}
 							</p>
 							<div className='flex gap-2 items-center'>
-								<div className="relative inline-block min-w-36 text-gray-700">
+								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
 											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 text-c-lm-gray-900 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
@@ -1047,7 +1047,7 @@ const Settings = () => {
 									</div>
 								</div>
 								{obliviousSettingsMessage && (
-									<div className="text-md text-green-500">
+									<div className="text-md text-c-lm-green dark:text-c-lm-green">
 										{obliviousSettingsMessage}
 									</div>
 								)}
@@ -1114,7 +1114,7 @@ const Settings = () => {
 								{updateAvailable && (
 									<Bell
 										size={22}
-										className="text-green-500 absolute top-0 left-[105px]"
+										className="text-c-lm-green dark:text-c-dm-green absolute top-0 left-[105px]"
 									/>
 								)}
 							</div>

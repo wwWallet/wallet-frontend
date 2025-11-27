@@ -159,7 +159,7 @@ const QRScanner = ({ onClose }) => {
 		<PopupLayout isOpen={true} onClose={handleClose} loading={loading || !cameraReady} fullScreen={screenType !== 'desktop'}>
 			{hasCameraPermission === false ? (
 				<>
-					<div className="flex items-start justify-between border-b rounded-t dark:border-gray-600">
+					<div className="flex items-start justify-between border-b rounded-t dark:border-c-dm-gray-600">
 						<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
 							<QrCode size={20} className="inline mr-1 mb-1" />
 							{t('qrCodeScanner.title')}

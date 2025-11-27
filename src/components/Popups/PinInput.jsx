@@ -123,7 +123,7 @@ function PinInput({ isOpen, setIsOpen }) {
 				{t('PinInputPopup.title')}
 			</h2>
 			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
-			<p className="italic pd-2 text-gray-700 dark:text-white">
+			<p className="italic pd-2 text-c-lm-gray-800 dark:text-c-dm-gray-200">
 				{t('PinInputPopup.description')}
 			</p>
 

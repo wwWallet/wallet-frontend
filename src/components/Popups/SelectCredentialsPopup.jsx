@@ -363,7 +363,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
 									return (
 										<div key={descriptorId} className="my">
-											<div className="flex flex-row gap-1 text-sm text-gray-700 dark:text-white my-1">
+											<div className="flex flex-row gap-1 text-sm text-c-lm-gray-800 dark:text-c-dm-gray-200 my-1">
 												<span className="flex items-center gap-1 font-bold">
 													<IdCard className="text-c-lm-gray-900 dark:text-c-dm-gray-100" />
 													{t('selectCredentialPopup.request')}

@@ -18,7 +18,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			<div className="grow flex flex-col items-center justify-center px-6 py-8">
 				<Logo aClassName='mb-6' imgClassName='w-20' />
 
-				<h1 className="text-3xl mb-8 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+				<h1 className="text-3xl mb-8 font-bold leading-tight tracking-tight text-c-lm-gray-900 text-center dark:text-white">
 					{heading}
 				</h1>
 
@@ -32,7 +32,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			</div>
 
 			<footer className="py-4">
-				<p className="text-sm text-gray-700 dark:text-gray-400 text-center">
+				<p className="text-sm text-c-lm-gray-800 dark:text-c-dm-gray-200 text-center">
 					<Trans
 						i18nKey="sidebar.poweredBy"
 						components={{

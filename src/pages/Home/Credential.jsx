@@ -217,11 +217,11 @@ const Credential = () => {
 						</div>
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
-							{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
+							{mdocQRStatus === -1 && <span className="text-c-lm-gray-800 italic dark:text-c-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
 							{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
-							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
+							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-c-lm-gray-800 italic dark:text-c-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
 							{mdocQRStatus === 2 && <span className='pb-16'>
-								<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+								<p className="text-c-lm-gray-800 dark:text-c-dm-gray-200 text-sm mt-2 mb-4">
 									{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
 									<strong>
 										{

@@ -26,7 +26,7 @@ export default function PasswordStrength({ label, password }: Props) {
 	return (
 		<div className="flex items-center mt-1">
 			<p className="text-sm text-c-lm-gray-700 dark:text-c-dm-gray-300 mr-2">{label}</p>
-			<div className="flex flex-1 h-4 bg-lightgray rounded-full border border-c-lm-gray-400 dark:border-c-dm-gray-600">
+			<div className="flex flex-1 h-4 rounded-full border border-c-lm-gray-400 dark:border-c-dm-gray-600">
 				<div
 					className={`h-full rounded-full ${colorClass}`}
 					style={{ width: `${value}%` }}

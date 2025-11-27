@@ -12,7 +12,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
 	const filledColor = 'bg-current';
 	const unFilledColor = 'bg-c-lm-gray-400 dark:bg-c-dm-gray-600';
-	const connectingSpinner = backgroundColor === 'light' ? 'border-gray-600 dark:border-gray-100' : 'border-gray-100';
+	const connectingSpinner = backgroundColor === 'light' ? 'border-c-lm-gray-600 dark:border-c-dm-gray-100' : 'border-c-lm-gray-100';
 
 	const qualityText = (quality) => {
 		switch (quality) {
