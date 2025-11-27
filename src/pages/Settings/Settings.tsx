@@ -946,47 +946,36 @@ const Settings = () => {
 								</p>
 							</div>
 							<div className="flex gap-2">
-								<Button
-									id="color-scheme-light"
-									onClick={() => setColorScheme('light')}
-									variant='custom'
-									ariaLabel={t('pageSettings.appearance.colorScheme.light')}
-									title={t('pageSettings.appearance.colorScheme.light')}
-									additionalClassName={`border border-c-lm-gray-400 dark:border-c-dm-gray-600 hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 dark:text-white ${settings.colorScheme === 'light' ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 border-black dark:border-white' : 'bg-c-lm-gray-200 dark:bg-c-dm-gray-800'}`}
-
-								>
-									<Sun size={18} className='mr-2' />
-									{t('pageSettings.appearance.colorScheme.light')}
-								</Button>
-
-								<Button
-									id="color-scheme-dark"
-									onClick={() => setColorScheme('dark')}
-									variant="custom"
-									ariaLabel={t('pageSettings.appearance.colorScheme.dark')}
-									title={t('pageSettings.appearance.colorScheme.dark')}
-									additionalClassName={`border border-c-lm-gray-400 dark:border-c-dm-gray-600 hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 dark:text-white ${settings.colorScheme === 'dark' ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 border-black dark:border-white' : 'bg-c-lm-gray-200 dark:bg-c-dm-gray-800'}`}
-
-								>
-									<Moon size={18} className='mr-2' />
-									{t('pageSettings.appearance.colorScheme.dark')}
-								</Button>
-
-								<Button
-									id="color-scheme-system"
-									onClick={() => setColorScheme('system')}
-									variant="custom"
-									ariaLabel={t('pageSettings.appearance.colorScheme.system')}
-									title={t('pageSettings.appearance.colorScheme.system')}
-									additionalClassName={`border border-c-lm-gray-400 dark:border-c-dm-gray-600 hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 dark:text-white ${settings.colorScheme === 'system' ? 'bg-c-lm-gray-500 dark:bg-c-dm-gray-500 border-black dark:border-white' : 'bg-c-lm-gray-200 dark:bg-c-dm-gray-800'}`}
-								>
-									{screenType === 'desktop' ? (
-										<Laptop size={18} className='mr-2' />
-									) : (
-										<Smartphone size={18} className='mr-2' />
-									)}
-									{t('pageSettings.appearance.colorScheme.system')}
-								</Button>
+								<div className="relative">
+									<span className="absolute top-[50%] left-3 transform -translate-y-[50%] pointer-events-none">
+										{settings.colorScheme === 'light' && <Sun size={18} />}
+										{settings.colorScheme === 'dark' && <Moon size={18} />}
+										{settings.colorScheme === 'system' && (screenType === 'desktop' ? <Laptop size={18} /> : <Smartphone size={18} />)}
+									</span>
+									<select className="h-10 pl-10 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none">
+										<option
+											onClick={() => setColorScheme('system')}
+											selected={settings.colorScheme === 'system'}
+										>
+											{t('pageSettings.appearance.colorScheme.system')}
+										</option>
+										<option
+											onClick={() => setColorScheme('light')}
+											selected={settings.colorScheme === 'light'}
+										>
+											{t('pageSettings.appearance.colorScheme.light')}
+										</option>
+										<option
+											onClick={() => setColorScheme('dark')}
+											selected={settings.colorScheme === 'dark'}
+										>
+											{t('pageSettings.appearance.colorScheme.dark')}
+										</option>
+									</select>
+									<span className="absolute right-2 top-[50%] transform -translate-y-[50%] pointer-events-none">
+										<ChevronDown size={18} />
+									</span>
+								</div>
 							</div>
 						</div>
 						<div className="my-2 py-2">
