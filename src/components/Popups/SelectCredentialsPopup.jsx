@@ -54,7 +54,7 @@ const SelectableCredentialSlideCard = ({
 			{imageLoaded && (
 				<>
 					<div
-						className={`absolute inset-0 rounded-xl transition-opacity bg-c-lm-gray-400 dark:bg-c-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-50'
+						className={`absolute inset-0 rounded-xl transition-opacity bg-lm-gray-400 dark:bg-dm-gray-600 ${isSelected ? 'opacity-0' : 'opacity-50'
 							}`}
 					/>
 					<div className="absolute bottom-4 right-4 z-60">
@@ -98,7 +98,7 @@ const StepBar = ({ totalSteps, currentStep, stepTitles }) => {
 								className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isActive
 									? 'text-white bg-primary border border-primary'
 									: isCurrent
-										? 'text-primary dark:text-white dark:bg-c-dm-gray-700 border border-primary'
+										? 'text-primary dark:text-white dark:bg-dm-gray-700 border border-primary'
 										: 'text-brand-lighter dark:text-brand-lighter border border-brand-lighter dark:border-brand-darker'
 									}`}
 							>
@@ -136,7 +136,7 @@ const StepTitle = ({ currentKey, t }) => {
 	}
 
 	return (
-		<h2 className="text-lg font-bold mt-4 mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100 flex flex-wrap items-center gap-2 leading-tight">
+		<h2 className="text-lg font-bold mt-4 mb-2 text-lm-gray-900 dark:text-dm-gray-100 flex flex-wrap items-center gap-2 leading-tight">
 			<span className="inline-flex items-center gap-2">
 				{t('selectCredentialPopup.baseTitle')} - {text}
 			</span>
@@ -304,22 +304,22 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{stepTitles && (
 					<StepTitle currentKey={keys[currentIndex]} t={t} />
 				)}
-				<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+				<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 				{/* Preview step */}
 				{keys[currentIndex] === 'preview' && (
 					<>
-						<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 italic text-sm mt-3 mb-2">
+						<p className="text-lm-gray-900 dark:text-dm-gray-100 italic text-sm mt-3 mb-2">
 							{t('selectCredentialPopup.previewDescription')}
 						</p>
 						<div className="flex flex-col gap-2">
 
 							{popupState?.options?.verifierDomainName && (
-								<div className="flex flex-wrap gap-1 items-center text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100">
-									<span className="text-c-lm-gray-900 dark:text-c-dm-gray-100 text-sm font-bold block">
+								<div className="flex flex-wrap gap-1 items-center text-sm text-lm-gray-900 dark:text-dm-gray-100">
+									<span className="text-lm-gray-900 dark:text-dm-gray-100 text-sm font-bold block">
 										{t('selectCredentialPopup.requestingParty')}
 									</span>
-									<span className="w-max font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 rounded border border-c-lm-gray-400 dark:border-c-dm-gray-600 p-1 break-all block">
+									<span className="w-max font-semibold text-lm-gray-900 dark:text-dm-gray-100 rounded border border-lm-gray-400 dark:border-dm-gray-600 p-1 break-all block">
 										{prettyDomain(popupState.options.verifierDomainName)}
 									</span>
 								</div>
@@ -329,8 +329,8 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 								const textToDisplay = showFullPurpose ? popupState.options.verifierPurpose : truncatedText;
 
 								return (
-									<p className="pd-2 text-sm text-c-lm-gray-900 dark:text-c-dm-gray-100">
-										<span className="text-sm font-bold text-c-lm-gray-900 dark:text-c-dm-gray-100">
+									<p className="pd-2 text-sm text-lm-gray-900 dark:text-dm-gray-100">
+										<span className="text-sm font-bold text-lm-gray-900 dark:text-dm-gray-100">
 											{t('selectCredentialPopup.purpose')}
 										</span>
 										<span className="font-medium">
@@ -357,25 +357,25 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 							})}
 
 							<div>
-								<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 text-sm font-bold">
+								<p className="text-lm-gray-900 dark:text-dm-gray-100 text-sm font-bold">
 									{t('selectCredentialPopup.requestedCredentialsFieldsTitle')}
 								</p>
 								{Object.entries(requestedFieldsPerCredential).map(([descriptorId, fields]) => {
 									return (
 										<div key={descriptorId} className="my">
-											<div className="flex flex-row gap-1 text-sm text-c-lm-gray-800 dark:text-c-dm-gray-200 my-1">
+											<div className="flex flex-row gap-1 text-sm text-lm-gray-800 dark:text-dm-gray-200 my-1">
 												<span className="flex items-center gap-1 font-bold">
-													<IdCard className="text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+													<IdCard className="text-lm-gray-900 dark:text-dm-gray-100" />
 													{t('selectCredentialPopup.request')}
 												</span>
 												<span
 													title={descriptorId}
-													className="font-semibold bg-c-lm-gray-100 dark:bg-c-dm-gray-900 px-1 rounded border border-c-lm-gray-400 dark:border-c-dm-gray-600 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
+													className="font-semibold bg-lm-gray-100 dark:bg-dm-gray-900 px-1 rounded border border-lm-gray-400 dark:border-dm-gray-600 break-all truncate whitespace-nowrap overflow-hidden flex-1 min-w-0 max-w-max"
 												>
 													{descriptorId}
 												</span>
 											</div>
-											<p className="text-sm font-normal text-c-lm-gray-900 dark:text-c-dm-gray-100 list-disc ml-4">
+											<p className="text-sm font-normal text-lm-gray-900 dark:text-dm-gray-100 list-disc ml-4">
 												{!fields[0].path[0] ? (
 													<span>
 														{t('selectCredentialPopup.allClaimsRequested')}
@@ -398,7 +398,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Selection step */}
 				{keys[currentIndex] !== 'preview' && keys[currentIndex] !== 'summary' && (
 					<>
-						<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 italic text-sm mt-3 mb-4">
+						<p className="text-lm-gray-900 dark:text-dm-gray-100 italic text-sm mt-3 mb-4">
 							{t('selectCredentialPopup.selectDescription')}
 						</p>
 						<div>
@@ -414,7 +414,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 											isActive={currentSlide === index + 1}
 											isSelected={selectedCredential === vcEntity.batchId}
 											onClick={handleClick}
-											borderColor={screenType === 'desktop' ? 'border-c-lm-gray-400 dark:border-c-dm-gray-600' : undefined}
+											borderColor={screenType === 'desktop' ? 'border-lm-gray-400 dark:border-dm-gray-600' : undefined}
 										/>
 									)}
 									initialSlide={currentSlide}
@@ -448,7 +448,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				{/* Summary step */}
 				{keys[currentIndex] === 'summary' && (
 					<>
-						<p className="text-c-lm-gray-900 dark:text-c-dm-gray-100 italic text-sm mt-3 mb-4">
+						<p className="text-lm-gray-900 dark:text-dm-gray-100 italic text-sm mt-3 mb-4">
 							<Trans
 								i18nKey="selectCredentialPopup.summaryDescription"
 								components={{ strong: <strong /> }}
@@ -495,7 +495,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 													className="w-full object-cover rounded-xl"
 													showRibbon={currentSummarySlide === i}
 													filter={filterPaths}
-													borderColor={screenType === 'desktop' ? 'border-c-lm-gray-400 dark:border-c-dm-gray-600' : undefined}
+													borderColor={screenType === 'desktop' ? 'border-lm-gray-400 dark:border-dm-gray-600' : undefined}
 												/>
 											</div>
 										);
@@ -531,7 +531,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 			</div>
 
 			<div
-				className={`z-10 left-0 right-0 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600 shadow-2xl flex justify-between ${screenType === 'desktop'
+				className={`z-10 left-0 right-0 bg-lm-gray-100 dark:bg-dm-gray-900 border-t border-lm-gray-400 dark:border-dm-gray-600 shadow-2xl flex justify-between ${screenType === 'desktop'
 					? 'sticky bottom-0 px-4 py-3'
 					: 'fixed bottom-0 px-6 pb-4 pt-4'
 					}`}

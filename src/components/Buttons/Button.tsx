@@ -58,7 +58,7 @@ const Button = ({
 	ariaLabel,
 	title,
 	linkLineSize = 'regular-small',
-	linkClassName = 'text-c-lm-gray-900 dark:text-c-dm-gray-100',
+	linkClassName = 'text-lm-gray-900 dark:text-dm-gray-100',
 }: Props) => {
 
 	if (variant === 'link') {
@@ -115,13 +115,13 @@ const Button = ({
 			case 'secondary':
 				return `${commonClasses} ${sizeClasses} text-white dark:text-white bg-brand-light dark:bg-brand-dark border-brand-light dark:border-brand-dark`;
 			case 'tertiary':
-				return `${commonClasses} ${sizeClasses} text-white dark:text-c-dm-gray-900 bg-c-lm-gray-900 dark:bg-c-dm-gray-100 border-c-lm-gray-900 dark:border-c-dm-gray-800`;
+				return `${commonClasses} ${sizeClasses} text-white dark:text-dm-gray-900 bg-lm-gray-900 dark:bg-dm-gray-100 border-lm-gray-900 dark:border-dm-gray-800`;
 			case 'delete':
-				return `${commonClasses} ${sizeClasses} text-c-lm-red-light dark:text-c-dm-red-light bg-c-lm-red-dark dark:bg-c-dm-red-dark border-c-lm-red-dark dark:border-c-dm-red-dark`;
+				return `${commonClasses} ${sizeClasses} text-lm-red-light dark:text-dm-red-light bg-lm-red-dark dark:bg-dm-red-dark border-lm-red-dark dark:border-dm-red-dark`;
 			case 'outline':
-				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border-c-lm-gray-600 dark:border-c-dm-gray-400`;
+				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-600 dark:border-dm-gray-400`;
 			default:
-				return `${commonClasses} ${sizeClasses} text-c-lm-gray-900 dark:text-c-dm-gray-50 bg-brand-lighter dark:bg-brand-darker border-brand-lighter dark:border-brand-darker`;
+				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-dm-gray-50 bg-brand-lighter dark:bg-brand-darker border-brand-lighter dark:border-brand-darker`;
 		}
 	};
 

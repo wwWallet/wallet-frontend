@@ -19,7 +19,7 @@ const SearchInput = ({ placeholder, searchCallback }: SearchInputProps) => {
 			ref={inputRef}
 			type="text"
 			placeholder={placeholder}
-			className="w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
+			className="w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
 			onChange={handleOnChange}
 		/>
 	);

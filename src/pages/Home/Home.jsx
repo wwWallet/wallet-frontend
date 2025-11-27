@@ -57,7 +57,7 @@ const Home = () => {
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
-					<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+					<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 					{(pendingTransactions?.length > 0) && (
 						<PendingTransactionsBanner
 							pendingTransactions={pendingTransactions}

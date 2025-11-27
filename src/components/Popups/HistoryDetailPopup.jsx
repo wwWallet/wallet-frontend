@@ -10,7 +10,7 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 	return (
 		<PopupLayout isOpen={isOpen} onClose={onClose}>
 			<div className="flex items-start justify-between mb-2">
-				<h2 className="right text-lg font-bold text-c-lm-gray-900 dark:text-c-dm-gray-100">
+				<h2 className="right text-lg font-bold text-lm-gray-900 dark:text-dm-gray-100">
 					{t('pageHistory.popupTitle')}
 				</h2>
 				<Button
@@ -35,7 +35,7 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 					</svg>
 				</Button>
 			</div>
-			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+			<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 			<HistoryDetailContent historyItem={historyItem} />
 		</PopupLayout>

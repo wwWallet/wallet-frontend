@@ -93,7 +93,7 @@ const WebauthnLogin = ({
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-c-lm-red dark:text-c-dm-red pt-2">{error}</div>}
+			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };
@@ -145,23 +145,23 @@ const LoginState = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-c-dm-gray-800">
-				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-c-dm-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-dm-gray-800">
+				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
-				<div className='absolute text-c-lm-gray-800 dark:text-c-dm-gray-200  top-0 left-5'>
+				<div className='absolute text-lm-gray-800 dark:text-dm-gray-200  top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 				<div className='absolute top-0 right-3'>
-					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-c-dm-gray-800 appearance-none' />
+					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-dm-gray-800 appearance-none' />
 				</div>
 				{isOnline === false && (
-					<p className="text-sm font-light text-c-lm-gray-800 dark:text-c-dm-gray-200 italic mb-2">
-						<Info size={14} className="text-md inline-block text-c-lm-gray-800 dark:text-c-dm-gray-200 mr-2" />
+					<p className="text-sm font-light text-lm-gray-800 dark:text-dm-gray-200 italic mb-2">
+						<Info size={14} className="text-md inline-block text-lm-gray-800 dark:text-dm-gray-200 mr-2" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}
-				<p className="text-sm text-center text-c-lm-gray-800 dark:text-c-dm-gray-20 mb-2">
+				<p className="text-sm text-center text-lm-gray-800 dark:text-dm-gray-20 mb-2">
 					<Trans
 						i18nKey="loginState.message"
 						components={{ strong: <strong /> }}

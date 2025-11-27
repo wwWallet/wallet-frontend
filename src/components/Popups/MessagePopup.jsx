@@ -10,7 +10,7 @@ const MessagePopup = ({ type, message, onClose }) => {
 	const { t } = useTranslation();
 
 	const IconComponent = type === 'error' ? CircleAlert : CheckCircle;
-	const color = type === 'error' ? 'bg-c-lm-red dark:bg-c-dm-red' : 'bg-c-lm-green dark:bg-c-dm-green';
+	const color = type === 'error' ? 'bg-lm-red dark:bg-dm-red' : 'bg-lm-green dark:bg-dm-green';
 
 	return (
 		<PopupLayout isOpen={true} onClose={onClose}>
@@ -31,7 +31,7 @@ const MessagePopup = ({ type, message, onClose }) => {
 					</svg>
 				</Button>
 			</div>
-			<hr className={`mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600`} />
+			<hr className={`mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600`} />
 			<p className="mb-2 mt-4 dark:text-white">
 				{description}
 			</p>

@@ -39,12 +39,12 @@ const BottomNav = ({ isOpen, toggle }) => {
 
 	return (
 		<>
-			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-inherit border-t border-c-lm-gray-400 dark:border-c-dm-gray-600 justify-around px-4 pt-4 pb-6 z-40 md:hidden`}>
+			<div className={`sticky flex items-center bottom-0 left-0 right-0 bg-inherit border-t border-lm-gray-400 dark:border-dm-gray-600 justify-around px-4 pt-4 pb-6 z-40 md:hidden`}>
 				{navItems.map(item => (
 					<button
 						id={`bottom-nav-item-${item.id}`}
 						key={item.path}
-						className={`relative ${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-c-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center gap-1 w-[20%] ${isActive(item) && !isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'}`} transition-colors duration-200`}
+						className={`relative ${item.stepClass} ${item.isQR ? 'bg-black dark:bg-white text-white dark:text-lm-gray-900 rounded-full p-3 shadow-lg' : `cursor-pointer flex flex-col items-center gap-1 w-[20%] ${isActive(item) && !isOpen ? 'text-lm-gray-900 dark:text-white' : 'text-lm-gray-700 dark:text-dm-gray-300'}`} transition-colors duration-200`}
 						onClick={() => item.isQR ? openQRScanner() : handleNavigate(item.path)}
 						title={item.label}
 					>
@@ -71,7 +71,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 				<button
 					id="bottom-nav-item-profile"
 					key={t("common.navItemProfile")}
-					className={`relative cursor-pointer flex flex-col items-center gap-1 w-[20%] relative ${isOpen ? 'text-c-lm-gray-900 dark:text-white' : 'text-c-lm-gray-700 dark:text-c-dm-gray-300'} transition-colors duration-200`}
+					className={`relative cursor-pointer flex flex-col items-center gap-1 w-[20%] relative ${isOpen ? 'text-lm-gray-900 dark:text-white' : 'text-lm-gray-700 dark:text-dm-gray-300'} transition-colors duration-200`}
 					onClick={toggle}
 					title={t("common.navItemProfile")}
 				>
@@ -83,7 +83,7 @@ const BottomNav = ({ isOpen, toggle }) => {
 						<Bell
 							size={16}
 							fill='currentColor'
-							className="text-c-lm-green dark:text-c-dm-green absolute top-[-5px] right-[5px]"
+							className="text-lm-green dark:text-dm-green absolute top-[-5px] right-[5px]"
 						/>
 					)}
 					{isOpen && (

@@ -88,7 +88,7 @@ const WebauthnLogin = ({
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-c-lm-red dark:text-c-dm-red pt-2">{error}</div>}
+			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };
@@ -132,10 +132,10 @@ const SyncPopup = ({ message, onClose }) => {
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} shouldCloseOnOverlayClick={false}>
 			<div className="flex flex-col items-center text-center mb-2">
-				<p className="font-bold text-xl mt-2 dark:text-c-dm-gray-100">
+				<p className="font-bold text-xl mt-2 dark:text-dm-gray-100">
 					{t('loginState.title')} {filteredUser.displayName}
 				</p>
-				<p className=" mb-2 mt-2 dark:text-c-dm-gray-100">
+				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
 					<Trans
 						i18nKey={description}
 						components={{ strong: <strong /> }}

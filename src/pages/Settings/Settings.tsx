@@ -73,7 +73,7 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center md:space-y-6 sm:p-8 bg-c-lm-gray-50 dark:bg-c-dm-gray-950 border border-c-lm-gray-400 dark:border-c-dm-gray-600 rounded-lg backdrop:bg-black/80"
+			className="p-4 pt-8 text-center md:space-y-6 sm:p-8 bg-lm-gray-50 dark:bg-dm-gray-950 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg backdrop:bg-black/80"
 			style={{ minWidth: '30%' }}
 			onCancel={onCancel}
 		>
@@ -256,7 +256,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="my-4 w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
+									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -464,7 +464,7 @@ const UnlockMainKey = ({
 					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
 					<input
 						type="password"
-						className="my-4 w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
+						className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
 						autoFocus={true}
 						disabled={isSubmittingPassword}
@@ -492,7 +492,7 @@ const UnlockMainKey = ({
 					</div>
 
 					{error &&
-						<p className="text-c-lm-red dark:text-c-dm-red mt-2">
+						<p className="text-lm-red dark:text-dm-red mt-2">
 							{error}
 						</p>
 					}
@@ -570,7 +570,7 @@ const WebauthnCredentialItem = ({
 
 	return (
 		<form
-			className="mb-2 pl-4 px-4 py-2 border border-c-lm-gray-400 dark:border-c-dm-gray-600 rounded-lg flex flex-row flex-wrap gap-y-2 overflow-x-auto"
+			className="mb-2 pl-4 px-4 py-2 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg flex flex-row flex-wrap gap-y-2 overflow-x-auto"
 			onSubmit={onSubmit}
 		>
 			<div className="grow">
@@ -582,7 +582,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="w-36 px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
+									className="w-36 px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
@@ -625,7 +625,7 @@ const WebauthnCredentialItem = ({
 					</span>
 					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
 					{needsPrfUpgrade
-						&& <span className="py-1 px-2 rounded bg-c-lm-orange dark:bg-c-dm-orange text-c-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
+						&& <span className="py-1 px-2 rounded bg-lm-orange dark:bg-dm-orange text-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
 			</div>
@@ -932,7 +932,7 @@ const Settings = () => {
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36">
 								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
+									<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
 							</div>
 						</div>
@@ -952,7 +952,7 @@ const Settings = () => {
 										{settings.colorScheme === 'dark' && <Moon size={18} />}
 										{settings.colorScheme === 'system' && (screenType === 'desktop' ? <Laptop size={18} /> : <Smartphone size={18} />)}
 									</span>
-									<select className="h-10 pl-10 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none">
+									<select className="h-10 pl-10 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none">
 										<option
 											onClick={() => setColorScheme('system')}
 											selected={settings.colorScheme === 'system'}
@@ -999,7 +999,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 											disabled={!isOnline}
@@ -1017,7 +1017,7 @@ const Settings = () => {
 									</div>
 								</div>
 								{successMessage && (
-									<div className="text-md text-c-lm-green dark:text-c-dm-green">
+									<div className="text-md text-lm-green dark:text-dm-green">
 										{successMessage}
 									</div>
 								)}
@@ -1032,7 +1032,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-600 dark:border-c-dm-gray-400 text-c-lm-gray-900 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 text-lm-gray-900 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.useOblivious}
 											onChange={(e) => handleObliviousChange(e.target.value)}
 											disabled={!isOnline}
@@ -1047,7 +1047,7 @@ const Settings = () => {
 									</div>
 								</div>
 								{obliviousSettingsMessage && (
-									<div className="text-md text-c-lm-green dark:text-c-lm-green">
+									<div className="text-md text-lm-green dark:text-lm-green">
 										{obliviousSettingsMessage}
 									</div>
 								)}
@@ -1114,7 +1114,7 @@ const Settings = () => {
 								{updateAvailable && (
 									<Bell
 										size={22}
-										className="text-c-lm-green dark:text-c-dm-green absolute top-0 left-[105px]"
+										className="text-lm-green dark:text-dm-green absolute top-0 left-[105px]"
 									/>
 								)}
 							</div>

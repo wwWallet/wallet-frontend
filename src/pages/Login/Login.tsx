@@ -29,8 +29,8 @@ const FormInputRow = ({
 	name,
 }) => (
 	<div className="mb-4 relative">
-		<label className="block text-c-lm-gray-800 dark:text-c-dm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
-			<IconComponent className="absolute left-3 top-10 z-10 text-c-lm-gray-700 dark:text-c-dm-gray-300" />
+		<label className="block text-lm-gray-800 dark:text-dm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
+			<IconComponent className="absolute left-3 top-10 z-10 text-lm-gray-700 dark:text-dm-gray-300" />
 			{label}
 		</label>
 		{children}
@@ -38,7 +38,7 @@ const FormInputRow = ({
 );
 
 const PasswordCriterionMessage = ({ text, ok }) => (
-	<div className={ok ? "text-c-lm-green dark:text-c-dm-green" : "text-c-lm-red dark:text-c-dm-red"}>
+	<div className={ok ? "text-lm-green dark:text-dm-green" : "text-lm-red dark:text-dm-red"}>
 		<p className="text-sm">
 			<LockKeyholeOpen className="inline-block mr-2" />
 			{text}
@@ -72,7 +72,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="w-full px-3 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
+				className="w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -89,7 +89,7 @@ const FormInputField = ({
 						id={`${show ? 'hide' : 'show'}-password-loginsignup`}
 						type="button"
 						onClick={onToggleShow}
-						className="text-c-lm-gray-500 hover:text-c-lm-gray-600"
+						className="text-lm-gray-500 hover:text-lm-gray-600"
 						aria-label={show ? (t('common.passwordHideAriaLabel')) : (t('common.passwordShowAriaLabel'))}
 						title={show ? (t('common.passwordHideTitle')) : (t('common.passwordShowTitle'))}
 						disabled={disabled}
@@ -317,7 +317,7 @@ const WebauthnSignupLogin = ({
 							components={{
 								docLink: <a
 									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-									className="font-medium text-c-lm-gray-900 hover:underline dark:text-c-dm-gray-100"
+									className="font-medium text-lm-gray-900 hover:underline dark:text-dm-gray-100"
 									aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
 								/>
 							}}
@@ -402,7 +402,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-c-lm-gray-900 dark:text-white">{t('registerPasskey.messageDone')}</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-lm-gray-900 dark:text-white">{t('registerPasskey.messageDone')}</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? t('loginSignup.authOnceMoreLogin')
@@ -486,9 +486,9 @@ const WebauthnSignupLogin = ({
 										value={name}
 										required
 									/>
-									<div className={`flex flex-row flex-nowrap text-c-lm-gray-500 text-sm italic ${nameByteLimitReached ? 'text-c-lm-red' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
+									<div className={`flex flex-row flex-nowrap text-lm-gray-500 text-sm italic ${nameByteLimitReached ? 'text-lm-red' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
 										<div
-											className={`text-c-lm-red dark:text-c-dm-red grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											className={`text-lm-red dark:text-dm-red grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
 										>
 											{t('loginSignup.reachedLengthLimit')}
@@ -549,7 +549,7 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && !isLogin && (
-							<label className="block text-c-dm-gray-800 dark:text-c-lm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
+							<label className="block text-dm-gray-800 dark:text-lm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
 								{t('loginSignup.choosePasskeyPlatform')}
 							</label>
 						)}
@@ -591,9 +591,9 @@ const WebauthnSignupLogin = ({
 
 									{screenType === 'desktop' && (
 										<div className="absolute -right-8 flex items-center ml-2 group">
-											<CircleQuestionMark className={`w-4 h-4 text-c-lm-gray-800 dark:text-c-dm-gray-200 cursor-pointer`} aria-hidden="true" />
+											<CircleQuestionMark className={`w-4 h-4 text-lm-gray-800 dark:text-dm-gray-200 cursor-pointer`} aria-hidden="true" />
 
-											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-c-lm-gray-800 text-c-lm-gray-100 text-xs whitespace-nowrap shadow-lg bottom-6">
+											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-lm-gray-800 text-lm-gray-100 text-xs whitespace-nowrap shadow-lg bottom-6">
 												{helpText}
 											</div>
 										</div>
@@ -602,7 +602,7 @@ const WebauthnSignupLogin = ({
 							))
 						)}
 
-						{error && <div className="text-c-lm-red dark:text-c-dm-red pt-2">{error}</div>}
+						{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 					</>
 				)
 			}
@@ -665,7 +665,7 @@ const Auth = () => {
 			if (!validations.every(({ ok }) => ok)) {
 				setError(
 					<>
-						<p className="text-c-lm-red dark:text-c-dm-red font-bold">{t('loginSignup.weakPasswordError')}</p>
+						<p className="text-lm-red dark:text-dm-red font-bold">{t('loginSignup.weakPasswordError')}</p>
 						{validations.map(({ ok, text }) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
 					</>
 				);
@@ -721,21 +721,21 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-c-dm-gray-900 border border-c-lm-gray-400 dark:border-c-dm-gray-600">
-				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-c-dm-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600">
+				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
 
-				<div className='absolute text-c-lm-gray-900 dark:text-white top-5 left-5'>
+				<div className='absolute text-lm-gray-900 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 
 				<div className='absolute top-5 right-5'>
-					<LanguageSelector className='min-w-12 text-sm text-c-lm-gray-900 dark:text-white cursor-pointer bg-white dark:bg-c-dm-gray-900 appearance-none' />
+					<LanguageSelector className='min-w-12 text-sm text-lm-gray-900 dark:text-white cursor-pointer bg-white dark:bg-dm-gray-900 appearance-none' />
 				</div>
 
 				{isOnline === false && (
-					<p className="text-sm font-light text-c-lm-gray-900 dark:text-c-dm-gray-100 italic mb-2">
+					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 italic mb-2">
 						<Info size={14} className="text-md inline-block mr-1" />
 						{t('loginSignup.messageOffline')}
 					</p>
@@ -743,7 +743,7 @@ const Auth = () => {
 
 				{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
 					<>
-						{error && <div className="text-c-lm-red dark:text-c-dm-red">{error}</div>}
+						{error && <div className="text-lm-red dark:text-dm-red">{error}</div>}
 						<UsernamePasswordForm
 							choosePassword={!isLogin}
 							disabled={isSubmitting}
@@ -767,7 +767,7 @@ const Auth = () => {
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-c-lm-gray-900 dark:text-c-dm-gray-100 text-center">
+					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
@@ -780,7 +780,7 @@ const Auth = () => {
 						</Button>
 					</p>
 				) : (
-					<p className="text-sm font-light text-c-lm-gray-900 dark:text-c-dm-gray-100 cursor-pointer">
+					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
 						<Button
 							id="useOtherAccount-switch-loginsignup"
 							variant="link"

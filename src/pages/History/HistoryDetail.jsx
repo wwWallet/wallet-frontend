@@ -42,7 +42,7 @@ const HistoryDetail = () => {
 						className="mr-2 mb-2"
 						aria-label="Go back to the previous page"
 					>
-						<ArrowLeft size={20} className="text-2xl text-c-lm-gray-900 dark:text-c-dm-gray-100" />
+						<ArrowLeft size={20} className="text-2xl text-lm-gray-900 dark:text-dm-gray-100" />
 					</button>
 					<H1 heading={t('pageHistory.presentationDetails.title')} hr={false} />
 				</div>

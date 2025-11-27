@@ -13,7 +13,7 @@ const Legend = ({ showRequired, showRequested, t }) => {
 			className="mb-2 flex justify-end"
 			aria-label={t('credentialInfo.legendAriaLabel')}
 		>
-			<div className='flex flex-col py-px px-2 items-end w-auto text-[11px] italic text-c-lm-gray-800 dark:text-c-dm-gray-200 border border-c-lm-gray-400 rounded-xs dark:border-c-dm-gray-600'>
+			<div className='flex flex-col py-px px-2 items-end w-auto text-[11px] italic text-lm-gray-800 dark:text-dm-gray-200 border border-lm-gray-400 rounded-xs dark:border-dm-gray-600'>
 				{showRequired && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
 						<span>{t('credentialInfo.legendRequired')}</span>
@@ -139,7 +139,7 @@ const formatClaimValue = (value) => {
 
 	const renderJson = (v) => (
 		<div className="w-full">
-			<div className="max-h-40 resize-y bg-white dark:bg-c-dm-gray-800 overflow-auto border rounded px-2 rounded-xl">
+			<div className="max-h-40 resize-y bg-white dark:bg-dm-gray-800 overflow-auto border rounded px-2 rounded-xl">
 				<JsonViewer value={v} />
 			</div>
 		</div>
@@ -373,10 +373,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div key={fullPath} className="w-full">
 						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
-							<summary className="cursor-pointer font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 w-full">
+							<summary className="cursor-pointer font-semibold text-lm-gray-900 dark:text-dm-gray-100 w-full">
 								{label}
 							</summary>
-							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-c-lm-gray-900 dark:border-c-dm-gray-100 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-lm-gray-900 dark:border-dm-gray-100 text-lm-gray-900 dark:text-dm-gray-100">
 								{renderClaims(value, [...currentPath, key])}
 							</div>
 						</details>
@@ -387,13 +387,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 					<div
 						key={fullPath}
 						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${(isRequested || isRequired) && requestedDisplay === "highlight"
-							? `bg-c-lm-gray-300 shadow ${screenType === 'desktop' ? 'dark:bg-c-dm-gray-700' : 'dark:bg-c-dm-gray-800'}`
+							? `bg-lm-gray-300 shadow ${screenType === 'desktop' ? 'dark:bg-dm-gray-700' : 'dark:bg-dm-gray-800'}`
 							: ''
 							}`}
 					>
 						<div
 							className={
-								`font-semibold text-c-lm-gray-900 dark:text-c-dm-gray-100 w-1/2 wrap-break-word` +
+								`font-semibold text-lm-gray-900 dark:text-dm-gray-100 w-1/2 wrap-break-word` +
 								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -401,7 +401,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 						</div>
 						<div
 							className={
-								`text-c-lm-gray-800 dark:text-c-dm-gray-200 w-1/2 flex justify-between items-start wrap-break-word` +
+								`text-lm-gray-800 dark:text-dm-gray-200 w-1/2 flex justify-between items-start wrap-break-word` +
 								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -410,14 +410,14 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 								<div className='flex'>
 									{isRequired && (
 										<Asterisk
-											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 flex-shrin"
+											className="text-lm-gray-900 dark:text-dm-gray-100 flex-shrin"
 										/>
 									)}
 									{isRequested && (
 										<Send
 											size={14}
 											title="Requested by verifier"
-											className="text-c-lm-gray-900 dark:text-c-dm-gray-100 shrink-0"
+											className="text-lm-gray-900 dark:text-dm-gray-100 shrink-0"
 										/>
 									)}
 								</div>

@@ -30,37 +30,37 @@ const TourGuide = ({ toggleMenu, isOpen }) => {
 		const commonSteps = [
 			{
 				selector: '.step-1',
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep1")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep1")}</p>,
 				disableInteraction: true,
 			},
 			{
 				selector: getStepSelectorSmallScreen('.step-2'),
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep2")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep2")}</p>,
 			},
 			{
 				selector: getStepSelectorSmallScreen('.step-3'),
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep3")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep3")}</p>,
 			},
 			...(screenType !== 'desktop' ? [{
 				selector: '.step-4',
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep4")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep4")}</p>,
 			}] : []),
 			{
 				selector: getStepSelectorSmallScreen('.step-5'),
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep5")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep5")}</p>,
 			},
 			{
 				selector: '.step-6',
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep6")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep6")}</p>,
 			},
 			{
 				selector: '.step-7',
-				content: <p className='text-c-lm-gray-900'>{t("tourGuide.tourStep7")}</p>,
+				content: <p className='text-lm-gray-900'>{t("tourGuide.tourStep7")}</p>,
 			},
 			{
 				content: () => (
 					<>
-						<p className='mt-2 text-c-lm-gray-900'>{t("tourGuide.tourComplete")}</p>
+						<p className='mt-2 text-lm-gray-900'>{t("tourGuide.tourComplete")}</p>
 						<div className='flex justify-center mt-2'>
 							<Button
 								id="close-tour"

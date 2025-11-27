@@ -20,7 +20,7 @@ const UpdateNotification = () => {
 	if (!visible) return null;
 
 	return (
-		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-c-lm-green dark:bg-c-dm-green z-50 text-white dark:text-c-lm-gray-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 space-x-2 animate-slide-in-up sm:animate-slide-in-down">
+		<div className="fixed right-4 bottom-4 sm:top-4 sm:bottom-auto bg-lm-green dark:bg-dm-green z-50 text-white dark:text-lm-gray-900 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 space-x-2 animate-slide-in-up sm:animate-slide-in-down">
 			<Bell
 				size={22}
 				className="text-inherit"
@@ -35,7 +35,7 @@ const UpdateNotification = () => {
 			</Button>
 			<button
 				id="close-update-notification"
-				className="ml-2 text-inherit p-2 rounded hover:bg-c-dm-green-bg dark:hover:bg-c-lm-green-bg"
+				className="ml-2 text-inherit p-2 rounded hover:bg-dm-green-bg dark:hover:bg-lm-green-bg"
 				onClick={handleClose}
 			>
 				<X />

@@ -13,8 +13,8 @@ const PWAInstallPrompt = () => {
 	return (
 		pwaInstallable && !hidePwaPrompt && (
 			<div className={`w-full flex justify-center ${screenType === 'desktop' && 'mt-5'}`}>
-				<div className='flex bg-c-lm-gray-300 dark:bg-c-dm-gray-700 m-3 p-3 rounded-lg shadow justify-between w-full sm:w-96'>
-					<div className='flex items-center text-c-lm-gray-900 dark:text-c-dm-gray-100'>
+				<div className='flex bg-lm-gray-300 dark:bg-dm-gray-700 m-3 p-3 rounded-lg shadow justify-between w-full sm:w-96'>
+					<div className='flex items-center text-lm-gray-900 dark:text-dm-gray-100'>
 						{screenType !== 'desktop' ? (
 							<Download className='mr-2' size={32} />
 						) : (

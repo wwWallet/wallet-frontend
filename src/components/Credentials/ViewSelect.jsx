@@ -35,7 +35,7 @@ export default function ViewSelect({ value, onChange }) {
 	const SelectedIcon = selected.Icon;
 
 	return (
-		<div className="relative inline-block text-c-lm-gray-900 dark:text-c-dm-gray-100 text-sm">
+		<div className="relative inline-block text-lm-gray-900 dark:text-dm-gray-100 text-sm">
 			<Button
 				id="credential-view-select"
 				ref={triggerRef}
@@ -56,7 +56,7 @@ export default function ViewSelect({ value, onChange }) {
 					ref={menuRef}
 					role="menu"
 					aria-label={t("viewSelect.aria.menuLabel")}
-					className="absolute right-0 mt-2 min-w-48 border border-c-lm-gray-400 dark:border-c-dm-gray-600 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg shadow-lg z-50"
+					className="absolute right-0 mt-2 min-w-48 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50"
 				>
 					{viewOptions.map((opt) => {
 						const label = t(opt.labelKey);
@@ -69,7 +69,7 @@ export default function ViewSelect({ value, onChange }) {
 								role="menuitemradio"
 								aria-checked={isActive}
 								aria-label={t("viewSelect.aria.option", { label })}
-								className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left ${isActive ? "bg-primary  text-white font-semibold" : "hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-600"
+								className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left ${isActive ? "bg-primary  text-white font-semibold" : "hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600"
 									}`}
 								onClick={() => {
 									onChange(opt.value);

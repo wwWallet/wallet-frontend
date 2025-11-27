@@ -35,7 +35,7 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 		<span className="flex flex-col justify-between w-full gap-2 leading-tight wrap-break-word">
 			<span className="flex justify-start items-center gap-2 w-full">
 				<div
-					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-c-lm-gray-400 rounded-md shrink-0"
+					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-lm-gray-400 rounded-md shrink-0"
 					style={logoStyle}
 				>
 					{primaryLogoSrc ? (
@@ -57,10 +57,10 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 			</span>
 
 			{secondaryData && (
-				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-c-lm-gray-300 dark:bg-c-dm-gray-700 whitespace-nowrap">
+				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-lm-gray-300 dark:bg-dm-gray-700 whitespace-nowrap">
 					{secondaryImageSrc && (
 						<div
-							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-c-lm-gray-400"
+							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-lm-gray-400"
 							style={issuerLogoStyle}
 						>
 							<img

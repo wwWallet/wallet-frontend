@@ -25,7 +25,7 @@ function NotificationOfflineWarning(): React.ReactElement | null {
 		show
 			? (
 				<div className="px-6 sm:px-12 w-full">
-					<div className="bg-c-lm-orange-bg dark:bg-c-dm-orange-bg text-c-lm-gray-900 shadow-sm p-4 rounded-lg mb-4 flex items-center">
+					<div className="bg-lm-orange-bg dark:bg-dm-orange-bg text-lm-gray-900 shadow-sm p-4 rounded-lg mb-4 flex items-center">
 						<div className="mr-4 ">
 							<TriangleAlert size={24} />
 						</div>

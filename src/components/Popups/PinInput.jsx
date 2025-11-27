@@ -118,17 +118,17 @@ function PinInput({ isOpen, setIsOpen }) {
 
 	return (
 		<PopupLayout isOpen={isOpen} onClose={false}>
-			<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
-			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
-			<p className="italic pd-2 text-c-lm-gray-800 dark:text-c-dm-gray-200">
+			<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+			<p className="italic pd-2 text-lm-gray-800 dark:text-dm-gray-200">
 				{t('PinInputPopup.description')}
 			</p>
 
 			{errMessage && (
-				<p className='text-sm text-c-lm-red dark:text-c-dm-red'>aaa{errMessage}</p>
+				<p className='text-sm text-lm-red dark:text-dm-red'>aaa{errMessage}</p>
 			)}
 			<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
 				{pin.map((digit, index) => (
@@ -141,7 +141,7 @@ function PinInput({ isOpen, setIsOpen }) {
 						onClick={() => handleInputClick(index)}
 						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
 						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 bg-c-lm-gray-200 dark:bg-c-dm-gray-800 border border-c-lm-gray-400 dark:border-c-dm-gray-600 rounded-md focus:outline-none"
+						className="w-10 px-3 mx-1 my-2 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 rounded-md focus:outline-none"
 						ref={inputRefs[index]}
 					/>
 				))}

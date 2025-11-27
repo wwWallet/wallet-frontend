@@ -11,8 +11,8 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 	const bars = Array.from({ length: 5 }, (_, i) => i < quality);
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
 	const filledColor = 'bg-current';
-	const unFilledColor = 'bg-c-lm-gray-400 dark:bg-c-dm-gray-600';
-	const connectingSpinner = backgroundColor === 'light' ? 'border-c-lm-gray-600 dark:border-c-dm-gray-100' : 'border-c-lm-gray-100';
+	const unFilledColor = 'bg-lm-gray-400 dark:bg-dm-gray-600';
+	const connectingSpinner = backgroundColor === 'light' ? 'border-lm-gray-600 dark:border-dm-gray-100' : 'border-lm-gray-100';
 
 	const qualityText = (quality) => {
 		switch (quality) {
@@ -39,7 +39,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 			))}
 			{quality === 0 ? (
 				<div className="absolute inset-0 flex items-center justify-center">
-					<XIcon size={16} className="text-c-lm-gray-500 absolute bottom-[-4px] right-[-4px] bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg border border-c-lm-gray-500" />
+					<XIcon size={16} className="text-lm-gray-500 absolute bottom-[-4px] right-[-4px] bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg border border-lm-gray-500" />
 				</div>
 			) : quality === null && (
 				<div className="absolute inset-0 flex items-center justify-center">

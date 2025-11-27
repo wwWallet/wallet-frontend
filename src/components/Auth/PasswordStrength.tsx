@@ -18,15 +18,15 @@ export default function PasswordStrength({ label, password }: Props) {
 	const value = passwordStrength(password);
 	const colorClass = (
 		value < 50
-			? 'bg-c-lm-red dark:bg-c-dm-red'
+			? 'bg-lm-red dark:bg-dm-red'
 			: value >= 50 && value < 100
-				? 'bg-c-lm-yellow dark:bg-c-dm-yellow'
-				: 'bg-c-lm-green dark:bg-c-dm-green'
+				? 'bg-lm-yellow dark:bg-dm-yellow'
+				: 'bg-lm-green dark:bg-dm-green'
 	);
 	return (
 		<div className="flex items-center mt-1">
-			<p className="text-sm text-c-lm-gray-700 dark:text-c-dm-gray-300 mr-2">{label}</p>
-			<div className="flex flex-1 h-4 rounded-full border border-c-lm-gray-400 dark:border-c-dm-gray-600">
+			<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300 mr-2">{label}</p>
+			<div className="flex flex-1 h-4 rounded-full border border-lm-gray-400 dark:border-dm-gray-600">
 				<div
 					className={`h-full rounded-full ${colorClass}`}
 					style={{ width: `${value}%` }}

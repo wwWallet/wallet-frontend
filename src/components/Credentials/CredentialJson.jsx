@@ -23,13 +23,13 @@ const CredentialJson = ({ parsedCredential }) => {
 
 	return (
 		<div className="w-full py-2 relative">
-			<div className="json-container h-80 resize-y overflow-auto min-h-32 bg-inherit text-inherit border border-c-lm-gray-400 dark:border-c-dm-gray-600 p-2 text-sm rounded-lg transition filter duration-200 relative">
+			<div className="json-container h-80 resize-y overflow-auto min-h-32 bg-inherit text-inherit border border-lm-gray-400 dark:border-dm-gray-600 p-2 text-sm rounded-lg transition filter duration-200 relative">
 				<button
 					id="copy-dataset"
 					onClick={handleCopy}
 					title={t("pageCredentials.copyDatasetToClipboard")}
 					aria-label={t("pageCredentials.copyDatasetToClipboard")}
-					className="sticky float-right top-0 z-10 text-c-lm-gray-800 hover:text-c-lm-gray-700 dark:text-c-dm-gray-100 hover:dark:text-c-dm-gray-300 px-2 py-1"
+					className="sticky float-right top-0 z-10 text-lm-gray-800 hover:text-lm-gray-700 dark:text-dm-gray-100 hover:dark:text-dm-gray-300 px-2 py-1"
 				>
 					<Copy size={18} />
 				</button>

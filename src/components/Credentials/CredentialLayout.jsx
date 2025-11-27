@@ -24,12 +24,12 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 
 	const usageClass =
 		zeroSigCount === 0
-			? 'text-c-lm-orange dark:text-c-dm-orange'
-			: 'text-c-lm-green dark:text-c-dm-green';
+			? 'text-lm-orange dark:text-dm-orange'
+			: 'text-lm-green dark:text-dm-green';
 
 	return (
 		<div
-			className={`flex items-center text-c-lm-gray-800 dark:text-c-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'
+			className={`flex items-center text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'
 				}`}
 		>
 			<GalleryHorizontalEnd size={18} className="mr-1" />
@@ -126,7 +126,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				</div>
 				{screenType === 'mobile' && (
 					<div className='flex flex-start flex-col gap-1'>
-						<p className='text-xl font-bold text-c-lm-gray-900 dark:text-c-dm-gray-100'>{credentialName}</p>
+						<p className='text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>{credentialName}</p>
 						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
 					</div>
@@ -134,7 +134,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			</div>
 
 			{screenType === 'mobile' && vcEntity?.isExpired && (
-				<div className="bg-c-lm-orange-bg dark:bg-c-dm-orange-bg text-black mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
+				<div className="bg-lm-orange-bg dark:bg-dm-orange-bg text-black mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
 					<div className="mr-2 ">
 						<TriangleAlert size={18} />
 					</div>
@@ -156,7 +156,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
-					textColorClass="text-c-lm-gray-700 dark:text-c-dm-gray-300 hover:underline"
+					textColorClass="text-lm-gray-700 dark:text-dm-gray-300 hover:underline"
 				>					<ArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
 
 					<H1 heading={credentialName} hr={false} />

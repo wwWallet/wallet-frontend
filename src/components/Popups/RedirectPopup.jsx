@@ -9,12 +9,12 @@ const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMess
 
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} loading={loading}>
-			<h2 className="text-lg font-bold mb-2 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 				<ExternalLink size={20} className="inline mr-1 mb-1" />
 				{popupTitle}
 			</h2>
-			<hr className="mb-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
-			<p className="mb-2 mt-4 text-c-lm-gray-900 dark:text-c-dm-gray-100">
+			<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+			<p className="mb-2 mt-4 text-lm-gray-900 dark:text-dm-gray-100">
 				{popupMessage}
 			</p>
 

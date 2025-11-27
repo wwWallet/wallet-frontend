@@ -17,7 +17,7 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 		<button
 			id={`sidebar-item-${id}`}
 			onClick={() => handleNavigate(path)}
-			className={`relative cursor-pointer flex items-center justify-between space-x-2 mb-2 p-2 rounded-lg w-full hover:bg-c-lm-gray-500 dark:hover:bg-c-dm-gray-500 ${isActive ? 'bg-c-lm-gray-400 dark:bg-c-dm-gray-600' : 'transition-colors'} ${className}`}
+			className={`relative cursor-pointer flex items-center justify-between space-x-2 mb-2 p-2 rounded-lg w-full hover:bg-lm-gray-500 dark:hover:bg-dm-gray-500 ${isActive ? 'bg-lm-gray-400 dark:bg-dm-gray-600' : 'transition-colors'} ${className}`}
 		>
 			{isActive && (
 				<div role="presentation" className="absolute left-[-8px] top-[50%] h-[90%] translate-y-[-50%] w-1 rounded-sm bg-brand-base dark:bg-brand-light"></div>
@@ -67,7 +67,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		<div
 			className={`${isOpen && screenType !== 'desktop'
 				? 'w-full flex flex-col justify-between fixed h-dvh z-30 bg-primary-dark dark:bg-primary-dark-hover  p-4 pb-24 md:pb-0 overflow-y-auto'
-				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary-dark dark:bg-primary-dark-hover  h-dvh py-8 px-8 overflow-y-auto border-r border-r-c-lm-gray-400 dark:border-r-c-dm-gray-600'
+				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary-dark dark:bg-primary-dark-hover  h-dvh py-8 px-8 overflow-y-auto border-r border-r-lm-gray-400 dark:border-r-dm-gray-600'
 				}`}
 		>
 			{/* Header and Nav */}
@@ -92,16 +92,16 @@ const Sidebar = ({ isOpen, toggle }) => {
 						</a>
 					</div>
 
-					<hr className="my-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+					<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 					{/* User */}
 					<ul>
 						<div className='flex items-center space-x-2 mb-2 p-2 rounded-r-xl'>
-							<div className='pr-2 border-r border-r-c-lm-gray-400 dark:border-r-c-dm-gray-600'>
+							<div className='pr-2 border-r border-r-lm-gray-400 dark:border-r-dm-gray-600'>
 								<ConnectionStatusIcon size='small' />
 							</div>
 							{ obliviousKeyConfig !== null && (
-								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-c-lm-gray-400 dark:border-c-dm-gray-600" title={t('sidebar.obliviousEnabled')}/>
+								<ShieldHalf size={28} className="shrink-0 pr-2 border-r border-lm-gray-400 dark:border-dm-gray-600" title={t('sidebar.obliviousEnabled')}/>
 							)}
 
 							<UserCircle className="shrink-0" size={20} title={displayName || username} />
@@ -113,7 +113,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							</span>
 						</div>
 
-						<hr className="my-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+						<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 						{/* Nav Menu */}
 						<NavItem
@@ -167,18 +167,18 @@ const Sidebar = ({ isOpen, toggle }) => {
 							label={t("common.navItemSettings")}
 							notificationIcon={
 								updateAvailable && (
-									<Bell size={22} className="text-c-lm-green dark:text-c-dm-green" />
+									<Bell size={22} className="text-lm-green dark:text-dm-green" />
 								)
 							}
 							className="step-7"
 						/>
 
-						<hr className="my-2 border-t border-c-lm-gray-400 dark:border-c-dm-gray-600" />
+						<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 						<button
 							id="sidebar-item-logout"
 							onClick={handleLogout}
-							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-lg hover:bg-c-lm-gray-400 dark:hover:bg-c-dm-gray-500 transition-colors w-full`}
+							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-lg hover:bg-lm-gray-400 dark:hover:bg-dm-gray-500 transition-colors w-full`}
 						>
 							<LogOut />
 							<span className='text-left'>
