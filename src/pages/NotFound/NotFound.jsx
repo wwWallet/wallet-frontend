@@ -17,7 +17,7 @@ const NotFound = () => {
 		<section>
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-dvh">
 				<Logo aClassName='mb-6' imgClassName='w-20' />
-				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-c-lm-gray-900 md:text-2xl text-center dark:text-c-dm-gray-100">
+				<h1 className="text-xl mb-8 font-bold leading-tight tracking-tight text-c-lm-gray-900 md:text-2xl text-center dark:text-c-dm-gray-100">
 					{t('common.walletName')}
 				</h1>
 				<div className="w-full rounded-lg shadow border border-c-lm-gray-400 dark:border-c-dm-gray-600 md:mt-0 sm:max-w-md xl:p-0">

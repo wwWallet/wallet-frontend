@@ -56,7 +56,7 @@ export default function ViewSelect({ value, onChange }) {
 					ref={menuRef}
 					role="menu"
 					aria-label={t("viewSelect.aria.menuLabel")}
-					className="absolute right-0 mt-2 min-w-44 border border-c-lm-gray-400 dark:border-c-dm-gray-600 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg shadow-lg z-50"
+					className="absolute right-0 mt-2 min-w-48 border border-c-lm-gray-400 dark:border-c-dm-gray-600 bg-c-lm-gray-100 dark:bg-c-dm-gray-900 rounded-lg shadow-lg z-50"
 				>
 					{viewOptions.map((opt) => {
 						const label = t(opt.labelKey);

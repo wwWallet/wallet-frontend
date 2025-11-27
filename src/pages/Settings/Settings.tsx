@@ -689,7 +689,7 @@ const WebauthnCredentialItem = ({
 						disabled={!isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
-						additionalClassName='ml-2 py-2.5'
+						additionalClassName='ml-2 py-3'
 					>
 						<Trash2 size={18} />
 					</Button>

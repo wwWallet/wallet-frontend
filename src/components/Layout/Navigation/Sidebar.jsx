@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 		<div
 			className={`${isOpen && screenType !== 'desktop'
 				? 'w-full flex flex-col justify-between fixed h-dvh z-30 bg-primary-dark dark:bg-primary-dark-hover  p-4 pb-24 md:pb-0 overflow-y-auto'
-				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary-dark dark:bg-primary-dark-hover  h-dvh py-8 px-7 overflow-y-auto border-r border-r-c-lm-gray-400 dark:border-r-c-dm-gray-600'
+				: 'hidden w-64 md:flex md:flex-col justify-between sticky top-0 bg-primary-dark dark:bg-primary-dark-hover  h-dvh py-8 px-8 overflow-y-auto border-r border-r-c-lm-gray-400 dark:border-r-c-dm-gray-600'
 				}`}
 		>
 			{/* Header and Nav */}

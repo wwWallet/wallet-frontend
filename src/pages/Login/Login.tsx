@@ -590,7 +590,7 @@ const WebauthnSignupLogin = ({
 									</Button>
 
 									{screenType === 'desktop' && (
-										<div className="absolute -right-7 flex items-center ml-2 group">
+										<div className="absolute -right-8 flex items-center ml-2 group">
 											<CircleQuestionMark className={`w-4 h-4 text-c-lm-gray-800 dark:text-c-dm-gray-200 cursor-pointer`} aria-hidden="true" />
 
 											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-c-lm-gray-800 text-c-lm-gray-100 text-xs whitespace-nowrap shadow-lg bottom-6">
