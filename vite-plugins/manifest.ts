@@ -147,8 +147,10 @@ export function ManifestPlugin(env) {
 			const manifestPath = path.resolve("public/manifest.json");
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 
-			server.watcher.on("change", async (file) => {
-				if (file.endsWith(".env")) {
+			server.watcher.on("change", async (file: string) => {
+				file = path.relative(process.cwd(), file);
+
+				if (file.endsWith(".env") || file.startsWith("branding")) {
 					console.log("Environment file changed. Regenerating manifest...");
 					fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 				}

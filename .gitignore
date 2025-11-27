@@ -40,6 +40,7 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # Config file
+branding/custom/
 src/config/config.dev.js
 src/config/config.dev.ts
 src/config/config.prod.js
