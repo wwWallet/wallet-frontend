@@ -5,14 +5,6 @@
 @variant 2xs (@media (min-width: 360px));
 @variant xm (@media (max-width: 479px));
 
-:root {
-	--w-brand-color: hsl(217, 66%, 32%);
-	--w-brand-color-light: hsl(217, 46%, 45%);
-	--w-brand-color-lighter: hsl(217, 27%, 60%);
-	--w-brand-color-dark: hsl(217, 42%, 42%);
-	--w-brand-color-darker: hsl(217, 16%, 40%);
-}
-
 /* Theme Variables */
 @theme {
 	--border-radius-xl: 1rem;
@@ -86,17 +78,17 @@
 	--color-lm-gray-900: hsl(220 20% 5.7%);
 	--color-lm-gray-950: hsl(0 0% 0%);
 
-	--color-dm-gray-50: hsl( 0% 100%);
-	--color-dm-gray-100:hsl(220 6% 92.2%);
-	--color-dm-gray-200:hsl(220 7% 79.6%);
-	--color-dm-gray-300:hsl(220 3% 63.3%);
-	--color-dm-gray-400:hsl(220 2% 50.4%);
-	--color-dm-gray-500:hsl(220 3% 27.6%);
-	--color-dm-gray-600:hsl(220 4% 20.6%);
-	--color-dm-gray-700:hsl(220 5% 14.3%);
-	--color-dm-gray-800:hsl(220 9% 10.2%);
-	--color-dm-gray-900:hsl(220 20% 5.7%);
-	--color-dm-gray-950:hsl(0 0% 0%);
+	--color-dm-gray-50: hsl(0% 100%);
+	--color-dm-gray-100: hsl(220 6% 92.2%);
+	--color-dm-gray-200: hsl(220 7% 79.6%);
+	--color-dm-gray-300: hsl(220 3% 63.3%);
+	--color-dm-gray-400: hsl(220 2% 50.4%);
+	--color-dm-gray-500: hsl(220 3% 27.6%);
+	--color-dm-gray-600: hsl(220 4% 20.6%);
+	--color-dm-gray-700: hsl(220 5% 14.3%);
+	--color-dm-gray-800: hsl(220 9% 10.2%);
+	--color-dm-gray-900: hsl(220 20% 5.7%);
+	--color-dm-gray-950: hsl(0 0% 0%);
 }
 
 /* Keyframes */
@@ -147,21 +139,9 @@
 
 /* Font family and rendered font appear smoother */
 * {
-	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}
-
-html,
-body {
-	background-color: #FFFFFF;
-	/* Light mode background */
-}
-
-html.dark,
-html.dark body {
-	background-color: #0E0F11;
-	/* Dark mode background */
 }
 
 /* Custom scrollbar */
