@@ -39,7 +39,7 @@ const PWAInstallPrompt = () => {
 							title={t('pwaInstallPrompt.button.closeTitle')}
 							onClick={dismissPwaPrompt}
 						>
-							<X size={25} />
+							<X size={20} />
 						</Button>
 					</div>
 				</div>

@@ -1,7 +1,5 @@
 import React from 'react';
 
-import AnimatedLinkText from '@/components/Shared/AnimatedLinkText';
-
 export type Variant = (
 	'primary'
 	| 'secondary'
@@ -40,7 +38,6 @@ export type Props = {
 	disabled?: boolean,
 	ariaLabel?: string,
 	title?: string,
-	linkLineSize?: 'regular-small' | 'small' | 'mid' | 'large',
 	linkClassName?: string,
 };
 
@@ -57,29 +54,8 @@ const Button = ({
 	disabled = false,
 	ariaLabel,
 	title,
-	linkLineSize = 'regular-small',
 	linkClassName = 'text-lm-gray-900 dark:text-dm-gray-100',
 }: Props) => {
-
-	if (variant === 'link') {
-		return (
-			<button
-			id={id}
-			type={type}
-			{...(onClick && { onClick: onClick })}
-			{...(disabled && { disabled })}
-			className={`${additionalClassName} group`}
-			{...(ariaLabel && { 'aria-label': ariaLabel })}
-			{...(title && { title })}
-			>
-				<AnimatedLinkText
-				className={linkClassName}
-				size={linkLineSize}
-				text={children}
-				/>
-			</button>
-		)
-	}
 
 	const getVariantClassName = () => {
 		let sizeClasses = '';
@@ -120,6 +96,8 @@ const Button = ({
 				return `${commonClasses} ${sizeClasses} text-lm-red-light dark:text-dm-red-light bg-lm-red-dark dark:bg-dm-red-dark border-lm-red-dark dark:border-dm-red-dark`;
 			case 'outline':
 				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-600 dark:border-dm-gray-400`;
+			case 'link':
+				return `${linkClassName} underline ${disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:decoration-2 transition'}`;
 			default:
 				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-dm-gray-50 bg-brand-lighter dark:bg-brand-darker border-brand-lighter dark:border-brand-darker`;
 		}
