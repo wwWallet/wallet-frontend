@@ -8,9 +8,9 @@
 :root {
 	--w-brand-color: hsl(217, 66%, 32%);
 	--w-brand-color-light: hsl(217, 46%, 45%);
-	--w-brand-color-lighter: hsl(217, 27%, 60%);
+	--w-brand-color-lighter: hsl(217, 16%, 75%);
 	--w-brand-color-dark: hsl(217, 42%, 42%);
-	--w-brand-color-darker: hsl(217, 16%, 40%);
+	--w-brand-color-darker: hsl(217, 26%, 25%);
 }
 
 /* Theme Variables */

@@ -4,11 +4,12 @@ export type Variant = (
 	'primary'
 	| 'secondary'
 	| 'tertiary'
-	| 'cancel'
 	| 'delete'
+	| 'invisible'
 	| 'outline'
 	| 'link'
 	| 'custom'
+	| 'default'
 );
 
 type Size = (
@@ -94,12 +95,14 @@ const Button = ({
 				return `${commonClasses} ${sizeClasses} text-white dark:text-dm-gray-900 bg-lm-gray-900 dark:bg-dm-gray-100 border-lm-gray-900 dark:border-dm-gray-800`;
 			case 'delete':
 				return `${commonClasses} ${sizeClasses} text-lm-red-light dark:text-dm-red-light bg-lm-red-dark dark:bg-dm-red-dark border-lm-red-dark dark:border-dm-red-dark`;
+			case 'invisible':
+				return `${commonClasses} ${sizeClasses} text-inherit bg-inherit border-none ${!disabled ? 'hover:bg-brand-lighter dark:hover:bg-brand-darker' : ''}`;
 			case 'outline':
-				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-600 dark:border-dm-gray-400`;
+				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-white bg-lm-gray-200 dark:bg-dm-gray-800 border-lm-gray-700 dark:border-dm-gray-400`;
 			case 'link':
 				return `${linkClassName} underline ${disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:decoration-2 transition'}`;
 			default:
-				return `${commonClasses} ${sizeClasses} text-lm-gray-900 dark:text-dm-gray-50 bg-brand-lighter dark:bg-brand-darker border-brand-lighter dark:border-brand-darker`;
+				return `${commonClasses} ${sizeClasses} test-black dark:text-white bg-brand-lighter dark:bg-brand-darker border-lm-gray-600 dark:border-dm-gray-400`;
 		}
 	};
 
