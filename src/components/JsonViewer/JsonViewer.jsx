@@ -19,7 +19,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 	if (isArray(value)) {
 		return (
 			<div className={`${indentClass}`}>
-				<span className="cursor-pointer text-blue-700 dark:text-blue-300" onClick={toggleExpanded}>
+				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
 					{expanded ? '▼' : '▶'} {name && `"${name}"`}: [Array({value.length})]
 				</span>
 				{expanded && value.map((item, idx) => (
@@ -33,7 +33,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 		const keys = Object.keys(value);
 		return (
 			<div className={`${indentClass}`}>
-				<span className="cursor-pointer text-blue-700 dark:text-blue-300" onClick={toggleExpanded}>
+				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
 					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {"{"}Object({keys.length}){"}"}
 				</span>
 				{expanded && keys.map((key) => (
@@ -44,7 +44,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 	}
 
 	let displayValue = value;
-	let valueClass = 'text-green-700 dark:text-green-400';
+	let valueClass = 'text-lm-green dark:text-dm-green';
 
 	if (typeof value === 'string') {
 		const shouldTruncate = value.length > MAX_STRING_LENGTH;
@@ -54,12 +54,12 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 
 		return (
 			<div className={`${indentClass} break-all`}>
-				<span className="text-gray-800 dark:text-white">{name && `"${name}"`}:</span>{' '}
+				<span className="text-lm-gray-800 dark:text-dm-gray-200">{name && `"${name}"`}:</span>{' '}
 				<span className={valueClass}>{displayValue}</span>
 				{shouldTruncate && (
 					<button
 						onClick={toggleString}
-						className="ml-2 text-xs text-blue-700 dark:text-blue-300 underline"
+						className="ml-2 text-xs text-lm-gray-900 dark:text-dm-gray-100 underline"
 					>
 						{showFullString ? `${t('common.showLess')}` : `${t('common.showMore')}`}
 					</button>
@@ -69,10 +69,10 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 	}
 
 	if (typeof value === 'number') {
-		valueClass = 'text-yellow-600 dark:text-yellow-400';
+		valueClass = 'text-lm-yellow dark:text-dm-yellow';
 		displayValue = value;
 	} else if (typeof value === 'boolean') {
-		valueClass = 'text-pink-700 dark:text-pink-400';
+		valueClass = 'text-lm-pink dark:text-dm-pink';
 		displayValue = value ? 'true' : 'false';
 	} else if (value === null) {
 		valueClass = '';
@@ -81,7 +81,7 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 
 	return (
 		<div className={`${indentClass}`}>
-			<span className="text-gray-800 dark:text-white">{name && `"${name}"`}:</span>{' '}
+			<span className="text-lm-gray-800 dark:text-dm-gray-200">{name && `"${name}"`}:</span>{' '}
 			<span className={valueClass}>{displayValue}</span>
 		</div>
 	);

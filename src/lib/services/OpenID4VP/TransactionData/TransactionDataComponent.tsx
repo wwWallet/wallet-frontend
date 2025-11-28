@@ -10,7 +10,7 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 
 		if (req.type === 'urn:wwwallet:example_transaction_data_type') {
 			return (
-				<div className="p-2 text-gray-700 text-sm dark:text-white mt-2">
+				<div className="p-2 text-lm-gray-800 text-sm dark:text-dm-gray-200 mt-2">
 					<span className="text-primary text-sm font-bold dark:text-white block mb-1">
 						The verifier requested the acceptance of the example transaction data
 					</span>
@@ -19,16 +19,16 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 		}
 		else if (req.type === 'https://cloudsignatureconsortium.org/2025/qes') {
 			return (
-				<div className="pd-2 text-gray-700 text-sm dark:text-white mt-2 mb-2">
+				<div className="pd-2 text-lm-gray-800 text-sm dark:text-dm-gray-200 mt-2 mb-2">
 					<span className="text-primary text-sm font-bold dark:text-white block mb-1">
 						{t('selectCredentialPopup.signedDocuments')}
 					</span>
 					<p></p>
-					<div className="flex w-full border rounded-md dark:border-gray-400 bg-gray-100 dark:bg-gray-600 p-2">
+					<div className="flex w-full border rounded-md dark:border-dm-gray-400 bg-lm-gray-100 dark:bg-dm-gray-900 p-2">
 						<div className="w-5/6 flex items-center">
 							<ul className="flex flex-col list-disc">
 								{req.documentDigests.map((digest, index) => (
-									<span className="text-gray-700 dark:text-white text-sm font-bold">
+									<span className="text-lm-gray-800 dark:text-dm-gray-200 font-bold">
 										{digest.label}
 									</span>
 								))}
@@ -41,7 +41,7 @@ export const withTransactionData = (req: TransactionDataRequest) => {
 		}
 		else if (req.type === 'https://cloudsignatureconsortium.org/2025/qc-request') {
 			return (
-				<div className="pd-2 text-gray-700 text-sm dark:text-white mt-2 mb-2">
+				<div className="pd-2 text-lm-gray-800 text-sm dark:text-dm-gray-200 mt-2 mb-2">
 					<span className="text-primary text-sm font-bold dark:text-white block mb-1">
 						{t('selectCredentialPopup.qcRequest')}
 					</span>

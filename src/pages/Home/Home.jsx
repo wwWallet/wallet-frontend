@@ -57,7 +57,7 @@ const Home = () => {
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
-					<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+					<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 					{(pendingTransactions?.length > 0) && (
 						<PendingTransactionsBanner
 							pendingTransactions={pendingTransactions}
@@ -123,7 +123,7 @@ const Home = () => {
 											</div>
 										) : mobileVcHomeView === 'list' && (
 											<>
-												<div className="xm:px-6 px-8 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
+												<div className="xm:px-6 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
 													{vcEntityList && vcEntityList.map((vcEntity) => (
 														<CredentialGridCard
 															key={vcEntity.batchId}

@@ -3,9 +3,8 @@ import { formatDate } from '@/utils';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
-import { IoIosSend } from "react-icons/io";
-import { TbAsterisk } from "react-icons/tb";
 import useScreenType from '../../hooks/useScreenType';
+import { Asterisk, Send } from 'lucide-react';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -14,17 +13,17 @@ const Legend = ({ showRequired, showRequested, t }) => {
 			className="mb-2 flex justify-end"
 			aria-label={t('credentialInfo.legendAriaLabel')}
 		>
-			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-xs dark:border-gray-400/40'>
+			<div className='flex flex-col py-px px-2 items-end w-auto text-[11px] italic text-lm-gray-800 dark:text-dm-gray-200 border border-lm-gray-400 rounded-xs dark:border-dm-gray-600'>
 				{showRequired && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
 						<span>{t('credentialInfo.legendRequired')}</span>
-						<TbAsterisk className="text-primary dark:text-white" aria-hidden="true" />
+						<Asterisk className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
 				{showRequested && (
 					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequested')}>
 						<span>{t('credentialInfo.legendRequested')}</span>
-						<IoIosSend className="text-primary dark:text-white" aria-hidden="true" />
+						<Send size={14} className="text-primary dark:text-white" aria-hidden="true" />
 					</span>
 				)}
 			</div>
@@ -140,7 +139,7 @@ const formatClaimValue = (value) => {
 
 	const renderJson = (v) => (
 		<div className="w-full">
-			<div className="max-h-40 resize-y bg-white dark:bg-gray-800 overflow-auto border rounded-sm px-2 rounded-xl">
+			<div className="max-h-40 resize-y bg-white dark:bg-dm-gray-800 overflow-auto border rounded px-2 rounded-xl">
 				<JsonViewer value={v} />
 			</div>
 		</div>
@@ -374,10 +373,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div key={fullPath} className="w-full">
 						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
-							<summary className="cursor-pointer font-semibold text-primary dark:text-white w-full">
+							<summary className="cursor-pointer font-semibold text-lm-gray-900 dark:text-dm-gray-100 w-full">
 								{label}
 							</summary>
-							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-primary dark:border-gray-300 dark:border-gray-600 text-primary dark:text-primary-light">
+							<div className="ml-2 pl-2 my-1 flex flex-col gap-1 border-l border-lm-gray-900 dark:border-dm-gray-100 text-lm-gray-900 dark:text-dm-gray-100">
 								{renderClaims(value, [...currentPath, key])}
 							</div>
 						</details>
@@ -387,14 +386,14 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div
 						key={fullPath}
-						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded-sm ${(isRequested || isRequired) && requestedDisplay === "highlight"
-							? `bg-blue-50 shadow-sm ${screenType === 'desktop' ? 'dark:bg-gray-600' : 'dark:bg-gray-800'}`
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${(isRequested || isRequired) && requestedDisplay === "highlight"
+							? `bg-lm-gray-300 shadow ${screenType === 'desktop' ? 'dark:bg-dm-gray-700' : 'dark:bg-dm-gray-800'}`
 							: ''
 							}`}
 					>
 						<div
 							className={
-								`font-semibold text-primary dark:text-white w-1/2 break-words` +
+								`font-semibold text-lm-gray-900 dark:text-dm-gray-100 w-1/2 wrap-break-word` +
 								(label && label.length > 20 && !label.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -402,7 +401,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 						</div>
 						<div
 							className={
-								`text-gray-700 dark:text-white w-1/2 flex justify-between items-start break-words` +
+								`text-lm-gray-800 dark:text-dm-gray-200 w-1/2 flex justify-between items-start wrap-break-word` +
 								(value && value.length > 20 && !value.includes(' ') ? ' break-all' : '')
 							}
 						>
@@ -410,14 +409,15 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 							{(isRequested || isRequired) && (
 								<div className='flex'>
 									{isRequired && (
-										<TbAsterisk
-											className="text-primary dark:text-white shrink-0"
+										<Asterisk
+											className="text-lm-gray-900 dark:text-dm-gray-100 flex-shrin"
 										/>
 									)}
 									{isRequested && (
-										<IoIosSend
+										<Send
+											size={14}
 											title="Requested by verifier"
-											className="text-primary dark:text-white shrink-0"
+											className="text-lm-gray-900 dark:text-dm-gray-100 shrink-0"
 										/>
 									)}
 								</div>

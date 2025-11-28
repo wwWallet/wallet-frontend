@@ -1,7 +1,7 @@
 import React from 'react';
-import { BsQrCodeScan } from 'react-icons/bs';
 import Button from './Button';
 import useScreenType from '../../hooks/useScreenType';
+import { QrCode } from 'lucide-react';
 
 const QRButton = ({ openQRScanner, isSmallScreen }) => {
 	const screenType = useScreenType();
@@ -15,7 +15,7 @@ const QRButton = ({ openQRScanner, isSmallScreen }) => {
 					variant="primary"
 					additionalClassName={`step-2`}
 				>
-					<BsQrCodeScan size={20} className="text-white" />
+					<QrCode size={20} className="text-inherit" />
 				</Button>
 			</div>
 

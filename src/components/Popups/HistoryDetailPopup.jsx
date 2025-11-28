@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import HistoryDetailContent from '../History/HistoryDetailContent';
 import PopupLayout from './PopupLayout';
+import Button from '../Buttons/Button';
 
 const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 	const { t } = useTranslation();
@@ -9,13 +10,12 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 	return (
 		<PopupLayout isOpen={isOpen} onClose={onClose}>
 			<div className="flex items-start justify-between mb-2">
-				<h2 className="right text-lg font-bold text-primary dark:text-white">
+				<h2 className="right text-lg font-bold text-lm-gray-900 dark:text-dm-gray-100">
 					{t('pageHistory.popupTitle')}
 				</h2>
-				<button
+				<Button
 					id="dismiss-history-detail-popup"
-					type="button"
-					className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
+					square={true}
 					onClick={onClose}
 				>
 					<svg
@@ -33,9 +33,9 @@ const HistoryDetailPopup = ({ isOpen, onClose, historyItem }) => {
 							d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"
 						/>
 					</svg>
-				</button>
+				</Button>
 			</div>
-			<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
+			<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 			<HistoryDetailContent historyItem={historyItem} />
 		</PopupLayout>

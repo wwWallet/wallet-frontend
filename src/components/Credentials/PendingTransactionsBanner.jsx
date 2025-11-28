@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { PiClockCounterClockwiseBold } from "react-icons/pi";
 import Button from "../Buttons/Button";
+import { History } from "lucide-react";
 
 export default function PendingTransactionsBanner({ pendingTransactions = [], onView }) {
 	const { t } = useTranslation();
@@ -14,7 +14,7 @@ export default function PendingTransactionsBanner({ pendingTransactions = [], on
 			className={`text-base group relative overflow-hidden rounded-xl border border-orange-500/20 dark:border-orange-500/20 bg-orange-100/50 dark:bg-orange-500/5 px-2 sm:px-5 py-2 shadow-md my-2`}
 		>
 			<div className="flex items-center gap-2">
-				<PiClockCounterClockwiseBold className="h-8 w-8 text-orange-500" />
+				<History className="h-8 w-8 text-orange-500" />
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2 flex-wrap">
 						<p className="font-medium text-sm sm:text-base">

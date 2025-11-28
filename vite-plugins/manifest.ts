@@ -100,31 +100,31 @@ export async function generateManifest(env: Record<string, string|null|undefined
 		"screenshots": [
 			{
 				"src": "screenshots/screen_mobile_1.png",
-				"sizes": "800x1714",
+				"sizes": "828x1792",
 				"type": "image/png",
 				"form_factor": "narrow",
 				"label": "Home screen showing navigation and a credential"
 			},
 			{
 				"src": "screenshots/screen_mobile_2.png",
-				"sizes": "800x1714",
+				"sizes": "828x1792",
 				"type": "image/png",
 				"form_factor": "narrow",
-				"label": "Credential details view"
+				"label": "Credential selection view"
 			},
 			{
 				"src": "screenshots/screen_tablet_1.png",
-				"sizes": "2048x1536",
+				"sizes": "2160x1620",
 				"type": "image/png",
 				"form_factor": "wide",
 				"label": "Home screen showing navigation and a credential"
 			},
 			{
 				"src": "screenshots/screen_tablet_2.png",
-				"sizes": "2048x1536",
+				"sizes": "2160x1620",
 				"type": "image/png",
 				"form_factor": "wide",
-				"label": "Credential details view"
+				"label": "Credential selection view"
 			}
 		],
 		"start_url": "/",

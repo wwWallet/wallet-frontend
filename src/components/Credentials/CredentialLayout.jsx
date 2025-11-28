@@ -2,8 +2,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FaArrowLeft, FaArrowRight, FaExclamationTriangle } from "react-icons/fa";
-import { PiCardsBold } from "react-icons/pi";
 import i18n from '@/i18n';
 
 // Hooks
@@ -19,21 +17,22 @@ import { H1 } from '../Shared/Heading';
 import CredentialImage from './CredentialImage';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import PageDescription from '../Shared/PageDescription';
+import { ArrowLeft, ArrowRight, GalleryHorizontalEnd, TriangleAlert } from 'lucide-react';
 
 const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	if (zeroSigCount === null || sigTotal === null) return null;
 
 	const usageClass =
 		zeroSigCount === 0
-			? 'text-orange-600 dark:text-orange-500'
-			: 'text-green-600 dark:text-green-500';
+			? 'text-lm-orange dark:text-dm-orange'
+			: 'text-lm-green dark:text-dm-green';
 
 	return (
 		<div
-			className={`flex items-center text-gray-800 dark:text-white ${screenType === 'mobile' ? 'text-sm' : 'text-md'
+			className={`flex items-center text-lm-gray-800 dark:text-dm-gray-200 ${screenType === 'mobile' ? 'text-sm' : 'text-md'
 				}`}
 		>
-			<PiCardsBold size={18} className="mr-1" />
+			<GalleryHorizontalEnd size={18} className="mr-1" />
 			<p className="font-base">
 				<span className={`${usageClass} font-semibold`}>{zeroSigCount}</span>
 				<span>/{sigTotal}</span> {t('pageCredentials.details.availableUsages')}
@@ -127,7 +126,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				</div>
 				{screenType === 'mobile' && (
 					<div className='flex flex-start flex-col gap-1'>
-						<p className='text-xl font-bold text-primary dark:text-white'>{credentialName}</p>
+						<p className='text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>{credentialName}</p>
 						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
 					</div>
@@ -135,9 +134,9 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			</div>
 
 			{screenType === 'mobile' && vcEntity?.isExpired && (
-				<div className="bg-orange-100 mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
-					<div className="mr-2 text-orange-500">
-						<FaExclamationTriangle size={18} />
+				<div className="bg-lm-orange-bg dark:bg-dm-orange-bg text-black mx-2 p-2 shadow-lg text-sm rounded-lg mb-4 flex items-center">
+					<div className="mr-2 ">
+						<TriangleAlert size={18} />
 					</div>
 					<p>{t('pageCredentials.details.expired')}</p>
 				</div>
@@ -157,9 +156,8 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				<H1
 					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
-					textColorClass="text-gray-500 hover:text-primary dark:text-primary-light dark:hover:text-primary-light hover:underline"
-				>
-					<FaArrowRight size={20} className="mx-2 text-2xl mb-2 text-primary dark:text-primary-light" />
+					textColorClass="text-lm-gray-700 dark:text-dm-gray-300 hover:underline"
+				>					<ArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
 
 					<H1 heading={credentialName} hr={false} />
 				</H1>
@@ -171,7 +169,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 						className="mr-2 mb-2"
 						aria-label="Go back to the previous page"
 					>
-						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+						<ArrowLeft size={20} className="text-2xl text-inherit" />
 					</button>
 					{title && <H1 heading={title} hr={false} />}
 				</div>

@@ -1,6 +1,5 @@
 // External libraries
 import React from 'react';
-import { VerifierIcon } from '@/assets/images/verifier_icon';
 
 // Components
 import Slider from '../Shared/Slider';
@@ -10,6 +9,7 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 import useScreenType from '../../hooks/useScreenType';
 
 import { formatDate, prettyDomain } from '@/utils';
+import { BookCheck } from 'lucide-react';
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
@@ -27,10 +27,10 @@ const HistoryDetailContent = ({ historyItem }) => {
 	return (
 		<div className="py-2 w-full">
 			<div className='flex items-center gap-2 px-2 mb-4'>
-				<VerifierIcon size={40} className="text-white bg-primary dark:bg-primary-light p-2 rounded-md shrink-0" />
+				<BookCheck size={40} className="text-white bg-primary p-2 rounded-md shrink-0" />
 				<div>
-					<p className='font-bold text-primary dark:text-white'>{prettyDomain(historyItem[0].presentation.audience)} </p>
-					<p className='text-sm text-gray-700 dark:text-gray-300'>{formatDate(historyItem[0].presentation.presentationTimestampSeconds)}</p>
+					<p className='font-bold text-lm-gray-900 dark:text-dm-gray-100'>{prettyDomain(historyItem[0].presentation.audience)} </p>
+					<p className='text-sm text-lm-gray-800 dark:text-dm-gray-200'>{formatDate(historyItem[0].presentation.presentationTimestampSeconds)}</p>
 				</div>
 			</div>
 			<div>

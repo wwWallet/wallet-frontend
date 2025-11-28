@@ -57,7 +57,7 @@ const VerticalSlider = ({
 					return (
 						<SwiperSlide
 							key={item.batchId ?? item.id ?? i}
-							className="!h-auto flex items-center justify-center"
+							className="h-auto! flex items-center justify-center"
 							aria-hidden={isFar ? 'true' : 'false'}
 						>
 							<div
@@ -65,7 +65,7 @@ const VerticalSlider = ({
 									"w-full rounded-xl p-2 transition-all duration-300",
 									isFar ? "pointer-events-none" : "pointer-events-auto",
 									isActive ? "opacity-100" : "opacity-90",
-									isActive ? "" : "[filter:brightness(0.9)]",
+									isActive ? "" : "filter-[brightness(0.9)]",
 								].join(" ")}
 							>
 								{renderSlideContent(item, i)}

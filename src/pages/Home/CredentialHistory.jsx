@@ -23,7 +23,7 @@ const CredentialHistory = () => {
 		<>
 			<CredentialLayout title={t('pageCredentials.presentationsTitle')}>
 				{history.length === 0 ? (
-					<p className="text-gray-700 dark:text-white mt-4">
+					<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
 						{t('pageHistory.noFound')}
 					</p>
 				) : (
