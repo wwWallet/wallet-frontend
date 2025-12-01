@@ -952,7 +952,21 @@ const Settings = () => {
 										{settings.colorScheme === 'dark' && <Moon size={18} />}
 										{settings.colorScheme === 'system' && (screenType === 'desktop' ? <Laptop size={18} /> : <Smartphone size={18} />)}
 									</span>
-									<select className="h-10 pl-10 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none">
+<select
+	className="h-10 pl-10 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none"
+	value={settings.colorScheme}
+	onChange={(e) => setColorScheme(e.target.value)}
+>
+	<option value="system">
+		{t('pageSettings.appearance.colorScheme.system')}
+	</option>
+	<option value="light">
+		{t('pageSettings.appearance.colorScheme.light')}
+	</option>
+	<option value="dark">
+		{t('pageSettings.appearance.colorScheme.dark')}
+	</option>
+</select>
 										<option
 											onClick={() => setColorScheme('system')}
 											selected={settings.colorScheme === 'system'}
