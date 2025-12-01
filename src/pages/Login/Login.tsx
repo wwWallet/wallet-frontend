@@ -567,26 +567,26 @@ const WebauthnSignupLogin = ({
 										variant={variant}
 										size="lg"
 										textSize="md"
-										additionalClassName={`
-											w-full flex flex-col items-center justify-center relative
-										`}
+										additionalClassName="items-center justify-center relative"
 										title={!isLogin && !isOnline && t("common.offlineTitle")}
 										value={hint}
 									>
-										<div className="flex flex-row items-center justify-center w-full">
-											<Icon size={20} className="inline text-xl mr-2 shrink-0" />
+										<div className="flex flex-col">
+											<div className="flex flex-row items-center justify-center w-full">
+												<Icon size={20} className="inline text-xl mr-2 shrink-0" />
 
-											{isSubmitting
-												? t('loginSignup.submitting')
-												: btnLabel
-											}
+												{isSubmitting
+													? t('loginSignup.submitting')
+													: btnLabel
+												}
+											</div>
+
+											{screenType !== 'desktop' && (
+												<span className="mt-2 text-xs">
+													{helpText}
+												</span>
+											)}
 										</div>
-
-										{screenType !== 'desktop' && (
-											<span className="mt-2 text-xs">
-												{helpText}
-											</span>
-										)}
 									</Button>
 
 									{screenType === 'desktop' && (
