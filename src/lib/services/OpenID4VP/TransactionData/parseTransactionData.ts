@@ -9,18 +9,11 @@ export type ParsedTransactionData = {
 	ui: React.FC;
 };
 
-export function parseTransactionData(transaction_data: string[], presentation_definition?: Record<string, unknown>, dcql_query?: Record<string, unknown>): ParsedTransactionData[] | null {
+export function parseTransactionData(transaction_data: string[], dcql_query: Record<string, unknown>): ParsedTransactionData[] | null {
 	try {
-		if (presentation_definition && dcql_query) {
-			throw new Error("Only one of presentation_definition or dcql_query should be provided");
-		}
 		let validCredentialIds: string[] | null = null;
 
-		if (presentation_definition?.input_descriptors instanceof Array) {
-			validCredentialIds = presentation_definition.input_descriptors.map(
-				(input_desc: { id: string }) => input_desc.id
-			);
-		} else if (dcql_query?.credentials instanceof Array) {
+		if (dcql_query?.credentials instanceof Array) {
 			validCredentialIds = dcql_query.credentials.map(
 				(credential: { id: string }) => credential.id
 			);

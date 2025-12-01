@@ -1,5 +1,4 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
-import { Verify } from "../../utils/Verify";
 import { SDJwt } from "@sd-jwt/core";
 import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
@@ -16,14 +15,12 @@ import CredentialsContext from "@/context/CredentialsContext";
 import { cborDecode, cborEncode } from "@auth0/mdl/lib/cbor";
 import { parse } from "@auth0/mdl";
 import { DcqlQuery, DcqlPresentationResult } from 'dcql';
-import { JSONPath } from "jsonpath-plus";
 import { useTranslation } from 'react-i18next';
 import { ParsedTransactionData, parseTransactionData } from "./TransactionData/parseTransactionData";
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
-import { WalletStateCredential } from "@/services/WalletStateSchemaVersion3";
 
 const retrieveKeys = async (S: OpenID4VPRelyingPartyState) => {
 	if (S.client_metadata.jwks) {
@@ -92,10 +89,6 @@ export function useOpenID4VP({
 			response_uri: searchParams.get('response_uri'),
 			nonce: searchParams.get('nonce'),
 			state: searchParams.get('state') as string,
-			presentation_definition: searchParams.get('presentation_definition')
-				? JSON.parse(searchParams.get('presentation_definition'))
-				: null,
-			presentation_definition_uri: searchParams.get('presentation_definition_uri'),
 			client_metadata: searchParams.get('client_metadata')
 				? JSON.parse(searchParams.get('client_metadata'))
 				: null,
@@ -110,11 +103,6 @@ export function useOpenID4VP({
 				? JSON.parse(searchParams.get('dcql_query'))
 				: null
 		};
-	}
-
-	async function resolvePresentationDefinition(presentation_definition_uri: string, httpProxy: any) {
-		const result = await httpProxy.get(presentation_definition_uri, {});
-		return result.data;
 	}
 
 	async function handleRequestUri(request_uri: string, httpProxy: any): Promise<any> {
@@ -136,93 +124,13 @@ export function useOpenID4VP({
 		return { payload: decodedPayload, parsedHeader };
 	}
 
-	async function matchCredentialsToDefinition(
-		vcList: ExtendedVcEntity[],
-		presentation_definition: any,
-		parseCredential: any,
-		t: any
-	) {
-		const mapping = new Map<string, { credentials: string[]; requestedFields: string[] }>();
-		let descriptorPurpose;
-
-		for (const descriptor of presentation_definition.input_descriptors) {
-			const conformingVcList = [];
-
-			// Capture the per-iteration value to avoid no-loop-func
-			const localDescriptorPurpose =
-				descriptor.purpose || t('selectCredentialPopup.purposeNotSpecified');
-			descriptorPurpose = localDescriptorPurpose;
-
-			for (const vc of vcList) {
-				try {
-					if ((vc.format === VerifiableCredentialFormat.DC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.DC_SDJWT in descriptor.format)) ||
-						(vc.format === VerifiableCredentialFormat.VC_SDJWT && (descriptor.format === undefined || VerifiableCredentialFormat.VC_SDJWT in descriptor.format))) {
-						const result = await parseCredential(vc);
-						if ('error' in result) continue;
-						if (Verify.verifyVcJwtWithDescriptor(descriptor, result.signedClaims)) {
-							conformingVcList.push(vc.batchId);
-							continue;
-						}
-					}
-
-					if (vc.format === VerifiableCredentialFormat.MSO_MDOC && VerifiableCredentialFormat.MSO_MDOC in descriptor.format) {
-						const credentialBytes = base64url.decode(vc.data);
-						const issuerSigned = cborDecode(credentialBytes);
-						console.log('issuerSigned: ', issuerSigned)
-
-						const m = {
-							version: '1.0',
-							documents: [
-								new Map([
-									['docType', descriptor.id],
-									['issuerSigned', issuerSigned],
-								]),
-							],
-							status: 0,
-						};
-						const encoded = cborEncode(m);
-						const mdoc = parse(encoded);
-						const [document] = mdoc.documents;
-						const ns = document.getIssuerNameSpace(document.issuerSignedNameSpaces[0]);
-						const json = { [descriptor.id]: ns };
-
-						const fieldsWithValue = descriptor.constraints.fields.map((field) => {
-							const values = field.path.map((possiblePath) => JSONPath({ path: possiblePath, json: json })[0]);
-							const val = values.find((v) => v !== undefined && v !== null);
-							return { field, val };
-						});
-
-						if (fieldsWithValue.some((fwv) => fwv.val === undefined)) continue;
-
-						conformingVcList.push(vc.batchId);
-					}
-				} catch (err) {
-					console.error("Descriptor matching error", err);
-				}
-			}
-
-			if (conformingVcList.length === 0) {
-				return { error: HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS };
-			}
-
-			const requestedFieldDetails = descriptor.constraints.fields.map((field) => ({
-				name: field.name || field.path[0],
-				purpose: field.purpose || localDescriptorPurpose,
-				path: field.path[0],
-			}));
-			mapping.set(descriptor.id, { credentials: conformingVcList, requestedFields: requestedFieldDetails });
-		}
-
-		return { mapping, descriptorPurpose };
-	}
-
 	const matchCredentialsToDCQL = useCallback(async (vcList: ExtendedVcEntity[], dcqlJson: any, t: any
 	): Promise<
 		| { mapping: Map<string, { credentials: number[]; requestedFields: { name: string; purpose: string }[] }>; descriptorPurpose: string }
 		| { error: HandleAuthorizationRequestError }
 	> => {
 
-		const descriptorPurpose = dcqlJson.credential_sets?.[0]?.purpose || t('selectCredentialPopup.purposeNotSpecified');
+		const descriptorPurpose = t('selectCredentialPopup.purposeNotSpecified');
 
 		// shape all credentials in the wallet
 		const shapedCredentials: any[] = [];
@@ -370,212 +278,6 @@ export function useOpenID4VP({
 		}
 	}
 
-
-	/**
-		*
-		* @param paths example: [ '$.credentialSubject.image', '$.credentialSubject.grade', '$.credentialSubject.val.x' ]
-		* @returns example: { credentialSubject: { image: true, grade: true, val: { x: true } } }
-		*/
-	function generatePresentationFrameForPEXPaths(paths) {
-		let result = {};
-		paths.forEach(path => {
-			if (path.includes("[")) {
-				// Use the matchAll method to get all matches
-				let matches = [...path.matchAll(/\['(.*?)'\]/g)];
-
-				// grab any dot-keys before the first bracket
-				let prefix = path.replace(/\['.*$/, '').replace(/^\$\./, '');
-				let current = result;
-				if (prefix) {
-					prefix.split('.').forEach(key => {
-						current[key] = current[key] || {};
-						current = current[key];
-					});
-				}
-				// Iterate over each match and build the nested object
-				for (let i = 0; i < matches.length; i++) {
-					let key = matches[i][1];
-					// If this is the last key, set its value to true
-					if (i === matches.length - 1) {
-						current[key] = true;
-					} else {
-						// Otherwise, create a new nested object if it doesn't exist
-						current[key] = current[key] || {};
-						current = current[key];
-					}
-				}
-			} else {
-				let keys = path.replace(/^\$\./, '').split('.');
-				// Initialize an empty object to build the result
-				let current = result;
-				// Iterate over each key and build the nested object
-				for (let i = 0; i < keys.length; i++) {
-					let key = keys[i];
-
-					// If this is the last key, set its value to true
-					if (i === keys.length - 1) {
-						current[key] = true;
-					} else {
-						// Otherwise, create a new nested object if it doesn't exist
-						current[key] = current[key] || {};
-						current = current[key];
-					}
-				}
-			}
-		});
-		return result;
-	}
-
-	const handlePresentationExchangeFlow = useCallback(async (S, selectionMap: Map<string, number>, vcEntityList: ExtendedVcEntity[]) => {
-		const presentationDefinition = S.presentation_definition;
-		const response_uri = S.response_uri;
-		const client_id = S.client_id;
-		const nonce = S.nonce;
-		const transaction_data = S.transaction_data;
-		let apu = undefined;
-		let apv = undefined;
-
-		let selectedVCs = [];
-		let generatedVPs = [];
-		let originalVCs: WalletStateCredential[] = [];
-		const descriptorMap = [];
-
-		let i = 0;
-		const walletState = keystore.getCalculatedWalletState();
-		if (!walletState) {
-			throw new Error("Empty wallet state");
-		}
-		for (const [descriptor_id, batchId] of selectionMap) {
-			const credential = await getLeastUsedCredentialInstance(batchId, vcEntityList, walletState);
-			if (!credential) {
-				continue;
-			}
-
-			if (credential.format === VerifiableCredentialFormat.DC_SDJWT || credential.format === VerifiableCredentialFormat.VC_SDJWT) {
-				const descriptor = presentationDefinition.input_descriptors.find(desc => desc.id === descriptor_id);
-				const allPaths = descriptor.constraints.fields
-					.map(field => field.path)
-					.reduce((accumulator, currentValue) => [...accumulator, ...currentValue]);
-				let presentationFrame = generatePresentationFrameForPEXPaths(allPaths);
-
-				const hasher = (data, alg) => {
-					const encoded = typeof data === 'string' ? new TextEncoder().encode(data) : new Uint8Array(data);
-					return crypto.subtle.digest(alg, encoded).then(v => new Uint8Array(v));
-				};
-
-				const sdJwt = await SDJwt.fromEncode(credential.data, hasher);
-				const presentation = (credential.data.split("~").length - 1) > 1 ?
-					await sdJwt.present(presentationFrame, hasher) : credential.data;
-
-				let transactionDataResponseParams;
-				if (transaction_data) {
-					const [res, err] = await TransactionDataResponse({ descriptor_id: descriptor_id, presentation_definition: presentationDefinition })
-						.generateTransactionDataResponse(transaction_data);
-					if (err) {
-						throw err;
-					}
-					transactionDataResponseParams = { ...res };
-				}
-
-				const { vpjwt } = await keystore.signJwtPresentation(nonce, client_id, [presentation], transactionDataResponseParams);
-				selectedVCs.push(presentation);
-				generatedVPs.push(vpjwt);
-
-				if (selectionMap.size > 1) {
-					descriptorMap.push({
-						id: descriptor_id,
-						format: credential.format,
-						path: `$[${i++}]`
-					});
-				}
-				else {
-					descriptorMap.push({
-						id: descriptor_id,
-						format: credential.format,
-						path: `$`
-					});
-				}
-
-				originalVCs.push(credential);
-
-			} else if (credential.format === VerifiableCredentialFormat.MSO_MDOC) {
-				console.log("Response uri = ", response_uri);
-
-				const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
-				const credentialBytes = base64url.decode(credential.data);
-				const issuerSigned = cborDecode(credentialBytes);
-
-				// According to ISO 23220-4: The value of input descriptor id should be the doctype
-				const m = {
-					version: '1.0',
-					documents: [new Map([
-						['docType', descriptor.id],
-						['issuerSigned', issuerSigned]
-					])],
-					status: 0
-				};
-				const encoded = cborEncode(m);
-				const mdoc = parse(encoded);
-
-				const mdocGeneratedNonce = generateRandomIdentifier(8);
-				apu = mdocGeneratedNonce;
-				apv = nonce;
-
-				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, mdocGeneratedNonce, nonce, client_id, response_uri);
-				function uint8ArrayToHexString(uint8Array) {
-					// @ts-ignore
-					return Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
-				}
-				console.log("Device response in hex format = ", uint8ArrayToHexString(deviceResponseMDoc.encode()));
-				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
-				console.log("B64U Encoded device response = ", encodedDeviceResponse);
-				selectedVCs.push(encodedDeviceResponse);
-				generatedVPs.push(encodedDeviceResponse);
-				descriptorMap.push({
-					id: descriptor_id,
-					format: VerifiableCredentialFormat.MSO_MDOC,
-					path: `$`
-				});
-				originalVCs.push(credential);
-			}
-		}
-
-		const presentationSubmission = {
-			id: generateRandomIdentifier(8),
-			definition_id: S.presentation_definition.id,
-			descriptor_map: descriptorMap,
-		};
-
-		const formData = new URLSearchParams();
-
-		if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
-			const { rp_eph_pub_jwk } = await retrieveKeys(S);
-			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
-			const jwe = await new EncryptJWT({
-				vp_token: generatedVPs.length === 1 ? generatedVPs[0] : generatedVPs,
-				presentation_submission: presentationSubmission,
-				state: S.state ?? undefined
-			})
-				.setKeyManagementParameters({ apu: new TextEncoder().encode(apu), apv: new TextEncoder().encode(apv) })
-				.setProtectedHeader({
-					alg: S.client_metadata.authorization_encrypted_response_alg,
-					enc: S.client_metadata.authorization_encrypted_response_enc,
-					kid: rp_eph_pub_jwk.kid
-				})
-				.encrypt(rp_eph_pub);
-
-			formData.append('response', jwe);
-		} else {
-			formData.append('vp_token', generatedVPs.length === 1 ? generatedVPs[0] : JSON.stringify(generatedVPs));
-			formData.append('presentation_submission', JSON.stringify(presentationSubmission));
-			if (S.state) formData.append('state', S.state);
-		}
-
-		const credentialIdentifiers = originalVCs.map(vc => vc.batchId);
-
-		return { formData, credentialIdentifiers, generatedVPs, presentationSubmission, filteredVCEntities: originalVCs };
-	}, [keystore]);
-
 	function convertDcqlToPresentationDefinition(dcql_query) {
 		const pdId = crypto.randomUUID();
 		const input_descriptors = dcql_query.credentials.map(cred => {
@@ -694,7 +396,6 @@ export function useOpenID4VP({
 				};
 
 				const sdJwt = await SDJwt.fromEncode(credential.data, hasher);
-				// TODO handle transaction data
 				const presentation = (credential.data.split("~").length - 1) > 1
 					? await sdJwt.present(frame, hasher)
 					: credential.data;
@@ -775,7 +476,7 @@ export function useOpenID4VP({
 						}));
 					}
 				} else {
-					dcqlQueryWithClaims = dcql_query
+					dcqlQueryWithClaims = dcql_query;
 				}
 
 				const presentationDefinition = convertDcqlToPresentationDefinition(dcqlQueryWithClaims);
@@ -845,18 +546,12 @@ export function useOpenID4VP({
 			response_uri,
 			nonce,
 			state,
-			presentation_definition,
-			presentation_definition_uri,
 			client_metadata,
 			response_mode,
 			transaction_data,
 			request_uri,
 			dcql_query
 		} = parseAuthorizationParams(url);
-
-		if (presentation_definition_uri && !presentation_definition) {
-			presentation_definition = await resolvePresentationDefinition(presentation_definition_uri, httpProxy);
-		}
 
 		const client_id_scheme = client_id.split(':')[0];
 		if (client_id_scheme !== 'x509_san_dns') {
@@ -872,13 +567,7 @@ export function useOpenID4VP({
 				}
 				const { payload, parsedHeader } = result;
 				client_id = payload.client_id;
-				presentation_definition = payload.presentation_definition;
-				if (payload.presentation_definition) {
-					presentation_definition = payload.presentation_definition;
-				} else if (payload.presentation_definition_uri) {
-					const presentationDefinitionFetch = await httpProxy.get(payload.presentation_definition_uri, {});
-					presentation_definition = presentationDefinitionFetch.data;
-				}
+
 				dcql_query = payload.dcql_query ?? dcql_query;
 				response_uri = payload.response_uri ?? payload.redirect_uri;
 				if (response_uri && !response_uri.startsWith("http")) {
@@ -890,7 +579,7 @@ export function useOpenID4VP({
 					console.log("Received transaction data");
 					console.log('Transaction data = ', payload.transaction_data)
 					transaction_data = payload.transaction_data;
-					parsedTransactionData = parseTransactionData(transaction_data, presentation_definition, dcql_query);
+					parsedTransactionData = parseTransactionData(transaction_data, dcql_query);
 					if (parsedTransactionData === null) {
 						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
 					}
@@ -909,8 +598,8 @@ export function useOpenID4VP({
 			return { error: HandleAuthorizationRequestError.OLD_STATE };
 		}
 
-		if (!presentation_definition && !dcql_query) {
-			return { error: HandleAuthorizationRequestError.MISSING_PRESENTATION_DEFINITION };
+		if (!dcql_query) {
+			return { error: HandleAuthorizationRequestError.MISSING_DCQL_QUERY };
 		}
 
 		const { error } = ResponseModeSchema.safeParse(response_mode);
@@ -923,7 +612,6 @@ export function useOpenID4VP({
 		const vcList = vcEntityList.filter((cred) => cred.instanceId === 0);
 
 		await openID4VPRelyingPartyStateRepository.store(new OpenID4VPRelyingPartyState(
-			presentation_definition,
 			nonce,
 			response_uri,
 			client_id,
@@ -936,11 +624,8 @@ export function useOpenID4VP({
 		);
 
 		let matchResult;
-		console.log('Presentation Definition: ', presentation_definition);
 		console.log('DCQL Query: ', dcql_query);
-		if (presentation_definition) {
-			matchResult = await matchCredentialsToDefinition(vcList, presentation_definition, parseCredential, t);
-		} else if (dcql_query) {
+		if (dcql_query) {
 			matchResult = await matchCredentialsToDCQL(vcList, dcql_query, t);
 		}
 		if ('error' in matchResult) {
@@ -963,7 +648,6 @@ export function useOpenID4VP({
 		};
 	}, [
 		httpProxy,
-		parseCredential,
 		openID4VPRelyingPartyStateRepository,
 		matchCredentialsToDCQL,
 		t,
@@ -980,14 +664,7 @@ export function useOpenID4VP({
 
 		let formData, generatedVPs, filteredVCEntities;
 
-		if (S.presentation_definition) {
-			({ formData, generatedVPs, filteredVCEntities } =
-				await handlePresentationExchangeFlow(S, selectionMap, vcEntityList));
-		}
-		else {
-			({ formData, generatedVPs, filteredVCEntities } =
-				await handleDCQLFlow(S, selectionMap, vcEntityList));
-		}
+		({ formData, generatedVPs, filteredVCEntities } =	await handleDCQLFlow(S, selectionMap, vcEntityList));
 
 		const transactionId = WalletStateUtils.getRandomUint32();
 		const [, newPrivateData, keystoreCommit] = await keystore.addPresentations(generatedVPs.map((vpData, index) => {
@@ -1036,7 +713,6 @@ export function useOpenID4VP({
 		api,
 		keystore,
 		handleDCQLFlow,
-		handlePresentationExchangeFlow,
 	]);
 
 	return useMemo(() => {
