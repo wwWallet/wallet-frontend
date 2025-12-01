@@ -1,13 +1,9 @@
 import React, { FormEvent, KeyboardEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
-import { FaEdit, FaSyncAlt, FaTrash } from 'react-icons/fa';
-import { BsLock, BsMoonFill, BsSunFill, BsUnlock } from 'react-icons/bs';
-import { MdNotifications } from "react-icons/md";
-import { IoIosArrowDown } from "react-icons/io";
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
-import AppSettingsContext from '@/context/AppSettingsContext';
+import AppSettingsContext, { ColorScheme } from '@/context/AppSettingsContext';
 
 import useScreenType from '../../hooks/useScreenType';
 
@@ -23,8 +19,7 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { GoDeviceMobile, GoKey, GoPasskeyFill } from 'react-icons/go';
-import { FaLaptop, FaMobile } from "react-icons/fa";
+import {  Bell, ChevronDown, Edit, Key, Laptop, Lock, LockOpen, Moon, RefreshCcw, Smartphone, Sun, Trash2, UserLock } from 'lucide-react';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -78,7 +73,7 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center rounded-sm md:space-y-6 sm:p-8 bg-white rounded-lg shadow-sm dark:bg-gray-700"
+			className="p-4 pt-8 text-center md:space-y-6 sm:p-8 bg-lm-gray-50 dark:bg-dm-gray-950 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg backdrop:bg-black/80"
 			style={{ minWidth: '30%' }}
 			onCancel={onCancel}
 		>
@@ -218,15 +213,15 @@ const WebauthnRegistation = ({
 			<span className="grow">{t('pageSettings.addPasskey')}</span>
 			{
 				[
-					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
-					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
-					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
+					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: UserLock },
+					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: Key },
+					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: Smartphone },
 				].map(({ Icon, hint, btnLabel }) => (
 					<Button
 						key={hint}
 						id={`add-passkey-settings-${hint}`}
 						onClick={() => onBegin(hint)}
-						variant="primary"
+						variant="outline"
 						disabled={registrationInProgress || !isOnline}
 						ariaLabel={(
 							!isOnline
@@ -240,7 +235,7 @@ const WebauthnRegistation = ({
 						)}
 					>
 						<div className="flex items-center">
-							<Icon size={20} />
+							<Icon size={18} />
 							<span className='hidden md:block ml-2'>
 								{btnLabel}
 							</span>
@@ -257,11 +252,11 @@ const WebauthnRegistation = ({
 					{pendingCredential
 						? (
 							<>
-								<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('registerPasskey.messageSuccess')}</h3>
+								<H2 heading={t('registerPasskey.messageSuccess')} hr={false} flexJustifyContent='center' />
 								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-700 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3"
+									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -282,7 +277,6 @@ const WebauthnRegistation = ({
 						<Button
 							id="cancel-add-passkey-settings"
 							onClick={onCancel}
-							variant="cancel"
 							disabled={isSubmitting}
 						>
 							{t('common.cancel')}
@@ -292,7 +286,7 @@ const WebauthnRegistation = ({
 							<Button
 								id="save-add-passkey-settings"
 								type="submit"
-								variant="secondary"
+								variant="primary"
 								disabled={isSubmitting}
 							>
 								{t('common.save')}
@@ -307,7 +301,7 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-white">{t('registerPasskey.messageDone')}</h3>
+				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false}/>
 				<p className='dark:text-white'>{t('registerPasskey.passkeyCreated')}</p>
 				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
@@ -315,7 +309,6 @@ const WebauthnRegistation = ({
 					<Button
 						id="cancel-prf-passkey-settings"
 						onClick={() => resolvePrfRetryPrompt(false)}
-						variant="cancel"
 					>
 						{t('common.cancel')}
 					</Button>
@@ -323,7 +316,7 @@ const WebauthnRegistation = ({
 					<Button
 						id="continue-prf-passkey-settings"
 						onClick={() => resolvePrfRetryPrompt(true)}
-						variant="secondary"
+						variant="primary"
 						disabled={prfRetryAccepted}
 					>
 						{t('common.continue')}
@@ -340,7 +333,7 @@ const WebauthnRegistation = ({
 				<div className='flex justify-center'>
 					<Button
 						id="cancel-in-progress-prf-settings"
-						variant="cancel"
+
 						onClick={onCancel}
 					>
 						{t('common.cancel')}
@@ -448,13 +441,13 @@ const UnlockMainKey = ({
 				<div className="flex items-center">
 					{unlocked
 						? <>
-							<BsUnlock size={20} />
+							<LockOpen size={18} />
 							<span className='hidden md:block ml-2'>
 								{t('pageSettings.lockSensitive')}
 							</span>
 						</>
 						: <>
-							<BsLock size={20} />
+							<Lock size={18} />
 							<span className='hidden md:block ml-2'>
 								{t('pageSettings.unlockSensitive')}
 							</span>
@@ -471,7 +464,7 @@ const UnlockMainKey = ({
 					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
 					<input
 						type="password"
-						className="shadow-xs appearance-none border rounded-sm py-2 px-3 text-gray-700 leading-tight"
+						className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
 						autoFocus={true}
 						disabled={isSubmittingPassword}
@@ -480,29 +473,26 @@ const UnlockMainKey = ({
 						value={password}
 					/>
 
-					<div className="pt-2">
-						<button
+					<div className='flex gap-2 justify-center align-center'>
+						<Button
 							id="cancel-password-management-settings"
-							type="button"
-							className="bg-white px-4 py-2 border border-gray-300 rounded-md cursor-pointer font-medium rounded-lg text-sm hover:bg-gray-100 mr-2"
 							onClick={onCancelPassword}
 							disabled={isSubmittingPassword}
 						>
 							{t('common.cancel')}
-						</button>
-
-						<button
+						</Button>
+						<Button
 							id="submit-password-management-settings"
 							type="submit"
-							className="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm px-4 py-2 text-center dark:bg-blue-600 dark:hover:bg-blue-700"
+							variant='primary'
 							disabled={isSubmittingPassword}
 						>
 							{t('common.submit')}
-						</button>
+						</Button>
 					</div>
 
 					{error &&
-						<p className="text-red-500 mt-2">
+						<p className="text-lm-red dark:text-dm-red mt-2">
 							{error}
 						</p>
 					}
@@ -580,19 +570,19 @@ const WebauthnCredentialItem = ({
 
 	return (
 		<form
-			className="mb-2 pl-4 bg-white dark:bg-gray-800 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md flex flex-row flex-wrap gap-y-2 overflow-x-auto"
+			className="mb-2 pl-4 px-4 py-2 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg flex flex-row flex-wrap gap-y-2 overflow-x-auto"
 			onSubmit={onSubmit}
 		>
 			<div className="grow">
 				{editing
 					? (
 						<>
-							<div className="flex items-center">
+							<div className="flex items-center gap-2">
 								<p className="font-semibold dark:text-white">
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride py-1.5 px-3 w-36"
+									className="w-36 px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
@@ -611,7 +601,7 @@ const WebauthnCredentialItem = ({
 								<span className="font-semibold dark:text-white">
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</span>
-								<span className="font-bold text-primary dark:text-primary-light">
+								<span className="italic">
 									{currentLabel}
 								</span>
 							</p>
@@ -629,29 +619,29 @@ const WebauthnCredentialItem = ({
 						{t('pageSettings.passkeyItem.lastUsed')}:&nbsp;
 					</span>
 					{formatDate(credential.lastUseTime)}</p>
-				<p className='dark:text-white'>
+				<p className='dark:text-white flex gap-3 items-center'>
 					<span className="font-semibold">
 						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
 					</span>
 					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
 					{needsPrfUpgrade
-						&& <span className="font-semibold text-orange-500 ml-2">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
+						&& <span className="py-1 px-2 rounded bg-lm-orange dark:bg-dm-orange text-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
 			</div>
 
-			<div className="items-start	 flex inline-flex">
+			<div className="items-start	flex gap-2">
 				{needsPrfUpgrade
 					&&
-					<button
+					<Button
 						id="upgrade-prf-settings"
-						className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 inline-flex flex-row flex-nowrap items-center text-white font-medium rounded-lg text-sm px-4 py-2 text-center mr-2"
+						variant="outline"
 						type="button"
 						onClick={() => onUpgradePrfKey(prfKeyInfo)}
 						aria-label={t('pageSettings.passkeyItem.prfUpgradeAriaLabel', { passkeyLabel: currentLabel })}
 					>
-						<FaSyncAlt size={16} className="mr-2" /> {t('pageSettings.passkeyItem.prfUpgrade')}
-					</button>
+						<RefreshCcw size={18} /> {t('pageSettings.passkeyItem.prfUpgrade')}
+					</Button>
 				}
 
 				{editing
@@ -661,7 +651,6 @@ const WebauthnCredentialItem = ({
 							<Button
 								id="cancel-editing-settings"
 								onClick={onCancelEditing}
-								variant="cancel"
 								disabled={submitting}
 								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
 							>
@@ -671,7 +660,7 @@ const WebauthnCredentialItem = ({
 								id="save-editing-settings"
 								type="submit"
 								disabled={submitting}
-								variant="secondary"
+								variant="primary"
 							>
 								{t('common.save')}
 							</Button>
@@ -681,12 +670,12 @@ const WebauthnCredentialItem = ({
 						<Button
 							id="rename-passkey"
 							onClick={() => setEditing(true)}
-							variant="secondary"
+							variant="primary"
 							disabled={!isOnline}
 							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
 							title={!isOnline ? t("common.offlineTitle") : ""}
 						>
-							<FaEdit size={16} className="mr-2" />
+							<Edit size={18} className="mr-2" />
 							{t('pageSettings.passkeyItem.rename')}
 						</Button>
 					)
@@ -700,9 +689,9 @@ const WebauthnCredentialItem = ({
 						disabled={!isOnline}
 						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
 						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
-						additionalClassName='ml-2 py-2.5'
+						additionalClassName='ml-2 py-3'
 					>
-						<FaTrash size={16} />
+						<Trash2 size={18} />
 					</Button>
 				)}
 				<DeletePopup
@@ -941,9 +930,9 @@ const Settings = () => {
 
 						<div className="my-2 py-2">
 							<H2 heading={t('pageSettings.title.language')} />
-							<div className="relative inline-block min-w-36 text-gray-700">
+							<div className="relative inline-block min-w-36">
 								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none" showName={true} />
+									<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
 								</div>
 							</div>
 						</div>
@@ -957,47 +946,31 @@ const Settings = () => {
 								</p>
 							</div>
 							<div className="flex gap-2">
-								<Button
-									id="color-scheme-light"
-									onClick={() => setColorScheme('light')}
-									variant='custom'
-									ariaLabel={t('pageSettings.appearance.colorScheme.light')}
-									title={t('pageSettings.appearance.colorScheme.light')}
-									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'light' ? 'bg-gray-100 border border-primary dark:border-primary-light' : 'bg-white '}`}
-
-								>
-									<BsSunFill className='mr-2' />
-									{t('pageSettings.appearance.colorScheme.light')}
-								</Button>
-
-								<Button
-									id="color-scheme-dark"
-									onClick={() => setColorScheme('dark')}
-									variant="custom"
-									ariaLabel={t('pageSettings.appearance.colorScheme.dark')}
-									title={t('pageSettings.appearance.colorScheme.dark')}
-									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'dark' ? 'dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white dark:bg-gray-800'}`}
-
-								>
-									<BsMoonFill className='mr-2' />
-									{t('pageSettings.appearance.colorScheme.dark')}
-								</Button>
-
-								<Button
-									id="color-scheme-system"
-									onClick={() => setColorScheme('system')}
-									variant="custom"
-									ariaLabel={t('pageSettings.appearance.colorScheme.system')}
-									title={t('pageSettings.appearance.colorScheme.system')}
-									additionalClassName={`border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-white ${settings.colorScheme === 'system' ? 'bg-gray-100 dark:bg-gray-700 border border-primary dark:border-white' : 'bg-white  dark:bg-gray-800'}`}
-								>
-									{screenType === 'desktop' ? (
-										<FaLaptop className='mr-2' />
-									) : (
-										<FaMobile className='mr-2' />
-									)}
-									{t('pageSettings.appearance.colorScheme.system')}
-								</Button>
+								<div className="relative">
+									<span className="absolute top-[50%] left-3 transform -translate-y-[50%] pointer-events-none">
+										{settings.colorScheme === 'light' && <Sun size={18} />}
+										{settings.colorScheme === 'dark' && <Moon size={18} />}
+										{settings.colorScheme === 'system' && (screenType === 'desktop' ? <Laptop size={18} /> : <Smartphone size={18} />)}
+									</span>
+									<select
+										className="h-10 pl-10 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none"
+										value={settings.colorScheme}
+										onChange={(e) => setColorScheme(e.target.value as ColorScheme)}
+									>
+										<option value="system">
+											{t('pageSettings.appearance.colorScheme.system')}
+										</option>
+										<option value="light">
+											{t('pageSettings.appearance.colorScheme.light')}
+										</option>
+										<option value="dark">
+											{t('pageSettings.appearance.colorScheme.dark')}
+										</option>
+									</select>
+									<span className="absolute right-2 top-[50%] transform -translate-y-[50%] pointer-events-none">
+										<ChevronDown size={18} />
+									</span>
+								</div>
 							</div>
 						</div>
 						<div className="my-2 py-2">
@@ -1018,10 +991,10 @@ const Settings = () => {
 								{t('pageSettings.rememberIssuer.description')}
 							</p>
 							<div className='flex gap-2 items-center'>
-								<div className="relative inline-block min-w-36 text-gray-700">
+								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 											disabled={!isOnline}
@@ -1034,12 +1007,12 @@ const Settings = () => {
 											<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
 										</select>
 										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
-											<IoIosArrowDown className='dark:text-white' />
+											<ChevronDown size={18} className='dark:text-white' />
 										</span>
 									</div>
 								</div>
 								{successMessage && (
-									<div className="text-md text-green-500">
+									<div className="text-md text-lm-green dark:text-dm-green">
 										{successMessage}
 									</div>
 								)}
@@ -1051,10 +1024,10 @@ const Settings = () => {
 								{t('pageSettings.oblivious.description')}
 							</p>
 							<div className='flex gap-2 items-center'>
-								<div className="relative inline-block min-w-36 text-gray-700">
+								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 border border-gray-300 dark:border-gray-500 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 text-lm-gray-900 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.useOblivious}
 											onChange={(e) => handleObliviousChange(e.target.value)}
 											disabled={!isOnline}
@@ -1064,12 +1037,12 @@ const Settings = () => {
 											<option value="true">{t('pageSettings.oblivious.gunet')}</option>
 										</select>
 										<span className="absolute top-1/2 right-2 transform -translate-y-[43%] pointer-events-none">
-											<IoIosArrowDown className='dark:text-white' />
+											<ChevronDown size={18} className='dark:text-white' />
 										</span>
 									</div>
 								</div>
 								{obliviousSettingsMessage && (
-									<div className="text-md text-green-500">
+									<div className="text-md text-lm-green dark:text-lm-green">
 										{obliviousSettingsMessage}
 									</div>
 								)}
@@ -1123,6 +1096,7 @@ const Settings = () => {
 										disabled={!unlocked || !isOnline}
 										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
 									>
+										<Trash2 size={18} />
 										{t('pageSettings.deleteAccount.buttonText')}
 									</Button>
 								</div>
@@ -1133,9 +1107,9 @@ const Settings = () => {
 							<div className='relative'>
 								<H2 heading={t('pageSettings.title.appVersion')} />
 								{updateAvailable && (
-									<MdNotifications
+									<Bell
 										size={22}
-										className="text-green-500 absolute top-0 left-[105px]"
+										className="text-lm-green dark:text-dm-green absolute top-0 left-[105px]"
 									/>
 								)}
 							</div>
@@ -1148,7 +1122,7 @@ const Settings = () => {
 											reloadButton:
 												<button
 													id="reload-update-version"
-													className='text-primary dark:text-extra-light underline'
+													className='text-primary dark:text-brand-light underline'
 													onClick={() => window.location.reload()}
 												/>,
 											strong: <strong />,
@@ -1184,39 +1158,38 @@ const Settings = () => {
 				>
 					{upgradePrfState?.state === "authenticate"
 						? <>
-							<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.upgradePrfKey.title')}</h1>
+							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent='center'></H2>
 							<p className='mb-2'>
 								{t('pageSettings.upgradePrfKey.description', { passkeyLabel: upgradePrfPasskeyLabel })}
 							</p>
-							<button
-								type="button"
-								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-								onClick={onCancelUpgradePrfKey}
-							>
-								{t('common.cancel')}
-							</button>
+							<div className='flex gap-2 justify-center align-center'>
+								<Button
+									onClick={onCancelUpgradePrfKey}
+									>
+										{t('common.cancel')}
+								</Button>
+							</div>
 						</>
 						: <>
-							<h1 className="font-semibold text-gray-700 my-2">{t('pageSettings.upgradePrfKey.title')}</h1>
+							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent='center'></H2>
 							<Trans
 								i18nKey="pageSettings.upgradePrfKey.error"
 								values={{ passkeyLabel: upgradePrfPasskeyLabel }}
 								components={{ p: <p className='mb-2' /> }}
 							/>
-							<button
-								type="button"
-								className="bg-white px-4 py-2 border border-gray-300 font-medium rounded-lg text-sm cursor-pointer hover:bg-gray-100 mr-2"
-								onClick={onCancelUpgradePrfKey}
-							>
-								{t('common.cancel')}
-							</button>
-							<button
-								type="button"
-								className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-medium rounded-lg text-sm px-4 py-2 text-center mr-2"
-								onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-							>
-								{t('common.tryAgain')}
-							</button>
+							<div className='flex gap-2 justify-center align-center'>
+								<Button
+									onClick={onCancelUpgradePrfKey}
+									>
+									{t('common.cancel')}
+								</Button>
+								<Button
+									variant='primary'
+									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
+									>
+									{t('common.tryAgain')}
+								</Button>
+							</div>
 						</>
 					}
 				</Dialog>

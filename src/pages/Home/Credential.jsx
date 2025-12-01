@@ -2,7 +2,6 @@
 import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { BsQrCode, BsCheckCircle } from "react-icons/bs";
 import QRCode from "react-qr-code";
 import i18n from '@/i18n';
 
@@ -29,6 +28,7 @@ import CredentialImage from '../../components/Credentials/CredentialImage';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
+import { BookCheck, QrCode } from 'lucide-react';
 
 const Credential = () => {
 	const { batchId } = useParams();
@@ -160,7 +160,7 @@ const Credential = () => {
 			component:
 				<>
 					{history.length === 0 ? (
-						<p className="text-gray-700 dark:text-white">
+						<p className="text-lm-gray-900 dark:text-white">
 							{t('pageHistory.noFound')}
 						</p>
 					) : (
@@ -208,7 +208,7 @@ const Credential = () => {
 					)}
 				</div>
 				<div className='px-2 w-full'>
-					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><BsQrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
+					{shareWithQr && (<Button variant='primary' additionalClassName='w-full my-2' onClick={generateQR}>{<span className='px-1'><QrCode /></span>}{t('qrShareMdoc.shareUsingQR')}</Button>)}
 					<PopupLayout fullScreen={true} isOpen={showMdocQR}>
 						<div className="flex items-start justify-between mb-2">
 							<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
@@ -217,11 +217,11 @@ const Credential = () => {
 						</div>
 						<hr className="mb-2 border-t border-primary/80 dark:border-white/80" />
 						<span>
-							{mdocQRStatus === -1 && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
+							{mdocQRStatus === -1 && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.enablePermissions')}</span>}
 							{mdocQRStatus === 0 && <div className='flex items-center justify-center'><QRCode value={mdocQRContent} /></div>}
-							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-gray-700 italic dark:text-white text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
+							{(mdocQRStatus === 1 || mdocQRStatus === 3) && <span className="text-lm-gray-800 italic dark:text-dm-gray-200 text-sm mt-2 mb-4">{t('qrShareMdoc.communicating')}</span>}
 							{mdocQRStatus === 2 && <span className='pb-16'>
-								<p className="text-gray-700 dark:text-white text-sm mt-2 mb-4">
+								<p className="text-lm-gray-800 dark:text-dm-gray-200 text-sm mt-2 mb-4">
 									{t('qrShareMdoc.nearbyVerifierRequested')}{' '}
 									<strong>
 										{
@@ -239,14 +239,14 @@ const Credential = () => {
 								<div className={`flex flex-wrap justify-center flex flex-row justify-center items-center mb-2 pb-[20px] ${screenType === 'desktop' && 'overflow-y-auto items-center custom-scrollbar max-h-[20vh]'} ${screenType === 'tablet' && 'px-24'}`}>
 									{vcEntity && <CredentialInfo mainClassName={"text-xs w-full"} parsedCredential={vcEntity.parsedCredential} />}
 								</div>
-								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
-									<Button variant='cancel' onClick={cancelShare}>{t('common.cancel')}</Button>
+								<div className={`flex justify-between pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
+									<Button onClick={cancelShare}>{t('common.cancel')}</Button>
 									<Button variant='primary' onClick={consentToShare}>{t('qrShareMdoc.send')}</Button>
 								</div>
 							</span>}
-							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BsCheckCircle color='green' size={100} /></span>}
+							{mdocQRStatus === 4 && <span className='flex items-center justify-center mt-10'><BookCheck color='green' size={100} /></span>}
 							{![1, 2].includes(mdocQRStatus) &&
-								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 flex px-6 pb-6 flex shadow-2xl rounded-t-lg w-auto'}`}>
+								<div className={`flex justify-end pt-4 z-10 ${screenType !== 'desktop' && 'fixed bottom-0 left-0 right-0 bg-white dark:bg-dm-gray-800 flex px-6 pb-6 shadow-2xl rounded-t-lg w-auto'}`}>
 									<Button variant='primary' onClick={() => setShowMdocQR(false)}>{t('messagePopup.close')}</Button>
 								</div>}
 						</span>

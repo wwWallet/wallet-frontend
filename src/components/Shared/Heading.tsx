@@ -18,7 +18,7 @@ const defaults: DefaultableProps = {
 	flexAlignItems: "center",
 	flexJustifyContent: "between",
 	hr: true,
-	textColorClass: "text-primary dark:text-white",
+	textColorClass: "text-lm-gray-900 dark:text-white",
 }
 
 
@@ -38,13 +38,13 @@ export const H1 = withDefaults(defaults, (props: Props) => (
 			</h1>
 			{props.children}
 		</div>
-		{props.hr && <hr className="mb-2 border-t border-primary/80 dark:border-white/80" />}
+		{props.hr && <hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />}
 	</>
 ));
 
 export const H2 = withDefaults({
 	...defaults,
-	textColorClass: "text-primary dark:text-primary-light"
+	textColorClass: "text-lm-gray-900 dark:text-white"
 }, (props: Props) => (
 	<>
 		<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
@@ -53,13 +53,13 @@ export const H2 = withDefaults({
 			</h2>
 			{props.children}
 		</div>
-		{props.hr && <hr className="mb-2 border-t border-primary/80 dark:border-primary-light/80" />}
+		{props.hr && <hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />}
 	</>
 ));
 
 export const H3 = withDefaults({
 	...defaults,
-	textColorClass: "text-gray-700 dark:text-gray-400",
+	textColorClass: "text-lm-gray-900 dark:text-dm-gray-100",
 }, (props: Props) => (
 	<>
 		<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
@@ -68,6 +68,6 @@ export const H3 = withDefaults({
 			</h3>
 			{props.children}
 		</div>
-		{props.hr && <hr className="mb-2 border-t border-gray-700/80 dark:border-gray-400/80" />}
+		{props.hr && <hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />}
 	</>
 ));
