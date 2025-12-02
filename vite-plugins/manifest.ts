@@ -4,12 +4,22 @@ import path from 'path';
 import sharp from 'sharp';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 
-function findLogoFile(baseDir: string, name: string): string|null {
-	const svgPath = path.join(baseDir, `${name}.svg`);
-	const pngPath = path.join(baseDir, `${name}.png`);
+function findBrandingFile(filePath: string): string|null {
+	const customFilePath = path.join(
+		path.dirname(filePath), "custom", path.basename(filePath)
+	);
 
-	if (fs.existsSync(svgPath)) return svgPath;
-	if (fs.existsSync(pngPath)) return pngPath;
+	if (fs.existsSync(customFilePath)) return customFilePath;
+	if (fs.existsSync(filePath)) return filePath;
+	return null
+}
+
+function findLogoFile(baseDir: string, name: string): string|null {
+	const svgPath = findBrandingFile(path.join(baseDir, `${name}.svg`));
+	const pngPath = findBrandingFile(path.join(baseDir, `${name}.png`));
+
+	if (svgPath) return svgPath;
+	if (pngPath) return pngPath;
 	return null;
 }
 
@@ -28,8 +38,9 @@ async function generateAllIcons({
 	appleTouchIcon,
 	manifestIconSizes,
 }: GenerateAllIconsOptions): Promise<ManifestOptions['icons']> {
-	if (fs.existsSync(path.join(sourceDir, 'custom'))) {
-		sourceDir = path.join(sourceDir, 'custom')
+	const faviconPath = findBrandingFile(path.join(sourceDir, "favicon.ico"));
+	if (!faviconPath) {
+		throw new Error("favicon not found");
 	}
 
 	const logoLightPath = findLogoFile(sourceDir, 'logo_light');
@@ -47,6 +58,9 @@ async function generateAllIcons({
 		await Promise.all([
 			copyFile(logoLightPath, path.join(publicDir, path.basename(logoLightPath))),
 			copyFile(logoDarkPath, path.join(publicDir, path.basename(logoDarkPath))),
+			copyFile(faviconPath, path.join(publicDir, path.basename(faviconPath))).catch(() => {
+				console.warn(`No file ${faviconPath} was found, skipping...`);
+			}),
 		]);
 	}
 
