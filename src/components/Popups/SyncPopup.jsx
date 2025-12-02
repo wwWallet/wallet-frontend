@@ -6,7 +6,7 @@ import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
-import { GoPasskeyFill } from 'react-icons/go';
+import { UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -69,7 +69,6 @@ const WebauthnLogin = ({
 					<Button
 						id="cancel-login-state"
 						onClick={onClose}
-						variant="cancel"
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
@@ -82,14 +81,14 @@ const WebauthnLogin = ({
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						<GoPasskeyFill className="inline text-xl mr-2" />
+						<UserLock className="inline text-xl mr-2" />
 						{isSubmitting
 							? t('loginSignup.submitting')
 							: t('common.continue')}
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-red-500 pt-2">{error}</div>}
+			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };
@@ -133,10 +132,10 @@ const SyncPopup = ({ message, onClose }) => {
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} shouldCloseOnOverlayClick={false}>
 			<div className="flex flex-col items-center text-center mb-2">
-				<p className="font-bold text-xl mt-2 dark:text-white">
+				<p className="font-bold text-xl mt-2 dark:text-dm-gray-100">
 					{t('loginState.title')} {filteredUser.displayName}
 				</p>
-				<p className=" mb-2 mt-2 dark:text-white">
+				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
 					<Trans
 						i18nKey={description}
 						components={{ strong: <strong /> }}

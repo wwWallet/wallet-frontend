@@ -23,8 +23,8 @@ export default function CounterBadge({
 	const base =
 		'inline-flex items-center justify-center min-w-6 h-6 px-2 text-xs font-semibold rounded-full';
 	const scheme = active
-		? 'bg-orange-500 text-white'
-		: 'bg-orange-500 text-white';
+		? 'bg-lm-orange text-lm-gray-900 dark:bg-dm-orange dark:text-white'
+		: 'bg-lm-orange text-lm-gray-900 dark:bg-dm-orange dark:text-white';
 	const posClass =
 		position === 'top-right'
 			? 'absolute -top-2 -right-2'
