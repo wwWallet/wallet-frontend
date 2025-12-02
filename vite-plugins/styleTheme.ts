@@ -12,13 +12,30 @@ type ThemeConfig = {
 	[group: string]: any;
 };
 
-function generateStyleTheme(): string {
-	const configPath = path.resolve('branding/style/theme.json');
+const BASE_THEME_PATH = path.resolve('branding/style/theme.json');
+const CUSTOM_THEME_PATH = path.resolve('branding/style/custom/theme.json');
 
-	if (!fs.existsSync(configPath)) {
-		console.warn('[StyleThemePlugin] branding/style/theme.json not found, generating empty theme.css');
+function resolveThemeConfigPath(): string | null {
+	if (fs.existsSync(CUSTOM_THEME_PATH)) {
+		return CUSTOM_THEME_PATH;
+	}
+	if (fs.existsSync(BASE_THEME_PATH)) {
+		return BASE_THEME_PATH;
+	}
+	return null;
+}
+
+function generateStyleTheme(): string {
+	const configPath = resolveThemeConfigPath();
+
+	if (!configPath) {
+		console.warn(
+			'[StyleThemePlugin] No theme.json found (branding/style/theme.json or branding/style/custom/theme.json). Generating empty theme.css'
+		);
 		return `:root{}\nhtml.dark{}`;
 	}
+
+	console.log(`[StyleThemePlugin] Using theme config: ${path.relative(process.cwd(), configPath)}`);
 
 	const raw = fs.readFileSync(configPath, 'utf8');
 	const theme = JSON.parse(raw) as ThemeConfig;
@@ -66,9 +83,14 @@ export function StyleThemePlugin() {
 			fs.writeFileSync(themeCssPath, generateStyleTheme(), 'utf8');
 			console.log('[StyleThemePlugin] Wrote public/theme.css (dev)');
 
+			const watchedFiles = [BASE_THEME_PATH, CUSTOM_THEME_PATH];
+
+			// Make sure both potential theme files are watched
+			server.watcher.add(watchedFiles);
+
 			server.watcher.on('change', (file: string) => {
-				if (file.endsWith('branding/style/theme.json')) {
-					console.log('[StyleThemePlugin] theme.json changed. Regenerating public/theme.css...');
+				if (watchedFiles.includes(path.resolve(file))) {
+					console.log('[StyleThemePlugin] Theme config changed. Regenerating public/theme.css...');
 					fs.writeFileSync(themeCssPath, generateStyleTheme(), 'utf8');
 				}
 			});
