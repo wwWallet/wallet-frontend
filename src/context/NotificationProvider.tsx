@@ -124,14 +124,14 @@ const Toast: React.FC<{
 	}, []);
 
 	const base =
-		"pointer-events-auto w-[340px] xm:w-full rounded-xl shadow-2xl border p-3 flex gap-2 " +
+		"pointer-events-auto w-[340px] xm:w-full rounded-xl shadow-2xl border p-3 flex items-center gap-2 " +
 		"transform transition-all duration-1000 ease-out " +
 		(enter ? "translate-y-0 opacity-100" : "-translate-y-60 opacity-0");
 
 	const byType: Record<NotificationType, string> = {
-		success: "bg-emerald-50 dark:bg-emerald-700 dark:border-emerald-200 dark:border-white/50 text-emerald-900 dark:text-white",
+		success: "bg-lm-green-bg dark:bg-dm-green-bg border-transparent text-white",
 		newCredential:
-			"bg-blue-50 dark:bg-primary-dark border-primary/30 dark:border-white/50 text-primary dark:text-white",
+			"bg-lm-gray-100 dark:bg-dm-gray-900 border-lm-gray-400 dark:border-dm-gray-600 text-ln-gray-900 dark:text-dm-gray-100",
 	};
 
 	return (
@@ -151,9 +151,9 @@ const Toast: React.FC<{
 				type="button"
 				onClick={onClose}
 				aria-label="Dismiss"
-				className="shrink-0 rounded-md p-1 hover:bg-black/5"
+				className="flex items-center justify-center cursor-pointer shrink-0 rounded-md p-1 hover:bg-lm-gray-500/50"
 			>
-				<X size={16} />
+				<X size={20} />
 			</button>
 		</div>
 	);

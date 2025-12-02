@@ -1,5 +1,4 @@
 import { ICredentialParser, ICredentialParserRegistry } from "../interfaces/ICredentialParser";
-import { PresentationDefinitionType } from "../types/presentationDefinition.type";
 import { calculateHash } from "../utils/digest";
 
 
@@ -16,14 +15,14 @@ export function useCredentialParserRegistry(): ICredentialParserRegistry {
 		setParsers(parsers: ICredentialParser[]): void {
 			parserList.push(...parsers);
 		},
-		async parse(rawCredential: object | string, presentationDefinitionFilter?: PresentationDefinitionType) {
+		async parse(rawCredential: object | string) {
 			const hash = await calculateHash(JSON.stringify(rawCredential));
 			const cacheResult = parsedObjectsCache.get(hash);
 			if (cacheResult) {
 				return cacheResult;
 			}
 			for (const p of parserList) {
-				const result = await p.parse(rawCredential, presentationDefinitionFilter).catch(() => null);
+				const result = await p.parse(rawCredential).catch(() => null);
 				if (result && 'beautifiedForm' in result) {
 					parsedObjectsCache.set(hash, result);
 					return result;

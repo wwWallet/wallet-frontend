@@ -180,7 +180,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							onClick={handleLogout}
 							className={`cursor-pointer flex items-center space-x-2 mb-4 p-2 rounded-lg hover:bg-lm-gray-400 dark:hover:bg-dm-gray-500 transition-colors w-full`}
 						>
-							<LogOut />
+							<LogOut size={20} className="m-1" />
 							<span className='text-left'>
 								{t("sidebar.navItemLogout")}
 							</span>
