@@ -1,5 +1,4 @@
 import React from 'react';
-import { twCx } from "@/utils/twCx";
 
 export type Variant = (
 	'primary'
@@ -108,12 +107,7 @@ const Button = ({
 	};
 
 	const focusVisibleClasses = 'focus-visible:outline-2 focus-visible:outline-offset-2';
-
-	const className = twCx(
-		getVariantClassName(),     // base variant
-		focusVisibleClasses,       // focus styles
-		additionalClassName,       // overrides: LAST => highest priority
-	);
+	const className = `${getVariantClassName()} ${focusVisibleClasses} ${additionalClassName}`;
 
 	return (
 		<button
