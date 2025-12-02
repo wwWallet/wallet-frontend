@@ -23,8 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
-import QrWorker from "./worker.ts?worker";
-import scannerOverlay from "./scanner-overlay.svg?raw";
+import workerUrl from "./worker.ts?worker&url";
 
 class QrScanner {
 	static readonly DEFAULT_CANVAS_SIZE = 400;
@@ -32,6 +31,7 @@ class QrScanner {
 	private static _disableBarcodeDetector = false;
 	private static _workerMessageId = 0;
 	private static _scanRegionHighlightTemplate?: SVGSVGElement;
+	private static _trustedTypesPolicy?: TrustedTypePolicy;
 
 	/** @deprecated */
 	static set WORKER_PATH(workerPath: string) {
@@ -832,8 +832,22 @@ class QrScanner {
 			);
 		}
 
-		// @ts-ignore no types defined for import
-		const createWorker = () => new QrWorker();
+		const createWorker = () => {
+			/* @ts-ignore */
+			const trustedTypesFactory = window.trustedTypes;
+			if (trustedTypesFactory && !QrScanner._trustedTypesPolicy) {
+				QrScanner._trustedTypesPolicy = trustedTypesFactory.createPolicy(
+					"qr-scanner#worker",
+					{ createScriptURL: (url) => url },
+				);
+			}
+			const workerScriptUrl = QrScanner._trustedTypesPolicy
+				? QrScanner._trustedTypesPolicy.createScriptURL(workerUrl)
+				: workerUrl;
+			return new Worker(workerScriptUrl as unknown as string, {
+				type: "module",
+			});
+		};
 
 		const useBarcodeDetector =
 			!QrScanner._disableBarcodeDetector &&
@@ -1022,17 +1036,36 @@ class QrScanner {
 
 	private static _createOverlaySvgElement(): SVGSVGElement {
 		if (!QrScanner._scanRegionHighlightTemplate) {
-			const parsedSvg = new DOMParser().parseFromString(
-				scannerOverlay,
-				"image/svg+xml",
+			const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+			svg.classList.add("scan-region-highlight-svg");
+			svg.setAttribute("viewBox", "0 0 238 238");
+			svg.setAttribute("preserveAspectRatio", "none");
+			const svgStyle = svg.style;
+			svgStyle.position = "absolute";
+			svgStyle.width = "100%";
+			svgStyle.height = "100%";
+			svgStyle.left = "0";
+			svgStyle.top = "0";
+			svgStyle.fill = "none";
+			svgStyle.stroke = "#e9b213";
+			svgStyle.strokeWidth = "4";
+			svgStyle.strokeLinecap = "round";
+			svgStyle.strokeLinejoin = "round";
+
+			const path = document.createElementNS(
+				"http://www.w3.org/2000/svg",
+				"path",
 			);
-			const svgElement = parsedSvg.querySelector("svg");
-			if (!svgElement) {
-				throw new Error("Invalid scan-region highlight svg");
-			}
-			QrScanner._scanRegionHighlightTemplate = svgElement as SVGSVGElement;
+			path.setAttribute(
+				"d",
+				"M31 2H10a8 8 0 0 0-8 8v21M207 2h21a8 8 0 0 1 8 8v21m0 176v21a8 8 0 0 1-8 8h-21m-176 0H10a8 8 0 0 1-8-8v-21",
+			);
+			svg.appendChild(path);
+			QrScanner._scanRegionHighlightTemplate = svg;
 		}
-		return document.importNode(QrScanner._scanRegionHighlightTemplate, true);
+		return QrScanner._scanRegionHighlightTemplate.cloneNode(
+			true,
+		) as SVGSVGElement;
 	}
 
 	private _scanFrame(): void {
