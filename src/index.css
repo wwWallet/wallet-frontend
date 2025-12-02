@@ -15,8 +15,6 @@
 
 /* Theme Variables */
 @theme {
-	--border-radius-xl: 1rem;
-
 	--color-brand-lighter: var(--w-brand-color-lighter);
 	--color-brand-light: var(--w-brand-color-light);
 	--color-brand-base: var(--w-brand-color);
@@ -86,17 +84,17 @@
 	--color-lm-gray-900: hsl(220 20% 5.7%);
 	--color-lm-gray-950: hsl(0 0% 0%);
 
-	--color-dm-gray-50: hsl( 0% 100%);
-	--color-dm-gray-100:hsl(220 6% 92.2%);
-	--color-dm-gray-200:hsl(220 7% 79.6%);
-	--color-dm-gray-300:hsl(220 3% 63.3%);
-	--color-dm-gray-400:hsl(220 2% 50.4%);
-	--color-dm-gray-500:hsl(220 3% 27.6%);
-	--color-dm-gray-600:hsl(220 4% 20.6%);
-	--color-dm-gray-700:hsl(220 5% 14.3%);
-	--color-dm-gray-800:hsl(220 9% 10.2%);
-	--color-dm-gray-900:hsl(220 20% 5.7%);
-	--color-dm-gray-950:hsl(0 0% 0%);
+	--color-dm-gray-50: hsl(0% 100%);
+	--color-dm-gray-100: hsl(220 6% 92.2%);
+	--color-dm-gray-200: hsl(220 7% 79.6%);
+	--color-dm-gray-300: hsl(220 3% 63.3%);
+	--color-dm-gray-400: hsl(220 2% 50.4%);
+	--color-dm-gray-500: hsl(220 3% 27.6%);
+	--color-dm-gray-600: hsl(220 4% 20.6%);
+	--color-dm-gray-700: hsl(220 5% 14.3%);
+	--color-dm-gray-800: hsl(220 9% 10.2%);
+	--color-dm-gray-900: hsl(220 20% 5.7%);
+	--color-dm-gray-950: hsl(0 0% 0%);
 }
 
 /* Keyframes */
@@ -190,21 +188,7 @@ html.dark body {
 	width: 15px;
 }
 
-/* Nav item animation on Hover */
-.nav-item-animate-hover {
-	background: linear-gradient(90deg, transparent 50%, white 50%);
-	background-size: 200% 100%;
-	background-position: left;
-	transition: background 0.2s, color 0.2s;
-	color: white;
-}
-
-.nav-item-animate-hover:hover {
-	background-position: right;
-	color: #003476;
-}
-
-/* Fade in animation for content */
+/* Fade in animation for content (FadeInContentTransition) */
 .content-fade-in-enter,
 .content-fade-in-appear {
 	opacity: 0;
@@ -225,6 +209,7 @@ html.dark body {
 	transition: opacity 400ms ease-in;
 }
 
+/* qr-scanner overwrite style (QRScanner) */
 .scan-region-highlight-svg {
 	stroke: white !important;
 }
