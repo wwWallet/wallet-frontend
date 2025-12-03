@@ -1,44 +1,63 @@
 import fs from 'fs';
-import { copyFile, open } from 'fs/promises';
+import { copyFile } from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
 import { Plugin } from 'vite';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 
-function findBrandingFile(filePath: string): string|null {
-	const customFilePath = path.join(
-		path.dirname(filePath), "custom", path.basename(filePath)
-	);
-
-	if (fs.existsSync(customFilePath)) return customFilePath;
-	if (fs.existsSync(filePath)) return filePath;
-	return null
+type BrandingFile = {
+	readonly pathname: string;
+	readonly filename: string;
+	readonly isDefault: boolean;
+	readonly isCustom: boolean;
 }
 
-function findLogoFile(baseDir: string, name: string): string|null {
-	const svgPath = findBrandingFile(path.join(baseDir, `${name}.svg`));
-	const pngPath = findBrandingFile(path.join(baseDir, `${name}.png`));
+function findBrandingFile(filePathInput: string): BrandingFile | null {
+	const customFilePath = path.join(
+		path.dirname(filePathInput), "custom", path.basename(filePathInput)
+	);
 
-	if (svgPath) return svgPath;
-	if (pngPath) return pngPath;
+	const hasDefault = fs.existsSync(filePathInput);
+	const hasCustom = fs.existsSync(customFilePath);
+
+	if (!hasDefault && !hasCustom) {
+		return null;
+	}
+
+	const pathname = hasCustom ? customFilePath : filePathInput;
+	const filename = path.basename(pathname);
+
+	return {
+		pathname,
+		filename,
+		isDefault: hasDefault && !hasCustom,
+		isCustom: hasCustom,
+	}
+}
+
+function findLogoFile(baseDir: string, name: string): BrandingFile|null {
+	const svgFile = findBrandingFile(path.join(baseDir, `${name}.svg`));
+	const pngFile = findBrandingFile(path.join(baseDir, `${name}.png`));
+
+	if (svgFile?.isCustom) return svgFile;
+	if (pngFile?.isCustom) return pngFile;
+	if (svgFile?.isDefault) return svgFile;
+	if (pngFile?.isDefault) return pngFile;
 	return null;
 }
 
-type LogoFiles = Record<`logo_${'light'|'dark'}`, { path: string; filename: string; }>;
+type LogoFiles = Record<`logo_${'light'|'dark'}`, BrandingFile>;
 
 function findLogoFiles(sourceDir: string): LogoFiles {
 	const files: Partial<LogoFiles> = {};
 
 	for (const logoId of ["logo_light", "logo_dark"] as const) {
-		const sourcePath = findLogoFile(sourceDir, logoId);
-		if (!sourcePath) {
+		const logoFile = findLogoFile(sourceDir, logoId);
+		if (!logoFile) {
 			throw new Error(`${logoId} not found`);
 		}
 
-		files[logoId] = {
-			path: sourcePath,
-			filename: path.basename(sourcePath),
-		};
+		files[logoId] = logoFile
 	}
 
 	return files as LogoFiles;
@@ -59,20 +78,23 @@ async function generateAllIcons({
 	appleTouchIcon,
 	manifestIconSizes,
 }: GenerateAllIconsOptions): Promise<ManifestOptions['icons']> {
-	const faviconPath = findBrandingFile(path.join(sourceDir, "favicon.ico"));
-	if (!faviconPath) {
+	const favicon = findBrandingFile(path.join(sourceDir, "favicon.ico"));
+	if (!favicon) {
 		throw new Error("favicon not found");
 	}
 
-	const { logo_light, logo_dark } = findLogoFiles(sourceDir);
+	const {
+		logo_light: logoLight,
+		logo_dark: logoDark,
+	} = findLogoFiles(sourceDir);
 
-	// Full scale svgs
+	// Full scale logos
 	if (copySource !== false) {
 		await Promise.all([
-			copyFile(logo_light.path, path.join(publicDir, logo_light.filename)),
-			copyFile(logo_dark.path, path.join(publicDir, logo_dark.filename)),
-			copyFile(faviconPath, path.join(publicDir, path.basename(faviconPath))).catch(() => {
-				console.warn(`No file ${faviconPath} was found, skipping...`);
+			copyFile(logoLight.pathname, path.join(publicDir, logoLight.filename)),
+			copyFile(logoDark.pathname, path.join(publicDir, logoDark.filename)),
+			copyFile(favicon.pathname, path.join(publicDir, path.basename(favicon.filename))).catch(() => {
+				console.warn(`No file ${favicon} was found, skipping...`);
 			}),
 		]);
 	}
@@ -85,7 +107,7 @@ async function generateAllIcons({
 
 	// Apple touch icon
 	if (appleTouchIcon !== false) {
-		sharp(logo_dark.path)
+		sharp(logoDark.pathname)
 			.png()
 			.resize(180, 180)
 			.toFile(path.join(iconsDir, 'apple-touch-icon.png'));
@@ -94,7 +116,7 @@ async function generateAllIcons({
 	// Manifest icons
 	const icons: ManifestOptions['icons'] = [];
 
-	const manifestIcon = sharp(logo_dark.path).png()
+	const manifestIcon = sharp(logoDark.pathname).png()
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;
