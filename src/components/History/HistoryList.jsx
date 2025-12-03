@@ -12,6 +12,7 @@ import { reverse, compareBy } from '@/util';
 
 // Utils
 import { formatDate,prettyDomain } from '@/utils';
+import Button from '../Buttons/Button';
 
 /** ------------------ Pure view (NO data fetching here) ------------------ */
 function HistoryListView({ batchId = null, title = '', limit = null, history = {} }) {
@@ -58,16 +59,18 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 				{title && groups.length > 0 && <H3 heading={title} />}
 				<div className="space-y-2">
 					{(limit ? sorted.slice(0, limit) : sorted).map(item => (
-						<button
+						<Button
+							variant='outline'
 							id={`credential-history-item-${item[0].presentation.transactionId}`}
 							key={item[0].presentation.transactionId}
-							className="bg-gray-50 dark:bg-gray-800 text-sm px-4 py-2 dark:text-white border border-gray-200 shadow-xs dark:border-gray-600 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 break-words w-full text-left"
-							style={{ wordBreak: 'break-all' }}
 							onClick={() => handleHistoryItemClick(item)}
+							additionalClassName='w-full'
 						>
-							<div className="font-bold">{prettyDomain(item[0].presentation.audience)}</div>
-							<div>{formatDate(item[0].presentation.presentationTimestampSeconds)}</div>
-						</button>
+							<div className="w-full text-left">
+								<div className="font-bold">{prettyDomain(item[0].presentation.audience)}</div>
+								<div>{formatDate(item[0].presentation.presentationTimestampSeconds)}</div>
+							</div>
+						</Button>
 					))}
 				</div>
 			</div>

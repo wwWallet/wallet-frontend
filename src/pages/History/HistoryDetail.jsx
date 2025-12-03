@@ -1,7 +1,6 @@
 // External libraries
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
 
 // Contexts
@@ -13,6 +12,7 @@ import useFetchPresentations from '@/hooks/useFetchPresentations';
 // Components
 import HistoryDetailContent from '@/components/History/HistoryDetailContent';
 import { H1 } from '@/components/Shared/Heading';
+import { ArrowLeft } from 'lucide-react';
 
 const HistoryDetail = () => {
 	const { transactionId } = useParams();
@@ -42,7 +42,7 @@ const HistoryDetail = () => {
 						className="mr-2 mb-2"
 						aria-label="Go back to the previous page"
 					>
-						<FaArrowLeft size={20} className="text-2xl text-primary dark:text-white" />
+						<ArrowLeft size={20} className="text-2xl text-lm-gray-900 dark:text-dm-gray-100" />
 					</button>
 					<H1 heading={t('pageHistory.presentationDetails.title')} hr={false} />
 				</div>
