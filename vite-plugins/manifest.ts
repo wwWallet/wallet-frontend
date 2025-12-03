@@ -2,6 +2,7 @@ import fs from 'fs';
 import { copyFile, open } from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
+import { Plugin } from 'vite';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 
 function findBrandingFile(filePath: string): string|null {
@@ -21,6 +22,26 @@ function findLogoFile(baseDir: string, name: string): string|null {
 	if (svgPath) return svgPath;
 	if (pngPath) return pngPath;
 	return null;
+}
+
+type LogoFiles = Record<`logo_${'light'|'dark'}`, { path: string; filename: string; }>;
+
+function findLogoFiles(sourceDir: string): LogoFiles {
+	const files: Partial<LogoFiles> = {};
+
+	for (const logoId of ["logo_light", "logo_dark"] as const) {
+		const sourcePath = findLogoFile(sourceDir, logoId);
+		if (!sourcePath) {
+			throw new Error(`${logoId} not found`);
+		}
+
+		files[logoId] = {
+			path: sourcePath,
+			filename: path.basename(sourcePath),
+		};
+	}
+
+	return files as LogoFiles;
 }
 
 type GenerateAllIconsOptions = {
@@ -43,21 +64,13 @@ async function generateAllIcons({
 		throw new Error("favicon not found");
 	}
 
-	const logoLightPath = findLogoFile(sourceDir, 'logo_light');
-	if (!logoLightPath) {
-		throw new Error("light mode logo not found");
-	}
-
-	const logoDarkPath  = findLogoFile(sourceDir, 'logo_dark');
-	if (!logoDarkPath) {
-		throw new Error("dark mode logo not found");
-	}
+	const { logo_light, logo_dark } = findLogoFiles(sourceDir);
 
 	// Full scale svgs
 	if (copySource !== false) {
 		await Promise.all([
-			copyFile(logoLightPath, path.join(publicDir, path.basename(logoLightPath))),
-			copyFile(logoDarkPath, path.join(publicDir, path.basename(logoDarkPath))),
+			copyFile(logo_light.path, path.join(publicDir, logo_light.filename)),
+			copyFile(logo_dark.path, path.join(publicDir, logo_dark.filename)),
 			copyFile(faviconPath, path.join(publicDir, path.basename(faviconPath))).catch(() => {
 				console.warn(`No file ${faviconPath} was found, skipping...`);
 			}),
@@ -72,7 +85,7 @@ async function generateAllIcons({
 
 	// Apple touch icon
 	if (appleTouchIcon !== false) {
-		sharp(logoDarkPath)
+		sharp(logo_dark.path)
 			.png()
 			.resize(180, 180)
 			.toFile(path.join(iconsDir, 'apple-touch-icon.png'));
@@ -81,7 +94,7 @@ async function generateAllIcons({
 	// Manifest icons
 	const icons: ManifestOptions['icons'] = [];
 
-	const manifestIcon = sharp(logoDarkPath).png()
+	const manifestIcon = sharp(logo_dark.path).png()
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;
@@ -152,9 +165,20 @@ export async function generateManifest(env: Record<string, string|null|undefined
 	};
 }
 
-export function ManifestPlugin(env) {
+export function ManifestPlugin(env): Plugin {
 	return {
 		name: 'manifest-plugin',
+
+		config() {
+			const { logo_light, logo_dark } = findLogoFiles(path.resolve('branding'));
+
+			return {
+				define: {
+					"import.meta.env.BRANDING_LOGO_LIGHT": JSON.stringify(`/${logo_light.filename}`),
+					"import.meta.env.BRANDING_LOGO_DARK": JSON.stringify(`/${logo_dark.filename}`),
+				}
+			}
+		},
 
 		async configureServer(server) {
 			// For dev
