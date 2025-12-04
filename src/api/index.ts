@@ -103,16 +103,26 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const [cachedUsers] = useLocalStorage<CachedUser[] | null>("cachedUsers", null);
 
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
-	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
-
-	const navigate = useNavigate();
 
 	/**
 	 * Synchronization tag for the encrypted private data. To prevent data loss,
 	 * this MUST be refreshed only when a new version of the private data is
 	 * loaded into the keystore or successfully uploaded to the server.
 	 */
-	const [privateDataEtag, setPrivateDataEtag] = useLocalStorage<string | null>("privateDataEtag", null);
+	const getPrivateDataEtag = useCallback(() => {
+		return jsonParseTaggedBinary(localStorage.getItem('privateDataEtag'));
+	}, []);
+
+	const setPrivateDataEtag = useCallback((v: string) => {
+		localStorage.setItem('privateDataEtag', jsonStringifyTaggedBinary(v));
+	}, []);
+
+	const removePrivateDataEtag = useCallback(() => {
+		localStorage.removeItem('privateDataEtag');
+	}, []);
+
+	const navigate = useNavigate();
+	const clearSessionStorage = useClearStorages(clearAppToken, clearSessionState);
 
 	const getAppToken = useCallback((): string | null => {
 		return appToken;
@@ -151,9 +161,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	): { [header: string]: string } => {
 		return {
 			...buildGetHeaders(headers, options),
-			...(privateDataEtag ? { 'X-Private-Data-If-Match': privateDataEtag } : {}),
+			...(getPrivateDataEtag() ? { 'X-Private-Data-If-Match': getPrivateDataEtag() } : {}),
 		};
-	}, [buildGetHeaders, privateDataEtag]);
+	}, [buildGetHeaders, getPrivateDataEtag]);
 
 	const getWithLocalDbKey = useCallback(async (
 		path: string,
@@ -283,7 +293,10 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	>> => {
 
 		try {
-			const getPrivateDataResponse = await get('/user/session/private-data', { headers: { 'If-None-Match': privateDataEtag } });
+			if (!isOnline) {
+				return Ok.EMPTY;
+			}
+			const getPrivateDataResponse = await get('/user/session/private-data', { headers: { 'If-None-Match': getPrivateDataEtag() } });
 			if (getPrivateDataResponse.status === 304) {
 				return Ok.EMPTY; // already synced
 			}
@@ -304,7 +317,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			return Err('syncFailed');
 		}
 
-	}, [privateDataEtag, get, navigate]);
+	}, [getPrivateDataEtag, get, navigate, isOnline]);
 
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
@@ -325,8 +338,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 	const clearSession = useCallback((): void => {
 		clearSessionStorage();
+		removePrivateDataEtag();
 		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
-	}, [clearSessionStorage]);
+	}, [clearSessionStorage, removePrivateDataEtag]);
 
 	const setSession = useCallback(async (
 		response: AxiosResponse,

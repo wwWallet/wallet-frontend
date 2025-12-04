@@ -343,7 +343,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				setPrivateData(newPrivateDataEncryptedContainer);
 				newEncryptedContainer = newPrivateDataEncryptedContainer;
 				setMainKey(await keystore.exportMainKey(newMainKey));
-				const foldedState = foldState(mergedContainer);
+				const foldedState = foldState(mergedContainer as CurrentSchema.WalletStateContainer);
 				setCalculatedWalletState(foldedState);
 			}
 			else {
@@ -375,7 +375,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				const { privateData, mainKey } = unlockSuccess;
 				const [unlockedContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
 				const [encryptedContainer, newMainKey, decryptedWalletState] = await mergeWithLocalEncryptedPrivateData([privateData, mainKey, unlockedContainer]);
-				const foldedState = foldState(decryptedWalletState);
+				const foldedState = foldState(decryptedWalletState as CurrentSchema.WalletStateContainer);
 				newEncryptedContainer = encryptedContainer;
 				setPrivateData(encryptedContainer);
 				setMainKey(await keystore.exportMainKey(newMainKey));
@@ -444,7 +444,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		user: UserData,
 	): Promise<EncryptedContainer> => {
 		const unlocked = await keystore.init(mainKey, keyInfo);
-		const privateData = await finishUnlock(unlocked, user);
+		const privateData = await finishUnlock(unlocked, user, null);
 		return privateData;
 	},
 		[finishUnlock]
@@ -457,7 +457,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			user: UserData,
 		): Promise<[EncryptedContainer, CommitCallback] | null> => {
 			const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
-			await finishUnlock(unlockResult, user);
+			await finishUnlock(unlockResult, user, null);
 			return (
 				newPrivateData
 					?
@@ -555,37 +555,20 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 			user: CachedUser | UserData | null,
 		): Promise<[EncryptedContainer, CommitCallback] | null> => {
-			if (!privateData) {
-				const [unlockPrfResult,] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
-				const updatedPrivateData = await finishUnlock(unlockPrfResult, user, credential, promptForPrfRetry);
-				return (
-					updatedPrivateData
-						?
-						[updatedPrivateData,
-							async () => {
+			const [unlockPrfResult,] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
+			const updatedPrivateData = await finishUnlock(unlockPrfResult, user, credential, promptForPrfRetry);
+			return (
+				updatedPrivateData
+					?
+					[updatedPrivateData,
+						async () => {
 
-							},
-						]
-						: null
-				);
-			}
-			else {
-				const [unlockPrfResult,] = await keystore.unlockPrf(encryptedPrivateData, credential, promptForPrfRetry);
-				const updatedPrivateData = await finishUnlock(unlockPrfResult, user, credential, promptForPrfRetry);
-				return (
-					updatedPrivateData
-						?
-						[updatedPrivateData,
-							async () => {
-
-							},
-						]
-						: null
-				);
-			}
-
+						},
+					]
+					: null
+			);
 		},
-		[finishUnlock, privateData]
+		[finishUnlock]
 	);
 
 	const getPasswordOrPrfKeyFromSession = useCallback(
