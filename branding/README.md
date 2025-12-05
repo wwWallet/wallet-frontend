@@ -17,12 +17,13 @@ wwWallet supports the use of a custom logo. To ensure optimal display across the
 
 ### Adding Your Custom Logos
 
-1. Inside the `branding/custom` directory, add your logo files using the following filenames:
+1. Inside the `branding/custom` directory, create a new directory: `logo`.
+2. Inside the new `branding/custom/logo` directory, add your logo files using the following filenames:
     - `logo_light.svg` **or** `logo_light.png`
     - `logo_dark.svg` **or** `logo_dark.png`
      **Note:** Both light and dark versions are required.
 
-2. **Supported formats:**
+3. **Supported formats:**
     - **SVG (recommended):** Ensures crisp scaling and smaller file size.
     - **PNG:** Minimum resolution of **512×512**.
 
