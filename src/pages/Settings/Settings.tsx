@@ -19,7 +19,8 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import {  Bell, ChevronDown, Edit, Key, Laptop, Lock, LockOpen, Moon, RefreshCcw, Smartphone, Sun, Trash2, UserLock } from 'lucide-react';
+import { Bell, ChevronDown, Edit, FingerprintIcon, Laptop, Lock, LockOpen, Moon, RefreshCcw, Smartphone, SmartphoneNfcIcon, Sun, Trash2 } from 'lucide-react';
+import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -213,9 +214,9 @@ const WebauthnRegistation = ({
 			<span className="grow">{t('pageSettings.addPasskey')}</span>
 			{
 				[
-					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: UserLock },
-					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: Key },
-					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: Smartphone },
+					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon },
+					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon },
+					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon },
 				].map(({ Icon, hint, btnLabel }) => (
 					<Button
 						key={hint}

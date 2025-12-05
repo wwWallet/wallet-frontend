@@ -1,3 +1,4 @@
+import { BRANDING } from '@/config';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,8 +12,8 @@ interface LogoProps {
 
 function getLogoUrl(type: string): string {
 	return type === 'light' || type === ''
-		? '/logo_light.svg'
-		: '/logo_dark.svg';
+		? BRANDING.LOGO_LIGHT
+		: BRANDING.LOGO_DARK;
 }
 
 const Logo: React.FC<LogoProps> = ({

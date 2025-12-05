@@ -7,7 +7,7 @@ const CredentialTabs = ({ tabs, activeTab, onTabChange }) => {
 				<button
 					id={`credential-tab-${index}`}
 					key={index}
-					className={`py-2 px-4 ${activeTab === index ? 'bg-lm-gray-500 dark:bg-dm-gray-500 text-lm-gray-900 dark:text-dm-gray-100 rounded-t-lg' : 'text-lm-gray-900 dark:text-dm-gray-100'}`}
+					className={`py-2 px-4 ${activeTab === index ? 'bg-lm-gray-500 dark:bg-dm-gray-500 text-lm-gray-900 dark:text-dm-gray-100 rounded-t-lg' : 'text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer'}`}
 					onClick={() => onTabChange(index)}
 				>
 					{tab.label}

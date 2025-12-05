@@ -10,7 +10,7 @@ const AddCredentialCard = ({ onClick }) => {
 		<button
 			id="add-credential-card"
 			onClick={onClick}
-			className="step-1 relative w-full aspect-[1.6] rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all bg-linear-to-br from-lm-gray-600 via-lm-gray-700 to-lm-gray-800 text-lm-gray-100 dark:from-dm-gray-600 dark:via-dm-gray-700 dark:to-dm-gray-800"
+			className="step-1 relative w-full aspect-[1.6] rounded-xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all bg-linear-to-br from-lm-gray-600 via-lm-gray-700 to-lm-gray-800 text-lm-gray-100 dark:from-dm-gray-600 dark:via-dm-gray-700 dark:to-dm-gray-800"
 		>
 			{/* Decorative background layers */}
 			<div className="absolute inset-0 bg-white/10 backdrop-blur-xs z-0" />
