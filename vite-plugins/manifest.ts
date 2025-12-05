@@ -12,19 +12,18 @@ type BrandingFile = {
 	readonly isCustom: boolean;
 }
 
-function findBrandingFile(filePathInput: string): BrandingFile | null {
-	const customFilePath = path.join(
-		path.dirname(filePathInput), "custom", path.basename(filePathInput)
-	);
+function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
+	const defaultFilePath = path.join(baseDir, "default", filePath);
+	const customFilePath = path.join(baseDir, "custom", filePath);
 
-	const hasDefault = fs.existsSync(filePathInput);
+	const hasDefault = fs.existsSync(defaultFilePath);
 	const hasCustom = fs.existsSync(customFilePath);
 
 	if (!hasDefault && !hasCustom) {
 		return null;
 	}
 
-	const pathname = hasCustom ? customFilePath : filePathInput;
+	const pathname = hasCustom ? customFilePath : defaultFilePath;
 	const filename = path.basename(pathname);
 
 	return {
@@ -36,8 +35,8 @@ function findBrandingFile(filePathInput: string): BrandingFile | null {
 }
 
 function findLogoFile(baseDir: string, name: string): BrandingFile|null {
-	const svgFile = findBrandingFile(path.join(baseDir, `${name}.svg`));
-	const pngFile = findBrandingFile(path.join(baseDir, `${name}.png`));
+	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
+	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
 
 	if (svgFile?.isCustom) return svgFile;
 	if (pngFile?.isCustom) return pngFile;
@@ -54,7 +53,7 @@ function findLogoFiles(sourceDir: string): LogoFiles {
 	for (const logoId of ["logo_light", "logo_dark"] as const) {
 		const logoFile = findLogoFile(sourceDir, logoId);
 		if (!logoFile) {
-			throw new Error(`${logoId} not found`);
+			throw new Error(`${logoId} not found in ${sourceDir}`);
 		}
 
 		files[logoId] = logoFile
@@ -78,7 +77,7 @@ async function generateAllIcons({
 	appleTouchIcon,
 	manifestIconSizes,
 }: GenerateAllIconsOptions): Promise<ManifestOptions['icons']> {
-	const favicon = findBrandingFile(path.join(sourceDir, "favicon.ico"));
+	const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"));
 	if (!favicon) {
 		throw new Error("favicon not found");
 	}

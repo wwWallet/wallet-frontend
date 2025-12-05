@@ -12,8 +12,8 @@ type ThemeConfig = {
 	[group: string]: any;
 };
 
-const BASE_THEME_PATH = path.resolve('branding/style/theme.json');
-const CUSTOM_THEME_PATH = path.resolve('branding/style/custom/theme.json');
+const BASE_THEME_PATH = path.resolve('branding/default/theme.json');
+const CUSTOM_THEME_PATH = path.resolve('branding/custom/theme.json');
 
 function resolveThemeConfigPath(): string | null {
 	if (fs.existsSync(CUSTOM_THEME_PATH)) {
@@ -30,7 +30,7 @@ function generateStyleTheme(): string {
 
 	if (!configPath) {
 		console.warn(
-			'[StyleThemePlugin] No theme.json found (branding/style/theme.json or branding/style/custom/theme.json). Generating empty theme.css'
+			'[StyleThemePlugin] No theme.json found (branding/default/theme.json or branding/custom/theme.json). Generating empty theme.css'
 		);
 		return `:root{}\nhtml.dark{}`;
 	}
