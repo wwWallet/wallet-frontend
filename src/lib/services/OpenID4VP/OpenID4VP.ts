@@ -501,7 +501,7 @@ export function useOpenID4VP({
 
 		const formData = new URLSearchParams();
 
-		if (S.response_mode === ResponseMode.DIRECT_POST_JWT && S.client_metadata.authorization_encrypted_response_alg) {
+		if ([ResponseMode.DIRECT_POST_JWT, ResponseMode.DC_API_JWT].includes(S.response_mode) && S.client_metadata.authorization_encrypted_response_alg) {
 			const { rp_eph_pub_jwk } = await retrieveKeys(S);
 			const rp_eph_pub = await importJWK(rp_eph_pub_jwk, S.client_metadata.authorization_encrypted_response_alg);
 
