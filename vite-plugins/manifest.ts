@@ -34,6 +34,30 @@ function findBrandingFile(baseDir: string, filePath: string): BrandingFile | nul
 	}
 }
 
+function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null {
+	const customFilePath = path.join(
+		path.dirname(filePathInput), "custom", path.basename(filePathInput)
+	);
+
+	const hasDefault = fs.existsSync(filePathInput);
+	const hasCustom = fs.existsSync(customFilePath);
+
+	if (!hasDefault && !hasCustom) {
+		return null;
+	}
+
+	const pathname = hasCustom ? customFilePath : filePathInput;
+	const filename = path.basename(pathname);
+
+	return {
+		pathname,
+		filename,
+		isDefault: hasDefault && !hasCustom,
+		isCustom: hasCustom,
+	}
+}
+
+
 function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
 	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
@@ -42,6 +66,24 @@ function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	if (pngFile?.isCustom) return pngFile;
 	if (svgFile?.isDefault) return svgFile;
 	if (pngFile?.isDefault) return pngFile;
+
+	// To be deprecated
+	const deprecatedPathSvgFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.svg`));
+	const deprecatedPathPngFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.png`));
+
+	if (deprecatedPathSvgFile) {
+		console.warn(`Deprecation Warning: Logo found at: ${deprecatedPathSvgFile.pathname}. This is no longer supported.`);
+	}
+
+	if (deprecatedPathPngFile) {
+		console.warn(`Deprecation Warning: Logo found at: ${deprecatedPathPngFile.pathname}. This is no longer supported.`);
+	}
+
+	if (deprecatedPathSvgFile?.isCustom) return deprecatedPathSvgFile;
+	if (deprecatedPathPngFile?.isCustom) return deprecatedPathPngFile;
+	if (deprecatedPathSvgFile?.isDefault) return deprecatedPathSvgFile;
+	if (deprecatedPathPngFile?.isDefault) return deprecatedPathPngFile;
+
 	return null;
 }
 
