@@ -119,7 +119,9 @@ async function generateAllIcons({
 	appleTouchIcon,
 	manifestIconSizes,
 }: GenerateAllIconsOptions): Promise<ManifestOptions['icons']> {
-	const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"));
+	const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"))
+		|| deprecated_findBrandingFile(path.join(sourceDir, "favicon.ico"));
+
 	if (!favicon) {
 		throw new Error("favicon not found");
 	}
