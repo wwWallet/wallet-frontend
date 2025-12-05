@@ -27,6 +27,9 @@ interface ImportMetaEnv {
 	readonly VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: string;
 	readonly VITE_OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS: string;
 	readonly VITE_OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS: string;
+
+	readonly BRANDING_LOGO_LIGHT: string;
+	readonly BRANDING_LOGO_DARK: string;
 }
 
 interface ImportMeta {
