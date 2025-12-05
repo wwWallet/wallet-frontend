@@ -7,8 +7,6 @@
 
 /* Theme Variables */
 @theme {
-	--border-radius-xl: 1rem;
-
 	--color-brand-lighter: var(--w-brand-color-lighter);
 	--color-brand-light: var(--w-brand-color-light);
 	--color-brand-base: var(--w-brand-color);
@@ -170,21 +168,7 @@
 	width: 15px;
 }
 
-/* Nav item animation on Hover */
-.nav-item-animate-hover {
-	background: linear-gradient(90deg, transparent 50%, white 50%);
-	background-size: 200% 100%;
-	background-position: left;
-	transition: background 0.2s, color 0.2s;
-	color: white;
-}
-
-.nav-item-animate-hover:hover {
-	background-position: right;
-	color: #003476;
-}
-
-/* Fade in animation for content */
+/* Fade in animation for content (FadeInContentTransition) */
 .content-fade-in-enter,
 .content-fade-in-appear {
 	opacity: 0;
@@ -205,6 +189,7 @@
 	transition: opacity 400ms ease-in;
 }
 
+/* qr-scanner overwrite style (QRScanner) */
 .scan-region-highlight-svg {
 	stroke: white !important;
 }
