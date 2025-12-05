@@ -49,6 +49,8 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 	const pathname = hasCustom ? customFilePath : filePathInput;
 	const filename = path.basename(pathname);
 
+	console.warn(`Deprecation Warning: Branding file found at: ${pathname}. This is no longer supported.`);
+
 	return {
 		pathname,
 		filename,
@@ -70,14 +72,6 @@ function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	// To be deprecated
 	const deprecatedPathSvgFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.svg`));
 	const deprecatedPathPngFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.png`));
-
-	if (deprecatedPathSvgFile) {
-		console.warn(`Deprecation Warning: Logo found at: ${deprecatedPathSvgFile.pathname}. This is no longer supported.`);
-	}
-
-	if (deprecatedPathPngFile) {
-		console.warn(`Deprecation Warning: Logo found at: ${deprecatedPathPngFile.pathname}. This is no longer supported.`);
-	}
 
 	if (deprecatedPathSvgFile?.isCustom) return deprecatedPathSvgFile;
 	if (deprecatedPathPngFile?.isCustom) return deprecatedPathPngFile;
