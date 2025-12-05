@@ -19,8 +19,8 @@ import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 import useScreenType from '@/hooks/useScreenType';
-import { CircleQuestionMark, Eye, EyeOff, Info, Key, Lock, LockKeyholeOpen, Smartphone, User, UserLock, X } from 'lucide-react';
-
+import { CircleQuestionMark, Eye, EyeOff, FingerprintIcon, Info, Lock, LockKeyholeOpen,SmartphoneNfcIcon, User, UserLock, X } from 'lucide-react';
+import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 
 const FormInputRow = ({
 	IconComponent,
@@ -556,9 +556,9 @@ const WebauthnSignupLogin = ({
 
 						{!isLoginCache && (
 							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: UserLock, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: Key, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: Smartphone, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
+								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
+								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
 							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
 								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button

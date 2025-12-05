@@ -53,6 +53,7 @@ variables.vars
 public/icons
 public/favicon.ico
 public/logo_*.svg
+public/logo_*.png
 public/manifest.json
 public/robots.txt
 public/sitemap.xml
