@@ -2,6 +2,7 @@ import { CLOCK_TOLERANCE } from "../config";
 import { IHttpProxy } from "./interfaces/IHttpProxy";
 import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
 import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
+import { VCT_REGISTRY } from '@/config';
 
 export async function initializeCredentialEngine(
 	httpProxy: IHttpProxy,
@@ -17,6 +18,9 @@ export async function initializeCredentialEngine(
 		subtle: crypto.subtle,
 		lang: 'en-US',
 		trustedCertificates,
+		config:{
+			vctRegistryUri: VCT_REGISTRY
+		}
 	};
 
 	helper.fetchIssuerMetadataAndCertificates(
