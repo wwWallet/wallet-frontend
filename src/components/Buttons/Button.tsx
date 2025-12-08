@@ -40,6 +40,7 @@ export type Props = {
 	ariaLabel?: string,
 	title?: string,
 	linkClassName?: string,
+	value?: string;
 };
 
 const Button = ({
@@ -56,6 +57,7 @@ const Button = ({
 	ariaLabel,
 	title,
 	linkClassName = 'text-lm-gray-900 dark:text-dm-gray-100',
+	value,
 }: Props) => {
 
 	const getVariantClassName = () => {
@@ -118,6 +120,7 @@ const Button = ({
 			className={className}
 			{...(ariaLabel && { 'aria-label': ariaLabel })}
 			{...(title && { title })}
+			{...(value && { value })}
 		>
 			{children}
 		</button>
