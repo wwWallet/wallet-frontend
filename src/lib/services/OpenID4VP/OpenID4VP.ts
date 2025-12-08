@@ -105,8 +105,13 @@ export function useOpenID4VP({
 		};
 	}
 
-	async function handleRequestUri(request_uri: string, httpProxy: any): Promise<any> {
+	async function handleRequestUri(request_uri: string, httpProxy: any): Promise<
+		{ payload: Record<string, unknown>, parsedHeader: Record<string, unknown> } |
+		{ error: HandleAuthorizationRequestError }> {
 		const requestUriResponse = await httpProxy.get(request_uri, {});
+		if (typeof requestUriResponse.data !== 'string') {
+			return { error: HandleAuthorizationRequestError.COULD_NOT_RESOLVE_REQUEST };
+		}
 		const jwt = requestUriResponse.data;
 		const [header, payload] = jwt.split('.');
 		const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(header)));
