@@ -42,7 +42,7 @@ function generateStyleTheme(): string {
 		Object.entries(groupValues).forEach(([key, value]) => {
 			const groupKebab = groupName.replace(/([A-Z])/g, '-$1').toLowerCase();
 			const keyKebab = key.replace(/([A-Z])/g, '-$1').toLowerCase();
-			rootVars.push(`  --w-${groupKebab}-${keyKebab}: ${value};`);
+			rootVars.push(`  --theme-${groupKebab}-${keyKebab}: ${value};`);
 		});
 	});
 

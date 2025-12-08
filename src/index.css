@@ -7,11 +7,11 @@
 
 /* Theme Variables */
 @theme {
-	--color-brand-lighter: var(--w-brand-color-lighter);
-	--color-brand-light: var(--w-brand-color-light);
-	--color-brand-base: var(--w-brand-color);
-	--color-brand-dark: var(--w-brand-color-dark);
-	--color-brand-darker: var(--w-brand-color-darker);
+	--color-brand-lighter: var(--theme-brand-color-lighter);
+	--color-brand-light: var(--theme-brand-color-light);
+	--color-brand-base: var(--theme-brand-color);
+	--color-brand-dark: var(--theme-brand-color-dark);
+	--color-brand-darker: var(--theme-brand-color-darker);
 
 	--color-primary: var(--color-brand-base);
 	--color-primary-hover: var(--color-brand-dark);
