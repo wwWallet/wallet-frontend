@@ -142,6 +142,18 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+html,
+body {
+	background-color: #FFFFFF;
+	/* Light mode background */
+}
+
+html.dark,
+html.dark body {
+	background-color: #0E0F11;
+	/* Dark mode background */
+}
+
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
 	width: 8px;
