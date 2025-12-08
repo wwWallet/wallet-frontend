@@ -30,12 +30,12 @@ function generateStyleTheme(): string {
 
 	if (!configPath) {
 		console.warn(
-			'[StyleThemePlugin] No theme.json found (branding/default/theme.json or branding/custom/theme.json). Generating empty theme.css'
+			'[ThemePlugin] No theme.json found (branding/default/theme.json or branding/custom/theme.json). Generating empty theme.css'
 		);
 		return `:root{}\nhtml.dark{}`;
 	}
 
-	console.log(`[StyleThemePlugin] Using theme config: ${path.relative(process.cwd(), configPath)}`);
+	console.log(`[ThemePlugin] Using theme config: ${path.relative(process.cwd(), configPath)}`);
 
 	const raw = fs.readFileSync(configPath, 'utf8');
 	const theme = JSON.parse(raw) as ThemeConfig;
@@ -74,14 +74,14 @@ ${darkVars.join('\n')}
 `.trim();
 }
 
-export function StyleThemePlugin() {
+export function ThemePlugin() {
 	return {
 		name: 'style-theme-plugin',
 
 		async configureServer(server) {
 			const themeCssPath = path.resolve('public/theme.css');
 			fs.writeFileSync(themeCssPath, generateStyleTheme(), 'utf8');
-			console.log('[StyleThemePlugin] Wrote public/theme.css (dev)');
+			console.log('[ThemePlugin] Wrote public/theme.css (dev)');
 
 			const watchedFiles = [BASE_THEME_PATH, CUSTOM_THEME_PATH];
 
@@ -90,7 +90,7 @@ export function StyleThemePlugin() {
 
 			server.watcher.on('change', (file: string) => {
 				if (watchedFiles.includes(path.resolve(file))) {
-					console.log('[StyleThemePlugin] Theme config changed. Regenerating public/theme.css...');
+					console.log('[ThemePlugin] Theme config changed. Regenerating public/theme.css...');
 					fs.writeFileSync(themeCssPath, generateStyleTheme(), 'utf8');
 				}
 			});
@@ -99,7 +99,7 @@ export function StyleThemePlugin() {
 		async buildStart() {
 			const themeCssPath = path.resolve('public/theme.css');
 			fs.writeFileSync(themeCssPath, generateStyleTheme(), 'utf8');
-			console.log('[StyleThemePlugin] Wrote public/theme.css (build)');
+			console.log('[ThemePlugin] Wrote public/theme.css (build)');
 		},
 	};
 }
