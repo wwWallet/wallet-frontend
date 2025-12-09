@@ -60,7 +60,7 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 }
 
 
-function findLogoFile(baseDir: string, name: string): BrandingFile|null {
+function findLogoFile(baseDir: string, name: string): BrandingFile | null {
 	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
 	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
 
@@ -81,7 +81,7 @@ function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	return null;
 }
 
-type LogoFiles = Record<`logo_${'light'|'dark'}`, BrandingFile>;
+type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
 
 function findLogoFiles(sourceDir: string): LogoFiles {
 	const files: Partial<LogoFiles> = {};
@@ -173,7 +173,7 @@ async function generateAllIcons({
 	return icons;
 }
 
-export async function generateManifest(env: Record<string, string|null|undefined>): Promise<Partial<ManifestOptions>> {
+export async function generateManifest(env: Record<string, string | null | undefined>): Promise<Partial<ManifestOptions>> {
 	const icons = await generateAllIcons({
 		sourceDir: path.resolve('branding'),
 		publicDir: path.resolve('public'),
@@ -224,9 +224,9 @@ export async function generateManifest(env: Record<string, string|null|undefined
 	};
 }
 
-export function ManifestPlugin(env): Plugin {
+export function BrandingManifestPlugin(env): Plugin {
 	return {
-		name: 'manifest-plugin',
+		name: 'branding-manifest-plugin',
 
 		config() {
 			const { logo_light, logo_dark } = findLogoFiles(path.resolve('branding'));
