@@ -15,7 +15,7 @@ function resolveThemeConfigPath(): string | null {
 	return null;
 }
 
-function generateStyleTheme(): string {
+function generateTheme(): string {
 	const configPath = resolveThemeConfigPath();
 
 	if (!configPath) {
@@ -80,7 +80,7 @@ export function ThemePlugin() {
 
 			// Adjust path if your entry CSS changes
 			if (normalizedId.endsWith('src/index.css')) {
-				const themeCss = generateStyleTheme();
+				const themeCss = generateTheme();
 
 				// Add theme variables at the start of index.css
 				return `/* Generated theme tokens */\n\n${themeCss}\n\n${code}`;
