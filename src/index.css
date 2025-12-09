@@ -144,13 +144,13 @@
 
 html,
 body {
-	background-color: #FFFFFF;
+	background-color: var(--color-lm-gray-100);
 	/* Light mode background */
 }
 
 html.dark,
 html.dark body {
-	background-color: #0E0F11;
+	background-color: var(--color-dm-gray-900);
 	/* Dark mode background */
 }
 
