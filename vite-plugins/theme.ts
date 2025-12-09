@@ -82,8 +82,8 @@ export function ThemePlugin() {
 			if (normalizedId.endsWith('src/index.css')) {
 				const themeCss = generateStyleTheme();
 
-				// Append theme variables at the end of index.css
-				return `${code}\n\n/* Generated theme tokens */\n${themeCss}`;
+				// Add theme variables at the start of index.css
+				return `/* Generated theme tokens */\n\n${themeCss}\n\n${code}`;
 			}
 
 			return code;
