@@ -35,7 +35,7 @@ function findBrandingFile(filePathInput: string): BrandingFile | null {
 	}
 }
 
-function findLogoFile(baseDir: string, name: string): BrandingFile|null {
+export function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	const svgFile = findBrandingFile(path.join(baseDir, `${name}.svg`));
 	const pngFile = findBrandingFile(path.join(baseDir, `${name}.png`));
 

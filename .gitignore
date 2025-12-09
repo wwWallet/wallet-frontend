@@ -52,6 +52,7 @@ variables.vars
 
 public/icons
 public/favicon.ico
+public/image.png
 public/logo_*.svg
 public/logo_*.png
 public/manifest.json

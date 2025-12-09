@@ -5,6 +5,7 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
+import { MetadataImagePlugin } from './vite-plugins/metadata-image';
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
@@ -20,6 +21,7 @@ export default defineConfig(({ mode }) => {
 				}
 			}),
 			ManifestPlugin(env),
+			MetadataImagePlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),
 			MobileWrapperWKAppLinksPlugin(env),
