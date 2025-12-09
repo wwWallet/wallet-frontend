@@ -32,3 +32,40 @@ Vite will automatically detect these files and generate all necessary logo asset
 ## Favicon
 
 You can customize the favicon by placing a `favicon.ico` file in the `branding/custom` directory. If no custom favicon is provided, the app will default to the standard favicon.
+
+## Theme
+
+You can customize the visual theme of wwWallet. We're working on adding support for more themability.
+
+Create `branding/custom/theme.json`. It **must** stick to the format specified in [.schemas/theme.json](.schemas/theme.json).
+
+The following options are supported:
+
+```json5
+{
+  // Schema reference. (required)
+  "$schema": "../.schemas/theme.schema.json",
+  // Brand color. (required)
+  "brand": {
+    // The primary brand color. (required)
+    "color": "<hex/hsl/rgb>",
+    // A light variant of the brand color. (required)
+    "colorLight": "<hex/hsl/rgb>",
+    // An even lighter variant of the brand color. (required)
+    "colorLighter": "<hex/hsl/rgb>",
+    // A dark variant of the brand color. (required)
+    "colorDark": "<hex/hsl/rgb>",
+    // An even darker variant of the brand color. (required)
+    "colorDarker": "<hex/hsl/rgb>"
+  }
+}
+
+```
+
+### Theme option details
+
+#### `brand`
+
+The *brand* color(s) is used in buttons and accent elements.
+The *light* and *lighter* variants are used in light mode, while the *dark* and *darker* variants are used in dark mode.
+Make sure that the contrast ratio is sufficient, in both light and dark mode.
