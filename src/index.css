@@ -144,7 +144,7 @@
 
 html,
 body {
-	background-color: #FFFFFF;
+	background-color: var(--color-lm-gray-100);
 	/* Light mode background */
 }
 
