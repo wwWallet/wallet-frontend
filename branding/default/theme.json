@@ -1,10 +1,4 @@
 {
-	"light": {
-		"background": "#ffffff"
-	},
-	"dark": {
-		"background": "#0e0f11"
-	},
 	"brand": {
 		"color": "hsl(217 66% 32%)",
 		"colorLight": "hsl(217 46% 45%)",

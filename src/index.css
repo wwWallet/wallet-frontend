@@ -7,11 +7,11 @@
 
 /* Theme Variables */
 @theme {
-	--color-brand-lighter: var(--w-brand-color-lighter);
-	--color-brand-light: var(--w-brand-color-light);
-	--color-brand-base: var(--w-brand-color);
-	--color-brand-dark: var(--w-brand-color-dark);
-	--color-brand-darker: var(--w-brand-color-darker);
+	--color-brand-lighter: var(--theme-brand-color-lighter);
+	--color-brand-light: var(--theme-brand-color-light);
+	--color-brand-base: var(--theme-brand-color);
+	--color-brand-dark: var(--theme-brand-color-dark);
+	--color-brand-darker: var(--theme-brand-color-darker);
 
 	--color-primary: var(--color-brand-base);
 	--color-primary-hover: var(--color-brand-dark);
@@ -140,6 +140,18 @@
 	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+	background-color: var(--color-lm-gray-100);
+	/* Light mode background */
+}
+
+html.dark,
+html.dark body {
+	background-color: var(--color-dm-gray-900);
+	/* Dark mode background */
 }
 
 /* Custom scrollbar */
