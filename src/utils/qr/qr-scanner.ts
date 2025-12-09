@@ -25,6 +25,10 @@ SOFTWARE.
 */
 import workerUrl from "./worker.ts?worker&url";
 
+type TrustedTypePolicy = {
+	createScriptURL(url: string): string;
+};
+
 class QrScanner {
 	static readonly DEFAULT_CANVAS_SIZE = 400;
 	static readonly NO_QR_CODE_FOUND = "No QR code found";
