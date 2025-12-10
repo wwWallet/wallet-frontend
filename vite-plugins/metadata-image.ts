@@ -7,8 +7,6 @@ import { getThemeFile } from "./theme";
 
 type Env = Record<string, string|null|undefined>;
 
-
-
 function splitTitle(title: string, maxLength: number): string[] {
 	const lines: string[] = [];
 	let remainingTitle = title;
@@ -190,7 +188,7 @@ async function generateMetadataImage(env: Env) {
 	).toString("base64");
 
 	const svg = imageTemplate({
-		title: "Super duper long wallet name",
+		title,
 		url,
 		colors: {
 			background: backgroundColor,
