@@ -4,7 +4,7 @@ import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import {
-	ManifestPlugin,
+	BrandingManifestPlugin,
 	MetadataImagePlugin,
 	MobileWrapperWKAppLinksPlugin,
 	RobotsTxtPlugin,
@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
 					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
 				}
 			}),
-			ManifestPlugin(env),
+			BrandingManifestPlugin(env),
 			MetadataImagePlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),

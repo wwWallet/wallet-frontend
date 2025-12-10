@@ -2,9 +2,8 @@ import path from "node:path";
 import { Plugin } from "vite";
 import sharp from "sharp";
 import convert, { RGB } from "color-convert"
-import { findBrandingFile, findLogoFile } from "./manifest";
+import { findBrandingFile, findLogoFile } from "./brandingManifest";
 import { getThemeFile } from "./theme";
-import { writeFileSync } from "node:fs";
 
 type Env = Record<string, string|null|undefined>;
 
