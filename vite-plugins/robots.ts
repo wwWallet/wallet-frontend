@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { Plugin } from 'vite';
+import { Env } from './resources/types';
 
-export function generateRobotsTxt(env: Record<string, string>): string {
+export function generateRobotsTxt(env: Env): string {
 	const baseUrl = env.VITE_STATIC_PUBLIC_URL || 'https://demo.wwwallet.org';
 	return `
 User-agent: *
@@ -17,7 +19,7 @@ Sitemap: ${baseUrl}/sitemap.xml
 `.trim();
 }
 
-export function RobotsTxtPlugin(env) {
+export function RobotsTxtPlugin(env: Env): Plugin {
 	return {
 		name: 'robots-txt-plugin',
 

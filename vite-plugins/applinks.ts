@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from "fs/promises";
 import { resolve } from "path";
-
-type Env = Record<string, string|null|undefined>;
+import { Plugin } from "vite";
+import { Env } from "./resources/types";
 
 const DIR = resolve("public/.well-known");
 
@@ -81,7 +81,7 @@ async function writeAppLinksFiles(env: Env) {
 	]);
 }
 
-export function MobileWrapperWKAppLinksPlugin(env: Env) {
+export function MobileWrapperWKAppLinksPlugin(env: Env): Plugin {
 	return {
 		name: "mobile-wrapper-applinks-plugin",
 

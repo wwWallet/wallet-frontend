@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import { Plugin } from 'vite';
+import { Env } from './resources/types';
 
-export function generateSitemapXml(env: Record<string, string>): string {
+export function generateSitemapXml(env: Env): string {
 	const baseUrl = env.VITE_STATIC_PUBLIC_URL || 'https://demo.wwwallet.org';
 	const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 	return `<?xml version="1.0" encoding="UTF-8"?>
@@ -16,7 +18,7 @@ export function generateSitemapXml(env: Record<string, string>): string {
 `;
 }
 
-export function SitemapPlugin(env) {
+export function SitemapPlugin(env: Env): Plugin {
 	return {
 		name: 'sitemap-plugin',
 

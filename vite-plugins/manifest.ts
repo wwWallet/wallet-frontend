@@ -4,110 +4,14 @@ import path from 'path';
 import sharp from 'sharp';
 import { Plugin } from 'vite';
 import type { ManifestOptions } from 'vite-plugin-pwa';
-
-type BrandingFile = {
-	readonly pathname: string;
-	readonly filename: string;
-	readonly isDefault: boolean;
-	readonly isCustom: boolean;
-}
-
-export function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
-	const defaultFilePath = path.join(baseDir, "default", filePath);
-	const customFilePath = path.join(baseDir, "custom", filePath);
-
-	const hasDefault = fs.existsSync(defaultFilePath);
-	const hasCustom = fs.existsSync(customFilePath);
-
-	if (!hasDefault && !hasCustom) {
-		return null;
-	}
-
-	const pathname = hasCustom ? customFilePath : defaultFilePath;
-	const filename = path.basename(pathname);
-
-	return {
-		pathname,
-		filename,
-		isDefault: hasDefault && !hasCustom,
-		isCustom: hasCustom,
-	}
-}
-
-function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null {
-	const customFilePath = path.join(
-		path.dirname(filePathInput), "custom", path.basename(filePathInput)
-	);
-
-	const hasDefault = fs.existsSync(filePathInput);
-	const hasCustom = fs.existsSync(customFilePath);
-
-	if (!hasDefault && !hasCustom) {
-		return null;
-	}
-
-	const pathname = hasCustom ? customFilePath : filePathInput;
-	const filename = path.basename(pathname);
-
-	console.warn(`Deprecation Warning: Branding file found at: ${pathname}. This is no longer supported.`);
-
-	return {
-		pathname,
-		filename,
-		isDefault: hasDefault && !hasCustom,
-		isCustom: hasCustom,
-	}
-}
-
-
-export function findLogoFile(baseDir: string, name: string): BrandingFile | null {
-	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
-	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
-
-	if (svgFile?.isCustom) return svgFile;
-	if (pngFile?.isCustom) return pngFile;
-	if (svgFile?.isDefault) return svgFile;
-	if (pngFile?.isDefault) return pngFile;
-
-	// To be deprecated
-	const deprecatedPathSvgFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.svg`));
-	const deprecatedPathPngFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.png`));
-
-	if (deprecatedPathSvgFile?.isCustom) return deprecatedPathSvgFile;
-	if (deprecatedPathPngFile?.isCustom) return deprecatedPathPngFile;
-	if (deprecatedPathSvgFile?.isDefault) return deprecatedPathSvgFile;
-	if (deprecatedPathPngFile?.isDefault) return deprecatedPathPngFile;
-
-	return null;
-}
-
-type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
-
-function findLogoFiles(sourceDir: string): LogoFiles {
-	const files: Partial<LogoFiles> = {};
-
-	for (const logoId of ["logo_light", "logo_dark"] as const) {
-		const logoFile = findLogoFile(sourceDir, logoId);
-		if (!logoFile) {
-			throw new Error(`${logoId} not found in ${sourceDir}`);
-		}
-
-		files[logoId] = logoFile
-	}
-
-	return files as LogoFiles;
-}
-
-// Screenshots (branding/custom/screenshots → branding/default/screenshots)
-function findScreenshotFile(sourceDir: string, filename: string): string {
-	const customFile = path.join(sourceDir, "custom", "screenshots", filename);
-	const defaultFile = path.join(sourceDir, "default", "screenshots", filename);
-
-	if (fs.existsSync(customFile)) return customFile;
-	if (fs.existsSync(defaultFile)) return defaultFile;
-
-	throw new Error(`Screenshot not found: ${filename}`);
-}
+import {
+	deprecated_findBrandingFile,
+	findBrandingFile,
+	findLogoFiles,
+	findScreenshotFile,
+} from './resources/branding';
+import { Env } from './resources/types';
+import { BRANDING_DIR, PUBLIC_DIR } from './resources/dirs';
 
 async function copyScreenshots(sourceDir: string, publicDir: string): Promise<void> {
 	const files = [
@@ -203,8 +107,8 @@ async function generateAllIcons({
 
 export async function generateManifest(env: Record<string, string | null | undefined>): Promise<Partial<ManifestOptions>> {
 	const icons = await generateAllIcons({
-		sourceDir: path.resolve('branding'),
-		publicDir: path.resolve('public'),
+		sourceDir: BRANDING_DIR,
+		publicDir: PUBLIC_DIR,
 		manifestIconSizes: [16, 32, 64, 192, 512],
 	});
 
@@ -253,15 +157,12 @@ export async function generateManifest(env: Record<string, string | null | undef
 	};
 }
 
-export function BrandingManifestPlugin(env): Plugin {
-	const sourceDir = path.resolve("branding");
-	const publicDir = path.resolve("public");
-
+export function ManifestPlugin(env: Env): Plugin {
 	return {
 		name: 'branding-manifest-plugin',
 
 		config() {
-			const { logo_light, logo_dark } = findLogoFiles(sourceDir);
+			const { logo_light, logo_dark } = findLogoFiles(BRANDING_DIR);
 
 			return {
 				define: {
@@ -276,7 +177,7 @@ export function BrandingManifestPlugin(env): Plugin {
 			const manifestPath = path.resolve("public/manifest.json");
 
 			// copy screenshots (custom → default) into public/screenshots
-			await copyScreenshots(sourceDir, publicDir);
+			await copyScreenshots(BRANDING_DIR, PUBLIC_DIR);
 
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 
@@ -285,7 +186,7 @@ export function BrandingManifestPlugin(env): Plugin {
 
 				if (file.endsWith(".env") || file.startsWith("branding")) {
 					console.log("Environment file changed. Regenerating manifest & screenshots...");
-					await copyScreenshots(sourceDir, publicDir);
+					await copyScreenshots(BRANDING_DIR, PUBLIC_DIR);
 					fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 				}
 			});
@@ -295,7 +196,7 @@ export function BrandingManifestPlugin(env): Plugin {
 			// For builds
 			const manifestPath = path.resolve("public/manifest.json");
 
-			await copyScreenshots(sourceDir, publicDir);
+			await copyScreenshots(BRANDING_DIR, PUBLIC_DIR);
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 		},
 	}

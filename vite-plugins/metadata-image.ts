@@ -2,10 +2,13 @@ import path from "node:path";
 import { Plugin } from "vite";
 import sharp from "sharp";
 import convert, { RGB } from "color-convert"
-import { findBrandingFile, findLogoFile } from "./brandingManifest";
-import { getThemeFile } from "./theme";
-
-type Env = Record<string, string|null|undefined>;
+import {
+	findLogoFile,
+	findThemeFile,
+	getThemeConfig
+} from "./resources/branding";
+import { Env } from "./resources/types";
+import { BRANDING_DIR } from "./resources/dirs";
 
 function splitTitle(title: string, maxLength: number): string[] {
 	const lines: string[] = [];
@@ -146,9 +149,7 @@ function getOptimalForegroundColor(rgb: RGB): string {
 }
 
 async function generateMetadataImage(env: Env): Promise<{ type: string; source: Buffer; }> {
-	const sourceDir = path.resolve("branding");
-
-	const logoFile = findLogoFile(sourceDir, "logo_dark");
+	const logoFile = findLogoFile(BRANDING_DIR, "logo_dark");
 	if (!logoFile) {
 		throw new Error("[Metadata Image plugin] logo not found");
 	}
@@ -158,12 +159,12 @@ async function generateMetadataImage(env: Env): Promise<{ type: string; source: 
 		throw new Error("[Metadata Image plugin] VITE_STATIC_NAME not set");
 	}
 
-	const themeFile = findBrandingFile(sourceDir, "theme.json");
+	const themeFile = findThemeFile(BRANDING_DIR);
 	if (!themeFile) {
 		throw new Error("[Metadata Image plugin] theme.json not found");
 	}
 
-	const theme = getThemeFile(themeFile.pathname);
+	const theme = getThemeConfig(themeFile.pathname);
 
 	const backgroundColor = theme.brand.color;
 
