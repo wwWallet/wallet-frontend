@@ -44,7 +44,7 @@ const titleTemplate = (title: string, maxLength: number = 12): string => {
 			font-size="${fontSize}"
 		>
 			<svg x="100" y="50%" transform="translate(0 ${-((lines.length * (fontSize * 0.9)) / 2)})">
-				<text y="0" dominant-baseline="hanging">
+				<text y="1" dominant-baseline="hanging">
 				${lines
 					.map((line, index) => createTspan(line, index === 0))
 					.join("")
