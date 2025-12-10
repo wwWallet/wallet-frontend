@@ -35,6 +35,9 @@ const createTspan = (content: string, dy: number, isFirstLine: boolean): string 
 const titleTemplate = (title: string, maxLength: number = 12): string => {
 	const lines = splitTitle(title, maxLength);
 	const fontSize = title.length <= 8 ? 120 : 100;
+	const lineMargin = 20;
+	const lineHeight = (fontSize * 0.8) + lineMargin;
+	const titleHeight = (lines.length * lineHeight) - lineMargin;
 
 	return `
 		<g
@@ -43,12 +46,12 @@ const titleTemplate = (title: string, maxLength: number = 12): string => {
 			font-weight="bold"
 			font-size="${fontSize}"
 		>
-			<svg x="100" y="50%" transform="translate(0 ${-((lines.length * (fontSize * 0.85)) / 2)})">
+			<svg x="100" y="50%" transform="translate(0 ${-(titleHeight / 2)})">
 				<text y="1" dominant-baseline="hanging">
-				${lines
-					.map((line, index) => createTspan(line, fontSize, index === 0))
-					.join("")
-				}
+					${lines
+						.map((line, index) => createTspan(line, lineHeight, index === 0))
+						.join("")
+					}
 				</text>
 			</svg>
 		</g>
