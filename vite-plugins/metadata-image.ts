@@ -40,21 +40,14 @@ const titleTemplate = (title: string, maxLength: number = 12): string => {
 	const titleHeight = (lines.length * lineHeight) - lineMargin;
 
 	return `
-		<g
-			fill="#ffffff"
-			font-family="Arial"
-			font-weight="bold"
-			font-size="${fontSize}"
-		>
-			<svg x="100" y="50%" transform="translate(0 ${-(titleHeight / 2)})">
-				<text y="1" dominant-baseline="hanging">
-					${lines
-						.map((line, index) => createTspan(line, lineHeight, index === 0))
-						.join("")
-					}
-				</text>
-			</svg>
-		</g>
+		<svg x="100" y="50%" transform="translate(0 ${-(titleHeight / 2)})">
+			<text y="1" dominant-baseline="hanging" font-size="${fontSize}">
+				${lines
+					.map((line, index) => createTspan(line, lineHeight, index === 0))
+					.join("")
+				}
+			</text>
+		</svg>
 	`;
 };
 
@@ -90,7 +83,9 @@ const imageTemplate = ({ title, url, logoB64, colors }: ImageTemplateProps) => `
 	</style>
 	<rect x="0" y="0" width="1200" height="628" fill="${colors.background}" />
 	${logoTemplate(logoB64, 250)}
-	${titleTemplate(title)}
+	<g fill="${colors.text}" font-family="Arial" font-weight="bold">
+		${titleTemplate(title)}
+	</g>
 </svg>
 `;
 
