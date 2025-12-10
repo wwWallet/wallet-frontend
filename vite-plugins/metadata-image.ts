@@ -1,7 +1,9 @@
 import path from "node:path";
 import { Plugin } from "vite";
 import sharp from "sharp";
-import { findLogoFile } from "./manifest";
+import convert, { RGB } from "color-convert"
+import { findBrandingFile, findLogoFile } from "./manifest";
+import { getThemeFile } from "./theme";
 
 type Env = Record<string, string|null|undefined>;
 
@@ -59,6 +61,63 @@ const imageTemplate = ({ title, url, logoB64, colors }: ImageTemplateProps) => `
 </svg>
 `;
 
+function toRgb(input: string): RGB | null {
+		const rgb = /^rgba?\(\s*(?<r>25[0-5]|2[0-4]\d|1\d{1,2}|\d\d?)\s*,\s*(?<g>25[0-5]|2[0-4]\d|1\d{1,2}|\d\d?)\s*,\s*(?<b>25[0-5]|2[0-4]\d|1\d{1,2}|\d\d?)\s*,?\s*(?<alpha>[01\.]\.?\d?)?\s*\)$/i.exec(input);
+	const hex = /^\B#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\b/i.exec(input);
+	const hsl = /^hsla?\(\s*(?<h>[-+]?\d{1,3}(?:\.\d+)?)(deg|grad|rad|turn)?\s*(?:,\s*|\s+)\s*(?<s>[-+]?\d{1,3}(?:\.\d+)?)%\s*(?:,\s*|\s+)\s*(?<l>[-+]?\d{1,3}(?:\.\d+)?)%\s*(?:,\s*|\s+)?(?:\s*\/?\s*(?<alpha>[-+]?[\d.]+%?)\s*)?\)$/i.exec(input);
+
+	if (rgb) {
+		if (!rgb.groups) {
+			throw new Error("[Metadata Image plugin] Invalid RGB");
+		}
+
+		return [
+			parseInt(rgb.groups.r),
+			parseInt(rgb.groups.g),
+			parseInt(rgb.groups.b),
+		];
+	}
+
+	if (hex) {
+		return convert.hex.rgb(input);
+	}
+
+	if (hsl) {
+		if (!hsl.groups) {
+			throw new Error("[Metadata Image plugin] Invalid HSL");
+		}
+
+		return convert.hsl.rgb(
+			parseInt(hsl.groups.h),
+			parseInt(hsl.groups.s),
+			parseInt(hsl.groups.l),
+		);
+	}
+
+	return null;
+}
+
+function getOptimalForegroundColor(rgb: RGB): string {
+	const correctedRgb = [];
+	for (const [index, component] of rgb.entries()) {
+		const normalizedComponent = component / 255;
+
+		if (normalizedComponent <= 0.03928) {
+			correctedRgb[index] = normalizedComponent / 12.92;
+		}
+
+		correctedRgb[index] =  Math.pow((normalizedComponent + 0.055) / 1.055, 2.4);
+	}
+
+	const [red, green, blue] = correctedRgb;
+	const relativeLuminance = 0.2126 * red + 0.7151 * green + 0.0721 * blue;
+
+	const contrastRatioForBlack = (relativeLuminance + 0.05) / 0.05;
+	const contrastRatioForWhite = 1.05 / (relativeLuminance + 0.05);
+
+	return contrastRatioForBlack > contrastRatioForWhite ? '#000000' : '#ffffff';
+}
+
 async function generateMetadataImage(env: Env) {
 	const sourceDir = path.resolve("branding");
 	const publicDir = path.resolve("public");
@@ -78,6 +137,22 @@ async function generateMetadataImage(env: Env) {
 		throw new Error("[Metadata Image plugin] VITE_STATIC_PUBLIC_URL not set");
 	}
 
+	const themeFile = findBrandingFile(sourceDir, "theme.json");
+	if (!themeFile) {
+		throw new Error("[Metadata Image plugin] theme.json not found");
+	}
+
+	const theme = getThemeFile(themeFile.pathname);
+
+	const backgroundColor = theme.brand.color;
+
+	const backgroundColorRgb = toRgb(backgroundColor);
+	if (!backgroundColorRgb) {
+		throw new Error("[Metadata Image plugin] invalid brand color");
+	}
+
+	const textColor = getOptimalForegroundColor(backgroundColorRgb);
+
 	const logoB64 = (
 		await sharp(logoFile.pathname).png().toBuffer()
 	).toString("base64");
@@ -85,10 +160,9 @@ async function generateMetadataImage(env: Env) {
 	const imageBuffer = Buffer.from(imageTemplate({
 		title,
 		url,
-		// TODO: Get colors dynamically from theme.
 		colors: {
-			background: "white",
-			text: "black",
+			background: backgroundColor,
+			text: textColor,
 		},
 		logoB64: `image/png;base64,${logoB64}`,
 	}));
