@@ -4,23 +4,69 @@ import sharp from "sharp";
 import convert, { RGB } from "color-convert"
 import { findBrandingFile, findLogoFile } from "./manifest";
 import { getThemeFile } from "./theme";
+import { writeFileSync } from "node:fs";
 
 type Env = Record<string, string|null|undefined>;
 
-const titleTemplate = (title: string, maxLength = 16, isFirstLine = true): string => {
-	if (title.length <= maxLength) {
-		return `<tspan x="48" ${isFirstLine ? "" : 'dy="1em"'}>${title}</tspan>`;
+
+
+function splitTitle(title: string, maxLength: number): string[] {
+	const lines: string[] = [];
+	let remainingTitle = title;
+
+	while (remainingTitle.length > 0) {
+		if (remainingTitle.length <= maxLength) {
+			lines.push(remainingTitle);
+			break;
+		}
+
+		const lastSpace = remainingTitle.lastIndexOf(" ", maxLength);
+		const splitIndex = lastSpace === -1 ? maxLength : lastSpace;
+
+		lines.push(remainingTitle.substring(0, splitIndex));
+		remainingTitle = remainingTitle.substring(
+			splitIndex + (lastSpace === -1 ? 0 : 1)
+		);
 	}
-	const lastSpace = title.lastIndexOf(" ", maxLength);
 
-	const firstLine = lastSpace === -1 ? title.substring(0, maxLength) : title.substring(0, lastSpace);
-	const remaining = lastSpace === -1 ? title.substring(maxLength) : title.substring(lastSpace + 1);
-
-	return (
-		`<tspan x="48" ${isFirstLine ? "" : 'dy="1em"'}>${firstLine}</tspan>` +
-		titleTemplate(remaining, maxLength, false)
-	);
+	return lines;
 };
+
+const createTspan = (content: string, isFirstLine: boolean): string =>
+	`<tspan x="0" ${!isFirstLine ? 'dy="120"' : ''}>${content}</tspan>`;
+
+const titleTemplate = (title: string, maxLength: number = 12): string => {
+	const lines = splitTitle(title, maxLength);
+	const fontSize = title.length <= 8 ? 120 : 100;
+
+	return `
+		<g
+			fill="#ffffff"
+			font-family="Arial"
+			font-weight="bold"
+			font-size="${fontSize}"
+		>
+			<svg x="100" y="50%" transform="translate(0 ${-((lines.length * (fontSize * 0.9)) / 2)})">
+				<text y="0" dominant-baseline="hanging">
+				${lines
+					.map((line, index) => createTspan(line, index === 0))
+					.join("")
+				}
+				</text>
+			</svg>
+		</g>
+	`;
+};
+
+const logoTemplate = (b64String: string, size: number = 250) => `
+<image
+	y="${(628 / 2) - (size / 2)}"
+	x="${1200 - 100 - size}"
+	width="${size}"
+	height="${size}"
+	xlink:href="data:${b64String}"
+/>
+`;
 
 type ImageTemplateProps = {
 	title: string;
@@ -43,21 +89,8 @@ const imageTemplate = ({ title, url, logoB64, colors }: ImageTemplateProps) => `
 		}
 	</style>
 	<rect x="0" y="0" width="1200" height="628" fill="${colors.background}" />
-	<g class="header">
-		<text x="48" y="88" fill="${colors.text}" font-family="Arial" font-weight="bold" font-size="100">
-			${titleTemplate(title)}
-		</text>
-	</g>
-	<g class="footer">
-		<text x="48" y="540" fill="${colors.text}" font-family="Arial" font-weight="bold" font-size="40">
-			${url}
-		</text>
-		<image
-			width="150" height="150"
-			x="1002" y="440"
-			xlink:href="data:${logoB64}"
-		/>
-	</g>
+	${logoTemplate(logoB64, 250)}
+	${titleTemplate(title)}
 </svg>
 `;
 
@@ -157,15 +190,17 @@ async function generateMetadataImage(env: Env) {
 		await sharp(logoFile.pathname).png().toBuffer()
 	).toString("base64");
 
-	const imageBuffer = Buffer.from(imageTemplate({
-		title,
+	const svg = imageTemplate({
+		title: "Super duper long wallet name",
 		url,
 		colors: {
 			background: backgroundColor,
 			text: textColor,
 		},
 		logoB64: `image/png;base64,${logoB64}`,
-	}));
+	});
+
+	const imageBuffer = Buffer.from(svg);
 
 	await sharp(imageBuffer).png().toFile(path.join(publicDir, "image.png"));
 }
