@@ -87,7 +87,7 @@ These files are copied to `public/screenshots/` during dev/build and used by the
 
 ### Custom screenshots
 
-To override them, add your own files with the **same names**.
+To override them, add your own files with the **same names** to the `branding/custom/screenshots` directory.
 
 wwWallet will prefer custom files and fallback to defaults if any are missing.
 
