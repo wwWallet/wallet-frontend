@@ -3,9 +3,14 @@ import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
-import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin } from './vite-plugins';
+import {
+	ManifestPlugin,
+	MetadataImagePlugin,
+	MobileWrapperWKAppLinksPlugin,
+	RobotsTxtPlugin,
+	SitemapPlugin
+} from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
-import { MetadataImagePlugin } from './vite-plugins/metadata-image';
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
