@@ -63,7 +63,6 @@ const logoTemplate = (b64String: string, size: number = 250) => `
 
 type ImageTemplateProps = {
 	title: string;
-	url: string;
 	logoB64: string;
 	colors: {
 		background: string;
@@ -71,7 +70,7 @@ type ImageTemplateProps = {
 	}
 }
 
-const imageTemplate = ({ title, url, logoB64, colors }: ImageTemplateProps) => `
+const imageTemplate = ({ title, logoB64, colors }: ImageTemplateProps) => `
 <svg width="1200" height="628" viewBox="0 0 1200 628" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 	<style>
 		.header {
@@ -159,11 +158,6 @@ async function generateMetadataImage(env: Env): Promise<Buffer> {
 		throw new Error("[Metadata Image plugin] VITE_STATIC_NAME not set");
 	}
 
-	const url = env.VITE_STATIC_PUBLIC_URL;
-	if (!url) {
-		throw new Error("[Metadata Image plugin] VITE_STATIC_PUBLIC_URL not set");
-	}
-
 	const themeFile = findBrandingFile(sourceDir, "theme.json");
 	if (!themeFile) {
 		throw new Error("[Metadata Image plugin] theme.json not found");
@@ -186,7 +180,6 @@ async function generateMetadataImage(env: Env): Promise<Buffer> {
 
 	const svg = imageTemplate({
 		title,
-		url,
 		colors: {
 			background: backgroundColor,
 			text: textColor,
