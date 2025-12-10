@@ -69,3 +69,31 @@ The following options are supported:
 The *brand* color(s) is used in buttons and accent elements.
 The *light* and *lighter* variants are used in light mode, while the *dark* and *darker* variants are used in dark mode.
 Make sure that the contrast ratio is sufficient, in both light and dark mode.
+
+## Screenshots
+
+wwWallet includes screenshots in the PWA manifest. These can be customized through the branding system.
+
+### Default location
+
+branding/default/screenshots/
+├── screen_mobile_1.png
+├── screen_mobile_2.png
+├── screen_tablet_1.png
+└── screen_tablet_2.png
+
+
+These files are copied to `public/screenshots/` during dev/build and used by the manifest.
+
+### Custom screenshots
+
+To override them, add your own files with the **same names**.
+
+wwWallet will prefer custom files and fallback to defaults if any are missing.
+
+### Screenshot sizes
+
+The screenshots must match the sizes declared in the PWA manifest:
+
+- Mobile: **828×1792**
+- Tablet: **2160×1620**
