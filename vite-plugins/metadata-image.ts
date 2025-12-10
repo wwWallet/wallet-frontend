@@ -145,7 +145,7 @@ function getOptimalForegroundColor(rgb: RGB): string {
 	return contrastRatioForBlack > contrastRatioForWhite ? "hsl(220 20% 5.7%)" : "hsl(0 0% 100%)";
 }
 
-async function generateMetadataImage(env: Env): Promise<Buffer> {
+async function generateMetadataImage(env: Env): Promise<{ type: string; source: Buffer; }> {
 	const sourceDir = path.resolve("branding");
 
 	const logoFile = findLogoFile(sourceDir, "logo_dark");
@@ -187,9 +187,13 @@ async function generateMetadataImage(env: Env): Promise<Buffer> {
 		logoB64: `image/png;base64,${logoB64}`,
 	});
 
-	const imageBuffer = Buffer.from(svg);
+	const svgBuffer = Buffer.from(svg);
+	const pngBuffer = await sharp(svgBuffer).png().toBuffer()
 
-	return await sharp(imageBuffer).png().toBuffer()
+	return {
+		type: "image/png",
+		source: pngBuffer,
+	}
 }
 
 export function MetadataImagePlugin(env: Env): Plugin {
@@ -199,18 +203,18 @@ export function MetadataImagePlugin(env: Env): Plugin {
 		name: "metadata-image-plugin",
 
 		async configureServer(server) {
-			const imageBuffer: Buffer = await generateMetadataImage(env);
+			const { type, source } = await generateMetadataImage(env);
 
 			server.middlewares.use(`/${fileName}`, async (req, res) => {
-				res.setHeader("Content-Type", "image/png");
-				res.end(imageBuffer);
+				res.setHeader("Content-Type", type);
+				res.end(source);
 			});
 		},
 		async generateBundle(options, bundle) {
 			this.emitFile({
 				type: "asset",
 				fileName,
-				source: await generateMetadataImage(env),
+				source: (await generateMetadataImage(env)).source,
 			});
 		},
 	}
