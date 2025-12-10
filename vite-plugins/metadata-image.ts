@@ -30,7 +30,7 @@ function splitTitle(title: string, maxLength: number): string[] {
 };
 
 const createTspan = (content: string, dy: number, isFirstLine: boolean): string =>
-	`<tspan x="0" ${!isFirstLine ? `dy="${dy}"` : ''}>${content}</tspan>`;
+	`<tspan x="0" ${!isFirstLine ? `dy="${dy}"` : ""}>${content}</tspan>`;
 
 const titleTemplate = (title: string, maxLength: number = 12): string => {
 	const lines = splitTitle(title, maxLength);
@@ -146,9 +146,8 @@ function getOptimalForegroundColor(rgb: RGB): string {
 	return contrastRatioForBlack > contrastRatioForWhite ? "hsl(220 20% 5.7%)" : "hsl(0 0% 100%)";
 }
 
-async function generateMetadataImage(env: Env) {
+async function generateMetadataImage(env: Env): Promise<Buffer> {
 	const sourceDir = path.resolve("branding");
-	const publicDir = path.resolve("public");
 
 	const logoFile = findLogoFile(sourceDir, "logo_dark");
 	if (!logoFile) {
@@ -197,29 +196,29 @@ async function generateMetadataImage(env: Env) {
 
 	const imageBuffer = Buffer.from(svg);
 
-	await sharp(imageBuffer).png().toFile(path.join(publicDir, "image.png"));
+	return await sharp(imageBuffer).png().toBuffer()
 }
 
 export function MetadataImagePlugin(env: Env): Plugin {
+	const fileName = "image.png";
+
 	return {
 		name: "metadata-image-plugin",
 
 		async configureServer(server) {
-			// For dev
-			await generateMetadataImage(env);
+			const imageBuffer: Buffer = await generateMetadataImage(env);
 
-			server.watcher.on("change", async (file: string) => {
-				file = path.relative(process.cwd(), file);
-
-				if (file.endsWith(".env") || file.startsWith("branding")) {
-					console.log("Environment file changed. Regenerating metadata image...");
-					await generateMetadataImage(env);
-				}
+			server.middlewares.use(`/${fileName}`, async (req, res) => {
+				res.setHeader("Content-Type", "image/png");
+				res.end(imageBuffer);
 			});
 		},
-		async buildStart() {
-			// For builds
-			await generateMetadataImage(env);
+		async generateBundle(options, bundle) {
+			this.emitFile({
+				type: "asset",
+				fileName,
+				source: await generateMetadataImage(env),
+			});
 		},
 	}
 }
