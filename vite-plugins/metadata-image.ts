@@ -143,7 +143,7 @@ function getOptimalForegroundColor(rgb: RGB): string {
 	const contrastRatioForBlack = (relativeLuminance + 0.05) / 0.05;
 	const contrastRatioForWhite = 1.05 / (relativeLuminance + 0.05);
 
-	return contrastRatioForBlack > contrastRatioForWhite ? '#000000' : '#ffffff';
+	return contrastRatioForBlack > contrastRatioForWhite ? "hsl(220 20% 5.7%)" : "hsl(0 0% 100%)";
 }
 
 async function generateMetadataImage(env: Env) {
