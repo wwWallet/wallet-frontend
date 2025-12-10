@@ -38,6 +38,49 @@ type GenerateAllIconsOptions = {
 	manifestIconSizes: number[];
 }
 
+type GeneratedBrandingFile = {
+	serve: {
+		url: string;
+		type: string;
+		source: string | Buffer;
+		allPossiblePathnames: string[];
+	};
+	emit: {
+		type: 'asset';
+		fileName: string;
+		name?: string;
+		needsCodeReference?: boolean;
+		originalFileName: string | null;
+		source: string | Uint8Array;
+	}
+}
+
+function favicon(): GeneratedBrandingFile {
+	const favicon = findBrandingFile(BRANDING_DIR, path.join("favicon.ico"))
+		|| deprecated_findBrandingFile(path.join(BRANDING_DIR, "favicon.ico"));
+
+	if (!favicon) {
+		throw new Error("favicon not found");
+	}
+
+	const source = fs.readFileSync(favicon.pathname);
+
+	return {
+		serve: {
+			url: "/favicon.ico",
+			type: "image/x-icon",
+			source,
+			allPossiblePathnames: favicon.allPossiblePathnames,
+		},
+		emit: {
+			type: 'asset',
+			fileName: favicon.filename,
+			originalFileName: favicon.pathname,
+			source,
+		}
+	}
+}
+
 async function generateAllIcons({
 	sourceDir,
 	publicDir,
@@ -45,12 +88,12 @@ async function generateAllIcons({
 	appleTouchIcon,
 	manifestIconSizes,
 }: GenerateAllIconsOptions): Promise<ManifestOptions['icons']> {
-	const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"))
-		|| deprecated_findBrandingFile(path.join(sourceDir, "favicon.ico"));
+	// const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"))
+	// 	|| deprecated_findBrandingFile(path.join(sourceDir, "favicon.ico"));
 
-	if (!favicon) {
-		throw new Error("favicon not found");
-	}
+	// if (!favicon) {
+	// 	throw new Error("favicon not found");
+	// }
 
 	const {
 		logo_light: logoLight,
@@ -62,9 +105,9 @@ async function generateAllIcons({
 		await Promise.all([
 			copyFile(logoLight.pathname, path.join(publicDir, logoLight.filename)),
 			copyFile(logoDark.pathname, path.join(publicDir, logoDark.filename)),
-			copyFile(favicon.pathname, path.join(publicDir, path.basename(favicon.filename))).catch(() => {
-				console.warn(`No file ${favicon} was found, skipping...`);
-			}),
+			// copyFile(favicon.pathname, path.join(publicDir, path.basename(favicon.filename))).catch(() => {
+			// 	console.warn(`No file ${favicon} was found, skipping...`);
+			// }),
 		]);
 	}
 
@@ -157,6 +200,12 @@ export async function generateManifest(env: Record<string, string | null | undef
 	};
 }
 
+function generateFiles(): Record<string,GeneratedBrandingFile> {
+	return {
+		favicon: favicon(),
+	}
+}
+
 export function ManifestPlugin(env: Env): Plugin {
 	return {
 		name: 'branding-manifest-plugin',
@@ -181,13 +230,30 @@ export function ManifestPlugin(env: Env): Plugin {
 
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 
-			server.watcher.on("change", async (file: string) => {
+			let files = generateFiles();
+
+			for (const key in files) {
+				const file = files[key];
+
+				server.watcher.add(file.serve.allPossiblePathnames)
+
+				server.middlewares.use(file.serve.url, (req, res) => {
+					const latestFile = files[key];
+
+					res.setHeader("Content-Type", latestFile.serve.type);
+					res.end(latestFile.serve.source);
+				});
+			}
+
+			server.watcher.on("all", async (eventName, file: string) => {
 				file = path.relative(process.cwd(), file);
 
 				if (file.endsWith(".env") || file.startsWith("branding")) {
 					console.log("Environment file changed. Regenerating manifest & screenshots...");
 					await copyScreenshots(BRANDING_DIR, PUBLIC_DIR);
 					fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
+
+					files = generateFiles();
 				}
 			});
 		},
@@ -198,6 +264,10 @@ export function ManifestPlugin(env: Env): Plugin {
 
 			await copyScreenshots(BRANDING_DIR, PUBLIC_DIR);
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
+
+			this.emitFile({
+				type: "asset"
+			})
 		},
 	}
 }
