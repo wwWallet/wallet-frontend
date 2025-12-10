@@ -203,11 +203,19 @@ export function MetadataImagePlugin(env: Env): Plugin {
 		name: "metadata-image-plugin",
 
 		async configureServer(server) {
-			const { type, source } = await generateMetadataImage(env);
+			let image = await generateMetadataImage(env);
+
+			server.watcher.on("change", async(file: string) => {
+				if (["theme.json", "logo_dark.svg", "logo_dark.png"].includes(path.basename(file))) {
+					console.log("[Metadata Image plugin] Theme config changed. Regenerating image...");
+
+					image = await generateMetadataImage(env);
+				}
+			});
 
 			server.middlewares.use(`/${fileName}`, async (req, res) => {
-				res.setHeader("Content-Type", type);
-				res.end(source);
+				res.setHeader("Content-Type", image.type);
+				res.end(image.source);
 			});
 		},
 		async generateBundle(options, bundle) {
