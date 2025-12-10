@@ -1,4 +1,5 @@
 {
+	"$schema": "../.schemas/theme.json",
 	"brand": {
 		"color": "hsl(217 66% 32%)",
 		"colorLight": "hsl(217 46% 45%)",
