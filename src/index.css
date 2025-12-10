@@ -5,21 +5,13 @@
 @variant 2xs (@media (min-width: 360px));
 @variant xm (@media (max-width: 479px));
 
-:root {
-	--w-brand-color: hsl(217, 66%, 32%);
-	--w-brand-color-light: hsl(217, 46%, 45%);
-	--w-brand-color-lighter: hsl(217, 16%, 75%);
-	--w-brand-color-dark: hsl(217, 42%, 42%);
-	--w-brand-color-darker: hsl(217, 26%, 25%);
-}
-
 /* Theme Variables */
 @theme {
-	--color-brand-lighter: var(--w-brand-color-lighter);
-	--color-brand-light: var(--w-brand-color-light);
-	--color-brand-base: var(--w-brand-color);
-	--color-brand-dark: var(--w-brand-color-dark);
-	--color-brand-darker: var(--w-brand-color-darker);
+	--color-brand-lighter: var(--theme-brand-color-lighter);
+	--color-brand-light: var(--theme-brand-color-light);
+	--color-brand-base: var(--theme-brand-color);
+	--color-brand-dark: var(--theme-brand-color-dark);
+	--color-brand-darker: var(--theme-brand-color-darker);
 
 	--color-primary: var(--color-brand-base);
 	--color-primary-hover: var(--color-brand-dark);
@@ -152,13 +144,13 @@
 
 html,
 body {
-	background-color: #FFFFFF;
+	background-color: var(--color-lm-gray-100);
 	/* Light mode background */
 }
 
 html.dark,
 html.dark body {
-	background-color: #0E0F11;
+	background-color: var(--color-dm-gray-900);
 	/* Dark mode background */
 }
 
