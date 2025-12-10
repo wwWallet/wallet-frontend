@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
-import { ManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin, ThemePlugin } from './vite-plugins';
+import { BrandingManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin, ThemePlugin } from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
 					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
 				}
 			}),
-			ManifestPlugin(env),
+			BrandingManifestPlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),
 			MobileWrapperWKAppLinksPlugin(env),

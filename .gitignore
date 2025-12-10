@@ -51,6 +51,7 @@ ssl_keys/*
 variables.vars
 
 public/icons
+public/screenshots
 public/favicon.ico
 public/logo_*.svg
 public/logo_*.png

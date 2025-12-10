@@ -60,7 +60,7 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 }
 
 
-function findLogoFile(baseDir: string, name: string): BrandingFile|null {
+function findLogoFile(baseDir: string, name: string): BrandingFile | null {
 	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
 	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
 
@@ -81,7 +81,7 @@ function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	return null;
 }
 
-type LogoFiles = Record<`logo_${'light'|'dark'}`, BrandingFile>;
+type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
 
 function findLogoFiles(sourceDir: string): LogoFiles {
 	const files: Partial<LogoFiles> = {};
@@ -96,6 +96,34 @@ function findLogoFiles(sourceDir: string): LogoFiles {
 	}
 
 	return files as LogoFiles;
+}
+
+// Screenshots (branding/custom/screenshots → branding/default/screenshots)
+function findScreenshotFile(sourceDir: string, filename: string): string {
+	const customFile = path.join(sourceDir, "custom", "screenshots", filename);
+	const defaultFile = path.join(sourceDir, "default", "screenshots", filename);
+
+	if (fs.existsSync(customFile)) return customFile;
+	if (fs.existsSync(defaultFile)) return defaultFile;
+
+	throw new Error(`Screenshot not found: ${filename}`);
+}
+
+async function copyScreenshots(sourceDir: string, publicDir: string): Promise<void> {
+	const files = [
+		"screen_mobile_1.png",
+		"screen_mobile_2.png",
+		"screen_tablet_1.png",
+		"screen_tablet_2.png",
+	];
+
+	const screenshotsDir = path.join(publicDir, "screenshots");
+	fs.mkdirSync(screenshotsDir, { recursive: true });
+
+	for (const file of files) {
+		const source = findScreenshotFile(sourceDir, file);
+		await copyFile(source, path.join(screenshotsDir, file));
+	}
 }
 
 type GenerateAllIconsOptions = {
@@ -173,12 +201,13 @@ async function generateAllIcons({
 	return icons;
 }
 
-export async function generateManifest(env: Record<string, string|null|undefined>): Promise<Partial<ManifestOptions>> {
+export async function generateManifest(env: Record<string, string | null | undefined>): Promise<Partial<ManifestOptions>> {
 	const icons = await generateAllIcons({
 		sourceDir: path.resolve('branding'),
 		publicDir: path.resolve('public'),
 		manifestIconSizes: [16, 32, 64, 192, 512],
 	});
+
 	return {
 		"short_name": env.VITE_STATIC_NAME || 'wwWallet',
 		"name": env.VITE_STATIC_NAME || 'wwWallet',
@@ -224,12 +253,15 @@ export async function generateManifest(env: Record<string, string|null|undefined
 	};
 }
 
-export function ManifestPlugin(env): Plugin {
+export function BrandingManifestPlugin(env): Plugin {
+	const sourceDir = path.resolve("branding");
+	const publicDir = path.resolve("public");
+
 	return {
-		name: 'manifest-plugin',
+		name: 'branding-manifest-plugin',
 
 		config() {
-			const { logo_light, logo_dark } = findLogoFiles(path.resolve('branding'));
+			const { logo_light, logo_dark } = findLogoFiles(sourceDir);
 
 			return {
 				define: {
@@ -242,20 +274,28 @@ export function ManifestPlugin(env): Plugin {
 		async configureServer(server) {
 			// For dev
 			const manifestPath = path.resolve("public/manifest.json");
+
+			// copy screenshots (custom → default) into public/screenshots
+			await copyScreenshots(sourceDir, publicDir);
+
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 
 			server.watcher.on("change", async (file: string) => {
 				file = path.relative(process.cwd(), file);
 
 				if (file.endsWith(".env") || file.startsWith("branding")) {
-					console.log("Environment file changed. Regenerating manifest...");
+					console.log("Environment file changed. Regenerating manifest & screenshots...");
+					await copyScreenshots(sourceDir, publicDir);
 					fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 				}
 			});
 		},
+
 		async buildStart() {
 			// For builds
 			const manifestPath = path.resolve("public/manifest.json");
+
+			await copyScreenshots(sourceDir, publicDir);
 			fs.writeFileSync(manifestPath, JSON.stringify(await generateManifest(env), null, 2));
 		},
 	}
