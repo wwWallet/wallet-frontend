@@ -29,8 +29,8 @@ function splitTitle(title: string, maxLength: number): string[] {
 	return lines;
 };
 
-const createTspan = (content: string, isFirstLine: boolean): string =>
-	`<tspan x="0" ${!isFirstLine ? 'dy="120"' : ''}>${content}</tspan>`;
+const createTspan = (content: string, dy: number, isFirstLine: boolean): string =>
+	`<tspan x="0" ${!isFirstLine ? `dy="${dy}"` : ''}>${content}</tspan>`;
 
 const titleTemplate = (title: string, maxLength: number = 12): string => {
 	const lines = splitTitle(title, maxLength);
@@ -43,10 +43,10 @@ const titleTemplate = (title: string, maxLength: number = 12): string => {
 			font-weight="bold"
 			font-size="${fontSize}"
 		>
-			<svg x="100" y="50%" transform="translate(0 ${-((lines.length * (fontSize * 0.9)) / 2)})">
+			<svg x="100" y="50%" transform="translate(0 ${-((lines.length * (fontSize * 0.85)) / 2)})">
 				<text y="1" dominant-baseline="hanging">
 				${lines
-					.map((line, index) => createTspan(line, index === 0))
+					.map((line, index) => createTspan(line, fontSize, index === 0))
 					.join("")
 				}
 				</text>
