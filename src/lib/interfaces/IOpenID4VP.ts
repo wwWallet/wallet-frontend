@@ -32,4 +32,5 @@ export enum HandleAuthorizationRequestError {
 	OLD_STATE = "old_state",
 	INVALID_TRANSACTION_DATA = "invalid_transaction_data",
 	INVALID_TYP = "invalid_jwt_typ",
+	COULD_NOT_RESOLVE_REQUEST = "could_not_resolve_request",
 }
