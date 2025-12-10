@@ -193,17 +193,27 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 		};
 	}, []);
 
-	navigator.serviceWorker.addEventListener('message', (event) => {
-		if (event.data && event.data.type === 'NEW_CONTENT_AVAILABLE') {
-			const isWindowHidden = document.hidden;
-
-			if (isWindowHidden) {
-				window.location.reload();
-			} else {
-				setUpdateAvailable(true);
+	useEffect(() => {
+		const handler = (event: MessageEvent) => {
+			if (event.data?.type === "NEW_CONTENT_AVAILABLE") {
+				if (document.hidden) {
+					window.location.reload();
+				} else {
+					setUpdateAvailable(true);
+				}
 			}
+		};
+
+		if (navigator.serviceWorker) {
+			navigator.serviceWorker.addEventListener("message", handler);
 		}
-	});
+
+		return () => {
+			if (navigator.serviceWorker) {
+				navigator.serviceWorker.removeEventListener("message", handler);
+			}
+		};
+	}, []);
 
 	const dismissPwaPrompt = () => {
 		setHidePwaPrompt(true);

@@ -3,3 +3,4 @@ export * from './manifest';
 export * from './metadata-image';
 export * from './robots';
 export * from './sitemap';
+export * from './theme';

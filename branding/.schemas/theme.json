@@ -1,0 +1,42 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"$schema": {
+			"type": "string"
+		},
+		"brand": {
+			"type": "object",
+			"properties": {
+				"color": {
+					"type": "string"
+				},
+				"colorLight": {
+					"type": "string"
+				},
+				"colorLighter": {
+					"type": "string"
+				},
+				"colorDark": {
+					"type": "string"
+				},
+				"colorDarker": {
+					"type": "string"
+				}
+			},
+			"required": [
+				"color",
+				"colorLight",
+				"colorLighter",
+				"colorDark",
+				"colorDarker"
+			],
+			"additionalProperties": false
+		}
+	},
+	"required": [
+		"$schema",
+		"brand"
+	],
+	"additionalProperties": false
+}

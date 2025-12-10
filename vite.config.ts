@@ -8,7 +8,8 @@ import {
 	MetadataImagePlugin,
 	MobileWrapperWKAppLinksPlugin,
 	RobotsTxtPlugin,
-	SitemapPlugin
+	SitemapPlugin,
+	ThemePlugin,
 } from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -17,6 +18,7 @@ export default defineConfig(({ mode }) => {
 	return {
 		base: '/',
 		plugins: [
+			ThemePlugin(),
 			react(),
 			tailwindcss(),
 			svgr(),

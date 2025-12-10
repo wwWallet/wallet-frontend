@@ -1,0 +1,10 @@
+{
+	"$schema": "../.schemas/theme.json",
+	"brand": {
+		"color": "hsl(217 66% 32%)",
+		"colorLight": "hsl(217 46% 45%)",
+		"colorLighter": "hsl(217 27% 60%)",
+		"colorDark": "hsl(217 42% 42%)",
+		"colorDarker": "hsl(217 16% 40%)"
+	}
+}

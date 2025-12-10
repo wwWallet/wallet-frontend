@@ -12,7 +12,29 @@ type BrandingFile = {
 	readonly isCustom: boolean;
 }
 
-function findBrandingFile(filePathInput: string): BrandingFile | null {
+function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
+	const defaultFilePath = path.join(baseDir, "default", filePath);
+	const customFilePath = path.join(baseDir, "custom", filePath);
+
+	const hasDefault = fs.existsSync(defaultFilePath);
+	const hasCustom = fs.existsSync(customFilePath);
+
+	if (!hasDefault && !hasCustom) {
+		return null;
+	}
+
+	const pathname = hasCustom ? customFilePath : defaultFilePath;
+	const filename = path.basename(pathname);
+
+	return {
+		pathname,
+		filename,
+		isDefault: hasDefault && !hasCustom,
+		isCustom: hasCustom,
+	}
+}
+
+function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null {
 	const customFilePath = path.join(
 		path.dirname(filePathInput), "custom", path.basename(filePathInput)
 	);
@@ -27,6 +49,8 @@ function findBrandingFile(filePathInput: string): BrandingFile | null {
 	const pathname = hasCustom ? customFilePath : filePathInput;
 	const filename = path.basename(pathname);
 
+	console.warn(`Deprecation Warning: Branding file found at: ${pathname}. This is no longer supported.`);
+
 	return {
 		pathname,
 		filename,
@@ -35,14 +59,25 @@ function findBrandingFile(filePathInput: string): BrandingFile | null {
 	}
 }
 
-export function findLogoFile(baseDir: string, name: string): BrandingFile|null {
-	const svgFile = findBrandingFile(path.join(baseDir, `${name}.svg`));
-	const pngFile = findBrandingFile(path.join(baseDir, `${name}.png`));
+
+function findLogoFile(baseDir: string, name: string): BrandingFile|null {
+	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
+	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
 
 	if (svgFile?.isCustom) return svgFile;
 	if (pngFile?.isCustom) return pngFile;
 	if (svgFile?.isDefault) return svgFile;
 	if (pngFile?.isDefault) return pngFile;
+
+	// To be deprecated
+	const deprecatedPathSvgFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.svg`));
+	const deprecatedPathPngFile = deprecated_findBrandingFile(path.join(baseDir, `${name}.png`));
+
+	if (deprecatedPathSvgFile?.isCustom) return deprecatedPathSvgFile;
+	if (deprecatedPathPngFile?.isCustom) return deprecatedPathPngFile;
+	if (deprecatedPathSvgFile?.isDefault) return deprecatedPathSvgFile;
+	if (deprecatedPathPngFile?.isDefault) return deprecatedPathPngFile;
+
 	return null;
 }
 
@@ -54,7 +89,7 @@ function findLogoFiles(sourceDir: string): LogoFiles {
 	for (const logoId of ["logo_light", "logo_dark"] as const) {
 		const logoFile = findLogoFile(sourceDir, logoId);
 		if (!logoFile) {
-			throw new Error(`${logoId} not found`);
+			throw new Error(`${logoId} not found in ${sourceDir}`);
 		}
 
 		files[logoId] = logoFile
@@ -78,7 +113,9 @@ async function generateAllIcons({
 	appleTouchIcon,
 	manifestIconSizes,
 }: GenerateAllIconsOptions): Promise<ManifestOptions['icons']> {
-	const favicon = findBrandingFile(path.join(sourceDir, "favicon.ico"));
+	const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"))
+		|| deprecated_findBrandingFile(path.join(sourceDir, "favicon.ico"));
+
 	if (!favicon) {
 		throw new Error("favicon not found");
 	}
