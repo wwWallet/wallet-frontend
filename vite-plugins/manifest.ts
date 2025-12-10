@@ -12,7 +12,7 @@ type BrandingFile = {
 	readonly isCustom: boolean;
 }
 
-function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
+export function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
 	const defaultFilePath = path.join(baseDir, "default", filePath);
 	const customFilePath = path.join(baseDir, "custom", filePath);
 
@@ -60,7 +60,7 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 }
 
 
-function findLogoFile(baseDir: string, name: string): BrandingFile|null {
+export function findLogoFile(baseDir: string, name: string): BrandingFile|null {
 	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
 	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
 
