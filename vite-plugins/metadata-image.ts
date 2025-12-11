@@ -23,6 +23,9 @@ const fontsConfTemplate = `<?xml version="1.0"?>
  * 1. Converts a WOFF2 font to TTF for Node rendering.
  * 2. Writes the font and a minimal Fontconfig XML to a project directory.
  * 3. Sets FONTCONFIG_PATH so rendering libraries can find the font.
+ *
+ * The reason for converting from WOFF2 to TTF is so we can keep using the
+ * `@fontsource/inter` package and not need to bundle font files.
  */
 async function setupFontsEnvironment(baseDir: string) {
 	const fontsConfDir = path.resolve(baseDir, "fonts");
@@ -48,7 +51,7 @@ async function setupFontsEnvironment(baseDir: string) {
 			kerning: true,
 		});
 
-		await writeFile(path.join(fontsConfDir, "inter-latin-600-normal.ttf"), outputBuffer as Buffer);
+		await writeFile(path.join(fontsConfDir, path.basename(input)), outputBuffer as Buffer);
 	}
 
 	await writeFile(path.join(fontsConfDir, "fonts.conf"), fontsConfTemplate),
