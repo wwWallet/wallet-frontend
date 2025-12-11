@@ -5,6 +5,8 @@ import * as z from 'zod';
 export enum ResponseMode {
 	DIRECT_POST = 'direct_post',
 	DIRECT_POST_JWT = 'direct_post.jwt',
+	DC_API = 'dc_api',
+	DC_API_JWT = 'dc_api.jwt',
 }
 
 export const ResponseModeSchema = z.nativeEnum(ResponseMode);
