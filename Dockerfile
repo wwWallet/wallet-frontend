@@ -1,6 +1,6 @@
 FROM node:22-bullseye-slim AS builder-base
 
-RUN apt-get update -y && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y && apt-get install -y git fontconfig && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/node/app
 

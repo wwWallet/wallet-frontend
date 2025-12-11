@@ -1,11 +1,60 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { Plugin } from "vite";
 import sharp from "sharp";
 import convert, { RGB } from "color-convert"
+import { createFont, woff2 } from "fonteditor-core";
 import { findBrandingFile, findLogoFile } from "./brandingManifest";
 import { getThemeFile } from "./theme";
 
 type Env = Record<string, string|null|undefined>;
+
+const fontsConfTemplate = `<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+	<dir prefix="relative">./</dir>
+	<config></config>
+</fontconfig>
+`;
+
+/**
+ * Sets up a self-contained font environment:
+ * 1. Converts a WOFF2 font to TTF for Node rendering.
+ * 2. Writes the font and a minimal Fontconfig XML to a project directory.
+ * 3. Sets FONTCONFIG_PATH so rendering libraries can find the font.
+ */
+async function setupFontsEnvironment(baseDir: string) {
+	const fontsConfDir = path.resolve(baseDir, "fonts");
+	const inputFontFiles = [
+		import.meta.resolve("@fontsource/inter/files/inter-latin-600-normal.woff2"),
+	];
+
+	await woff2.init();
+	await mkdir(fontsConfDir, { recursive: true });
+
+	for (const input of inputFontFiles) {
+		const inputBuffer = await readFile(fileURLToPath(input));
+
+		const font = createFont(inputBuffer, {
+			type: "woff2",
+			hinting: true,
+			kerning: true,
+		});
+
+		const outputBuffer = font.write({
+			type: "ttf",
+			hinting: true,
+			kerning: true,
+		});
+
+		await writeFile(path.join(fontsConfDir, "inter-latin-600-normal.ttf"), outputBuffer as Buffer);
+	}
+
+	await writeFile(path.join(fontsConfDir, "fonts.conf"), fontsConfTemplate),
+
+	process.env.FONTCONFIG_PATH = fontsConfDir;
+}
 
 function splitTitle(title: string, maxLength: number): string[] {
 	const lines: string[] = [];
@@ -69,20 +118,11 @@ type ImageTemplateProps = {
 		text: string;
 	}
 }
-
 const imageTemplate = ({ title, logoB64, colors }: ImageTemplateProps) => `
 <svg width="1200" height="628" viewBox="0 0 1200 628" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-	<style>
-		.header {
-			dominant-baseline: hanging;
-		}
-		.footer {
-			dominant-baseline: alphabetic;
-		}
-	</style>
 	<rect x="0" y="0" width="1200" height="628" fill="${colors.background}" />
 	${logoTemplate(logoB64, 250)}
-	<g fill="${colors.text}" font-family="Arial" font-weight="bold">
+	<g fill="${colors.text}" font-family="Inter SemiBold">
 		${titleTemplate(title)}
 	</g>
 </svg>
@@ -202,6 +242,9 @@ export function MetadataImagePlugin(env: Env): Plugin {
 	return {
 		name: "metadata-image-plugin",
 
+		async configResolved(config) {
+			await setupFontsEnvironment(config.cacheDir);
+		},
 		async configureServer(server) {
 			let image = await generateMetadataImage(env);
 
