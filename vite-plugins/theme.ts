@@ -1,10 +1,19 @@
 // vite-plugins/theme.ts
 import fs from 'fs';
 import path from 'path';
+import { z } from 'zod';
 
-type ThemeConfig = {
-	[group: string]: Record<string, string>;
-};
+const themeSchema = z.object({
+	brand: z.object({
+		color: z.string(),
+		colorLight: z.string(),
+		colorLighter: z.string(),
+		colorDark: z.string(),
+		colorDarker: z.string(),
+	}).strict(),
+});
+
+type ThemeConfig = z.infer<typeof themeSchema>;
 
 const BASE_THEME_PATH = path.resolve('branding/default/theme.json');
 const CUSTOM_THEME_PATH = path.resolve('branding/custom/theme.json');
@@ -13,6 +22,13 @@ function resolveThemeConfigPath(): string | null {
 	if (fs.existsSync(CUSTOM_THEME_PATH)) return CUSTOM_THEME_PATH;
 	if (fs.existsSync(BASE_THEME_PATH)) return BASE_THEME_PATH;
 	return null;
+}
+
+export function getThemeFile(path: string): ThemeConfig {
+	const raw = fs.readFileSync(path, 'utf8');
+	const theme = themeSchema.parse(JSON.parse(raw));
+
+	return theme;
 }
 
 function generateTheme(): string {
@@ -30,8 +46,7 @@ function generateTheme(): string {
 		)}`
 	);
 
-	const raw = fs.readFileSync(configPath, 'utf8');
-	const theme = JSON.parse(raw) as ThemeConfig;
+	const theme = getThemeFile(configPath);
 
 	const rootVars: string[] = [];
 

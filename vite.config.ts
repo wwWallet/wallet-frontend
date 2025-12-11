@@ -3,7 +3,14 @@ import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
-import { BrandingManifestPlugin, MobileWrapperWKAppLinksPlugin, RobotsTxtPlugin, SitemapPlugin, ThemePlugin } from './vite-plugins';
+import {
+	BrandingManifestPlugin,
+	MetadataImagePlugin,
+	MobileWrapperWKAppLinksPlugin,
+	RobotsTxtPlugin,
+	SitemapPlugin,
+	ThemePlugin,
+} from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig(({ mode }) => {
@@ -21,6 +28,7 @@ export default defineConfig(({ mode }) => {
 				}
 			}),
 			BrandingManifestPlugin(env),
+			MetadataImagePlugin(env),
 			RobotsTxtPlugin(env),
 			SitemapPlugin(env),
 			MobileWrapperWKAppLinksPlugin(env),
