@@ -44,7 +44,7 @@ let grayscaleWeights: GrayscaleWeights = {
 	useIntegerApproximation: true,
 };
 
-const ctx = globalThis as DedicatedWorkerGlobalScope;
+const ctx = globalThis as unknown as DedicatedWorkerGlobalScope;
 
 ctx.onmessage = (event) => {
 	const id = event["data"]["id"];
