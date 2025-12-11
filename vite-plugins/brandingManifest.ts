@@ -172,7 +172,19 @@ async function generateAllIcons({
 
 	// Apple touch icon
 	if (appleTouchIcon !== false) {
+		const ICON_SIZE = 180;
+		const PADDING = 20;
+
 		sharp(logoDark.pathname)
+			.resize(ICON_SIZE - PADDING * 2, ICON_SIZE - PADDING * 2, {
+				fit: "contain",
+			})
+			.extend({
+				top: PADDING,
+				bottom: PADDING,
+				left: PADDING,
+				right: PADDING,
+			})
 			.png()
 			.resize(180, 180)
 			.toFile(path.join(iconsDir, 'apple-touch-icon.png'));
