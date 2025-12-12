@@ -1,4 +1,4 @@
-<img src="./branding/logo_dark.svg" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
+<img src="./branding/default/logo/logo_dark.svg" width="80" style="max-width: 100%; float:left; margin-right: 20px;"/>
 
 # wwWallet
 
