@@ -192,22 +192,36 @@ async function generateAllIcons({
 	}
 
 	// Manifest icons
-	const icons: ManifestOptions['icons'] = [];
+	const icons: ManifestOptions["icons"] = [];
 
-	const manifestIcon = sharp(logoDark.pathname).png()
+	const manifestIcon = sharp(logoDark.pathname).png();
+	const PADDING_RATIO = 0.10;
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;
 		const fileName = `icon-${sizeStr}.png`;
 
-		manifestIcon
-			.resize(size, size)
-			.toFile(path.join(iconsDir, fileName))
+		const innerSize = Math.round(size * (1 - 2 * PADDING_RATIO));
+		const pad = Math.round((size - innerSize) / 2);
+
+		await manifestIcon
+			.clone()
+			.resize(innerSize, innerSize, { fit: "contain" })
+			.extend({
+				top: pad,
+				bottom: pad,
+				left: pad,
+				right: pad,
+				background: { r: 0, g: 0, b: 0, alpha: 0 },
+			})
+			.png()
+			.toFile(path.join(iconsDir, fileName));
 
 		icons.push({
 			src: `icons/${fileName}`,
 			sizes: sizeStr,
-			type: 'image/png'
+			type: 'image/png',
+			purpose: 'any maskable',
 		});
 	}
 
