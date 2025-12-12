@@ -998,8 +998,6 @@ const Settings = () => {
 											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
-											disabled={!isOnline}
-											title={!isOnline ? t("common.offlineTitle") : undefined}
 										>
 											<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
 											<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
