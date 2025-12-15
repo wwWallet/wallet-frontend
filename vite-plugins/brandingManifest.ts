@@ -194,15 +194,22 @@ async function generateAllIcons({
 	// Manifest icons
 	const icons: ManifestOptions["icons"] = [];
 
-	const manifestIcon = sharp(logoDark.pathname).png();
+	const manifestIcon = sharp(logoLight.pathname).png();
 	const PADDING_RATIO = 0.10;
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;
 		const fileName = `icon-${sizeStr}.png`;
 
-		const innerSize = Math.round(size * (1 - 2 * PADDING_RATIO));
-		const pad = Math.round((size - innerSize) / 2);
+		const isMaskable = size >= 192;
+
+		let innerSize = size;
+		let pad = 0;
+
+		if (isMaskable) {
+			pad = Math.round(size * PADDING_RATIO);
+			innerSize = size - 2 * pad;
+		}
 
 		await manifestIcon
 			.clone()
@@ -221,9 +228,19 @@ async function generateAllIcons({
 			src: `icons/${fileName}`,
 			sizes: sizeStr,
 			type: 'image/png',
-			purpose: 'any maskable',
+			purpose: 'any',
 		});
+
+		if (isMaskable) {
+			icons.push({
+				src: `icons/${fileName}`,
+				sizes: sizeStr,
+				type: 'image/png',
+				purpose: 'maskable',
+			});
+		}
 	}
+
 
 	return icons;
 }
