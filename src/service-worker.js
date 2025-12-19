@@ -2,17 +2,13 @@
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
+import { precacheAndRoute, createHandlerBoundToURL, cleanupOutdatedCaches, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate } from "workbox-strategies";
 
 clientsClaim();
 
-precacheAndRoute([
-	...self.__WB_MANIFEST,
-	{ url: '/manifest.json', revision: '1' },
-	{ url: '/favicon.ico', revision: '1' },
-]);
+precacheAndRoute(self.__WB_MANIFEST);
 
 registerRoute(
 	({ request, url }) => {
@@ -45,16 +41,27 @@ self.addEventListener('install', (event) => {
 	self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
-	event.waitUntil(
-		self.clients.claim().then(() => {
-			console.log('Service worker activated and claimed all clients.', self.clients.matchAll());
 
-			return self.clients.matchAll().then((clients) => {
-				clients.forEach((client) => {
-					client.navigate(client.url);
-				});
+self.addEventListener("activate", (event) => {
+	event.waitUntil(
+		(async () => {
+			// Clean old Workbox precache caches
+			await cleanupOutdatedCaches();
+
+			// Delete runtime image cache
+			const cacheNames = await caches.keys();
+			await Promise.all(
+				cacheNames
+					.filter((name) => name === "images")
+					.map((name) => caches.delete(name))
+			);
+
+			// Claim and reload clients
+			await self.clients.claim();
+			const clients = await self.clients.matchAll();
+			clients.forEach((client) => {
+				client.navigate(client.url);
 			});
-		})
+		})()
 	);
 });
