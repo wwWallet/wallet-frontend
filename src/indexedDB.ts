@@ -12,14 +12,6 @@ const stores = {
 		name: 'AppDataSource',
 		storeName: 'UserHandleToUserID',
 	}),
-	vc: localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'vc',
-	}),
-	vp: localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'vp',
-	}),
 	externalEntities: localforage.createInstance({
 		name: 'AppDataSource',
 		storeName: 'externalEntities',
@@ -42,10 +34,6 @@ export const EXCLUDED_INDEXEDDB_PATHS = new Set([
 
 const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
-	'vc': 'vc',
-	'/storage/vc': 'vc',
-	'vp': 'vp',
-	'/storage/vp': 'vp',
 	'/issuer/all': 'externalEntities',
 	'/verifier/all': 'externalEntities',
 	'/user/session/account-info': 'accountInfo'
@@ -65,16 +53,68 @@ function getMappedStoreName(storeName: string): string {
 export async function initializeDataSource(): Promise<void> {
 	try {
 		await stores.users.ready();
-		await stores.vc.ready();
-		await stores.vp.ready();
 		await stores.externalEntities.ready();
 		await stores.proxyCache.ready();
 
-		// await migrateDataSource();
+		await migrateDataSource();
 
 		console.log('Database initialized successfully');
 	} catch (err) {
 		console.error('Error initializing database', err);
+	}
+}
+
+function storeExists(dbName: string, storeName: string) {
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open(dbName);
+
+		request.onsuccess = () => {
+			const db = request.result;
+			const exists = db.objectStoreNames.contains(storeName);
+			db.close();
+			resolve(exists);
+		};
+
+		request.onerror = () => reject(request.error);
+	});
+}
+
+function deleteStore(dbName: string, storeName: string) {
+	return new Promise((resolve, reject) => {
+		// First open normally to get current version
+		const openReq = indexedDB.open(dbName);
+
+		openReq.onsuccess = () => {
+			const db = openReq.result;
+			const newVersion = db.version + 1;
+			db.close();
+
+			// Reopen with higher version
+			const upgradeReq = indexedDB.open(dbName, newVersion);
+
+			upgradeReq.onupgradeneeded = (event) => {
+				const upgradeDb = (event.target as any).result;
+
+				if (upgradeDb.objectStoreNames.contains(storeName)) {
+					upgradeDb.deleteObjectStore(storeName);
+				}
+			};
+
+			upgradeReq.onsuccess = () => resolve({});
+			upgradeReq.onerror = () => reject(upgradeReq.error);
+		};
+
+		openReq.onerror = () => reject(openReq.error);
+	});
+}
+
+async function migrateDataSource() {
+	if (await storeExists("AppDataSource", "vc")) {
+		await deleteStore("AppDataSource", "vc");
+	}
+
+	if (await storeExists("AppDataSource", "vp")) {
+		await deleteStore("AppDataSource", "vp");
 	}
 }
 
