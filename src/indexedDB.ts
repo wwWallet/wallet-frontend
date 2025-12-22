@@ -65,54 +65,54 @@ export async function initializeDataSource(): Promise<void> {
 }
 
 function storeExists(dbName: string, storeName: string) {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName);
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open(dbName);
 
-    request.onsuccess = () => {
-      const db = request.result;
-      const exists = db.objectStoreNames.contains(storeName);
-      db.close();
-      resolve(exists);
-    };
+		request.onsuccess = () => {
+			const db = request.result;
+			const exists = db.objectStoreNames.contains(storeName);
+			db.close();
+			resolve(exists);
+		};
 
-    request.onerror = () => reject(request.error);
-  });
+		request.onerror = () => reject(request.error);
+	});
 }
 
 function deleteStore(dbName: string, storeName: string) {
-  return new Promise((resolve, reject) => {
-    // First open normally to get current version
-    const openReq = indexedDB.open(dbName);
+	return new Promise((resolve, reject) => {
+		// First open normally to get current version
+		const openReq = indexedDB.open(dbName);
 
-    openReq.onsuccess = () => {
-      const db = openReq.result;
-      const newVersion = db.version + 1;
-      db.close();
+		openReq.onsuccess = () => {
+			const db = openReq.result;
+			const newVersion = db.version + 1;
+			db.close();
 
-      // Reopen with higher version
-      const upgradeReq = indexedDB.open(dbName, newVersion);
+			// Reopen with higher version
+			const upgradeReq = indexedDB.open(dbName, newVersion);
 
-      upgradeReq.onupgradeneeded = (event) => {
-        const upgradeDb = (event.target as any).result;
+			upgradeReq.onupgradeneeded = (event) => {
+				const upgradeDb = (event.target as any).result;
 
-        if (upgradeDb.objectStoreNames.contains(storeName)) {
-          upgradeDb.deleteObjectStore(storeName);
-        }
-      };
+				if (upgradeDb.objectStoreNames.contains(storeName)) {
+					upgradeDb.deleteObjectStore(storeName);
+				}
+			};
 
-      upgradeReq.onsuccess = () => resolve({});
-      upgradeReq.onerror = () => reject(upgradeReq.error);
-    };
+			upgradeReq.onsuccess = () => resolve({});
+			upgradeReq.onerror = () => reject(upgradeReq.error);
+		};
 
-    openReq.onerror = () => reject(openReq.error);
-  });
+		openReq.onerror = () => reject(openReq.error);
+	});
 }
 
 async function migrateDataSource() {
 	if (await storeExists("AppDataSource", "vc")) {
 		await deleteStore("AppDataSource", "vc");
 	}
-	
+
 	if (await storeExists("AppDataSource", "vp")) {
 		await deleteStore("AppDataSource", "vp");
 	}
