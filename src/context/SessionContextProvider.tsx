@@ -5,8 +5,6 @@ import { useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
-import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
-import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
 import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
 import { OHTTP_KEY_CONFIG } from '@/config';
@@ -27,8 +25,6 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 
 	const [appToken] = useSessionStorage<string | null>("appToken", null);
 
-	useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
-	useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
