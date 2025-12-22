@@ -73,19 +73,8 @@ export async function initializeDataSource(): Promise<void> {
 }
 
 async function migrateDataSource() {
-	const VerifiableCredentialsEntity = localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'vc',
-	});
-	await VerifiableCredentialsEntity.ready()
-	await VerifiableCredentialsEntity.dropInstance();
-	
-	const VerifiablePresentationsEntity = localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'vp',
-	});
-	await VerifiablePresentationsEntity.ready()
-	await VerifiablePresentationsEntity.dropInstance();
+	await stores.vc.dropInstance();
+	await stores.vp.dropInstance();
 }
 
 // async function migrateDataSource(): Promise<void> {
