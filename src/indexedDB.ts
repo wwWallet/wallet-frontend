@@ -42,10 +42,6 @@ export const EXCLUDED_INDEXEDDB_PATHS = new Set([
 
 const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
-	'vc': 'vc',
-	'/storage/vc': 'vc',
-	'vp': 'vp',
-	'/storage/vp': 'vp',
 	'/issuer/all': 'externalEntities',
 	'/verifier/all': 'externalEntities',
 	'/user/session/account-info': 'accountInfo'
@@ -65,17 +61,31 @@ function getMappedStoreName(storeName: string): string {
 export async function initializeDataSource(): Promise<void> {
 	try {
 		await stores.users.ready();
-		await stores.vc.ready();
-		await stores.vp.ready();
 		await stores.externalEntities.ready();
 		await stores.proxyCache.ready();
 
-		// await migrateDataSource();
+		await migrateDataSource();
 
 		console.log('Database initialized successfully');
 	} catch (err) {
 		console.error('Error initializing database', err);
 	}
+}
+
+async function migrateDataSource() {
+	const VerifiableCredentialsEntity = localforage.createInstance({
+		name: 'AppDataSource',
+		storeName: 'vc',
+	});
+	await VerifiableCredentialsEntity.ready()
+	await VerifiableCredentialsEntity.dropInstance();
+	
+	const VerifiablePresentationsEntity = localforage.createInstance({
+		name: 'AppDataSource',
+		storeName: 'vp',
+	});
+	await VerifiablePresentationsEntity.ready()
+	await VerifiablePresentationsEntity.dropInstance();
 }
 
 // async function migrateDataSource(): Promise<void> {
