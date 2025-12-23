@@ -198,53 +198,100 @@ async function generateAllIcons({
 	// Manifest icons
 	const icons: ManifestOptions["icons"] = [];
 
-	const manifestIcon = sharp(logoLight.pathname).png();
-	const PADDING_RATIO = 0.10;
+	const manifestLogoPathname = logoDark.pathname;
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;
-		const fileName = `icon-${sizeStr}.png`;
+		const noPurposeFile = `icon-${sizeStr}.png`;
+		const maskableFile = `icon-${sizeStr}-maskable.png`;
 
-		const isMaskable = size >= 192;
+		const LOGO_SCALE = 0.75; // visible logo scale
+		const logoSize = Math.round(size * LOGO_SCALE);
+		const logoOffset = Math.round((size - logoSize) / 2);
 
-		let innerSize = size;
-		let pad = 0;
+		// ---------- NO PURPOSE - CIRCLE WHITE BACKGROUND ----------
+		if (size === 192 || size === 512) {
 
-		if (isMaskable) {
-			pad = Math.round(size * PADDING_RATIO);
-			innerSize = size - 2 * pad;
+			const bg = await sharp({
+				create: {
+					width: size,
+					height: size,
+					channels: 4,
+					background: { r: 0, g: 0, b: 0, alpha: 0 },
+				},
+			})
+				.composite([
+					{
+						input: Buffer.from(`
+						<svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+							<circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="white"/>
+						</svg>
+						`),
+					},
+				])
+				.png()
+				.toBuffer();
+
+			const logo = await sharp(manifestLogoPathname)
+				.resize(logoSize, logoSize, { fit: "contain" })
+				.png()
+				.toBuffer();
+
+			await sharp(bg)
+				.composite([{ input: logo, left: logoOffset, top: logoOffset }])
+				.png()
+				.toFile(path.join(iconsDir, noPurposeFile));
+
+			icons.push({
+				src: `icons/${noPurposeFile}${hashSuffix}`,
+				sizes: sizeStr,
+				type: "image/png",
+			});
+
+			// ---------- MASKABLE - FULL WHITE BACKGROUND ----------
+			await sharp({
+				create: {
+					width: size,
+					height: size,
+					channels: 4,
+					background: { r: 255, g: 255, b: 255, alpha: 1 },
+				},
+			})
+				.composite([
+					{
+						input: await sharp(manifestLogoPathname)
+							.resize(logoSize, logoSize, { fit: "contain" })
+							.png()
+							.toBuffer(),
+						left: logoOffset,
+						top: logoOffset,
+					},
+				])
+				.png()
+				.toFile(path.join(iconsDir, maskableFile));
+
+			icons.push({
+				src: `icons/${maskableFile}${hashSuffix}`,
+				sizes: sizeStr,
+				type: "image/png",
+				purpose: "maskable",
+			});
+
+			continue;
 		}
 
-		await manifestIcon
-			.clone()
-			.resize(innerSize, innerSize, { fit: "contain" })
-			.extend({
-				top: pad,
-				bottom: pad,
-				left: pad,
-				right: pad,
-				background: { r: 0, g: 0, b: 0, alpha: 0 },
-			})
+		// ---------- SMALL ICONS - NO PURPOSE ----------
+		await sharp(manifestLogoPathname)
+			.resize(size, size, { fit: "contain" })
 			.png()
-			.toFile(path.join(iconsDir, fileName));
+			.toFile(path.join(iconsDir, noPurposeFile));
 
 		icons.push({
-			src: `icons/${fileName}${hashSuffix}`,
+			src: `icons/${noPurposeFile}${hashSuffix}`,
 			sizes: sizeStr,
-			type: 'image/png',
-			purpose: 'any',
+			type: "image/png",
 		});
-
-		if (isMaskable) {
-			icons.push({
-				src: `icons/${fileName}${hashSuffix}`,
-				sizes: sizeStr,
-				type: 'image/png',
-				purpose: 'maskable',
-			});
-		}
 	}
-
 
 	return icons;
 }
