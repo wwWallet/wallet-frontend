@@ -24,38 +24,13 @@ const PrivateRouteContext: React.Context<PrivateRouteContextValue> = createConte
 export function NotificationPermissionWarning(): React.ReactNode {
 	const { isOnline } = useContext(StatusContext);
 	const { api } = useContext(SessionContext);
-	const [isMessageNoGrantedVisible, setIsMessageNoGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageNoGrantedVisible', false));
-	const [isMessageGrantedVisible, setIsMessageGrantedVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageGrantedVisible', false));
 	const [isMessageOfflineVisible, setIsMessageOfflineVisible,] = api.useClearOnClearSession(useSessionStorage('isMessageOfflineVisible', false));
-
-	const { isPermissionGranted, tokenSentInSession } = useContext(PrivateRouteContext);
 
 	const handleCloseMessageOffline = () => {
 		setIsMessageOfflineVisible(true);
 	};
 
-	const handleCloseMessageNoGranted = () => {
-		setIsMessageNoGrantedVisible(true);
-	};
-
-	const handleCloseMessageGranted = () => {
-		setIsMessageGrantedVisible(true);
-	};
-
-	const show = (
-		(isOnline === false && isMessageOfflineVisible === false)
-		|| (
-			isOnline === true
-			&& isPermissionGranted != null
-			&& notificationApiIsSupported
-			&& (
-				(!isPermissionGranted && isMessageNoGrantedVisible === false)
-				|| (
-					isPermissionGranted
-					&& tokenSentInSession === false
-					&& isMessageGrantedVisible === false)
-			))
-	);
+	const show = isOnline === false && isMessageOfflineVisible === false;
 
 	return (
 		show
