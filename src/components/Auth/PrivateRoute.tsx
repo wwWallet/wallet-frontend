@@ -83,49 +83,6 @@ export function NotificationPermissionWarning(): React.ReactNode {
 							</button>
 						</>
 					)}
-					{isOnline === true && (
-						<>
-							{!isPermissionGranted && (
-								<>
-									<div className="flex-grow">
-										<p className='text-sm'>
-											<Trans
-												i18nKey="layout.messageAllowPermission"
-												components={{ strong: <strong /> }}
-											/>
-										</p>
-									</div>
-									<button
-										className="ml-2 text-gray-800"
-										onClick={handleCloseMessageNoGranted}
-									>
-										<FaTimes size={24} />
-									</button>
-								</>
-							)}
-							{isPermissionGranted && tokenSentInSession === false && (
-								<>
-									<div className="flex-grow">
-										<p className='text-sm'>
-											<Trans
-												i18nKey="layout.messageResetPermission"
-												components={{
-													strong: <strong />,
-													reloadButton: <button className='text-primary underline' onClick={() => window.location.reload()} />,
-												}}
-											/>
-										</p>
-									</div>
-									<button
-										className="ml-2 text-gray-800"
-										onClick={handleCloseMessageGranted}
-									>
-										<FaTimes size={24} />
-									</button>
-								</>
-							)}
-						</>
-					)}
 				</div>
 			)
 			: <></>

@@ -5,7 +5,6 @@ import ConsoleBehavior from './ConsoleBehavior';
 import { StatusProvider } from './context/StatusContext';
 import { initializeDataSource } from './indexedDB';
 import * as offlineSW from './offlineRegistrationSW';
-import * as firebaseSW from './firebase';
 import Modal from 'react-modal';
 import './index.css';
 import { BrowserRouter } from "react-router-dom";
@@ -37,5 +36,4 @@ root.render(
 	</StatusProvider>
 );
 
-firebaseSW.register()
 offlineSW.register();
