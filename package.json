@@ -88,6 +88,7 @@
     "translations": "node translation_coverage/translations.js",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch --preserveWatchOutput",
+    "dev": "concurrently -k -n Types,Vite -c yellow,cyan \"yarn typecheck:watch\" \"yarn start\"",
     "dev:docker": "concurrently -k -n Types,Vite -c yellow,cyan \"yarn typecheck:watch\" \"yarn start-docker\"",
     "dev:test": "concurrently -k -n Types,Tests -c yellow,cyan \"yarn typecheck:watch\" \"yarn test-start\""
   },
