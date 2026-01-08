@@ -111,12 +111,12 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					return { client_id: issuer.clientId };
 				}
 
-				return { client_id: "CLIENT123" };
+				return null;
 			}
 			catch (err) {
 				console.log("Could not get client_id for issuer " + credentialIssuerIdentifier + " Details:");
 				console.error(err);
-				return { client_id: "CLIENT123" };
+				return null;
 			}
 		},
 		[getExternalEntity]
