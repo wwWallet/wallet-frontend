@@ -201,23 +201,15 @@ export function useCredentialRequest() {
 					proofsToSend = proof_jwts;
 				}
 
-				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
-					credentialEndpointBody.proofs = {
-						jwt: proofsToSend
-					}
-				}
-				else {
-					credentialEndpointBody.proof = {
-						proof_type: "jwt",
-						jwt: proofsToSend[0]
-					};
+				credentialEndpointBody.proofs = {
+					jwt: proofsToSend
 				}
 			}
 			else if (keyAttestation) {
-				credentialEndpointBody.proof = {
+				credentialEndpointBody.proofs = [{
 					proof_type: "attestation",
 					attestation: keyAttestation,
-				};
+				}];
 			}
 			else {
 				throw new Error("Nor proofs, nor keyAttestation was defined before sending CredentialRequest");
