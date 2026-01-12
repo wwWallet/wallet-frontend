@@ -206,10 +206,9 @@ export function useCredentialRequest() {
 				}
 			}
 			else if (keyAttestation) {
-				credentialEndpointBody.proofs = [{
-					proof_type: "attestation",
-					attestation: keyAttestation,
-				}];
+				credentialEndpointBody.proofs = {
+					attestation: [keyAttestation],
+				};
 			}
 			else {
 				throw new Error("Nor proofs, nor keyAttestation was defined before sending CredentialRequest");
