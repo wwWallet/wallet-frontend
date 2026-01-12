@@ -278,39 +278,39 @@ export function useOpenID4VP({
 		}
 	}
 
-	function convertDcqlToPresentationDefinition(dcql_query) {
-		const pdId = crypto.randomUUID();
-		const input_descriptors = dcql_query.credentials.map(cred => {
-			const descriptorId = cred.meta?.doctype_value!;
+	// function convertDcqlToPresentationDefinition(dcql_query) {
+	// 	const pdId = crypto.randomUUID();
+	// 	const input_descriptors = dcql_query.credentials.map(cred => {
+	// 		const descriptorId = cred.meta?.doctype_value!;
 
-			const format: Record<string, any> = {}
-			if (cred.format === "mso_mdoc") {
-				format.mso_mdoc = { alg: ["ES256", "ES384", "EdDSA"] }
-			}
+	// 		const format: Record<string, any> = {}
+	// 		if (cred.format === "mso_mdoc") {
+	// 			format.mso_mdoc = { alg: ["ES256", "ES384", "EdDSA"] }
+	// 		}
 
-			// build fields paths against the mdoc namespace
-			const fields = cred.claims.map(claim => ({
-				path: [`$['${cred.meta?.doctype_value}']${claim.path.slice(1).map(p => `['${p}']`).join('')}`],
-				intent_to_retain: claim.intent_to_retain ?? false
-			}))
+	// 		// build fields paths against the mdoc namespace
+	// 		const fields = cred.claims.map(claim => ({
+	// 			path: [`$['${cred.meta?.doctype_value}']${claim.path.slice(1).map(p => `['${p}']`).join('')}`],
+	// 			intent_to_retain: claim.intent_to_retain ?? false
+	// 		}))
 
-			return {
-				id: descriptorId,
-				format,
-				constraints: {
-					limit_disclosure: "required",
-					fields
-				}
-			}
-		})
+	// 		return {
+	// 			id: descriptorId,
+	// 			format,
+	// 			constraints: {
+	// 				limit_disclosure: "required",
+	// 				fields
+	// 			}
+	// 		}
+	// 	})
 
-		return {
-			id: pdId,
-			name: `DCQL-converted Presentation Definition`,
-			purpose: dcql_query.credential_sets?.[0]?.purpose ?? "No purpose defined",
-			input_descriptors
-		}
-	}
+	// 	return {
+	// 		id: pdId,
+	// 		name: `DCQL-converted Presentation Definition`,
+	// 		purpose: dcql_query.credential_sets?.[0]?.purpose ?? "No purpose defined",
+	// 		input_descriptors
+	// 	}
+	// }
 
 	function generatePresentationFrameForDCQLPaths(paths: string[][]): any {
 		const frame = {};
@@ -479,8 +479,8 @@ export function useOpenID4VP({
 					dcqlQueryWithClaims = dcql_query;
 				}
 
-				const presentationDefinition = convertDcqlToPresentationDefinition(dcqlQueryWithClaims);
-				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, presentationDefinition, apu, apv, client_id, response_uri);
+				// const presentationDefinition = convertDcqlToPresentationDefinition(dcqlQueryWithClaims);
+				const { deviceResponseMDoc } = await keystore.generateDeviceResponse(mdoc, dcqlQueryWithClaims, apu, apv, client_id, response_uri);
 				const encodedDeviceResponse = base64url.encode(deviceResponseMDoc.encode());
 
 				selectedVCs.push(encodedDeviceResponse);

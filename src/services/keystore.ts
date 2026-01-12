@@ -1299,7 +1299,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
-		.usingPresentationDefinition(presentationDefinition)
+		.usingDcqlQuery(presentationDefinition)
 		.usingSessionTranscriptBytes(sessionTranscriptBytes)
 		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
@@ -1329,7 +1329,7 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 	setCborEncodeDecodeOptions(options);
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
-		.usingPresentationDefinition(presentationDefinition)
+		.usingDcqlQuery(presentationDefinition)
 		.usingSessionTranscriptBytes(sessionTranscriptBytes)
 		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
