@@ -155,7 +155,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			onIssuerMetadataResolved?: (issuerIdentifier: string, metadata: OpenidCredentialIssuerMetadata) => void
 		) => {
 			const issuerEntities = await getIssuers().catch(() => []);
-
+			const certificates = [];
 			issuerEntities.forEach(async (entity: any) => {
 				if (!entity.credentialIssuerIdentifier) return;
 
@@ -177,17 +177,27 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					if (metadata.mdoc_iacas_uri) {
 						const response = await getMdocIacas(metadata.credential_issuer, metadata, shouldUseCache);
 						if (response?.iacas?.length) {
-							onCertificates(response.iacas.map(cert =>
+							certificates.push(response.iacas.map(cert =>
 								`-----BEGIN CERTIFICATE-----\n${cert.certificate}\n-----END CERTIFICATE-----\n`
-							));
+							))
 						}
 					}
 				} catch (error) {
 					console.error(`Failed to fetch metadata for ${entity.credentialIssuerIdentifier}:`, error);
 				}
 			});
+			try {
+				const iacaList = await api.get('/helper/iaca-list');
+				const { iaca_list } = iacaList.data as { iaca_list: { certificate: string }[] };
+				certificates.push(...iaca_list.map((c) => c.certificate));
+			}
+			catch {
+				console.error(`Failed to get iaca list from wallet-backend-server`);
+			}
+			onCertificates(certificates);
+
 		},
-		[getCredentialIssuerMetadata, getMdocIacas, httpProxy]
+		[getCredentialIssuerMetadata, getMdocIacas, httpProxy, api]
 	);
 
 	return useMemo(
