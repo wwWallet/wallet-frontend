@@ -255,7 +255,7 @@ export function useCredentialRequest() {
 			const payload = JSON.parse(new TextDecoder().decode(plaintext));
 			credentialResponse.data = payload;
 		}
-		if (credentialResponse.status !== 200) {
+		if (credentialResponse.status >= 400) {
 			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
 			if (credentialResponse.headers?.["www-authenticate"] && (
 				(credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") ||
