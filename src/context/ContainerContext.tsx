@@ -281,6 +281,7 @@ export const ContainerContextProvider = ({ children }) => {
 							const display =
 								credentialConfiguration?.display?.find((d) => (d.locale || '').split('-')[0] === defaultLocale.split('-')[0]) ||
 								credentialConfiguration?.display?.[0] ||
+								credentialConfiguration?.credential_metadata?.display?.[0] ||
 								{};
 
 							let description = display?.description || result.beautifiedForm.description || '';

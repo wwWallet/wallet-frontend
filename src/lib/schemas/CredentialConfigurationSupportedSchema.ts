@@ -43,6 +43,7 @@ const msoDocSchema = commonSchema.extend({
 const jwtVcJsonSchema = commonSchema.extend({
 	format: z.literal(VerifiableCredentialFormat.JWT_VC_JSON),
 	credential_definition: z.any().optional(),
+	credential_metadata: z.any().optional(),
 });
 
 export const CredentialConfigurationSupportedSchema = sdJwtSchema.or(msoDocSchema).or(jwtVcJsonSchema);

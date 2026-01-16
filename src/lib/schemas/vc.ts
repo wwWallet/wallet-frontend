@@ -1,5 +1,6 @@
 export enum VerifiableCredentialFormat {
 	SD_JWT_VC = "vc+sd-jwt",
+	DC_JWT_VC = "dc+sd-jwt",
 	VC_JWT = "vc_jwt",
 	MSO_MDOC = "mso_mdoc",
 	JWT_VC_JSON = "jwt_vc_json"
