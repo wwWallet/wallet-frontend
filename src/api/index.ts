@@ -12,6 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -73,6 +74,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		retryFrom?: SignupWebauthnRetryParams,
+		tenantId?: string,
 	): Promise<Result<void, SignupWebauthnError>>,
 	updatePrivateData(newPrivateData: EncryptedContainer): Promise<void>,
 	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
@@ -94,6 +96,11 @@ export interface BackendApi {
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
 	>>;
+
+	/** Get the current tenant ID (from session storage) */
+	getTenantId(): string | undefined,
+	/** Set the current tenant ID (stored in session storage) */
+	setTenantId(tenantId: string): void,
 }
 
 export function useApi(isOnlineProp: boolean = true): BackendApi {
@@ -339,6 +346,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const clearSession = useCallback((): void => {
 		clearSessionStorage();
 		removePrivateDataEtag();
+		clearStoredTenant(); // Clear tenant on logout
 		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 	}, [clearSessionStorage, removePrivateDataEtag]);
 
@@ -629,6 +637,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								return Err('loginKeystoreFailed');
 							}
 						}
+
+						// Store the tenant from the login response
+						// The backend discovers tenant from the passkey's userHandle
+						if (finishResp?.data?.tenantId) {
+							setStoredTenant(finishResp.data.tenantId);
+						}
+
 						await setSession(finishResp, credential, 'login');
 						return Ok.EMPTY;
 					} catch (e) {
@@ -654,10 +669,21 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
-		retryFrom?: SignupWebauthnRetryParams
+		retryFrom?: SignupWebauthnRetryParams,
+		tenantId?: string
 	): Promise<Result<void, SignupWebauthnError>> => {
+		// Use tenant-scoped registration endpoints if a tenant ID is provided
+		// This ensures the passkey's userHandle encodes the tenant for proper isolation
+		const storedTenant = tenantId || getStoredTenant();
+		const registerBeginPath = storedTenant
+			? buildTenantApiPath(storedTenant, '/user/register-webauthn-begin')
+			: '/user/register-webauthn-begin';
+		const registerFinishPath = storedTenant
+			? buildTenantApiPath(storedTenant, '/user/register-webauthn-finish')
+			: '/user/register-webauthn-finish';
+
 		try {
-			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', {})).data;
+			const beginData = retryFrom?.beginData || (await post(registerBeginPath, {})).data;
 			console.log("begin", beginData);
 
 			try {
@@ -694,7 +720,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					);
 
 					try {
-						const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
+						const finishResp = updatePrivateDataEtag(await post(registerFinishPath, {
 							challengeId: beginData.challengeId,
 							displayName: name,
 							privateData: serializePrivateData(privateData),
@@ -711,6 +737,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
 						}));
+
+						// Store the tenant from the response if available
+						// (tenant-scoped registration returns tenantId)
+						if (finishResp?.data?.tenantId) {
+							setStoredTenant(finishResp.data.tenantId);
+						}
+
 						await setSession(finishResp, credential, 'signup');
 						return Ok.EMPTY;
 
@@ -790,6 +823,10 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		removeEventListener,
 
 		syncPrivateData,
+
+		// Tenant utilities
+		getTenantId: getStoredTenant,
+		setTenantId: setStoredTenant,
 	}), [
 		del,
 		get,

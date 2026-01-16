@@ -7,6 +7,7 @@ import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '../../lib/TenantContext';
 
 import * as config from '../../config';
 import Button, { Variant } from '../../components/Buttons/Button';
@@ -215,6 +216,7 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const { tenantId } = useTenant(); // Get tenant from URL path or storage
 	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
@@ -280,6 +282,8 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onSignup = async (name: string, webauthnHints: string[]) => {
+		// Pass tenantId to ensure the passkey's userHandle includes the tenant prefix
+		// This enables tenant-scoped authentication
 		const result = await api.signupWebauthn(
 			name,
 			keystore,
@@ -288,6 +292,7 @@ const WebauthnSignupLogin = ({
 				: promptForPrfRetry,
 			webauthnHints,
 			retrySignupFrom,
+			tenantId, // Tenant from URL path or storage
 		);
 		if (result.ok) {
 
