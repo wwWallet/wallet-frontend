@@ -13,6 +13,7 @@ import { OpenID4VPContextProvider } from './context/OpenID4VPContextProvider';
 import { OpenID4VCIContextProvider } from './context/OpenID4VCIContextProvider';
 import { AppSettingsProvider } from './context/AppSettingsProvider';
 import { NotificationProvider } from './context/NotificationProvider';
+import { ApiVersionProvider } from './context/ApiVersionContext';
 
 // Hocs
 import { UriHandlerProvider } from './hocs/UriHandlerProvider';
@@ -25,25 +26,27 @@ type RootProviderProps = {
 const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 	return (
 		<StatusContextProvider>
-			<SessionContextProvider>
-				<CredentialsContextProvider>
-					<I18nextProvider i18n={i18n}>
-						<OpenID4VPContextProvider>
-							<OpenID4VCIContextProvider>
-								<UriHandlerProvider>
-									<AppSettingsProvider>
-										<NotificationProvider>
-											<NativeWrapperProvider>
-												{children}
-											</NativeWrapperProvider>
-										</NotificationProvider>
-									</AppSettingsProvider>
-								</UriHandlerProvider>
-							</OpenID4VCIContextProvider>
-						</OpenID4VPContextProvider>
-					</I18nextProvider>
-				</CredentialsContextProvider>
-			</SessionContextProvider>
+			<ApiVersionProvider>
+				<SessionContextProvider>
+					<CredentialsContextProvider>
+						<I18nextProvider i18n={i18n}>
+							<OpenID4VPContextProvider>
+								<OpenID4VCIContextProvider>
+									<UriHandlerProvider>
+										<AppSettingsProvider>
+											<NotificationProvider>
+												<NativeWrapperProvider>
+													{children}
+												</NativeWrapperProvider>
+											</NotificationProvider>
+										</AppSettingsProvider>
+									</UriHandlerProvider>
+								</OpenID4VCIContextProvider>
+							</OpenID4VPContextProvider>
+						</I18nextProvider>
+					</CredentialsContextProvider>
+				</SessionContextProvider>
+			</ApiVersionProvider>
 		</StatusContextProvider>
 	);
 };
