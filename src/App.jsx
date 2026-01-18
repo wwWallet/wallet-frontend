@@ -86,7 +86,7 @@ function App() {
 			<Suspense fallback={<Spinner />}>
 				<UpdateNotification />
 				<Routes>
-					{/* 
+					{/*
 					 * Tenant-scoped routes (/:tenantId/*)
 					 * These routes extract the tenant ID from the URL path and provide it
 					 * via TenantContext. Used for multi-tenant deployments where users
@@ -108,7 +108,7 @@ function App() {
 						</Route>
 					</Route>
 
-					{/* 
+					{/*
 					 * Global routes (no tenant prefix)
 					 * These routes are used for:
 					 * 1. Single-tenant deployments (backward compatible)

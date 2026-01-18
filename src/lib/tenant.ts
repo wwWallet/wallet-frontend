@@ -1,6 +1,6 @@
 /**
  * Tenant utilities for multi-tenancy support.
- * 
+ *
  * Multi-tenancy Design:
  * - Login is global (tenant-discovering): The user selects a passkey, and the tenant
  *   is determined from the passkey's userHandle which encodes "tenantId:userId"
@@ -8,7 +8,7 @@
  *   the registration endpoint includes the tenant ID in the path
  * - After login, the backend returns the tenant_id which should be stored
  *   and used for subsequent API calls and routing
- * 
+ *
  * See go-wallet-backend/docs/adr/011-multi-tenancy.md for full design.
  */
 
@@ -41,14 +41,14 @@ export function clearStoredTenant(): void {
 
 /**
  * Build a tenant-scoped API path.
- * 
+ *
  * For WebAuthn registration within a tenant context, the endpoint becomes:
  *   /t/{tenantId}/user/register-webauthn-begin
  *   /t/{tenantId}/user/register-webauthn-finish
- * 
+ *
  * For other endpoints that need tenant context (storage, etc), the format is:
  *   /{tenantId}/storage/vc
- * 
+ *
  * @param tenantId - The tenant ID to scope to
  * @param basePath - The base path (e.g., '/user/register-webauthn-begin')
  * @param useApiPrefix - Whether to use /t/ prefix (for public tenant routes)

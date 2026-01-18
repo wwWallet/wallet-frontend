@@ -1,19 +1,19 @@
 /**
  * TenantContext - React context for multi-tenancy support.
- * 
+ *
  * The tenant ID can come from multiple sources (in order of precedence):
  * 1. URL path parameter (/:tenantId/*) - for path-based routing
  * 2. Explicitly passed tenantId prop - for components that know the tenant
  * 3. SessionStorage - cached from previous login/registration
- * 
+ *
  * Usage:
  *   // In App.tsx, wrap tenant-scoped routes:
  *   <Route path="/:tenantId/*" element={<TenantProvider><TenantRoutes /></TenantProvider>} />
- * 
+ *
  *   // In components:
  *   const { tenantId } = useTenant();
  *   api.signupWebauthn(name, keystore, ..., tenantId);
- * 
+ *
  * See go-wallet-backend/docs/adr/011-multi-tenancy.md for full design.
  */
 
@@ -42,12 +42,12 @@ interface TenantProviderProps {
 
 /**
  * TenantProvider extracts tenant from URL path and provides it to children.
- * 
+ *
  * For path-based routing, the URL structure is:
  *   /{tenantId}/settings
  *   /{tenantId}/add
  *   /{tenantId}/cb?code=...
- * 
+ *
  * The provider:
  * 1. Reads tenantId from URL params (useParams)
  * 2. Falls back to sessionStorage if not in URL
@@ -55,37 +55,37 @@ interface TenantProviderProps {
  */
 export function TenantProvider({ children, tenantId: propTenantId }: TenantProviderProps) {
 	const navigate = useNavigate();
-	
+
 	// Get tenant from URL path parameter
 	// This requires the route to be defined as /:tenantId/*
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
-	
+
 	// Determine effective tenant ID (prop > URL > storage)
 	const effectiveTenantId = propTenantId || urlTenantId || getStoredTenant();
-	
+
 	// Sync URL tenant to storage when available
 	useEffect(() => {
 		if (urlTenantId) {
 			setStoredTenant(urlTenantId);
 		}
 	}, [urlTenantId]);
-	
+
 	const switchTenant = (newTenantId: string) => {
 		setStoredTenant(newTenantId);
 		navigate(`/${newTenantId}/`);
 	};
-	
+
 	const clearTenant = () => {
 		clearStoredTenant();
 	};
-	
+
 	const value = useMemo<TenantContextValue>(() => ({
 		tenantId: effectiveTenantId,
 		isMultiTenant: !!effectiveTenantId,
 		switchTenant,
 		clearTenant,
 	}), [effectiveTenantId]);
-	
+
 	return (
 		<TenantContext.Provider value={value}>
 			{children}
