@@ -7,7 +7,7 @@ import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
-import { useTenant } from '../../lib/TenantContext';
+import { useTenant } from '../../context/TenantContext';
 
 import * as config from '../../config';
 import Button, { Variant } from '../../components/Buttons/Button';

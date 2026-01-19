@@ -46,20 +46,13 @@ export function clearStoredTenant(): void {
  *   /t/{tenantId}/user/register-webauthn-begin
  *   /t/{tenantId}/user/register-webauthn-finish
  *
- * For other endpoints that need tenant context (storage, etc), the format is:
- *   /{tenantId}/storage/vc
- *
  * @param tenantId - The tenant ID to scope to
  * @param basePath - The base path (e.g., '/user/register-webauthn-begin')
- * @param useApiPrefix - Whether to use /t/ prefix (for public tenant routes)
- * @returns The tenant-scoped path
+ * @returns The tenant-scoped path with /t/ prefix
  */
-export function buildTenantApiPath(tenantId: string, basePath: string, useApiPrefix: boolean = true): string {
+export function buildTenantApiPath(tenantId: string, basePath: string): string {
 	const cleanPath = basePath.startsWith('/') ? basePath : `/${basePath}`;
-	if (useApiPrefix) {
-		return `/t/${tenantId}${cleanPath}`;
-	}
-	return `/${tenantId}${cleanPath}`;
+	return `/t/${tenantId}${cleanPath}`;
 }
 
 /**

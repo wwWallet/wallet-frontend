@@ -17,9 +17,9 @@
  * See go-wallet-backend/docs/adr/011-multi-tenancy.md for full design.
  */
 
-import React, { createContext, useContext, useEffect, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStoredTenant, setStoredTenant, clearStoredTenant } from './tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant } from '../lib/tenant';
 
 export interface TenantContextValue {
 	/** Current tenant ID (from URL, prop, or storage) */
@@ -70,21 +70,21 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 		}
 	}, [urlTenantId]);
 
-	const switchTenant = (newTenantId: string) => {
+	const switchTenant = useCallback((newTenantId: string) => {
 		setStoredTenant(newTenantId);
 		navigate(`/${newTenantId}/`);
-	};
+	}, [navigate]);
 
-	const clearTenant = () => {
+	const clearTenant = useCallback(() => {
 		clearStoredTenant();
-	};
+	}, []);
 
 	const value = useMemo<TenantContextValue>(() => ({
 		tenantId: effectiveTenantId,
 		isMultiTenant: !!effectiveTenantId,
 		switchTenant,
 		clearTenant,
-	}), [effectiveTenantId]);
+	}), [effectiveTenantId, switchTenant, clearTenant]);
 
 	return (
 		<TenantContext.Provider value={value}>
