@@ -7,6 +7,7 @@ import SessionContext from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacasResponseSchema";
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
+import { isDiscoverAndTrustAvailable, discoverAndTrustIssuer } from './DiscoverAndTrustService';
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
@@ -29,6 +30,42 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	const getCredentialIssuerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
+			// Try the new discover-and-trust API first if available
+			if (isDiscoverAndTrustAvailable()) {
+				const appToken = api.getAppToken();
+				if (appToken) {
+					try {
+						const result = await discoverAndTrustIssuer(credentialIssuerIdentifier, appToken);
+						if (result.discovery_status === 'success' && result.issuer_metadata) {
+							const metadata = result.issuer_metadata as OpenidCredentialIssuerMetadata;
+							// Handle signed_metadata if present
+							if (metadata.signed_metadata) {
+								try {
+									const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(metadata.signed_metadata.split('.')[0])));
+									if (parsedHeader.x5c) {
+										const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
+										const { payload } = await jwtVerify(metadata.signed_metadata, publicKey);
+										return { metadata: payload as OpenidCredentialIssuerMetadata };
+									}
+									return null;
+								}
+								catch (err) {
+									console.error(err);
+									return null;
+								}
+							}
+							return { metadata };
+						}
+						// Fall through to legacy approach if discovery failed
+						console.warn('discover-and-trust returned non-success status:', result.discovery_status);
+					} catch (err) {
+						// Fall through to legacy approach on error
+						console.warn('discover-and-trust failed, falling back to proxy:', err);
+					}
+				}
+			}
+
+			// Legacy approach using HTTP proxy
 			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
 			try {
 				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
@@ -58,7 +95,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return null;
 			}
 		},
-		[fetchAndParseWithSchema]
+		[api, fetchAndParseWithSchema]
 	);
 
 	// Fetches authorization server metadata with fallback
