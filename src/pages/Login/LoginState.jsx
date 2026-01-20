@@ -4,6 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import Button from '../../components/Buttons/Button';
@@ -21,6 +22,7 @@ const WebauthnLogin = ({
 	const location = useLocation();
 	const from = location.search || '/';
 	const { t } = useTranslation();
+	const { buildPath } = useTenant();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -73,7 +75,7 @@ const WebauthnLogin = ({
 				<div className='flex flex-row gap-4 justify-center mr-2'>
 					<Button
 						id="cancel-login-state"
-						onClick={() => navigate('/')}
+						onClick={() => navigate(buildPath())}
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
@@ -103,6 +105,7 @@ const LoginState = () => {
 	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
+	const { buildPath } = useTenant();
 
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search || '/';
@@ -131,9 +134,9 @@ const LoginState = () => {
 	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
 
 	if (!filteredUser) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to={buildPath('login')} replace />;
 	} else if ((isLoggedIn && !forceAuthenticate) || (forceAuthenticate === true && authenticated)) {
-		return <Navigate to={`/${window.location.search}`} replace />;
+		return <Navigate to={`${buildPath()}${window.location.search}`} replace />;
 	}
 
 	return (

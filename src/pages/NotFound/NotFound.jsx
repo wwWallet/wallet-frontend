@@ -3,14 +3,16 @@ import Logo from '../../components/Logo/Logo';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/Buttons/Button';
+import { useTenant } from '@/context/TenantContext';
 
 
 const NotFound = () => {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const { buildPath } = useTenant();
 
 	const handleBackToHome = () => {
-		navigate('/');
+		navigate(buildPath());
 	};
 
 	return (

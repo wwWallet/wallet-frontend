@@ -13,6 +13,7 @@ import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
 import type { CredentialConfigurationSupported } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
@@ -71,6 +72,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const { search } = useLocation();
 	const params = useMemo(() => new URLSearchParams(search), [search]);
 	const navigate = useNavigate();
+	const { buildPath } = useTenant();
 
 	const verificationFlowInProgress = useMemo(
 		() => params.has("request_uri") && params.has("client_id"),
@@ -277,7 +279,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				console.log("Updated S: ", s);
 				await openID4VCIClientStateRepository.cleanupExpired();
 				setCommitStateChanges(1);
-				navigate("/");
+				navigate(buildPath());
 				return;
 			}
 			await openID4VCIClientStateRepository.updateState(flowState);
@@ -294,7 +296,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		openID4VCIClientStateRepository,
 		credentialRequestBuilder,
 		httpProxy,
-		navigate
+		navigate,
+		buildPath
 	]);
 
 	const getRememberIssuerAge = useCallback((): number | null => {

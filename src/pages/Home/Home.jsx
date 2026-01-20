@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import AppSettingsContext from "@/context/AppSettingsContext";
+import { useTenant } from '@/context/TenantContext';
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -28,6 +29,7 @@ import PendingTransactionsBanner from '@/components/Credentials/PendingTransacti
 const Home = () => {
 	const { vcEntityList, latestCredentials, currentSlide, setCurrentSlide, pendingTransactions } = useContext(CredentialsContext);
 	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
+	const { buildPath } = useTenant();
 	const screenType = useScreenType();
 
 	const mobileVcHomeView = settings.mobileVcHomeView;
@@ -36,11 +38,11 @@ const Home = () => {
 	const { t } = useTranslation();
 
 	const handleAddCredential = () => {
-		navigate('/add');
+		navigate(buildPath('add'));
 	};
 
 	const handleImageClick = (vcEntity) => {
-		navigate(`/credential/${vcEntity.batchId}`);
+		navigate(buildPath(`credential/${vcEntity.batchId}`));
 	};
 
 	const setView = (v) => {
@@ -61,7 +63,7 @@ const Home = () => {
 					{(pendingTransactions?.length > 0) && (
 						<PendingTransactionsBanner
 							pendingTransactions={pendingTransactions}
-							onView={() => navigate('/pending')}
+							onView={() => navigate(buildPath('pending'))}
 						/>
 					)}
 				</div>

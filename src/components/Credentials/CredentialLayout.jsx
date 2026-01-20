@@ -11,6 +11,7 @@ import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
+import { useTenant } from '@/context/TenantContext';
 
 // Components
 import { H1 } from '../Shared/Heading';
@@ -47,6 +48,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const { buildPath } = useTenant();
 	const [zeroSigCount, setZeroSigCount] = useState(null)
 	const [sigTotal, setSigTotal] = useState(null);
 
@@ -154,7 +156,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		<div className="px-6">
 			{screenType !== 'mobile' ? (
 				<H1
-					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
+					heading={<Link to={buildPath()}>{t('common.navItemCredentials')}</Link>}
 					flexJustifyContent="start"
 					textColorClass="text-lm-gray-700 dark:text-dm-gray-300 hover:underline"
 				>					<ArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />

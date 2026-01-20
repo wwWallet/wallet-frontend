@@ -79,10 +79,15 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 
 	// Handle unauthenticated users first
 	if (!isLoggedIn) {
+		// For unauthenticated users, preserve the tenant from URL if present
+		const loginTenantPath = urlTenantId && !isDefaultTenant(urlTenantId)
+			? `/${urlTenantId}`
+			: '';
+
 		if (state && userExistsInCache(state)) {
-			return <Navigate to={`/login-state${window.location.search}`} replace />;
+			return <Navigate to={`${loginTenantPath}/login-state${window.location.search}`} replace />;
 		} else {
-			return <Navigate to={`/login${window.location.search}`} replace />;
+			return <Navigate to={`${loginTenantPath}/login${window.location.search}`} replace />;
 		}
 	}
 

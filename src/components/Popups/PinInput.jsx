@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
 import PopupLayout from './PopupLayout';
 import { last } from '@/util';
 import { Lock } from 'lucide-react';
@@ -11,6 +12,7 @@ import { Lock } from 'lucide-react';
 function PinInput({ isOpen, setIsOpen }) {
 	const { api } = useContext(SessionContext);
 	const navigate = useNavigate();
+	const { buildPath } = useTenant();
 	const [errMessage, setErrMessage] = useState('');
 	const [pin, setPin] = useState(['', '', '', '']);
 	const { t } = useTranslation();
@@ -31,7 +33,7 @@ function PinInput({ isOpen, setIsOpen }) {
 
 	const handleCancel = () => {
 		setIsOpen(false);
-		navigate('/');
+		navigate(buildPath());
 	};
 
 	const handleSubmit = async () => {

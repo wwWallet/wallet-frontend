@@ -19,7 +19,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getStoredTenant, setStoredTenant, clearStoredTenant } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath } from '../lib/tenant';
 
 export interface TenantContextValue {
 	/** Current tenant ID (from URL, prop, or storage) */
@@ -30,6 +30,8 @@ export interface TenantContextValue {
 	switchTenant: (newTenantId: string) => void;
 	/** Clear tenant context (on logout) */
 	clearTenant: () => void;
+	/** Build a tenant-aware path for links and navigation */
+	buildPath: (subPath?: string) => string;
 }
 
 const TenantContext = createContext<TenantContextValue | null>(null);
@@ -88,12 +90,17 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 		clearStoredTenant();
 	}, []);
 
+	const buildPath = useCallback((subPath?: string) => {
+		return buildTenantRoutePath(effectiveTenantId, subPath);
+	}, [effectiveTenantId]);
+
 	const value = useMemo<TenantContextValue>(() => ({
 		tenantId: effectiveTenantId,
 		isMultiTenant: !!effectiveTenantId,
 		switchTenant,
 		clearTenant,
-	}), [effectiveTenantId, switchTenant, clearTenant]);
+		buildPath,
+	}), [effectiveTenantId, switchTenant, clearTenant, buildPath]);
 
 	return (
 		<TenantContext.Provider value={value}>
@@ -111,13 +118,15 @@ export function useTenant(): TenantContextValue {
 	if (!context) {
 		// Return a default context for components outside TenantProvider
 		// This allows the app to work in single-tenant mode
+		const storedTenant = getStoredTenant();
 		return {
-			tenantId: getStoredTenant(),
+			tenantId: storedTenant,
 			isMultiTenant: false,
 			switchTenant: () => {
 				console.warn('switchTenant called outside TenantProvider');
 			},
 			clearTenant: clearStoredTenant,
+			buildPath: (subPath?: string) => buildTenantRoutePath(storedTenant, subPath),
 		};
 	}
 	return context;

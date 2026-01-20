@@ -5,6 +5,7 @@ import Logo from '../../Logo/Logo';
 import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
@@ -42,6 +43,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
+	const { buildPath } = useTenant();
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -75,7 +77,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<div className="md:hidden flex items-center justify-between mb-4">
 					<div className='flex items-center'>
 						<Logo aClassName='mr-2' imgClassName='w-10 h-auto' />
-						<a href={('/')}
+						<a href={buildPath()}
 							className=" text-xl font-bold cursor-pointer"
 						>
 							{t('common.walletName')}
@@ -85,7 +87,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<div>
 					<div className="hidden md:flex md:gap-4 justify-between items-center mb-4">
 						<Logo aClassName='w-4/12' imgClassName='object-contain' />
-						<a href={('/')}
+						<a href={buildPath()}
 							className=" text-xl font-bold cursor-pointer w-8/12"
 						>
 							{t('common.walletName')}
@@ -118,8 +120,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 						{/* Nav Menu */}
 						<NavItem
 							id="credentials"
-							path="/"
-							alias="/cb"
+							path={buildPath()}
+							alias={buildPath('cb')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Wallet}
@@ -130,7 +132,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="add"
-							path="/add"
+							path={buildPath('add')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={PlusCircle}
@@ -140,7 +142,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="send"
-							path="/send"
+							path={buildPath('send')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Send}
@@ -150,7 +152,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="history"
-							path="/history"
+							path={buildPath('history')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={History}
@@ -160,7 +162,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="settings"
-							path="/settings"
+							path={buildPath('settings')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Settings}
