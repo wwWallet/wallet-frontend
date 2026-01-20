@@ -56,6 +56,39 @@ export function buildTenantApiPath(tenantId: string, basePath: string): string {
 }
 
 /**
+ * The default tenant ID used by the backend for single-tenant mode
+ * and legacy users without tenant association.
+ */
+export const DEFAULT_TENANT_ID = 'default';
+
+/**
+ * Check if a tenant ID represents the default tenant.
+ * Default tenant users should use the root path (/) instead of /default/.
+ */
+export function isDefaultTenant(tenantId: string | undefined): boolean {
+	return !tenantId || tenantId === DEFAULT_TENANT_ID;
+}
+
+/**
+ * Build the frontend route path for a given tenant.
+ * - Non-default tenants: /{tenantId}/
+ * - Default tenant: /
+ *
+ * @param tenantId - The tenant ID
+ * @param subPath - Optional path within the tenant (e.g., 'settings')
+ * @returns The frontend route path
+ */
+export function buildTenantRoutePath(tenantId: string | undefined, subPath?: string): string {
+	const cleanSubPath = subPath?.startsWith('/') ? subPath.slice(1) : (subPath || '');
+
+	if (isDefaultTenant(tenantId)) {
+		return cleanSubPath ? `/${cleanSubPath}` : '/';
+	}
+
+	return cleanSubPath ? `/${tenantId}/${cleanSubPath}` : `/${tenantId}/`;
+}
+
+/**
  * Check if multi-tenancy is active (a tenant is stored).
  */
 export function isMultiTenantActive(): boolean {
