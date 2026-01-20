@@ -60,15 +60,24 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 	// This requires the route to be defined as /:tenantId/*
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
 
-	// Determine effective tenant ID (prop > URL > storage)
-	const effectiveTenantId = propTenantId || urlTenantId || getStoredTenant();
+	// Get the already-stored tenant (from prior authentication)
+	const storedTenantId = getStoredTenant();
 
-	// Sync URL tenant to storage when available
+	// Determine effective tenant ID:
+	// - If user is already authenticated (has stored tenant), use stored tenant
+	// - Otherwise, use prop > URL > storage as before
+	const effectiveTenantId = storedTenantId || propTenantId || urlTenantId;
+
+	// Only sync URL tenant to storage if:
+	// 1. There's a URL tenant, AND
+	// 2. No existing stored tenant (user is not yet authenticated)
+	// This prevents an authenticated user from having their tenant overwritten
+	// when they navigate to a different tenant's URL
 	useEffect(() => {
-		if (urlTenantId) {
+		if (urlTenantId && !storedTenantId) {
 			setStoredTenant(urlTenantId);
 		}
-	}, [urlTenantId]);
+	}, [urlTenantId, storedTenantId]);
 
 	const switchTenant = useCallback((newTenantId: string) => {
 		setStoredTenant(newTenantId);
