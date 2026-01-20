@@ -55,6 +55,10 @@ export default defineConfig(({ mode }) => {
 			alias: {
 				'@': '/src',
 			},
+			preserveSymlinks: true,
+		},
+		optimizeDeps: {
+			include: ['wallet-common'],
 		},
 		server: {
 			host: true,
@@ -68,7 +72,10 @@ export default defineConfig(({ mode }) => {
 		},
 		build: {
 			sourcemap: env.VITE_GENERATE_SOURCEMAP === 'true',
-			minify: env.VITE_GENERATE_SOURCEMAP !== 'true'
+			minify: env.VITE_GENERATE_SOURCEMAP !== 'true',
+			commonjsOptions: {
+				include: [/wallet-common/, /node_modules/],
+			},
 		},
 	}
 });
