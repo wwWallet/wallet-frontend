@@ -57,7 +57,7 @@
 		"privacyLevel": {
 			"high": "Non-tracable credential (high privacy)",
 			"medium": "Limited-use credential (medium privacy)",
-			"low": "Reusable credential (low privacy)"
+			"low": "Repeated-use credential (low privacy)"
 		},
 		"usages": {
 			"almostEmptyLabel": "(renew soon)",
