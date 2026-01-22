@@ -3,7 +3,6 @@ import React from 'react';
 export type Variant = (
 	'primary'
 	| 'secondary'
-	| 'tertiary'
 	| 'delete'
 	| 'invisible'
 	| 'outline'
@@ -93,8 +92,6 @@ const Button = ({
 				return `${commonClasses} ${sizeClasses} text-white bg-primary border-primary`;
 			case 'secondary':
 				return `${commonClasses} ${sizeClasses} text-white dark:text-white bg-brand-light dark:bg-brand-dark border-brand-light dark:border-brand-dark`;
-			case 'tertiary':
-				return `${commonClasses} ${sizeClasses} text-white dark:text-dm-gray-900 bg-lm-gray-900 dark:bg-dm-gray-100 border-lm-gray-900 dark:border-dm-gray-800`;
 			case 'delete':
 				return `${commonClasses} ${sizeClasses} text-lm-red-light dark:text-dm-red-light bg-lm-red-dark dark:bg-dm-red-dark border-lm-red-dark dark:border-dm-red-dark`;
 			case 'invisible':
