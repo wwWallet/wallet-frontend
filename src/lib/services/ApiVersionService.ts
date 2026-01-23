@@ -40,16 +40,9 @@ export async function fetchApiVersion(): Promise<number> {
 		});
 
 		// Extract api_version from response, default to 1 if not present
-		const apiVersion = response.data?.api_version;
-		if (typeof apiVersion === 'string') {
-			const parsed = parseInt(apiVersion, 10);
-			return isNaN(parsed) ? DEFAULT_API_VERSION : parsed;
-		}
-		if (typeof apiVersion === 'number') {
-			return apiVersion;
-		}
+		const apiVersion = Number(response.data?.api_version);
 
-		return DEFAULT_API_VERSION;
+		return isNaN(apiVersion) ? DEFAULT_API_VERSION : apiVersion;
 	} catch (error) {
 		console.warn('Failed to fetch API version from backend:', error);
 		return DEFAULT_API_VERSION;
@@ -85,29 +78,25 @@ export async function getApiVersion(): Promise<number> {
 		return cachedApiVersion;
 	}
 
-	cachedApiVersion = await fetchApiVersion();
-	cacheTimestamp = now;
-	return cachedApiVersion;
+	return refreshApiVersion(now);
 }
 
 /**
  * Forces a fresh fetch of the API version, updating the cache.
+ * @param timestamp - Optional timestamp for cache; defaults to Date.now()
  */
-export async function refreshApiVersion(): Promise<number> {
+export async function refreshApiVersion(timestamp?: number): Promise<number> {
 	cachedApiVersion = await fetchApiVersion();
-	cacheTimestamp = Date.now();
+	cacheTimestamp = timestamp ?? Date.now();
 	return cachedApiVersion;
 }
 
 /**
- * Checks if a specific feature is available based on the cached API version.
+ * Checks if the cached API version meets or exceeds the specified minimum.
  * If the version hasn't been fetched yet, assumes DEFAULT_API_VERSION.
  */
-export function isFeatureAvailable(minVersion: number): boolean {
-	if (cachedApiVersion === null) {
-		return DEFAULT_API_VERSION >= minVersion;
-	}
-	return cachedApiVersion >= minVersion;
+export function supportsApiVersion(minVersion: number): boolean {
+	return getCachedApiVersion() >= minVersion;
 }
 
 /**

@@ -21,7 +21,7 @@ vi.mock('./ApiVersionService', async () => {
 	return {
 		...actual,
 		getApiVersion: vi.fn(),
-		getCachedApiVersion: vi.fn(),
+		supportsApiVersion: vi.fn(),
 	};
 });
 
@@ -47,17 +47,17 @@ describe('DiscoverAndTrustService', () => {
 
 	describe('isDiscoverAndTrustAvailable', () => {
 		it('should return true when cached version >= 2', () => {
-			mockedApiVersionService.getCachedApiVersion.mockReturnValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			expect(isDiscoverAndTrustAvailable()).toBe(true);
 		});
 
 		it('should return false when cached version < 2', () => {
-			mockedApiVersionService.getCachedApiVersion.mockReturnValue(1);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(false);
 			expect(isDiscoverAndTrustAvailable()).toBe(false);
 		});
 
 		it('should return true when cached version > 2', () => {
-			mockedApiVersionService.getCachedApiVersion.mockReturnValue(3);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			expect(isDiscoverAndTrustAvailable()).toBe(true);
 		});
 	});
@@ -65,6 +65,7 @@ describe('DiscoverAndTrustService', () => {
 	describe('discoverAndTrust', () => {
 		it('should throw error when API version < 2', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(1);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(false);
 
 			const request: DiscoverAndTrustRequest = {
 				entity_identifier: 'https://issuer.example.com',
@@ -72,12 +73,13 @@ describe('DiscoverAndTrustService', () => {
 			};
 
 			await expect(discoverAndTrust(request, mockAuthToken)).rejects.toThrow(
-				'discover-and-trust requires API version 2'
+				'discover-and-trust requires API version 2 or higher'
 			);
 		});
 
 		it('should make POST request when API version >= 2', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			mockedAxios.post.mockResolvedValueOnce({ data: mockSuccessResponse });
 
 			const request: DiscoverAndTrustRequest = {
@@ -103,6 +105,7 @@ describe('DiscoverAndTrustService', () => {
 
 		it('should include credential_type when provided', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			mockedAxios.post.mockResolvedValueOnce({ data: mockSuccessResponse });
 
 			const request: DiscoverAndTrustRequest = {
@@ -126,6 +129,7 @@ describe('DiscoverAndTrustService', () => {
 	describe('discoverAndTrustIssuer', () => {
 		it('should call discoverAndTrust with role=issuer', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			mockedAxios.post.mockResolvedValueOnce({ data: mockSuccessResponse });
 
 			await discoverAndTrustIssuer('https://issuer.example.com', mockAuthToken);
@@ -142,6 +146,7 @@ describe('DiscoverAndTrustService', () => {
 
 		it('should include credential_type when provided', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			mockedAxios.post.mockResolvedValueOnce({ data: mockSuccessResponse });
 
 			await discoverAndTrustIssuer(
@@ -163,6 +168,7 @@ describe('DiscoverAndTrustService', () => {
 	describe('discoverAndTrustVerifier', () => {
 		it('should call discoverAndTrust with role=verifier', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			mockedAxios.post.mockResolvedValueOnce({ data: mockSuccessResponse });
 
 			await discoverAndTrustVerifier('https://verifier.example.com', mockAuthToken);
@@ -181,6 +187,7 @@ describe('DiscoverAndTrustService', () => {
 	describe('error handling', () => {
 		it('should propagate axios errors', async () => {
 			mockedApiVersionService.getApiVersion.mockResolvedValue(2);
+			mockedApiVersionService.supportsApiVersion.mockReturnValue(true);
 			mockedAxios.post.mockRejectedValueOnce(new Error('Network error'));
 
 			const request: DiscoverAndTrustRequest = {

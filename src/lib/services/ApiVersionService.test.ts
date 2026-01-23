@@ -6,7 +6,7 @@ import {
 	getApiVersion,
 	refreshApiVersion,
 	getApiFeatures,
-	isFeatureAvailable,
+	supportsApiVersion,
 	getCachedApiVersion,
 	DEFAULT_API_VERSION,
 	API_VERSION_DISCOVER_AND_TRUST,
@@ -114,10 +114,10 @@ describe('ApiVersionService', () => {
 		});
 	});
 
-	describe('isFeatureAvailable', () => {
+	describe('supportsApiVersion', () => {
 		it('should return true when cached version meets minimum', () => {
 			// This depends on cached state, so we test the function signature
-			const result = isFeatureAvailable(1);
+			const result = supportsApiVersion(1);
 			expect(typeof result).toBe('boolean');
 		});
 	});

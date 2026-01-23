@@ -13,7 +13,7 @@ import { BACKEND_URL } from '@/config';
 import {
 	getApiVersion,
 	API_VERSION_DISCOVER_AND_TRUST,
-	getCachedApiVersion,
+	supportsApiVersion,
 } from './ApiVersionService';
 
 /**
@@ -56,7 +56,7 @@ export interface DiscoverAndTrustResponse {
  * Call ensureApiVersionLoaded() first if you need a guaranteed check.
  */
 export function isDiscoverAndTrustAvailable(): boolean {
-	return getCachedApiVersion() >= API_VERSION_DISCOVER_AND_TRUST;
+	return supportsApiVersion(API_VERSION_DISCOVER_AND_TRUST);
 }
 
 /**
@@ -77,12 +77,11 @@ export async function discoverAndTrust(
 	request: DiscoverAndTrustRequest,
 	authToken: string
 ): Promise<DiscoverAndTrustResponse> {
-	const apiVersion = await getApiVersion();
+	await ensureApiVersionLoaded();
 
-	if (apiVersion < API_VERSION_DISCOVER_AND_TRUST) {
+	if (!supportsApiVersion(API_VERSION_DISCOVER_AND_TRUST)) {
 		throw new Error(
-			`discover-and-trust requires API version ${API_VERSION_DISCOVER_AND_TRUST}, ` +
-			`but backend reports version ${apiVersion}`
+			`discover-and-trust requires API version ${API_VERSION_DISCOVER_AND_TRUST} or higher`
 		);
 	}
 

@@ -601,22 +601,32 @@ export function useOpenID4VP({
 		}
 
 		// Evaluate verifier trust via discover-and-trust API if available
-		if (isDiscoverAndTrustAvailable()) {
+		// Returns: true (trusted), false (explicitly not trusted), undefined (check unavailable/failed)
+		async function evaluateVerifierTrust(): Promise<boolean | undefined> {
+			if (!isDiscoverAndTrustAvailable()) return;
+
 			const appToken = api.getAppToken();
-			if (appToken) {
-				try {
-					const verifierUrl = response_uri ? new URL(response_uri).origin : client_id;
-					const trustResult = await discoverAndTrustVerifier(verifierUrl, appToken);
-					if (!trustResult.trusted) {
-						console.warn('Verifier not trusted:', trustResult.reason);
-						return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER };
-					}
+			if (!appToken) return;
+
+			try {
+				const verifierUrl = response_uri ? new URL(response_uri).origin : client_id;
+				const trustResult = await discoverAndTrustVerifier(verifierUrl, appToken);
+				if (trustResult.trusted) {
 					console.log('Verifier trust verified:', trustResult.reason);
-				} catch (err) {
-					// Log but don't fail - fall back to certificate-based trust
-					console.warn('discover-and-trust verifier check failed, using certificate-based trust:', err);
+					return true;
 				}
+				console.warn('Verifier not trusted:', trustResult.reason);
+				return false;
+			} catch (err) {
+				// Log but don't fail - fall back to certificate-based trust
+				console.warn('discover-and-trust verifier check failed, using certificate-based trust:', err);
+				return;
 			}
+		}
+
+		const isVerifierTrusted = await evaluateVerifierTrust();
+		if (isVerifierTrusted === false) {
+			return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER };
 		}
 
 		if (sessionStorage.getItem('last_used_nonce') === nonce) {
