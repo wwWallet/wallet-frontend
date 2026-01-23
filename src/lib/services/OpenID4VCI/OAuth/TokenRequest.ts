@@ -1,7 +1,7 @@
 import { useCallback, useRef, useMemo } from 'react';
 import { JWK, KeyLike } from 'jose';
-import { useHttpProxy } from '../HttpProxy/HttpProxy';
-import { generateDPoP } from '../../utils/dpop';
+import { useHttpProxy } from '../../HttpProxy/HttpProxy';
+import { generateDPoP } from '../../../utils/dpop';
 
 export type AccessToken = {
 	access_token: string;

@@ -9,7 +9,7 @@ import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCICl
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 
 
-export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
+export function usePushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 
 	const httpProxy = useHttpProxy();
 	const { keystore } = useContext(SessionContext);

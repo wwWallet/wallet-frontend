@@ -571,10 +571,10 @@ export function useOpenID4VP({
 					return result;
 				}
 				const { payload, parsedHeader } = result;
-				client_id = payload.client_id;
+				client_id = payload.client_id as string;
 
 				dcql_query = payload.dcql_query ?? dcql_query;
-				response_uri = payload.response_uri ?? payload.redirect_uri;
+				response_uri = (payload.response_uri ?? payload.redirect_uri) as string;
 				if (response_uri && !response_uri.startsWith("http")) {
 					response_uri = `https://${response_uri}`;
 				}
@@ -589,8 +589,8 @@ export function useOpenID4VP({
 						return { error: HandleAuthorizationRequestError.INVALID_TRANSACTION_DATA };
 					}
 				}
-				state = payload.state;
-				nonce = payload.nonce;
+				state = payload.state as string;
+				nonce = payload.nonce as string;
 
 				await verifyHostnameAndCerts(request_uri, response_uri, parsedHeader);
 			} catch (e) {

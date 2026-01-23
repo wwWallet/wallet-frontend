@@ -6,10 +6,9 @@ import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
 import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
 import { useLocation } from "react-router-dom";
-import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
-import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
+import { usePushedAuthorizationRequest } from './OAuth/PushedAuthorizationRequest';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
-import { GrantType, TokenRequestError, useTokenRequest } from './TokenRequest';
+import { GrantType, TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
@@ -91,8 +90,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
-	const openID4VCIPushedAuthorizationRequest = useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRepository);
-	const openID4VCIAuthorizationRequestForFirstPartyApplications = useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openID4VCIClientStateRepository);
+	const openID4VCIPushedAuthorizationRequest = usePushedAuthorizationRequest(openID4VCIClientStateRepository);
 
 	const tokenRequestBuilder = useTokenRequest();
 	const credentialRequestBuilder = useCredentialRequest();
@@ -629,28 +627,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					return { url: res.authorizationRequestURL };
 				}
 			}
-			else if (authzServerMetadata.authzServeMetadata.authorization_challenge_endpoint) {
-				await openID4VCIAuthorizationRequestForFirstPartyApplications.generate(
-					credentialConfigurationId,
-					issuer_state,
-					{
-						authorizationServerMetadata: authzServerMetadata.authzServeMetadata,
-						credentialIssuerMetadata: credentialIssuerMetadata.metadata,
-						credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-						clientId: clientId.client_id,
-						redirectUri: redirectUri
-					}
-				).then((result) => {
-					if (!('authorization_code' in result)) {
-						console.error("authorization_code was not found in the result");
-						return;
-					}
-					return handleAuthorizationResponse(`openid://?code=${result.authorization_code}&state=${result.state}`);
-				});
-				return {}
-			}
 		},
-		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials]
+		[openID4VCIClientStateRepository, openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials]
 	);
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
