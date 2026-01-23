@@ -91,6 +91,9 @@ function App() {
 					 * These routes extract the tenant ID from the URL path and provide it
 					 * via TenantContext. Used for multi-tenant deployments where users
 					 * access the wallet via tenant-specific URLs like /acme-corp/login.
+					 *
+					 * Note: /default/* paths are automatically redirected to /* by TenantProvider
+					 * since the default tenant uses root paths for cleaner URLs.
 					 */}
 					<Route path="/:tenantId/*" element={<TenantProvider><Outlet /></TenantProvider>}>
 						{/* Tenant-scoped protected routes */}

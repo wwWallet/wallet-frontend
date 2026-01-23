@@ -18,7 +18,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath } from '../lib/tenant';
 
 export interface TenantContextValue {
@@ -57,10 +57,22 @@ interface TenantProviderProps {
  */
 export function TenantProvider({ children, tenantId: propTenantId }: TenantProviderProps) {
 	const navigate = useNavigate();
+	const location = useLocation();
 
 	// Get tenant from URL path parameter
 	// This requires the route to be defined as /:tenantId/*
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
+
+	// Redirect /default/* to /* (root paths)
+	// The default tenant is special and should use root paths for cleaner URLs
+	useEffect(() => {
+		if (urlTenantId === 'default') {
+			// Strip /default from the path and redirect to root
+			const newPath = location.pathname.replace(/^\/default\/?/, '/') || '/';
+			const searchAndHash = location.search + location.hash;
+			navigate(newPath + searchAndHash, { replace: true });
+		}
+	}, [urlTenantId, location.pathname, location.search, location.hash, navigate]);
 
 	// Get the already-stored tenant (from prior authentication)
 	const storedTenantId = getStoredTenant();
