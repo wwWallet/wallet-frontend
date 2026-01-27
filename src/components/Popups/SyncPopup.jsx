@@ -29,7 +29,16 @@ const WebauthnLogin = ({
 				navigate(`${window.location.pathname}?${params.toString()}`, { replace: true });
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (result.val) {
+				const err = result.val;
+
+				// Handle tenant discovery error - redirect to tenant-specific login
+				if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
+					console.log('Tenant discovered during sync login:', err.tenantId, '- redirecting...');
+					navigate(`/${err.tenantId}/login`, { replace: true });
+					return;
+				}
+
+				switch (err) {
 					case 'loginKeystoreFailed':
 						setError(t('loginSignup.loginKeystoreFailed'));
 						break;

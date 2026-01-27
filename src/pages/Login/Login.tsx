@@ -255,7 +255,18 @@ const WebauthnSignupLogin = ({
 
 		} else {
 			// Using a switch here so the t() argument can be a literal, to ease searching
-			switch (result.val) {
+			const err = result.val;
+
+			// Handle tenant discovery error - redirect to tenant-specific login
+			if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
+				console.log('Tenant discovered during login:', err.tenantId, '- redirecting...');
+				// Redirect to tenant-specific login page which will retry automatically
+				navigate(`/${err.tenantId}/login`, { replace: true });
+				// After redirect, the page will reload and login will be retried with correct tenant context
+				return;
+			}
+
+			switch (err) {
 				case 'loginKeystoreFailed':
 					setError(t('loginSignup.loginKeystoreFailed'));
 					break;

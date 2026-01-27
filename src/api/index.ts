@@ -66,7 +66,14 @@ export interface BackendApi {
 		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
 	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
+		Result<void,
+			| 'loginKeystoreFailed'
+			| 'passkeyInvalid'
+			| 'passkeyLoginFailedTryAgain'
+			| 'passkeyLoginFailedServerError'
+			| 'x-private-data-etag'
+			| { errorId: 'tenantDiscovered', tenantId: string }
+		>
 	>,
 	signupWebauthn(
 		name: string,
@@ -95,6 +102,7 @@ export interface BackendApi {
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
+		| { errorId: 'tenantDiscovered', tenantId: string }
 	>>;
 
 	/** Get the current tenant ID (from session storage) */
@@ -534,6 +542,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
+		| { errorId: 'tenantDiscovered', tenantId: string }
 	>> => {
 		try {
 			// If we have a cached user, extract tenant from their userHandle early
@@ -542,6 +551,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			const cachedUserTenantId = cachedUser?.userHandleB64u
 				? extractTenantFromUserHandle(fromBase64Url(cachedUser.userHandleB64u))
 				: undefined;
+
 			const loginBeginPath = buildLoginBeginPath(cachedUserTenantId);
 			console.log("Login: using begin path:", loginBeginPath, "from cached user tenant:", cachedUserTenantId);
 
@@ -559,128 +569,132 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				}
 			})();
 
-			try {
-				const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
-				const getOptions = prfInputs
-					? {
-						...beginData.getOptions,
-						publicKey: {
-							...beginData.getOptions.publicKey,
-							allowCredentials: prfInputs.allowCredentials,
-							extensions: {
-								...beginData.getOptions.publicKey.extensions,
-								prf: prfInputs.prfInput,
-							},
+			const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
+			const getOptions = prfInputs
+				? {
+					...beginData.getOptions,
+					publicKey: {
+						...beginData.getOptions.publicKey,
+						allowCredentials: prfInputs.allowCredentials,
+						extensions: {
+							...beginData.getOptions.publicKey.extensions,
+							prf: prfInputs.prfInput,
 						},
-					}
-					: beginData.getOptions;
-				const credential = await navigator.credentials.get({
-					...getOptions,
-					publicKey: withHintsFromAllowCredentials({
-						...getOptions.publicKey,
-						hints: webauthnHints,
-					}),
-				}) as PublicKeyCredential;
-				const response = credential.response as AuthenticatorAssertionResponse;
-
-				// Extract tenant from the passkey's userHandle
-				// The userHandle is encoded as "{tenantId}:{userId}" by the backend
-				// This allows tenant-discovering login regardless of which login path the user started from
-				const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
-				const extractedTenantId = extractTenantFromUserHandle(userHandleForFinish);
-				const loginFinishPath = buildLoginFinishPath(extractedTenantId);
-				console.log("Login: extracted tenant from passkey:", extractedTenantId, "using path:", loginFinishPath);
-
-				try {
-					const finishResp = await (async () => {
-						if (isOnline) {
-							return updatePrivateDataEtag(await post(loginFinishPath, {
-								challengeId: beginData.challengeId,
-								credential: {
-									type: credential.type,
-									id: credential.id,
-									rawId: credential.rawId,
-									response: {
-										authenticatorData: response.authenticatorData,
-										clientDataJSON: response.clientDataJSON,
-										signature: response.signature,
-										userHandle: userHandleForFinish,
-									},
-									authenticatorAttachment: credential.authenticatorAttachment,
-									clientExtensionResults: credential.getClientExtensionResults(),
-								},
-							}));
-						}
-						else {
-							const userId = UserId.fromUserHandle(response.userHandle);
-							const user = await getItem("users", userId.id);
-							return {
-								data: {
-									uuid: user.uuid,
-									appToken: "",
-									did: user.did,
-									displayName: user.displayName,
-									privateData: user.privateData,
-									username: null,
-									// Include the extracted tenant for offline mode too
-									tenantId: extractedTenantId,
-								},
-							};
-						}
-					})() as any;
-
-					try {
-						const userData = finishResp.data as UserData;
-						const privateData = await parsePrivateData(userData.privateData);
-						const privateDataUpdate = await keystore.unlockPrf(
-							privateData,
-							credential,
-							promptForPrfRetry,
-							cachedUser || {
-								...userData,
-								// response.userHandle will always be non-null if cachedUser is
-								// null, because then allowCredentials was empty
-								userHandle: new Uint8Array(response.userHandle),
-							},
-						);
-						if (privateDataUpdate) {
-							const [newPrivateData, keystoreCommit] = privateDataUpdate;
-							try {
-								await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
-								await keystoreCommit();
-							} catch (e) {
-								console.error("Failed to upgrade PRF key", e, e.status);
-								if (e?.cause === 'x-private-data-etag') {
-									return Err('x-private-data-etag');
-								}
-								return Err('loginKeystoreFailed');
-							}
-						}
-
-						// Store the tenant from the login response or from the extracted passkey userHandle
-						// The backend returns tenant_id, but we also extracted it from the passkey's userHandle
-						// Use the backend response as authoritative, with extracted tenant as fallback
-						const tenantToStore = finishResp?.data?.tenantId || extractedTenantId;
-						if (tenantToStore) {
-							setStoredTenant(tenantToStore);
-						}
-
-						await setSession(finishResp, credential, 'login');
-						return Ok.EMPTY;
-					} catch (e) {
-						console.error("Failed to open keystore", e);
-						return Err('loginKeystoreFailed');
-					}
-
-				} catch (e) {
-					return Err('passkeyInvalid');
+					},
 				}
+				: beginData.getOptions;
+			const credential = await navigator.credentials.get({
+				...getOptions,
+				publicKey: withHintsFromAllowCredentials({
+					...getOptions.publicKey,
+					hints: webauthnHints,
+				}),
+			}) as PublicKeyCredential;
+			const response = credential.response as AuthenticatorAssertionResponse;
 
-			} catch (e) {
-				return Err('passkeyLoginFailedTryAgain');
+			// Extract tenant from the passkey's userHandle
+			// The userHandle is encoded as "{tenantId}:{userId}" by the backend
+			const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
+			const extractedTenantId = extractTenantFromUserHandle(userHandleForFinish);
+			console.log("Login: extracted tenant from passkey:", extractedTenantId, "cached tenant was:", cachedUserTenantId);
+
+			// Check if we need to switch to a different tenant context
+			// This happens when:
+			// 1. We started with global endpoints (no cached user) but passkey belongs to non-default tenant
+			// 2. We started with one tenant but passkey belongs to a different tenant
+			const needsTenantSwitch = extractedTenantId && extractedTenantId !== 'default' &&
+				(cachedUserTenantId === undefined || cachedUserTenantId !== extractedTenantId);
+
+			if (needsTenantSwitch) {
+				// The challenge was created with wrong/no tenant context
+				// Return an error with the discovered tenant so the caller can redirect and retry
+				console.log("Login: tenant mismatch - need to retry with tenant:", extractedTenantId);
+				return Err({ errorId: 'tenantDiscovered', tenantId: extractedTenantId });
 			}
 
+			const loginFinishPath = buildLoginFinishPath(extractedTenantId);
+			console.log("Login: using finish path:", loginFinishPath);
+
+			const finishResp = await (async () => {
+				if (isOnline) {
+					return updatePrivateDataEtag(await post(loginFinishPath, {
+						challengeId: beginData.challengeId,
+						credential: {
+							type: credential.type,
+							id: credential.id,
+							rawId: credential.rawId,
+							response: {
+								authenticatorData: response.authenticatorData,
+								clientDataJSON: response.clientDataJSON,
+								signature: response.signature,
+								userHandle: userHandleForFinish,
+							},
+							authenticatorAttachment: credential.authenticatorAttachment,
+							clientExtensionResults: credential.getClientExtensionResults(),
+						},
+					}));
+				}
+				else {
+					const userId = UserId.fromUserHandle(response.userHandle);
+					const user = await getItem("users", userId.id);
+					return {
+						data: {
+							uuid: user.uuid,
+							appToken: "",
+							did: user.did,
+							displayName: user.displayName,
+							privateData: user.privateData,
+							username: null,
+							tenantId: extractedTenantId,
+						},
+					};
+				}
+			})() as any;
+
+			const userData = finishResp.data as UserData;
+			const privateData = await parsePrivateData(userData.privateData);
+			const privateDataUpdate = await keystore.unlockPrf(
+				privateData,
+				credential,
+				promptForPrfRetry,
+				cachedUser || {
+					...userData,
+					userHandle: new Uint8Array(response.userHandle),
+				},
+			);
+			if (privateDataUpdate) {
+				const [newPrivateData, keystoreCommit] = privateDataUpdate;
+				try {
+					await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
+					await keystoreCommit();
+				} catch (e) {
+					console.error("Failed to upgrade PRF key", e, e.status);
+					if (e?.cause === 'x-private-data-etag') {
+						return Err('x-private-data-etag');
+					}
+					return Err('loginKeystoreFailed');
+				}
+			}
+
+			// Store the tenant
+			const tenantToStore = finishResp?.data?.tenantId || extractedTenantId;
+			if (tenantToStore) {
+				setStoredTenant(tenantToStore);
+			}
+
+			await setSession(finishResp, credential, 'login');
+			return Ok.EMPTY;
+
 		} catch (e) {
+			console.error("Login failed", e);
+			if (e?.response?.status === 403) {
+				// Tenant access denied - passkey belongs to different tenant
+				return Err('passkeyLoginFailedTryAgain');
+			}
+			if (e?.name === 'NotAllowedError') {
+				// User cancelled or passkey not available
+				return Err('passkeyLoginFailedTryAgain');
+			}
 			return Err('passkeyLoginFailedServerError');
 		}
 	}, [post, updatePrivateDataEtag, updatePrivateData, setSession, isOnline]);
