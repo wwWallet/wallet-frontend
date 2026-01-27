@@ -12,7 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath, extractTenantFromUserHandle, buildLoginFinishPath } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -574,10 +574,18 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				}) as PublicKeyCredential;
 				const response = credential.response as AuthenticatorAssertionResponse;
 
+				// Extract tenant from the passkey's userHandle
+				// The userHandle is encoded as "{tenantId}:{userId}" by the backend
+				// This allows tenant-discovering login regardless of which login path the user started from
+				const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
+				const extractedTenantId = extractTenantFromUserHandle(userHandleForFinish);
+				const loginFinishPath = buildLoginFinishPath(extractedTenantId);
+				console.log("Login: extracted tenant from passkey:", extractedTenantId, "using path:", loginFinishPath);
+
 				try {
 					const finishResp = await (async () => {
 						if (isOnline) {
-							return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
+							return updatePrivateDataEtag(await post(loginFinishPath, {
 								challengeId: beginData.challengeId,
 								credential: {
 									type: credential.type,
@@ -587,7 +595,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 										authenticatorData: response.authenticatorData,
 										clientDataJSON: response.clientDataJSON,
 										signature: response.signature,
-										userHandle: response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u),
+										userHandle: userHandleForFinish,
 									},
 									authenticatorAttachment: credential.authenticatorAttachment,
 									clientExtensionResults: credential.getClientExtensionResults(),
@@ -605,6 +613,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 									displayName: user.displayName,
 									privateData: user.privateData,
 									username: null,
+									// Include the extracted tenant for offline mode too
+									tenantId: extractedTenantId,
 								},
 							};
 						}
@@ -638,10 +648,12 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							}
 						}
 
-						// Store the tenant from the login response
-						// The backend discovers tenant from the passkey's userHandle
-						if (finishResp?.data?.tenantId) {
-							setStoredTenant(finishResp.data.tenantId);
+						// Store the tenant from the login response or from the extracted passkey userHandle
+						// The backend returns tenant_id, but we also extracted it from the passkey's userHandle
+						// Use the backend response as authoritative, with extracted tenant as fallback
+						const tenantToStore = finishResp?.data?.tenantId || extractedTenantId;
+						if (tenantToStore) {
+							setStoredTenant(tenantToStore);
 						}
 
 						await setSession(finishResp, credential, 'login');

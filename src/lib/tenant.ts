@@ -94,3 +94,54 @@ export function buildTenantRoutePath(tenantId: string | undefined, subPath?: str
 export function isMultiTenantActive(): boolean {
 	return !!getStoredTenant();
 }
+
+/**
+ * Extract tenant ID from a WebAuthn userHandle.
+ *
+ * The userHandle is encoded as "{tenantId}:{userId}" by the backend.
+ * This function extracts the tenant ID prefix.
+ *
+ * @param userHandle - The userHandle from WebAuthn (as Uint8Array, ArrayBuffer, or string)
+ * @returns The extracted tenant ID, or undefined if not found or format is invalid
+ */
+export function extractTenantFromUserHandle(userHandle: ArrayBuffer | Uint8Array | string | null | undefined): string | undefined {
+	if (!userHandle) {
+		return undefined;
+	}
+
+	let handleStr: string;
+	if (typeof userHandle === 'string') {
+		handleStr = userHandle;
+	} else {
+		// Convert ArrayBuffer/Uint8Array to string
+		const bytes = userHandle instanceof Uint8Array ? userHandle : new Uint8Array(userHandle);
+		handleStr = new TextDecoder().decode(bytes);
+	}
+
+	// Format is "{tenantId}:{userId}" - extract the tenant part
+	const colonIndex = handleStr.indexOf(':');
+	if (colonIndex === -1) {
+		// No colon found - this might be a legacy user handle without tenant prefix
+		// Return undefined to indicate no tenant
+		return undefined;
+	}
+
+	const tenantId = handleStr.substring(0, colonIndex);
+	return tenantId || undefined;
+}
+
+/**
+ * Build the login finish API path based on the tenant extracted from the passkey.
+ *
+ * If the tenant is non-default, uses the tenant-scoped path.
+ * If the tenant is default or not found, uses the global path.
+ *
+ * @param tenantId - The tenant ID extracted from the passkey userHandle
+ * @returns The appropriate API path for login-webauthn-finish
+ */
+export function buildLoginFinishPath(tenantId: string | undefined): string {
+	if (isDefaultTenant(tenantId)) {
+		return '/user/login-webauthn-finish';
+	}
+	return buildTenantApiPath(tenantId, '/user/login-webauthn-finish');
+}
