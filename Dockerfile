@@ -28,7 +28,7 @@ FROM nginx:alpine AS deploy
 WORKDIR /usr/share/nginx/html
 
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /home/node/app/dist/ .
+COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ .
 
 EXPOSE 80
 
