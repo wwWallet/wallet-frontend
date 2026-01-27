@@ -12,7 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath, extractTenantFromUserHandle, buildLoginFinishPath } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath, extractTenantFromUserHandle, buildLoginFinishPath, buildLoginBeginPath } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -536,12 +536,21 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| 'x-private-data-etag'
 	>> => {
 		try {
+			// If we have a cached user, extract tenant from their userHandle early
+			// This allows us to use the correct tenant-scoped endpoint for login-begin
+			// Format: "{tenantId}:{userId}"
+			const cachedUserTenantId = cachedUser?.userHandleB64u
+				? extractTenantFromUserHandle(fromBase64Url(cachedUser.userHandleB64u))
+				: undefined;
+			const loginBeginPath = buildLoginBeginPath(cachedUserTenantId);
+			console.log("Login: using begin path:", loginBeginPath, "from cached user tenant:", cachedUserTenantId);
+
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
 				if (isOnline) {
-					const beginResp = await post('/user/login-webauthn-begin', {});
+					const beginResp = await post(loginBeginPath, {});
 					console.log("begin", beginResp);
 					return beginResp.data;
 				}

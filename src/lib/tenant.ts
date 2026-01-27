@@ -145,3 +145,19 @@ export function buildLoginFinishPath(tenantId: string | undefined): string {
 	}
 	return buildTenantApiPath(tenantId, '/user/login-webauthn-finish');
 }
+
+/**
+ * Build the login begin API path based on the tenant.
+ *
+ * If the tenant is non-default, uses the tenant-scoped path.
+ * If the tenant is default or not found, uses the global path.
+ *
+ * @param tenantId - The tenant ID (from cached user or URL)
+ * @returns The appropriate API path for login-webauthn-begin
+ */
+export function buildLoginBeginPath(tenantId: string | undefined): string {
+	if (isDefaultTenant(tenantId)) {
+		return '/user/login-webauthn-begin';
+	}
+	return buildTenantApiPath(tenantId, '/user/login-webauthn-begin');
+}

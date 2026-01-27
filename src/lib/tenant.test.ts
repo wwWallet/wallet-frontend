@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
 	extractTenantFromUserHandle,
 	buildLoginFinishPath,
+	buildLoginBeginPath,
 	isDefaultTenant,
 	buildTenantApiPath,
 	DEFAULT_TENANT_ID,
@@ -73,6 +74,29 @@ describe('tenant utilities', () => {
 		it('should return tenant-scoped path for any non-default tenant', () => {
 			expect(buildLoginFinishPath('my-tenant')).toBe('/t/my-tenant/user/login-webauthn-finish');
 			expect(buildLoginFinishPath('org123')).toBe('/t/org123/user/login-webauthn-finish');
+		});
+	});
+
+	describe('buildLoginBeginPath', () => {
+		it('should return global path for undefined tenant', () => {
+			expect(buildLoginBeginPath(undefined)).toBe('/user/login-webauthn-begin');
+		});
+
+		it('should return global path for "default" tenant', () => {
+			expect(buildLoginBeginPath('default')).toBe('/user/login-webauthn-begin');
+		});
+
+		it('should return global path for empty string tenant', () => {
+			expect(buildLoginBeginPath('')).toBe('/user/login-webauthn-begin');
+		});
+
+		it('should return tenant-scoped path for non-default tenant', () => {
+			expect(buildLoginBeginPath('acme-corp')).toBe('/t/acme-corp/user/login-webauthn-begin');
+		});
+
+		it('should return tenant-scoped path for any non-default tenant', () => {
+			expect(buildLoginBeginPath('my-tenant')).toBe('/t/my-tenant/user/login-webauthn-begin');
+			expect(buildLoginBeginPath('org123')).toBe('/t/org123/user/login-webauthn-begin');
 		});
 	});
 
