@@ -65,6 +65,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
+		urlTenantId?: string,
 	): Promise<
 		Result<void,
 			| 'loginKeystoreFailed'
@@ -535,7 +536,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
-		cachedUser: CachedUser | undefined
+		cachedUser: CachedUser | undefined,
+		urlTenantId?: string
 	): Promise<Result<void,
 		| 'loginKeystoreFailed'
 		| 'passkeyInvalid'
@@ -545,15 +547,19 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| { errorId: 'tenantDiscovered', tenantId: string }
 	>> => {
 		try {
-			// If we have a cached user, extract tenant from their userHandle early
-			// This allows us to use the correct tenant-scoped endpoint for login-begin
-			// Format: "{tenantId}:{userId}"
+			// Determine the tenant context for this login:
+			// 1. URL tenant (from path like /test/login) takes highest precedence
+			// 2. Cached user's tenant (from their userHandle)
+			// 3. undefined (will use global endpoints)
 			const cachedUserTenantId = cachedUser?.userHandleB64u
 				? extractTenantFromUserHandle(fromBase64Url(cachedUser.userHandleB64u))
 				: undefined;
-
-			const loginBeginPath = buildLoginBeginPath(cachedUserTenantId);
-			console.log("Login: using begin path:", loginBeginPath, "from cached user tenant:", cachedUserTenantId);
+			
+			// Use URL tenant if provided, otherwise fall back to cached user tenant
+			const effectiveTenantId = urlTenantId || cachedUserTenantId;
+			
+			const loginBeginPath = buildLoginBeginPath(effectiveTenantId);
+			console.log("Login: using begin path:", loginBeginPath, "urlTenant:", urlTenantId, "cachedUserTenant:", cachedUserTenantId, "effective:", effectiveTenantId);
 
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
@@ -571,23 +577,15 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 			const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
 			
-			// For tenant-scoped login, we must NOT include allowCredentials because:
-			// - BeginTenantLogin creates a discoverable credential session
-			// - FinishTenantLogin validates using ValidateDiscoverableLogin
-			// - Adding allowCredentials would make it a non-discoverable flow which fails
-			// 
-			// We can still include PRF extension inputs (evalByCredential) without allowCredentials.
-			// The browser will show the discoverable credential picker and evaluate PRF for the selected credential.
-			const isTenantScopedLogin = cachedUserTenantId && cachedUserTenantId !== 'default';
-			
+			// Build credential options with PRF inputs
+			// allowCredentials improves UX by filtering the credential picker to show only matching passkeys
+			// PRF extension inputs (evalByCredential) are needed for passkey decryption
 			const getOptions = prfInputs
 				? {
 					...beginData.getOptions,
 					publicKey: {
 						...beginData.getOptions.publicKey,
-						// Only include allowCredentials for global (non-tenant) login
-						// Tenant-scoped login MUST be discoverable
-						...(isTenantScopedLogin ? {} : { allowCredentials: prfInputs.allowCredentials }),
+						allowCredentials: prfInputs.allowCredentials,
 						extensions: {
 							...beginData.getOptions.publicKey.extensions,
 							prf: prfInputs.prfInput,
@@ -608,14 +606,15 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			// The userHandle is encoded as "{tenantId}:{userId}" by the backend
 			const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
 			const extractedTenantId = extractTenantFromUserHandle(userHandleForFinish);
-			console.log("Login: extracted tenant from passkey:", extractedTenantId, "cached tenant was:", cachedUserTenantId);
+			console.log("Login: extracted tenant from passkey:", extractedTenantId, "effective tenant was:", effectiveTenantId);
 
 			// Check if we need to switch to a different tenant context
 			// This happens when:
-			// 1. We started with global endpoints (no cached user) but passkey belongs to non-default tenant
+			// 1. We started with global endpoints (no URL tenant, no cached user) but passkey belongs to non-default tenant
 			// 2. We started with one tenant but passkey belongs to a different tenant
+			// If we already have the correct tenant from URL or cached user, no switch needed
 			const needsTenantSwitch = extractedTenantId && extractedTenantId !== 'default' &&
-				(cachedUserTenantId === undefined || cachedUserTenantId !== extractedTenantId);
+				(effectiveTenantId === undefined || effectiveTenantId !== extractedTenantId);
 
 			if (needsTenantSwitch) {
 				// The challenge was created with wrong/no tenant context
