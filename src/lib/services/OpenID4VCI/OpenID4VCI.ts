@@ -90,7 +90,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 
-	const openID4VCIPushedAuthorizationRequest = usePushedAuthorizationRequest(openID4VCIClientStateRepository);
+	const openID4VCIPushedAuthorizationRequest = usePushedAuthorizationRequest();
 
 	const tokenRequestBuilder = useTokenRequest();
 	const credentialRequestBuilder = useCredentialRequest();
@@ -611,24 +611,62 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				return;
 			}
 
+			// OID4VCI-specific logic for PAR
+			// Map credentialConfigurationId to scope
+			const selectedCredentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
+			const scope = selectedCredentialConfigurationSupported.scope;
+
+			// Generate PKCE
+			const pkce = await import('pkce-challenge');
+			const { code_challenge, code_verifier } = await pkce.default();
+
+			// Generate state
+			const userHandleB64u = keystore.getUserHandleB64u();
+			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+			// Build OAuth params
+			const params: Record<string, string> = {
+				scope,
+				response_type: "code",
+				client_id: clientId.client_id,
+				code_challenge,
+				code_challenge_method: "S256",
+				state,
+				redirect_uri: redirectUri
+			};
+			if (issuer_state) {
+				params["issuer_state"] = issuer_state;
+			}
+
+			// Call generic PAR function
 			if (authzServerMetadata.authzServeMetadata.pushed_authorization_request_endpoint) {
-				const res = await openID4VCIPushedAuthorizationRequest.generate(
-					credentialConfigurationId,
-					issuer_state,
-					{
-						authorizationServerMetadata: authzServerMetadata.authzServeMetadata,
-						credentialIssuerMetadata: credentialIssuerMetadata.metadata,
-						credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
-						clientId: clientId.client_id,
-						redirectUri: redirectUri
-					}
+				const { sendPushedAuthorizationRequest } = openID4VCIPushedAuthorizationRequest;
+				const parRes = await sendPushedAuthorizationRequest(
+					authzServerMetadata.authzServeMetadata,
+					params
 				);
-				if ('authorizationRequestURL' in res) {
-					return { url: res.authorizationRequestURL };
+				// Persist state/code_verifier for later token exchange
+				await openID4VCIClientStateRepository.create({
+					sessionId: WalletStateUtils.getRandomUint32(),
+					credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
+					state,
+					code_verifier,
+					credentialConfigurationId,
+					created: Math.floor(Date.now() / 1000),
+				});
+				await openID4VCIClientStateRepository.commitStateChanges();
+				// Build authorization request URL
+				const authorizationRequestURL = new URL(authzServerMetadata.authzServeMetadata.authorization_endpoint);
+				authorizationRequestURL.searchParams.set('request_uri', parRes.request_uri);
+				authorizationRequestURL.searchParams.set('client_id', clientId.client_id);
+				const age = getRememberIssuerAge();
+				if (age != null && age === 0) {
+					authorizationRequestURL.searchParams.set('prompt', 'login');
 				}
+				return { url: authorizationRequestURL.toString() };
 			}
 		},
-		[openID4VCIClientStateRepository, openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials]
+		[openID4VCIClientStateRepository, openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge]
 	);
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function

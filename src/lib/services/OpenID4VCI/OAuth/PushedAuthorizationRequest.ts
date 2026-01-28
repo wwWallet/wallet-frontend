@@ -1,109 +1,98 @@
-import { IOpenID4VCIAuthorizationRequest } from "../../../interfaces/IOpenID4VCIAuthorizationRequest";
-import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
-import pkce from 'pkce-challenge';
-import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
+import * as oauth4webapi from 'oauth4webapi';
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
-import { useCallback, useMemo, useContext } from "react";
-import SessionContext from "@/context/SessionContext";
-import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
-import { WalletStateUtils } from "@/services/WalletStateUtils";
+import { useCallback, useMemo } from "react";
+import { OpenidAuthorizationServerMetadata } from "wallet-common";
 
+const { customFetch, allowInsecureRequests } = oauth4webapi;
 
-export function usePushedAuthorizationRequest(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
+function normalizeHeaders(h: any): Record<string, string> {
+	const out: Record<string, string> = {};
+	if (!h) return out;
+	for (const [k, v] of Object.entries(h)) {
+		if (v === undefined || v === null) continue;
+		out[k.toLowerCase()] = Array.isArray(v) ? v.join(', ') : String(v);
+	}
+	return out;
+}
 
+export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
-	const { keystore } = useContext(SessionContext);
-	const { getCalculatedWalletState } = keystore;
 
-	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
-		if (!getCalculatedWalletState) {
-			return null;
-		}
-		const S = getCalculatedWalletState();
-		if (!S) {
-			return null;
-		}
-		return parseInt(S.settings['openidRefreshTokenMaxAgeInSeconds']);
-	}, [getCalculatedWalletState]);
+	const myCustomFetch = useMemo(() => {
+		return async (url: string, options?: RequestInit) => {
+			const method = (options?.method ?? 'POST').toLowerCase();
+			const headers = normalizeHeaders(options?.headers);
+			const body = options?.body;
 
-	const generate = useCallback(
-		async (
-			credentialConfigurationId: string,
-			issuer_state: string | undefined,
-			config: {
-				credentialIssuerIdentifier: string;
-				redirectUri: string;
-				clientId: string;
-				authorizationServerMetadata: OpenidAuthorizationServerMetadata;
-				credentialIssuerMetadata: OpenidCredentialIssuerMetadata;
-			}
-		): Promise<{ authorizationRequestURL: string }> => {
-			const userHandleB64u = keystore.getUserHandleB64u();
+			const data =
+				typeof body === 'string'
+					? body
+					: body instanceof URLSearchParams
+						? body.toString()
+						: body
+							? String(body)
+							: undefined;
 
-			const { code_challenge, code_verifier } = await pkce();
-
-			const formData = new URLSearchParams();
-
-			const selectedCredentialConfigurationSupported = config.credentialIssuerMetadata.credential_configurations_supported[credentialConfigurationId];
-			formData.append("scope", selectedCredentialConfigurationSupported.scope);
-
-			formData.append("response_type", "code");
-
-			formData.append("client_id", config.clientId);
-			formData.append("code_challenge", code_challenge);
-
-			formData.append("code_challenge_method", "S256");
-
-			// the purpose of the "id" is to provide the "state" a random factor for unlinkability and to make OpenID4VCIClientState instances unique
-			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-			formData.append("state", state);
-
-			if (issuer_state) {
-				formData.append("issuer_state", issuer_state);
+			let wrapped;
+			if (method === 'post') {
+				wrapped = await httpProxy.post(url, data, headers);
+			} else {
+				throw new Error(`Unsupported method in customFetch: ${method}`);
 			}
 
-			formData.append("redirect_uri", config.redirectUri);
-			let res;
-			try {
-				res = await httpProxy.post(config.authorizationServerMetadata.pushed_authorization_request_endpoint, formData.toString(), {
-					'Content-Type': 'application/x-www-form-urlencoded'
-				});
-			}
-			catch (err) {
-				if (err?.response?.data) {
-					throw new Error("Pushed authorization request failed ", err.response.data)
-				}
-				else {
-					console.error(err);
-					throw new Error("Pushed authorization request failed")
-				}
-			}
+			// wrapped = { status, headers, data } where `data` is the real AS response body
+			const resHeaders = normalizeHeaders(wrapped.headers);
+			const contentType = resHeaders['content-type'] ?? 'application/json';
+			const bodyText =
+				typeof wrapped.data === 'string'
+					? wrapped.data
+					: contentType.includes('application/json')
+						? JSON.stringify(wrapped.data)
+						: String(wrapped.data ?? '');
 
-			if (!res.data.request_uri) {
-				throw new Error("Pushed Authorization request failed. Reason: " + JSON.stringify(res.data))
-			}
-			const { request_uri } = res.data;
-			const authorizationRequestURL = new URL(config.authorizationServerMetadata.authorization_endpoint);
-			authorizationRequestURL.searchParams.set('request_uri', request_uri);
-			authorizationRequestURL.searchParams.set('client_id', config.clientId);
-			const age = await getRememberIssuerAge();
-			if (age != null && age === 0) {
-				authorizationRequestURL.searchParams.set('prompt', 'login');
-			}
-
-			await openID4VCIClientStateRepository.create({
-				sessionId: WalletStateUtils.getRandomUint32(),
-				credentialIssuerIdentifier: config.credentialIssuerIdentifier,
-				state,
-				code_verifier,
-				credentialConfigurationId,
-				created: Math.floor(Date.now() / 1000),
+			return new Response(bodyText, {
+				status: wrapped.status ?? 500,
+				headers: resHeaders,
 			});
-			await openID4VCIClientStateRepository.commitStateChanges();
-			return { authorizationRequestURL: authorizationRequestURL.toString() };
+		};
+	}, [httpProxy]);
+
+	const sendPushedAuthorizationRequest = useCallback(
+		async (asMeta: OpenidAuthorizationServerMetadata, params: Record<string,string>) => {
+			const endpoint = asMeta.pushed_authorization_request_endpoint;
+			if (!endpoint) {
+				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
+			}
+			const client: oauth4webapi.Client = { client_id: params.client_id };
+			const body = new URLSearchParams(params);
+
+			const as: oauth4webapi.AuthorizationServer = {
+				issuer: asMeta.issuer,
+				pushed_authorization_request_endpoint: endpoint,
+			};
+
+			const response = await oauth4webapi.pushedAuthorizationRequest(
+				as,
+				client,
+				oauth4webapi.None(),
+				body,
+				{
+					[customFetch]: myCustomFetch,
+					[allowInsecureRequests]: true,
+				}
+			);
+
+			const json = await response.json();
+			if (json?.error) {
+				throw new Error(`PAR failed: ${json.error} ${json.error_description ?? ''}`.trim());
+			}
+			if (!json?.request_uri) {
+				throw new Error(`PAR failed: missing request_uri. Got: ${JSON.stringify(json)}`);
+			}
+			return { request_uri: json.request_uri, rawResponse: json };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore, getRememberIssuerAge]
+		[myCustomFetch]
 	);
 
-	return useMemo(() => ({ generate }), [generate]);
+	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);
 }
