@@ -4,6 +4,7 @@ import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
 import { UserLock } from 'lucide-react';
@@ -16,12 +17,14 @@ const WebauthnLogin = ({
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const { tenantId } = useTenant();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
-			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
+			// Pass the tenantId from URL path to ensure proper tenant-scoped login
+			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser, tenantId);
 			if (result.ok) {
 				const params = new URLSearchParams(window.location.search);
 				params.delete("user");
@@ -60,7 +63,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t],
+		[api, keystore, navigate, t, tenantId],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {

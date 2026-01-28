@@ -253,7 +253,9 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
-		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
+		// Pass the tenantId from URL path to ensure proper tenant-scoped login
+		// This is critical for auto-retry after tenant discovery redirect
+		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, tenantId);
 		if (result.ok) {
 
 		} else {
@@ -301,14 +303,14 @@ const WebauthnSignupLogin = ({
 	useEffect(() => {
 		const params = new URLSearchParams(location.search);
 		const shouldAutoRetry = params.get('autoRetry') === 'true';
-		
+
 		if (shouldAutoRetry && isLogin && !autoRetryTriggered && !inProgress && !isSubmitting) {
 			setAutoRetryTriggered(true);
 			// Clear the autoRetry param from URL
 			params.delete('autoRetry');
 			const newSearch = params.toString();
 			navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
-			
+
 			// Trigger login automatically
 			console.log('Auto-retrying login after tenant discovery redirect');
 			(async () => {

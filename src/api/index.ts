@@ -554,10 +554,10 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			const cachedUserTenantId = cachedUser?.userHandleB64u
 				? extractTenantFromUserHandle(fromBase64Url(cachedUser.userHandleB64u))
 				: undefined;
-			
+
 			// Use URL tenant if provided, otherwise fall back to cached user tenant
 			const effectiveTenantId = urlTenantId || cachedUserTenantId;
-			
+
 			const loginBeginPath = buildLoginBeginPath(effectiveTenantId);
 			console.log("Login: using begin path:", loginBeginPath, "urlTenant:", urlTenantId, "cachedUserTenant:", cachedUserTenantId, "effective:", effectiveTenantId);
 
@@ -576,7 +576,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			})();
 
 			const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
-			
+
 			// Build credential options with PRF inputs
 			// allowCredentials improves UX by filtering the credential picker to show only matching passkeys
 			// PRF extension inputs (evalByCredential) are needed for passkey decryption
