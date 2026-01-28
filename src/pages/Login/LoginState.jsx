@@ -40,8 +40,8 @@ const WebauthnLogin = ({
 
 				// Handle tenant discovery error - redirect to tenant-specific login
 				if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
-					console.log('Tenant discovered during login state:', err.tenantId, '- redirecting...');
-					navigate(`/${err.tenantId}/login`, { replace: true });
+					console.log('Tenant discovered during login state:', err.tenantId, '- redirecting with auto-retry...');
+					navigate(`/${err.tenantId}/login?autoRetry=true`, { replace: true });
 					return;
 				}
 

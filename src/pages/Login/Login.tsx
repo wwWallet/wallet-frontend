@@ -219,12 +219,15 @@ const WebauthnSignupLogin = ({
 	const { api, keystore } = useContext(SessionContext);
 	const { tenantId } = useTenant(); // Get tenant from URL path or storage
 	const screenType = useScreenType();
+	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
+	const [autoRetryTriggered, setAutoRetryTriggered] = useState(false);
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -259,10 +262,10 @@ const WebauthnSignupLogin = ({
 
 			// Handle tenant discovery error - redirect to tenant-specific login
 			if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
-				console.log('Tenant discovered during login:', err.tenantId, '- redirecting...');
-				// Redirect to tenant-specific login page which will retry automatically
-				navigate(`/${err.tenantId}/login`, { replace: true });
-				// After redirect, the page will reload and login will be retried with correct tenant context
+				console.log('Tenant discovered during login:', err.tenantId, '- redirecting with auto-retry...');
+				// Redirect to tenant-specific login page with retry flag
+				// The autoRetry param signals that we should automatically trigger login after redirect
+				navigate(`/${err.tenantId}/login?autoRetry=true`, { replace: true });
 				return;
 			}
 
@@ -292,6 +295,33 @@ const WebauthnSignupLogin = ({
 			}
 		}
 	};
+
+	// Auto-retry login after tenant discovery redirect
+	// When redirected from global /login with ?autoRetry=true, automatically trigger login
+	useEffect(() => {
+		const params = new URLSearchParams(location.search);
+		const shouldAutoRetry = params.get('autoRetry') === 'true';
+		
+		if (shouldAutoRetry && isLogin && !autoRetryTriggered && !inProgress && !isSubmitting) {
+			setAutoRetryTriggered(true);
+			// Clear the autoRetry param from URL
+			params.delete('autoRetry');
+			const newSearch = params.toString();
+			navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
+			
+			// Trigger login automatically
+			console.log('Auto-retrying login after tenant discovery redirect');
+			(async () => {
+				setInProgress(true);
+				setIsSubmitting(true);
+				await onLogin([]);
+				setInProgress(false);
+				setIsSubmitting(false);
+				checkForUpdates();
+				updateOnlineStatus();
+			})();
+		}
+	}, [location.search, isLogin, autoRetryTriggered, inProgress, isSubmitting, navigate, location.pathname, onLogin, setIsSubmitting, updateOnlineStatus]);
 
 	const onSignup = async (name: string, webauthnHints: string[]) => {
 		// Pass tenantId to ensure the passkey's userHandle includes the tenant prefix

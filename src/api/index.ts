@@ -570,12 +570,24 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			})();
 
 			const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
+			
+			// For tenant-scoped login, we must NOT include allowCredentials because:
+			// - BeginTenantLogin creates a discoverable credential session
+			// - FinishTenantLogin validates using ValidateDiscoverableLogin
+			// - Adding allowCredentials would make it a non-discoverable flow which fails
+			// 
+			// We can still include PRF extension inputs (evalByCredential) without allowCredentials.
+			// The browser will show the discoverable credential picker and evaluate PRF for the selected credential.
+			const isTenantScopedLogin = cachedUserTenantId && cachedUserTenantId !== 'default';
+			
 			const getOptions = prfInputs
 				? {
 					...beginData.getOptions,
 					publicKey: {
 						...beginData.getOptions.publicKey,
-						allowCredentials: prfInputs.allowCredentials,
+						// Only include allowCredentials for global (non-tenant) login
+						// Tenant-scoped login MUST be discoverable
+						...(isTenantScopedLogin ? {} : { allowCredentials: prfInputs.allowCredentials }),
 						extensions: {
 							...beginData.getOptions.publicKey.extensions,
 							prf: prfInputs.prfInput,
