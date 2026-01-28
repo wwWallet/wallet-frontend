@@ -7,7 +7,7 @@ import * as jose from 'jose';
 import PopupLayout from '../../components/Popups/PopupLayout';
 import Button from '../../components/Buttons/Button';
 import { H1 } from '../../components/Shared/Heading';
-const BASE_URL = import.meta.env.VITE_WALLET_BACKEND_URL;;
+const BASE_URL = import.meta.env.VITE_WALLET_BACKEND_URL;
 const REDIRECT_URI = "http://localhost:3000";
 const client_id = "CLIENT123";
 const b64UrlEncode = (data) => {
