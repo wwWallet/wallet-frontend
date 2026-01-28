@@ -616,10 +616,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const selectedCredentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
 			const scope = selectedCredentialConfigurationSupported.scope;
 
-			// Generate PKCE
-			const pkce = await import('pkce-challenge');
-			const { code_challenge, code_verifier } = await pkce.default();
-
 			// Generate state
 			const userHandleB64u = keystore.getUserHandleB64u();
 			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
@@ -629,8 +625,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				scope,
 				response_type: "code",
 				client_id: clientId.client_id,
-				code_challenge,
-				code_challenge_method: "S256",
 				state,
 				redirect_uri: redirectUri
 			};
@@ -650,7 +644,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					sessionId: WalletStateUtils.getRandomUint32(),
 					credentialIssuerIdentifier: credentialIssuerMetadata.metadata.credential_issuer,
 					state,
-					code_verifier,
+					code_verifier: parRes.code_verifier,
 					credentialConfigurationId,
 					created: Math.floor(Date.now() / 1000),
 				});

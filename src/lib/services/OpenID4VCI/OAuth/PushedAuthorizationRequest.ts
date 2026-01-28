@@ -64,6 +64,13 @@ export function usePushedAuthorizationRequest() {
 				throw new Error('AS metadata missing pushed_authorization_request_endpoint');
 			}
 			const client: oauth4webapi.Client = { client_id: params.client_id };
+
+			// Generate PKCE
+			const code_verifier = oauth4webapi.generateRandomCodeVerifier();
+			const code_challenge = await oauth4webapi.calculatePKCECodeChallenge(code_verifier);
+			params.code_challenge = code_challenge;
+			params.code_challenge_method = "S256";
+
 			const body = new URLSearchParams(params);
 
 			const as: oauth4webapi.AuthorizationServer = {
@@ -89,7 +96,7 @@ export function usePushedAuthorizationRequest() {
 			if (!json?.request_uri) {
 				throw new Error(`PAR failed: missing request_uri. Got: ${JSON.stringify(json)}`);
 			}
-			return { request_uri: json.request_uri, rawResponse: json };
+			return { request_uri: json.request_uri, code_verifier, rawResponse: json };
 		},
 		[myCustomFetch]
 	);
