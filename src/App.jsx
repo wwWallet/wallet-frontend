@@ -36,7 +36,6 @@ const Layout = lazyWithDelay(() => import('./components/Layout/Layout'), 400);
 const Login = lazyWithDelay(() => import('./pages/Login/Login'), 400);
 const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
-const GetCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 
 function App() {
 	const location = useLocation();
@@ -78,7 +77,6 @@ function App() {
 						<Route path="/pending" element={<Pending />} />
 						<Route path="/history/:transactionId" element={<HistoryDetail />} />
 						<Route path="/add" element={<AddCredentials />} />
-						<Route path="/get" element={<GetCredentials />} />
 						<Route path="/send" element={<SendCredentials />} />
 						<Route path="/verification/result" element={<VerificationResult />} />
 						<Route path="/cb/*" element={<Home />} />
