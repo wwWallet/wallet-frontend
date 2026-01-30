@@ -4,6 +4,8 @@ import { useCallback, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
+const appMode = import.meta.env.MODE || 'development';
+const isDev = appMode === 'development';
 
 function normalizeHeaders(h: any): Record<string, string> {
 	const out: Record<string, string> = {};
@@ -24,14 +26,14 @@ export function usePushedAuthorizationRequest() {
 			const headers = normalizeHeaders(options?.headers);
 			const body = options?.body;
 
-			const data =
-				typeof body === 'string'
-					? body
-					: body instanceof URLSearchParams
-						? body.toString()
-						: body
-							? String(body)
-							: undefined;
+			let data: string | undefined;
+			if (typeof body === 'string') {
+				data = body;
+			} else if (body instanceof URLSearchParams) {
+				data = body.toString();
+			} else if (body != null) {
+				data = String(body);
+			}
 
 			let wrapped;
 			if (method === 'post') {
@@ -85,7 +87,7 @@ export function usePushedAuthorizationRequest() {
 				body,
 				{
 					[customFetch]: myCustomFetch,
-					[allowInsecureRequests]: true,
+					[allowInsecureRequests]: isDev,
 				}
 			);
 

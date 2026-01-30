@@ -4,6 +4,8 @@ import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
+const appMode = import.meta.env.MODE || 'development';
+const isDev = appMode === 'development';
 
 export type AccessToken = {
 	access_token: string;
@@ -191,7 +193,7 @@ export function useTokenRequest() {
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
 			[customFetch]: myCustomFetch,
-			[allowInsecureRequests]: true,
+			[allowInsecureRequests]: isDev,
 			...(DPoP ? { DPoP } : {}),
 		};
 
