@@ -375,7 +375,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw new Error("Couldn't hande using active access token");
 			}
 			// Token Request
-			const tokenEndpoint = authzServerMetadata.authzServeMetadata.token_endpoint;
+			const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 
 
 			let flowState: WalletStateCredentialIssuanceSession | null = null;
@@ -418,9 +418,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const jti = generateRandomIdentifier(8);
 
 			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
-			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServeMetadata.issuer);
+			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
 
-			if (authzServerMetadata.authzServeMetadata.dpop_signing_alg_values_supported) {
+			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
 				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
 				flowState.dpop = {
 					dpopAlg: 'ES256',
@@ -615,15 +615,13 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 
 			// OID4VCI-specific logic for PAR
-			// Map credentialConfigurationId to scope
 			const selectedCredentialConfigurationSupported = credentialIssuerMetadata.metadata.credential_configurations_supported[credentialConfigurationId];
 			const scope = selectedCredentialConfigurationSupported.scope;
 
-			// Generate state
 			const userHandleB64u = keystore.getUserHandleB64u();
 			const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 
-			// Build OAuth params
+			// OAuth params
 			const params: Record<string, string> = {
 				scope,
 				response_type: "code",
@@ -635,11 +633,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				params["issuer_state"] = issuer_state;
 			}
 
-			// Call generic PAR function
-			if (authzServerMetadata.authzServeMetadata.pushed_authorization_request_endpoint) {
+			if (authzServerMetadata.authzServerMetadata.pushed_authorization_request_endpoint) {
 				const { sendPushedAuthorizationRequest } = openID4VCIPushedAuthorizationRequest;
 				const parRes = await sendPushedAuthorizationRequest(
-					authzServerMetadata.authzServeMetadata,
+					authzServerMetadata.authzServerMetadata,
 					params
 				);
 				// Persist state/code_verifier for later token exchange
@@ -653,7 +650,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				});
 				await openID4VCIClientStateRepository.commitStateChanges();
 				// Build authorization request URL
-				const authorizationRequestURL = new URL(authzServerMetadata.authzServeMetadata.authorization_endpoint);
+				const authorizationRequestURL = new URL(authzServerMetadata.authzServerMetadata.authorization_endpoint);
 				authorizationRequestURL.searchParams.set('request_uri', parRes.request_uri);
 				authorizationRequestURL.searchParams.set('client_id', clientId.client_id);
 				const age = getRememberIssuerAge();
@@ -666,7 +663,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		[openID4VCIClientStateRepository, openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge]
 	);
 
-	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
 	useEffect(() => {
 		generateAuthorizationRequestRef.current = generateAuthorizationRequest;
 	}, [generateAuthorizationRequest]);

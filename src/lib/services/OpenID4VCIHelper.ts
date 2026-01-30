@@ -63,7 +63,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	// Fetches authorization server metadata with fallback
 	const getAuthorizationServerMetadata = useCallback(
-		async (credentialIssuerIdentifier: string): Promise<{ authzServeMetadata: OpenidAuthorizationServerMetadata } | null> => {
+		async (credentialIssuerIdentifier: string): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
 			const pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
 			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
 			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
@@ -72,19 +72,19 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 			const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 			try {
-				const authzServeMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathAuthorizationServer,
 					OpenidAuthorizationServerMetadataSchema,
 				);
-				return { authzServeMetadata };
+				return { authzServerMetadata };
 			} catch {
 				// Fallback to openid-configuration if oauth-authorization-server fetch fails
-				const authzServeMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathConfiguration,
 					OpenidAuthorizationServerMetadataSchema,
 				).catch(() => null);
 
-				if (!authzServeMetadata) {
+				if (!authzServerMetadata) {
 					const authzMetadataFromCredentialIssuerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 						pathAuthorizationServerFromCredentialIssuerMetadata,
 						OpenidAuthorizationServerMetadataSchema,
@@ -92,9 +92,9 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					if (!authzMetadataFromCredentialIssuerMetadata) {
 						return null;
 					}
-					return { authzServeMetadata: authzMetadataFromCredentialIssuerMetadata };
+					return { authzServerMetadata: authzMetadataFromCredentialIssuerMetadata };
 				}
-				return { authzServeMetadata };
+				return { authzServerMetadata };
 			}
 		},
 		[fetchAndParseWithSchema, getCredentialIssuerMetadata]
