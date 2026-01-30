@@ -347,7 +347,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 				// if c_nonce and access_token are not expired
 				if (flowState.tokenResponse &&
-					Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.c_nonce_expiration_timestamp &&
 					Math.floor(Date.now() / 1000) < flowState.tokenResponse.data.expiration_timestamp &&
 					getRememberIssuerAge() !== null && Math.floor(Date.now() / 1000) - flowState.created < getRememberIssuerAge()) {
 					// attempt credential request
