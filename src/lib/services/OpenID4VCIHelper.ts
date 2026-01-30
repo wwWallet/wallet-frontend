@@ -187,7 +187,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				}
 			});
 			try {
-				const iacaList = await api.get('/helper/iaca-list');
+				const iacaList = await getExternalEntity('/helper/iaca-list', undefined, shouldUseCache);
 				const { iaca_list } = iacaList.data as { iaca_list: { certificate: string }[] };
 				certificates.push(...iaca_list.map((c) => c.certificate));
 			}
@@ -197,7 +197,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			onCertificates(certificates);
 
 		},
-		[getCredentialIssuerMetadata, getMdocIacas, httpProxy, api]
+		[getCredentialIssuerMetadata, getMdocIacas, httpProxy, getExternalEntity]
 	);
 
 	return useMemo(
