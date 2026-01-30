@@ -1,7 +1,9 @@
 import { useCallback, useRef, useMemo } from 'react';
 import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../../HttpProxy/HttpProxy';
-import { generateDPoP } from '../../../utils/dpop';
+import * as oauth4webapi from 'oauth4webapi';
+
+const { customFetch, allowInsecureRequests } = oauth4webapi;
 
 export type AccessToken = {
 	access_token: string;
@@ -29,23 +31,81 @@ export function useTokenRequest() {
 	const httpProxy = useHttpProxy();
 
 	const tokenEndpointURL = useRef<string | null>(null);
+	const issuer = useRef<string | null>(null);
 	const grantType = useRef<GrantType>(GrantType.AUTHORIZATION_CODE);
 	const refreshToken = useRef<string | null>(null);
 	const authorizationCode = useRef<string | null>(null);
+	const authorizationResponseUrl = useRef<string | null>(null);
+	const oauthState = useRef<string | null>(null);
 	const codeVerifier = useRef<string | null>(null);
 	const redirectUri = useRef<string | null>(null);
 	const clientId = useRef<string | null>(null);
 	const retries = useRef<number>(0);
-	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string } | null>(null);
+	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK } | null>(null);
+	const dpopHandle = useRef<oauth4webapi.DPoPHandle | null>(null);
 
+	function normalizeHeaders(h: any): Record<string, string> {
+		const out: Record<string, string> = {};
+		if (!h) return out;
+		if (h instanceof Headers) {
+			h.forEach((v, k) => {
+				out[k.toLowerCase()] = v;
+			});
+			return out;
+		}
+		for (const [k, v] of Object.entries(h)) {
+			if (v === undefined || v === null) continue;
+			out[k.toLowerCase()] = Array.isArray(v) ? v.join(', ') : String(v);
+		}
+		return out;
+	}
 
-	const httpHeaders = useRef<Map<string, string>>(new Map([
-		['Content-Type', 'application/x-www-form-urlencoded']
-	]));
+	const myCustomFetch = useMemo(() => {
+		return async (url: string, options?: RequestInit) => {
+			const method = (options?.method ?? 'POST').toLowerCase();
+			const headers = normalizeHeaders(options?.headers);
+			const body = options?.body;
 
+			let data: string | undefined;
+			if (typeof body === 'string') {
+				data = body;
+			} else if (body instanceof URLSearchParams) {
+				data = body.toString();
+			} else if (body != null) {
+				data = String(body);
+			}
+
+			let wrapped;
+			if (method === 'post') {
+				wrapped = await httpProxy.post(url, data, headers);
+			} else {
+				throw new Error(`Unsupported method in customFetch: ${method}`);
+			}
+
+			const resHeaders = normalizeHeaders(wrapped.headers);
+			const contentType = resHeaders['content-type'] ?? 'application/json';
+			let bodyText: string;
+			if (typeof wrapped.data === 'string') {
+				bodyText = wrapped.data;
+			} else if (contentType.includes('application/json')) {
+				bodyText = JSON.stringify(wrapped.data);
+			} else {
+				bodyText = String(wrapped.data ?? '');
+			}
+
+			return new Response(bodyText, {
+				status: wrapped.status ?? 500,
+				headers: resHeaders,
+			});
+		};
+	}, [httpProxy]);
 
 	const setClientId = useCallback((clientIdValue: string) => {
 		clientId.current = clientIdValue;
+	}, []);
+
+	const setIssuer = useCallback((issuerValue: string) => {
+		issuer.current = issuerValue;
 	}, []);
 
 	const setGrantType = useCallback((grant: GrantType) => {
@@ -54,6 +114,14 @@ export function useTokenRequest() {
 
 	const setAuthorizationCode = useCallback((authzCode: string) => {
 		authorizationCode.current = authzCode;
+	}, []);
+
+	const setAuthorizationResponseUrl = useCallback((url: string) => {
+		authorizationResponseUrl.current = url;
+	}, []);
+
+	const setState = useCallback((state: string) => {
+		oauthState.current = state;
 	}, []);
 
 	const setCodeVerifier = useCallback((codeVerifierValue: string) => {
@@ -72,102 +140,177 @@ export function useTokenRequest() {
 		tokenEndpointURL.current = endpoint;
 	}, []);
 
-	const setDpopHeader = useCallback(async (
-		dpopPrivateKey: KeyLike,
-		dpopPublicKeyJwk: JWK,
-		jti: string
-	) => {
-		if (!tokenEndpointURL.current) {
-			throw new Error("tokenEndpointURL was not defined");
+	const setDpopHeader = useCallback(async (dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, _jti: string) => {
+		dpopParams.current = { dpopPrivateKey, dpopPublicKeyJwk };
+		dpopHandle.current = null;
+	}, []);
+
+	const getDPoPHandle = useCallback(async (client: oauth4webapi.Client) => {
+		if (!dpopParams.current) {
+			return undefined;
 		}
-		dpopParams.current = { dpopPrivateKey, dpopPublicKeyJwk, jti };
-		const dpop = await generateDPoP(
-			dpopPrivateKey,
-			dpopPublicKeyJwk,
-			"POST",
-			tokenEndpointURL.current,
-			httpHeaders.current.get('dpop-nonce')
+		if (dpopHandle.current) {
+			return dpopHandle.current;
+		}
+		const publicKey = await crypto.subtle.importKey(
+			'jwk',
+			dpopParams.current.dpopPublicKeyJwk as JsonWebKey,
+			{ name: 'ECDSA', namedCurve: 'P-256' },
+			true,
+			['verify']
 		);
-		httpHeaders.current.set('DPoP', dpop);
-	}, [httpHeaders]);
+		const keyPair = {
+			privateKey: dpopParams.current.dpopPrivateKey as CryptoKey,
+			publicKey: publicKey as CryptoKey,
+		};
+		dpopHandle.current = oauth4webapi.DPoP(client, keyPair);
+		return dpopHandle.current;
+	}, []);
 
 	const execute = useCallback(async (): Promise<
 		{ response: AccessToken } | { error: TokenRequestError; response?: any }
 	> => {
-		const formData = new URLSearchParams();
+		retries.current = 0;
 
 		if (!clientId.current || !redirectUri.current) {
 			throw new Error("Client ID or Redirect URI is not set");
 		}
 
-		formData.append('client_id', clientId.current);
+		if (!tokenEndpointURL.current) {
+			throw new Error("Token endpoint is not set");
+		}
 
-		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
+		const as: oauth4webapi.AuthorizationServer = {
+			issuer: issuer.current ?? tokenEndpointURL.current,
+			token_endpoint: tokenEndpointURL.current,
+		};
+
+		const client: oauth4webapi.Client = { client_id: clientId.current };
+		const clientAuth = oauth4webapi.None();
+		const DPoP = await getDPoPHandle(client);
+
+		const options: oauth4webapi.TokenEndpointRequestOptions = {
+			[customFetch]: myCustomFetch,
+			[allowInsecureRequests]: true,
+			...(DPoP ? { DPoP } : {}),
+		};
+
+		const authorizationCodeGrantRequest = async () => {
 			if (!authorizationCode.current || !codeVerifier.current) {
 				throw new Error("Authorization Code or Code Verifier is not set");
 			}
+			let callbackParams: URLSearchParams;
+			if (authorizationResponseUrl.current) {
+				const currentUrl = new URL(authorizationResponseUrl.current);
+				callbackParams = oauth4webapi.validateAuthResponse(
+					as,
+					client,
+					currentUrl,
+					oauthState.current ?? undefined
+				);
+			} else {
+				callbackParams = new URLSearchParams({ code: authorizationCode.current });
+			}
+			return oauth4webapi.authorizationCodeGrantRequest(
+				as,
+				client,
+				clientAuth,
+				callbackParams,
+				redirectUri.current!,
+				codeVerifier.current,
+				options
+			);
+		};
 
-			formData.append('grant_type', 'authorization_code');
-			formData.append('code', authorizationCode.current);
-			formData.append('code_verifier', codeVerifier.current);
-		} else if (grantType.current === GrantType.REFRESH) {
+		const refreshTokenGrantRequest = async () => {
 			if (!refreshToken.current) {
 				throw new Error("Refresh Token is not set");
 			}
+			return oauth4webapi.refreshTokenGrantRequest(
+				as,
+				client,
+				clientAuth,
+				refreshToken.current,
+				options
+			);
+		};
 
-			formData.append('grant_type', 'refresh_token');
-			formData.append('refresh_token', refreshToken.current);
-		} else {
+		let tokenRequest:
+			| typeof authorizationCodeGrantRequest
+			| typeof refreshTokenGrantRequest
+			| null;
+
+		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
+			tokenRequest = authorizationCodeGrantRequest;
+		} else if (grantType.current === GrantType.REFRESH) {
+			tokenRequest = refreshTokenGrantRequest;
+		}
+
+		if (!tokenRequest) {
 			throw new Error("Invalid grant type selected");
 		}
 
-		formData.append('redirect_uri', redirectUri.current);
-
-		console.log("Token endpoint headers to send = ", Object.fromEntries(httpHeaders.current))
-		const response = await httpProxy.post(
-			tokenEndpointURL.current!,
-			formData.toString(),
-			Object.fromEntries(httpHeaders.current)
-		);
-
-		if (response.status !== 200) {
-
-			console.error("Failed token request");
-
-			if (response.headers?.['dpop-nonce'] && retries.current < 1) {
-				console.log("Response headers = ", response.headers)
-				retries.current = retries.current + 1;
-				httpHeaders.current.set('dpop-nonce', response.headers['dpop-nonce']);
-				const { dpopPrivateKey, dpopPublicKeyJwk, jti } = dpopParams.current;
-				await setDpopHeader(dpopPrivateKey, dpopPublicKeyJwk, jti);
-				return execute();
+		const processResponse = async (response: Response) => {
+			if (grantType.current === GrantType.AUTHORIZATION_CODE) {
+				return oauth4webapi.processAuthorizationCodeResponse(as, client, response);
 			}
+			return oauth4webapi.processRefreshTokenResponse(as, client, response);
+		};
 
-			if (response?.data?.["error"] === "authorization_required") {
-				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: response?.data };
+		const normalizeError = (err: any) => {
+			if (err && typeof err === 'object' && 'error' in err) {
+				if (err.error === "authorization_required") {
+					return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: err };
+				}
+				return { error: TokenRequestError.FAILED, response: err };
 			}
+			return null;
+		};
 
-			return { error: TokenRequestError.FAILED };
+		let response = await tokenRequest();
+		let result: any;
+		try {
+			result = await processResponse(response);
+		} catch (err) {
+			if (oauth4webapi.isDPoPNonceError(err) && retries.current < 1) {
+				retries.current += 1;
+				response = await tokenRequest();
+				result = await processResponse(response);
+			} else {
+				const normalized = normalizeError(err);
+				if (normalized) return normalized;
+				throw err;
+			}
+		}
+
+		if (result && typeof result === 'object' && 'error' in result) {
+			if (result.error === "authorization_required") {
+				return { error: TokenRequestError.AUTHORIZATION_REQUIRED, response: result };
+			}
+			return { error: TokenRequestError.FAILED, response: result };
 		}
 
 		return {
 			response: {
-				access_token: response.data?.["access_token"],
-				c_nonce: response.data?.["c_nonce"],
-				c_nonce_expires_in: response.data?.["c_nonce_expires_in"],
-				expires_in: response.data?.["expires_in"],
-				refresh_token: response.data?.["refresh_token"],
+				access_token: result?.access_token,
+				c_nonce: result?.c_nonce,
+				c_nonce_expires_in: result?.c_nonce_expires_in,
+				expires_in: result?.expires_in,
+				refresh_token: result?.refresh_token,
 				httpResponseHeaders: {
-					...response.headers,
+					...normalizeHeaders(response.headers),
 				},
 			},
 		};
-	}, [httpProxy, httpHeaders, setDpopHeader]);
+	}, [getDPoPHandle, myCustomFetch]);
 
 	return useMemo(() => ({
 		setClientId,
+		setIssuer,
 		setGrantType,
 		setAuthorizationCode,
+		setAuthorizationResponseUrl,
+		setState,
 		setCodeVerifier,
 		setRefreshToken,
 		setRedirectUri,
@@ -176,8 +319,11 @@ export function useTokenRequest() {
 		execute,
 	}), [
 		setClientId,
+		setIssuer,
 		setGrantType,
 		setAuthorizationCode,
+		setAuthorizationResponseUrl,
+		setState,
 		setCodeVerifier,
 		setRefreshToken,
 		setRedirectUri,

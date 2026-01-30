@@ -418,6 +418,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const jti = generateRandomIdentifier(8);
 
 			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
+			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServeMetadata.issuer);
 
 			if (authzServerMetadata.authzServeMetadata.dpop_signing_alg_values_supported) {
 				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
@@ -433,6 +434,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			tokenRequestBuilder.setClientId(clientId ? clientId?.client_id : null);
 			tokenRequestBuilder.setGrantType(requestCredentialsParams.authorizationCodeGrant ? GrantType.AUTHORIZATION_CODE : GrantType.REFRESH);
 			tokenRequestBuilder.setAuthorizationCode(requestCredentialsParams?.authorizationCodeGrant?.code);
+			tokenRequestBuilder.setAuthorizationResponseUrl(requestCredentialsParams?.authorizationCodeGrant?.authorizationResponseUrl);
+			tokenRequestBuilder.setState(requestCredentialsParams?.authorizationCodeGrant?.state);
 			tokenRequestBuilder.setCodeVerifier(flowState?.code_verifier);
 
 			tokenRequestBuilder.setRefreshToken(flowState?.tokenResponse?.data?.refresh_token);
