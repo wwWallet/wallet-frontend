@@ -8,35 +8,9 @@ import convert, { RGB } from "color-convert";
 import { createFont, woff2 } from "fonteditor-core";
 import { fileURLToPath } from "node:url";
 
-/**
- * Computes a stable hash from all branding inputs.
- * Changes ONLY when branding files change.
- *
- * @param brandingDir Branding source directory.
- */
-export function getBrandingHash(brandingDir: string): string {
-	const hash = crypto.createHash("sha256");
-
-	function walk(dir: string) {
-		const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-		for (const entry of entries) {
-			const fullPath = path.join(dir, entry.name);
-
-			if (entry.isDirectory()) {
-				walk(fullPath);
-			} else {
-				hash.update(fullPath);
-				hash.update(fs.readFileSync(fullPath));
-			}
-		}
-	}
-
-	walk(brandingDir);
-
-	// 10 chars is enough to avoid collisions and keep URLs short
-	return hash.digest("hex").slice(0, 10);
-}
+// ============================================
+// TYPES
+// ============================================
 
 export type BrandingFile = {
 	/**
@@ -56,6 +30,12 @@ export type BrandingFile = {
 	 */
 	readonly isCustom: boolean;
 }
+
+export type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
+
+// ============================================
+// FILE FINDERS
+// ============================================
 
 /**
  * Finds a branding file, preferring custom over default.
@@ -113,7 +93,6 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 	}
 }
 
-
 /**
  * Finds a logo file (svg or png), preferring custom over default, svg over png.
  *
@@ -141,10 +120,6 @@ export function findLogoFile(baseDir: string, name: string): BrandingFile | null
 	return null;
 }
 
-
-export type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
-
-
 /**
  * Finds both light and dark logo files.
  *
@@ -166,6 +141,43 @@ export function findLogoFiles(sourceDir: string): LogoFiles {
 	return files as LogoFiles;
 }
 
+// ============================================
+// HASHING
+// ============================================
+
+/**
+ * Computes a stable hash from all branding inputs.
+ * Changes ONLY when branding files change.
+ *
+ * @param brandingDir Branding source directory.
+ */
+export function getBrandingHash(brandingDir: string): string {
+	const hash = crypto.createHash("sha256");
+
+	function walk(dir: string) {
+		const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+		for (const entry of entries) {
+			const fullPath = path.join(dir, entry.name);
+
+			if (entry.isDirectory()) {
+				walk(fullPath);
+			} else {
+				hash.update(fullPath);
+				hash.update(fs.readFileSync(fullPath));
+			}
+		}
+	}
+
+	walk(brandingDir);
+
+	// 10 chars is enough to avoid collisions and keep URLs short
+	return hash.digest("hex").slice(0, 10);
+}
+
+// ============================================
+// SCREENSHOTS
+// ============================================
 
 /**
  * Finds a screenshot file, preferring custom over default.
@@ -203,6 +215,10 @@ export async function copyScreenshots(sourceDir: string, publicDir: string): Pro
 		await copyFile(source, path.join(screenshotsDir, file));
 	}
 }
+
+// ============================================
+// ICONS
+// ============================================
 
 export type GenerateAllIconsOptions = {
 	/**
@@ -406,6 +422,10 @@ export async function generateAllIcons({
 	return icons;
 }
 
+// ============================================
+// THEME
+// ============================================
+
 const themeSchema = z.object({
 	brand: z.object({
 		color: z.string(),
@@ -485,6 +505,10 @@ ${rootVars.join('\n')}
 `.trim();
 }
 
+// ============================================
+// COLOR UTILITIES
+// ============================================
+
 /**
  * Parses a color string into RGB components.
  *
@@ -559,6 +583,10 @@ export function getOptimalForegroundColor(rgb: RGB): string {
 	return contrastRatioForBlack > contrastRatioForWhite ? "hsl(220 20% 5.7%)" : "hsl(0 0% 100%)";
 }
 
+// ============================================
+// METADATA IMAGE
+// ============================================
+
 type MetadataImageOptions = {
 	title: string;
 }
@@ -579,8 +607,6 @@ export class MetadataImage {
 	private static readonly LINE_MARGIN = 20;
 	private static readonly MAX_TITLE_LENGTH = 12;
 	private static readonly SHORT_TITLE_THRESHOLD = 8;
-
-	// Color parsing patterns
 
 	private static readonly FONTCONFIG_XML = `<?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
