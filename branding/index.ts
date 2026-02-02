@@ -39,6 +39,9 @@ export type BrandingFile = {
 	readonly isCustom: boolean;
 }
 
+/**
+ * Finds a branding file, preferring custom over default.
+ */
 export function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
 	const defaultFilePath = path.join(baseDir, "default", filePath);
 	const customFilePath = path.join(baseDir, "custom", filePath);
@@ -61,6 +64,9 @@ export function findBrandingFile(baseDir: string, filePath: string): BrandingFil
 	}
 }
 
+/**
+ * @deprecated Use `findBrandingFile` instead.
+ */
 function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null {
 	const customFilePath = path.join(
 		path.dirname(filePathInput), "custom", path.basename(filePathInput)
@@ -86,6 +92,10 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 	}
 }
 
+
+/**
+ * Finds a logo file (svg or png), preferring custom over default, svg over png.
+ */
 export function findLogoFile(baseDir: string, name: string): BrandingFile | null {
 	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
 	const pngFile = findBrandingFile(baseDir, path.join("logo", `${name}.png`));
@@ -110,6 +120,10 @@ export function findLogoFile(baseDir: string, name: string): BrandingFile | null
 
 export type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
 
+
+/**
+ * Finds both light and dark logo files.
+ */
 export function findLogoFiles(sourceDir: string): LogoFiles {
 	const files: Partial<LogoFiles> = {};
 
@@ -126,6 +140,9 @@ export function findLogoFiles(sourceDir: string): LogoFiles {
 }
 
 
+/**
+ * Finds a screenshot file, preferring custom over default.
+ */
 export function findScreenshotFile(sourceDir: string, filename: string): string {
 	const customFile = path.join(sourceDir, "custom", "screenshots", filename);
 	const defaultFile = path.join(sourceDir, "default", "screenshots", filename);
@@ -136,6 +153,9 @@ export function findScreenshotFile(sourceDir: string, filename: string): string 
 	throw new Error(`Screenshot not found: ${filename}`);
 }
 
+/**
+ * Copies all screenshots from branding to public directory.
+ */
 export async function copyScreenshots(sourceDir: string, publicDir: string): Promise<void> {
 	const files = [
 		"screen_mobile_1.png",
@@ -162,7 +182,6 @@ export type GenerateAllIconsOptions = {
 	brandingHash?: string;
 }
 
-
 type StringLiteralUnion<T extends U, U = string> = T | (U & {});
 type IconPurpose = 'monochrome' | 'maskable' | 'any';
 
@@ -173,6 +192,9 @@ export type Icons = Array<{
 	purpose?: StringLiteralUnion<IconPurpose> | IconPurpose[];
 }>
 
+/**
+ * Generates all icons (favicon, apple touch icon, manifest icons).
+ */
 export async function generateAllIcons({
 	sourceDir,
 	publicDir,
