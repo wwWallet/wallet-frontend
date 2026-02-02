@@ -7,6 +7,8 @@ import sharp from "sharp";
 /**
  * Computes a stable hash from all branding inputs.
  * Changes ONLY when branding files change.
+ *
+ * @param brandingDir Branding source directory.
  */
 export function getBrandingHash(brandingDir: string): string {
 	const hash = crypto.createHash("sha256");
@@ -33,14 +35,29 @@ export function getBrandingHash(brandingDir: string): string {
 }
 
 export type BrandingFile = {
+	/**
+	 * Full path to the branding file.
+	 */
 	readonly pathname: string;
+	/**
+	 * Filename of the branding file.
+	 */
 	readonly filename: string;
+	/**
+	 * Whether this file is the default branding file.
+	 */
 	readonly isDefault: boolean;
+	/**
+	 * Whether this file is the custom branding file.
+	 */
 	readonly isCustom: boolean;
 }
 
 /**
  * Finds a branding file, preferring custom over default.
+ *
+ * @param baseDir Branding source directory.
+ * @param filePath Relative file path within branding directory.
  */
 export function findBrandingFile(baseDir: string, filePath: string): BrandingFile | null {
 	const defaultFilePath = path.join(baseDir, "default", filePath);
@@ -95,6 +112,9 @@ function deprecated_findBrandingFile(filePathInput: string): BrandingFile | null
 
 /**
  * Finds a logo file (svg or png), preferring custom over default, svg over png.
+ *
+ * @param baseDir Branding source directory.
+ * @param name Logo name (e.g., "logo_light" or "logo_dark").
  */
 export function findLogoFile(baseDir: string, name: string): BrandingFile | null {
 	const svgFile = findBrandingFile(baseDir, path.join("logo", `${name}.svg`));
@@ -123,6 +143,9 @@ export type LogoFiles = Record<`logo_${'light' | 'dark'}`, BrandingFile>;
 
 /**
  * Finds both light and dark logo files.
+ *
+ * @param sourceDir Branding source directory.
+ * @throws if any logo is not found.
  */
 export function findLogoFiles(sourceDir: string): LogoFiles {
 	const files: Partial<LogoFiles> = {};
@@ -142,6 +165,10 @@ export function findLogoFiles(sourceDir: string): LogoFiles {
 
 /**
  * Finds a screenshot file, preferring custom over default.
+ *
+ * @param sourceDir Branding source directory.
+ * @param filename Screenshot filename.
+ * @throws if not found.
  */
 export function findScreenshotFile(sourceDir: string, filename: string): string {
 	const customFile = path.join(sourceDir, "custom", "screenshots", filename);
@@ -174,11 +201,30 @@ export async function copyScreenshots(sourceDir: string, publicDir: string): Pro
 }
 
 export type GenerateAllIconsOptions = {
+	/**
+	 * Source branding directory.
+	 */
 	sourceDir: string;
+	/**
+	 * Public directory where to output the generated icons.
+	 */
 	publicDir: string;
+	/**
+	 * Whether to copy the source logo and favicon files to the public directory.
+	 */
 	copySource?: boolean;
+	/**
+	 * Whether to generate the Apple touch icon.
+	 */
 	appleTouchIcon?: boolean;
+	/**
+	 * Sizes of the manifest icons to generate.
+	 */
 	manifestIconSizes: number[];
+	/**
+	 * Optional branding hash to append to icon URLs for cache busting.
+	 * @see getBrandingHash
+	 */
 	brandingHash?: string;
 }
 
@@ -191,6 +237,9 @@ export type Icons = Array<{
 
 /**
  * Generates all icons (favicon, apple touch icon, manifest icons).
+ *
+ * @param options Generation options.
+ * @trows if favicon or logos are not found.
  */
 export async function generateAllIcons({
 	sourceDir,
