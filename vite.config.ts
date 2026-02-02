@@ -11,9 +11,9 @@ import {
 	RobotsTxtPlugin,
 	SitemapPlugin,
 	ThemePlugin,
-	getBrandingHash
 } from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
+import { getBrandingHash } from './branding';
 
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
