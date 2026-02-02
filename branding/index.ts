@@ -182,14 +182,11 @@ export type GenerateAllIconsOptions = {
 	brandingHash?: string;
 }
 
-type StringLiteralUnion<T extends U, U = string> = T | (U & {});
-type IconPurpose = 'monochrome' | 'maskable' | 'any';
-
 export type Icons = Array<{
 	sizes?: string;
 	src: string;
 	type?: string;
-	purpose?: StringLiteralUnion<IconPurpose> | IconPurpose[];
+	purpose?: 'monochrome' | 'maskable' | 'any' | (string & {}) | ('monochrome' | 'maskable' | 'any')[];
 }>
 
 /**
