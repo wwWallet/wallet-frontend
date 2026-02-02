@@ -1,8 +1,12 @@
 import fs from "node:fs";
-import { copyFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
+import { z } from "zod";
+import convert, { RGB } from "color-convert";
+import { createFont, woff2 } from "fonteditor-core";
+import { fileURLToPath } from "node:url";
 
 /**
  * Computes a stable hash from all branding inputs.
@@ -400,4 +404,335 @@ export async function generateAllIcons({
 	}
 
 	return icons;
+}
+
+const themeSchema = z.object({
+	brand: z.object({
+		color: z.string(),
+		colorLight: z.string(),
+		colorLighter: z.string(),
+		colorDark: z.string(),
+		colorDarker: z.string(),
+	}).strict(),
+});
+
+export type ThemeConfig = z.infer<typeof themeSchema>;
+
+export function allThemeConfigPaths(sourceDir: string): Record<string, string> {
+	return {
+		customPath: path.join(sourceDir, 'custom', 'theme.json'),
+		defaultPath: path.join(sourceDir, 'default', 'theme.json'),
+	}
+}
+
+export function getThemeFile(path: string): ThemeConfig {
+	const raw = fs.readFileSync(path, 'utf8');
+	const theme = themeSchema.parse(JSON.parse(raw));
+
+	return theme;
+}
+
+export type GenerateThemeOptions = {
+	/**
+	 * Source branding directory.
+	 */
+	sourceDir: string;
+}
+
+/**
+ * Generates CSS theme variables from theme.json.
+ */
+export function generateThemeCSS({ sourceDir }: GenerateThemeOptions): string {
+	const configPath = (() => {
+		const { customPath, defaultPath } = allThemeConfigPaths(sourceDir);
+
+		if (fs.existsSync(customPath)) return customPath;
+		if (fs.existsSync(defaultPath)) return defaultPath;
+		return null;
+	})();
+
+	if (!configPath) {
+		console.warn('No theme.json found. Generating empty theme block');
+		return `:root {}`;
+	}
+
+	console.log(
+		`Using theme config: ${path.relative(
+			process.cwd(),
+			configPath
+		)}`
+	);
+
+	const theme = getThemeFile(configPath);
+
+	const rootVars: string[] = [];
+
+	// Generate variables for each group (example: "brand")
+	Object.entries(theme).forEach(([groupName, groupValues]) => {
+		if (!groupValues || typeof groupValues !== 'object') return;
+
+		Object.entries(groupValues).forEach(([key, value]) => {
+			const groupKebab = groupName.replace(/([A-Z])/g, '-$1').toLowerCase();
+			const keyKebab = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+			rootVars.push(`  --theme-${groupKebab}-${keyKebab}: ${value};`);
+		});
+	});
+
+	return `
+:root {
+${rootVars.join('\n')}
+}
+`.trim();
+}
+
+/**
+ * Parses a color string into RGB components.
+ *
+ * Supports:
+ * - rgb(), rgba()
+ * - hex (#rrggbb, #rgb)
+ * - hsl(), hsla()
+ *
+ * @param input Color string.
+ * @throws if the color is invalid.
+ */
+export function parseColorToRgb(input: string): RGB | null {
+	const rgb = /^rgba?\(\s*(?<r>25[0-5]|2[0-4]\d|1\d{1,2}|\d\d?)\s*,\s*(?<g>25[0-5]|2[0-4]\d|1\d{1,2}|\d\d?)\s*,\s*(?<b>25[0-5]|2[0-4]\d|1\d{1,2}|\d\d?)\s*,?\s*(?<alpha>[01\.]\.?\d?)?\s*\)$/i.exec(input);
+	const hex = /^\B#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})\b/i.exec(input);
+	const hsl = /^hsla?\(\s*(?<h>[-+]?\d{1,3}(?:\.\d+)?)(deg|grad|rad|turn)?\s*(?:,\s*|\s+)\s*(?<s>[-+]?\d{1,3}(?:\.\d+)?)%\s*(?:,\s*|\s+)\s*(?<l>[-+]?\d{1,3}(?:\.\d+)?)%\s*(?:,\s*|\s+)?(?:\s*\/?\s*(?<alpha>[-+]?[\d.]+%?)\s*)?\)$/i.exec(input);
+
+	if (rgb) {
+		if (!rgb.groups) {
+			throw new Error("Invalid RGB color");
+		}
+
+		return [
+			parseInt(rgb.groups.r),
+			parseInt(rgb.groups.g),
+			parseInt(rgb.groups.b),
+		];
+	}
+
+	if (hex) {
+		return convert.hex.rgb(input);
+	}
+
+	if (hsl) {
+		if (!hsl.groups) {
+			throw new Error("Invalid HSL color");
+		}
+
+		return convert.hsl.rgb(
+			parseInt(hsl.groups.h),
+			parseInt(hsl.groups.s),
+			parseInt(hsl.groups.l),
+		);
+	}
+
+	return null;
+}
+
+/**
+ * Determines the optimal foreground color (black or white) for readability
+ * against the given background color.
+ *
+ * @param rgb Background color in RGB format.
+ */
+export function getOptimalForegroundColor(rgb: RGB): string {
+	const correctedRgb = [];
+	for (const [index, component] of rgb.entries()) {
+		const normalizedComponent = component / 255;
+
+		if (normalizedComponent <= 0.03928) {
+			correctedRgb[index] = normalizedComponent / 12.92;
+		}
+
+		correctedRgb[index] =  Math.pow((normalizedComponent + 0.055) / 1.055, 2.4);
+	}
+
+	const [red, green, blue] = correctedRgb;
+	const relativeLuminance = 0.2126 * red + 0.7151 * green + 0.0721 * blue;
+
+	const contrastRatioForBlack = (relativeLuminance + 0.05) / 0.05;
+	const contrastRatioForWhite = 1.05 / (relativeLuminance + 0.05);
+
+	return contrastRatioForBlack > contrastRatioForWhite ? "hsl(220 20% 5.7%)" : "hsl(0 0% 100%)";
+}
+
+type MetadataImageOptions = {
+	title: string;
+}
+
+/**
+ * Generates a metadata image based on branding and theme.
+ */
+export class MetadataImage {
+	// Image dimensions
+	private static readonly IMAGE_WIDTH = 1200;
+	private static readonly IMAGE_HEIGHT = 628;
+	private static readonly LOGO_SIZE = 250;
+	private static readonly MARGIN = 100;
+
+	// Typography
+	private static readonly BASE_FONT_SIZE = 100;
+	private static readonly LARGE_FONT_SIZE = 120;
+	private static readonly LINE_MARGIN = 20;
+	private static readonly MAX_TITLE_LENGTH = 12;
+	private static readonly SHORT_TITLE_THRESHOLD = 8;
+
+	// Color parsing patterns
+
+	private static readonly FONTCONFIG_XML = `<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+	<dir prefix="relative">./</dir>
+	<config></config>
+</fontconfig>
+`;
+
+	/**
+	 * Sets up a self-contained font environment:
+	 * 1. Converts a WOFF2 font to TTF for Node rendering.
+	 * 2. Writes the font and a minimal Fontconfig XML to a project directory.
+	 * 3. Sets FONTCONFIG_PATH so rendering libraries can find the font.
+	 *
+	 * The reason for converting from WOFF2 to TTF is so we can keep using the
+	 * `@fontsource/inter` package and not need to bundle font files.
+	 */
+	public static async setupFontsEnvironment(baseDir: string) {
+		const fontsConfDir = path.resolve(baseDir, "fonts");
+		const inputFontFiles = [
+			import.meta.resolve("@fontsource/inter/files/inter-latin-600-normal.woff2"),
+		];
+
+		await woff2.init();
+		await mkdir(fontsConfDir, { recursive: true });
+
+		for (const input of inputFontFiles) {
+			const inputBuffer = await readFile(fileURLToPath(input));
+
+			const font = createFont(inputBuffer, {
+				type: "woff2",
+				hinting: true,
+				kerning: true,
+			});
+
+			const outputBuffer = font.write({
+				type: "ttf",
+				hinting: true,
+				kerning: true,
+			});
+
+			await writeFile(path.join(fontsConfDir, path.basename(input)), outputBuffer as Buffer);
+		}
+
+		await writeFile(path.join(fontsConfDir, "fonts.conf"), MetadataImage.FONTCONFIG_XML);
+
+		process.env.FONTCONFIG_PATH = fontsConfDir;
+	}
+
+	/**
+	 * Generates a metadata image PNG buffer based on branding and theme.
+	 *
+	 * @throws if logo or theme files are missing or invalid.
+	 */
+	public static async generateMetadataImage({ title }: MetadataImageOptions): Promise<{ type: string; source: Buffer; }> {
+		const sourceDir = path.resolve("branding");
+
+		const logoFile = findLogoFile(sourceDir, "logo_dark");
+		if (!logoFile) {
+			throw new Error("Logo not found");
+		}
+
+		if (!title) {
+			throw new Error("No titleset");
+		}
+
+		const themeFile = findBrandingFile(sourceDir, "theme.json");
+		if (!themeFile) {
+			throw new Error("theme.json not found");
+		}
+
+		const theme = getThemeFile(themeFile.pathname);
+
+		const backgroundColor = theme.brand.color;
+
+		const backgroundColorRgb = parseColorToRgb(backgroundColor);
+		if (!backgroundColorRgb) {
+			throw new Error("Invalid brand color");
+		}
+
+		const textColor = getOptimalForegroundColor(backgroundColorRgb);
+
+		const logoB64 = (
+			await sharp(logoFile.pathname).png().toBuffer()
+		).toString("base64");
+
+		const svg = this.createSvgTemplate(
+			title,
+			`image/png;base64,${logoB64}`,
+			{ background: backgroundColor, text: textColor }
+		);
+
+		const svgBuffer = Buffer.from(svg);
+		const pngBuffer = await sharp(svgBuffer).png().toBuffer()
+
+		return {
+			type: "image/png",
+			source: pngBuffer,
+		}
+	}
+
+	private static wrapTextToLines(text: string, maxLineLength: number): string[] {
+		const lines: string[] = [];
+		let remainingText = text;
+
+		while (remainingText.length > 0) {
+			if (remainingText.length <= maxLineLength) {
+				lines.push(remainingText);
+				break;
+			}
+
+			const lastSpace = remainingText.lastIndexOf(" ", maxLineLength);
+			const splitIndex = lastSpace === -1 ? maxLineLength : lastSpace;
+
+			lines.push(remainingText.substring(0, splitIndex));
+			remainingText = remainingText.substring(
+				splitIndex + (lastSpace === -1 ? 0 : 1)
+			);
+		}
+
+		return lines;
+	}
+
+	private static createSvgTemplate(title: string, logoB64: string, colors: { background: string; text: string }): string {
+		// Calculate title layout
+		const lines = this.wrapTextToLines(title, this.MAX_TITLE_LENGTH);
+		const fontSize = title.length <= this.SHORT_TITLE_THRESHOLD ? this.LARGE_FONT_SIZE : this.BASE_FONT_SIZE;
+		const lineHeight = (fontSize * 0.8) + this.LINE_MARGIN;
+		const titleHeight = (lines.length * lineHeight) - this.LINE_MARGIN;
+
+		// Build title tspans
+		const tspans = lines
+			.map((line, index) => `<tspan x="0" ${index > 0 ? `dy="${lineHeight}"` : ""}>${line}</tspan>`)
+			.join("");
+
+		// Calculate logo position
+		const logoY = (this.IMAGE_HEIGHT / 2) - (this.LOGO_SIZE / 2);
+		const logoX = this.IMAGE_WIDTH - this.MARGIN - this.LOGO_SIZE;
+
+		return `
+<svg width="${this.IMAGE_WIDTH}" height="${this.IMAGE_HEIGHT}" viewBox="0 0 ${this.IMAGE_WIDTH} ${this.IMAGE_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<rect x="0" y="0" width="${this.IMAGE_WIDTH}" height="${this.IMAGE_HEIGHT}" fill="${colors.background}" />
+	<image y="${logoY}" x="${logoX}" width="${this.LOGO_SIZE}" height="${this.LOGO_SIZE}" xlink:href="data:${logoB64}" />
+	<g fill="${colors.text}" font-family="Inter SemiBold">
+		<svg x="${this.MARGIN}" y="50%" transform="translate(0 ${-(titleHeight / 2)})">
+			<text y="1" dominant-baseline="hanging" font-size="${fontSize}">
+				${tspans}
+			</text>
+		</svg>
+	</g>
+</svg>
+`;
+	}
 }
