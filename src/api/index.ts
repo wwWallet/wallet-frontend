@@ -12,7 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath, extractTenantFromUserHandle, buildLoginFinishPath, buildLoginBeginPath } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath, buildLoginFinishPath, buildLoginBeginPath } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -549,17 +549,16 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		try {
 			// Determine the tenant context for this login:
 			// 1. URL tenant (from path like /test/login) takes highest precedence
-			// 2. Cached user's tenant (from their userHandle)
-			// 3. undefined (will use global endpoints)
-			const cachedUserTenantId = cachedUser?.userHandleB64u
-				? extractTenantFromUserHandle(fromBase64Url(cachedUser.userHandleB64u))
-				: undefined;
-
-			// Use URL tenant if provided, otherwise fall back to cached user tenant
-			const effectiveTenantId = urlTenantId || cachedUserTenantId;
+			// 2. Stored tenant from localStorage (set during previous login)
+			// 3. undefined (will use global endpoints, backend handles tenant discovery)
+			//
+			// Note: We cannot extract tenant from userHandle as backend uses binary format
+			// with hashed tenant ID that cannot be reversed.
+			const storedTenant = getStoredTenant();
+			const effectiveTenantId = urlTenantId || storedTenant || undefined;
 
 			const loginBeginPath = buildLoginBeginPath(effectiveTenantId);
-			console.log("Login: using begin path:", loginBeginPath, "urlTenant:", urlTenantId, "cachedUserTenant:", cachedUserTenantId, "effective:", effectiveTenantId);
+			console.log("Login: using begin path:", loginBeginPath, "urlTenant:", urlTenantId, "storedTenant:", storedTenant, "effective:", effectiveTenantId);
 
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
@@ -602,28 +601,15 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			}) as PublicKeyCredential;
 			const response = credential.response as AuthenticatorAssertionResponse;
 
-			// Extract tenant from the passkey's userHandle
-			// The userHandle is encoded as "{tenantId}:{userId}" by the backend
+			// Get the userHandle for the finish request
+			// Note: The backend uses a binary format for userHandle (v1: version + tenant hash + UUID)
+			// We cannot extract the tenant ID from the hash, so we rely on effectiveTenantId
 			const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
-			const extractedTenantId = extractTenantFromUserHandle(userHandleForFinish);
-			console.log("Login: extracted tenant from passkey:", extractedTenantId, "effective tenant was:", effectiveTenantId);
+			console.log("Login: using effective tenant for finish:", effectiveTenantId);
 
-			// Check if we need to switch to a different tenant context
-			// This happens when:
-			// 1. We started with global endpoints (no URL tenant, no cached user) but passkey belongs to non-default tenant
-			// 2. We started with one tenant but passkey belongs to a different tenant
-			// If we already have the correct tenant from URL or cached user, no switch needed
-			const needsTenantSwitch = extractedTenantId && extractedTenantId !== 'default' &&
-				(effectiveTenantId === undefined || effectiveTenantId !== extractedTenantId);
-
-			if (needsTenantSwitch) {
-				// The challenge was created with wrong/no tenant context
-				// Return an error with the discovered tenant so the caller can redirect and retry
-				console.log("Login: tenant mismatch - need to retry with tenant:", extractedTenantId);
-				return Err({ errorId: 'tenantDiscovered', tenantId: extractedTenantId });
-			}
-
-			const loginFinishPath = buildLoginFinishPath(extractedTenantId);
+			// Use the same tenant context for finish as we used for begin
+			// The challenge was created in this tenant context and must be completed there
+			const loginFinishPath = buildLoginFinishPath(effectiveTenantId);
 			console.log("Login: using finish path:", loginFinishPath);
 
 			const finishResp = await (async () => {
@@ -656,7 +642,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							displayName: user.displayName,
 							privateData: user.privateData,
 							username: null,
-							tenantId: extractedTenantId,
+							tenantId: effectiveTenantId,
 						},
 					};
 				}
@@ -687,8 +673,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				}
 			}
 
-			// Store the tenant
-			const tenantToStore = finishResp?.data?.tenantId || extractedTenantId;
+			// Store the tenant from response or from the context we used
+			const tenantToStore = finishResp?.data?.tenantId || effectiveTenantId;
 			if (tenantToStore) {
 				setStoredTenant(tenantToStore);
 			}
@@ -698,6 +684,15 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 		} catch (e) {
 			console.error("Login failed", e);
+
+			// Handle 409 tenant redirect - user's passkey belongs to a different tenant
+			// This enables "tenant discovery from passkey" when logging in via global endpoint
+			if (e?.response?.status === 409 && e?.response?.data?.redirect_tenant) {
+				const discoveredTenant = e.response.data.redirect_tenant;
+				console.log("Login: tenant redirect required to:", discoveredTenant);
+				return Err({ errorId: 'tenantDiscovered', tenantId: discoveredTenant });
+			}
+
 			if (e?.response?.status === 403) {
 				// Tenant access denied - passkey belongs to different tenant
 				return Err('passkeyLoginFailedTryAgain');
