@@ -254,17 +254,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			console.log("Response = ", credentialResponse)
 
-			const new_c_nonce = credentialResponse.data.c_nonce;
-			const new_c_nonce_expires_in = credentialResponse.data.c_nonce_expires_in;
-
-			if (new_c_nonce && new_c_nonce_expires_in) {
-				flowState.tokenResponse.data.c_nonce = new_c_nonce;
-				flowState.tokenResponse.data.c_nonce_expiration_timestamp = Math.floor(Date.now() / 1000) + new_c_nonce_expires_in;
-				await openID4VCIClientStateRepository.updateState(flowState);
-			}
-
-
-
 			if (credentialResponse.data.transaction_id) {
 				flowState.credentialEndpoint = {
 					transactionId: credentialResponse.data.transaction_id
@@ -526,6 +515,74 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		},
 		[openID4VCIClientStateRepository, requestCredentials]
 	);
+
+	const requestCredentialsWithPreAuthorization = useCallback(async (credentialIssuer: string, selectedCredentialConfigurationId: string, preAuthorizedCode: string, txCode?: string): Promise<{}> => {
+		const [authzServerMetadata] = await Promise.all([
+			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
+		]);
+
+		const flowState: WalletStateCredentialIssuanceSession = {
+			sessionId: WalletStateUtils.getRandomUint32(),
+			credentialIssuerIdentifier: credentialIssuer,
+			state: "",
+			code_verifier: "",
+			credentialConfigurationId: selectedCredentialConfigurationId,
+			created: Math.floor(Date.now() / 1000),
+		};
+
+		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
+		let dpopPrivateKeyJwk: jose.JWK | null = null;
+		let dpopPublicKeyJwk: jose.JWK | null = null;
+		const jti = generateRandomIdentifier(18);
+		if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported && authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported.includes('ES256')) {
+			const { privateKey, publicKey } = await jose.generateKeyPair('ES256', { extractable: true }); // keypair for dpop if used
+			[dpopPrivateKeyJwk, dpopPublicKeyJwk] = await Promise.all([
+				jose.exportJWK(privateKey),
+				jose.exportJWK(publicKey)
+			]);
+
+			dpopPrivateKey = privateKey;
+			await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
+			flowState.dpop = {
+				dpopAlg: 'ES256',
+				dpopJti: jti,
+				dpopPrivateKeyJwk: dpopPrivateKeyJwk,
+				dpopPublicKeyJwk: dpopPublicKeyJwk,
+			}
+		}
+
+		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
+		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
+		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
+		tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
+		tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
+		if (txCode) {
+			tokenRequestBuilder.setTxCode(txCode);
+		}
+		const result = await tokenRequestBuilder.execute();
+		if ('error' in result) {
+			console.error(result.error);
+			throw new Error("Token Request failed");
+		}
+		const { access_token, c_nonce, expires_in, c_nonce_expires_in, refresh_token } = result.response;
+		if (!access_token) {
+			console.error("Missing access_token from response");
+			throw new Error("Missing access_token from response");
+		}
+
+
+		const tokenResponse = {
+			data: {
+				access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
+			},
+			headers: { ...result.response.httpResponseHeaders }
+		};
+
+
+		await credentialRequest(tokenResponse, flowState);
+		return {};
+	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper]);
+
 	/**
  *
  * @param response
@@ -535,7 +592,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
  */
 
 	const handleCredentialOffer = useCallback(
-		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string }> => {
+		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: { inputMode?: string; length?: number; description?: string; }; preAuthorizedCode?: string; }> => {
 			const parsedUrl = new URL(credentialOfferURL);
 			let offer;
 			if (parsedUrl.searchParams.get("credential_offer")) {
@@ -551,9 +608,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 			}
 
-			if (!offer.grants.authorization_code) {
-				throw new Error("Only authorization_code grant is supported");
-			}
 
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
@@ -563,6 +617,13 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const selectedConfiguration = credentialIssuerMetadata.metadata.credential_configurations_supported[selectedConfigurationId];
 			if (!selectedConfiguration) {
 				throw new Error("Credential configuration not found");
+			}
+
+			if (GrantType.PRE_AUTHORIZED_CODE in offer.grants) {
+				const preAuthorizedCodeObject = offer.grants[GrantType.PRE_AUTHORIZED_CODE];
+				const preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"];
+				const txCode = preAuthorizedCodeObject["tx_code"];
+				return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, txCode, preAuthorizedCode };
 			}
 
 			let issuer_state = undefined;
@@ -819,12 +880,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			generateAuthorizationRequest,
 			getAvailableCredentialConfigurations,
 			handleCredentialOffer,
-			handleAuthorizationResponse
+			handleAuthorizationResponse,
+			requestCredentialsWithPreAuthorization,
 		}
 	}, [
 		generateAuthorizationRequest,
 		getAvailableCredentialConfigurations,
 		handleCredentialOffer,
-		handleAuthorizationResponse
+		handleAuthorizationResponse,
+		requestCredentialsWithPreAuthorization,
 	]);
 }

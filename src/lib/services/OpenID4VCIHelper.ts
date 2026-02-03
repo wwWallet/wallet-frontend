@@ -7,6 +7,7 @@ import SessionContext from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacasResponseSchema";
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
+import { OPENID4VCI_REDIRECT_URI } from "@/config";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
@@ -111,7 +112,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					return { client_id: issuer.clientId };
 				}
 
-				return null;
+				return { client_id: OPENID4VCI_REDIRECT_URI };
 			}
 			catch (err) {
 				console.log("Could not get client_id for issuer " + credentialIssuerIdentifier + " Details:");

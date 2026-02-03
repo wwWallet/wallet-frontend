@@ -2,6 +2,8 @@ import { useCallback, useRef, useMemo } from 'react';
 import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
+import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
+import { OPENID4VCI_REDIRECT_URI } from '@/config';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
 const appMode = import.meta.env.MODE || 'development';
@@ -22,6 +24,7 @@ export type AccessToken = {
 export enum GrantType {
 	AUTHORIZATION_CODE = "code",
 	REFRESH = "refresh_token",
+	PRE_AUTHORIZED_CODE = "urn:ietf:params:oauth:grant-type:pre-authorized_code",
 }
 
 export enum TokenRequestError {
@@ -37,11 +40,13 @@ export function useTokenRequest() {
 	const grantType = useRef<GrantType>(GrantType.AUTHORIZATION_CODE);
 	const refreshToken = useRef<string | null>(null);
 	const authorizationCode = useRef<string | null>(null);
+	const preAuthorizedCode = useRef<string | null>(null);
+	const txCode = useRef<string | null>(null);
 	const authorizationResponseUrl = useRef<string | null>(null);
 	const oauthState = useRef<string | null>(null);
 	const codeVerifier = useRef<string | null>(null);
 	const redirectUri = useRef<string | null>(null);
-	const clientId = useRef<string | null>(null);
+	const clientId = useRef<string | null>(OPENID4VCI_REDIRECT_URI);
 	const retries = useRef<number>(0);
 	const dpopParams = useRef<{ dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK } | null>(null);
 	const dpopHandle = useRef<oauth4webapi.DPoPHandle | null>(null);
@@ -118,6 +123,14 @@ export function useTokenRequest() {
 		authorizationCode.current = authzCode;
 	}, []);
 
+	const setPreAuthorizedCode = useCallback((c: string) => {
+		preAuthorizedCode.current = c;
+	}, []);
+
+	const setTxCode = useCallback((c: string) => {
+		txCode.current = c;
+	}, []);
+
 	const setAuthorizationResponseUrl = useCallback((url: string) => {
 		authorizationResponseUrl.current = url;
 	}, []);
@@ -174,10 +187,6 @@ export function useTokenRequest() {
 	> => {
 		retries.current = 0;
 
-		if (!clientId.current || !redirectUri.current) {
-			throw new Error("Client ID or Redirect URI is not set");
-		}
-
 		if (!tokenEndpointURL.current) {
 			throw new Error("Token endpoint is not set");
 		}
@@ -187,9 +196,9 @@ export function useTokenRequest() {
 			token_endpoint: tokenEndpointURL.current,
 		};
 
-		const client: oauth4webapi.Client = { client_id: clientId.current };
+		const client: oauth4webapi.Client | null = clientId.current ? { client_id: clientId.current } : null;
 		const clientAuth = oauth4webapi.None();
-		const DPoP = await getDPoPHandle(client);
+		const DPoP = client ? await getDPoPHandle(client) : null;
 
 		const options: oauth4webapi.TokenEndpointRequestOptions = {
 			[customFetch]: myCustomFetch,
@@ -197,7 +206,22 @@ export function useTokenRequest() {
 			...(DPoP ? { DPoP } : {}),
 		};
 
+		const preAuthorizedCodeGrantRequest = async () => {
+			if (!preAuthorizedCode.current) {
+				throw new Error("Pre-Authorized Code not set");
+			}
+			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
+				as,
+				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current },
+				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
+				options
+			);
+		}
+
 		const authorizationCodeGrantRequest = async () => {
+			if (!clientId.current || !redirectUri.current) {
+				throw new Error("Client ID or Redirect URI is not set");
+			}
 			if (!authorizationCode.current || !codeVerifier.current) {
 				throw new Error("Authorization Code or Code Verifier is not set");
 			}
@@ -240,12 +264,15 @@ export function useTokenRequest() {
 		let tokenRequest:
 			| typeof authorizationCodeGrantRequest
 			| typeof refreshTokenGrantRequest
+			| typeof preAuthorizedCodeGrantRequest
 			| null;
 
 		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
 			tokenRequest = authorizationCodeGrantRequest;
 		} else if (grantType.current === GrantType.REFRESH) {
 			tokenRequest = refreshTokenGrantRequest;
+		} else if (grantType.current === GrantType.PRE_AUTHORIZED_CODE) {
+			tokenRequest = preAuthorizedCodeGrantRequest;
 		}
 
 		if (!tokenRequest) {
@@ -255,8 +282,11 @@ export function useTokenRequest() {
 		const processResponse = async (response: Response) => {
 			if (grantType.current === GrantType.AUTHORIZATION_CODE) {
 				return oauth4webapi.processAuthorizationCodeResponse(as, client, response);
+			} else if (grantType.current === GrantType.REFRESH) {
+				return oauth4webapi.processRefreshTokenResponse(as, client, response);
+			} else if (grantType.current === GrantType.PRE_AUTHORIZED_CODE) {
+				return PreAuthorizedGrant.processPreAuthorizedCodeTokenResponse(as, client, response);
 			}
-			return oauth4webapi.processRefreshTokenResponse(as, client, response);
 		};
 
 		const normalizeError = (err: any) => {
@@ -311,6 +341,8 @@ export function useTokenRequest() {
 		setIssuer,
 		setGrantType,
 		setAuthorizationCode,
+		setPreAuthorizedCode,
+		setTxCode,
 		setAuthorizationResponseUrl,
 		setState,
 		setCodeVerifier,
@@ -324,6 +356,8 @@ export function useTokenRequest() {
 		setIssuer,
 		setGrantType,
 		setAuthorizationCode,
+		setPreAuthorizedCode,
+		setTxCode,
 		setAuthorizationResponseUrl,
 		setState,
 		setCodeVerifier,
