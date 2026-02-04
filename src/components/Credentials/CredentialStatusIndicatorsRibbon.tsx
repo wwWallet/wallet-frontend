@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { FaCircleXmark, FaTriangleExclamation } from 'react-icons/fa6';
 import { IoShield, IoShieldHalf, IoShieldOutline } from 'react-icons/io5';
 import { TbDeviceUsb, TbVersions } from 'react-icons/tb';
-import { ParsedCredentialJpt } from 'wallet-common/dist/types';
 import { fromBase64Url } from '@/util';
 import { type ExtendedVcEntity } from '@/context/CredentialsContext';
 import { type CredentialKeyPair } from '@/services/keystore';
@@ -32,11 +31,6 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 		keypair = credentialKeyPair.keypair;
 		alg = keypair.alg
 	} else {
-		if ('issuerHeader' in vcEntity.parsedCredential) {
-			const parsedCred = vcEntity.parsedCredential as ParsedCredentialJpt;
-			alg = parsedCred.issuerHeader.alg as string;
-		}
-
 		if (vcEntity.data) {
 			const credParts = vcEntity.data.split('.');
 			const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
@@ -54,7 +48,6 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 	})();
 
 	const privacyLevel = (() => {
-		if (alg === 'experimental/SplitBBSv2.1') return 'high';
 		if (vcEntity.instances.length > 1) return 'medium';
 		return 'low';
 	})();
@@ -138,12 +131,13 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 });
 
 export type CredentialStatusIndicatorsRibbonProps = {
-	vcEntity: ExtendedVcEntity;
-	walletStateKeypairs: KeyPairs
+	vcEntity: ExtendedVcEntity,
+	walletStateKeypairs: KeyPairs,
+	borderColor?: string,
 }
 
 const CredentialStatusIndicatorsRibbon = (
-	{ vcEntity, walletStateKeypairs }: CredentialStatusIndicatorsRibbonProps
+	{ vcEntity, walletStateKeypairs, borderColor }: CredentialStatusIndicatorsRibbonProps
 ) => {
 	const { type, privacyLevel, zeroSigCount } = getCredentialStatusIndicators(vcEntity, walletStateKeypairs);
 
@@ -153,7 +147,7 @@ const CredentialStatusIndicatorsRibbon = (
 	}
 
 	return (
-		<button onClick={handleOnClick} className="z-40 absolute top-[-5px] font-semibold right-[-5px] cursor-default text-gray-900 dark:text-white text-xs px-2 flex gap-1 items-center rounded-lg border-2 border-gray-100 dark:border-gray-900 bg-white dark:bg-gray-800">
+		<button onClick={handleOnClick} className={`z-40 absolute top-[-5px] font-semibold right-[-5px] cursor-default text-gray-900 dark:text-white text-xs px-2 flex gap-1 items-center rounded-lg border-2 ${borderColor ?? 'border-gray-100 dark:border-gray-900'} bg-white dark:bg-gray-800`}>
 			{type && <CredentialType type={type} />}
 			{privacyLevel && <CredentialPrivacyLevel level={privacyLevel} />}
 			{zeroSigCount && <CredentialUsages count={zeroSigCount} />}
