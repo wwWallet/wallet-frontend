@@ -2,10 +2,6 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
-// Import i18next and set up translations
-import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n';
-
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import NewCredentialNotification from './components/Notifications/NewCredentialNotification';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
@@ -90,49 +86,47 @@ function App() {
 	return (
 		<>
 			<BackgroundNotificationClickHandler />
-			<I18nextProvider i18n={i18n}>
-				<Snowfalling />
-				<Suspense fallback={<Spinner />}>
-					<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
-					<UpdateNotification />
-					<Routes>
-						<Route element={
-							<PrivateRoute>
-								<Layout>
-									<Suspense fallback={<Spinner size='small' />}>
-										<PrivateRoute.NotificationPermissionWarning />
-										<FadeInContentTransition appear reanimateKey={location.pathname}>
-											<Outlet />
-										</FadeInContentTransition>
-									</Suspense>
-								</Layout>
-							</PrivateRoute>
-						}>
-							<Route path="/settings" element={<Settings />} />
-							<Route path="/" element={<Home />} />
-							<Route path="/credential/:batchId" element={<Credential />} />
-							<Route path="/credential/:batchId/history" element={<CredentialHistory />} />
-							<Route path="/credential/:batchId/details" element={<CredentialDetails />} />
-							<Route path="/history" element={<History />} />
-							<Route path="/pending" element={<Pending />} />
-							<Route path="/history/:transactionId" element={<HistoryDetail />} />
-							<Route path="/add" element={<AddCredentials />} />
-							<Route path="/send" element={<SendCredentials />} />
-							<Route path="/verification/result" element={<VerificationResult />} />
-							<Route path="/cb/*" element={<Home />} />
-						</Route>
-						<Route element={
-							<FadeInContentTransition reanimateKey={location.pathname}>
-								<Outlet />
-							</FadeInContentTransition>
-						}>
-							<Route path="/login" element={<Login />} />
-							<Route path="/login-state" element={<LoginState />} />
-							<Route path="*" element={<NotFound />} />
-						</Route>
-					</Routes>
-				</Suspense>
-			</I18nextProvider>
+			<Snowfalling />
+			<Suspense fallback={<Spinner />}>
+				<NewCredentialNotification notification={notification} clearNotification={clearNotification} />
+				<UpdateNotification />
+				<Routes>
+					<Route element={
+						<PrivateRoute>
+							<Layout>
+								<Suspense fallback={<Spinner size='small' />}>
+									<PrivateRoute.NotificationPermissionWarning />
+									<FadeInContentTransition appear reanimateKey={location.pathname}>
+										<Outlet />
+									</FadeInContentTransition>
+								</Suspense>
+							</Layout>
+						</PrivateRoute>
+					}>
+						<Route path="/settings" element={<Settings />} />
+						<Route path="/" element={<Home />} />
+						<Route path="/credential/:batchId" element={<Credential />} />
+						<Route path="/credential/:batchId/history" element={<CredentialHistory />} />
+						<Route path="/credential/:batchId/details" element={<CredentialDetails />} />
+						<Route path="/history" element={<History />} />
+						<Route path="/pending" element={<Pending />} />
+						<Route path="/history/:transactionId" element={<HistoryDetail />} />
+						<Route path="/add" element={<AddCredentials />} />
+						<Route path="/send" element={<SendCredentials />} />
+						<Route path="/verification/result" element={<VerificationResult />} />
+						<Route path="/cb/*" element={<Home />} />
+					</Route>
+					<Route element={
+						<FadeInContentTransition reanimateKey={location.pathname}>
+							<Outlet />
+						</FadeInContentTransition>
+					}>
+						<Route path="/login" element={<Login />} />
+						<Route path="/login-state" element={<LoginState />} />
+						<Route path="*" element={<NotFound />} />
+					</Route>
+				</Routes>
+			</Suspense>
 		</>
 	);
 }
