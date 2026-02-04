@@ -19,6 +19,10 @@ indent_size = 2
 indent_style = space
 indent_size = 2
 
+[src/locales/*.json]
+# `npm run translations` does not insert final newline
+insert_final_newline = false
+
 [nginx.conf]
 indent_style = space
 indent_size = 4

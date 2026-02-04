@@ -4,10 +4,13 @@ import OpenID4VCIContext from "./OpenID4VCIContext";
 import IssuanceConsentPopup from "@/components/Popups/IssuanceConsentPopup";
 import MessagePopup from "@/components/Popups/MessagePopup";
 import SessionContext from "./SessionContext";
+import { useOpenID4VCIClientStateRepository } from "@/lib/services/OpenID4VCIClientStateRepository";
 
 export const OpenID4VCIContextProvider = ({ children }) => {
 
 	const { isLoggedIn } = useContext(SessionContext);
+	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
+	const { isInitialized } = openID4VCIClientStateRepository;
 
 	const [popupConsentState, setPopupConsentState] = useState({
 		isOpen: false,
@@ -56,7 +59,11 @@ export const OpenID4VCIContextProvider = ({ children }) => {
 		throw new Error("Not implemented");
 	}
 
-	const openID4VCI = useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup });
+	const openID4VCI = useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup, openID4VCIClientStateRepository });
+
+	if (isLoggedIn && isInitialized && !isInitialized()) {
+		return <></>
+	}
 	return (
 		<OpenID4VCIContext.Provider value={{ openID4VCI }}>
 			{children}
