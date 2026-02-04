@@ -22,7 +22,7 @@ import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
-import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "../coseConstants";
+import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "wallet-common/dist/cose";
 import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 
 

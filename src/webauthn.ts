@@ -1,5 +1,5 @@
 import * as cbor from 'cbor-web';
-import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from './coseConstants';
+import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from 'wallet-common/dist/cose';
 
 
 export type ParsedCOSEKey = {
