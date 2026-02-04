@@ -253,11 +253,17 @@ type CredentialKeyPairWithExternalPrivateKey = CredentialKeyPairCommon & {
 }
 export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey | CredentialKeyPairWithExternalPrivateKey;
 
-type WrappedPrivateKey = {
+type WrappedPrivateKeyJwk = {
 	privateKey: BufferSource,
 	aesGcmParams: AesGcmParams,
+}
+
+type WrappedPrivateCryptoKey = WrappedPrivateKeyJwk & {
 	unwrappedKeyAlgo: EcKeyImportParams,
 }
+
+type WrappedPrivateKey = WrappedPrivateCryptoKey | WrappedPrivateKeyJwk;
+
 
 export type PrivateData = {
 	keypairs: {
@@ -406,7 +412,7 @@ export async function updatePrivateData(
 	[privateData, currentMainKey]: OpenedContainer,
 	update: (
 		privateData: PrivateData,
-		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey>,
+		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey | JWK>,
 	) => Promise<PrivateData>,
 ): Promise<OpenedContainer> {
 	if (!isAsymmetricEncryptedContainer(privateData)) {
@@ -420,7 +426,7 @@ export async function updatePrivateData(
 	} = await createAsymmetricMainKey();
 
 	const privateDataContent = await decryptPrivateData(privateData.jwe, currentMainKey);
-	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey>) => {
+	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey | JWK>) => {
 		const privateKey = await unwrapPrivateKey(wrappedPrivateKey, currentMainKey, true);
 		const newPrivateKey = await update(privateKey);
 		return await wrapPrivateKey(newPrivateKey, currentMainKey);
@@ -474,7 +480,7 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 		exportedMainKey,
 		"AES-GCM",
 		false,
-		["decrypt", "wrapKey", "unwrapKey"],
+		["encrypt", "decrypt", "wrapKey", "unwrapKey"],
 	);
 }
 
@@ -634,35 +640,48 @@ export async function unwrapKey(
 			keyInfo.unwrapAlgo,
 			keyInfo.unwrappedKeyAlgo,
 			extractable,
-			["decrypt", "wrapKey", "unwrapKey"],
+			["encrypt", "decrypt", "wrapKey", "unwrapKey"],
 		);
 	}
 }
 
-async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey> {
-	return await crypto.subtle.unwrapKey(
-		"jwk",
-		wrappedPrivateKey.privateKey,
-		wrappingKey,
-		wrappedPrivateKey.aesGcmParams,
-		wrappedPrivateKey.unwrappedKeyAlgo,
-		extractable,
-		["sign"],
-	);
+async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey | JWK> {
+	if ("unwrappedKeyAlgo" in wrappedPrivateKey) {
+		return await crypto.subtle.unwrapKey(
+			"jwk",
+			wrappedPrivateKey.privateKey,
+			wrappingKey,
+			wrappedPrivateKey.aesGcmParams,
+			wrappedPrivateKey.unwrappedKeyAlgo,
+			extractable,
+			["sign"],
+		);
+	} else {
+		const privateKeyData = await crypto.subtle.decrypt(wrappedPrivateKey.aesGcmParams, wrappingKey, wrappedPrivateKey.privateKey);
+		return JSON.parse(new TextDecoder().decode(privateKeyData));
+	}
 };
 
-async function wrapPrivateKey(privateKey: CryptoKey, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
+async function wrapPrivateKey(privateKey: CryptoKey | JWK, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
 	const privateKeyAesGcmParams: AesGcmParams = {
 		name: "AES-GCM",
 		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
 		additionalData: new Uint8Array([]),
 		tagLength: 128,
 	};
-	return {
-		privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
-		aesGcmParams: privateKeyAesGcmParams,
-		unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-	};
+	if (privateKey instanceof CryptoKey) {
+		return {
+			privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
+			aesGcmParams: privateKeyAesGcmParams,
+			unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
+		};
+	} else {
+		const privateKeyData = new TextEncoder().encode(JSON.stringify(privateKey));
+		return {
+			privateKey: await crypto.subtle.encrypt(privateKeyAesGcmParams, wrappingKey, privateKeyData),
+			aesGcmParams: privateKeyAesGcmParams,
+		};
+	}
 };
 
 async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
@@ -722,12 +741,13 @@ async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInf
 		["deriveKey"],
 	);
 
+	const algParams = keyInfo.algorithm || { name: "AES-KW", length: 256 };
 	return await crypto.subtle.deriveKey(
 		keyInfo.pbkdf2Params,
 		keyMaterial,
-		keyInfo.algorithm || { name: "AES-KW", length: 256 },
+		algParams,
 		true,
-		["wrapKey", "unwrapKey"],
+		algParams?.name === "AES-KW" ? ["wrapKey", "unwrapKey"] : ["wrapKey", "unwrapKey", "encrypt", "decrypt"],
 	);
 };
 
@@ -777,13 +797,14 @@ async function derivePrfKey(
 		["deriveKey"],
 	);
 	const { hkdfSalt, hkdfInfo, algorithm } = deriveKeyParams;
+	const algParams = algorithm || { name: "AES-KW", length: 256 };
 
 	return await crypto.subtle.deriveKey(
 		{ name: "HKDF", hash: "SHA-256", salt: hkdfSalt, info: hkdfInfo },
 		hkdfKey,
-		algorithm || { name: "AES-KW", length: 256 },
+		algParams,
 		true,
-		["wrapKey", "unwrapKey"],
+		algParams?.name === "AES-KW" ? ["wrapKey", "unwrapKey"] : ["wrapKey", "unwrapKey", "encrypt", "decrypt"],
 	);
 }
 
@@ -1447,7 +1468,11 @@ export async function signJwtPresentation(
 		if ("wrappedPrivateKey" in keypair) {
 			const { wrappedPrivateKey } = keypair;
 			const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
-			return signJwt.sign(privateKey);
+			if (privateKey instanceof CryptoKey) {
+				return signJwt.sign(privateKey);
+			} else {
+				throw new Error("Unexpected unwrapped private key: expected CryptoKey, was: " + (typeof privateKey));
+			}
 
 		} else {
 			return signJwt.sign(
