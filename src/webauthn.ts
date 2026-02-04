@@ -56,22 +56,6 @@ export type AuthenticatorData = {
 	extensions?: { [extensionId: string]: any },
 }
 
-export type WebauthnInteractionEvent = (
-	{ id: 'intro', chosenCredentialId: BufferSource }
-	| { id: 'webauthn-begin', webauthnArgs: CredentialRequestOptions }
-	| { id: 'err', err: unknown, credential?: PublicKeyCredential, authData?: AuthenticatorData }
-	| { id: 'err:ext:sign:signature-not-found', credential: PublicKeyCredential, authData: AuthenticatorData }
-	| { id: 'success' }
-	| { id: 'success:dismiss' }
-);
-export type WebauthnInteractionEventResponse = (
-	{ id: 'intro:ok' }
-	| { id: 'webauthn-begin:ok', credential: PublicKeyCredential }
-	| { id: 'cancel', cause?: unknown }
-	| { id: 'retry' }
-	| { id: 'success:ok' }
-);
-
 
 export function parseAuthenticatorData(bytes: Uint8Array): AuthenticatorData {
 	const rpIdHash = bytes.slice(0, 32);

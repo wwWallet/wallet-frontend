@@ -18,6 +18,7 @@
 	},
 	"common": {
 		"cancel": "Cancel",
+		"action-close": "Close",
 		"continue": "Continue",
 		"delete": "Delete",
 		"externalPasskey": "Passkey on a security key",
