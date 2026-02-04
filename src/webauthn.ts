@@ -222,6 +222,7 @@ export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 	switch (kty) {
 
 		case 2: // EC2
+			const kid = cose.get(2);
 			const alg = cose.get(3);
 			switch (alg) {
 
@@ -260,7 +261,7 @@ export function parseCoseKeyEc2Public(cose: cbor.Map): ParsedCOSEKeyEc2Public {
 										{ cause: { y } },
 									);
 								}
-								return { kty, alg, crv, x, y };
+								return { kty, kid, alg, crv, x, y };
 							} else {
 								throw new Error(`Invalid COSE EC2 ES256 or ECDH key: missing x or y`, { cause: { x, y } });
 							}
