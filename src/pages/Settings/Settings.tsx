@@ -33,6 +33,7 @@ import WebauthnInteractionDialogContext from '@/context/WebauthnInteractionDialo
 import { TbDeviceUsb } from 'react-icons/tb';
 import { MaybeNamed } from '@/services/WalletStateSchemaVersion3';
 
+
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
 	if (credential) {
@@ -728,6 +729,14 @@ const Settings = () => {
 		return hardwareKey?.name ?? parentNickname;
 	}
 	const hardwareArkgName = useHardwareKeyNickname(walletState.arkgSeeds[0]);
+	const hardwareArkgUses = hasHardwareArkg
+		? walletState.credentials.filter(cred => {
+			const keypair = walletState.keypairs.find(kp => kp.kid === cred.kid)?.keypair;
+			return keypair
+				&& "externalPrivateKey" in keypair
+				&& byteArrayEquals(keypair.externalPrivateKey.credentialId, walletState.arkgSeeds[0].credentialId);
+		}).length
+		: 0;
 
 	const deleteAccount = async () => {
 		try {
@@ -1130,6 +1139,7 @@ const Settings = () => {
 												label: t('High privacy credentials:'),
 												alg: null, // COSE_ALG_SPLIT_BBS,
 												name: null, // hardwareBbsName,
+												uses: 0, // hardwareBbsUses,
 											},
 											{
 												key: 'medium',
@@ -1138,6 +1148,7 @@ const Settings = () => {
 												label: t('Medium privacy credentials:'),
 												alg: COSE_ALG_ESP256_ARKG,
 												name: hardwareArkgName,
+												uses: hardwareArkgUses,
 											},
 											{
 												key: 'low',
@@ -1146,14 +1157,28 @@ const Settings = () => {
 												label: t('Low privacy credentials:'),
 												alg: COSE_ALG_ESP256_ARKG,
 												name: hardwareArkgName,
+												uses: hardwareArkgUses,
 											},
-										].map(({ key, Icon, active, label, alg, name }) =>
+										].map(({ key, Icon, active, label, alg, name, uses }) =>
 											<li key={key} className="grid grid-cols-subgrid col-span-full items-baseline">
 												<Icon />
 												<span>{label}</span>
 												<span>
 													{active
-														? <><TbDeviceUsb className="inline" /> {t('Hardware key: {{name}}', { name })}</>
+														? <>
+															<TbDeviceUsb className="inline" />
+															{' '}
+															<Trans
+																i18nKey="Hardware key: <strong>{{name}}</strong> bound to {{count}} credentials"
+																components={{
+																	strong: <strong />,
+																}}
+																values={{
+																	name,
+																	count: uses,
+																}}
+															/>
+														</>
 														: t('Software key')
 													}
 												</span>
