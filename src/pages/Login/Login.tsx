@@ -1,18 +1,18 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser } from 'react-icons/fa';
+import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaQuestionCircle } from 'react-icons/fa';
 import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash } from 'react-icons/go';
 import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
-import { calculateByteSize } from '../../util';
+import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
 import * as config from '../../config';
-import Button from '../../components/Buttons/Button';
+import Button, { Variant } from '../../components/Buttons/Button';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import SeparatorLine from '../../components/Shared/SeparatorLine';
@@ -20,6 +20,9 @@ import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
+
+import useScreenType from '@/hooks/useScreenType';
+
 
 const FormInputRow = ({
 	IconComponent,
@@ -202,7 +205,6 @@ const WebauthnSignupLogin = ({
 	isSubmitting,
 	setIsSubmitting,
 	isLoginCache,
-	setIsLoginCache,
 	error,
 	setError,
 }: {
@@ -210,20 +212,17 @@ const WebauthnSignupLogin = ({
 	isSubmitting: boolean,
 	setIsSubmitting: (isSubmitting: boolean) => void,
 	isLoginCache: boolean,
-	setIsLoginCache: (isLoginCache: boolean) => void,
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
-	const navigate = useNavigate();
-	const location = useLocation();
-	const from = location.search || '/';
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -238,7 +237,7 @@ const WebauthnSignupLogin = ({
 	);
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
-		return new Promise((resolve: (accept: boolean) => void, reject) => {
+		return new Promise((resolve: (accept: boolean) => void, _reject) => {
 			setResolvePrfRetryPrompt(() => resolve);
 		}).finally(() => {
 			setPrfRetryAccepted(true);
@@ -249,7 +248,6 @@ const WebauthnSignupLogin = ({
 	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
 		if (result.ok) {
-			navigate(from, { replace: true });
 
 		} else {
 			// Using a switch here so the t() argument can be a literal, to ease searching
@@ -295,7 +293,6 @@ const WebauthnSignupLogin = ({
 			retrySignupFrom,
 		);
 		if (result.ok) {
-			navigate(from, { replace: true });
 
 		} else if (result.err) {
 			// Using a switch here so the t() argument can be a literal, to ease searching
@@ -349,9 +346,9 @@ const WebauthnSignupLogin = ({
 		}
 	};
 
-	const onSubmit = async (event) => {
+	const onSubmit = async (event: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
 		event.preventDefault();
-		const webauthnHint = event.nativeEvent?.submitter?.value;
+		const webauthnHint = (event.nativeEvent?.submitter as HTMLButtonElement)?.value;
 
 		setError('');
 		setInProgress(true);
@@ -382,7 +379,6 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onForgetCachedUser = (cachedUser: CachedUser) => {
-		setIsLoginCache(keystore.getCachedUsers().length - 1 > 0);
 		keystore.forgetCachedUser(cachedUser);
 	};
 
@@ -561,29 +557,59 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
+						{!isLoginCache && !isLogin && (
+							<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
+								{t('loginSignup.choosePasskeyPlatform')}
+							</label>
+						)}
+
 						{!isLoginCache && (
 							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile },
-							].map(({ Icon, hint, btnLabel }) => (
-								<Button
-									key={hint}
-									id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
-									type="submit"
-									variant="primary"
-									additionalClassName="w-full mt-2"
-									title={!isLogin && !isOnline && t("common.offlineTitle")}
-									value={hint}
-								>
-									<Icon className="inline text-xl mr-2 shrink-0" />
-									{isSubmitting
-										? t('loginSignup.submitting')
-										: btnLabel
-									}
-								</Button>
+								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
+								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
+							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
+								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
+									<Button
+										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
+										type="submit"
+										variant={variant}
+										additionalClassName={`
+											w-full flex flex-col items-center justify-center relative
+											${variant === "outline" ? "px-4 py-[0.6875rem]" : "px-4 py-3"}
+										`}
+										title={!isLogin && !isOnline && t("common.offlineTitle")}
+										value={hint}
+									>
+										<div className="flex flex-row items-center justify-center w-full">
+											<Icon className="inline text-xl mr-2 shrink-0" />
+
+											{isSubmitting
+												? t('loginSignup.submitting')
+												: btnLabel
+											}
+										</div>
+
+										{screenType !== 'desktop' && (
+											<span className="mt-2 text-xs dark:text-white">
+												{helpText}
+											</span>
+										)}
+									</Button>
+
+									{screenType === 'desktop' && (
+										<div className="absolute -right-7 flex items-center ml-2 group">
+											<FaQuestionCircle className={`w-4 h-4 text-gray-600 dark:text-gray-400 cursor-pointer opacity-50 ${screenType === 'desktop' ? 'hover:opacity-100' : ''}`} aria-hidden="true" />
+
+											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
+												{helpText}
+											</div>
+										</div>
+									)}
+								</div>
 							))
 						)}
+
 						{error && <div className="text-red-500 pt-2">{error}</div>}
 					</>
 				)
@@ -606,11 +632,17 @@ const Auth = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const navigate = useNavigate();
-	const [isLoginCache, setIsLoginCache] = useState(keystore.getCachedUsers().length > 0);
+
+	const { getCachedUsers } = keystore;
+	const [isLoginCache, setIsLoginCache] = useState(getCachedUsers().length > 0);
+
+	useEffect(() => {
+		setIsLoginCache(getCachedUsers().length > 0);
+	}, [getCachedUsers, setIsLoginCache]);
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			navigate('/');
+			navigate(`/${window.location.search}`, { replace: true });
 		}
 	}, [isLoggedIn, navigate]);
 
@@ -697,16 +729,19 @@ const Auth = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
+			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
-					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
+					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
-				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+
+				<div className='absolute text-gray-500 dark:text-white top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
+
 				<div className='absolute top-0 right-3'>
 					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
 				</div>
+
 				{isOnline === false && (
 					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
 						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
@@ -735,13 +770,12 @@ const Auth = () => {
 					isSubmitting={isSubmitting}
 					setIsSubmitting={setIsSubmitting}
 					isLoginCache={isLoginCache}
-					setIsLoginCache={setIsLoginCache}
 					error={webauthnError}
 					setError={setWebauthnError}
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200">
+					<p className="text-sm font-light text-gray-500 dark:text-gray-200 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}

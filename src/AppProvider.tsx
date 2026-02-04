@@ -5,6 +5,7 @@ import { SessionContextProvider } from './context/SessionContextProvider';
 import { CredentialsContextProvider } from './context/CredentialsContextProvider';
 import { OpenID4VPContextProvider } from './context/OpenID4VPContextProvider';
 import { OpenID4VCIContextProvider } from './context/OpenID4VCIContextProvider';
+import { AppSettingsProvider } from './context/AppSettingsProvider';
 import UriHandler from './hocs/UriHandler';
 import { WebauthnInteractionDialogContextProvider } from './context/WebauthnInteractionDialogContext';
 
@@ -21,7 +22,9 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 						<OpenID4VPContextProvider>
 							<OpenID4VCIContextProvider>
 								<UriHandler>
-									{children}
+									<AppSettingsProvider>
+										{children}
+									</AppSettingsProvider>
 								</UriHandler>
 							</OpenID4VCIContextProvider>
 						</OpenID4VPContextProvider>

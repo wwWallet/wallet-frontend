@@ -1,18 +1,17 @@
 import { IOpenID4VCIAuthorizationRequest } from "../../../interfaces/IOpenID4VCIAuthorizationRequest";
-import { OpenidAuthorizationServerMetadata } from "../../../schemas/OpenidAuthorizationServerMetadataSchema";
+import { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from "wallet-common";
 import pkce from 'pkce-challenge';
-import { OpenidCredentialIssuerMetadata } from "../../../schemas/OpenidCredentialIssuerMetadataSchema";
 import { generateRandomIdentifier } from "../../../utils/generateRandomIdentifier";
-import { OpenID4VCIClientState } from "../../../types/OpenID4VCIClientState";
-import { useOpenID4VCIClientStateRepository } from "../../OpenID4VCIClientStateRepository";
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useCallback, useMemo, useContext } from "react";
 import SessionContext from "@/context/SessionContext";
 import OpenID4VPContext from "@/context/OpenID4VPContext";
+import { IOpenID4VCIClientStateRepository } from "@/lib/interfaces/IOpenID4VCIClientStateRepository";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
 
-export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IOpenID4VCIAuthorizationRequest {
+
+export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository): IOpenID4VCIAuthorizationRequest {
 	const httpProxy = useHttpProxy();
-	const openID4VCIClientStateRepository = useOpenID4VCIClientStateRepository();
 
 	const { openID4VP } = useContext(OpenID4VPContext);
 
@@ -89,8 +88,15 @@ export function useOpenID4VCIAuthorizationRequestForFirstPartyApplications(): IO
 						if (!res.data.authorization_code) {
 							throw new Error("authorization_code not present on the authorization response");
 						}
-						await openID4VCIClientStateRepository.create(new OpenID4VCIClientState(userHandleB64u, config.credentialIssuerIdentifier, state, code_verifier, credentialConfigurationId, undefined, undefined, { auth_session: auth_session }));
-
+						await openID4VCIClientStateRepository.create({
+							sessionId: WalletStateUtils.getRandomUint32(),
+							credentialIssuerIdentifier: config.credentialIssuerIdentifier,
+							state,
+							code_verifier,
+							credentialConfigurationId,
+							firstPartyAuthorization: { auth_session: auth_session },
+							created: Math.floor(Date.now() / 1000),
+						});
 						return { authorization_code: res.data.authorization_code, state: state };
 					}
 					else {

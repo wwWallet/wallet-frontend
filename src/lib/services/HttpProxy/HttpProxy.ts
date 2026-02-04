@@ -1,6 +1,6 @@
 import { useMemo, useRef, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { IHttpProxy } from '../../interfaces/IHttpProxy';
+import { IHttpProxy, RequestHeaders, ResponseHeaders } from '../../interfaces/IHttpProxy';
 import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
 // @ts-ignore
@@ -29,9 +29,9 @@ export function useHttpProxy(): IHttpProxy {
 	const proxy = useMemo(() => ({
 		async get(
 			url: string,
-			headers: Record<string, string> = {},
+			headers: RequestHeaders = {},
 			options?: { useCache?: boolean; }
-		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
+		): Promise<{ status: number; headers: ResponseHeaders; data: unknown }> {
 			const useCache = options?.useCache;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;

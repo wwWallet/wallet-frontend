@@ -11,7 +11,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 	const bars = Array.from({ length: 5 }, (_, i) => i < quality);
 	const barHeights = size === 'normal' ? [4, 8, 12, 16, 20] : [3, 6, 9, 12, 16];
 	const filledColor = backgroundColor === 'light' ? 'bg-primary dark:bg-white' : 'bg-white';
-	const UnFilledColor = backgroundColor === 'light' ? 'bg-gray-300 dark:bg-gray-500' : 'bg-gray-500';
+	const unFilledColor = backgroundColor === 'light' ? 'bg-gray-300 dark:bg-gray-500' : 'bg-gray-500';
 	const connectingSpinner = backgroundColor === 'light' ? 'border-gray-600 dark:border-gray-100' : 'border-gray-100';
 
 	const qualityText = (quality) => {
@@ -33,7 +33,7 @@ const ConnectionStatusIcon = ({ size = 'normal', backgroundColor = 'dark' }) => 
 			{bars.map((filled, i) => (
 				<div
 					key={i}
-					className={`${size === 'small' ? 'w-[3px]' : 'w-[4px]'} mx-px rounded-t-[1px] ${filled ? filledColor : UnFilledColor}`}
+					className={`${size === 'small' ? 'w-[3px]' : 'w-[4px]'} mx-px rounded-t-[1px] ${filled ? filledColor : unFilledColor}`}
 					style={{ height: `${barHeights[i]}px` }}
 				/>
 			))}

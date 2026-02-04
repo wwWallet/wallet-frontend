@@ -11,7 +11,7 @@ import { useOpenID4VCIHelper } from '../../lib/services/OpenID4VCIHelper';
 import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
-import { buildCredentialConfiguration, getCredentialType } from '@/components/QueryableList/CredentialsDisplayUtils';
+import { buildCredentialConfiguration } from '@/components/QueryableList/CredentialsDisplayUtils';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -30,6 +30,22 @@ const AddCredentials = () => {
 
 	const { t } = useTranslation();
 	const filterItemByLang = useFilterItemByLang();
+	const [cachedUser, setCachedUser] = useState(null);
+
+	useEffect(() => {
+		if (!keystore) {
+			return;
+		}
+
+		const userHandle = keystore.getUserHandleB64u();
+		if (!userHandle) {
+			return;
+		}
+		const u = keystore.getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
+		if (u) {
+			setCachedUser(u);
+		}
+	}, [keystore, setCachedUser]);
 
 	useEffect(() => {
 		if (vcEntityList === null) {
@@ -40,7 +56,7 @@ const AddCredentials = () => {
 	useEffect(() => {
 		const fetchRecentCredConfigs = async () => {
 			vcEntityList.map(async (vcEntity, key) => {
-				const identifierField = JSON.stringify([getCredentialType(vcEntity.parsedCredential), vcEntity.credentialIssuerIdentifier]);
+				const identifierField = JSON.stringify([vcEntity.credentialConfigurationId, vcEntity.credentialIssuerIdentifier]);
 				setRecent((currentArray) => {
 					const recentRecordExists = currentArray.some((rec) =>
 						rec === identifierField
@@ -56,7 +72,6 @@ const AddCredentials = () => {
 		};
 
 		if (vcEntityList) {
-			console.log("Fetching Recent Credential Configurations...")
 			fetchRecentCredConfigs();
 		}
 	}, [vcEntityList]);
@@ -138,6 +153,10 @@ const AddCredentials = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
+		const result = await api.syncPrivateData(cachedUser);
+		if (!result.ok) {
+			return {};
+		}
 		const [credentialConfigurationId, credentialIssuerIdentifier] = JSON.parse(credentialConfigurationIdWithCredentialIssuerIdentifier);
 		const clickedCredentialConfiguration = credentialConfigurations.find((conf) => conf.credentialConfigurationId === credentialConfigurationId && conf.credentialIssuerIdentifier === credentialIssuerIdentifier);
 		if (clickedCredentialConfiguration) {
@@ -179,7 +198,7 @@ const AddCredentials = () => {
 
 	return (
 		<>
-			<div className="sm:px-6 w-full">
+			<div className="px-6 sm:px-12 w-full">
 				<H1 heading={t('common.navItemAddCredentials')} />
 				<PageDescription description={t('pageAddCredentials.description')} />
 

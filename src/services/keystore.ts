@@ -16,9 +16,10 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
+import { addNewArkgSeedEvent, addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
-import type { AuthenticationExtensionsPRFInputs, PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
+import type { PublicKeyCredentialCreation } from "../types/webauthn";
+import { parseAuthenticatorData, parseCoseKeyWithKid, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
@@ -201,7 +202,7 @@ export type KeystoreV0PrivateData = KeystoreV0PublicData & {
 	wrappedPrivateKey: WrappedPrivateKey,
 }
 
-export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | PrivateData): privateData is KeystoreV0PrivateData {
+export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): privateData is KeystoreV0PrivateData {
 	return (
 		"publicKey" in privateData
 		&& "did" in privateData
@@ -211,7 +212,13 @@ export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | Pri
 	);
 }
 
-export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | PrivateData): PrivateData {
+export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateData): privateData is PrivateDataV1 {
+	return (
+		"keypairs" in privateData
+	);
+}
+
+export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): PrivateDataV1 {
 	if (isKeystoreV0PrivateData(privateData)) {
 		return {
 			keypairs: {
@@ -229,7 +236,19 @@ export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | Privat
 	}
 }
 
-type WebauthnSignArkgPublicSeed = {
+export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): PrivateData {
+	if (isKeystoreV1PrivateData(privateData)) {
+		const initialWalletContainer = SchemaV1.WalletStateOperations.initialWalletStateContainer();
+		initialWalletContainer.S.keypairs = Object.values(privateData.keypairs).map((keypair) => {
+			return { kid: keypair.kid, keypair: { ...keypair } };
+		});
+		return initialWalletContainer;
+	} else {
+		return privateData;
+	}
+}
+
+export type WebauthnSignArkgPublicSeed = {
 	credentialId: Uint8Array,
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
 }
@@ -265,13 +284,13 @@ type WrappedPrivateCryptoKey = WrappedPrivateKeyJwk & {
 type WrappedPrivateKey = WrappedPrivateCryptoKey | WrappedPrivateKeyJwk;
 
 
-export type PrivateData = {
+export type PrivateDataV1 = {
 	keypairs: {
 		[kid: string]: CredentialKeyPair,
 	},
-	arkgSeeds?: WebauthnSignArkgPublicSeed[],
 }
 
+export type PrivateData = CurrentSchema.WalletStateContainer;
 
 function makeWebauthnSignFunction(
 	rpId: string,
@@ -484,13 +503,15 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 	);
 }
 
-export async function openPrivateData(mainKeyOrExportedMainKey: CryptoKey | BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey]> {
+export async function openPrivateData(mainKeyOrExportedMainKey: CryptoKey | BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, CurrentSchema.WalletState]> {
 	const mainKey = (
 		(mainKeyOrExportedMainKey instanceof CryptoKey)
 			? mainKeyOrExportedMainKey
 			: await importMainKey(mainKeyOrExportedMainKey)
 	);
-	return [await decryptPrivateData(privateData.jwe, mainKey), mainKey];
+	const openedPrivateData = await decryptPrivateData(privateData.jwe, mainKey);
+	const calculatedState = foldState(openedPrivateData);
+	return [openedPrivateData, mainKey, calculatedState];
 }
 
 async function generateEncapsulationKeypair(): Promise<[EncapsulationPublicKeyInfo, CryptoKey]> {
@@ -692,12 +713,13 @@ async function encryptPrivateData(privateData: PrivateData, encryptionKey: Crypt
 };
 
 async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
-	return migrateV0PrivateData(
-		jsonParseTaggedBinary(
-			new TextDecoder().decode(
-				(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
-			))
-	);
+	return migrateV1PrivateData(
+		migrateV0PrivateData(
+			jsonParseTaggedBinary(
+				new TextDecoder().decode(
+					(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
+				))
+		));
 };
 
 async function rewrapPrivateKeys(
@@ -705,30 +727,58 @@ async function rewrapPrivateKeys(
 	fromKey: CryptoKey,
 	toKey: CryptoKey,
 ): Promise<PrivateData> {
-	const rewrappedKeys: [string, CredentialKeyPair][] = await Promise.all(
-		Object.entries(privateData.keypairs).map(async ([kid, keypair]): Promise<[string, CredentialKeyPair]> => {
+	const rewrappedKeys: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
+		Object.values(privateData.S.keypairs).map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => {
 			if ("wrappedPrivateKey" in keypair) {
-				return [
+				return {
 					kid,
-					{
+					keypair: {
 						...keypair,
 						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
 					},
-				];
+				};
 			} else {
-				return [kid, keypair];
+				return { kid, keypair };
 			}
 		})
 	);
+
+	const newCredentialKeypairEvents = privateData.events.filter(e => e.type === 'new_keypair');
+	const rewrappedKeysFromEvents: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
+		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => {
+			if ("wrappedPrivateKey" in keypair) {
+				return {
+					kid,
+					keypair: {
+						...keypair,
+						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
+					},
+				};
+			} else {
+				return { kid, keypair };
+			}
+		}),
+	);
+
 	return {
 		...privateData,
-		keypairs: rewrappedKeys.reduce(
-			(result, [kid, keypair]) => {
-				result[kid] = keypair;
-				return result;
-			},
-			{},
-		),
+		lastEventHash: privateData.lastEventHash ?? "",
+		S: {
+			...privateData.S,
+			keypairs: rewrappedKeys,
+		},
+		events: privateData.events.map((e) => {
+			if (e.type === "new_keypair") {
+				const rewrappedKeypair = rewrappedKeysFromEvents.filter((k) => k.kid === e.kid)[0];
+				if (rewrappedKeypair) {
+					return {
+						...e,
+						keypair: rewrappedKeypair.keypair,
+					}
+				}
+			}
+			return e;
+		}),
 	};
 }
 
@@ -999,16 +1049,12 @@ async function addWebauthnSignKeypair(
 	if (newKeypair) {
 		const [newPrivateData,] = await updatePrivateData(
 			[privateData as AsymmetricEncryptedContainer, mainKey],
-			async (privateData: PrivateData, _updateWrappedPrivateKey) => {
-				const arkgSeeds = (newKeypair && "arkg" in newKeypair) ? [
-					...(privateData.arkgSeeds ?? []),
-					newKeypair.arkg,
-				] : privateData.arkgSeeds;
-
-				return {
-					...privateData,
-					arkgSeeds,
-				};
+			async (privateData: PrivateData) => {
+				if (newKeypair && "arkg" in newKeypair) {
+					return addNewArkgSeedEvent(privateData, newKeypair.arkg);
+				} else {
+					return privateData;
+				}
 			},
 		);
 		return newPrivateData;
@@ -1180,12 +1226,17 @@ export async function init(
 ): Promise<UnlockSuccess> {
 	const webauthnSignGeneratedKey = credential ? parseWebauthnSignGeneratedKey(credential) : null;
 	const arkgSeed = (webauthnSignGeneratedKey && "arkg" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.arkg : null;
+	let state = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
+	if (arkgSeed) {
+		state = await addNewArkgSeedEvent(state, arkgSeed);
+	}
 	const privateData: EncryptedContainer = {
 		...keyInfo,
-		jwe: await encryptPrivateData({
-			keypairs: {},
-			arkgSeeds: (arkgSeed ? [arkgSeed] : []),
-		}, mainKey),
+		jwe: await encryptPrivateData(
+			// Fold events immediately since no conflicts can exist with a newly initialized state
+			await foldOldEventsIntoBaseState(state, -1),
+			mainKey,
+		),
 	};
 	return await unlock(mainKey, privateData);
 }
@@ -1319,6 +1370,24 @@ async function createW3CDID(publicKey: CryptoKey | JWK): Promise<{ didKeyString:
 	return { didKeyString };
 }
 
+export async function updateWalletState(
+	[privateData, mainKey]: OpenedContainer,
+	walletStateContainer: CurrentSchema.WalletStateContainer,
+): Promise<{ newContainer: OpenedContainer }> {
+
+	return {
+		newContainer: await updatePrivateData(
+			[privateData, mainKey],
+			async (privateData: PrivateData) => {
+				return {
+					...privateData,
+					...walletStateContainer,
+				}
+			}
+		)
+	}
+}
+
 async function generateCredentialKeypair(
 	[encryptedContainer, mainKey]: OpenedContainer,
 ): Promise<[
@@ -1326,8 +1395,9 @@ async function generateCredentialKeypair(
 	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignKeyRef }],
 ]> {
 	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
-	if (privateData?.arkgSeeds?.length > 0) {
-		const { arkgSeeds } = privateData;
+	const state = foldState(privateData);
+	if (state.arkgSeeds?.length > 0) {
+		const { arkgSeeds } = state;
 		if (arkgSeeds.length > 1) {
 			throw new Error("Unimplemented: More than one ARKG seed available");
 		}
@@ -1403,18 +1473,16 @@ async function addNewCredentialKeypairs(
 			[privateData, mainKey],
 			async (privateData: PrivateData) => {
 
-				const combinedKeypairs = {
-					...privateData.keypairs
-				};
-
+				// append events
 				for (const { kid, keypair } of keypairsWithPrivateKeys) {
-					combinedKeypairs[kid] = keypair;
+					privateData = await addNewKeypairEvent(privateData, kid, keypair);
 				}
+
 				return {
 					...privateData,
-					keypairs: {
-						...combinedKeypairs
-					},
+					S: privateData.S,
+					events: privateData.events,
+					lastEventHash: privateData.lastEventHash ?? "",
 				}
 			}
 		),
@@ -1432,7 +1500,7 @@ async function createDid(publicKey: CryptoKey | JWK, didKeyVersion: DidKeyVersio
 }
 
 export async function signJwtPresentation(
-	[privateData, mainKey]: [PrivateData, CryptoKey],
+	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState],
 	nonce: string,
 	audience: string,
 	verifiableCredentials: any[],
@@ -1455,7 +1523,7 @@ export async function signJwtPresentation(
 
 	const kid = await jose.calculateJwkThumbprint(cnf.jwk, "sha256");
 
-	const keypair = privateData.keypairs[kid];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0]?.keypair;
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
@@ -1570,7 +1638,7 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
 
 	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
 		DataItem.fromData(
@@ -1602,15 +1670,19 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
 	// get the keypair based on the jwk Thumbprint
-	const keypair = privateData.keypairs[kid];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
 	console.log("Found keypair = ", keypair);
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, wrappedPrivateKey } = keypair;
+	if (!("wrappedPrivateKey" in keypair.keypair)) {
+		// TODO
+		throw new Error("Not implemented: generateDeviceResponse with external private key");
+	}
+	const { alg, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const privateKeyJwk = await toJwk(privateKey);
 
 	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
@@ -1624,7 +1696,7 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 		mdocGeneratedNonce
 	);
 
-	const uint8ArrayToHexString = (uint8Array: any) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
+	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
 	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
@@ -1635,7 +1707,7 @@ export async function generateDeviceResponse([privateData, mainKey]: [PrivateDat
 	return { deviceResponseMDoc };
 }
 
-export async function generateDeviceResponseWithProximity([privateData, mainKey]: [PrivateData, CryptoKey], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
 	// extract the COSE device public key from mdoc
 	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
 	const deviceKeyInfo = p.data.get('deviceKeyInfo');
@@ -1645,14 +1717,18 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey]
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 
 	// get the keypair based on the jwk Thumbprint
-	const keypair = privateData.keypairs[kid];
+	const keypair = calculatedState.keypairs.filter((k) => k.kid === kid)[0];
 	if (!keypair) {
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	const { alg, did, wrappedPrivateKey } = keypair;
+	if (!("wrappedPrivateKey" in keypair.keypair)) {
+		// TODO
+		throw new Error("Not implemented: generateDeviceResponseWithProximity with external private key");
+	}
+	const { alg, did, wrappedPrivateKey } = keypair.keypair;
 	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey);
+	const privateKeyJwk = await toJwk(privateKey);
 
 	const options = getCborEncodeDecodeOptions();
 	options.variableMapSize = true;
@@ -1672,7 +1748,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		try {
-			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
+			const key = parseCoseKeyWithKid(cbor.decodeFirstSync(generatedKey.publicKey));
 			const credentialId = new Uint8Array(credential.rawId);
 			switch (key.kty) {
 				case COSE_KTY_ARKG_PUB:
@@ -1684,6 +1760,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 					};
 
 				default:
+					// @ts-ignore
 					console.log(`Unsupported COSE key type: ${key.kty}`);
 					return null;
 			}

@@ -70,6 +70,7 @@
 		"alreadyHaveAccountQuestion": "Already have an account? ",
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
+		"choosePasskeyPlatform": "Select your preferred passkey type",
 		"choosePasskeyUsername": "What should we call you?",
 		"confirmPasswordLabel": "Confirm Password",
 		"enterPasskeyName": "Choose a name for yourself",
@@ -85,8 +86,9 @@
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"loginSubmit": "Login",
+		"loginTitle": "Login with a Passkey",
 		"messageOffline": "You are offline. Some features may not be available.",
-		"newHereQuestion": "New here? ",
+		"newHereQuestion": "Don't have an account? ",
 		"number": "At least one number",
 		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
@@ -207,6 +209,16 @@
 		"appVersion": {
 			"descriptionLatestVersion": "You are currently using the latest $t(common.walletName) version {{react_app_version}}",
 			"descriptionOldVersion": "You are currently using wwWallet version {{react_app_version}}.<br/> <strong>A new version is available.</strong> Please <reloadButton>refresh</reloadButton> to update!"
+		},
+		"appearance": {
+			"colorScheme": {
+				"dark": "Dark",
+				"description": "Choose if appearance should be light or dark, or follow your device settings.",
+				"light": "Light",
+				"system": "System",
+				"title": "Color Scheme"
+			},
+			"title": "Appearance"
 		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
@@ -332,13 +344,19 @@
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
 		"selectTitle": "Select",
+		"specificClaimsRequested": "The verifier has requested specific claims of the credential.",
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
-		"summaryTitle": "Summary"
+		"summaryTitle": "Summary",
+		"transactionDataExample": "Accept example transaction data terms & conditions"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
+	},
+	"syncPopup": {
+		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to see what's new.",
+		"title": "Synchronize Wallet"
 	},
 	"tourGuide": {
 		"closeTourButton": "Close Tour",
@@ -353,6 +371,19 @@
 	},
 	"updateNotification": {
 		"description": "New Version is available!"
+	},
+	"viewSelect": {
+		"aria": {
+			"menuLabel": "Credential view options",
+			"option": "View: {{label}}",
+			"toggle": "Change view"
+		},
+		"options": {
+			"horizontalSlider": "Horizontal Slider",
+			"list": "List",
+			"verticalSlider": "Vertical Slider"
+		},
+		"view": "View"
 	},
 	"welcomeModal": {
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",

@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
 
 			<div className={`w-full md:w-3/5 ${isOpen ? "hidden md:flex" : "flex"} flex-col flex-grow `}>
 				{/* Content */}
-				<div className="w-full flex-grow bg-gray-100 dark:bg-gray-900 p-6 md:mt-0 md:pt-6">
+				<div className="w-full flex-grow bg-gray-100 dark:bg-gray-900 py-6 md:mt-0 md:pt-6">
 					{children}
 				</div>
 			</div>

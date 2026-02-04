@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import StatusContext, { Connectivity } from './StatusContext';
@@ -86,7 +86,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 			}
 			return internetConnection.isConnected;
 		});
-	};
+	}
 
 	useEffect(() => {
 		// Add event listeners for online/offline status
@@ -102,8 +102,7 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 
 	useEffect(() => {
 		console.log('Online status:', isOnline);
-		console.log('Internet connection status:', connectivity);
-	}, [isOnline, connectivity]);
+	}, [isOnline]);
 
 	// Polling logic when offline
 	useEffect(() => {
@@ -131,27 +130,43 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 	useEffect(() => {
 		let pollingInterval: NodeJS.Timeout | null = null;
 
-		const startOnlinePolling = () => {
-			pollingInterval = setInterval(() => {
-				const now = Date.now();
+		const poll = () => {
+			const now = Date.now();
+			if (!document.hidden && now - lastUpdateCallTime.current > 20000) {
+				updateOnlineStatus(false);
+			}
+		};
 
-				// Check if it's been more than 20 seconds since the last update call
-				if (now - lastUpdateCallTime.current > 20000) {
-					updateOnlineStatus(false); // Pass `false` to indicate this is a periodic check
-				}
-			}, 20000); // Poll every 20 seconds
+		const startPolling = () => {
+			if (!pollingInterval) {
+				pollingInterval = setInterval(poll, 20000);
+			}
+		};
+
+		const stopPolling = () => {
+			if (pollingInterval) {
+				clearInterval(pollingInterval);
+				pollingInterval = null;
+			}
+		};
+
+		const handleVisibilityChange = () => {
+			if (document.hidden) {
+				stopPolling();
+			} else {
+				startPolling();
+				poll(); // Trigger immediately when returning to foreground
+			}
 		};
 
 		if (isOnline) {
-			startOnlinePolling();
-		} else if (pollingInterval) {
-			clearInterval(pollingInterval);
+			startPolling();
+			document.addEventListener('visibilitychange', handleVisibilityChange);
 		}
 
 		return () => {
-			if (pollingInterval) {
-				clearInterval(pollingInterval);
-			}
+			stopPolling();
+			document.removeEventListener('visibilitychange', handleVisibilityChange);
 		};
 	}, [isOnline]);
 
@@ -194,6 +209,9 @@ export const StatusContextProvider = ({ children }: { children: React.ReactNode 
 		setHidePwaPrompt(true);
 	}
 
+	useEffect(() => {
+		updateOnlineStatus();
+	}, []);
 	return (
 		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt }}>
 			{children}

@@ -53,9 +53,9 @@ const Button = ({
 			case 'delete':
 				return `${commonClasses} ${!disabled ? "text-white bg-red-600 hover:bg-red-700" : "text-red-400 bg-gray-300 hover:bg-gray-300 cursor-not-allowed"}`;
 			case 'outline':
-				return `bg-white px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed'}`;
+				return `bg-white rounded-lg px-4 py-[0.4375rem] text-sm flex flex-row flex-nowrap items-center justify-center border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white ${!disabled ? 'cursor-pointer' : 'text-gray-300 border-gray-300 dark:text-gray-700 dark:border-gray-700 cursor-not-allowed'}`;
 			case 'link':
-				return `font-medium ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
+				return `font-semibold ${!disabled ? "text-primary dark:text-primary-light hover:underline" : "text-gray-400 cursor-not-allowed"}`;
 			default:
 				return `${commonClasses}`;
 		}

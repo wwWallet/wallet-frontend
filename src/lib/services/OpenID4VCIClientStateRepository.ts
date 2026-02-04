@@ -1,45 +1,62 @@
-import { useContext, useCallback, useMemo } from "react";
-import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
-import { OpenID4VCIClientState } from "../types/OpenID4VCIClientState";
+import { useContext, useCallback, useMemo, useRef, useEffect } from "react";
 import SessionContext from "@/context/SessionContext";
+import { CurrentSchema } from "@/services/WalletStateSchema";
+import { WalletStateUtils } from "@/services/WalletStateUtils";
+import { IOpenID4VCIClientStateRepository } from "../interfaces/IOpenID4VCIClientStateRepository";
+import { last } from "@/util";
 
 export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepository {
 
-	const key = "openid4vci_client_state";
-	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { api, keystore } = useContext(SessionContext);
 
-	const {get} = api;
-	const data = localStorage.getItem(key);
-	if (!data || !(JSON.parse(data) instanceof Array)) {
-		localStorage.setItem(key, JSON.stringify([]));
-	}
+	// key: sessionId
+	const sessions = useRef(new Map<number, CurrentSchema.WalletStateCredentialIssuanceSession>());
+
+	useEffect(() => {
+		if (keystore && sessions.current.size === 0) {
+			const S = keystore.getCalculatedWalletState();
+			if (!S) {
+				return;
+			}
+			S.credentialIssuanceSessions.map((session) => {
+				sessions.current.set(session.sessionId, session);
+			});
+			console.log("Loaded Credential Issuance Sessions from keystore = ", Array.from(sessions.current.values()));
+		}
+	}, [keystore]);
+
+	const commitStateChanges = useCallback(async (): Promise<void> => {
+		const [{ }, newPrivateData, keystoreCommit] = await keystore.saveCredentialIssuanceSessions(Array.from(sessions.current.values()));
+		await api.updatePrivateData(newPrivateData);
+		await keystoreCommit();
+	}, [keystore, api]);
 
 	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
-		if (!api || !isLoggedIn) {
+		if (!keystore) {
 			return null;
 		}
-		return get('/user/session/account-info').then((response) => {
-			const userData = response.data;
-			return userData.settings.openidRefreshTokenMaxAgeInSeconds as number;
-		});
-	}, [get, isLoggedIn]);
+		const S = keystore.getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		return parseInt(S.settings['openidRefreshTokenMaxAgeInSeconds']);
+	}, [keystore]);
 
-	const getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle = useCallback(async (
+	const getByCredentialIssuerIdentifierAndCredentialConfigurationId = useCallback(async (
 		credentialIssuer: string,
 		credentialConfigurationId: string
-	): Promise<OpenID4VCIClientState | null> => {
-
-		const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-		const res = array.filter((s) => s.credentialIssuerIdentifier === credentialIssuer && s.credentialConfigurationId === credentialConfigurationId && s.userHandleB64U === keystore.getUserHandleB64u())[0];
+	): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null> => {
+		const r = Array.from(sessions.current.values()).filter((S) => S.credentialConfigurationId === credentialConfigurationId && S.credentialIssuerIdentifier === credentialIssuer);
+		const res = last(r);
 		return res ? res : null;
 	},
 		[]
 	);
 
-	const getByStateAndUserHandle = useCallback(
-		async (state: string): Promise<OpenID4VCIClientState | null> => {
-			const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-			const res = array.filter((s) => s.state === state && s.userHandleB64U === keystore.getUserHandleB64u())[0];
+	const getByState = useCallback(
+		async (state: string): Promise<CurrentSchema.WalletStateCredentialIssuanceSession | null> => {
+			const r = Array.from(sessions.current.values()).filter((S) => S.state === state);
+			const res = last(r);
 			return res ? res : null;
 		},
 		[]
@@ -47,79 +64,64 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 
 	const cleanupExpired = useCallback(async (): Promise<void> => {
 		const rememberIssuerForSeconds = await getRememberIssuerAge();
+		console.log("Rememeber issuer for seconds = ", rememberIssuerForSeconds)
+
 		if (rememberIssuerForSeconds == null) {
 			return;
 		}
-		const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-		const results = array.filter((s) => s.userHandleB64U === keystore.getUserHandleB64u());
-		const statesToBeRemoved: string[] = [];
-		for (const res of results) {
+		for (const res of Array.from(sessions.current.values())) {
+			console.log("Res i: ", res);
 			if (res.created &&
 				typeof res.created === 'number' &&
 				Math.floor(Date.now() / 1000) > res.created + rememberIssuerForSeconds) {
-
-				statesToBeRemoved.push(res.state);
+				console.log("Removed session id = ", res.sessionId)
+				sessions.current.delete(res.sessionId);
 			}
 		}
-
-		console.log("Cleanup states = ", statesToBeRemoved)
-		const filteredArray = array.filter((s) => !statesToBeRemoved.includes(s.state));
-		localStorage.setItem(key, JSON.stringify(filteredArray));
-	}, [ getRememberIssuerAge]);
+	}, [getRememberIssuerAge]);
 
 	const create = useCallback(
-		async (state: OpenID4VCIClientState): Promise<void> => {
-			const existingState = await getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle(
+		async (state: CurrentSchema.WalletStateCredentialIssuanceSession): Promise<void> => {
+			const existingState = await getByCredentialIssuerIdentifierAndCredentialConfigurationId(
 				state.credentialIssuerIdentifier,
 				state.credentialConfigurationId
 			);
 
-			const data = localStorage.getItem(key);
-			const array = data ? (JSON.parse(data) as OpenID4VCIClientState[]) : [];
-
 			if (existingState) {
-				const updatedArray = array.filter(
-					(x) => x.credentialConfigurationId !== state.credentialConfigurationId
-				);
-				localStorage.setItem(key, JSON.stringify(updatedArray));
+				sessions.current.delete(existingState.sessionId);
 			}
-
-			array.push(state);
-			localStorage.setItem(key, JSON.stringify(array));
+			const sessionId = WalletStateUtils.getRandomUint32();
+			sessions.current.set(sessionId, { ...state });
 		},
-		[getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle]
+		[]
 	);
 
 	const updateState = useCallback(
-		async (newState: OpenID4VCIClientState): Promise<void> => {
-			const fetched = await getByStateAndUserHandle(newState.state);
+		async (newState: CurrentSchema.WalletStateCredentialIssuanceSession): Promise<void> => {
+			const fetched = await getByState(newState.state);
 			if (!fetched) {
 				return;
 			}
-			const array = JSON.parse(localStorage.getItem(key)) as Array<OpenID4VCIClientState>;
-			const updatedArray = array.filter((x) => x.state !== newState.state); // remove the state that is going to be changed
-			updatedArray.push(newState);
-			// commit changes
-			localStorage.setItem(key, JSON.stringify(updatedArray));
+			sessions.current.set(fetched.sessionId, newState);
 		},
-		[getByStateAndUserHandle]
+		[getByState]
 	);
 
 	return useMemo(() => {
 		return {
-			getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle,
-			getByStateAndUserHandle,
+			getByCredentialIssuerIdentifierAndCredentialConfigurationId,
+			getByState,
 			cleanupExpired,
 			create,
 			updateState,
-			getRememberIssuerAge,
+			commitStateChanges,
 		}
 	}, [
-		getByCredentialIssuerIdentifierAndCredentialConfigurationIdAndUserHandle,
-		getByStateAndUserHandle,
+		getByCredentialIssuerIdentifierAndCredentialConfigurationId,
+		getByState,
 		cleanupExpired,
 		create,
 		updateState,
-		getRememberIssuerAge,
+		commitStateChanges,
 	]);
 }

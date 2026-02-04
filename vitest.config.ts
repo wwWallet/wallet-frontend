@@ -15,6 +15,9 @@ export default defineConfig({
 			['**/services/*.test.ts', 'node'],
 			['**/arkg/*.test.ts', 'node'],
 			['**', 'jsdom']
-		]
+		],
+		typecheck: {
+			enabled: true,
+		},
 	},
 });

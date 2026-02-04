@@ -43,4 +43,3 @@ jobs:
           else
             echo "No translation coverage changes detected."
           fi
-

@@ -1,22 +1,21 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { IOpenID4VPRelyingPartyStateRepository } from "../interfaces/IOpenID4VPRelyingPartyStateRepository";
 import { OpenID4VPRelyingPartyState } from "../types/OpenID4VPRelyingPartyState";
 
 export function useOpenID4VPRelyingPartyStateRepository(): IOpenID4VPRelyingPartyStateRepository {
-	const key = "openid4vp_rp_state";
+	const state = useRef(null);
 
 	const store = useCallback(async (s: OpenID4VPRelyingPartyState): Promise<void> => {
-		const x = s.serialize();
-		localStorage.setItem(key, x);
-	}, [key]);
+		state.current = s;
+	}, []);
 
 	const retrieve = useCallback(async (): Promise<OpenID4VPRelyingPartyState> => {
-		const serializedState = localStorage.getItem(key);
-		if (!serializedState) {
-			throw new Error("No state found in localStorage");
+		const s = state.current;
+		if (!s) {
+			throw new Error("No state found in memory");
 		}
-		return OpenID4VPRelyingPartyState.deserialize(serializedState);
-	}, [key]);
+		return state.current;
+	}, []);
 
 	return useMemo(() => {
 		return {

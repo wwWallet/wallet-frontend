@@ -9,14 +9,14 @@ const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick })
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
-		vcEntity?.id,
+		vcEntity?.batchId,
 		[i18n.language]
 	);
 
 	return (
 		<button
-			id={`credential-slide-${vcEntity.id}`}
-			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.id) ? 'fade-in' : ''
+			id={`credential-slide-${vcEntity.batchId}`}
+			className={`relative rounded-xl w-full transition-shadow shadow-md hover:shadow-lg cursor-pointer ${latestCredentials.has(vcEntity.batchId) ? 'fade-in' : ''
 				}`}
 			onClick={() => onClick(vcEntity)}
 			aria-label={credentialName ?? ''}
@@ -30,7 +30,7 @@ const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick })
 				vcEntityInstances={vcEntity.instances}
 				showRibbon={isActive}
 				parsedCredential={vcEntity.parsedCredential}
-				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.id) ? 'highlight-filter' : ''
+				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
 					}`}
 			/>
 		</button>

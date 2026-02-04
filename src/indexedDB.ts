@@ -36,6 +36,11 @@ const stores = {
 
 const PROXY_DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
+/** Paths to exclude from IndexedDB cache logic */
+export const EXCLUDED_INDEXEDDB_PATHS = new Set([
+	'/user/session/private-data',
+]);
+
 const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
 	'vc': 'vc',
@@ -66,7 +71,7 @@ export async function initializeDataSource(): Promise<void> {
 		await stores.externalEntities.ready();
 		await stores.proxyCache.ready();
 
-		await migrateDataSource();
+		// await migrateDataSource();
 
 		console.log('Database initialized successfully');
 	} catch (err) {

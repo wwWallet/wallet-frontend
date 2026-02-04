@@ -29,8 +29,9 @@ const WebauthnLogin = ({
 		async (cachedUser) => {
 			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
 			if (result.ok) {
-
-				navigate(from, { replace: true });
+				const params = new URLSearchParams(from);
+				params.append('authenticated', 'true');
+				navigate(`?${params.toString()}`, { replace: true });
 
 			} else {
 				// Using a switch here so the t() argument can be a literal, to ease searching
@@ -111,24 +112,30 @@ const LoginState = () => {
 	const getfilteredUser = () => {
 		const queryParams = new URLSearchParams(from);
 		const state = queryParams.get('state');
+		const user = queryParams.get('user');
+		const authenticated = queryParams.get('authenticated');
+		if (user) {
+			return [cachedUsers.find((u) => u.userHandleB64u === user), true, authenticated === 'true'];
+		}
 		if (state) {
 			try {
 				console.log('state', state);
 				const decodedState = atob(state);
 				const stateObj = JSON.parse(decodedState);
-				return cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u);
+				return [cachedUsers.find(user => user.userHandleB64u === stateObj.userHandleB64u), false, authenticated === 'true'];
 			} catch (error) {
 				console.error('Error decoding state:', error);
 			}
 		}
-		return null;
+
+		return [null, false, authenticated === 'true'];
 	};
-	const filteredUser = getfilteredUser();
+	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
 
 	if (!filteredUser) {
 		return <Navigate to="/login" replace />;
-	} else if (isLoggedIn) {
-		return <Navigate to="/" replace />;
+	} else if ((isLoggedIn && !forceAuthenticate) || (forceAuthenticate === true && authenticated)) {
+		return <Navigate to={`/${window.location.search}`} replace />;
 	}
 
 	return (
@@ -144,7 +151,7 @@ const LoginState = () => {
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
-				<div className='absolute text-gray-500 dark:text-white dark top-0 left-5'>
+				<div className='absolute text-gray-500 dark:text-white top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 				<div className='absolute top-0 right-3'>
