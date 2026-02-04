@@ -1,12 +1,12 @@
 // External libraries
-import React, { useContext } from 'react';
-
-import { useNavigate } from 'react-router-dom';
+import React, { useContext, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import AppSettingsContext from "@/context/AppSettingsContext";
+import { usePreAuth, PreAuthProvider } from '@/context/PreAuthContext'; // Added PreAuthProvider import
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -19,21 +19,33 @@ import Slider from '../../components/Shared/Slider';
 import { CredentialCardSkeleton } from '@/components/Skeletons';
 import CredentialGridCard from '@/components/Credentials/CredentialGridCard';
 import CredentialSlideCard from '@/components/Credentials/CredentialSlideCard';
-
 import ViewSelect from '@/components/Credentials/ViewSelect';
-
-import VerticalSlider from '@/components/Shared/VerticalSlider';
-import PendingTransactionsBanner from '@/components/Credentials/PendingTransactionsBanner';
+import VerticalSlider from '../../components/Shared/VerticalSlider';
+import PendingTransactionsBanner from '../../components/Credentials/PendingTransactionsBanner';
 
 const Home = () => {
-	const { vcEntityList, latestCredentials, currentSlide, setCurrentSlide, pendingTransactions } = useContext(CredentialsContext);
-	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
-	const screenType = useScreenType();
-
-	const mobileVcHomeView = settings.mobileVcHomeView;
-
+	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
+	const preAuth = usePreAuth();
+	const {
+		vcEntityList,
+		latestCredentials,
+		currentSlide,
+		setCurrentSlide,
+		pendingTransactions
+	} = useContext(CredentialsContext);
+	const { settings, setMobileVcHomeView } = useContext(AppSettingsContext);
+	const screenType = useScreenType();
+	const mobileVcHomeView = settings.mobileVcHomeView;
+
+	useEffect(() => {
+		const qrcodeurl = searchParams.get('qrcodeurl');
+		if (qrcodeurl) {
+			preAuth(qrcodeurl);
+			navigate('/', { replace: true });
+		}
+	}, [searchParams, preAuth, navigate]);
 
 	const handleAddCredential = () => {
 		navigate('/add');
@@ -65,6 +77,7 @@ const Home = () => {
 						/>
 					)}
 				</div>
+
 				{vcEntityList ? (
 					<div className=''>
 						{vcEntityList.length === 0 ? (
@@ -122,23 +135,21 @@ const Home = () => {
 												/>
 											</div>
 										) : mobileVcHomeView === 'list' && (
-											<>
-												<div className="xm:px-6 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
-													{vcEntityList && vcEntityList.map((vcEntity) => (
-														<CredentialGridCard
-															key={vcEntity.batchId}
-															vcEntity={vcEntity}
-															latestCredentials={latestCredentials}
-															onClick={handleImageClick}
-														/>
-													))}
-												</div>
-											</>
+											<div className="xm:px-6 sm:px-20 grid gap-4 grid-cols-1 py-4 px-6">
+												{vcEntityList.map((vcEntity) => (
+													<CredentialGridCard
+														key={vcEntity.batchId}
+														vcEntity={vcEntity}
+														latestCredentials={latestCredentials}
+														onClick={handleImageClick}
+													/>
+												))}
+											</div>
 										)}
 									</>
 								) : (
 									<div className="px-6 sm:px-12 py-2 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 md:gap-5 lg:gap-10 lg:grid-cols-2 xl:grid-cols-3">
-										{vcEntityList && vcEntityList.map((vcEntity) => (
+										{vcEntityList.map((vcEntity) => (
 											<CredentialGridCard
 												key={vcEntity.batchId}
 												vcEntity={vcEntity}
@@ -166,4 +177,8 @@ const Home = () => {
 	);
 }
 
-export default Home;
+	export default () => (
+	<PreAuthProvider>
+		<Home />
+	</PreAuthProvider>
+	);
