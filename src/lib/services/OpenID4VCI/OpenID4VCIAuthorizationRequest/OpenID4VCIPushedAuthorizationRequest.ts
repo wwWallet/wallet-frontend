@@ -13,17 +13,19 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 
 	const httpProxy = useHttpProxy();
 	const { keystore, api, isLoggedIn } = useContext(SessionContext);
-
+	const { getCalculatedWalletState } = keystore;
 	const { get } = api;
+
 	const getRememberIssuerAge = useCallback(async (): Promise<number | null> => {
-		if (!api || !isLoggedIn) {
+		if (!getCalculatedWalletState) {
 			return null;
 		}
-		return get('/user/session/account-info').then((response) => {
-			const userData = response.data;
-			return userData.settings.openidRefreshTokenMaxAgeInSeconds as number;
-		});
-	}, [get, isLoggedIn]);
+		const S = getCalculatedWalletState();
+		if (!S) {
+			return null;
+		}
+		return parseInt(S.settings['openidRefreshTokenMaxAgeInSeconds']);
+	}, [getCalculatedWalletState]);
 
 	const generate = useCallback(
 		async (
@@ -101,7 +103,7 @@ export function useOpenID4VCIPushedAuthorizationRequest(openID4VCIClientStateRep
 			await openID4VCIClientStateRepository.commitStateChanges();
 			return { authorizationRequestURL: authorizationRequestURL.toString() };
 		},
-		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository]
+		[httpProxy, openID4VCIClientStateRepository, keystore, openID4VCIClientStateRepository, getRememberIssuerAge]
 	);
 
 	return useMemo(() => ({ generate }), [generate]);

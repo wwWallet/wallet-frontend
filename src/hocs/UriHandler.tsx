@@ -207,8 +207,10 @@ export const UriHandler = ({ children }) => {
 				setMessagePopup(true);
 			}
 		}
-		handle(url);
-	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList, synced]);
+		if (getCalculatedWalletState()) {
+			handle(url);
+		}
+	}, [url, t, isLoggedIn, setRedirectUri, vcEntityList, synced, getCalculatedWalletState]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
