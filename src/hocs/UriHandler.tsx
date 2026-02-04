@@ -92,7 +92,7 @@ export const UriHandler = ({ children }) => {
 		if (!getCalculatedWalletState || !cachedUser || !syncPrivateData) {
 			return;
 		}
-		const params = new URLSearchParams(window.location.search);
+		const params = new URLSearchParams(location.search);
 		if (synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
 			console.log("Actually syncing...");
 			syncPrivateData(cachedUser).then((r) => {
@@ -105,7 +105,7 @@ export const UriHandler = ({ children }) => {
 			});
 		}
 
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData]);
+	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search]);
 
 	useEffect(() => {
 		if (synced === true && window.location.search !== '') {
