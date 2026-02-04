@@ -40,9 +40,9 @@ const Home = () => {
 	const mobileVcHomeView = settings.mobileVcHomeView;
 
 	useEffect(() => {
-		const qrcodeurl = searchParams.get('qrcodeurl');
-		if (qrcodeurl) {
-			preAuth(qrcodeurl);
+		const credentialOfferUrl = searchParams.get('credentialOfferUrl');
+		if (credentialOfferUrl) {
+			preAuth(credentialOfferUrl);
 			navigate('/', { replace: true });
 		}
 	}, [searchParams, preAuth, navigate]);

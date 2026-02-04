@@ -57,7 +57,7 @@ const safeFetchJson = async (url: string, options: RequestInit) => {
 };
 
 // --- Context Definition ---
-type PreAuthFn = (qrcodeurl: string, pin?: string) => Promise<void>;
+type PreAuthFn = (credentialOfferUrl: string, pin?: string) => Promise<void>;
 const PreAuthContext = createContext<PreAuthFn | undefined>(undefined);
 
 export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -70,19 +70,19 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 	const [showPinInput, setShowPinInput] = useState(false);
 	const [activeUrl, setActiveUrl] = useState<string | null>(null);
 
-	const preAuth: PreAuthFn = useCallback(async (qrcodeurl, submittedPin) => {
+	const preAuth: PreAuthFn = useCallback(async (credentialOfferUrl, submittedPin) => {
 		try {
 			setIsProcessing(true);
 			setError(null);
-			setActiveUrl(qrcodeurl);
+			setActiveUrl(credentialOfferUrl);
 
 			// Parse the offer from the URL
-			const decoded = decodeURIComponent(qrcodeurl);
-			const preAuthCode = decoded.match(/"pre-authorized_code"\s*:\s*"([^"]+)"/)?.[1];
+			const decoded = decodeURIComponent(credentialOfferUrl);
+			const preAuthorizationCode = decoded.match(/"pre-authorized_code"\s*:\s*"([^"]+)"/)?.[1];
 			const issuerState = decoded.match(/"issuer_state"\s*:\s*"([^"]+)"/)?.[1];
 			const pinRequired = decoded.match(/"user_pin_required"\s*:\s*(true|false)/)?.[1] === "true";
 
-			if (!preAuthCode) throw new Error("Invalid QR: Missing pre-authorized code");
+			if (!preAuthorizationCode) throw new Error("Invalid QR: Missing pre-authorized code");
 
 			// Handle PIN Interrupt
 			if (pinRequired && !submittedPin) {
@@ -95,7 +95,7 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 			const { code_challenge, code_verifier } = await pkce();
 
 			// 1. PAR
-			const parData = await safeFetchJson(`${backendURL}/pushed-authorization-request`, {
+			const pushedAuthorizationRequestData = await safeFetchJson(`${backendURL}/pushed-authorization-request`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams({
@@ -110,23 +110,23 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 			});
 
 			// 2. Authorize
-			await fetch(`${backendURL}/authorize?clientID=${clientID}&request_uri=${parData.request_uri}`);
+			await fetch(`${backendURL}/authorize?clientID=${clientID}&request_uri=${pushedAuthorizationRequestData.request_uri}`);
 
 			// 3. Pre-Authorize
-			const authData = await safeFetchJson(`${backendURL}/pre-authorize?clientID=${clientID}&request_uri=${parData.request_uri}`, {
+			const authorizationData = await safeFetchJson(`${backendURL}/pre-authorize?clientID=${clientID}&request_uri=${pushedAuthorizationRequestData.request_uri}`, {
 				method: "POST",
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-				body: new URLSearchParams({ pre_auth_code: preAuthCode }),
+				body: new URLSearchParams({ pre_auth_code: preAuthorizationCode }),
 			});
 
-			const authCode = new URL(authData.location).searchParams.get("code");
+			const authorizationCode = new URL(authorizationData.location).searchParams.get("code");
 
 			// 4. Token
 			const tokenParams = new URLSearchParams({
 				clientID: clientID,
 				redirectURI: redirectURI,
 				grant_type: "authorization_code",
-				code: authCode || "",
+				code: authorizationCode || "",
 				code_verifier
 			});
 			if (submittedPin) tokenParams.append("tx_code", submittedPin);
