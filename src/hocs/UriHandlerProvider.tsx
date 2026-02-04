@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
+import { HandleAuthorizationRequestErrors as HandleAuthorizationRequestError } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
