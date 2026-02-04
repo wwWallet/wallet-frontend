@@ -501,7 +501,7 @@ describe("The keystore", () => {
 			'xvS281cYceLoLatQroRwg.sxVqxz76jcSvdKUtHbxXwA"}',
 		);
 
-		const [{ exportedMainKey: exportedMainKeyBuffer },] = await keystore.unlockPrf(
+		const [{ mainKey },] = await keystore.unlockPrf(
 			privateData,
 			mockPrfCredential({
 				id: privateData.prfKeys[0].credentialId,
@@ -509,16 +509,19 @@ describe("The keystore", () => {
 			}),
 			async () => false,
 		);
-		const exportedMainKey = new Uint8Array(exportedMainKeyBuffer);
-		const [privateDataContent, mainKey] = await keystore.openPrivateData(exportedMainKey, privateData);
+		const exportedMainKey = new Uint8Array(await keystore.exportMainKey(mainKey));
+		const [privateDataContent, mainKey2] = await keystore.openPrivateData(mainKey, privateData);
 		const { publicKey } = privateDataContent.S.keypairs[0].keypair;
 		assert.isDefined(publicKey);
 		assert.isNotNull(publicKey);
-		assert.isDefined(mainKey);
-		assert.isNotNull(mainKey);
+		assert.isDefined(mainKey2);
+		assert.isNotNull(mainKey2);
 
 		await asyncAssertThrows(
-			() => keystore.openPrivateData(new Uint8Array([exportedMainKey[0] ^ 0x01, ...exportedMainKey.slice(1)]), privateData),
+			async () => keystore.openPrivateData(
+				await keystore.importMainKey(new Uint8Array([exportedMainKey[0] ^ 0x01, ...exportedMainKey.slice(1)])),
+				privateData,
+			),
 			"Expected unlock with incorrect main key to fail",
 		);
 	});
@@ -554,8 +557,7 @@ describe("The keystore", () => {
 			id: privateData.prfKeys[0].credentialId,
 			prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 		});
-		const [{ exportedMainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
-		const mainKey = await keystore.importMainKey(exportedMainKey);
+		const [{ mainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		const test = async (didKeyVersion: DidKeyVersion) => {
 			const [{ proof_jwts }, [newPrivateData, newMainKey]] = await keystore.generateOpenid4vciProofs(
 				[privateData, mainKey],
@@ -577,8 +579,7 @@ describe("The keystore", () => {
 					}
 				}
 			);
-			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
-			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
+			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			const { kid, publicKey: publicKeyJwk } = calculatedState.keypairs[0].keypair;
 			const publicKey = await jose.importJWK(publicKeyJwk)
 			const { protectedHeader } = await jose.jwtVerify(proof_jwts[0], publicKey, { audience: "test-audience", issuer: "test-issuer" });
@@ -595,8 +596,7 @@ describe("The keystore", () => {
 			id: privateData.prfKeys[0].credentialId,
 			prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
 		});
-		const [{ exportedMainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
-		const mainKey = await keystore.importMainKey(exportedMainKey);
+		const [{ mainKey },] = await keystore.unlockPrf(privateData, mockCredential, async () => false);
 		const numKeys = 1 + crypto.getRandomValues(new Uint8Array(1))[0] % 3;
 		const test = async (didKeyVersion: DidKeyVersion) => {
 			const [{ keypairs }, [newPrivateData, newMainKey]] = await keystore.generateKeypairs(
@@ -605,8 +605,7 @@ describe("The keystore", () => {
 				numKeys,
 			);
 			assert.equal(keypairs.length, numKeys);
-			const newExportedMainKey = await keystore.exportMainKey(newMainKey);
-			const [, , calculatedState] = await keystore.openPrivateData(newExportedMainKey, newPrivateData);
+			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			for (const keypair of keypairs) {
 				assert("wrappedPrivateKey" in keypair);
 				const { kid, publicKey, wrappedPrivateKey } = keypair;
@@ -773,7 +772,7 @@ describe("The keystore", () => {
 		);
 		assert.strictEqual(privateData.prfKeys.length, 0);
 
-		const [passwordKey,] = await keystore.getPasswordKey(privateData, "Asdf123!");
+		const [{ mainKey }, ] = await keystore.unlockPassword(privateData, "Asdf123!");
 
 		const credentialId = fromBase64("iy755++V64pc9quxa20eVs2mwwwsJcbmlql0OKHMpA1w/hWAlMIPjosYmgJuh0Y+");
 		const newPrivateData = await keystore.finishAddPrf(
@@ -785,7 +784,7 @@ describe("The keystore", () => {
 				}),
 				prfSalt: null,
 			},
-			[passwordKey, privateData.passwordKey],
+			mainKey,
 			async () => false,
 		);
 
@@ -843,7 +842,7 @@ describe("The keystore", () => {
 		);
 		assert.strictEqual(privateData.prfKeys.length, 1);
 
-		const [prfKey, keyInfo,] = await keystore.getPrfKey(
+		const [{ mainKey }, ] = await keystore.unlockPrf(
 			privateData,
 			mockPrfCredential({
 				id: privateData.prfKeys[0].credentialId,
@@ -862,7 +861,7 @@ describe("The keystore", () => {
 				}),
 				prfSalt: null,
 			},
-			[prfKey, keyInfo as keystore.WebauthnPrfEncryptionKeyInfoV2],
+			mainKey,
 			async () => false,
 		);
 
@@ -1068,7 +1067,7 @@ describe("The keystore", () => {
 			assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
 
 			const [oldUnlocked,] = await keystore.unlockPrf(privateData, mockCredential1, async () => false);
-			const [oldPrivateDataContent,,] = await keystore.openPrivateData(oldUnlocked.exportedMainKey, oldUnlocked.privateData);
+			const [oldPrivateDataContent,,] = await keystore.openPrivateData(oldUnlocked.mainKey, oldUnlocked.privateData);
 			const oldKid = oldPrivateDataContent.S.keypairs[0].kid;
 
 			for (const [unlocked, newPrivateData2] of [
@@ -1078,7 +1077,10 @@ describe("The keystore", () => {
 			]) {
 				assert.isNotNull(unlocked, "Expected to be able to unlock new keystore with new key");
 				assert.isNull(newPrivateData2, "Expected no update to privateData on unlock");
-				const [privateDataContent,] = await keystore.openPrivateData(unlocked.exportedMainKey, unlocked.privateData);
+				const [privateDataContent,] = await keystore.openPrivateData(
+					unlocked.mainKey,
+					unlocked.privateData,
+				);
 				const newKid = privateDataContent.S.keypairs[0].kid;
 				assert.notStrictEqual(privateDataContent.S.keypairs.filter(k => k.kid === newKid)[0].kid, oldPrivateDataContent.S.keypairs.filter(k => k.kid === oldKid)[0].kid);
 				assert.notDeepEqual(privateDataContent.S.keypairs.filter(k => k.kid === newKid)[0].keypair.publicKey, oldPrivateDataContent.S.keypairs.filter(k => k.kid === oldKid)[0].keypair.publicKey);
