@@ -515,6 +515,9 @@ export function useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, sh
 					path: `$`
 				});
 				originalVCs.push(vcEntity);
+
+			} else {
+				throw new Error("Unimplemented credential format: " + vcEntity.format);
 			}
 		}
 
