@@ -252,6 +252,7 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): 
 	}
 }
 
+export type NewWebauthnSignKeypair = { arkg: WebauthnSignArkgPublicSeed };
 export type WebauthnSignArkgPublicSeed = {
 	credentialId: Uint8Array,
 	publicSeed: ParsedCOSEKeyArkgPubSeed,
@@ -1010,10 +1011,10 @@ async function addWebauthnSignKeypair(
 	container: OpenedContainer,
 	credential: PublicKeyCredential | null,
 	prfCredential: PublicKeyCredential | null,
-): Promise<OpenedContainer> {
+): Promise<[NewWebauthnSignKeypair, OpenedContainer]> {
 	const newKeypair = parseWebauthnSignGeneratedKey(credential) ?? parseWebauthnSignGeneratedKey(prfCredential);
 	if (newKeypair) {
-		return updatePrivateData(
+		const newContainer = await updatePrivateData(
 			container,
 			async (privateData: PrivateData) => {
 				if (newKeypair && "arkg" in newKeypair) {
@@ -1023,9 +1024,10 @@ async function addWebauthnSignKeypair(
 				}
 			},
 		);
+		return [newKeypair, newContainer];
 
 	} else {
-		return container;
+		return [null, container];
 	}
 }
 
@@ -1068,7 +1070,7 @@ export async function upgradePrfKey(
 		})),
 	};
 
-	const [newNewPrivateData,] = await addWebauthnSignKeypair(
+	const [,[newNewPrivateData]] = await addWebauthnSignKeypair(
 		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
 		credential, prfCredential,
 	);
@@ -1104,7 +1106,7 @@ export async function finishAddPrf(
 			keyInfo,
 		],
 	};
-	const [newNewPrivateData,] = await addWebauthnSignKeypair(
+	const [,[newNewPrivateData]] = await addWebauthnSignKeypair(
 		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
 		credential.credential, null
 	);
@@ -1710,8 +1712,7 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 }
 
 function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
-	: { arkg: WebauthnSignArkgPublicSeed }
-	| null {
+	: NewWebauthnSignKeypair | null {
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		try {
