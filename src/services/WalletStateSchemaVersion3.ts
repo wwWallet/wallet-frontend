@@ -30,6 +30,7 @@ export type WalletSessionEventTypeAttributesV3 = (
 export type WalletSessionEventNewArkgSeed = {
 	type: "new_arkg_seed",
 	arkgSeed: WebauthnSignArkgPublicSeed,
+	name?: string,
 }
 
 export type WalletSessionEventDeleteArkgSeed = {
@@ -37,8 +38,9 @@ export type WalletSessionEventDeleteArkgSeed = {
 	credentialId: Uint8Array,
 }
 
+export type MaybeNamed<T> = T & { name?: string };
 export type WalletStateV3 = SchemaV2.WalletState & {
-	arkgSeeds: WebauthnSignArkgPublicSeed[],
+	arkgSeeds: MaybeNamed<WebauthnSignArkgPublicSeed>[],
 }
 export type WalletStateV3OrEarlier = SchemaV2.WalletState | WalletStateV3;
 export type WalletState = WalletStateV3;
@@ -98,10 +100,10 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 		}
 	}
 
-	function arkgSeedsReducer(state: WebauthnSignArkgPublicSeed[] = [], newEvent: WalletSessionEvent) {
+	function arkgSeedsReducer(state: MaybeNamed<WebauthnSignArkgPublicSeed>[] = [], newEvent: WalletSessionEvent) {
 		switch (newEvent.type) {
 			case "new_arkg_seed":
-				return state.concat([newEvent.arkgSeed]);
+				return state.concat([{ ...newEvent.arkgSeed, name: newEvent.name}]);
 			case "delete_arkg_seed":
 				return state.filter((s) => !byteArrayEquals(s.credentialId, newEvent.credentialId));
 			default:

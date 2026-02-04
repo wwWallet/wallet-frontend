@@ -283,6 +283,7 @@ export async function addDeleteCredentialIssuanceSessionEvent(container: WalletS
 export async function addNewArkgSeedEvent(
 	container: WalletStateContainer,
 	arkgSeed: WebauthnSignArkgPublicSeed,
+	name: string | null,
 ): Promise<WalletStateContainer> {
 	return {
 		...container,
@@ -292,7 +293,8 @@ export async function addNewArkgSeedEvent(
 				...await createWalletSessionEvent(container),
 				type: "new_arkg_seed",
 				arkgSeed,
-			}]
+				name,
+			}],
 	};
 }
 

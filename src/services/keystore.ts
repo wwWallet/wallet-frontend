@@ -1011,6 +1011,7 @@ async function addWebauthnSignKeypair(
 	container: OpenedContainer,
 	credential: PublicKeyCredential | null,
 	prfCredential: PublicKeyCredential | null,
+	name: string | null,
 ): Promise<[NewWebauthnSignKeypair, OpenedContainer]> {
 	const newKeypair = parseWebauthnSignGeneratedKey(credential) ?? parseWebauthnSignGeneratedKey(prfCredential);
 	if (newKeypair) {
@@ -1018,7 +1019,7 @@ async function addWebauthnSignKeypair(
 			container,
 			async (privateData: PrivateData) => {
 				if (newKeypair && "arkg" in newKeypair) {
-					return addNewArkgSeedEvent(privateData, newKeypair.arkg);
+					return addNewArkgSeedEvent(privateData, newKeypair.arkg, name);
 				} else {
 					return privateData;
 				}
@@ -1072,7 +1073,7 @@ export async function upgradePrfKey(
 
 	const [,[newNewPrivateData]] = await addWebauthnSignKeypair(
 		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
-		credential, prfCredential,
+		credential, prfCredential, null,
 	);
 	return newNewPrivateData;
 };
@@ -1108,7 +1109,7 @@ export async function finishAddPrf(
 	};
 	const [,[newNewPrivateData]] = await addWebauthnSignKeypair(
 		[newPrivateData as AsymmetricEncryptedContainer, mainKey],
-		credential.credential, null
+		credential.credential, null, null
 	);
 	return newNewPrivateData;
 }
@@ -1201,7 +1202,7 @@ export async function init(
 	const arkgSeed = (webauthnSignGeneratedKey && "arkg" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.arkg : null;
 	let state = WalletStateOperations.initialWalletStateContainer();
 	if (arkgSeed) {
-		state = await addNewArkgSeedEvent(state, arkgSeed);
+		state = await addNewArkgSeedEvent(state, arkgSeed, null);
 	}
 	const privateData: EncryptedContainer = {
 		...keyInfo,
