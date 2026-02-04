@@ -6,6 +6,11 @@ import { WalletSessionEvent } from './WalletStateSchemaVersion1';
 export * from './WalletStateSchemaVersion1';
 
 
+/**
+	Schema version 2 deduplicates "new_presentation" and "delete_presentation"
+	events by `presentationId` instead of by `eventId`. The state data structure is
+	otherwise unchanged.
+*/
 export const SCHEMA_VERSION = 2;
 
 export type MergeStrategy = (
