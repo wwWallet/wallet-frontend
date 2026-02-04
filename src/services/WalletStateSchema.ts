@@ -258,6 +258,28 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 	return newContainer;
 }
 
+export async function addDeleteCredentialIssuanceSessionEvent(container: WalletStateContainer,
+	sessionId: number,
+): Promise<WalletStateContainer> {
+
+	await validateEventHistoryContinuity(container);
+
+	const newContainer: WalletStateContainer = {
+		lastEventHash: container.lastEventHash,
+		events: [
+			...container.events,
+			{
+				...await createWalletSessionEvent(container),
+				type: "delete_credential_issuance_session",
+				sessionId: sessionId,
+			},
+		],
+		S: container.S,
+	};
+	await validateEventHistoryContinuity(newContainer);
+	return newContainer;
+}
+
 export async function addNewArkgSeedEvent(
 	container: WalletStateContainer,
 	arkgSeed: WebauthnSignArkgPublicSeed,
