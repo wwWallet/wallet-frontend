@@ -414,7 +414,7 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 						</p>
 						<div>
 						</div>
-						<div className={`${screenType === 'desktop' && 'max-w-[600px]'}`}>
+						<div className={`${screenType === 'desktop' && 'm-auto max-w-[700px]'}`}>
 							{vcEntities && vcEntities.length ? (
 								<Slider
 									items={vcEntities}

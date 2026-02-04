@@ -4,6 +4,8 @@ import { createContext } from 'react';
 import { ParsedCredential } from 'wallet-common/dist/types';
 import { ParsingEngineI, CredentialVerifier } from 'wallet-common/dist/interfaces';
 
+type WalletStateCredential = CurrentSchema.WalletStateCredential;
+
 type CredentialEngine = {
 	credentialParsingEngine: ParsingEngineI;
 	sdJwtVerifier: CredentialVerifier;
@@ -15,7 +17,7 @@ export type Instance = {
 	sigCount: number;
 }
 
-export type ExtendedVcEntity = CurrentSchema.WalletStateCredential & {
+export type ExtendedVcEntity = WalletStateCredential & {
 	parsedCredential: ParsedCredential;
 	isExpired: boolean;
 	instances: Instance[];
@@ -29,7 +31,7 @@ export type CredentialsContextValue = {
 	getData: (shouldPoll?: boolean) => Promise<void>;
 	currentSlide: number;
 	setCurrentSlide: (slide: number) => void;
-	parseCredential: (vcEntity: CurrentSchema.WalletStateCredential) => Promise<ParsedCredential | null>;
+	parseCredential: (vcEntity: WalletStateCredential) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
 	pendingTransactions:Record<string, any>;
 };

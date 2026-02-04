@@ -27,12 +27,12 @@ import { PublicKeyCredentialCreation } from "../types/webauthn";
 import WebauthnInteractionDialogContext from "../context/WebauthnInteractionDialogContext";
 import { useTranslation } from "react-i18next";
 
-type WalletState = CurrentSchema.WalletState;
-type WalletStatePresentation = CurrentSchema.WalletStatePresentation;
-type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
-type WalletStateCredential = CurrentSchema.WalletStateCredential;
-type WalletStateSettings = CurrentSchema.WalletStateSettings;
 
+type WalletState = CurrentSchema.WalletState;
+type WalletStateCredential = CurrentSchema.WalletStateCredential;
+type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
+type WalletStatePresentation = CurrentSchema.WalletStatePresentation;
+type WalletStateSettings = CurrentSchema.WalletStateSettings;
 
 type UserData = {
 	displayName: string;

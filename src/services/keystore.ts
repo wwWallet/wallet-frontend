@@ -26,6 +26,10 @@ import * as webauthn from "../webauthn";
 import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "wallet-common/dist/cose";
 import { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 
+type WalletState = CurrentSchema.WalletState;
+type WalletStateContainer = CurrentSchema.WalletStateContainer;
+const WalletStateOperations = CurrentSchema.WalletStateOperations;
+
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
@@ -290,7 +294,7 @@ export type PrivateDataV1 = {
 	},
 }
 
-export type PrivateData = CurrentSchema.WalletStateContainer;
+export type PrivateData = WalletStateContainer;
 
 function makeWebauthnSignFunction(
 	rpId: string,
@@ -503,7 +507,7 @@ export async function importMainKey(exportedMainKey: BufferSource): Promise<Cryp
 	);
 }
 
-export async function openPrivateData(mainKeyOrExportedMainKey: CryptoKey | BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, CurrentSchema.WalletState]> {
+export async function openPrivateData(mainKeyOrExportedMainKey: CryptoKey | BufferSource, privateData: EncryptedContainer): Promise<[PrivateData, CryptoKey, WalletState]> {
 	const mainKey = (
 		(mainKeyOrExportedMainKey instanceof CryptoKey)
 			? mainKeyOrExportedMainKey
@@ -1226,7 +1230,7 @@ export async function init(
 ): Promise<UnlockSuccess> {
 	const webauthnSignGeneratedKey = credential ? parseWebauthnSignGeneratedKey(credential) : null;
 	const arkgSeed = (webauthnSignGeneratedKey && "arkg" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.arkg : null;
-	let state = CurrentSchema.WalletStateOperations.initialWalletStateContainer();
+	let state = WalletStateOperations.initialWalletStateContainer();
 	if (arkgSeed) {
 		state = await addNewArkgSeedEvent(state, arkgSeed);
 	}
@@ -1372,7 +1376,7 @@ async function createW3CDID(publicKey: CryptoKey | JWK): Promise<{ didKeyString:
 
 export async function updateWalletState(
 	[privateData, mainKey]: OpenedContainer,
-	walletStateContainer: CurrentSchema.WalletStateContainer,
+	walletStateContainer: WalletStateContainer,
 ): Promise<{ newContainer: OpenedContainer }> {
 
 	return {
@@ -1500,7 +1504,7 @@ async function createDid(publicKey: CryptoKey | JWK, didKeyVersion: DidKeyVersio
 }
 
 export async function signJwtPresentation(
-	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState],
+	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState],
 	nonce: string,
 	audience: string,
 	verifiableCredentials: any[],
@@ -1638,7 +1642,7 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
 
 	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
 		DataItem.fromData(
@@ -1707,7 +1711,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	return { deviceResponseMDoc };
 }
 
-export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, CurrentSchema.WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
 	// extract the COSE device public key from mdoc
 	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
 	const deviceKeyInfo = p.data.get('deviceKeyInfo');
