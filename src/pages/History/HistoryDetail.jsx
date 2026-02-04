@@ -39,7 +39,7 @@ const HistoryDetail = () => {
 
 	return (
 		<>
-			<div className=" sm:px-6">
+			<div className="px-6 sm:px-12 w-full">
 				<div className='flex'>
 					<button
 						id="go-previous"

@@ -31,6 +31,7 @@ export type CredentialsContextValue = {
 	setCurrentSlide: (slide: number) => void;
 	parseCredential: (vcEntity: CurrentSchema.WalletStateCredential) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
+	pendingTransactions:Record<string, any>;
 };
 
 const defaultContextValue: CredentialsContextValue = {
@@ -42,6 +43,7 @@ const defaultContextValue: CredentialsContextValue = {
 	setCurrentSlide: () => { },
 	parseCredential: async () => null,
 	credentialEngine: null,
+	pendingTransactions:null,
 };
 const CredentialsContext = createContext<CredentialsContextValue>(defaultContextValue);
 

@@ -4,6 +4,32 @@ import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import { IoIosSend } from "react-icons/io";
+import { TbAsterisk } from "react-icons/tb";
+
+const Legend = ({ showRequired, showRequested, t }) => {
+	if (!showRequired && !showRequested) return null;
+	return (
+		<div
+			className="mb-2 flex justify-end"
+			aria-label={t('credentialInfo.legendAriaLabel')}
+		>
+			<div className='flex flex-col py-[1px] px-2 items-end w-auto text-[11px] italic text-gray-600 dark:text-gray-300 border border-gray-200 rounded-sm dark:border-gray-400/40'>
+				{showRequired && (
+					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequired')}>
+						<span>{t('credentialInfo.legendRequired')}</span>
+						<TbAsterisk className="text-primary dark:text-white" aria-hidden="true" />
+					</span>
+				)}
+				{showRequested && (
+					<span className="inline-flex items-center gap-1" title={t('credentialInfo.legendRequested')}>
+						<span>{t('credentialInfo.legendRequested')}</span>
+						<IoIosSend className="text-primary dark:text-white" aria-hidden="true" />
+					</span>
+				)}
+			</div>
+		</div>
+	);
+};
 
 const getLabelAndDescriptionByLang = (displayArray, lang, fallbackLang) => {
 	const match =
@@ -48,7 +74,7 @@ const getValueByPath = (path, obj) => {
 	return result;
 };
 
-const addToNestedObject = (target, path, display, value) => {
+const addToNestedObject = (target, path, display, value, required) => {
 	let current = target;
 	for (let i = 0; i < path.length; i++) {
 		const key = path[i] ?? '*';
@@ -56,6 +82,7 @@ const addToNestedObject = (target, path, display, value) => {
 		if (i === path.length - 1) {
 			current[key].display = display;
 			current[key].value = value;
+			current[key].required = required;
 		} else {
 			if (typeof current[key].value !== 'object' || current[key].value === null || React.isValidElement(current[key].value)) {
 				current[key].value = {};
@@ -162,14 +189,14 @@ const formatClaimValue = (value) => {
 };
 
 const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
-	const { i18n } = useTranslation();
+	const { t, i18n } = useTranslation();
 	const { language, options: { fallbackLng } } = i18n;
 
 	const requestedFields = requested?.fields ?? null;
 	const requestedDisplay = requested?.display ?? undefined;
 
 	const signedClaims = parsedCredential?.signedClaims;
-	const claims = parsedCredential?.metadata?.credential?.metadataDocuments?.[0]?.claims;
+	const claims = parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
 
 	// Define custom claims to display from signedClaims if claims is missing
 	const customClaims = fallbackClaims ? fallbackClaims :
@@ -261,6 +288,8 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				const joinedPath = claim.path?.join('.');
 				if (!joinedPath) return false;
 
+				if (claim.required === true) return true;
+
 				// Show if the claim is:
 				// - explicitly requested
 				// - a parent of a requested field
@@ -285,7 +314,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 		const formattedValue = formatClaimValue(rawValue);
 
-		addToNestedObject(nestedClaims, claim.path, display, formattedValue);
+		addToNestedObject(nestedClaims, claim.path, display, formattedValue, claim.required);
 	});
 
 	const requestedPaths = useMemo(() => {
@@ -296,6 +325,35 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		);
 	}, [requestedFields]);
 
+	// Helper: is a path requested?
+	const isPathRequested = (joinedPath) => {
+		if (!joinedPath) return false;
+		if (!requestedPaths) return true; // wildcard => everything is requested
+		for (const req of requestedPaths) {
+			if (
+				joinedPath === req ||
+				joinedPath.startsWith(req + '.') ||
+				req.startsWith(joinedPath + '.')
+			) return true;
+		}
+		return false;
+	};
+
+	// Determine legend visibility based on visible claims
+	const legendFlags = (() => {
+		let showRequired = false;
+		let showRequested = false;
+		if (requestedFields) {
+			for (const c of visibleClaims) {
+				const joined = Array.isArray(c.path) ? c.path.join('.') : '';
+				if (c.required === true) showRequired = true;
+				if (isPathRequested(joined)) showRequested = true;
+				if (showRequired && showRequested) break;
+			}
+		}
+		return { showRequired, showRequested };
+	})();
+
 	const renderClaims = (data, currentPath = []) => {
 		return Object.entries(data).map(([key, node]) => {
 			const label = node.display?.label || null;
@@ -305,13 +363,14 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
 			);
 
+			const isRequired = requestedFields && node.required;
 			if (!node.display) {
 				return renderClaims(value, [...currentPath, key]);
 			}
 			if (typeof value === 'object' && !React.isValidElement(value)) {
 				return (
 					<div key={fullPath} className="w-full">
-						<details className="pl-2 py-1 rounded-md" open={isRequested}>
+						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
 							<summary className="cursor-pointer font-semibold text-primary dark:text-white w-full">
 								{label}
 							</summary>
@@ -325,7 +384,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				return (
 					<div
 						key={fullPath}
-						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${isRequested && requestedDisplay === "highlight"
+						className={`flex flex-row sm:items-start sm:gap-2 px-2 py-1 rounded ${(isRequested || isRequired) && requestedDisplay === "highlight"
 							? 'bg-blue-50 dark:bg-gray-600 shadow'
 							: ''
 							}`}
@@ -345,11 +404,20 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 							}
 						>
 							{value}
-							{isRequested && (
-								<IoIosSend
-									title="Requested by verifier"
-									className="text-primary dark:text-white flex-shrink-0"
-								/>
+							{(isRequested || isRequired) && (
+								<div className='flex'>
+									{isRequired && (
+										<TbAsterisk
+											className="text-primary dark:text-white flex-shrin"
+										/>
+									)}
+									{isRequested && (
+										<IoIosSend
+											title="Requested by verifier"
+											className="text-primary dark:text-white flex-shrink-0"
+										/>
+									)}
+								</div>
 							)}
 						</div>
 					</div>
@@ -361,6 +429,11 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		<div className={mainClassName} data-testid="credential-info">
 			{Object.keys(nestedClaims).length > 0 && (
 				<div className="flex flex-col w-full gap-1">
+					<Legend
+						showRequired={legendFlags.showRequired}
+						showRequested={legendFlags.showRequested}
+						t={t}
+					/>
 					{renderClaims(nestedClaims)}
 				</div>
 			)}

@@ -10,9 +10,12 @@ import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import { MdNotifications } from "react-icons/md";
 import ConnectionStatusIcon from './ConnectionStatusIcon';
+import CredentialsContext from '@/context/CredentialsContext';
+import CounterBadge from '@/components/Shared/CounterBadge';
 
-const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, notificationIcon, className = '' }) => {
+const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
+
 	return (
 		<button
 			id={`sidebar-item-${id}`}
@@ -25,9 +28,10 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 					{label}
 				</span>
 			</div>
-			{notificationIcon && (
-				<div className="flex items-center">
+			{(notificationIcon || typeof counter === 'number') && (
+				<div className="relative flex items-center gap-2">
 					{notificationIcon}
+					<CounterBadge count={counter} active={isActive} ariaLabel="pending" />
 				</div>
 			)}
 		</button>
@@ -37,6 +41,7 @@ const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias,
 const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout } = useContext(SessionContext);
+	const { pendingTransactions } = useContext(CredentialsContext);
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -116,7 +121,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 							handleNavigate={handleNavigate}
 							icon={FaWallet}
 							label={t("common.navItemCredentials")}
-							className="step-2 hidden md:block"
+							className="step-2 hidden md:flex"
+							counter={pendingTransactions?.length ?? undefined}
 						/>
 
 						<NavItem
@@ -126,7 +132,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							handleNavigate={handleNavigate}
 							icon={IoIosAddCircle}
 							label={t("common.navItemAddCredentials")}
-							className="step-3 hidden md:block"
+							className="step-3 hidden md:flex"
 						/>
 
 						<NavItem
@@ -136,7 +142,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 							handleNavigate={handleNavigate}
 							icon={IoIosSend}
 							label={t("common.navItemSendCredentials")}
-							className="step-5 hidden md:block"
+							className="step-5 hidden md:flex"
 						/>
 
 						<NavItem
