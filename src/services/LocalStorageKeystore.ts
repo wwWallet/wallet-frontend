@@ -20,7 +20,6 @@ import type {
 	WrappedKeyInfo,
 } from "./keystore";
 import { MDoc } from "@auth0/mdl";
-import { JWK } from "jose";
 import { PublicKeyCredentialCreation } from "../types/webauthn";
 import WebauthnInteractionDialogContext, { UiStateMachineFunction } from "../context/WebauthnInteractionDialogContext";
 import { useTranslation } from "react-i18next";
