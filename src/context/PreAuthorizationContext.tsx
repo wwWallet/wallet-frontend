@@ -19,6 +19,8 @@ const backendURL = config.BACKEND_URL;
 const redirectURI = config.OPENID4VCI_REDIRECT_URI;
 const clientID = config.CLIENT_ID;
 
+
+
 // --- Internal Utilities ---
 const b64UrlEncode = (data: Uint8Array | string): string => {
 	const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
@@ -57,10 +59,10 @@ const safeFetchJson = async (url: string, options: RequestInit) => {
 };
 
 // --- Context Definition ---
-type PreAuthFn = (credentialOfferUrl: string, pin?: string) => Promise<void>;
-const PreAuthContext = createContext<PreAuthFn | undefined>(undefined);
+type PreAuthorization = (credentialOfferUrl: string, pin?: string) => Promise<void>;
+const PreAuthorizationContext = createContext<PreAuthorization | undefined>(undefined);
 
-export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const PreAuthorizationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 	const { api, keystore } = useContext(SessionContext);
 
 	const [isProcessing, setIsProcessing] = useState(false);
@@ -70,8 +72,10 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 	const [showPinInput, setShowPinInput] = useState(false);
 	const [activeUrl, setActiveUrl] = useState<string | null>(null);
 
-	const preAuth: PreAuthFn = useCallback(async (credentialOfferUrl, submittedPin) => {
+	const preAuth: PreAuthorization = useCallback(async (credentialOfferUrl, submittedPin) => {
 		try {
+
+
 			setIsProcessing(true);
 			setError(null);
 			setActiveUrl(credentialOfferUrl);
@@ -93,15 +97,14 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 
 			setShowPinInput(false);
 			const { code_challenge, code_verifier } = await pkce();
-
 			// 1. PAR
 			const pushedAuthorizationRequestData = await safeFetchJson(`${backendURL}/pushed-authorization-request`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams({
 					"response_type": "code",
-					"clientID": clientID,
-					"redirectURI": redirectURI,
+					"client_id": clientID,
+					"redirect_uri": redirectURI,
 					"scope": "pid:sd_jwt_dc",
 					"issuer_state": issuerState || "",
 					"code_challenge": code_challenge,
@@ -109,22 +112,22 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 				})
 			});
 
+
+
 			// 2. Authorize
 			await fetch(`${backendURL}/authorize?clientID=${clientID}&request_uri=${pushedAuthorizationRequestData.request_uri}`);
 
 			// 3. Pre-Authorize
-			const authorizationData = await safeFetchJson(`${backendURL}/pre-authorize?clientID=${clientID}&request_uri=${pushedAuthorizationRequestData.request_uri}`, {
+			const authorizationData = await safeFetchJson(`${backendURL}/pre-authorize?client_id=${clientID}&request_uri=${pushedAuthorizationRequestData.request_uri}`, {
 				method: "POST",
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
 				body: new URLSearchParams({ pre_auth_code: preAuthorizationCode }),
 			});
-
 			const authorizationCode = new URL(authorizationData.location).searchParams.get("code");
-
 			// 4. Token
 			const tokenParams = new URLSearchParams({
-				clientID: clientID,
-				redirectURI: redirectURI,
+				client_id: clientID,
+				redirect_uri: redirectURI,
 				grant_type: "authorization_code",
 				code: authorizationCode || "",
 				code_verifier
@@ -195,7 +198,7 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 	};
 
 	return (
-		<PreAuthContext.Provider value={preAuth}>
+		<PreAuthorizationContext.Provider value={preAuth}>
 			{children}
 			{(isProcessing || showPinInput || isSuccess || error) && (
 				<PopupLayout isOpen={true} loading={isProcessing} onClose={reset}>
@@ -236,12 +239,12 @@ export const PreAuthProvider: React.FC<{ children: ReactNode }> = ({ children })
 					</div>
 				</PopupLayout>
 			)}
-		</PreAuthContext.Provider>
+		</PreAuthorizationContext.Provider>
 	);
 };
 
-export const usePreAuth = () => {
-	const context = useContext(PreAuthContext);
-	if (!context) throw new Error("usePreAuth must be used within a PreAuthProvider");
+export const usePreAuthorization = () => {
+	const context = useContext(PreAuthorizationContext);
+	if (!context) throw new Error("usePreAuthorization must be used within a PreAuthProvider");
 	return context;
 };

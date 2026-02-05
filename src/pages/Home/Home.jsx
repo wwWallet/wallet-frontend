@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import AppSettingsContext from "@/context/AppSettingsContext";
-import { usePreAuth, PreAuthProvider } from '@/context/PreAuthContext'; // Added PreAuthProvider import
+import { usePreAuthorization, PreAuthorizationProvider } from '@/context/PreAuthorizationContext';
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -27,7 +27,7 @@ const Home = () => {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const preAuth = usePreAuth();
+	const preAuthorization = usePreAuthorization();
 	const {
 		vcEntityList,
 		latestCredentials,
@@ -42,10 +42,10 @@ const Home = () => {
 	useEffect(() => {
 		const credentialOfferUrl = searchParams.get('credentialOfferUrl');
 		if (credentialOfferUrl) {
-			preAuth(credentialOfferUrl);
+			preAuthorization(qrcodeurl);
 			navigate('/', { replace: true });
 		}
-	}, [searchParams, preAuth, navigate]);
+	}, [searchParams, preAuthorization, navigate]);
 
 	const handleAddCredential = () => {
 		navigate('/add');
@@ -177,8 +177,9 @@ const Home = () => {
 	);
 }
 
-	export default () => (
-	<PreAuthProvider>
+
+export default () => (
+	<PreAuthorizationProvider>
 		<Home />
-	</PreAuthProvider>
-	);
+	</PreAuthorizationProvider>
+);
