@@ -64,7 +64,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	// Fetches authorization server metadata with fallback
 	const getAuthorizationServerMetadata = useCallback(
-		async (credentialIssuerIdentifier: string): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
+		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
 			const pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
 			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
 			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
@@ -76,6 +76,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathAuthorizationServer,
 					OpenidAuthorizationServerMetadataSchema,
+					useCache
 				);
 				return { authzServerMetadata };
 			} catch {
@@ -83,12 +84,14 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathConfiguration,
 					OpenidAuthorizationServerMetadataSchema,
+					useCache,
 				).catch(() => null);
 
 				if (!authzServerMetadata) {
 					const authzMetadataFromCredentialIssuerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 						pathAuthorizationServerFromCredentialIssuerMetadata,
 						OpenidAuthorizationServerMetadataSchema,
+						useCache,
 					).catch(() => null);
 					if (!authzMetadataFromCredentialIssuerMetadata) {
 						return null;
@@ -165,6 +168,8 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					const metadata = metadataResult?.metadata;
 					if (!metadata) return;
 
+					await getAuthorizationServerMetadata(entity.credentialIssuerIdentifier, shouldUseCache);
+
 					// Call a callback to update state when metadata resolves.
 					onIssuerMetadataResolved?.(entity.credentialIssuerIdentifier, metadata);
 
@@ -198,7 +203,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			onCertificates(certificates);
 
 		},
-		[getCredentialIssuerMetadata, getMdocIacas, httpProxy, getExternalEntity]
+		[getCredentialIssuerMetadata, getMdocIacas, httpProxy, getExternalEntity, getAuthorizationServerMetadata]
 	);
 
 	return useMemo(
