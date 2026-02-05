@@ -130,34 +130,6 @@ export function extractTenantFromUserHandle(userHandle: ArrayBuffer | Uint8Array
 	return tenantId || undefined;
 }
 
-/**
- * Build the login finish API path based on the tenant extracted from the passkey.
- *
- * If the tenant is non-default, uses the tenant-scoped path.
- * If the tenant is default or not found, uses the global path.
- *
- * @param tenantId - The tenant ID extracted from the passkey userHandle
- * @returns The appropriate API path for login-webauthn-finish
- */
-export function buildLoginFinishPath(tenantId: string | undefined): string {
-	if (isDefaultTenant(tenantId)) {
-		return '/user/login-webauthn-finish';
-	}
-	return buildTenantApiPath(tenantId, '/user/login-webauthn-finish');
-}
-
-/**
- * Build the login begin API path based on the tenant.
- *
- * If the tenant is non-default, uses the tenant-scoped path.
- * If the tenant is default or not found, uses the global path.
- *
- * @param tenantId - The tenant ID (from cached user or URL)
- * @returns The appropriate API path for login-webauthn-begin
- */
-export function buildLoginBeginPath(tenantId: string | undefined): string {
-	if (isDefaultTenant(tenantId)) {
-		return '/user/login-webauthn-begin';
-	}
-	return buildTenantApiPath(tenantId, '/user/login-webauthn-begin');
-}
+// Note: Login now uses global endpoints only (/user/login-webauthn-begin and /user/login-webauthn-finish).
+// The backend discovers the tenant from the passkey's userHandle which contains a hashed tenant ID.
+// Registration continues to use tenant-scoped paths for explicit tenant context.

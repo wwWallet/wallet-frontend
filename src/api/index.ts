@@ -561,25 +561,17 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| { errorId: 'tenantDiscovered', tenantId: string }
 	>> => {
 		try {
-			// Determine the tenant context for this login:
-			// 1. URL tenant (from path like /test/login) takes highest precedence
-			// 2. Stored tenant from localStorage (set during previous login)
-			// 3. undefined (will use global endpoints, backend handles tenant discovery)
-			//
-			// Note: We cannot extract tenant from userHandle as backend uses binary format
-			// with hashed tenant ID that cannot be reversed.
-			const storedTenant = getStoredTenant();
-			const effectiveTenantId = urlTenantId || storedTenant || undefined;
-
-			const loginBeginPath = buildLoginBeginPath(effectiveTenantId);
-			console.log("Login: using begin path:", loginBeginPath, "urlTenant:", urlTenantId, "storedTenant:", storedTenant, "effective:", effectiveTenantId);
+			// Login always uses global endpoints - the backend discovers the tenant
+			// from the userHandle which contains a hashed tenant ID.
+			// The urlTenantId is kept for redirect handling after tenant discovery.
+			console.log("Login: using global endpoint, urlTenant for redirect:", urlTenantId);
 
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
 				if (isOnline) {
-					const beginResp = await post(loginBeginPath, {});
+					const beginResp = await post('/user/login-webauthn-begin', {});
 					console.log("begin", beginResp);
 					return beginResp.data;
 				}
@@ -616,19 +608,12 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			const response = credential.response as AuthenticatorAssertionResponse;
 
 			// Get the userHandle for the finish request
-			// Note: The backend uses a binary format for userHandle (v1: version + tenant hash + UUID)
-			// We cannot extract the tenant ID from the hash, so we rely on effectiveTenantId
+			// The backend extracts tenant from the userHandle's binary format (v1: version + tenant hash + UUID)
 			const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
-			console.log("Login: using effective tenant for finish:", effectiveTenantId);
-
-			// Use the same tenant context for finish as we used for begin
-			// The challenge was created in this tenant context and must be completed there
-			const loginFinishPath = buildLoginFinishPath(effectiveTenantId);
-			console.log("Login: using finish path:", loginFinishPath);
 
 			const finishResp = await (async () => {
 				if (isOnline) {
-					return updatePrivateDataEtag(await post(loginFinishPath, {
+					return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
 						challengeId: beginData.challengeId,
 						credential: {
 							type: credential.type,
@@ -656,7 +641,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							displayName: user.displayName,
 							privateData: user.privateData,
 							username: null,
-							tenantId: effectiveTenantId,
+							tenantId: user.tenantId,  // Use stored tenant from offline user data
 						},
 					};
 				}
