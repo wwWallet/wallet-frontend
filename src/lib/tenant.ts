@@ -39,21 +39,8 @@ export function clearStoredTenant(): void {
 	sessionStorage.removeItem(TENANT_STORAGE_KEY);
 }
 
-/**
- * Build a tenant-scoped API path.
- *
- * For WebAuthn registration within a tenant context, the endpoint becomes:
- *   /t/{tenantId}/user/register-webauthn-begin
- *   /t/{tenantId}/user/register-webauthn-finish
- *
- * @param tenantId - The tenant ID to scope to
- * @param basePath - The base path (e.g., '/user/register-webauthn-begin')
- * @returns The tenant-scoped path with /t/ prefix
- */
-export function buildTenantApiPath(tenantId: string, basePath: string): string {
-	const cleanPath = basePath.startsWith('/') ? basePath : `/${basePath}`;
-	return `/t/${tenantId}${cleanPath}`;
-}
+// Note: buildTenantApiPath was removed. Registration and login now use global endpoints
+// with tenantId passed in the request body instead of the URL path.
 
 /**
  * The default tenant ID used by the backend for single-tenant mode

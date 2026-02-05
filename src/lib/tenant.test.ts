@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
 	extractTenantFromUserHandle,
 	isDefaultTenant,
-	buildTenantApiPath,
 	DEFAULT_TENANT_ID,
 } from './tenant';
 
@@ -52,9 +51,9 @@ describe('tenant utilities', () => {
 		});
 	});
 
-	// Note: buildLoginFinishPath and buildLoginBeginPath were removed.
-	// Login now uses global endpoints only (/user/login-webauthn-begin, /user/login-webauthn-finish).
-	// Backend discovers tenant from userHandle.
+	// Note: buildLoginFinishPath, buildLoginBeginPath, and buildTenantApiPath were removed.
+	// Both login and registration now use global endpoints with tenantId in request body.
+	// Backend discovers tenant from userHandle (login) or tenantId parameter (registration).
 
 	describe('isDefaultTenant', () => {
 		it('should return true for undefined', () => {
@@ -73,20 +72,6 @@ describe('tenant utilities', () => {
 		it('should return false for non-default tenant', () => {
 			expect(isDefaultTenant('acme-corp')).toBe(false);
 			expect(isDefaultTenant('my-tenant')).toBe(false);
-		});
-	});
-
-	describe('buildTenantApiPath', () => {
-		it('should build tenant-scoped API path with leading slash', () => {
-			expect(buildTenantApiPath('acme', '/user/register')).toBe('/t/acme/user/register');
-		});
-
-		it('should build tenant-scoped API path without leading slash', () => {
-			expect(buildTenantApiPath('acme', 'user/register')).toBe('/t/acme/user/register');
-		});
-
-		it('should work with various tenant IDs', () => {
-			expect(buildTenantApiPath('org-123', '/user/login')).toBe('/t/org-123/user/login');
 		});
 	});
 });

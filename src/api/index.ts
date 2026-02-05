@@ -12,7 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath, buildLoginFinishPath, buildLoginBeginPath } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -723,18 +723,12 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		retryFrom?: SignupWebauthnRetryParams,
 		tenantId?: string
 	): Promise<Result<void, SignupWebauthnError>> => {
-		// Use tenant-scoped registration endpoints if a tenant ID is provided
+		// Registration uses the global endpoint with tenantId in request body
 		// This ensures the passkey's userHandle encodes the tenant for proper isolation
 		const storedTenant = tenantId || getStoredTenant();
-		const registerBeginPath = storedTenant
-			? buildTenantApiPath(storedTenant, '/user/register-webauthn-begin')
-			: '/user/register-webauthn-begin';
-		const registerFinishPath = storedTenant
-			? buildTenantApiPath(storedTenant, '/user/register-webauthn-finish')
-			: '/user/register-webauthn-finish';
 
 		try {
-			const beginData = retryFrom?.beginData || (await post(registerBeginPath, {})).data;
+			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', { tenantId: storedTenant })).data;
 			console.log("begin", beginData);
 
 			try {
@@ -771,7 +765,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					);
 
 					try {
-						const finishResp = updatePrivateDataEtag(await post(registerFinishPath, {
+						const finishResp = updatePrivateDataEtag(await post('/user/register-webauthn-finish', {
 							challengeId: beginData.challengeId,
 							displayName: name,
 							privateData: serializePrivateData(privateData),
