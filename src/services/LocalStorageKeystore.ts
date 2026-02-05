@@ -80,6 +80,7 @@ export interface LocalStorageKeystore {
 	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
 	getCachedUsers(): CachedUser[],
 	forgetCachedUser(user: CachedUser): void,
+	updateCachedUserDisplayName(userHandleB64u: string, displayName: string): void,
 	getUserHandleB64u(): string | null,
 	signJwtPresentation(nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }>,
 	generateOpenid4vciProofs(requests: { nonce: string, audience: string, issuer: string }[]): Promise<[
@@ -511,6 +512,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		setCachedUsers((cachedUsers) => cachedUsers.filter((cu) => cu.userHandleB64u !== user.userHandleB64u));
 	}, [setCachedUsers]);
 
+	const updateCachedUserDisplayName = useCallback((userHandleB64u: string, displayName: string): void => {
+		setCachedUsers((cachedUsers) => cachedUsers.map((cu) =>
+			cu.userHandleB64u === userHandleB64u
+				? { ...cu, displayName }
+				: cu
+		));
+	}, [setCachedUsers]);
+
 	const getUserHandleB64u = useCallback((): string | null => {
 		return (userHandleB64u);
 	}, [userHandleB64u]);
@@ -834,6 +843,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		upgradePrfKey,
 		getCachedUsers,
 		forgetCachedUser,
+		updateCachedUserDisplayName,
 		getUserHandleB64u,
 		signJwtPresentation,
 		generateOpenid4vciProofs,
@@ -863,6 +873,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		upgradePrfKey,
 		getCachedUsers,
 		forgetCachedUser,
+		updateCachedUserDisplayName,
 		getUserHandleB64u,
 		signJwtPresentation,
 		generateOpenid4vciProofs,

@@ -16,6 +16,20 @@ import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath
 
 const walletBackendUrl = config.BACKEND_URL;
 
+/**
+ * Formats a display name for the cached user list.
+ * Combines the user's chosen name with the tenant display name when available.
+ * @param name - The user's chosen name
+ * @param tenantDisplayName - The tenant's display name (optional)
+ * @returns Formatted display name, e.g., "alice @ TenantName" or just "alice"
+ */
+function formatCachedUserDisplayName(name: string, tenantDisplayName?: string): string {
+	if (tenantDisplayName) {
+		return `${name} @ ${tenantDisplayName}`;
+	}
+	return name;
+}
+
 type SessionState = {
 	uuid: string;
 	username: string,
@@ -679,6 +693,17 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				setStoredTenant(tenantToStore);
 			}
 
+			// Update cached user's display name with tenant info for better UX
+			// This ensures existing cached users get updated with tenant display names
+			if (finishResp?.data?.tenantDisplayName && response.userHandle) {
+				const userHandleB64u = toBase64Url(response.userHandle);
+				const userName = finishResp.data.displayName || (cachedUser?.displayName?.split(' @ ')[0]);
+				if (userName) {
+					const formattedDisplayName = formatCachedUserDisplayName(userName, finishResp.data.tenantDisplayName);
+					keystore.updateCachedUserDisplayName(userHandleB64u, formattedDisplayName);
+				}
+			}
+
 			await setSession(finishResp, credential, 'login');
 			return Ok.EMPTY;
 
@@ -783,6 +808,14 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 						// (tenant-scoped registration returns tenantId)
 						if (finishResp?.data?.tenantId) {
 							setStoredTenant(finishResp.data.tenantId);
+						}
+
+						// Update cached user's display name with tenant info for better UX
+						// (e.g., "alice @ TenantName" instead of just "alice")
+						if (finishResp?.data?.tenantDisplayName) {
+							const userHandleB64u = toBase64Url(beginData.createOptions.publicKey.user.id);
+							const formattedDisplayName = formatCachedUserDisplayName(name, finishResp.data.tenantDisplayName);
+							keystore.updateCachedUserDisplayName(userHandleB64u, formattedDisplayName);
 						}
 
 						await setSession(finishResp, credential, 'signup');
