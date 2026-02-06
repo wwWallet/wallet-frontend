@@ -155,7 +155,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
-					if ('url' in res && res.url) {
+					if ('url' in res && typeof res.url === 'string' && res.url) {
 						window.location.href = res.url;
 					}
 				})

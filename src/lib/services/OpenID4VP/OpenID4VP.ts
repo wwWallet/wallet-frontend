@@ -15,7 +15,7 @@ import { ParsedTransactionData, parseTransactionData } from "./TransactionData/p
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
-import { TransactionDataResponse } from "./TransactionData/TransactionDataResponse/TransactionDataResponse";
+import { TransactionDataResponse } from "wallet-common";
 import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
 
 export function useOpenID4VP({
