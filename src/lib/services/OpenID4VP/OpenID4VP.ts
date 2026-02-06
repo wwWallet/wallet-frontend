@@ -9,6 +9,7 @@ import { extractSAN, getPublicKeyFromB64Cert } from "../../utils/pki";
 import axios from "axios";
 import { BACKEND_URL, OPENID4VP_SAN_DNS_CHECK_SSL_CERTS, OPENID4VP_SAN_DNS_CHECK } from "../../../config";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
+import { isDiscoverAndTrustAvailable, discoverAndTrustVerifier } from '../DiscoverAndTrustService';
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -599,6 +600,35 @@ export function useOpenID4VP({
 			}
 		}
 
+		// Evaluate verifier trust via discover-and-trust API if available
+		// Returns: true (trusted), false (explicitly not trusted), undefined (check unavailable/failed)
+		async function evaluateVerifierTrust(): Promise<boolean | undefined> {
+			if (!isDiscoverAndTrustAvailable()) return;
+
+			const appToken = api.getAppToken();
+			if (!appToken) return;
+
+			try {
+				const verifierUrl = response_uri ? new URL(response_uri).origin : client_id;
+				const trustResult = await discoverAndTrustVerifier(verifierUrl, appToken);
+				if (trustResult.trusted) {
+					console.log('Verifier trust verified:', trustResult.reason);
+					return true;
+				}
+				console.warn('Verifier not trusted:', trustResult.reason);
+				return false;
+			} catch (err) {
+				// Log but don't fail - fall back to certificate-based trust
+				console.warn('discover-and-trust verifier check failed, using certificate-based trust:', err);
+				return;
+			}
+		}
+
+		const isVerifierTrusted = await evaluateVerifierTrust();
+		if (isVerifierTrusted === false) {
+			return { error: HandleAuthorizationRequestError.NONTRUSTED_VERIFIER };
+		}
+
 		if (sessionStorage.getItem('last_used_nonce') === nonce) {
 			return { error: HandleAuthorizationRequestError.OLD_STATE };
 		}
@@ -652,6 +682,7 @@ export function useOpenID4VP({
 			parsedTransactionData,
 		};
 	}, [
+		api,
 		httpProxy,
 		openID4VPRelyingPartyStateRepository,
 		matchCredentialsToDCQL,
