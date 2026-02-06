@@ -1,14 +1,14 @@
 import React, { useContext, useMemo } from 'react';
 import { Navigate, useParams, useLocation } from 'react-router-dom';
 import SessionContext from '@/context/SessionContext';
-import { getStoredTenant, buildTenantRoutePath, isDefaultTenant, DEFAULT_TENANT_ID } from '@/lib/tenant';
+import { getStoredTenant, buildTenantRoutePath, isDefaultTenant, DEFAULT_TENANT_ID, TENANT_PATH_PREFIX } from '@/lib/tenant';
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactElement => {
 	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const cachedUsers = keystore.getCachedUsers();
 	const location = useLocation();
 
-	// Get tenant from URL (if in /:tenantId/* route)
+	// Get tenant from URL (if in /id/:tenantId/* route)
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
 
 	// Get the authenticated user's tenant from storage
@@ -39,8 +39,8 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		let subPath = '';
 
 		if (urlTenantId) {
-			// In a tenant-scoped route: /:tenantId/settings → settings
-			const tenantPrefix = `/${urlTenantId}`;
+			// In a tenant-scoped route: /id/:tenantId/settings → settings
+			const tenantPrefix = `/${TENANT_PATH_PREFIX}/${urlTenantId}`;
 			if (currentPath.startsWith(tenantPrefix)) {
 				subPath = currentPath.slice(tenantPrefix.length);
 				if (subPath.startsWith('/')) subPath = subPath.slice(1);
@@ -56,13 +56,13 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 			return correctPath + location.search;
 		}
 
-		// Scenario 2: Non-default tenant user at global route (/) → redirect to /{tenantId}/
+		// Scenario 2: Non-default tenant user at global route (/) → redirect to /id/{tenantId}/
 		if (!isDefaultTenant(storedTenantId) && !urlTenantId) {
 			const correctPath = buildTenantRoutePath(storedTenantId, subPath);
 			return correctPath + location.search;
 		}
 
-		// Scenario 3: User accessing wrong tenant (e.g., tenant A user at /B/)
+		// Scenario 3: User accessing wrong tenant (e.g., tenant A user at /id/B/)
 		if (!isDefaultTenant(storedTenantId) && urlTenantId && urlTenantId !== storedTenantId) {
 			const correctPath = buildTenantRoutePath(storedTenantId, subPath);
 			return correctPath + location.search;
@@ -81,7 +81,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	if (!isLoggedIn) {
 		// For unauthenticated users, preserve the tenant from URL if present
 		const loginTenantPath = urlTenantId && !isDefaultTenant(urlTenantId)
-			? `/${urlTenantId}`
+			? `/${TENANT_PATH_PREFIX}/${urlTenantId}`
 			: '';
 
 		if (state && userExistsInCache(state)) {

@@ -1,14 +1,18 @@
 /**
  * TenantContext - React context for multi-tenancy support.
  *
+ * URL Structure:
+ * - Default tenant uses root paths: /, /settings, /login (backwards compatible)
+ * - Custom tenants use /id/ prefix: /id/{tenantId}/, /id/{tenantId}/settings
+ *
  * The tenant ID can come from multiple sources (in order of precedence):
- * 1. URL path parameter (/:tenantId/*) - for path-based routing
+ * 1. URL path parameter (/id/:tenantId/*) - for path-based routing
  * 2. Explicitly passed tenantId prop - for components that know the tenant
  * 3. SessionStorage - cached from previous login/registration
  *
  * Usage:
  *   // In App.tsx, wrap tenant-scoped routes:
- *   <Route path="/:tenantId/*" element={<TenantProvider><TenantRoutes /></TenantProvider>} />
+ *   <Route path="/id/:tenantId/*" element={<TenantProvider><TenantRoutes /></TenantProvider>} />
  *
  *   // In components:
  *   const { tenantId } = useTenant();
@@ -19,7 +23,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath, TENANT_PATH_PREFIX } from '../lib/tenant';
 
 export interface TenantContextValue {
 	/** Current tenant ID (from URL, prop, or storage) */
@@ -46,9 +50,9 @@ interface TenantProviderProps {
  * TenantProvider extracts tenant from URL path and provides it to children.
  *
  * For path-based routing, the URL structure is:
- *   /{tenantId}/settings
- *   /{tenantId}/add
- *   /{tenantId}/cb?code=...
+ *   /id/{tenantId}/settings
+ *   /id/{tenantId}/add
+ *   /id/{tenantId}/cb?code=...
  *
  * The provider:
  * 1. Reads tenantId from URL params (useParams)
@@ -60,19 +64,11 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 	const location = useLocation();
 
 	// Get tenant from URL path parameter
-	// This requires the route to be defined as /:tenantId/*
+	// This requires the route to be defined as /id/:tenantId/*
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
 
-	// Redirect /default/* to /* (root paths)
-	// The default tenant is special and should use root paths for cleaner URLs
-	useEffect(() => {
-		if (urlTenantId === 'default') {
-			// Strip /default from the path and redirect to root
-			const newPath = location.pathname.replace(/^\/default\/?/, '/') || '/';
-			const searchAndHash = location.search + location.hash;
-			navigate(newPath + searchAndHash, { replace: true });
-		}
-	}, [urlTenantId, location.pathname, location.search, location.hash, navigate]);
+	// Note: With the /id/ prefix approach, default tenant uses root paths (/) and
+	// custom tenants use /id/{tenantId}/* paths. No redirect needed for /default/*.
 
 	// Get the already-stored tenant (from prior authentication)
 	const storedTenantId = getStoredTenant();
@@ -95,7 +91,7 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 
 	const switchTenant = useCallback((newTenantId: string) => {
 		setStoredTenant(newTenantId);
-		navigate(`/${newTenantId}/`);
+		navigate(`/${TENANT_PATH_PREFIX}/${newTenantId}/`);
 	}, [navigate]);
 
 	const clearTenant = useCallback(() => {
@@ -151,7 +147,7 @@ export function useTenant(): TenantContextValue {
 export function useRequiredTenant(): string {
 	const { tenantId } = useTenant();
 	if (!tenantId) {
-		throw new Error('Tenant ID is required but not available. Ensure this component is within a tenant-scoped route.');
+		throw new Error('Tenant ID is required but not available. Ensure this component is within a tenant-scoped route (/id/:tenantId/*).');
 	}
 	return tenantId;
 }

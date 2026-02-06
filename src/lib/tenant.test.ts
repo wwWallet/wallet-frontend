@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
 	extractTenantFromUserHandle,
 	isDefaultTenant,
+	isReservedTenantName,
+	buildTenantRoutePath,
 	DEFAULT_TENANT_ID,
+	TENANT_PATH_PREFIX,
 } from './tenant';
 
 describe('tenant utilities', () => {
@@ -72,6 +75,55 @@ describe('tenant utilities', () => {
 		it('should return false for non-default tenant', () => {
 			expect(isDefaultTenant('acme-corp')).toBe(false);
 			expect(isDefaultTenant('my-tenant')).toBe(false);
+		});
+	});
+
+	describe('isReservedTenantName', () => {
+		it('should return true for "id" (tenant path prefix)', () => {
+			expect(isReservedTenantName('id')).toBe(true);
+			expect(isReservedTenantName('ID')).toBe(true);
+			expect(isReservedTenantName('Id')).toBe(true);
+		});
+
+		it('should return true for "default"', () => {
+			expect(isReservedTenantName('default')).toBe(true);
+			expect(isReservedTenantName('DEFAULT')).toBe(true);
+		});
+
+		it('should return false for regular tenant names', () => {
+			expect(isReservedTenantName('acme-corp')).toBe(false);
+			expect(isReservedTenantName('my-tenant')).toBe(false);
+			expect(isReservedTenantName('settings')).toBe(false);
+		});
+	});
+
+	describe('buildTenantRoutePath', () => {
+		it('should return root path for default tenant', () => {
+			expect(buildTenantRoutePath(undefined)).toBe('/');
+			expect(buildTenantRoutePath('')).toBe('/');
+			expect(buildTenantRoutePath(DEFAULT_TENANT_ID)).toBe('/');
+		});
+
+		it('should return root subpath for default tenant with subPath', () => {
+			expect(buildTenantRoutePath(undefined, 'settings')).toBe('/settings');
+			expect(buildTenantRoutePath(DEFAULT_TENANT_ID, 'login')).toBe('/login');
+			expect(buildTenantRoutePath('default', '/settings')).toBe('/settings');
+		});
+
+		it('should use /id/ prefix for custom tenants', () => {
+			expect(buildTenantRoutePath('acme-corp')).toBe(`/${TENANT_PATH_PREFIX}/acme-corp/`);
+			expect(buildTenantRoutePath('my-tenant')).toBe('/id/my-tenant/');
+		});
+
+		it('should use /id/ prefix for custom tenants with subPath', () => {
+			expect(buildTenantRoutePath('acme-corp', 'settings')).toBe('/id/acme-corp/settings');
+			expect(buildTenantRoutePath('acme-corp', '/login')).toBe('/id/acme-corp/login');
+		});
+	});
+
+	describe('TENANT_PATH_PREFIX', () => {
+		it('should be "id"', () => {
+			expect(TENANT_PATH_PREFIX).toBe('id');
 		});
 	});
 });
