@@ -1,14 +1,15 @@
 import React, { memo, MouseEventHandler, ReactElement } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaCircleXmark, FaTriangleExclamation } from 'react-icons/fa6';
-import { TbDeviceUsb, TbVersions } from 'react-icons/tb';
+import { CircleX, GalleryHorizontalEnd, TriangleAlert } from 'lucide-react';
 import { fromBase64Url } from '@/util';
 import { type ExtendedVcEntity } from '@/context/CredentialsContext';
-import { type CredentialKeyPair } from '@/services/keystore';
 import { PrivacyLevelIcon } from '../PrivacyLevelIcon';
+import { UsbStickDotIcon } from '../Shared/CustomIcons';
+import { CurrentSchema } from '@/services/WalletStateSchema';
 
 type Type = 'hw-bound' | 'synced';
 type PrivacyLevel = 'high' | 'medium' | 'low';
+type CredentialKeyPair = CurrentSchema.CredentialKeyPair;
 
 type StatusIndicators = {
 	type: Type | undefined;
@@ -70,7 +71,7 @@ const CredentialType = memo(({ type }: { type: Type }) => {
 	// TODO: Icons need accessible labels.
 	if (type === 'hw-bound') return (
 		<span className="p-1" title={t('credentialStatusIndicators.type.hwBound')}>
-			<TbDeviceUsb size={18} />
+			<UsbStickDotIcon size={18} />
 		</span>
 	)
 });
@@ -108,17 +109,17 @@ const CredentialUsages = memo(({ count }: { count: number }) => {
 	// TODO: Icons need accessible labels.
 	if (count > USAGE_WARNING_THRESHOLD) {
 		title = t('credentialStatusIndicators.usages.full');
-		Icon = <TbVersions size={18} />;
+		Icon = <GalleryHorizontalEnd size={18} />;
 		color = 'text-green-700 dark:text-green-500';
 		label = String(count);
 	} else if (count > 0) {
 		title = t('credentialStatusIndicators.usages.almostEmpty', { count });
-		Icon = <FaTriangleExclamation size={16} className="ml-[2px]" />;
+		Icon = <TriangleAlert size={16} className="ml-[2px]" />;
 		color = 'text-yellow-700 dark:text-yellow-500';
 		label = `${String(count)} ${t('credentialStatusIndicators.usages.almostEmptyLabel')}`;
 	} else {
 		title = t('credentialStatusIndicators.usages.empty');
-		Icon = <FaCircleXmark size={16} className="ml-[2px]" />;
+		Icon = <CircleX size={16} className="ml-[2px]" />;
 		color = 'text-red-700 dark:text-red-500';
 		label = t('credentialStatusIndicators.usages.emptyLabel');
 	}

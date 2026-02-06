@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatDate } from "../../functions/DateFormat";
+import { formatDate } from "@/utils";
 import { reverse, compareBy } from "@/util";
 import CredentialsContext from "@/context/CredentialsContext";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 import { H1 } from "../../components/Shared/Heading";
 import PageDescription from "../../components/Shared/PageDescription";
-import { PiClockCounterClockwiseBold } from "react-icons/pi";
+import { History } from "lucide-react";
 
 const Pending = () => {
 	const { t } = useTranslation();
@@ -43,7 +43,7 @@ const Pending = () => {
 			<div className="px-6 sm:px-12 w-full">
 				<H1 heading={t("pagePending.title")} />
 				<PageDescription description={t("pagePending.description")} />
-				<p className="text-gray-700 dark:text-white mt-4">
+				<p className="text-lm-gray-800 dark:text-dm-gray-200 mt-4">
 					{t("pagePending.noFound")}
 				</p>
 			</div>
@@ -56,7 +56,7 @@ const Pending = () => {
 			<PageDescription description={t("pagePending.description")} />
 
 			<div className="py-2 w-full">
-				<div className="overflow-auto space-y-2" style={{ maxHeight: "85vh" }}>
+				<div className="space-y-2">
 					{[...pendingTransactions]
 						.sort(reverse(compareBy(pt => pt.created)))
 						.map(pt => {
@@ -68,12 +68,12 @@ const Pending = () => {
 							return (
 								<div
 									key={pt.credentialEndpoint.transactionId}
-									className="text-sm px-4 py-2 dark:text-white border border-gray-300 shadow-sm dark:border-gray-600 rounded-md w-full text-left"
+									className="text-sm px-4 py-2 dark:text-dm-gray-100 shadow border border-lm-gray-400 dark:border-dm-gray-600 rounded-md w-full text-left"
 								>
 									<div className="flex gap-2 items-center">
 
-										<PiClockCounterClockwiseBold className="h-8 w-8 text-orange-500" />
-										<div className="w-px h-12 bg-gray-300 dark:bg-gray-600" />
+										<History className="h-8 w-8 text-lm-orange dark:text-dm-orange" />
+										<div className="w-px h-12 bg-lm-gray-300 dark:bg-dm-gray-700" />
 										<div>
 											<p className="font-semibold">{`${cred}`}</p>
 											<p className="font-semibold">{`${issuer}`}</p>

@@ -14,15 +14,15 @@ const NotFound = () => {
 	};
 
 	return (
-		<section className="bg-gray-100 dark:bg-gray-900">
+		<section>
 			<div className="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-dvh">
-				<Logo aClassName='mb-6' imgClassName='w-40' />
-				<h1 className="text-xl mb-7 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+				<Logo aClassName='mb-6' imgClassName='w-20' />
+				<h1 className="text-xl mb-8 font-bold leading-tight tracking-tight text-lm-gray-900 md:text-2xl text-center dark:text-dm-gray-100">
 					{t('common.walletName')}
 				</h1>
-				<div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+				<div className="w-full rounded-lg shadow border border-lm-gray-400 dark:border-dm-gray-600 md:mt-0 sm:max-w-md xl:p-0">
 					<div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-						<h1 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 md:text-4xl text-center dark:text-white">
+						<h1 className="text-2xl font-bold leading-tight tracking-tight text-lm-gray-900 md:text-4xl text-center dark:text-dm-gray-100">
 							{t('notFound.title')}
 						</h1>
 
@@ -32,7 +32,7 @@ const NotFound = () => {
 						<Button
 							id="navigate-home"
 							onClick={handleBackToHome}
-							variant="secondary"
+							variant="primary"
 							additionalClassName='w-full'
 						>
 							{t('notFound.homeButton')}

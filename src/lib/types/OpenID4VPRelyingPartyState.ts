@@ -1,10 +1,12 @@
 import { JWK } from "jose";
-import { PresentationDefinitionType, DcqlQueryType } from "./presentationDefinition.type";
+import { DcqlQueryType } from "./dcqlQuery.type";
 import * as z from 'zod';
 
 export enum ResponseMode {
 	DIRECT_POST = 'direct_post',
 	DIRECT_POST_JWT = 'direct_post.jwt',
+	DC_API = 'dc_api',
+	DC_API_JWT = 'dc_api.jwt',
 }
 
 export const ResponseModeSchema = z.nativeEnum(ResponseMode);
@@ -22,7 +24,6 @@ type ClientMetadata = {
 export class OpenID4VPRelyingPartyState {
 
 	constructor(
-		public presentation_definition: PresentationDefinitionType,
 		public nonce: string,
 		public response_uri: string,
 		public client_id: string,
@@ -35,7 +36,6 @@ export class OpenID4VPRelyingPartyState {
 
 	public serialize(): string {
 		return JSON.stringify({
-			presentation_definition: this.presentation_definition,
 			nonce: this.nonce,
 			response_uri: this.response_uri,
 			client_id: this.client_id,
@@ -48,7 +48,7 @@ export class OpenID4VPRelyingPartyState {
 	}
 
 	public static deserialize(storedValue: string): OpenID4VPRelyingPartyState {
-		const { presentation_definition, nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
-		return new OpenID4VPRelyingPartyState(presentation_definition, nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query);
+		const { nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query } = JSON.parse(storedValue) as OpenID4VPRelyingPartyState;
+		return new OpenID4VPRelyingPartyState( nonce, response_uri, client_id, state, client_metadata, response_mode, transaction_data, dcql_query);
 	}
 }

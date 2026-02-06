@@ -1,7 +1,5 @@
 import React, { useCallback, useContext, useState } from 'react';
 import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { FaInfoCircle } from 'react-icons/fa';
-import { GoPasskeyFill } from 'react-icons/go';
 import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -12,6 +10,7 @@ import Button from '../../components/Buttons/Button';
 import LoginPageLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
+import { Info, UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -75,7 +74,6 @@ const WebauthnLogin = ({
 					<Button
 						id="cancel-login-state"
 						onClick={() => navigate('/')}
-						variant="cancel"
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
@@ -88,14 +86,14 @@ const WebauthnLogin = ({
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						<GoPasskeyFill className="inline text-xl mr-2" />
+						<UserLock className="inline text-xl mr-2" />
 						{isSubmitting
 							? t('loginSignup.submitting')
 							: t('common.continue')}
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-red-500 pt-2">{error}</div>}
+			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };
@@ -143,27 +141,27 @@ const LoginState = () => {
 			<Trans
 				i18nKey="loginState.welcomeBackMessage"
 				components={{
-					highlight: <span className="text-primary dark:text-primary-light" />
+					highlight: <span className="text-primary dark:text-brand-light" />
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-dm-gray-800">
+				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
-				<div className='absolute text-gray-500 dark:text-white top-0 left-5'>
+				<div className='absolute text-lm-gray-800 dark:text-dm-gray-200  top-0 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 				<div className='absolute top-0 right-3'>
-					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
+					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-dm-gray-800 appearance-none' />
 				</div>
 				{isOnline === false && (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+					<p className="text-sm font-light text-lm-gray-800 dark:text-dm-gray-200 italic mb-2">
+						<Info size={14} className="text-md inline-block text-lm-gray-800 dark:text-dm-gray-200 mr-2" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}
-				<p className="text-sm text-center text-gray-600 dark:text-gray-200 mb-2">
+				<p className="text-sm text-center text-lm-gray-800 dark:text-dm-gray-20 mb-2">
 					<Trans
 						i18nKey="loginState.message"
 						components={{ strong: <strong /> }}

@@ -1,26 +1,30 @@
-import React, { useContext, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useContext, useEffect, useCallback, useRef, useMemo, useState } from 'react';
 
 import StatusContext from './StatusContext';
 import { useApi } from '../api';
 import { KeystoreEvent, useLocalStorageKeystore } from '../services/LocalStorageKeystore';
 import keystoreEvents from '../services/keystoreEvents';
 import SessionContext, { SessionContextValue } from './SessionContext';
-import { useWalletStateCredentialsMigrationManager } from '@/services/WalletStateCredentialsMigrationManager';
-import { useWalletStatePresentationsMigrationManager } from '@/services/WalletStatePresentationsMigrationManager';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
+import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
+import { OHTTP_KEY_CONFIG } from '@/config';
 
-export const SessionContextProvider = ({ children }) => {
+export const SessionContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
 	const api = useApi(isOnline);
 	const keystore = useLocalStorageKeystore(keystoreEvents);
+	const { getCalculatedWalletState } = keystore;
 	const isLoggedIn = useMemo(() => api.isLoggedIn() && keystore.isOpen(), [keystore, api]);
 
-	// A unique id for each logged in tab
-	const [globalTabId, setGlobalTabId, clearGlobalTabId] = useLocalStorage<string | null>("globalTabId", null);
-	const [tabId, setTabId, clearTabId] = useSessionStorage<string | null>("tabId", null);
+	const [walletStateLoaded, setWalletStateLoaded] = useState<boolean>(false);
+	const [obliviousKeyConfig, setObliviousKeyConfig] = useState<HpkeConfig>(null);
 
-	const _credentialMigrationManager = useWalletStateCredentialsMigrationManager(keystore, api, isOnline, isLoggedIn);
-	const _presentationMigrationManager = useWalletStatePresentationsMigrationManager(keystore, api, isOnline, isLoggedIn);
+	// A unique id for each logged in tab
+	const [globalTabId] = useLocalStorage<string | null>("globalTabId", null);
+	const [tabId] = useSessionStorage<string | null>("tabId", null);
+
+	const [appToken] = useSessionStorage<string | null>("appToken", null);
+
 
 	// Use a ref to hold a stable reference to the clearSession function
 	const clearSessionRef = useRef<() => void>();
@@ -60,12 +64,32 @@ export const SessionContextProvider = ({ children }) => {
 		};
 	}, []);
 
+	useEffect(() => {
+		const S = getCalculatedWalletState();
+		if (S) {
+			if (S.settings['useOblivious'] === "true") {
+				// To use oblivious, keys must be fetched.
+				// Delay setWalletStateLoaded till then.
+				async function fetchKeyConfigAndUpdate() {
+					const keyConfig = await fetchKeyConfig(OHTTP_KEY_CONFIG);
+					setObliviousKeyConfig(keyConfig);
+					setWalletStateLoaded(true);
+				}
+				fetchKeyConfigAndUpdate();
+			} else {
+				setObliviousKeyConfig(null);
+				setWalletStateLoaded(true);
+			}
+		}
+	}, [getCalculatedWalletState]);
+
 	const value: SessionContextValue = useMemo(() => ({
 		api,
 		isLoggedIn: isLoggedIn,
 		keystore,
 		logout,
-	}), [api, keystore, logout, isLoggedIn]);
+		obliviousKeyConfig
+	}), [api, keystore, logout, isLoggedIn, obliviousKeyConfig]);
 
 	useEffect(() => {
 		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
@@ -73,8 +97,15 @@ export const SessionContextProvider = ({ children }) => {
 		}
 	}, [globalTabId, tabId, clearSession, api, keystore]);
 
+	useEffect(() => {
+		if ((appToken === "" && isLoggedIn === true && isOnline === true) || // is logged-in when offline but now user is online again
+			(appToken !== "" && appToken !== null && isLoggedIn === true && isOnline === false)) { // is logged-in when online but now the user has lost connection
+			logout();
+		}
 
-	if (api.isLoggedIn() === true && keystore.isOpen() === false) {
+	}, [appToken, isLoggedIn, isOnline, logout])
+
+	if ((api.isLoggedIn() === true && (keystore.isOpen() === false || !walletStateLoaded))) {
 		return <></>
 	}
 	return (

@@ -1,5 +1,5 @@
 // External libraries
-import React, { useContext, useEffect, useState } from 'react';
+import React from 'react';
 
 // Components
 import Slider from '../Shared/Slider';
@@ -8,14 +8,12 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 
 import useScreenType from '../../hooks/useScreenType';
 
-import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
-import { CredentialVerificationError } from "wallet-common/dist/error";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { formatDate, prettyDomain } from '@/utils';
+import { BookCheck } from 'lucide-react';
 
 const HistoryDetailContent = ({ historyItem }) => {
 	const [currentSlide, setCurrentSlide] = React.useState(1);
 	const screenType = useScreenType();
-	const httpProxy = useHttpProxy();
 
 	const renderSlideContent = (vcEntity, index) => (
 		<div
@@ -28,7 +26,14 @@ const HistoryDetailContent = ({ historyItem }) => {
 
 	return (
 		<div className="py-2 w-full">
-			<div className="">
+			<div className='flex items-center gap-2 px-2 mb-4'>
+				<BookCheck size={40} className="text-white bg-primary p-2 rounded-md shrink-0" />
+				<div>
+					<p className='font-bold text-lm-gray-900 dark:text-dm-gray-100'>{prettyDomain(historyItem[0].presentation.audience)} </p>
+					<p className='text-sm text-lm-gray-800 dark:text-dm-gray-200'>{formatDate(historyItem[0].presentation.presentationTimestampSeconds)}</p>
+				</div>
+			</div>
+			<div>
 				<Slider
 					items={historyItem} // note: a HistoryItem is an array of presentations that happened in a single OpenID4VP transaction
 					renderSlideContent={renderSlideContent}

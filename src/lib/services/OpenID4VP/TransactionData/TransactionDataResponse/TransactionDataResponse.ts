@@ -13,15 +13,14 @@ export interface TransactionDataResponseGenerator {
 
 export type TransactionDataResponseGeneratorParams = {
 	descriptor_id: string;
-	presentation_definition?: Record<string, unknown>;
-	dcql_query?: Record<string, unknown>;
+	dcql_query: Record<string, unknown>;
 };
 
 
-export const TransactionDataResponse = ({ descriptor_id,  presentation_definition, dcql_query }: TransactionDataResponseGeneratorParams): TransactionDataResponseGenerator => {
+export const TransactionDataResponse = ({ descriptor_id, dcql_query }: TransactionDataResponseGeneratorParams): TransactionDataResponseGenerator => {
 	return {
 		generateTransactionDataResponse: async (transaction_data: string[]) => {
-			const parsedTd = parseTransactionData(transaction_data, presentation_definition, dcql_query);
+			const parsedTd = parseTransactionData(transaction_data, dcql_query);
 			if (parsedTd === null) {
 				return [null, new Error("invalid_transaction_data")];
 			}

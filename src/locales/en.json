@@ -22,7 +22,7 @@
 		"continue": "Continue",
 		"delete": "Delete",
 		"externalPasskey": "Passkey on a security key",
-		"hybridPasskey": "Passkey on another device",
+		"hybridPasskey": "Passkey on nearby device",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
@@ -283,6 +283,13 @@
 		"lockSensitive": "Lock sensitive actions",
 		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
+		"oblivious": {
+			"description": "Select a private gateway to use Oblivious HTTP",
+			"disabled": "Do not use Oblivious HTTP",
+			"gunet": "GUnet Gateway",
+			"successMessage": "Saved",
+			"title": "Oblivious HTTP"
+		},
 		"passkeyItem": {
 			"canEncrypt": "Can Encrypt",
 			"canEncryptNo": "No",
@@ -402,11 +409,13 @@
 		"previewTitle": "Preview",
 		"purpose": "Purpose: ",
 		"purposeNotSpecified": " Not specified by verifier",
+		"qcRequest": "This transaction requests the creation of signature certificates according to the Terms and Conditions (T&C) of the QTSP",
 		"request": "Request:",
 		"requestedCredentialsFieldsTitle": "Requested fields:",
 		"requestingParty": "Requesting Party: ",
 		"selectDescription": "Select the Credential you want to present.",
 		"selectTitle": "Select",
+		"signedDocuments": "Documents to be Signed: ",
 		"specificClaimsRequested": "The verifier has requested specific claims of the credential.",
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary",
@@ -414,6 +423,7 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",
+		"obliviousEnabled": "Private requests with Oblivious HTTP enabled",
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository of wwWallet"
 	},
@@ -428,7 +438,7 @@
 		"usePasskey": "To proceed, please authenticate with your passkey."
 	},
 	"syncPopup": {
-		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to see what's new.",
+		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to sync your wallet.",
 		"title": "Synchronize Wallet"
 	},
 	"tourGuide": {

@@ -16,10 +16,10 @@ import { DeviceResponse, MDoc } from "@auth0/mdl";
 import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
 import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
-import { addNewArkgSeedEvent, addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1 } from "./WalletStateSchema";
+import { addDeleteKeypairEvent, addNewArkgSeedEvent, addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
 import type { PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKeyWithKid, ParsedCOSEKeyArkgPubSeed } from "../webauthn";
+import { parseAuthenticatorData, parseCoseKeyWithKid } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 import * as webauthn from "../webauthn";
@@ -27,7 +27,13 @@ import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "
 
 
 type WalletState = CurrentSchema.WalletState;
+type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
 type WalletStateContainer = CurrentSchema.WalletStateContainer;
+type CredentialKeyPair = CurrentSchema.CredentialKeyPair;
+type CredentialKeyPairWithExternalPrivateKey = CurrentSchema.CredentialKeyPairWithExternalPrivateKey;
+type NewWebauthnSignKeypair = CurrentSchema.NewWebauthnSignKeypair;
+type WebauthnSignKeyRef = CurrentSchema.WebauthnSignKeyRef;
+
 const WalletStateOperations = CurrentSchema.WalletStateOperations;
 
 
@@ -203,7 +209,7 @@ export type KeystoreV0PublicData = {
 	verificationMethod: string,
 }
 export type KeystoreV0PrivateData = KeystoreV0PublicData & {
-	wrappedPrivateKey: WrappedPrivateKey,
+	wrappedPrivateKey: SchemaV1.WrappedPrivateKey,
 }
 
 export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1): privateData is KeystoreV0PrivateData {
@@ -216,7 +222,7 @@ export function isKeystoreV0PrivateData(privateData: KeystoreV0PrivateData | Pri
 	);
 }
 
-export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateData): privateData is PrivateDataV1 {
+export function isKeystoreV1PrivateData(privateData: KeystoreV0PrivateData | PrivateDataV1 | PrivateDataV2 | CurrentSchema.WalletStateContainer): privateData is PrivateDataV1 {
 	return (
 		"keypairs" in privateData
 	);
@@ -240,7 +246,8 @@ export function migrateV0PrivateData(privateData: KeystoreV0PrivateData | Privat
 	}
 }
 
-export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): PrivateData {
+
+export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateDataV2): PrivateDataV2 {
 	if (isKeystoreV1PrivateData(privateData)) {
 		const initialWalletContainer = SchemaV1.WalletStateOperations.initialWalletStateContainer();
 		initialWalletContainer.S.keypairs = Object.values(privateData.keypairs).map((keypair) => {
@@ -252,50 +259,42 @@ export function migrateV1PrivateData(privateData: PrivateDataV1 | PrivateData): 
 	}
 }
 
-export type NewWebauthnSignKeypair = { arkg: WebauthnSignArkgPublicSeed };
-export type WebauthnSignArkgPublicSeed = {
-	credentialId: Uint8Array,
-	publicSeed: ParsedCOSEKeyArkgPubSeed,
+export async function migrateV3PrivateData(privateData: PrivateDataV2 | PrivateData, encryptionKey: CryptoKey): Promise<PrivateData> {
+	const state = foldState(privateData);
+	const wrappedKeypairs = state.keypairs
+		.filter(k => "wrappedPrivateKey" in k.keypair) as unknown as SchemaV2.WalletState["keypairs"];
+	const unwrappedKeypairs = await Promise.all(wrappedKeypairs.map(async (k) => {
+		const unwrapped = await unwrapPrivateKey(k.keypair.wrappedPrivateKey, encryptionKey, true);
+		const jwk = unwrapped instanceof CryptoKey ? await crypto.subtle.exportKey("jwk", unwrapped) as JWK : unwrapped;
+		const keypair: SchemaV3.CredentialKeyPair = {
+			kid: k.kid,
+			did: k.keypair.did,
+			alg: k.keypair.alg,
+			publicKey: k.keypair.publicKey,
+			privateKey: jwk,
+		};
+		return {
+			kid: k.kid,
+			keypair: keypair,
+		}
+	}));
+
+	for (const { kid, keypair } of unwrappedKeypairs) {
+		privateData = await addDeleteKeypairEvent(privateData as CurrentSchema.WalletStateContainer, kid);
+		privateData = await addNewKeypairEvent(privateData, kid, keypair);
+	}
+	return privateData;
 }
 
-type WebauthnSignKeyRef = {
-	credentialId: Uint8Array,
-	keyRef: Uint8Array,
-}
-
-type CredentialKeyPairCommon = {
-	kid: string,
-	did: string,
-	alg: string,
-	publicKey: JWK,
-}
-export type CredentialKeyPairWithWrappedPrivateKey = CredentialKeyPairCommon & {
-	wrappedPrivateKey: WrappedPrivateKey,
-}
-type CredentialKeyPairWithExternalPrivateKey = CredentialKeyPairCommon & {
-	externalPrivateKey: WebauthnSignKeyRef,
-}
-export type CredentialKeyPair = CredentialKeyPairWithWrappedPrivateKey | CredentialKeyPairWithExternalPrivateKey;
-
-type WrappedPrivateKeyJwk = {
-	privateKey: BufferSource,
-	aesGcmParams: AesGcmParams,
-}
-
-type WrappedPrivateCryptoKey = WrappedPrivateKeyJwk & {
-	unwrappedKeyAlgo: EcKeyImportParams,
-}
-
-type WrappedPrivateKey = WrappedPrivateCryptoKey | WrappedPrivateKeyJwk;
-
-
-export type PrivateDataV1 = {
+type CredentialKeyPairV1 = SchemaV1.CredentialKeyPair;
+type PrivateDataV1 = {
 	keypairs: {
-		[kid: string]: CredentialKeyPair,
+		[kid: string]: CredentialKeyPairV1,
 	},
 }
 
 export type PrivateData = WalletStateContainer;
+export type PrivateDataV2 = WalletStateContainerV2;
 
 function makeWebauthnSignFunction(
 	rpId: string,
@@ -408,7 +407,6 @@ export async function updatePrivateData(
 	[privateData, currentMainKey]: OpenedContainer,
 	update: (
 		privateData: PrivateData,
-		updateWrappedPrivateKey: WrappedMapFunc<WrappedPrivateKey, CryptoKey | JWK>,
 	) => Promise<PrivateData>,
 ): Promise<OpenedContainer> {
 	const {
@@ -417,23 +415,12 @@ export async function updatePrivateData(
 		privateKey: newMainPrivateKey,
 	} = await createAsymmetricMainKey();
 
-	const privateDataContent = await decryptPrivateData(privateData.jwe, currentMainKey);
-	const updateWrappedPrivateKey = async (wrappedPrivateKey: WrappedPrivateKey, update: AsyncMapFunc<CryptoKey | JWK>) => {
-		const privateKey = await unwrapPrivateKey(wrappedPrivateKey, currentMainKey, true);
-		const newPrivateKey = await update(privateKey);
-		return await wrapPrivateKey(newPrivateKey, currentMainKey);
-	};
-
-	const newPrivateDataContent = await rewrapPrivateKeys(
-		await update(privateDataContent, updateWrappedPrivateKey),
-		currentMainKey,
-		newMainKey,
-	);
+	const privateDataContent = await update(await decryptPrivateData(privateData.jwe, currentMainKey));
 
 	return [
 		{
 			mainKey: newMainPublicKeyInfo,
-			jwe: await encryptPrivateData(newPrivateDataContent, newMainKey),
+			jwe: await encryptPrivateData(privateDataContent, newMainKey),
 			passwordKey: privateData.passwordKey && {
 				...privateData.passwordKey,
 				...await encapsulateKey(
@@ -634,43 +621,16 @@ export async function unwrapKey(
 	}
 }
 
-async function unwrapPrivateKey(wrappedPrivateKey: WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey | JWK> {
-	if ("unwrappedKeyAlgo" in wrappedPrivateKey) {
-		return await crypto.subtle.unwrapKey(
-			"jwk",
-			wrappedPrivateKey.privateKey,
-			wrappingKey,
-			wrappedPrivateKey.aesGcmParams,
-			wrappedPrivateKey.unwrappedKeyAlgo,
-			extractable,
-			["sign"],
-		);
-	} else {
-		const privateKeyData = await crypto.subtle.decrypt(wrappedPrivateKey.aesGcmParams, wrappingKey, wrappedPrivateKey.privateKey);
-		return JSON.parse(new TextDecoder().decode(privateKeyData));
-	}
-};
-
-async function wrapPrivateKey(privateKey: CryptoKey | JWK, wrappingKey: CryptoKey): Promise<WrappedPrivateKey> {
-	const privateKeyAesGcmParams: AesGcmParams = {
-		name: "AES-GCM",
-		iv: crypto.getRandomValues(new Uint8Array(96 / 8)),
-		additionalData: new Uint8Array([]),
-		tagLength: 128,
-	};
-	if (privateKey instanceof CryptoKey) {
-		return {
-			privateKey: await crypto.subtle.wrapKey("jwk", privateKey, wrappingKey, privateKeyAesGcmParams),
-			aesGcmParams: privateKeyAesGcmParams,
-			unwrappedKeyAlgo: { name: "ECDSA", namedCurve: "P-256" },
-		};
-	} else {
-		const privateKeyData = new TextEncoder().encode(JSON.stringify(privateKey));
-		return {
-			privateKey: await crypto.subtle.encrypt(privateKeyAesGcmParams, wrappingKey, privateKeyData),
-			aesGcmParams: privateKeyAesGcmParams,
-		};
-	}
+async function unwrapPrivateKey(wrappedPrivateKey: SchemaV1.WrappedPrivateKey, wrappingKey: CryptoKey, extractable: boolean = false): Promise<CryptoKey | JWK> {
+	return await crypto.subtle.unwrapKey(
+		"jwk",
+		wrappedPrivateKey.privateKey,
+		wrappingKey,
+		wrappedPrivateKey.aesGcmParams,
+		wrappedPrivateKey.unwrappedKeyAlgo,
+		extractable,
+		["sign"],
+	);
 };
 
 async function encryptPrivateData(privateData: PrivateData, encryptionKey: CryptoKey): Promise<string> {
@@ -681,74 +641,15 @@ async function encryptPrivateData(privateData: PrivateData, encryptionKey: Crypt
 };
 
 async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoKey): Promise<PrivateData> {
-	return migrateV1PrivateData(
-		migrateV0PrivateData(
-			jsonParseTaggedBinary(
-				new TextDecoder().decode(
-					(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
-				))
-		));
+	return migrateV3PrivateData(
+		migrateV1PrivateData(
+			migrateV0PrivateData(
+				jsonParseTaggedBinary(
+					new TextDecoder().decode(
+						(await jose.compactDecrypt(privateDataJwe, encryptionKey)).plaintext
+					))
+			)), encryptionKey);
 };
-
-async function rewrapPrivateKeys(
-	privateData: PrivateData,
-	fromKey: CryptoKey,
-	toKey: CryptoKey,
-): Promise<PrivateData> {
-	const rewrappedKeys: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
-		Object.values(privateData.S.keypairs).map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => {
-			if ("wrappedPrivateKey" in keypair) {
-				return {
-					kid,
-					keypair: {
-						...keypair,
-						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-					},
-				};
-			} else {
-				return { kid, keypair };
-			}
-		})
-	);
-
-	const newCredentialKeypairEvents = privateData.events.filter(e => e.type === 'new_keypair');
-	const rewrappedKeysFromEvents: { kid: string, keypair: CredentialKeyPair }[] = await Promise.all(
-		newCredentialKeypairEvents.map(async ({ kid, keypair }): Promise<{ kid: string, keypair: CredentialKeyPair }> => {
-			if ("wrappedPrivateKey" in keypair) {
-				return {
-					kid,
-					keypair: {
-						...keypair,
-						wrappedPrivateKey: await wrapPrivateKey(await unwrapPrivateKey(keypair.wrappedPrivateKey, fromKey, true), toKey),
-					},
-				};
-			} else {
-				return { kid, keypair };
-			}
-		}),
-	);
-
-	return {
-		...privateData,
-		lastEventHash: privateData.lastEventHash ?? "",
-		S: {
-			...privateData.S,
-			keypairs: rewrappedKeys,
-		},
-		events: privateData.events.map((e) => {
-			if (e.type === "new_keypair") {
-				const rewrappedKeypair = rewrappedKeysFromEvents.filter((k) => k.kid === e.kid)[0];
-				if (rewrappedKeypair) {
-					return {
-						...e,
-						keypair: rewrappedKeypair.keypair,
-					}
-				}
-			}
-			return e;
-		}),
-	};
-}
 
 async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInfo): Promise<CryptoKey> {
 	const keyMaterial = await crypto.subtle.importKey(
@@ -1399,7 +1300,7 @@ async function generateCredentialKeypair(
 	[encryptedContainer, mainKey]: OpenedContainer,
 ): Promise<[
 	CryptoKey,
-	[CryptoKey, { wrappedPrivateKey: WrappedPrivateKey } | { externalPrivateKey: WebauthnSignKeyRef }],
+	[CryptoKey, { privateKey: JWK } | { externalPrivateKey: WebauthnSignKeyRef }],
 ]> {
 	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
 	const state = foldState(privateData);
@@ -1437,8 +1338,8 @@ async function generateCredentialKeypair(
 			true,
 			['sign']
 		);
-		const wrappedPrivateKey = await wrapPrivateKey(privateKey, mainKey);
-		return [publicKey, [privateKey, { wrappedPrivateKey }]];
+		const privateKeyJwk = await crypto.subtle.exportKey("jwk", privateKey) as JWK;
+		return [publicKey, [privateKey, { privateKey: privateKeyJwk }]];
 	}
 }
 
@@ -1540,14 +1441,9 @@ export async function signJwtPresentation(
 	const sd_hash = toBase64Url(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(sdJwt)));
 
 	const performSignature = async (signJwt: SignJWT, keypair: CredentialKeyPair) => {
-		if ("wrappedPrivateKey" in keypair) {
-			const { wrappedPrivateKey } = keypair;
-			const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey);
-			if (privateKey instanceof CryptoKey) {
-				return signJwt.sign(privateKey);
-			} else {
-				throw new Error("Unexpected unwrapped private key: expected CryptoKey, was: " + (typeof privateKey));
-			}
+		if ("privateKey" in keypair) {
+			const privateKey = await crypto.subtle.importKey("jwk", keypair.privateKey, { name: "ECDSA", namedCurve: "P-256" }, false, ["sign"]);
+			return signJwt.sign(privateKey);
 
 		} else {
 			return signJwt.sign(
@@ -1679,13 +1575,12 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	if (!("wrappedPrivateKey" in keypair.keypair)) {
+	if (!("privateKey" in keypair.keypair)) {
 		// TODO
 		throw new Error("Not implemented: generateDeviceResponse with external private key");
 	}
-	const { alg, wrappedPrivateKey } = keypair.keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await toJwk(privateKey);
+	const { alg, privateKey } = keypair.keypair;
+	const privateKeyJwk = privateKey;
 
 	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
@@ -1725,13 +1620,12 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 		throw new Error("Key pair not found for kid (key ID): " + kid);
 	}
 
-	if (!("wrappedPrivateKey" in keypair.keypair)) {
+	if (!("privateKey" in keypair.keypair)) {
 		// TODO
 		throw new Error("Not implemented: generateDeviceResponseWithProximity with external private key");
 	}
-	const { alg, did, wrappedPrivateKey } = keypair.keypair;
-	const privateKey = await unwrapPrivateKey(wrappedPrivateKey, mainKey, true);
-	const privateKeyJwk = await toJwk(privateKey);
+	const { alg, privateKey } = keypair.keypair;
+	const privateKeyJwk = privateKey;
 
 	const options = getCborEncodeDecodeOptions();
 	options.variableMapSize = true;

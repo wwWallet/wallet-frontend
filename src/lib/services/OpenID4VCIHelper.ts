@@ -27,27 +27,38 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			}
 		}, [httpProxy])
 
-
-	const getClientId = useCallback(
-		async (credentialIssuerIdentifier: string) => {
-
+	const getCredentialIssuerMetadata = useCallback(
+		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
+			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
 			try {
-				const issuerResponse = await getExternalEntity('/issuer/all', undefined, true);
-				const trustedCredentialIssuers = issuerResponse.data;
-				const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
-				if (issuer) {
-					return { client_id: issuer.clientId };
+				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
+					pathCredentialIssuer,
+					OpenidCredentialIssuerMetadataSchema,
+					useCache,
+				);
+				if (metadata.signed_metadata) {
+					try {
+						const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(metadata.signed_metadata.split('.')[0])));
+						if (parsedHeader.x5c) {
+							const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
+							const { payload } = await jwtVerify(metadata.signed_metadata, publicKey);
+							return { metadata: payload as OpenidCredentialIssuerMetadata };
+						}
+						return null;
+					}
+					catch (err) {
+						console.error(err);
+						return null;
+					}
 				}
-
-				return { client_id: "CLIENT123" };
+				return { metadata };
 			}
 			catch (err) {
-				console.log("Could not get client_id for issuer " + credentialIssuerIdentifier + " Details:");
 				console.error(err);
-				return { client_id: "CLIENT123" };
+				return null;
 			}
 		},
-		[getExternalEntity]
+		[fetchAndParseWithSchema]
 	);
 
 	// Fetches authorization server metadata with fallback
@@ -86,43 +97,30 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return { authzServeMetadata };
 			}
 		},
-		[fetchAndParseWithSchema]
+		[fetchAndParseWithSchema, getCredentialIssuerMetadata]
 	);
 
-	const getCredentialIssuerMetadata = useCallback(
-		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
-			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
+	const getClientId = useCallback(
+		async (credentialIssuerIdentifier: string) => {
+
 			try {
-				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
-					pathCredentialIssuer,
-					OpenidCredentialIssuerMetadataSchema,
-					useCache,
-				);
-				if (metadata.signed_metadata) {
-					try {
-						const parsedHeader = JSON.parse(new TextDecoder().decode(base64url.decode(metadata.signed_metadata.split('.')[0])));
-						if (parsedHeader.x5c) {
-							const publicKey = await importX509(getPublicKeyFromB64Cert(parsedHeader.x5c[0]), parsedHeader.alg);
-							const { payload } = await jwtVerify(metadata.signed_metadata, publicKey);
-							return { metadata: payload as OpenidCredentialIssuerMetadata };
-						}
-						return null;
-					}
-					catch (err) {
-						console.error(err);
-						return null;
-					}
+				const issuerResponse = await getExternalEntity('/issuer/all', undefined, true);
+				const trustedCredentialIssuers = issuerResponse.data;
+				const issuer = trustedCredentialIssuers.filter((issuer: any) => issuer.credentialIssuerIdentifier === credentialIssuerIdentifier)[0];
+				if (issuer) {
+					return { client_id: issuer.clientId };
 				}
-				return { metadata };
+
+				return null;
 			}
 			catch (err) {
+				console.log("Could not get client_id for issuer " + credentialIssuerIdentifier + " Details:");
 				console.error(err);
 				return null;
 			}
 		},
-		[fetchAndParseWithSchema]
+		[getExternalEntity]
 	);
-
 
 	const getMdocIacas = useCallback(
 		async (credentialIssuerIdentifier: string, metadata?: OpenidCredentialIssuerMetadata, useCache?: boolean) => {
@@ -146,7 +144,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				return null;
 			}
 		},
-		[]
+		[fetchAndParseWithSchema, getCredentialIssuerMetadata]
 	);
 
 	const fetchIssuerMetadataAndCertificates = useCallback(

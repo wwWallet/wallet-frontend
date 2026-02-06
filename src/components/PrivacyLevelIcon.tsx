@@ -1,7 +1,7 @@
-import { IoShield, IoShieldHalf, IoShieldOutline } from 'react-icons/io5';
+import { Shield, ShieldCheck, ShieldOff } from 'lucide-react';
 
 export namespace PrivacyLevelIcon {
-	export const High = IoShield;
-	export const Medium = IoShieldHalf;
-	export const Low = IoShieldOutline;
+	export const High = ShieldCheck;
+	export const Medium = Shield;
+	export const Low = ShieldOff;
 }

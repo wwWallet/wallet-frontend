@@ -1,45 +1,6 @@
 import * as cbor from 'cbor-web';
-import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from 'wallet-common/dist/cose';
+import { COSE_ALG_ARKG_P256, COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_PUB, ParsedCOSEKeyArkgPubSeed, ParsedCOSEKeyEc2Public, ParsedCOSEKeyRefArkgDerived } from 'wallet-common/dist/cose';
 
-
-export type ParsedCOSEKey = {
-	kty: number | string,
-	kid?: Uint8Array,
-	alg?: COSEAlgorithmIdentifier,
-	[name: string]: any,
-};
-
-export type ParsedCOSEKeyEc2Public = ParsedCOSEKey & {
-	kty: 2,
-	kid?: Uint8Array,
-	alg?: COSEAlgorithmIdentifier,
-	crv: number,
-	x: Uint8Array,
-	y: Uint8Array,
-};
-
-export type ParsedCOSEKeyArkgPubSeed = ParsedCOSEKey & {
-	kty: COSE_KTY_ARKG_PUB,
-	alg: COSEAlgorithmIdentifier,
-	pkBl: ParsedCOSEKey,
-	pkKem: ParsedCOSEKey,
-};
-
-export type ParsedCOSEKeyRef = {
-	kty: number | string,
-	kid: Uint8Array,
-	alg?: COSEAlgorithmIdentifier,
-	[name: string]: any,
-};
-
-export type ParsedCOSEKeyRefArkgDerivedBase = ParsedCOSEKeyRef & {
-	kty: COSE_KTY_ARKG_DERIVED,
-};
-
-export type ParsedCOSEKeyRefArkgDerived = ParsedCOSEKeyRefArkgDerivedBase & {
-	kh: Uint8Array,
-	info: Uint8Array,
-}
 
 export type AuthenticatorData = {
 	rpIdHash: Uint8Array,

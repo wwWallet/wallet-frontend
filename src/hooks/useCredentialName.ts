@@ -10,7 +10,7 @@ export function useCredentialName(
 	const fetchName = useCallback(() => {
 		if (!credentialNameFn) return Promise.resolve(null);
 		return credentialNameFn(preferredLangs);
-	}, [credentialNameFn, ...preferredLangs]);
+	}, [credentialNameFn, preferredLangs]);
 
 	useEffect(() => {
 		let isMounted = true;

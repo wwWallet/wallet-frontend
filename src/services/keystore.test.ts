@@ -107,32 +107,28 @@ describe("The keystore", () => {
 			'dnE-aoRPZ90sy6s2bUVMt2mVu7hxtg.gujY6di7F5ezUEJQ08GwDQ"}',
 		);
 
-		{
-			const [unlocked,] = await keystore.unlockPrf(
-				privateData,
-				mockPrfCredential({
-					id: privateData.prfKeys[0].credentialId,
-					prfOutput: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
-				}),
-				async () => false,
-			);
-			assert.strictEqual(unlocked.privateData, privateData);
-		}
+		const [unlocked,] = await keystore.unlockPrf(
+			privateData,
+			mockPrfCredential({
+				id: privateData.prfKeys[0].credentialId,
+				prfOutput: fromBase64("kgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
+			}),
+			async () => false,
+		);
+		assert.strictEqual(unlocked.privateData, privateData);
 
-		{
-			await asyncAssertThrows(
-				() =>
-					keystore.unlockPrf(
-						privateData,
-						mockPrfCredential({
-							id: privateData.prfKeys[0].credentialId,
-							prfOutput: fromBase64("KgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
-						}),
-						async () => false,
-					),
-				"Expected unlock with incorrect PRF output to fail",
-			);
-		}
+		await asyncAssertThrows(
+			() =>
+				keystore.unlockPrf(
+					privateData,
+					mockPrfCredential({
+						id: privateData.prfKeys[0].credentialId,
+						prfOutput: fromBase64("KgUVc/5jaq9GQbheeqvzX73xue7rAEtJh+UpW9VOVZ0="),
+					}),
+					async () => false,
+				),
+			"Expected unlock with incorrect PRF output to fail",
+		);
 	});
 
 	it("can decrypt a container encrypted with a V2 PRF key.", async () => {
@@ -183,33 +179,29 @@ describe("The keystore", () => {
 			'xvS281cYceLoLatQroRwg.sxVqxz76jcSvdKUtHbxXwA"}',
 		);
 
-		{
-			const [unlocked, newPrivateData] = await keystore.unlockPrf(
-				privateData,
-				mockPrfCredential({
-					id: privateData.prfKeys[0].credentialId,
-					prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
-				}),
-				async () => false,
-			);
-			assert.strictEqual(unlocked.privateData, privateData);
-			assert.isNull(newPrivateData, "Expected no upgrade when PRF key is already V2");
-		}
+		const [unlocked, newPrivateData] = await keystore.unlockPrf(
+			privateData,
+			mockPrfCredential({
+				id: privateData.prfKeys[0].credentialId,
+				prfOutput: fromBase64("2WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
+			}),
+			async () => false,
+		);
+		assert.strictEqual(unlocked.privateData, privateData);
+		assert.isNull(newPrivateData, "Expected no upgrade when PRF key is already V2");
 
-		{
-			await asyncAssertThrows(
-				() =>
-					keystore.unlockPrf(
-						privateData,
-						mockPrfCredential({
-							id: privateData.prfKeys[0].credentialId,
-							prfOutput: fromBase64("1WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
-						}),
-						async () => false,
-					),
-				"Expected unlock with incorrect PRF output to fail",
-			);
-		}
+		await asyncAssertThrows(
+			() =>
+				keystore.unlockPrf(
+					privateData,
+					mockPrfCredential({
+						id: privateData.prfKeys[0].credentialId,
+						prfOutput: fromBase64("1WEuykvYBxHGT2RCAoVrsPnkUl+T/tOQZbliln7bNmM="),
+					}),
+					async () => false,
+				),
+			"Expected unlock with incorrect PRF output to fail",
+		);
 	});
 
 	it("can decrypt a container encrypted with a V1 password key with 1000 PBKDF iterations.", async () => {
@@ -595,11 +587,11 @@ describe("The keystore", () => {
 			assert.equal(keypairs.length, numKeys);
 			const [, , calculatedState] = await keystore.openPrivateData(newMainKey, newPrivateData);
 			for (const keypair of keypairs) {
-				assert("wrappedPrivateKey" in keypair);
-				const { kid, publicKey, wrappedPrivateKey } = keypair;
+				assert("privateKey" in keypair);
+				const { kid, publicKey, privateKey } = keypair;
 				const { publicKey: storedPublicKey } = calculatedState.keypairs.filter((keypair) => keypair.kid === kid)[0].keypair;
 				assert.deepEqual(publicKey, storedPublicKey);
-				assert.isOk(wrappedPrivateKey);
+				assert.isOk(privateKey);
 			}
 		};
 		it("p256-pub.", async () => test("p256-pub"));
@@ -760,7 +752,7 @@ describe("The keystore", () => {
 		);
 		assert.strictEqual(privateData.prfKeys.length, 0);
 
-		const [{ mainKey }, ] = await keystore.unlockPassword(privateData, "Asdf123!");
+		const [{ mainKey },] = await keystore.unlockPassword(privateData, "Asdf123!");
 
 		const credentialId = fromBase64("iy755++V64pc9quxa20eVs2mwwwsJcbmlql0OKHMpA1w/hWAlMIPjosYmgJuh0Y+");
 		const newPrivateData = await keystore.finishAddPrf(
@@ -830,7 +822,7 @@ describe("The keystore", () => {
 		);
 		assert.strictEqual(privateData.prfKeys.length, 1);
 
-		const [{ mainKey }, ] = await keystore.unlockPrf(
+		const [{ mainKey },] = await keystore.unlockPrf(
 			privateData,
 			mockPrfCredential({
 				id: privateData.prfKeys[0].credentialId,
@@ -977,7 +969,7 @@ describe("The keystore", () => {
 		it("when the update is a no-op.", async () => {
 			const [newPrivateData, newMainKey] = await keystore.updatePrivateData(
 				[privateData, oldMainKeys[0]],
-				async (privateData, updateWrappedPrivateKey) =>
+				async (privateData) =>
 					// No-op
 					privateData,
 			);
@@ -1010,21 +1002,16 @@ describe("The keystore", () => {
 		it("when the update replaces the user's key pair.", async () => {
 			const [newPrivateData, newMainKey] = await keystore.updatePrivateData(
 				[privateData, oldMainKeys[0]],
-				async (privateData, updateWrappedPrivateKey) => {
+				async (privateData) => {
 					const { publicKey, privateKey } = await crypto.subtle.generateKey(
 						{ name: "ECDSA", namedCurve: "P-256" },
 						true,
 						['sign', 'verify']
 					);
 					const publicKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", publicKey) as jose.JWK;
+					const privateKeyJwk: jose.JWK = await crypto.subtle.exportKey("jwk", privateKey) as jose.JWK;
 					const did = util.createDid(publicKeyJwk);
 					const kid = did;
-					assert("wrappedPrivateKey" in privateData.S.keypairs[0].keypair);
-					const wrappedPrivateKey = await updateWrappedPrivateKey(
-						// TODO // (Object.values(privateData.keypairs)[0] as keystore.CredentialKeyPairWithWrappedPrivateKey).wrappedPrivateKey,
-						privateData.S.keypairs[0].keypair.wrappedPrivateKey,
-						async () => privateKey,
-					);
 					const firstKeyPair = privateData.S.keypairs[0];
 					firstKeyPair.kid = kid;
 					firstKeyPair.keypair = {
@@ -1033,7 +1020,7 @@ describe("The keystore", () => {
 						did,
 						alg: "ES256",
 						// verificationMethod: did + "#" + did.split(':')[2],
-						wrappedPrivateKey,
+						privateKey: privateKeyJwk,
 					};
 					return privateData;
 				},
@@ -1055,7 +1042,7 @@ describe("The keystore", () => {
 			assert.strictEqual(privateData.prfKeys[1].credentialId, newPrivateData.prfKeys[1].credentialId);
 
 			const [oldUnlocked,] = await keystore.unlockPrf(privateData, mockCredential1, async () => false);
-			const [oldPrivateDataContent,,] = await keystore.openPrivateData(oldUnlocked.mainKey, oldUnlocked.privateData);
+			const [oldPrivateDataContent, ,] = await keystore.openPrivateData(oldUnlocked.mainKey, oldUnlocked.privateData);
 			const oldKid = oldPrivateDataContent.S.keypairs[0].kid;
 
 			for (const [unlocked, newPrivateData2] of [

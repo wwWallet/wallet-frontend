@@ -1,5 +1,4 @@
 import React from 'react';
-import { useHttpProxy } from '@/lib/services/HttpProxy/HttpProxy';
 import { highlightBestSequence } from '@/components/QueryableList/highlightBestSequence';
 import { useProxiedImage } from '@/hooks/useProxiedImage'
 type EntityListItemProps = {
@@ -9,7 +8,6 @@ type EntityListItemProps = {
 };
 
 const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItemProps) => {
-	const proxy = useHttpProxy();
 
 	const primaryLogoSrc = useProxiedImage(primaryData?.logo?.uri);
 	const secondaryImageSrc = useProxiedImage(secondaryData?.logo?.uri);
@@ -34,10 +32,10 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 		: { backgroundColor: 'white' };
 
 	return (
-		<span className="flex flex-col justify-between w-full gap-2 leading-tight break-words">
+		<span className="flex flex-col justify-between w-full gap-2 leading-tight wrap-break-word">
 			<span className="flex justify-start items-center gap-2 w-full">
 				<div
-					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-gray-200 rounded-md shrink-0"
+					className="h-10 w-10 text-2xl flex justify-center items-center border-[0.5px] border-lm-gray-400 rounded-md shrink-0"
 					style={logoStyle}
 				>
 					{primaryLogoSrc ? (
@@ -59,10 +57,10 @@ const DisplayNode = ({ primaryData, secondaryData, searchQuery }: EntityListItem
 			</span>
 
 			{secondaryData && (
-				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-gray-200 dark:bg-gray-600 whitespace-nowrap">
+				<span className="flex max-w-max mt-1 px-2 py-1 text-sm rounded-md items-center gap-2 font-light bg-lm-gray-300 dark:bg-dm-gray-700 whitespace-nowrap">
 					{secondaryImageSrc && (
 						<div
-							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-gray-200"
+							className="h-5 w-5 flex justify-center items-center rounded-sm shrink-0 border-[0.5px] border-lm-gray-400"
 							style={issuerLogoStyle}
 						>
 							<img

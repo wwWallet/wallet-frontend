@@ -1,15 +1,12 @@
 // MessagePopup.js
 import React, { useContext, useState, useCallback } from 'react';
-import { FaCheckCircle } from 'react-icons/fa';
 import { useTranslation, Trans } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
-import StatusContext from '@/context/StatusContext';
-import { useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
-import { GoPasskeyFill } from 'react-icons/go';
-import { MdOutlineSyncLock } from "react-icons/md";
+import { UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
 	filteredUser,
@@ -18,8 +15,6 @@ const WebauthnLogin = ({
 	const { api, keystore } = useContext(SessionContext);
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
-	const location = useLocation();
-	const from = '/';
 	const { t } = useTranslation();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +51,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t, from],
+		[api, keystore, navigate, t],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {
@@ -74,7 +69,6 @@ const WebauthnLogin = ({
 					<Button
 						id="cancel-login-state"
 						onClick={onClose}
-						variant="cancel"
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
@@ -87,14 +81,14 @@ const WebauthnLogin = ({
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
-						<GoPasskeyFill className="inline text-xl mr-2" />
+						<UserLock className="inline text-xl mr-2" />
 						{isSubmitting
 							? t('loginSignup.submitting')
 							: t('common.continue')}
 					</Button>
 				</div>
 			</ul>
-			{error && <div className="text-red-500 pt-2">{error}</div>}
+			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 		</>
 	);
 };
@@ -103,17 +97,11 @@ const SyncPopup = ({ message, onClose }) => {
 	const { description } = message || {};
 	const { t } = useTranslation();
 
-	const { isOnline } = useContext(StatusContext);
-	const { isLoggedIn, keystore } = useContext(SessionContext);
+	const { keystore } = useContext(SessionContext);
 	const location = useLocation();
 
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search || '/';
-
-
-	const IconComponent = FaCheckCircle;
-	const color = 'green-500';
-
 
 	const getfilteredUser = () => {
 		const queryParams = new URLSearchParams(from);
@@ -135,7 +123,7 @@ const SyncPopup = ({ message, onClose }) => {
 
 		return [null, false, authenticated === 'true'];
 	};
-	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
+	const [filteredUser] = getfilteredUser();
 
 	if (!filteredUser) {
 		return;
@@ -144,10 +132,10 @@ const SyncPopup = ({ message, onClose }) => {
 	return (
 		<PopupLayout isOpen={true} onClose={onClose} shouldCloseOnOverlayClick={false}>
 			<div className="flex flex-col items-center text-center mb-2">
-				<p className="font-bold text-xl mt-2 dark:text-white">
+				<p className="font-bold text-xl mt-2 dark:text-dm-gray-100">
 					{t('loginState.title')} {filteredUser.displayName}
 				</p>
-				<p className=" mb-2 mt-2 dark:text-white">
+				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
 					<Trans
 						i18nKey={description}
 						components={{ strong: <strong /> }}

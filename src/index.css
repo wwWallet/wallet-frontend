@@ -1,33 +1,162 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@variant 2xs (@media (min-width: 360px));
+@variant xm (@media (max-width: 479px));
+
+/* Theme Variables */
+@theme {
+	--color-brand-lighter: var(--theme-brand-color-lighter);
+	--color-brand-light: var(--theme-brand-color-light);
+	--color-brand-base: var(--theme-brand-color);
+	--color-brand-dark: var(--theme-brand-color-dark);
+	--color-brand-darker: var(--theme-brand-color-darker);
+
+	--color-primary: var(--color-brand-base);
+	--color-primary-hover: var(--color-brand-dark);
+
+	--color-lm-red: hsl(3 76% 42%);
+	--color-lm-red-hover: hsl(3 76% 48%);
+	--color-lm-red-light: hsl(3 76% 93%);
+	--color-lm-red-dark: hsl(3 75% 38%);
+	--color-lm-red-dark-hover: hsl(3 75% 48%);
+
+	--color-dm-red: hsl(3 100% 54%);
+	--color-dm-red-hover: hsl(3 100% 60%);
+	--color-dm-red-light: hsl(3 100% 95%);
+	--color-dm-red-dark: hsl(3 100% 40%);
+	--color-dm-red-dark-hover: hsl(3 100% 48%);
+
+	--color-lm-orange: hsl(35 100% 50%);
+	--color-lm-orange-bg: hsl(35 100% 50%);
+
+	--color-dm-orange: hsl(36 100% 52%);
+	--color-dm-orange-bg: hsl(36 100% 52%);
+
+	--color-lm-yellow: hsl(48 100% 50%);
+	--color-dm-yellow: hsl(50 100% 52%);
+
+	--color-lm-green: hsl(135 64% 27%);
+	--color-lm-green-bg: hsl(135 64% 27%);
+
+	--color-dm-green: hsl(135 64% 50%);
+	--color-dm-green-bg: hsl(135 93% 25%);
+
+	--color-lm-mint: hsl(177 100% 39%);
+	--color-dm-mint: hsl(178 72% 65%);
+
+	--color-lm-teal: hsl(189 61% 48%);
+	--color-dm-teal: hsl(189 72% 56%);
+
+	--color-lm-cyan: hsl(199 78% 55%);
+	--color-dm-cyan: hsl(197 100% 70%);
+
+	--color-lm-blue: hsl(211 96% 28%);
+	--color-dm-blue: hsl(210 100% 52%);
+
+	--color-lm-indigo: hsl(241 61% 59%);
+	--color-dm-indigo: hsl(241 73% 63%);
+
+	--color-lm-purple: hsl(280 68% 60%);
+	--color-dm-purple: hsl(280 85% 65%);
+
+	--color-lm-pink: hsl(349 100% 59%);
+	--color-dm-pink: hsl(348 100% 61%);
+
+	--color-lm-gray-50: hsl(0 0% 100%);
+	--color-lm-gray-100: hsl(220 8% 100%);
+	--color-lm-gray-200: hsl(220 8% 97.6%);
+	--color-lm-gray-300: hsl(220 8% 93.3%);
+	--color-lm-gray-400: hsl(220 8% 88.6%);
+	--color-lm-gray-500: hsl(220 8% 80.8%);
+	--color-lm-gray-600: hsl(220 8% 66.7%);
+	--color-lm-gray-700: hsl(220 8% 47.1%);
+	--color-lm-gray-800: hsl(220 8% 21.2%);
+	--color-lm-gray-900: hsl(220 20% 5.7%);
+	--color-lm-gray-950: hsl(0 0% 0%);
+
+	--color-dm-gray-50: hsl(0% 100%);
+	--color-dm-gray-100: hsl(220 6% 92.2%);
+	--color-dm-gray-200: hsl(220 7% 79.6%);
+	--color-dm-gray-300: hsl(220 3% 63.3%);
+	--color-dm-gray-400: hsl(220 2% 50.4%);
+	--color-dm-gray-500: hsl(220 3% 27.6%);
+	--color-dm-gray-600: hsl(220 4% 20.6%);
+	--color-dm-gray-700: hsl(220 5% 14.3%);
+	--color-dm-gray-800: hsl(220 9% 10.2%);
+	--color-dm-gray-900: hsl(220 20% 5.7%);
+	--color-dm-gray-950: hsl(0 0% 0%);
+}
+
+/* Keyframes */
+@keyframes slide-in-up {
+	0% {
+		transform: translateY(100%);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes slide-in-down {
+	0% {
+		transform: translateY(-100%);
+	}
+
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes quick-blur {
+	0% {
+		filter: blur(2px);
+	}
+
+	100% {
+		filter: blur(0);
+	}
+}
+
+/* Animations */
+@layer utilities {
+	.animate-slide-in-up {
+		animation: slide-in-up 0.5s ease-out forwards;
+	}
+
+	.animate-slide-in-down {
+		animation: slide-in-down 0.5s ease-out forwards;
+	}
+
+	.animate-quick-blur {
+		animation: quick-blur 0.3s ease-in;
+	}
+}
 
 /* Font family and rendered font appear smoother */
 * {
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+	font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
-/* Global Background */
 html,
 body {
-	background-color: rgb(243 244 246);
+	background-color: var(--color-lm-gray-100);
 	/* Light mode background */
 }
 
-@media (prefers-color-scheme: dark) {
-
-	html,
-	body {
-		background-color: rgb(17 24 39);
-		/* Dark mode background */
-	}
+html.dark,
+html.dark body {
+	background-color: var(--color-dm-gray-900);
+	/* Dark mode background */
 }
 
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-	width: 10px;
+	width: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -51,21 +180,7 @@ body {
 	width: 15px;
 }
 
-/* Nav item animation on Hover */
-.nav-item-animate-hover {
-	background: linear-gradient(90deg, transparent 50%, white 50%);
-	background-size: 200% 100%;
-	background-position: left;
-	transition: background 0.2s, color 0.2s;
-	color: white;
-}
-
-.nav-item-animate-hover:hover {
-	background-position: right;
-	color: #003476;
-}
-
-/* Fade in animation for content */
+/* Fade in animation for content (FadeInContentTransition) */
 .content-fade-in-enter,
 .content-fade-in-appear {
 	opacity: 0;
@@ -86,6 +201,7 @@ body {
 	transition: opacity 400ms ease-in;
 }
 
+/* qr-scanner overwrite style (QRScanner) */
 .scan-region-highlight-svg {
 	stroke: white !important;
 }

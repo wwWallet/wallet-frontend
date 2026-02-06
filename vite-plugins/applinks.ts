@@ -74,7 +74,7 @@ async function generateAppleAppLinks(env: Env) {
 }
 
 async function writeAppLinksFiles(env: Env) {
-	await mkdir(DIR, { recursive: true }),
+	await mkdir(DIR, { recursive: true });
 	await Promise.all([
 		generateAndroidAppLinks(env),
 		generateAppleAppLinks(env),

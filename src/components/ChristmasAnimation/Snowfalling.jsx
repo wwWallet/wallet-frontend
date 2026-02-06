@@ -27,7 +27,7 @@ const Snowfalling = () => {
 
 	return (
 		<>
-			{isChristmasSeason && <Snowfall snowflakeCount={200} />}
+			{isChristmasSeason && <Snowfall snowflakeCount={50} />}
 		</>
 	);
 }

@@ -9,7 +9,7 @@ import SessionContext from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
 
 
-export const OpenID4VPContextProvider = ({ children }) => {
+export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { vcEntityList } = useContext<any>(CredentialsContext);
 	const { isLoggedIn } = useContext<any>(SessionContext);
 
@@ -44,7 +44,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		}), [popupState]);
+		}), []);
 
 	const showPopupConsent = useCallback((options): Promise<boolean> =>
 		new Promise((resolve, reject) => {
@@ -54,7 +54,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 				resolve,
 				reject,
 			});
-		}), [popupConsentState]);
+		}), []);
 
 	const hidePopup = useCallback(() => {
 		setPopupState((prevState) => ({
@@ -97,7 +97,7 @@ export const OpenID4VPContextProvider = ({ children }) => {
 		async (options: Record<string, unknown>): Promise<boolean> => {
 			return showPopupConsent(options);
 		},
-		[showPopup]
+		[showPopupConsent]
 	);
 
 	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup });

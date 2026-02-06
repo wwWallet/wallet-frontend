@@ -1,7 +1,7 @@
 // src/indexedDB.ts
 import localforage from 'localforage';
-import { UserId } from './api/types';
-import { fromBase64Url } from './util';
+// import { UserId } from './api/types';
+// import { fromBase64Url } from './util';
 
 const stores = {
 	users: localforage.createInstance({
@@ -11,14 +11,6 @@ const stores = {
 	UserHandleToUserID: localforage.createInstance({
 		name: 'AppDataSource',
 		storeName: 'UserHandleToUserID',
-	}),
-	vc: localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'vc',
-	}),
-	vp: localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'vp',
 	}),
 	externalEntities: localforage.createInstance({
 		name: 'AppDataSource',
@@ -34,7 +26,6 @@ const stores = {
 	}),
 };
 
-const PROXY_DEFAULT_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 /** Paths to exclude from IndexedDB cache logic */
 export const EXCLUDED_INDEXEDDB_PATHS = new Set([
@@ -43,10 +34,6 @@ export const EXCLUDED_INDEXEDDB_PATHS = new Set([
 
 const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
-	'vc': 'vc',
-	'/storage/vc': 'vc',
-	'vp': 'vp',
-	'/storage/vp': 'vp',
 	'/issuer/all': 'externalEntities',
 	'/verifier/all': 'externalEntities',
 	'/user/session/account-info': 'accountInfo'
@@ -66,12 +53,10 @@ function getMappedStoreName(storeName: string): string {
 export async function initializeDataSource(): Promise<void> {
 	try {
 		await stores.users.ready();
-		await stores.vc.ready();
-		await stores.vp.ready();
 		await stores.externalEntities.ready();
 		await stores.proxyCache.ready();
 
-		// await migrateDataSource();
+		await migrateDataSource();
 
 		console.log('Database initialized successfully');
 	} catch (err) {
@@ -79,55 +64,109 @@ export async function initializeDataSource(): Promise<void> {
 	}
 }
 
-async function migrateDataSource(): Promise<void> {
-	await migration1();
+function storeExists(dbName: string, storeName: string) {
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open(dbName);
+
+		request.onsuccess = () => {
+			const db = request.result;
+			const exists = db.objectStoreNames.contains(storeName);
+			db.close();
+			resolve(exists);
+		};
+
+		request.onerror = () => reject(request.error);
+	});
 }
+
+function deleteStore(dbName: string, storeName: string) {
+	return new Promise((resolve, reject) => {
+		// First open normally to get current version
+		const openReq = indexedDB.open(dbName);
+
+		openReq.onsuccess = () => {
+			const db = openReq.result;
+			const newVersion = db.version + 1;
+			db.close();
+
+			// Reopen with higher version
+			const upgradeReq = indexedDB.open(dbName, newVersion);
+
+			upgradeReq.onupgradeneeded = (event) => {
+				const upgradeDb = (event.target as any).result;
+
+				if (upgradeDb.objectStoreNames.contains(storeName)) {
+					upgradeDb.deleteObjectStore(storeName);
+				}
+			};
+
+			upgradeReq.onsuccess = () => resolve({});
+			upgradeReq.onerror = () => reject(upgradeReq.error);
+		};
+
+		openReq.onerror = () => reject(openReq.error);
+	});
+}
+
+async function migrateDataSource() {
+	if (await storeExists("AppDataSource", "vc")) {
+		await deleteStore("AppDataSource", "vc");
+	}
+
+	if (await storeExists("AppDataSource", "vp")) {
+		await deleteStore("AppDataSource", "vp");
+	}
+}
+
+// async function migrateDataSource(): Promise<void> {
+// 	await migration1();
+// }
 
 /** Re-key the local databases from numeric user ID to uuid */
-async function migration1(): Promise<void> {
-	const UserHandleToUserID = localforage.createInstance({
-		name: 'AppDataSource',
-		storeName: 'UserHandleToUserID',
-	});
-	await UserHandleToUserID.ready();
-	await stores.users.ready();
-	const userHandles = await UserHandleToUserID.keys();
-	await Promise.all(userHandles.map(async (userHandleB64u) => {
-		const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
-		const userNumericId: string = (await UserHandleToUserID.getItem(userHandleB64u)).toString();
-		console.log("Migrating UserHandleToUserID:", [userHandleB64u, userNumericId]);
+// async function migration1(): Promise<void> {
+// 	const UserHandleToUserID = localforage.createInstance({
+// 		name: 'AppDataSource',
+// 		storeName: 'UserHandleToUserID',
+// 	});
+// 	await UserHandleToUserID.ready();
+// 	await stores.users.ready();
+// 	const userHandles = await UserHandleToUserID.keys();
+// 	await Promise.all(userHandles.map(async (userHandleB64u) => {
+// 		const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
+// 		const userNumericId: string = (await UserHandleToUserID.getItem(userHandleB64u)).toString();
+// 		console.log("Migrating UserHandleToUserID:", [userHandleB64u, userNumericId]);
 
-		const user: any = await stores.users.getItem(userNumericId);
-		if (user) {
-			user.uuid = userId.id;
-			delete user["id"];
-			delete user["webauthnUserHandle"];
-			await stores.users.setItem(user.uuid, user);
-			await stores.users.removeItem(userNumericId);
-		}
+// 		const user: any = await stores.users.getItem(userNumericId);
+// 		if (user) {
+// 			user.uuid = userId.id;
+// 			delete user["id"];
+// 			delete user["webauthnUserHandle"];
+// 			await stores.users.setItem(user.uuid, user);
+// 			await stores.users.removeItem(userNumericId);
+// 		}
 
-		const accountInfo: any = await stores.accountInfo.getItem(userNumericId);
-		if (accountInfo) {
-			accountInfo.uuid = userId.id;
-			delete accountInfo["webauthnUserHandle"];
-			await stores.accountInfo.setItem(user.uuid, accountInfo);
-			await stores.accountInfo.removeItem(userNumericId);
-		}
+// 		const accountInfo: any = await stores.accountInfo.getItem(userNumericId);
+// 		if (accountInfo) {
+// 			accountInfo.uuid = userId.id;
+// 			delete accountInfo["webauthnUserHandle"];
+// 			await stores.accountInfo.setItem(user.uuid, accountInfo);
+// 			await stores.accountInfo.removeItem(userNumericId);
+// 		}
 
-		const vc: any = await stores.vc.getItem(userNumericId);
-		if (vc) {
-			await stores.vc.setItem(user.uuid, vc);
-			await stores.vc.removeItem(userNumericId);
-		}
+// 		const vc: any = await stores.vc.getItem(userNumericId);
+// 		if (vc) {
+// 			await stores.vc.setItem(user.uuid, vc);
+// 			await stores.vc.removeItem(userNumericId);
+// 		}
 
-		const vp: any = await stores.vp.getItem(userNumericId);
-		if (vp) {
-			await stores.vp.setItem(user.uuid, vp);
-			await stores.vp.removeItem(userNumericId);
-		}
-	}));
-	await UserHandleToUserID.dropInstance();
-}
+// 		const vp: any = await stores.vp.getItem(userNumericId);
+// 		if (vp) {
+// 			await stores.vp.setItem(user.uuid, vp);
+// 			await stores.vp.removeItem(userNumericId);
+// 		}
+// 	}));
+// 	await UserHandleToUserID.dropInstance();
+// }
 
 export async function addItem(storeName: string, key: any, value: any, forceMappedStoreName?: string): Promise<void> {
 	try {

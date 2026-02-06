@@ -1,61 +1,60 @@
+import { BRANDING } from '@/config';
 import React, { useEffect, useState } from 'react';
-import * as config from '../../config';
 import { useTranslation } from 'react-i18next';
-import { env } from 'process';
 
 interface LogoProps {
-	type?: string; // Determines the type of logo (classic or white)
+	type?: 'light' | 'dark'; // Determines the type of logo (light or dark)
+	clickable?: boolean;
+	alt?: string;
 	aClassName?: string; // Class for the <a> element
 	imgClassName?: string; // Class for the <img> element
 }
 
+function getLogoUrl(type: string): string {
+	return type === 'light' || type === ''
+		? BRANDING.LOGO_LIGHT
+		: BRANDING.LOGO_DARK;
+}
+
 const Logo: React.FC<LogoProps> = ({
-	type = 'classic',
+	type,
+	clickable = true,
+	alt,
 	aClassName = '',
 	imgClassName = '',
 }) => {
-	const [isChristmasSeason, setIsChristmasSeason] = useState(false);
 	const { t } = useTranslation();
+	const [logoUrl, setLogoUrl] = useState<string>(getLogoUrl(type));
 
 	useEffect(() => {
-		const checkSeason = () => {
-			const today = new Date(); // Use new Date() for real-time or new Date(new Date().getFullYear(), 0, 1) for testing January 1st
-			const currentYear = today.getFullYear();
+		if (type) return;
 
-			// Christmas season part 1: December 1st to December 31st of the current year
-			const christmasStart = new Date(currentYear, 11, 1); // December 1
-			const christmasEnd = new Date(currentYear, 11, 31); // December 31
+		const html = document.documentElement;
+		const observer = new MutationObserver((mutations) => {
+			for (const mutation of mutations) {
+				if (
+					mutation.type === 'attributes' &&
+					mutation.attributeName === 'data-theme'
+				) {
+					setLogoUrl(getLogoUrl(html.getAttribute('data-theme')));
+					}
+			}
+		});
 
-			// Christmas season part 2: January 1st to January 2nd of the next year
-			const newYearStart = new Date(currentYear, 0, 1); // January 1
-			const newYearEnd = new Date(currentYear, 0, 2); // January 2
+		observer.observe(html, { attributes: true, attributeFilter: ['data-theme'] });
 
-			// Check if today is within either part of the Christmas season
-			return (today >= christmasStart && today <= christmasEnd) ||
-				(today >= newYearStart && today <= newYearEnd);
-		};
+		return () => observer.disconnect();
+	}, [type]);
 
-		const seasonActive = checkSeason();
-		setIsChristmasSeason(seasonActive);
-	}, []);
+	const img = <img src={logoUrl} alt={alt || t('common.walletName')} className={imgClassName} />
 
-	// Determine which logo to use
-	const logoSrc = (() => {
-		if (isChristmasSeason) {
-			return type === 'white' ?
-				`/wallet_white_christmas.png` :
-				`/logo_christmas.png`;
-		}
-		return type === 'white' ?
-			`/wallet_white.png` :
-			`/logo.png`;
-	})();
-
-	return (
+	if (clickable) return (
 		<a href="/" className={aClassName} aria-label={t('common.walletName')}>
-			<img src={logoSrc} alt={t('common.walletName')} className={imgClassName} />
+			{img}
 		</a>
 	);
+
+	return img;
 };
 
 export default Logo;

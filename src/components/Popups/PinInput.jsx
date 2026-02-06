@@ -1,12 +1,12 @@
 // PinInput.js
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaLock } from "react-icons/fa";
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import SessionContext from '@/context/SessionContext';
 import PopupLayout from './PopupLayout';
 import { last } from '@/util';
+import { Lock } from 'lucide-react';
 
 function PinInput({ isOpen, setIsOpen }) {
 	const { api } = useContext(SessionContext);
@@ -118,19 +118,19 @@ function PinInput({ isOpen, setIsOpen }) {
 
 	return (
 		<PopupLayout isOpen={isOpen} onClose={false}>
-			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-				<FaLock size={20} className="inline mr-1 mb-1" />
+			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
+				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
-			<hr className="mb-2 border-t border-primary/80 border-white/80" />
-			<p className="italic pd-2 text-gray-700 dark:text-white">
+			<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+			<p className="italic pd-2 text-lm-gray-800 dark:text-dm-gray-200">
 				{t('PinInputPopup.description')}
 			</p>
 
 			{errMessage && (
-				<p className='text-sm text-red-600'>{errMessage}</p>
+				<p className='text-sm text-lm-red dark:text-dm-red'>aaa{errMessage}</p>
 			)}
-			<div className='mt-2 flex flex-wrap justify-center flex overflow-y-auto max-h-[50vh]'>
+			<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
 				{pin.map((digit, index) => (
 					<input
 						type="text"
@@ -141,7 +141,7 @@ function PinInput({ isOpen, setIsOpen }) {
 						onClick={() => handleInputClick(index)}
 						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
 						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:inputDarkModeOverride"
+						className="w-10 px-3 mx-1 my-2 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 rounded-md focus:outline-none"
 						ref={inputRefs[index]}
 					/>
 				))}
@@ -150,7 +150,6 @@ function PinInput({ isOpen, setIsOpen }) {
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button
 					id="cancel-pin-input"
-					variant="cancel"
 					onClick={handleCancel}
 				>
 					{t('common.cancel')}

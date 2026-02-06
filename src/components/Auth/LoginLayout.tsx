@@ -10,15 +10,15 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 	const screenType = useScreenType();
 
 	return (
-		<section className="bg-gray-100 dark:bg-gray-900 min-h-dvh flex flex-col">
+		<section className="bg-lm-gray-100 dark:bg-dm-gray-900 min-h-dvh flex flex-col">
 			{screenType !== 'desktop' && (
 				<PWAInstallPrompt />
 			)}
 
-			<div className="flex-grow flex flex-col items-center justify-center px-6 py-8">
-				<Logo aClassName='mb-6' imgClassName='w-40' />
+			<div className="grow flex flex-col items-center justify-center px-6 py-8">
+				<Logo aClassName='mb-6' imgClassName='w-20' />
 
-				<h1 className="text-3xl mb-7 font-bold leading-tight tracking-tight text-gray-900 text-center dark:text-white">
+				<h1 className="text-3xl mb-8 font-bold leading-tight tracking-tight text-lm-gray-900 text-center dark:text-white">
 					{heading}
 				</h1>
 
@@ -32,7 +32,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			</div>
 
 			<footer className="py-4">
-				<p className="text-sm text-gray-700 dark:text-gray-400 text-center">
+				<p className="text-sm text-lm-gray-800 dark:text-dm-gray-200 text-center">
 					<Trans
 						i18nKey="sidebar.poweredBy"
 						components={{
@@ -41,7 +41,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 									href="https://github.com/wwWallet"
 									rel="noreferrer"
 									target="_blank"
-									className="underline text-primary dark:text-primary-light"
+									className="underline font-semibold text-lm-gray-800 dark:text-dm-gray-300"
 									aria-label={t('sidebar.poweredbyAriaLabel')}
 								/>
 							)

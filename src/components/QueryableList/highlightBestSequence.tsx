@@ -4,7 +4,7 @@ export function highlightBestSequence(text, search) {
 	const regex = new RegExp(`(${search})`, 'gi');
 	return text.split(regex).map((part, i) =>
 		regex.test(part) ? (
-			<span key={i} className="font-bold text-primary dark:text-primary-light">
+			<span key={i} className="font-bold text-lm-gray-900 dark:text-dm-gray-100">
 				{part}
 			</span>
 		) : (

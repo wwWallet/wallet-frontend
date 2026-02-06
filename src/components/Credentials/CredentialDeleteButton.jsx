@@ -1,12 +1,11 @@
-import React, { useContext } from 'react';
-import { MdDelete } from 'react-icons/md';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import StatusContext from '@/context/StatusContext';
+import { Trash2 } from 'lucide-react';
+
 
 const CredentialDeleteButton = ({ onDelete }) => {
 	const { t } = useTranslation();
-	const { isOnline } = useContext(StatusContext);
 
 	const handleClick = () => {
 		onDelete();
@@ -17,11 +16,10 @@ const CredentialDeleteButton = ({ onDelete }) => {
 			id="credential-delete-button"
 			onClick={handleClick}
 			variant="delete"
-			disabled={!isOnline}
-			title={!isOnline && t('common.offlineTitle')}
+			title={t('common.offlineTitle')}
 			additionalClassName='xm:w-full'
 		>
-			<MdDelete size={20} /> {t('pageCredentials.delete')}
+			<Trash2 size={18} /> {t('pageCredentials.delete')}
 		</Button>
 	);
 };

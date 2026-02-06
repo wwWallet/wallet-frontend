@@ -4,8 +4,8 @@
 package_lock.json
 /build
 
-.env
-.env.prod
+.env*
+!.env.template
 
 # Logs
 logs
@@ -40,6 +40,7 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # Config file
+branding/custom/
 src/config/config.dev.js
 src/config/config.dev.ts
 src/config/config.prod.js
@@ -49,6 +50,12 @@ ssl_keys/*
 
 variables.vars
 
+public/icons
+public/screenshots
+public/favicon.ico
+public/image.png
+public/logo_*.svg
+public/logo_*.png
 public/manifest.json
 public/robots.txt
 public/sitemap.xml

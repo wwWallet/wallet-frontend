@@ -6,8 +6,8 @@ import { CredentialCardSkeleton } from '../Skeletons';
 import CredentialStatusIndicatorsRibbon from './CredentialStatusIndicatorsRibbon';
 import SessionContext from '@/context/SessionContext';
 
-const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null, onLoad, borderColor=undefined }) => {
-	const { keystore } = useContext(SessionContext)
+const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null, onLoad, borderColor = undefined }) => {
+	const { keystore } = useContext(SessionContext);
 	const [imageSrc, setImageSrc] = useState(undefined);
 	const [walletStateKeypairs, setWalletStateKeyPairs] = useState(null);
 
@@ -46,7 +46,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 		loadImage();
 
 		return () => { isMounted = false };
-	}, [vcEntity, filter]);
+	}, [vcEntity, filter, onLoad]);
 
 	return (
 		<>

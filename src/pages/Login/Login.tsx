@@ -1,8 +1,5 @@
 import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaEye, FaEyeSlash, FaInfoCircle, FaLock, FaUser, FaQuestionCircle } from 'react-icons/fa';
-import { GoDeviceMobile, GoKey, GoPasskeyFill, GoTrash } from 'react-icons/go';
-import { AiOutlineUnlock } from 'react-icons/ai';
 import { Trans, useTranslation } from 'react-i18next';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
@@ -22,7 +19,8 @@ import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 import useScreenType from '@/hooks/useScreenType';
-
+import { CircleQuestionMark, Eye, EyeOff, FingerprintIcon, Info, Lock, LockKeyholeOpen,SmartphoneNfcIcon, User, UserLock, X } from 'lucide-react';
+import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 
 const FormInputRow = ({
 	IconComponent,
@@ -31,8 +29,8 @@ const FormInputRow = ({
 	name,
 }) => (
 	<div className="mb-4 relative">
-		<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
-			<IconComponent className="absolute left-3 top-10 z-10 text-gray-500 dark:text-white" />
+		<label className="block text-lm-gray-800 dark:text-dm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
+			<IconComponent size={20} className="absolute left-3 top-10 z-10 text-lm-gray-700 dark:text-dm-gray-300" />
 			{label}
 		</label>
 		{children}
@@ -40,9 +38,9 @@ const FormInputRow = ({
 );
 
 const PasswordCriterionMessage = ({ text, ok }) => (
-	<div className={ok ? "text-green-500" : "text-red-500"}>
+	<div className={ok ? "text-lm-green dark:text-dm-green" : "text-lm-red dark:text-dm-red"}>
 		<p className="text-sm">
-			<AiOutlineUnlock className="inline-block mr-2" />
+			<LockKeyholeOpen className="inline-block mr-2" />
 			{text}
 		</p>
 	</div>
@@ -74,7 +72,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="border border-gray-300 dark:border-gray-500 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-700 dark:bg-transparent dark:text-white dark:inputDarkModeOverride w-full py-1.5 pl-10 pr-3"
+				className="w-full pl-10 pr-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
 				type={show ? 'text' : type}
 				name={name}
 				placeholder={placeholder}
@@ -91,12 +89,12 @@ const FormInputField = ({
 						id={`${show ? 'hide' : 'show'}-password-loginsignup`}
 						type="button"
 						onClick={onToggleShow}
-						className="text-gray-500 hover:text-gray-600"
+						className="text-lm-gray-700 hover:text-lm-gray-900 dark:text-dm-gray-300 dark:hover:text-dm-gray-100"
 						aria-label={show ? (t('common.passwordHideAriaLabel')) : (t('common.passwordShowAriaLabel'))}
 						title={show ? (t('common.passwordHideTitle')) : (t('common.passwordShowTitle'))}
 						disabled={disabled}
 					>
-						{show ? <FaEyeSlash className='dark:text-white' /> : <FaEye className='dark:text-white' />}
+						{show ? <EyeOff /> : <Eye />}
 					</button>
 				</div>
 			)}
@@ -148,7 +146,7 @@ const UsernamePasswordForm = ({
 	return (
 		<>
 			<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-				<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={FaUser}>
+				<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={User}>
 					<FormInputField
 						ariaLabel="Username"
 						name="username"
@@ -160,7 +158,7 @@ const UsernamePasswordForm = ({
 					/>
 				</FormInputRow>
 
-				<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={FaLock}>
+				<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={Lock}>
 					<FormInputField
 						ariaLabel="Password"
 						name="password"
@@ -174,7 +172,7 @@ const UsernamePasswordForm = ({
 				</FormInputRow>
 
 				{choosePassword && (
-					<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={FaLock}>
+					<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={Lock}>
 						<FormInputField
 							ariaLabel="Confirm Password"
 							name="confirmPassword"
@@ -324,7 +322,7 @@ const WebauthnSignupLogin = ({
 							components={{
 								docLink: <a
 									href="https://github.com/wwWallet/wallet-frontend#prf-compatibility" target='blank_'
-									className="font-medium text-primary hover:underline dark:text-blue-500"
+									className="font-medium text-lm-gray-900 hover:underline dark:text-dm-gray-100"
 									aria-label={t('loginSignup.passkeySignupPrfNotSupportedAriaLabel')}
 								/>
 							}}
@@ -410,7 +408,7 @@ const WebauthnSignupLogin = ({
 										)
 										: (
 											<>
-												<h3 className="text-2xl mt-4 mb-2 font-bold text-primary dark:text-primary-light">{t('registerPasskey.messageDone')}</h3>
+												<h3 className="text-2xl mt-4 mb-2 font-bold text-lm-gray-900 dark:text-white">{t('registerPasskey.messageDone')}</h3>
 												<p className="dark:text-white pb-3">
 													{isLogin
 														? t('loginSignup.authOnceMoreLogin')
@@ -424,14 +422,13 @@ const WebauthnSignupLogin = ({
 									<Button
 										id="cancel-prf-loginsignup"
 										onClick={() => resolvePrfRetryPrompt(false)}
-										variant="cancel"
 									>
 										{t('common.cancel')}
 									</Button>
 									<Button
 										id="continue-prf-loginsignup"
 										onClick={() => resolvePrfRetryPrompt(true)}
-										variant="secondary"
+										variant="primary"
 										disabled={prfRetryAccepted}
 									>
 										{t('common.continue')}
@@ -453,7 +450,6 @@ const WebauthnSignupLogin = ({
 
 											<Button
 												id="cancel-prf-loginsignup"
-												variant="cancel"
 												onClick={onCancel}
 											>
 												{t('common.cancel')}
@@ -474,7 +470,6 @@ const WebauthnSignupLogin = ({
 										<Button
 											id="cancel-in-progress-prf-loginsignup"
 											onClick={onCancel}
-											variant="cancel"
 											additionalClassName='w-full'
 										>
 											{t('common.cancel')}
@@ -487,7 +482,7 @@ const WebauthnSignupLogin = ({
 					<>
 						{!isLogin && (
 							<>
-								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={FaUser}>
+								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={User}>
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
@@ -497,9 +492,9 @@ const WebauthnSignupLogin = ({
 										value={name}
 										required
 									/>
-									<div className={`flex flex-row flex-nowrap text-gray-500 text-sm italic ${nameByteLimitReached ? 'text-red-500' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
+									<div className={`flex flex-row flex-nowrap text-lm-gray-500 text-sm italic ${nameByteLimitReached ? 'text-lm-red' : ''} ${nameByteLimitApproaching ? 'h-auto mt-1' : 'h-0 mt-0'} transition-all`}>
 										<div
-											className={`text-red-500 flex-grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
+											className={`text-lm-red dark:text-dm-red grow ${nameByteLimitReached ? 'opacity-100' : 'opacity-0 select-none'} transition-opacity`}
 											aria-hidden={!nameByteLimitReached}
 										>
 											{t('loginSignup.reachedLengthLimit')}
@@ -515,23 +510,24 @@ const WebauthnSignupLogin = ({
 							</>)}
 
 						{isLoginCache && (
-							<ul className="overflow-y-auto overflow-x-hidden max-h-28 px-2 custom-scrollbar flex flex-col gap-2">
+							<ul className="overflow-y-auto overflow-x-hidden max-h-32 px-2 custom-scrollbar flex flex-col gap-2">
 								{cachedUsers.filter(cachedUser => cachedUser?.prfKeys?.length > 0).map((cachedUser, index) => (
 									<li
 										key={cachedUser.userHandleB64u}
-										className="w-full flex flex-row gap-2"
+										className="w-full flex flex-row items-center gap-2"
 									>
 										<div className="flex flex-1 min-w-0">
 											<Button
 												id={`login-cached-user-${index}-loginsignup`}
 												onClick={() => onLoginCachedUser(cachedUser)}
-												variant="tertiary"
+												size="xl"
+												variant="primary"
 												disabled={isSubmitting}
 												additionalClassName="w-full"
 												ariaLabel={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 												title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 											>
-												<GoPasskeyFill className="inline text-xl mr-2 shrink-0" />
+												<UserLock size={20} className="inline text-xl mr-2 shrink-0" />
 												<span className="truncate">
 													{isSubmitting
 														? t('loginSignup.submitting')
@@ -544,12 +540,13 @@ const WebauthnSignupLogin = ({
 											<Button
 												id={`forget-cached-user-${index}-loginsignup`}
 												onClick={() => onForgetCachedUser(cachedUser)}
-												variant="tertiary"
+												square={true}
+												size="xl"
 												disabled={isSubmitting}
 												ariaLabel={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 												title={t('loginSignup.forgetCachedUser', { name: cachedUser.displayName })}
 											>
-												<GoTrash className="text-xl" />
+												<X size={20} className="text-xl" />
 											</Button>
 										</div>
 									</li>
@@ -558,50 +555,51 @@ const WebauthnSignupLogin = ({
 						)}
 
 						{!isLoginCache && !isLogin && (
-							<label className="block text-gray-700 dark:text-gray-200 text-sm font-bold mb-2" htmlFor={name}>
+							<label className="block text-dm-gray-800 dark:text-lm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
 								{t('loginSignup.choosePasskeyPlatform')}
 							</label>
 						)}
 
 						{!isLoginCache && (
 							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: GoPasskeyFill, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: GoKey, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: GoDeviceMobile, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
+								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
+								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
 							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
 								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button
 										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
 										type="submit"
 										variant={variant}
-										additionalClassName={`
-											w-full flex flex-col items-center justify-center relative
-											${variant === "outline" ? "px-4 py-[0.6875rem]" : "px-4 py-3"}
-										`}
+										size="lg"
+										textSize="md"
+										additionalClassName="items-center justify-center relative"
 										title={!isLogin && !isOnline && t("common.offlineTitle")}
 										value={hint}
 									>
-										<div className="flex flex-row items-center justify-center w-full">
-											<Icon className="inline text-xl mr-2 shrink-0" />
+										<div className="flex flex-col">
+											<div className="flex flex-row items-center justify-center w-full">
+												<Icon size={20} className="inline text-xl mr-2 shrink-0" />
 
-											{isSubmitting
-												? t('loginSignup.submitting')
-												: btnLabel
-											}
+												{isSubmitting
+													? t('loginSignup.submitting')
+													: btnLabel
+												}
+											</div>
+
+											{screenType !== 'desktop' && (
+												<span className="mt-2 text-xs">
+													{helpText}
+												</span>
+											)}
 										</div>
-
-										{screenType !== 'desktop' && (
-											<span className="mt-2 text-xs dark:text-white">
-												{helpText}
-											</span>
-										)}
 									</Button>
 
 									{screenType === 'desktop' && (
-										<div className="absolute -right-7 flex items-center ml-2 group">
-											<FaQuestionCircle className={`w-4 h-4 text-gray-600 dark:text-gray-400 cursor-pointer opacity-50 ${screenType === 'desktop' ? 'hover:opacity-100' : ''}`} aria-hidden="true" />
+										<div className="absolute -right-8 flex items-center ml-2 group">
+											<CircleQuestionMark className={`w-4 h-4 text-lm-gray-800 dark:text-dm-gray-200 cursor-pointer`} aria-hidden="true" />
 
-											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap shadow-lg bottom-6">
+											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-lm-gray-800 text-lm-gray-100 text-xs whitespace-nowrap shadow-lg bottom-6">
 												{helpText}
 											</div>
 										</div>
@@ -610,7 +608,7 @@ const WebauthnSignupLogin = ({
 							))
 						)}
 
-						{error && <div className="text-red-500 pt-2">{error}</div>}
+						{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
 					</>
 				)
 			}
@@ -673,7 +671,7 @@ const Auth = () => {
 			if (!validations.every(({ ok }) => ok)) {
 				setError(
 					<>
-						<p className="text-red-500 font-bold">{t('loginSignup.weakPasswordError')}</p>
+						<p className="text-lm-red dark:text-dm-red font-bold">{t('loginSignup.weakPasswordError')}</p>
 						{validations.map(({ ok, text }) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
 					</>
 				);
@@ -725,33 +723,33 @@ const Auth = () => {
 			<Trans
 				i18nKey="loginSignup.welcomeMessage"
 				components={{
-					highlight: <span className="text-primary dark:text-primary-light" />
+					highlight: <span className="text-primary dark:text-brand-light" />
 				}}
 			/>
 		}>
-			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg shadow dark:bg-gray-800">
-				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl text-center dark:text-white">
+			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600">
+				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
 
-				<div className='absolute text-gray-500 dark:text-white top-0 left-5'>
+				<div className='absolute text-lm-gray-900 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
 
-				<div className='absolute top-0 right-3'>
-					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-gray-800 appearance-none' />
+				<div className='absolute top-5 right-5'>
+					<LanguageSelector className='min-w-12 text-sm text-lm-gray-900 dark:text-white cursor-pointer bg-white dark:bg-dm-gray-900 appearance-none' />
 				</div>
 
 				{isOnline === false && (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200 italic mb-2">
-						<FaInfoCircle size={14} className="text-md inline-block text-gray-500 mr-2" />
+					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 italic mb-2">
+						<Info size={14} className="text-md inline-block mr-1" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}
 
 				{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
 					<>
-						{error && <div className="text-red-500">{error}</div>}
+						{error && <div className="text-lm-red dark:text-dm-red">{error}</div>}
 						<UsernamePasswordForm
 							choosePassword={!isLogin}
 							disabled={isSubmitting}
@@ -775,7 +773,7 @@ const Auth = () => {
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200 text-center">
+					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
@@ -788,7 +786,7 @@ const Auth = () => {
 						</Button>
 					</p>
 				) : (
-					<p className="text-sm font-light text-gray-500 dark:text-gray-200 cursor-pointer">
+					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
 						<Button
 							id="useOtherAccount-switch-loginsignup"
 							variant="link"

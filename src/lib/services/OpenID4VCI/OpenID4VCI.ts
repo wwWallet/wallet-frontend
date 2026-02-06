@@ -4,8 +4,7 @@ import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
 import { useHttpProxy } from '../HttpProxy/HttpProxy';
-import { useOpenID4VCIClientStateRepository } from '../OpenID4VCIClientStateRepository';
-import { useCallback, useMemo, useEffect, useRef, useState, useContext, useReducer, useLayoutEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'react';
 import { useLocation } from "react-router-dom";
 import { useOpenID4VCIPushedAuthorizationRequest } from './OpenID4VCIAuthorizationRequest/OpenID4VCIPushedAuthorizationRequest';
 import { useOpenID4VCIAuthorizationRequestForFirstPartyApplications } from './OpenID4VCIAuthorizationRequest/OpenID4VCIAuthorizationRequestForFirstPartyApplications';
@@ -25,6 +24,7 @@ import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
 import { COSEKeyToJWK } from "cose-kit";
 import { notify } from "@/context/notifier";
 import { IOpenID4VCIClientStateRepository } from '@/lib/interfaces/IOpenID4VCIClientStateRepository';
+import { useNavigate } from 'react-router-dom';
 
 type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
@@ -69,14 +69,22 @@ export const deriveHolderKidFromCredential = async (credential: string, format: 
 
 export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup, openID4VCIClientStateRepository }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }) => void, openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository }): IOpenID4VCI {
 	const { search } = useLocation();
-	const params = new URLSearchParams(search);
+	const params = useMemo(() => new URLSearchParams(search), [search]);
+	const navigate = useNavigate();
 
-	const verificationFlowInProgress = () => params.has("request_uri") && params.has("client_id");
-	const issuanceFlowInProgress = () => params.has("code");
+	const verificationFlowInProgress = useMemo(
+		() => params.has("request_uri") && params.has("client_id"),
+		[params]
+	);
+
+	const issuanceFlowInProgress = useMemo(
+		() => params.has("code"),
+		[params]
+	);
 
 	const httpProxy = useHttpProxy();
 	const { api, keystore } = useContext(SessionContext);
-	const { getData, credentialEngine } = useContext<any>(CredentialsContext);
+	const { credentialEngine } = useContext<any>(CredentialsContext);
 
 	const { t } = useTranslation();
 	const [receivedCredentialsArray, setReceivedCredentialsArray] = useState<string[] | null>(null);
@@ -101,7 +109,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const [commitStateChanges, setCommitStateChanges] = useState<number>(0);
 
 	useEffect(() => {
-		if (!receivedCredentialsArray || !keystore || verificationFlowInProgress() || commitStateChanges === 1) {
+		if (!receivedCredentialsArray || !keystore || verificationFlowInProgress || commitStateChanges === 1) {
 			return;
 		}
 		const temp = [...receivedCredentialsArray];
@@ -181,8 +189,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw err;
 			}
 		})();
-	}, [keystore, receivedCredentialsArray, getData, api, commitStateChanges])
-
+	}, [
+		receivedCredentialsArray,
+		keystore,
+		verificationFlowInProgress,
+		commitStateChanges,
+		credentialEngine,
+		showMessagePopup,
+		showPopupConsent,
+		t,
+		api
+	]);
 
 	const credentialRequest = useCallback(
 		async (response: any, flowState: WalletStateCredentialIssuanceSession) => {
@@ -217,7 +234,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				await credentialRequestBuilder.setDpopHeader();
 			}
 
-			const [_credConfId, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
+			const [, credConf] = Object.entries(credentialIssuerMetadata.metadata.credential_configurations_supported).filter(([id, _credConf]) =>
 				id === flowState.credentialConfigurationId
 			)[0];
 
@@ -260,8 +277,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				console.log("Updated S: ", s);
 				await openID4VCIClientStateRepository.cleanupExpired();
 				setCommitStateChanges(1);
+				navigate("/");
 				return;
 			}
+			await openID4VCIClientStateRepository.updateState(flowState);
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			const credentialArray: string[] = credentialResponse.data.credentials.map((c) => c.credential);
@@ -270,9 +289,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			return;
 
-		},
-		[openID4VCIHelper, openID4VCIClientStateRepository, credentialRequestBuilder, getCalculatedWalletState]
-	);
+		}, [
+		openID4VCIHelper,
+		openID4VCIClientStateRepository,
+		credentialRequestBuilder,
+		httpProxy,
+		navigate
+	]);
+
 	const getRememberIssuerAge = useCallback((): number | null => {
 		if (!getCalculatedWalletState) {
 			return null;
@@ -307,6 +331,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
+
+			if (!clientId) {
+				console.error("clientId not found");
+				return ;
+			}
+
 			if (requestCredentialsParams.usingActiveAccessToken) {
 				console.log("Attempting with active access token")
 
@@ -457,7 +487,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			openID4VCIHelper,
 			credentialRequest,
 			tokenRequestBuilder,
-			getCalculatedWalletState
+			getRememberIssuerAge
 		]
 	);
 
@@ -578,6 +608,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
 
+			if (!clientId) {
+				console.error("clientId not found");
+				return;
+			}
+
 			if (authzServerMetadata.authzServeMetadata.pushed_authorization_request_endpoint) {
 				const res = await openID4VCIPushedAuthorizationRequest.generate(
 					credentialConfigurationId,
@@ -615,7 +650,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				return {}
 			}
 		},
-		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials, api, getCalculatedWalletState]
+		[openID4VCIClientStateRepository, openID4VCIHelper, handleAuthorizationResponse, openID4VCIAuthorizationRequestForFirstPartyApplications, openID4VCIPushedAuthorizationRequest, requestCredentials]
 	);
 
 	// Step 3: Update `useRef` with the `generateAuthorizationRequest` function
@@ -625,7 +660,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 	const firedRef = useRef(false);
 	useEffect(() => {
-		if (commitStateChanges === 1 && !firedRef.current && !verificationFlowInProgress() && openID4VCIClientStateRepository && receivedCredentialsArray === null) {
+		if (commitStateChanges === 1 && !firedRef.current && !verificationFlowInProgress && openID4VCIClientStateRepository && receivedCredentialsArray === null) {
 			firedRef.current = true;
 			(async () => {
 				await openID4VCIClientStateRepository.commitStateChanges();
@@ -639,15 +674,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	}, [commitStateChanges, openID4VCIClientStateRepository, verificationFlowInProgress, setCommitStateChanges, receivedCredentialsArray]);
 
 
-	const intervalCallback = async () => {
-		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress() || issuanceFlowInProgress()) {
+	const intervalCallback = useCallback(async () => {
+		if (!openID4VCIClientStateRepository || !api.isLoggedIn() || receivedCredentialsArray !== null || commitStateChanges === 1 || verificationFlowInProgress || issuanceFlowInProgress) {
 			return null;
 		}
 		await openID4VCIClientStateRepository.getAllStatesWithNonEmptyTransactionId().then(async (sessions) => {
 			const credsCollected = [];
 			let stateUpdated = false;
 			for (const s of sessions) {
-				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId }, tokenResponse: { data: { access_token, expiration_timestamp } } } = s;
+				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId }, tokenResponse: { data: { access_token } } } = s;
 				const { metadata } = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
 				const now = Math.floor(new Date().getTime() / 1000);
 				console.log("Transaction id: ", transactionId)
@@ -715,7 +750,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					]);
 					credentialIssuerMetadataRef.current = credentialIssuerMetadata;
 					credentialConfigurationIdRef.current = s.credentialConfigurationId;
-					let warnings = [];
+					// let warnings = [];
 					for (const rawCredential of credentialArray) {
 
 						const result = await credentialEngine.credentialParsingEngine.parse(
@@ -729,7 +764,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						if (result.success) {
 							if (result.value.warnings && result.value.warnings.length > 0) {
 								console.warn(`Credential had warnings:`, result.value.warnings);
-								warnings = result.value.warnings;
+								// warnings = result.value.warnings;
 							}
 						} else {
 							console.error(`Credential failed to parse:`, result.error, result.message);
@@ -751,8 +786,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				setCommitStateChanges(1);
 			}
 		})
-
-	};
+	}, [
+		openID4VCIClientStateRepository,
+		api,
+		receivedCredentialsArray,
+		commitStateChanges,
+		verificationFlowInProgress,
+		issuanceFlowInProgress,
+		openID4VCIHelper,
+		deferredCredentialRequestBuilder,
+		credentialEngine
+	]);
 
 	useEffect(() => {
 		setTimeout(() => {
@@ -760,7 +804,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				setTick((current) => current + 1);
 			});
 		}, config.OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS * 1000);
-	}, [setTick, openID4VCIHelper, openID4VCIClientStateRepository, deferredCredentialRequestBuilder, tick, commitStateChanges, receivedCredentialsArray, setReceivedCredentialsArray])
+	}, [tick, intervalCallback])
 
 	return useMemo(() => {
 		return {

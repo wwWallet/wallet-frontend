@@ -2,10 +2,9 @@ import { compactDecrypt, CompactDecryptResult, exportJWK, generateKeyPair, JWK, 
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
-import { useContext, useCallback, useMemo, useRef, useEffect, useState } from "react";
+import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { OpenidCredentialIssuerMetadata } from "wallet-common";
-import CredentialsContext from "@/context/CredentialsContext";
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
 
 export function useCredentialRequest() {
@@ -23,7 +22,6 @@ export function useCredentialRequest() {
 	const jtiRef = useRef<string | null>(null);
 	const credentialIssuerIdentifierRef = useRef<string | null>(null);
 	const credentialConfigurationIdRef = useRef<string | null>(null);
-	const { getData } = useContext<any>(CredentialsContext);
 
 	const credentialIssuerMetadataRef = useRef<{ metadata: OpenidCredentialIssuerMetadata } | null>(null);
 
@@ -141,7 +139,7 @@ export function useCredentialRequest() {
 			throw new Error("Deferred Credential Request failed");
 		}
 
-	}, [httpProxy]);
+	}, [httpProxy, httpHeaders]);
 
 	const execute = useCallback(async (credentialConfigurationId: string, proofType: "jwt" | "attestation", cachedProofs?: unknown[]): Promise<{ credentialResponse: any }> => {
 		console.log("Executing credential request...");
@@ -262,7 +260,7 @@ export function useCredentialRequest() {
 			if (result.err) {
 				throw new Error("Credential Response decryption failed");
 			}
-			const { protectedHeader, plaintext } = result.data as CompactDecryptResult;
+			const { plaintext } = result.data as CompactDecryptResult;
 			const payload = JSON.parse(new TextDecoder().decode(plaintext));
 			credentialResponse.data = payload;
 		}

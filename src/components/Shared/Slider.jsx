@@ -1,9 +1,9 @@
 // External libraries
 import React, { useState, useRef } from 'react';
-import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useTranslation } from 'react-i18next';
 import { EffectCards, Keyboard } from 'swiper/modules';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Styles
 import 'swiper/css';
@@ -48,8 +48,8 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 						id="previous-slide"
 						onClick={handlePrev}
 						disabled={currentSlide === 1}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 bg-gray-500/40 rounded-md ${currentSlide === 1
-							? 'opacity-50 cursor-not-allowed text-gray-400'
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 left-1 z-10 p-2 bg-lm-gray-800 rounded-md ${currentSlide === 1
+							? 'opacity-50 cursor-not-allowed text-lm-gray-100'
 							: 'text-white hover:opacity-100 opacity-80'}`}
 						aria-label={currentSlide === 1
 							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slidePrevious') })
@@ -61,15 +61,15 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 								: t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slidePrevious') })
 						}
 					>
-						<SlArrowLeft size={22} />
+						<ChevronLeft size={22} />
 					</button>
 
 					<button
 						id="next-slide"
 						onClick={handleNext}
 						disabled={currentSlide === items.length}
-						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 bg-gray-500/40 rounded-md z-10 p-2 ${currentSlide === items.length
-							? 'opacity-50 cursor-not-allowed text-gray-400'
+						className={`pointer-events-auto absolute top-1/2 -translate-y-1/2 right-1 bg-lm-gray-800 rounded-md z-10 p-2 ${currentSlide === items.length
+							? 'opacity-50 cursor-not-allowed text-lm-gray-100'
 							: 'text-white hover:opacity-100 opacity-80'}`}
 						aria-label={currentSlide === items.length
 							? t('pageCredentials.slideButtonAriaLabelDisable', { direction: t('pageCredentials.slideNext') })
@@ -81,11 +81,11 @@ const Slider = ({ items, renderSlideContent, onSlideChange, initialSlide = 1, cl
 								: t('pageCredentials.slideButtonTitleEnable', { direction: t('pageCredentials.slideNext') })
 						}
 					>
-						<SlArrowRight size={22} />
+						<ChevronRight size={22} />
 					</button>
 
 					<div className={`absolute bottom-3 z-10 left-2 ${className}`}>
-						<div className="text-xs bg-gray-500/40 w-max text-white dark:text-white px-2 py-1 rounded">
+						<div className="text-xs bg-lm-gray-800 w-max text-white dark:text-white px-2 py-1 rounded">
 							{currentSlide}/{items.length}
 						</div>
 					</div>

@@ -1,7 +1,7 @@
 // FullscreenImg.js
 import React from 'react';
 import Modal from 'react-modal';
-import { AiOutlineCloseCircle } from 'react-icons/ai';
+import { XCircle } from 'lucide-react';
 
 const FullscreenImg = ({ isOpen, onClose, content }) => {
 	return (
@@ -9,7 +9,7 @@ const FullscreenImg = ({ isOpen, onClose, content }) => {
 			isOpen={isOpen}
 			onRequestClose={onClose}
 			className="relative mx-2"
-			overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50"
+			overlayClassName="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50"
 		>
 			{content}
 			<button
@@ -17,7 +17,7 @@ const FullscreenImg = ({ isOpen, onClose, content }) => {
 				className="fixed top-4 right-4 text-white text-2xl z-50"
 				onClick={onClose}
 			>
-				<AiOutlineCloseCircle size={40} />
+				<XCircle size={40} />
 			</button>
 		</Modal>
 	);
