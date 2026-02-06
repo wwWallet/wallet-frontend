@@ -31,7 +31,6 @@ const WebauthnLogin = ({
 				params.delete('sync')
 				navigate(`${window.location.pathname}?${params.toString()}`, { replace: true });
 			} else {
-				// Using a switch here so the t() argument can be a literal, to ease searching
 				const err = result.val;
 
 				// Handle tenant discovery error - redirect to tenant-specific login
@@ -41,6 +40,7 @@ const WebauthnLogin = ({
 					return;
 				}
 
+				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (err) {
 					case 'loginKeystoreFailed':
 						setError(t('loginSignup.loginKeystoreFailed'));

@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useEffect, useState } from 'react';
 import { Navigate, useParams, useLocation } from 'react-router-dom';
 import SessionContext from '@/context/SessionContext';
 import { getStoredTenant, buildTenantRoutePath, isDefaultTenant, DEFAULT_TENANT_ID, TENANT_PATH_PREFIX } from '@/lib/tenant';
@@ -7,6 +7,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const cachedUsers = keystore.getCachedUsers();
 	const location = useLocation();
+	const [isHardRedirecting, setIsHardRedirecting] = useState(false);
 
 	// Get tenant from URL (if in /id/:tenantId/* route)
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
@@ -63,19 +64,35 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		}
 
 		// Scenario 3: User accessing wrong tenant (e.g., tenant A user at /id/B/)
+		// This is a cross-tenant navigation that requires full page reload
 		if (!isDefaultTenant(storedTenantId) && urlTenantId && urlTenantId !== storedTenantId) {
 			const correctPath = buildTenantRoutePath(storedTenantId, subPath);
-			return correctPath + location.search;
+			return { hardRedirect: true, path: correctPath + location.search };
 		}
 
 		// Scenario 4: Default tenant user at non-default tenant path
+		// This is also a cross-tenant navigation
 		if (isDefaultTenant(storedTenantId) && urlTenantId && !isDefaultTenant(urlTenantId)) {
 			const correctPath = buildTenantRoutePath(storedTenantId, subPath);
-			return correctPath + location.search;
+			return { hardRedirect: true, path: correctPath + location.search };
 		}
 
 		return null; // No redirect needed
 	}, [isLoggedIn, storedTenantId, urlTenantId, location.pathname, location.search]);
+
+	// Handle cross-tenant hard redirects (full page reload)
+	useEffect(() => {
+		if (tenantRedirectPath && typeof tenantRedirectPath === 'object' && tenantRedirectPath.hardRedirect) {
+			setIsHardRedirecting(true);
+			// Use full page reload to ensure tenant-specific config is loaded fresh
+			window.location.href = tenantRedirectPath.path;
+		}
+	}, [tenantRedirectPath]);
+
+	// Show nothing while doing a hard redirect
+	if (isHardRedirecting) {
+		return <></>;
+	}
 
 	// Handle unauthenticated users first
 	if (!isLoggedIn) {
@@ -91,8 +108,8 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		}
 	}
 
-	// Enforce tenant-aware routing for authenticated users
-	if (tenantRedirectPath) {
+	// Enforce tenant-aware routing for authenticated users (soft redirect via React Router)
+	if (tenantRedirectPath && typeof tenantRedirectPath === 'string') {
 		return <Navigate to={tenantRedirectPath} replace />;
 	}
 

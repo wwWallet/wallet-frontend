@@ -91,8 +91,10 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 
 	const switchTenant = useCallback((newTenantId: string) => {
 		setStoredTenant(newTenantId);
-		navigate(`/${TENANT_PATH_PREFIX}/${newTenantId}/`);
-	}, [navigate]);
+		// Use full page reload instead of React navigation to ensure tenant-specific
+		// config (potentially in index.html) is loaded fresh
+		window.location.href = `/${TENANT_PATH_PREFIX}/${newTenantId}/`;
+	}, []);
 
 	const clearTenant = useCallback(() => {
 		clearStoredTenant();

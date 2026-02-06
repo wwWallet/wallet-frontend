@@ -672,11 +672,10 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				}
 			}
 
-			// Store the tenant from response or from the context we used
-			const tenantToStore = finishResp?.data?.tenantId || effectiveTenantId;
-			if (tenantToStore) {
-				setStoredTenant(tenantToStore);
-			}
+			// Store the tenant from response, falling back to 'default' if not provided
+			// This ensures we always have a valid tenant context
+			const tenantToStore = finishResp?.data?.tenantId ?? 'default';
+			setStoredTenant(tenantToStore);
 
 			// Update cached user's display name with tenant info for better UX
 			// This ensures existing cached users get updated with tenant display names
@@ -783,11 +782,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							},
 						}));
 
-						// Store the tenant from the response if available
-						// (tenant-scoped registration returns tenantId)
-						if (finishResp?.data?.tenantId) {
-							setStoredTenant(finishResp.data.tenantId);
-						}
+						// Store the tenant from the response, falling back to 'default' if not provided
+						// This ensures we always have a valid tenant context
+						setStoredTenant(finishResp?.data?.tenantId ?? 'default');
 
 						// Update cached user's display name with tenant info for better UX
 						// (e.g., "alice @ TenantName" instead of just "alice")

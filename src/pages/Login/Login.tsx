@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
+import React, { useContext, useEffect, useState, useCallback, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -252,14 +252,13 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
-	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
+	const onLogin = useCallback(async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		// Pass the tenantId from URL path to ensure proper tenant-scoped login
 		// This is critical for auto-retry after tenant discovery redirect
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, tenantId);
 		if (result.ok) {
-
+			// Success - no action needed, session will be set by API
 		} else {
-			// Using a switch here so the t() argument can be a literal, to ease searching
 			const err = result.val;
 
 			// Handle tenant discovery error - redirect to tenant-specific login
@@ -271,6 +270,7 @@ const WebauthnSignupLogin = ({
 				return;
 			}
 
+			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (err) {
 				case 'loginKeystoreFailed':
 					setError(t('loginSignup.loginKeystoreFailed'));
@@ -296,7 +296,7 @@ const WebauthnSignupLogin = ({
 					throw result;
 			}
 		}
-	};
+	}, [api, keystore, tenantId, navigate, setError, t]);
 
 	// Auto-retry login after tenant discovery redirect
 	// When redirected from global /login with ?autoRetry=true, automatically trigger login
