@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaLock } from "react-icons/fa";
+import { Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
@@ -8,6 +8,7 @@ interface PinInputProps {
 	isOpen: boolean;
 	setIsOpen: (isOpen: boolean) => void;
 	inputsCount: number;
+	inputsMode?: "text" | "numeric";
 	onCancel?: () => void;
 	onSubmit?: (pin: string) => void;
 }
@@ -90,7 +91,7 @@ const PinInput = ({
 	return (
 		<PopupLayout isOpen={isOpen} onClose={false}>
 			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
-				<FaLock size={20} className="inline mr-1 mb-1" />
+				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
 			<hr className="mb-2 border-t border-primary/80 border-white/80" />
