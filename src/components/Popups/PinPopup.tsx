@@ -17,6 +17,7 @@ const PinInput = ({
 	isOpen,
 	setIsOpen,
 	inputsCount,
+	inputsMode,
 	onCancel,
 	onSubmit,
 }: PinInputProps) => {
@@ -47,21 +48,20 @@ const PinInput = ({
 		}
 	};
 
-	const handleInputChange = (index: number, value: string) => {
+	const handleInputChange = (index: number, value: string, inputsMode: string) => {
 		setErrMessage('');
-		if (/^\d*$/.test(value) && value.length <= 1) {
+		const isNumericMode = inputsMode === 'numeric';
+		const isValidChar = isNumericMode ? /^\d*$/.test(value) : true;
+		if (isValidChar && value.length <= 1) {
 			const newPin = [...pin];
 			newPin[index] = value;
-
 			setPin(newPin);
-
 			if (value !== '' && index < inputsCount - 1) {
 				const nextInput = inputRefs[index + 1].current;
 				nextInput?.focus();
 			}
 		}
 	};
-
 	const handleInputKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
 		setErrMessage('');
 		if (event.key === 'Backspace' && pin[index] === '' && index > 0) {
@@ -71,7 +71,6 @@ const PinInput = ({
 			setPin(newPin);
 		}
 	};
-
 	const handleInputPaste = (pastedValue: string) => {
 		setErrMessage('');
 		if (/^\d+$/.test(pastedValue)) {
@@ -87,7 +86,6 @@ const PinInput = ({
 	if (!isOpen) {
 		return;
 	}
-
 	return (
 		<PopupLayout isOpen={isOpen} onClose={false}>
 			<h2 className="text-lg font-bold mb-2 text-primary dark:text-white">
@@ -98,7 +96,6 @@ const PinInput = ({
 			<p className="italic pd-2 text-gray-700 dark:text-white">
 				{t('PinInputPopup.description')}
 			</p>
-
 			{errMessage && (
 				<p className='text-sm text-red-600'>{errMessage}</p>
 			)}
@@ -108,7 +105,7 @@ const PinInput = ({
 						type="text"
 						key={index}
 						value={digit}
-						onChange={(e) => handleInputChange(index, e.target.value)}
+						onChange={(e) => handleInputChange(index, e.target.value,inputsMode)}
 						onKeyDown={(e) => handleInputKeyDown(index, e)}
 						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
 						className="w-10 px-3 mx-1 my-2 py-2 dark:bg-gray-700 dark:text-white border border-gray-300 dark:border-gray-500 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -117,7 +114,6 @@ const PinInput = ({
 					/>
 				))}
 			</div>
-
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button variant="cancel" onClick={handleCancel}>
 					{t('common.cancel')}
