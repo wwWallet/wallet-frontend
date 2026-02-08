@@ -162,7 +162,8 @@ export const PreAuthorizationProvider: React.FC<{ children: ReactNode }> = ({ ch
 			const targetUrl = `${backendURL}/credential`;
 			const dpop = await generateDPoP(privateKey, jwk, "POST", targetUrl, nonceData.c_nonce);
 			const inputs = [];
-			for (let i = 0; i < 1; i++) {
+			const numberOfProofs =1;
+			for (let i = 0; i < numberOfProofs; i++) {
 				inputs.push({
 					nonce: nonceData.c_nonce ?? undefined,
 					issuer: clientID,
