@@ -12,7 +12,7 @@ import { GrantType, TokenRequestError, useTokenRequest } from './OAuth/TokenRequ
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
-import type { CredentialConfigurationSupported, VerifiableCredentialFormat } from 'wallet-common';
+import { CredentialConfigurationSupported, VerifiableCredentialFormat } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
