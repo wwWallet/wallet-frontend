@@ -11,7 +11,7 @@ import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { useTranslation } from "react-i18next";
-import { ParsedTransactionData, parseTransactionData } from "./TransactionData/parseTransactionData";
+import { ParsedTransactionData, parseTransactionDataWithUI } from "./TransactionData/parseTransactionData";
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { getLeastUsedCredentialInstance } from "../CredentialBatchHelper";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
@@ -104,7 +104,7 @@ export function useOpenID4VP({
 				allClaimsRequested: t('selectCredentialPopup.allClaimsRequested'),
 			},
 			lastUsedNonceStore,
-			parseTransactionData,
+			parseTransactionData: parseTransactionDataWithUI,
 			transactionDataResponseGenerator: TransactionDataResponse,
 			verifyRequestUriAndCerts: async ({ request_uri, response_uri, parsedHeader }) =>
 				verifyRequestUriAndCerts(request_uri, response_uri, parsedHeader),
