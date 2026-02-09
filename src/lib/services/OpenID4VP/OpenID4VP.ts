@@ -1,6 +1,6 @@
 import { IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import {
-	type HandleAuthorizationRequestError as HandleAuthorizationRequestErrorType,
+	HandleAuthorizationRequestError as HandleAuthorizationRequestErrorType,
 } from "wallet-common";
 import type { OpenID4VPServerCredential } from "wallet-common";
 import { OpenID4VPServerAPI, ResponseMode } from "wallet-common";

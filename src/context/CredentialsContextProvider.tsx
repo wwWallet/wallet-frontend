@@ -1,12 +1,10 @@
 import React, { useState, useCallback, useContext, useRef, useEffect } from 'react';
 import SessionContext from './SessionContext';
 import { initializeCredentialEngine } from "../lib/initializeCredentialEngine";
-import { CredentialVerificationError } from "wallet-common/dist/error";
+import { CredentialVerificationError, VerifiableCredentialFormat, ParsedCredential } from "wallet-common";
 import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsContext";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
-import { ParsedCredential } from "wallet-common/dist/types";
 import { CurrentSchema } from '@/services/WalletStateSchema';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;

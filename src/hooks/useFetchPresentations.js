@@ -4,8 +4,7 @@ import { compareBy, reverse } from '../util';
 // Context
 import CredentialsContext from '@/context/CredentialsContext';
 
-import { CredentialVerificationError } from "wallet-common/dist/error";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { CredentialVerificationError, VerifiableCredentialFormat } from "wallet-common";
 
 const useFetchPresentations = (keystore, batchId = null, transactionId = null) => {
 	const [history, setHistory] = useState({});

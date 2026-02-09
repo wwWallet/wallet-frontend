@@ -1,8 +1,7 @@
 // CredentialsContext.ts
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import { createContext } from 'react';
-import { ParsedCredential } from 'wallet-common/dist/types';
-import { ParsingEngineI, CredentialVerifier } from 'wallet-common/dist/interfaces';
+import { ParsedCredential, ParsingEngineI, CredentialVerifier } from 'wallet-common';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
@@ -33,7 +32,7 @@ export type CredentialsContextValue = {
 	setCurrentSlide: (slide: number) => void;
 	parseCredential: (credential: WalletStateCredential) => Promise<ParsedCredential | null>;
 	credentialEngine: CredentialEngine | null;
-	pendingTransactions:Record<string, any>;
+	pendingTransactions: Record<string, any>;
 };
 
 const defaultContextValue: CredentialsContextValue = {
@@ -45,7 +44,7 @@ const defaultContextValue: CredentialsContextValue = {
 	setCurrentSlide: () => { },
 	parseCredential: async () => null,
 	credentialEngine: null,
-	pendingTransactions:null,
+	pendingTransactions: null,
 };
 const CredentialsContext = createContext<CredentialsContextValue>(defaultContextValue);
 
