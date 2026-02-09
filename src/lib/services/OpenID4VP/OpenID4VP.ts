@@ -1,6 +1,6 @@
 import { HandleAuthorizationRequestError, IOpenID4VP } from "../../interfaces/IOpenID4VP";
 import { SDJwt } from "@sd-jwt/core";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { VerifiableCredentialFormat } from "wallet-common";
 import { generateRandomIdentifier } from "../../utils/generateRandomIdentifier";
 import { base64url, EncryptJWT, importJWK, importX509, jwtVerify } from "jose";
 import { OpenID4VPRelyingPartyState, ResponseMode, ResponseModeSchema } from "../../types/OpenID4VPRelyingPartyState";
