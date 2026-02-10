@@ -1,6 +1,5 @@
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react';
 import ExpiredRibbon from './ExpiredRibbon';
-import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
 import CredentialStatusIndicatorsRibbon from './CredentialStatusIndicatorsRibbon';
@@ -12,7 +11,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 	const [walletStateKeypairs, setWalletStateKeyPairs] = useState(null);
 
 	useEffect(() => {
-		setWalletStateKeyPairs(keystore.getCalculatedWalletState().keypairs)
+		setWalletStateKeyPairs(keystore.getCalculatedWalletState().keypairs);
 	}, [keystore]);
 
 	useEffect(() => {
@@ -45,7 +44,7 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 
 		loadImage();
 
-		return () => { isMounted = false };
+		return () => { isMounted = false; };
 	}, [vcEntity, filter, onLoad]);
 
 	return (

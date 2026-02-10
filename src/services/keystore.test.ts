@@ -38,7 +38,7 @@ function parseAsymmetricContainer(...s: string[]): keystore.AsymmetricEncryptedC
 }
 
 /** Use this function to format a JSON blob for inclusion as a test case. */
-function formatContainerTestCaseCode(containerJson: string): string {
+function formatContainerTestCaseCode(containerJson: string): string { // eslint-disable-line @typescript-eslint/no-unused-vars
 	function hardWrapLines(s: string): string[] {
 		return Array(Math.ceil(s.length / 80)).fill(0).map((_, i) => s.substring(i * 80, (i + 1) * 80))
 	}

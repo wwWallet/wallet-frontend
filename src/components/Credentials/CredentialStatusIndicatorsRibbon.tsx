@@ -25,10 +25,9 @@ type KeyPairs = {
 function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: KeyPairs ): StatusIndicators {
 	const credentialKeyPair = keypairs?.find(kp => kp.kid === vcEntity.kid);
 
-	let kid: string, alg: string, keypair: CredentialKeyPair;
+	let alg: string, keypair: CredentialKeyPair;
 
 	if (credentialKeyPair) {
-		kid = credentialKeyPair.kid;
 		keypair = credentialKeyPair.keypair;
 		alg = keypair.alg
 	} else {
@@ -36,7 +35,6 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 			const credParts = vcEntity.data.split('.');
 			const dpkJwk = JSON.parse(new TextDecoder().decode(fromBase64Url(credParts[credParts.length - 1].split('~')[1])));
 
-			kid = dpkJwk.kid;
 			keypair = keypairs.find(keypair => keypair.kid === dpkJwk.kid)?.keypair;
 		}
 	}
@@ -49,6 +47,7 @@ function getCredentialStatusIndicators(vcEntity: ExtendedVcEntity, keypairs: Key
 	})();
 
 	const privacyLevel = (() => {
+		if (alg === 'PLACEHOLDER-FOR-FUTURE-MAGIC-VALUE') return 'high';
 		if (vcEntity.instances.length > 1) return 'medium';
 		return 'low';
 	})();

@@ -499,7 +499,6 @@ const WebauthnCredentialItem = ({
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
 	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
-	const credIdB64 = toBase64Url(credential.credentialId);
 
 	const handleDelete = async () => {
 		if (onDelete) {
@@ -958,6 +957,7 @@ const Settings = () => {
 									},
 								});
 								retry = result.retry;
+								break;
 							}
 
 							case 'user-abort':

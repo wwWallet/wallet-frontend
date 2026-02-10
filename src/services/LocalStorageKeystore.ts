@@ -548,7 +548,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		async (createOptions: CredentialCreationOptions): Promise<PrecreatedPublicKeyCredential> => {
 			return await keystore.beginAddPrf(createOptions);
 		},
-		[keystore],
+		[],
 	);
 
 	const finishAddPrf = useCallback(
@@ -660,53 +660,60 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[privateData, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
 	);
 
-	async function webauthnSignRetryLoop(
-		heading: React.ReactNode,
-		options: CredentialRequestOptions,
-	): Promise<PublicKeyCredential> {
-		const webauthnDialog = webauthnInteractionCtx.setup({ heading });
+	const webauthnSignRetryLoop = useCallback(
+		async (
+			heading: React.ReactNode,
+			options: CredentialRequestOptions,
+		): Promise<PublicKeyCredential> => {
+			const webauthnDialog = webauthnInteractionCtx.setup({ heading });
 
-		let retry = true;
-		while (retry) {
-			try {
-				const result = await webauthnDialog.beginGet(options, {
-					bodyText: t('signPresentation.usePasskey'),
-				});
-				webauthnDialog.success({
-					bodyText: t('signPresentation.success'),
-				});
-				return result;
+			let retry = true;
+			while (retry) {
+				try {
+					const result = await webauthnDialog.beginGet(options, {
+						bodyText: t('signPresentation.usePasskey'),
+					});
+					webauthnDialog.success({
+						bodyText: t('signPresentation.success'),
+					});
+					return result;
 
-			} catch (e) {
-				switch (e.cause?.id) {
-					case 'signature-not-found': {
-						const result = await webauthnDialog.error({
-							bodyText: t('signPresentation.errorSignatureNotFound'),
-							buttons: {
-								retry: true,
-							},
-						});
-						retry = result.retry;
-					}
+				} catch (e) {
+					switch (e.cause?.id) {
+						case 'signature-not-found': {
+							const result = await webauthnDialog.error({
+								bodyText: t('signPresentation.errorSignatureNotFound'),
+								buttons: {
+									retry: true,
+								},
+							});
+							retry = result.retry;
+							break;
+						}
 
-					case 'user-abort':
-						throw e;
+						case 'user-abort':
+							throw e;
 
-					case 'err':
-					default: {
-						const result = await webauthnDialog.error({
-							bodyText: t('signPresentation.errorUnknown'),
-							buttons: {
-								retry: true,
-							},
-						});
-						retry = result.retry;
-						break;
+						case 'err':
+						default: {
+							const result = await webauthnDialog.error({
+								bodyText: t('signPresentation.errorUnknown'),
+								buttons: {
+									retry: true,
+								},
+							});
+							retry = result.retry;
+							break;
+						}
 					}
 				}
 			}
-		}
-	}
+		},
+		[
+			t,
+			webauthnInteractionCtx,
+		],
+	);
 
 	const signJwtPresentation = useCallback(
 		async (nonce: string, audience: string, verifiableCredentials: any[], transactionDataResponseParams?: { transaction_data_hashes: string[], transaction_data_hashes_alg: string[] }): Promise<{ vpjwt: string }> => {
@@ -722,7 +729,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				transactionDataResponseParams,
 			);
 		},
-		[openPrivateData]
+		[
+			openPrivateData,
+			t,
+			webauthnSignRetryLoop,
+		]
 	);
 
 	const generateDeviceResponse = useCallback(
@@ -763,7 +774,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				requests.length,
 			);
 		})
-	), [editPrivateData]);
+	), [
+		editPrivateData,
+		t,
+		webauthnSignRetryLoop,
+	]);
 
 	const currentUser: CachedUser | undefined = useMemo(
 		() => {
@@ -776,30 +791,36 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[cachedUsers, userHandleB64u],
 	);
 
-	const registerWebauthnSignKeypair = async (
-		alg: number,
-		executeWebauthn: (options: CredentialCreationOptions) => Promise<{ credential: PublicKeyCredential, name: string }>,
-	) => {
-		return editPrivateData(async originalContainer => {
-			if (!currentUser?.displayName) {
-				throw new Error('User display name not set');
-			}
-			const displayName = currentUser.displayName;
-			return keystore.registerWebauthnSignKeypair(
-				originalContainer,
-				{ id: config.WEBAUTHN_RPID, name: config.WEBAUTHN_RPID },
-				{
-					// Very important! Don't use the real user handle, or existing
-					// credentials on the authenticator may be overwritten.
-					id: crypto.getRandomValues(new Uint8Array(32)),
-					name: displayName,
-					displayName,
-				},
-				alg,
-				executeWebauthn,
-			);
-		});
-	};
+	const registerWebauthnSignKeypair = useCallback(
+		async (
+			alg: number,
+			executeWebauthn: (options: CredentialCreationOptions) => Promise<{ credential: PublicKeyCredential, name: string }>,
+		) => {
+			return editPrivateData(async originalContainer => {
+				if (!currentUser?.displayName) {
+					throw new Error('User display name not set');
+				}
+				const displayName = currentUser.displayName;
+				return keystore.registerWebauthnSignKeypair(
+					originalContainer,
+					{ id: config.WEBAUTHN_RPID, name: config.WEBAUTHN_RPID },
+					{
+						// Very important! Don't use the real user handle, or existing
+						// credentials on the authenticator may be overwritten.
+						id: crypto.getRandomValues(new Uint8Array(32)),
+						name: displayName,
+						displayName,
+					},
+					alg,
+					executeWebauthn,
+				);
+			});
+		},
+		[
+			currentUser?.displayName,
+			editPrivateData,
+		],
+	);
 
 	const generateKeypairs = useCallback(
 		async (n: number): Promise<[
@@ -1013,5 +1034,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		saveCredentialIssuanceSessions,
 		getCredentialIssuanceSessionByState,
 		alterSettings,
+		registerWebauthnSignKeypair,
 	]);
 }
