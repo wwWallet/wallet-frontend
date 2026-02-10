@@ -74,7 +74,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	useEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
-			api.syncPrivateData(cachedUser);
+			api.syncPrivateData(cachedUser, keystore);
 		}
 		if (isLoggedIn) {
 			setLatestIsOnlineStatus(isOnline);
@@ -87,7 +87,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		isOnline,
 		latestIsOnlineStatus,
 		setLatestIsOnlineStatus,
-		cachedUser
+		cachedUser,
+		keystore
 	]);
 
 	useEffect(() => {
@@ -97,7 +98,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		const params = new URLSearchParams(location.search);
 		if (synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
 			console.log("Actually syncing...");
-			syncPrivateData(cachedUser).then((r) => {
+			syncPrivateData(cachedUser, keystore).then((r) => {
 				if (!r.ok) {
 					return;
 				}
@@ -107,7 +108,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			});
 		}
 
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search]);
+	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search, keystore]);
 
 	useEffect(() => {
 		if (synced === true && window.location.search !== '') {
