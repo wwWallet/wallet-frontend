@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
+import { HandleAuthorizationRequestErrors as HandleAuthorizationRequestError } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -155,7 +155,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
-					if ('url' in res && res.url) {
+					if ('url' in res && typeof res.url === 'string' && res.url) {
 						window.location.href = res.url;
 					}
 				})
