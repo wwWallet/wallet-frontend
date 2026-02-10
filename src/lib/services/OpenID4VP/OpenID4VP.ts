@@ -3,7 +3,7 @@ import {
 	HandleAuthorizationRequestError as HandleAuthorizationRequestErrorType,
 } from "wallet-common";
 import type { OpenID4VPServerCredential } from "wallet-common";
-import { OpenID4VPServerAPI, ResponseMode } from "wallet-common";
+import { OpenID4VPServerAPI, OpenID4VPResponseMode } from "wallet-common";
 import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartyState";
 import { useOpenID4VPRelyingPartyStateRepository } from "../OpenID4VPRelyingPartyStateRepository";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
@@ -66,7 +66,7 @@ export function useOpenID4VP({
 					stateObject.client_id,
 					stateObject.state,
 					stateObject.client_metadata,
-					stateObject.response_mode as ResponseMode,
+					stateObject.response_mode as OpenID4VPResponseMode,
 					stateObject.transaction_data,
 					stateObject.dcql_query
 				));
@@ -79,7 +79,7 @@ export function useOpenID4VP({
 					client_id: stored.client_id,
 					state: stored.state,
 					client_metadata: stored.client_metadata,
-					response_mode: stored.response_mode as ResponseMode,
+					response_mode: stored.response_mode as OpenID4VPResponseMode,
 					transaction_data: stored.transaction_data,
 					dcql_query: stored.dcql_query,
 				};
