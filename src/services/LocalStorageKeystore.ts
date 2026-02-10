@@ -444,7 +444,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		user: UserData,
 	): Promise<EncryptedContainer> => {
 		const unlocked = await keystore.init(mainKey, keyInfo);
-		const privateData = await finishUnlock(unlocked, user, null);
+		const privateData = await finishUnlock(unlocked, user, null, async () => false);
 		return privateData;
 	},
 		[finishUnlock]
@@ -457,7 +457,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			user: UserData,
 		): Promise<[EncryptedContainer, CommitCallback] | null> => {
 			const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
-			await finishUnlock(unlockResult, user, null);
+			await finishUnlock(unlockResult, user, null, async () => false);
 			return (
 				newPrivateData
 					?
