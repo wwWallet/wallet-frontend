@@ -45,7 +45,7 @@ function getMappedStoreName(storeName: string): string {
 		return 'externalEntities';
 	}
 
-	// Check for tenant-prefixed paths (e.g., /tenant/myTenant/issuer/all)
+	// Check for tenant-prefixed paths (e.g., /t/myTenant/issuer/all)
 	const basePath = getTenantScopedBasePath(storeName);
 	if (basePath) {
 		return 'externalEntities';

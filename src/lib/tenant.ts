@@ -152,14 +152,14 @@ export function extractTenantFromUserHandle(userHandle: ArrayBuffer | Uint8Array
 
 /**
  * Paths that should use tenant-scoped backend endpoints.
- * For non-default tenants, these paths are prefixed with /tenant/{tenantId}.
+ * For non-default tenants, these paths are prefixed with /t/{tenantId}.
  */
 const TENANT_SCOPED_API_PATHS = ['/issuer/all', '/verifier/all'];
 
 /**
  * Build the backend API path for tenant-scoped resources.
  * - Default tenant uses direct paths: /issuer/all, /verifier/all
- * - Custom tenants use /tenant/{tenantId}/ prefix: /tenant/myTenant/issuer/all
+ * - Custom tenants use /t/{tenantId}/ prefix: /t/myTenant/issuer/all
  *
  * @param path - The API path (e.g., '/issuer/all')
  * @param tenantId - The tenant ID (from getStoredTenant)
@@ -174,11 +174,11 @@ export function buildTenantApiPath(path: string, tenantId?: string): string {
 		return path;
 	}
 
-	return `/tenant/${tenantId}${path}`;
+	return `/t/${tenantId}${path}`;
 }
 
 /**
- * Check if a path is a tenant-scoped API path (possibly prefixed with /tenant/{tenantId}).
+ * Check if a path is a tenant-scoped API path (possibly prefixed with /t/{tenantId}).
  * Returns the base path (e.g., '/issuer/all') if it's a tenant-scoped path.
  */
 export function getTenantScopedBasePath(path: string): string | null {
@@ -187,8 +187,8 @@ export function getTenantScopedBasePath(path: string): string | null {
 		return path;
 	}
 
-	// Check for /tenant/{tenantId}/... prefix
-	const tenantPrefixMatch = path.match(/^\/tenant\/[^/]+(\/.*)$/);
+	// Check for /t/{tenantId}/... prefix
+	const tenantPrefixMatch = path.match(/^\/t\/[^/]+(\/.*)$/);
 	if (tenantPrefixMatch) {
 		const basePath = tenantPrefixMatch[1];
 		if (TENANT_SCOPED_API_PATHS.includes(basePath)) {

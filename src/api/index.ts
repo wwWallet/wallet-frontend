@@ -247,7 +247,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options?: { appToken?: string, headers?: { [header: string]: string } },
 		force: boolean = false
 	): Promise<AxiosResponse> => {
-		// Build tenant-aware path for API call (e.g., /tenant/{tenantId}/issuer/all)
+		// Build tenant-aware path for API call (e.g., /t/{tenantId}/issuer/all)
 		const tenantAwarePath = buildTenantApiPath(path, getStoredTenant());
 		// Use tenant-aware path as both API path and cache key so different tenants have separate caches
 		return getWithLocalDbKey(tenantAwarePath, tenantAwarePath, options, force);
