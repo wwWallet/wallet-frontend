@@ -149,3 +149,52 @@ export function extractTenantFromUserHandle(userHandle: ArrayBuffer | Uint8Array
 // Note: Login now uses global endpoints only (/user/login-webauthn-begin and /user/login-webauthn-finish).
 // The backend discovers the tenant from the passkey's userHandle which contains a hashed tenant ID.
 // Registration continues to use tenant-scoped paths for explicit tenant context.
+
+/**
+ * Paths that should use tenant-scoped backend endpoints.
+ * For non-default tenants, these paths are prefixed with /tenant/{tenantId}.
+ */
+const TENANT_SCOPED_API_PATHS = ['/issuer/all', '/verifier/all'];
+
+/**
+ * Build the backend API path for tenant-scoped resources.
+ * - Default tenant uses direct paths: /issuer/all, /verifier/all
+ * - Custom tenants use /tenant/{tenantId}/ prefix: /tenant/myTenant/issuer/all
+ *
+ * @param path - The API path (e.g., '/issuer/all')
+ * @param tenantId - The tenant ID (from getStoredTenant)
+ * @returns The backend API path
+ */
+export function buildTenantApiPath(path: string, tenantId?: string): string {
+	if (!TENANT_SCOPED_API_PATHS.includes(path)) {
+		return path;
+	}
+
+	if (isDefaultTenant(tenantId)) {
+		return path;
+	}
+
+	return `/tenant/${tenantId}${path}`;
+}
+
+/**
+ * Check if a path is a tenant-scoped API path (possibly prefixed with /tenant/{tenantId}).
+ * Returns the base path (e.g., '/issuer/all') if it's a tenant-scoped path.
+ */
+export function getTenantScopedBasePath(path: string): string | null {
+	// Direct match
+	if (TENANT_SCOPED_API_PATHS.includes(path)) {
+		return path;
+	}
+
+	// Check for /tenant/{tenantId}/... prefix
+	const tenantPrefixMatch = path.match(/^\/tenant\/[^/]+(\/.*)$/);
+	if (tenantPrefixMatch) {
+		const basePath = tenantPrefixMatch[1];
+		if (TENANT_SCOPED_API_PATHS.includes(basePath)) {
+			return basePath;
+		}
+	}
+
+	return null;
+}
