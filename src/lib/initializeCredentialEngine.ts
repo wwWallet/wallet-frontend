@@ -19,7 +19,7 @@ export async function initializeCredentialEngine(
 				const url = new URL(VCT_REGISTRY_URL);
 				url.searchParams.append('vct', vct);
 				const res = await httpProxy.get(url.toString(), { useCache: true });
-				if (!res?.data) return err(VctResolutionErrors.NotFound);
+				if (!res?.data || res.status!==200) return err(VctResolutionErrors.NotFound);
 				return ok(res.data as any);
 			} catch (e) {
 				console.error('Error in VCT SDJWT Metadata retrieval: ' + JSON.stringify(e));
