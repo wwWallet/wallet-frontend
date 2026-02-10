@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
+import { HandleAuthorizationRequestErrors as HandleAuthorizationRequestError } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -30,7 +30,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { openID4VCI } = useContext(OpenID4VCIContext);
 	const { openID4VP } = useContext(OpenID4VPContext);
 
-	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse } = openID4VCI;
+	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse, requestCredentialsWithPreAuthorization } = openID4VCI;
 	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
@@ -135,11 +135,27 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			console.log('[Uri Handler]: check', url);
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
+				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
 					console.log("Generating authorization request...");
-					return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
+					if (!preAuthorizedCode) {
+						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
+					}
+
+					let userInput: string | undefined = undefined;
+					if (txCode) {
+						while (1) {
+							userInput = prompt(txCode.description ?? "Input Transaction Code displayed on your screen")
+							if (txCode.length && txCode.length === userInput.length) {
+								break;
+							}
+							else if (txCode.length) {
+								alert(`Length of transaction code must be ${txCode.length}`);
+							}
+						}
+					}
+					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
-					if ('url' in res && res.url) {
+					if ('url' in res && typeof res.url === 'string' && res.url) {
 						window.location.href = res.url;
 					}
 				})
@@ -231,6 +247,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		handleAuthorizationRequest,
 		promptForCredentialSelection,
 		sendAuthorizationResponse,
+		requestCredentialsWithPreAuthorization,
 	]);
 
 	useEffect(() => {

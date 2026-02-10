@@ -201,22 +201,13 @@ export function useCredentialRequest() {
 					proofsToSend = proof_jwts;
 				}
 
-				if (credentialIssuerMetadata.metadata?.batch_credential_issuance?.batch_size) {
-					credentialEndpointBody.proofs = {
-						jwt: proofsToSend
-					}
-				}
-				else {
-					credentialEndpointBody.proof = {
-						proof_type: "jwt",
-						jwt: proofsToSend[0]
-					};
+				credentialEndpointBody.proofs = {
+					jwt: proofsToSend
 				}
 			}
 			else if (keyAttestation) {
-				credentialEndpointBody.proof = {
-					proof_type: "attestation",
-					attestation: keyAttestation,
+				credentialEndpointBody.proofs = {
+					attestation: [keyAttestation],
 				};
 			}
 			else {
@@ -264,7 +255,7 @@ export function useCredentialRequest() {
 			const payload = JSON.parse(new TextDecoder().decode(plaintext));
 			credentialResponse.data = payload;
 		}
-		if (credentialResponse.status !== 200) {
+		if (credentialResponse.status >= 400) {
 			console.error("Error: Credential response = ", JSON.stringify(credentialResponse));
 			if (credentialResponse.headers?.["www-authenticate"] && (
 				(credentialResponse.headers?.["www-authenticate"] as string).includes("invalid_dpop_proof") ||

@@ -8,7 +8,7 @@ import { useCallback, useContext, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { toBase64 } from "@/util";
 import { generateRandomIdentifier } from "../utils/generateRandomIdentifier";
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { VerifiableCredentialFormat } from "wallet-common";
 import { WalletStateUtils } from "@/services/WalletStateUtils";
 
 export function useMdocAppCommunication(): IMdocAppCommunication {
