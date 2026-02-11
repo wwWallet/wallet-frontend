@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { injectConfigFiles, injectHtml } from './inject';
 import { getConfigFromEnv } from './utils/config';
+import { createCustomDirFromJSON } from '../branding';
 
 /**
  * This script is responsible for generating .well-known files and injecting meta tags into the HTML based on environment variables.

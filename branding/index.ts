@@ -762,3 +762,95 @@ export class MetadataImage {
 `;
 	}
 }
+
+/**
+ * Enforces that a string is base64 encoded and prefixed with either "png:" or "svg:".
+ */
+const base64WithPrefixSchema = z.string().refine(
+	(val) => val.startsWith("png:") || val.startsWith("svg:"),
+	{ message: "Must be prefixed with 'png:' or 'svg:'" }
+).optional();
+
+/**
+ * Schema for the custom branding directory structure.
+ */
+const customDirSchema = z.object({
+	theme: themeSchema,
+	logos: z.object({
+		logo_light_b64: base64WithPrefixSchema,
+		logo_dark_b64: base64WithPrefixSchema,
+	}).partial(),
+	screenshots: z.object({
+		screen_mobile_1_b64: z.string(),
+		screen_mobile_2_b64: z.string(),
+		screen_tablet_1_b64: z.string(),
+		screen_tablet_2_b64: z.string(),
+	}).optional(),
+});
+
+
+/**
+ * Creates a custom branding directory from a JSON input.
+ * The input must conform to the expected schema.
+ *
+ * The idea here is to allow storage of branding data in a database
+ * or other non-file-based storage, and then generate the necessary
+ * branding files on disk for the build process.
+ *
+ * We could also consume the JSON directly instead of creating files,
+ * but doing this is, for now, simpler and more compatible with existing code.
+ */
+export async function createCustomDirFromJSON(input: unknown) {
+	const result = customDirSchema.safeParse(input);
+	if (!result.success) {
+		throw new Error(`Invalid branding JSON: ${JSON.stringify(result.error.issues)}`);
+	}
+
+	const baseDir = path.resolve("branding", "custom");
+	console.log(`Creating custom branding directory at: ${baseDir}`);
+
+	await mkdir(baseDir, { recursive: true });
+
+	// Write theme.json
+	await writeFile(
+		path.join(baseDir, "theme.json"),
+		JSON.stringify(result.data.theme, null, 2),
+		"utf8"
+	);
+
+	// Write logos
+	const logosDir = path.join(baseDir, "logo");
+	await mkdir(logosDir, { recursive: true });
+
+	for (const [key, b64] of Object.entries(result.data.logos || {})) {
+		if (!b64) continue;
+
+		const [prefix, data] = b64.split(":");
+		const buffer = Buffer.from(data, "base64");
+		const ext = prefix === "png" ? "png" : "svg";
+		const filename = key.replace("_b64", `.${ext}`);
+
+		await writeFile(
+			path.join(logosDir, filename),
+			buffer
+		);
+		console.log(`Wrote logo file: ${filename}`);
+	}
+
+	// Write screenshots
+	if (result.data.screenshots) {
+		const screenshotsDir = path.join(baseDir, "screenshots");
+		await mkdir(screenshotsDir, { recursive: true });
+
+		for (const [key, b64] of Object.entries(result.data.screenshots)) {
+			const buffer = Buffer.from(b64, "base64");
+			const filename = key.replace("_b64", ".png");
+
+			await writeFile(
+				path.join(screenshotsDir, filename),
+				buffer
+			);
+			console.log(`Wrote screenshot file: ${filename}`);
+		}
+	}
+}
