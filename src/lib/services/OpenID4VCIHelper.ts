@@ -20,8 +20,14 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				const response = await httpProxy.get(path, {}, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
 				if (!response) throw new Error("Couldn't get response");
 
-				const parsedData = schema.parse(response.data);
-				return parsedData;
+				const result = schema.safeParse(response.data);
+
+				if (!result.success) {
+					console.warn(`Schema validation failed for ${path}:`, result.error.issues);
+					throw new Error("Invalid response schema");
+				}
+
+				return result.data;
 			} catch (err) {
 				console.error(`Error fetching from ${path}:`, err);
 				throw new Error(`Couldn't get data from ${path}`);
