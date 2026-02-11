@@ -5,7 +5,7 @@ import { getConfigFromEnv, injectConfigFiles, injectHtml } from '../config';
 export default function InjectConfigPlugin(env: Record<string, string>): Plugin {
 	const config = getConfigFromEnv(env);
 
-	const runInjectConfig = () => injectConfigFiles({
+	const runInjectConfigFiles = () => injectConfigFiles({
 		destDir: resolve('public'),
 		config,
 	});
@@ -28,15 +28,15 @@ export default function InjectConfigPlugin(env: Record<string, string>): Plugin 
 			},
 		},
 		async buildStart() {
-			await runInjectConfig();
+			await runInjectConfigFiles();
 		},
 		async configureServer(server) {
-			await runInjectConfig();
+			await runInjectConfigFiles();
 
 			server.watcher.on('change', async (file) => {
 				if (file.endsWith('.env')) {
 					console.log('Environment file changed. Reinjecting config...');
-					await runInjectConfig();
+					await runInjectConfigFiles();
 				}
 			});
 		},
