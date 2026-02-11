@@ -13,6 +13,8 @@ import themeCSS from './files/theme';
 export type InjectConfigOptions = {
 	/**
 	 * The directory containing the built assets.
+	 *
+	 * TODO: figure out if we should use this.
 	 */
 	bundleDir?: string;
 	/**
