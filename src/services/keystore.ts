@@ -5,7 +5,6 @@ import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
-import * as cbor from 'cbor-web';
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
@@ -19,10 +18,8 @@ import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewArkgSeedEvent, addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
 import type { PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData } from "../webauthn";
-import * as arkg from "wallet-common/dist/arkg";
-import * as ec from "wallet-common/dist/arkg/ec";
-import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB, encodeCoseKeyRefArkgDerived, parseCoseKey } from "wallet-common/dist/cose";
+import * as signExtension from "@/webauthn/sign-extension";
+import { COSE_ALG_ESP256_ARKG } from "wallet-common/dist/cose";
 
 
 type WalletState = CurrentSchema.WalletState;
@@ -300,10 +297,6 @@ function makeWebauthnSignFunction(
 	{ publicKey, externalPrivateKey }: CredentialKeyPairWithExternalPrivateKey,
 	executeWebauthn: (options: CredentialRequestOptions) => Promise<PublicKeyCredential>,
 ): (alg: any, key: any, data: Uint8Array) => Promise<Uint8Array> {
-	const prehashAlgs = [COSE_ALG_ESP256_ARKG];
-	const parsedKeyRef = cbor.decode(externalPrivateKey.keyRef);
-	const shouldPrehash = prehashAlgs.includes(parsedKeyRef.get(3));
-
 	return async (alg, _key, data) => {
 		async function createWebauthnArgs() {
 			try {
@@ -313,15 +306,8 @@ function makeWebauthnSignFunction(
 						challenge: crypto.getRandomValues(new Uint8Array(32)),
 						allowCredentials: [{ type: "public-key" as "public-key", id: externalPrivateKey.credentialId }],
 						extensions: {
-							sign: {
-								sign: {
-									keyHandleByCredential: {
-										[toBase64Url(externalPrivateKey.credentialId)]: externalPrivateKey.keyRef,
-									},
-									tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
-								},
-							},
-						} as AuthenticationExtensionsClientInputs,
+							...(await signExtension.makeSignInputs(externalPrivateKey, data)),
+						},
 					},
 				};
 			} catch (e) {
@@ -330,8 +316,7 @@ function makeWebauthnSignFunction(
 		}
 		const pkc = await executeWebauthn(await createWebauthnArgs());
 		try {
-			const authData = parseAuthenticatorData(new Uint8Array((pkc.response as AuthenticatorAssertionResponse).authenticatorData));
-			const sig = authData?.extensions?.sign?.get(6);
+			const sig = signExtension.parseSignature(pkc);
 			if (sig) {
 				switch (alg) {
 					case "ES256":
@@ -743,11 +728,7 @@ function addWebauthnRegistrationExtensionInputs(options: CredentialCreationOptio
 							first: prfSalt,
 						},
 					},
-					sign: {
-						generateKey: {
-							algorithms: [COSE_ALG_ESP256_ARKG],
-						},
-					},
+					...signExtension.makeGenerateKeyInputs(COSE_ALG_ESP256_ARKG),
 				}
 			},
 		},
@@ -913,7 +894,7 @@ async function addWebauthnSignKeypair(
 	prfCredential: PublicKeyCredential | null,
 	name: string | null,
 ): Promise<[NewWebauthnSignKeypair, OpenedContainer]> {
-	const newKeypair = parseWebauthnSignGeneratedKey(credential) ?? parseWebauthnSignGeneratedKey(prfCredential);
+	const newKeypair = signExtension.parseGeneratedKey(credential) ?? signExtension.parseGeneratedKey(prfCredential);
 	if (newKeypair) {
 		const newContainer = await updatePrivateData(
 			container,
@@ -952,9 +933,7 @@ export async function registerWebauthnSignKeypair(
 			// Algorithm of parent credential doesn't matter since this we won't use this authentication key
 			pubKeyCredParams: [-7, -8, -257, -35, -36, -53].map(alg => ({ type: 'public-key', alg })),
 			extensions: {
-				sign: {
-					generateKey: { algorithms: [alg] },
-				},
+				...signExtension.makeGenerateKeyInputs(alg),
 			},
 		},
 	});
@@ -1131,7 +1110,7 @@ export async function init(
 	keyInfo: AsymmetricEncryptedContainerKeys,
 	credential: PublicKeyCredentialCreation | null,
 ): Promise<UnlockSuccess> {
-	const webauthnSignGeneratedKey = credential ? parseWebauthnSignGeneratedKey(credential) : null;
+	const webauthnSignGeneratedKey = credential ? signExtension.parseGeneratedKey(credential) : null;
 	const arkgSeed = (webauthnSignGeneratedKey && "arkg" in webauthnSignGeneratedKey) ? webauthnSignGeneratedKey.arkg : null;
 	let state = WalletStateOperations.initialWalletStateContainer();
 	if (arkgSeed) {
@@ -1310,25 +1289,7 @@ async function generateCredentialKeypair(
 		}
 
 		const [arkgSeed] = arkgSeeds;
-		const arkgInstance = arkg.getCoseEcInstance(arkgSeed.publicSeed.alg);
-		const arkgIkm = crypto.getRandomValues(new Uint8Array(32));
-		const arkgCtx = new TextEncoder().encode('wwwallet credential');
-		const [pkPoint, arkgKeyHandle] = await arkgInstance.derivePublicKey(
-			await arkg.ecPublicKeyFromCose(arkgSeed.publicSeed),
-			arkgIkm,
-			arkgCtx,
-		);
-		const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
-		const externalPrivateKey: WebauthnSignKeyRef = {
-			credentialId: arkgSeed.credentialId,
-			keyRef: new Uint8Array(encodeCoseKeyRefArkgDerived({
-				kty: COSE_KTY_ARKG_DERIVED,
-				kid: arkgSeed.publicSeed.kid,
-				alg: COSE_ALG_ESP256_ARKG,
-				kh: new Uint8Array(arkgKeyHandle),
-				info: arkgCtx,
-			})),
-		};
+		const { publicKey, privateKey: externalPrivateKey } = await signExtension.generateArkgKeypair(arkgSeed);
 		return [publicKey, [null /* TODO: Remove assumption that private key will be returned */, { externalPrivateKey }]];
 
 	} else {
@@ -1636,34 +1597,4 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
 		.sign();
 	return { deviceResponseMDoc };
-}
-
-function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
-	: NewWebauthnSignKeypair | null {
-	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
-	if (generatedKey) {
-		try {
-			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
-			const credentialId = new Uint8Array(credential.rawId);
-			switch (key.kty) {
-				case COSE_KTY_ARKG_PUB:
-					return {
-						arkg: {
-							credentialId,
-							publicSeed: key,
-						},
-					};
-
-				default:
-					// @ts-ignore
-					console.log(`Unsupported COSE key type: ${key.kty}`);
-					return null;
-			}
-		} catch (e) {
-			console.error("Failed to parse sign extension generated key", e);
-			return null;
-		}
-	} else {
-		return null;
-	}
 }

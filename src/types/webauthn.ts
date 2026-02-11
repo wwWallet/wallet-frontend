@@ -2,34 +2,6 @@ export type PublicKeyCredentialCreation = PublicKeyCredential & { response: Auth
 export type PublicKeyCredentialAssertion = PublicKeyCredential & { response: AuthenticatorAssertionResponse };
 
 
-export interface AuthenticationExtensionsSignInputs {
-	generateKey?: AuthenticationExtensionsSignGenerateKeyInputs;
-	sign?: AuthenticationExtensionsSignSignInputs;
-}
-
-export interface AuthenticationExtensionsSignGenerateKeyInputs {
-	algorithms: COSEAlgorithmIdentifier[];
-	tbs?: BufferSource;
-}
-
-export interface AuthenticationExtensionsSignSignInputs {
-	tbs: BufferSource;
-	keyHandleByCredential: { [credentialId: string]: COSEKeyRef };
-}
-
-export type COSEKeyRef = BufferSource;
-
-interface AuthenticationExtensionsSignOutputs {
-	generatedKey?: AuthenticationExtensionsSignGeneratedKey;
-	signature?: ArrayBuffer;
-};
-
-interface AuthenticationExtensionsSignGeneratedKey {
-	publicKey: ArrayBuffer;
-	keyHandle: ArrayBuffer;
-};
-
-
 declare global {
 	// The below polyfill seems not needed for
 	// https://www.w3.org/TR/2025/WD-webauthn-3-20250127/#dom-publickeycredentialcreationoptions-hints
@@ -44,14 +16,6 @@ declare global {
 		rpId?: string;
 		timeout?: number;
 		userVerification?: UserVerificationRequirement;
-	}
-
-	export interface AuthenticationExtensionsClientInputs {
-		sign?: AuthenticationExtensionsSignInputs;
-	}
-
-	export interface AuthenticationExtensionsClientOutputs {
-		sign?: AuthenticationExtensionsSignOutputs;
 	}
 }
 
