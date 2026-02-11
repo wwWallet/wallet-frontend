@@ -28,7 +28,7 @@ const Dialog = ({
 	return (
 		<dialog
 			ref={dialog}
-			className="p-4 pt-8 text-center md:space-y-6 sm:p-8 bg-lm-gray-50 dark:bg-dm-gray-950 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg backdrop:bg-black/80"
+			className="p-4 pt-8 text-center m-auto md:space-y-6 sm:p-8 bg-lm-gray-50 dark:bg-dm-gray-950 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg backdrop:bg-black/80"
 			style={{ minWidth: '30%' }}
 			onCancel={onCancel}
 		>
