@@ -19,11 +19,10 @@ import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewArkgSeedEvent, addNewKeypairEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 import { toArrayBuffer } from "../types/webauthn";
 import type { PublicKeyCredentialCreation } from "../types/webauthn";
-import { parseAuthenticatorData, parseCoseKeyWithKid } from "../webauthn";
+import { parseAuthenticatorData } from "../webauthn";
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
-import * as webauthn from "../webauthn";
-import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB } from "wallet-common/dist/cose";
+import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB, encodeCoseKeyRefArkgDerived, parseCoseKey } from "wallet-common/dist/cose";
 
 
 type WalletState = CurrentSchema.WalletState;
@@ -1322,7 +1321,7 @@ async function generateCredentialKeypair(
 		const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
 		const externalPrivateKey: WebauthnSignKeyRef = {
 			credentialId: arkgSeed.credentialId,
-			keyRef: new Uint8Array(webauthn.encodeCoseKeyRefArkgDerived({
+			keyRef: new Uint8Array(encodeCoseKeyRefArkgDerived({
 				kty: COSE_KTY_ARKG_DERIVED,
 				kid: arkgSeed.publicSeed.kid,
 				alg: COSE_ALG_ESP256_ARKG,
@@ -1644,7 +1643,7 @@ function parseWebauthnSignGeneratedKey(credential: PublicKeyCredential | null)
 	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
 	if (generatedKey) {
 		try {
-			const key = parseCoseKeyWithKid(cbor.decodeFirstSync(generatedKey.publicKey));
+			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
 			const credentialId = new Uint8Array(credential.rawId);
 			switch (key.kty) {
 				case COSE_KTY_ARKG_PUB:
