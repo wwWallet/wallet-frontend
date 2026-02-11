@@ -15,9 +15,9 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(
-		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true): Promise<T> {
+		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false): Promise<T> {
 			try {
-				const response = await httpProxy.get(path, {}, { useCache: useCache !== undefined ? useCache : true });
+				const response = await httpProxy.get(path, {}, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
 				if (!response) throw new Error("Couldn't get response");
 
 				const parsedData = schema.parse(response.data);
@@ -36,6 +36,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					pathCredentialIssuer,
 					OpenidCredentialIssuerMetadataSchema,
 					useCache,
+					useCache === false,
 				);
 				if (metadata.signed_metadata) {
 					try {
@@ -76,7 +77,8 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
 					pathAuthorizationServer,
 					OpenidAuthorizationServerMetadataSchema,
-					useCache
+					useCache,
+					useCache === false
 				);
 				return { authzServerMetadata };
 			} catch {
@@ -85,6 +87,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 					pathConfiguration,
 					OpenidAuthorizationServerMetadataSchema,
 					useCache,
+					useCache === false
 				).catch(() => null);
 
 				if (!authzServerMetadata) {

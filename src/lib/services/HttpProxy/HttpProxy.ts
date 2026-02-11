@@ -38,9 +38,13 @@ export function useHttpProxy(): IHttpProxy {
 		async get(
 			url: string,
 			headers: RequestHeaders = {},
-			options?: { useCache?: boolean; }
+			options?: {
+				useCache?: boolean;
+				cacheOnError?: boolean;
+			}
 		): Promise<{ status: number; headers: ResponseHeaders; data: unknown }> {
 			const useCache = options?.useCache;
+			const cacheOnError = options?.cacheOnError ?? false;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;
 			const isBinaryRequest = /\.(png|jpe?g|gif|webp|bmp|tiff?|ico)(\?.*)?(#.*)?$/i.test(url);
@@ -221,6 +225,25 @@ export function useHttpProxy(): IHttpProxy {
 					};
 
 				} catch (err) {
+
+					// Optionally cache failed responses
+					if (cacheOnError) {
+						await addItem(
+							'proxyCache',
+							cacheKey,
+							{
+								data: {
+									status: err.response?.status || 500,
+									headers: err.response?.headers || {},
+									data: err.response?.data || 'GET proxy failed',
+									__error: true,
+								},
+								expiry: now + 60 * 60 * 24 * 30,
+							},
+							'proxyCache'
+						);
+					}
+
 					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
 					if (fallback?.data) {
 						return {
