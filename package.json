@@ -81,7 +81,7 @@
   "scripts": {
     "start": "vite",
     "start-docker": "npx vite --no-open",
-    "build": "vite build",
+    "build": "vite build && tsdown ./config/script.ts -d ./config/dist --shims",
     "preview": "vite preview",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "test": "VITE_CJS_IGNORE_WARNING=true vitest run",
