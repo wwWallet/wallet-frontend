@@ -31,3 +31,5 @@ export const BRANDING = {
 	LOGO_LIGHT: import.meta.env.BRANDING_LOGO_LIGHT,
 	LOGO_DARK: import.meta.env.BRANDING_LOGO_DARK,
 }
+
+export const MODE = import.meta.env.MODE as 'development' | 'production' || 'production';

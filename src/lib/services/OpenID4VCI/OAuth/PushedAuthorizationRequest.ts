@@ -2,10 +2,10 @@ import * as oauth4webapi from 'oauth4webapi';
 import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useCallback, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
+import { MODE } from '@/config';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
-const appMode = import.meta.env.MODE || 'development';
-const isDev = appMode === 'development';
+const isDev = MODE === 'development';
 
 function normalizeHeaders(h: any): Record<string, string> {
 	const out: Record<string, string> = {};

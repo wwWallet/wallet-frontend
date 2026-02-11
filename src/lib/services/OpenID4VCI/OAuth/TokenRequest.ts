@@ -3,11 +3,10 @@ import { JWK, KeyLike } from 'jose';
 import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
-import { OPENID4VCI_REDIRECT_URI } from '@/config';
+import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
-const appMode = import.meta.env.MODE || 'development';
-const isDev = appMode === 'development';
+const isDev = MODE === 'development';
 
 export type AccessToken = {
 	access_token: string;
