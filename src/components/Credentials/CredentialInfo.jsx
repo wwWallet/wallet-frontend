@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { formatDate } from '@/utils';
+import { formatDate } from 'wallet-common';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';

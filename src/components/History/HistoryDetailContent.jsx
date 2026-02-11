@@ -8,7 +8,8 @@ import CredentialInfo from '../Credentials/CredentialInfo';
 
 import useScreenType from '../../hooks/useScreenType';
 
-import { formatDate, prettyDomain } from '@/utils';
+import { formatDate } from 'wallet-common';
+import { prettyDomain } from '@/utils';
 import { BookCheck } from 'lucide-react';
 
 const HistoryDetailContent = ({ historyItem }) => {
