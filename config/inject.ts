@@ -73,8 +73,8 @@ export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptio
 		// // Add branding logo meta tags
 		const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));
 		metaTags.push(
-			metaTag('www:branding_logo_light', `/${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
-			metaTag('www:branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
+			metaTag('branding_logo_light', `/${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
+			metaTag('branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
 		);
 
 		head.find(`meta[name^="www:"]`).remove();
