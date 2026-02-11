@@ -1159,7 +1159,7 @@ const Settings = () => {
 									<p className="mb-4">
 										{t('pageSettings.hardwareKeys.onlyOne')}
 									</p>
-									<ul className="grid grid-cols-[min-content_auto] 2xs:grid-cols-[min-content_auto_min-content] md:grid-cols-[min-content_auto_auto_auto_min-content] gap-4">
+									<ul className="grid grid-cols-[min-content_auto] sm:grid-cols-[min-content_auto_min-content] lg:grid-cols-[min-content_max-content_auto_min-content] gap-4">
 										{[
 											{
 												key: 'high',
@@ -1191,10 +1191,10 @@ const Settings = () => {
 										].map(({ key, Icon, active, label, alg, name, uses }) =>
 											<li key={key} className="grid grid-cols-subgrid col-span-full items-baseline">
 												<Icon />
-												<span className="grid grid-cols-subgrid 2xs:col-span-2 md:col-span-4 items-baseline">
-													<span className="2xs:col-span-2 md:col-span-1 items-baseline">{label}</span>
+												<span className="grid grid-cols-subgrid sm:col-span-2 lg:col-span-3 items-baseline">
+													<span className="sm:col-span-2 lg:col-span-1 items-baseline">{label}</span>
 													{active
-														? <span className="2xs:col-span-2 md:col-span-4">
+														? <span className="sm:col-span-2 lg:col-span-1">
 															<UsbStickDotIcon className="inline" />
 															{' '}
 															<Trans
