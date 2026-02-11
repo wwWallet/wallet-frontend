@@ -51,14 +51,4 @@ ssl_keys/*
 
 variables.vars
 
-public/icons
-public/screenshots
-public/favicon.ico
-public/image.png
-public/logo_*.svg
-public/logo_*.png
-public/manifest.json
-public/robots.txt
-public/sitemap.xml
-public/.well-known/apple-app-site-association
-public/.well-known/assetlinks.json
+public/
