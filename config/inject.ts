@@ -84,6 +84,7 @@ export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptio
 		}
 	})();
 
+	// remove extra newlines for cleaner HTML output
 	const updatedHtmlContent = $.html({}).replace(/\n{2,}/g, '\n');
 
 	return updatedHtmlContent;
