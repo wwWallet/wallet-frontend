@@ -1159,7 +1159,7 @@ const Settings = () => {
 									<p className="mb-4">
 										{t('pageSettings.hardwareKeys.onlyOne')}
 									</p>
-									<ul className="grid grid-cols-[min-content,auto] 2xs:grid-cols-[min-content,auto,min-content] md:grid-cols-[min-content,auto,auto,auto,min-content] gap-4">
+									<ul className="grid grid-cols-[min-content_auto] 2xs:grid-cols-[min-content_auto_min-content] md:grid-cols-[min-content_auto_auto_auto_min-content] gap-4">
 										{[
 											{
 												key: 'high',
