@@ -1,5 +1,6 @@
 export * from './applinks';
 export * from './brandingManifest';
+export * from './config-meta-tags';
 export * from './metadata-image';
 export * from './robots';
 export * from './sitemap';

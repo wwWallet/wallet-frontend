@@ -11,6 +11,7 @@ import {
 	RobotsTxtPlugin,
 	SitemapPlugin,
 	ThemePlugin,
+	ConfigMetaTagsPlugin,
 } from './vite-plugins';
 import tailwindcss from '@tailwindcss/vite';
 import { getBrandingHash } from './branding';
@@ -21,9 +22,11 @@ export default defineConfig(({ mode }) => {
 	const brandingHash = getBrandingHash(path.resolve('branding')); // Compute branding hash from your branding folder
 	process.env.VITE_BRANDING_HASH = brandingHash; // import.meta.env.VITE_BRANDING_HASH works in TS/JS
 	env.VITE_BRANDING_HASH = brandingHash; // VITE_BRANDING_HASH% works in index.html
+
 	return {
-		base: '/',
+		base: './',
 		plugins: [
+			ConfigMetaTagsPlugin(env),
 			ThemePlugin(),
 			react(),
 			tailwindcss(),
