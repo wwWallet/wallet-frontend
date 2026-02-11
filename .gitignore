@@ -1,6 +1,6 @@
 # compiled output
 /dist
-/startup/dist
+/config/dist
 /node_modules
 package_lock.json
 /build
