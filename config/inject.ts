@@ -8,6 +8,7 @@ import robotsTxt from './files/robots';
 import wellKnownFiles from './files/well-known';
 import sitemapXml from './files/sitemap';
 import brandingManifest from './files/manifest';
+import themeCSS from './files/theme';
 
 export type InjectConfigOptions = {
 	/**
@@ -36,6 +37,7 @@ export async function injectConfigFiles({ bundleDir, destDir, config }: InjectCo
 		robotsTxt(destDir, config),
 		sitemapXml(destDir, config),
 		brandingManifest(destDir, config, brandingHash),
+		themeCSS(destDir),
 	]);
 }
 
@@ -58,26 +60,29 @@ export type InjectHtmlOptions = {
  * Injects meta tags into the built HTML file based on environment variables and branding assets.
  */
 export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptions): Promise<string> {
-	const metaTags = htmlMetaTags(config);
-
-	// // Add branding logo meta tags
-	const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));
-	metaTags.push(
-		metaTag('www:branding_logo_light', `/${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
-		metaTag('www:branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
-	);
-
 	const $ = load(html);
 	const head = $('head');
 	if (head.length === 0) {
 		throw new Error('No <head> element found in HTML.');
 	}
 
-	head.find(`meta[name^="www:"]`).remove();
+	// Inject meta tags
+	(function injectConfigMetaTags() {
+		const metaTags = htmlMetaTags(config);
 
-	for (const { name, content } of metaTags) {
-		head.append(`<meta name="${name}" content="${content}">\n`);
-	}
+		// // Add branding logo meta tags
+		const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));
+		metaTags.push(
+			metaTag('www:branding_logo_light', `/${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
+			metaTag('www:branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
+		);
+
+		head.find(`meta[name^="www:"]`).remove();
+
+		for (const { name, content } of metaTags) {
+			head.append(`<meta name="${name}" content="${content}">\n`);
+		}
+	})();
 
 	const updatedHtmlContent = $.html({}).replace(/\n{2,}/g, '\n');
 

@@ -8,7 +8,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
 import {
 	MetadataImagePlugin,
-	ThemePlugin,
 } from './vite-plugins';
 import { getBrandingHash } from './branding';
 import InjectConfigPlugin from './vite-plugins/inject-config';
@@ -28,7 +27,6 @@ export default defineConfig(async ({ mode }) => {
 		base: '/',
 		plugins: [
 			InjectConfigPlugin(env),
-			ThemePlugin(),
 			react(),
 			tailwindcss(),
 			svgr(),
