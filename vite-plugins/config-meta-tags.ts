@@ -1,5 +1,5 @@
 import { type HtmlTagDescriptor, type Plugin } from 'vite';
-import { generateHtmlMetaTags } from '../startup/config';
+import { generateHtmlMetaTags } from '../startup/meta-config';
 
 export function ConfigMetaTagsPlugin(env: Record<string, string>): Plugin {
 	return {
