@@ -648,6 +648,10 @@ export class MetadataImage {
 
 		await mkdir(fontsConfDir, { recursive: true });
 
+		// TODO:
+		// - Using @latest means builds aren't reproducible
+		// - CDN fetch is a point of failure.
+		// - Consider vendoring the TTF files.
 		const fontUrls = [
 			"https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-600-normal.ttf",
 		];
