@@ -70,45 +70,49 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	);
 
 	// Fetches authorization server metadata with fallback
+	// According to OpenID4VCI 1.0, section 12.2.4, paragraph 2.2, the authorization server is to be fetched from the credential issuer metadata.
+	// If not available from metadata, then the issuer is imlplied to also act as the authorization server.
 	const getAuthorizationServerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
-			const pathAuthorizationServer = `${credentialIssuerIdentifier}/.well-known/oauth-authorization-server`;
+			const authorizationServerWellKnownLocation = ".well-known/oauth-authorization-server";
 			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
 			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
-				`${metadata.authorization_servers[0]}/.well-known/oauth-authorization-server` :
+				`${metadata.authorization_servers[0]}/${authorizationServerWellKnownLocation}` :
 				null;
+			const pathIssuerAuthorizationServer = `${credentialIssuerIdentifier}/${authorizationServerWellKnownLocation}`;
+			const pathIssuerOpenIdConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
+			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
 
-			const pathConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
-			try {
-				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					pathAuthorizationServer,
+			if (pathAuthorizationServerFromCredentialIssuerMetadata) {
+				// 1st attempt: authorization server from credential issuer metadata
+				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+					pathAuthorizationServerFromCredentialIssuerMetadata,
 					OpenidAuthorizationServerMetadataSchema,
 					useCache,
-					useCache === false
-				);
-				return { authzServerMetadata };
-			} catch {
-				// Fallback to openid-configuration if oauth-authorization-server fetch fails
-				const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					pathConfiguration,
+				).catch(() => null);
+			}
+
+			if (!authzServerMetadata) {
+				// 2nd attempt: if authorization-server not provided in metadata, the issuer iteslf is acting as an authorization-server
+				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+					pathIssuerAuthorizationServer,
 					OpenidAuthorizationServerMetadataSchema,
 					useCache,
 					useCache === false
 				).catch(() => null);
-
-				if (!authzServerMetadata) {
-					const authzMetadataFromCredentialIssuerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-						pathAuthorizationServerFromCredentialIssuerMetadata,
-						OpenidAuthorizationServerMetadataSchema,
-						useCache,
-					).catch(() => null);
-					if (!authzMetadataFromCredentialIssuerMetadata) {
-						return null;
-					}
-					return { authzServerMetadata: authzMetadataFromCredentialIssuerMetadata };
-				}
-				return { authzServerMetadata };
 			}
+
+			if (!authzServerMetadata) {
+				// 3rd attempt: Fallback to openid-configuration if oauth-authorization-server fetch fails
+				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+					pathIssuerOpenIdConfiguration,
+					OpenidAuthorizationServerMetadataSchema,
+					useCache,
+					useCache === false
+				).catch(() => null);
+			}
+
+			return authzServerMetadata ? { authzServerMetadata } : null;
 		},
 		[fetchAndParseWithSchema, getCredentialIssuerMetadata]
 	);
