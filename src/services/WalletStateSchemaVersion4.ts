@@ -72,8 +72,8 @@ export type WalletStateV4 = Omit<SchemaV3.WalletState, "keypairs"> & {
 export type WalletStateV4OrEarlier = SchemaV3.WalletStateV3OrEarlier | WalletStateV4;
 export type WalletState = WalletStateV4;
 
-function isV4State(state: WalletStateV4OrEarlier): state is WalletStateV4 {
-	return state.schemaVersion === SCHEMA_VERSION;
+function isLegacyState(state: WalletStateV4OrEarlier): state is SchemaV3.WalletStateV3OrEarlier {
+	return state.schemaVersion < SCHEMA_VERSION;
 }
 
 function isLegacyEvent(event: WalletSessionEventV4OrEarlier): event is SchemaV3.WalletSessionEvent {
@@ -114,9 +114,7 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 	const v3ops = SchemaV3.createOperations(SCHEMA_VERSION, mergeStrategies as typeof SchemaV3.mergeStrategies);
 
 	function migrateState(state: WalletStateV4OrEarlier): WalletState {
-		if (isV4State(state)) {
-			return state;
-		} else if (state?.schemaVersion ?? 1 < SCHEMA_VERSION){
+		if (isLegacyState(state)) {
 			const v3state = SchemaV3.WalletStateOperations.migrateState(state);
 			return {
 				...v3state,
@@ -124,7 +122,7 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 				arkgSeeds: [],
 			};
 		} else {
-			throw new Error(`Cannot migrate state with schemaVersion ${state?.schemaVersion} to version ${SCHEMA_VERSION}`);
+			return state;
 		}
 	}
 
@@ -146,11 +144,10 @@ export function createOperations<Event extends WalletSchemaCommon.WalletSessionE
 		if (isLegacyEvent(newEvent)) {
 			return SchemaV3.WalletStateOperations.walletStateReducer(state as SchemaV3.WalletState, newEvent);
 		} else {
-			const stateV4 = migrateState(
-				SchemaV3.WalletStateOperations.walletStateReducer(
-					{ ...state, schemaVersion: 3 } as SchemaV3.WalletState,
-					newEvent as unknown as SchemaV3.WalletSessionEvent,
-				));
+			const stateV4 = migrateState(SchemaV3.WalletStateOperations.walletStateReducer(
+				{ ...state, schemaVersion: 3 } as SchemaV3.WalletState,
+				newEvent as unknown as SchemaV3.WalletSessionEvent,
+			));
 			return {
 				...stateV4,
 				arkgSeeds: arkgSeedsReducer(stateV4.arkgSeeds, newEvent),

@@ -1,30 +1,33 @@
-/// Sign extension v3: https://yubicolabs.github.io/webauthn-sign-extension/3/#sctn-sign-extension
+/// Sign extension v4: https://yubicolabs.github.io/webauthn-sign-extension/4/#sctn-sign-extension
 
 import * as cbor from 'cbor-web';
-import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_DERIVED, COSE_KTY_ARKG_PUB, encodeCoseKeyRefArkgDerived, parseCoseKey, ParsedCOSEKeyArkgPubSeed } from 'wallet-common/dist/cose';
+import { COSE_ALG_ESP256_ARKG, COSE_KTY_ARKG_PUB, encodeArkgSignArgs, parseCoseKey } from 'wallet-common/dist/cose';
 import * as arkg from "wallet-common/dist/arkg";
 import * as ec from "wallet-common/dist/arkg/ec";
 
 import { toBase64Url } from '@/util';
+import { CurrentSchema, SchemaV5 } from '@/services/WalletStateSchema';
 import { parseAuthenticatorData } from '@/webauthn';
+
+type WebauthnSignPrivateKeyArkg = CurrentSchema.WebauthnSignPrivateKeyArkg;
 
 
 export interface AuthenticationExtensionsSignInputs {
 	generateKey?: AuthenticationExtensionsSignGenerateKeyInputs;
-	sign?: AuthenticationExtensionsSignSignInputs;
+	signByCredential?: Record<string, AuthenticationExtensionsSignSignInputs>;
 }
 
 export interface AuthenticationExtensionsSignGenerateKeyInputs {
 	algorithms: COSEAlgorithmIdentifier[];
-	tbs?: BufferSource;
 }
 
 export interface AuthenticationExtensionsSignSignInputs {
+	keyHandle: BufferSource;
 	tbs: BufferSource;
-	keyHandleByCredential: { [credentialId: string]: COSEKeyRef };
+	additionalArgs?: COSESignArgs;
 }
 
-export type COSEKeyRef = BufferSource;
+export type COSESignArgs = BufferSource;
 
 export interface AuthenticationExtensionsSignOutputs {
 	generatedKey?: AuthenticationExtensionsSignGeneratedKey;
@@ -32,39 +35,34 @@ export interface AuthenticationExtensionsSignOutputs {
 };
 
 export interface AuthenticationExtensionsSignGeneratedKey {
-	publicKey: ArrayBuffer;
 	keyHandle: ArrayBuffer;
+	publicKey: ArrayBuffer;
+	algorithm: COSEAlgorithmIdentifier;
+	attestationObject: ArrayBuffer;
 };
 
 declare global {
 	export interface AuthenticationExtensionsClientInputs {
-		sign?: AuthenticationExtensionsSignInputs;
+		previewSign?: AuthenticationExtensionsSignInputs;
 	}
 
 	export interface AuthenticationExtensionsClientOutputs {
-		sign?: AuthenticationExtensionsSignOutputs;
+		previewSign?: AuthenticationExtensionsSignOutputs;
 	}
 }
 
 
 export type WebauthnSignKeypair = { arkg: WebauthnSignArkgPublicSeed };
-export type WebauthnSignArkgPublicSeed = {
-	credentialId: Uint8Array,
-	publicSeed: ParsedCOSEKeyArkgPubSeed,
-}
-
-export type KeyReference = {
-	credentialId: Uint8Array,
-	keyRef: Uint8Array,
-}
+export type WebauthnSignArkgPublicSeed = SchemaV5.WebauthnSignArkgPublicSeed;
 
 
 export function parseGeneratedKey(credential: PublicKeyCredential | null)
 	: WebauthnSignKeypair | null {
-	const generatedKey = credential?.getClientExtensionResults()?.sign?.generatedKey;
+	const generatedKey = credential?.getClientExtensionResults()?.previewSign?.generatedKey;
 	if (generatedKey) {
 		try {
 			const key = parseCoseKey(cbor.decodeFirstSync(generatedKey.publicKey));
+			const keyHandle = new Uint8Array(generatedKey.keyHandle);
 			const credentialId = new Uint8Array(credential.rawId);
 			switch (key.kty) {
 				case COSE_KTY_ARKG_PUB:
@@ -72,6 +70,8 @@ export function parseGeneratedKey(credential: PublicKeyCredential | null)
 						arkg: {
 							credentialId,
 							publicSeed: key,
+							keyHandle,
+							derivedKeyAlgorithm: generatedKey.algorithm,
 						},
 					};
 
@@ -91,11 +91,11 @@ export function parseGeneratedKey(credential: PublicKeyCredential | null)
 
 export function parseSignature(credential: PublicKeyCredential): Uint8Array | null {
 	const authData = parseAuthenticatorData(new Uint8Array((credential.response as AuthenticatorAssertionResponse).authenticatorData));
-	const sig = authData?.extensions?.sign?.get(6);
+	const sig = authData?.extensions?.previewSign?.get(6);
 	return sig ?? null;
 }
 
-export async function generateArkgKeypair(seed: WebauthnSignArkgPublicSeed): Promise<{ publicKey: CryptoKey, privateKey: KeyReference }> {
+export async function generateArkgKeypair(seed: WebauthnSignArkgPublicSeed): Promise<{ publicKey: CryptoKey, privateKey: WebauthnSignPrivateKeyArkg }> {
 	return deriveArkgKeypair(seed, crypto.getRandomValues(new Uint8Array(32)), new TextEncoder().encode('wwwallet credential'));
 }
 
@@ -103,7 +103,7 @@ export async function deriveArkgKeypair(
 	seed: WebauthnSignArkgPublicSeed,
 	ikm: BufferSource,
 	ctx: Uint8Array,
-): Promise<{ publicKey: CryptoKey, privateKey: KeyReference }> {
+): Promise<{ publicKey: CryptoKey, privateKey: WebauthnSignPrivateKeyArkg }> {
 	const arkgInstance = arkg.getCoseEcInstance(seed.publicSeed.alg);
 	const [pkPoint, arkgKeyHandle] = await arkgInstance.derivePublicKey(
 		await arkg.ecPublicKeyFromCose(seed.publicSeed),
@@ -111,22 +111,21 @@ export async function deriveArkgKeypair(
 		ctx,
 	);
 	const publicKey = await ec.publicKeyFromPoint("ECDSA", "P-256", pkPoint);
-	const privateKey: KeyReference = {
+	const privateKey: WebauthnSignPrivateKeyArkg = {
 		credentialId: seed.credentialId,
-		keyRef: new Uint8Array(encodeCoseKeyRefArkgDerived({
-			kty: COSE_KTY_ARKG_DERIVED,
-			kid: seed.publicSeed.kid,
-			alg: COSE_ALG_ESP256_ARKG,
+		keyHandle: seed.keyHandle,
+		algorithm: seed.derivedKeyAlgorithm,
+		additionalArgs: {
 			kh: new Uint8Array(arkgKeyHandle),
-			info: ctx,
-		})),
+			ctx,
+		},
 	};
 	return { publicKey, privateKey };
 }
 
 export function makeGenerateKeyInputs(...algorithms: COSEAlgorithmIdentifier[]): AuthenticationExtensionsClientInputs {
 	return {
-		sign: {
+		previewSign: {
 			generateKey: {
 				algorithms,
 			},
@@ -135,19 +134,25 @@ export function makeGenerateKeyInputs(...algorithms: COSEAlgorithmIdentifier[]):
 }
 
 export async function makeSignInputs(
-	key: KeyReference,
+	key: SchemaV5.WebauthnSignPrivateKey,
 	data: BufferSource,
+	additionalArgs?: COSESignArgs,
 ): Promise<AuthenticationExtensionsClientInputs> {
 	const prehashAlgs = [COSE_ALG_ESP256_ARKG];
-	const parsedKeyRef = cbor.decode(key.keyRef);
-	const shouldPrehash = prehashAlgs.includes(parsedKeyRef.get(3));
+	const shouldPrehash = prehashAlgs.includes(key.algorithm);
 	return {
-		sign: {
-			sign: {
-				keyHandleByCredential: {
-					[toBase64Url(key.credentialId)]: key.keyRef,
+		previewSign: {
+			signByCredential: {
+				[toBase64Url(key.credentialId)]: {
+					keyHandle: key.keyHandle,
+					tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
+					...(additionalArgs
+						? { additionalArgs }
+						: (key.additionalArgs
+							? { additionalArgs: encodeArkgSignArgs(key.algorithm, key.additionalArgs) }
+							: {}
+						)),
 				},
-				tbs: shouldPrehash ? await crypto.subtle.digest("SHA-256", data) : data,
 			},
 		},
 	};

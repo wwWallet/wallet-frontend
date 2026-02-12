@@ -28,7 +28,7 @@ type WalletStateContainer = CurrentSchema.WalletStateContainer;
 type CredentialKeyPair = CurrentSchema.CredentialKeyPair;
 type CredentialKeyPairWithExternalPrivateKey = CurrentSchema.CredentialKeyPairWithExternalPrivateKey;
 type NewWebauthnSignKeypair = CurrentSchema.NewWebauthnSignKeypair;
-type WebauthnSignKeyRef = CurrentSchema.WebauthnSignKeyRef;
+type WebauthnSignPrivateKey = CurrentSchema.WebauthnSignPrivateKey;
 
 const WalletStateOperations = CurrentSchema.WalletStateOperations;
 
@@ -1278,7 +1278,7 @@ async function generateCredentialKeypair(
 	[encryptedContainer, mainKey]: OpenedContainer,
 ): Promise<[
 	CryptoKey,
-	[CryptoKey, { privateKey: JWK } | { externalPrivateKey: WebauthnSignKeyRef }],
+	[CryptoKey, { privateKey: JWK } | { externalPrivateKey: WebauthnSignPrivateKey }],
 ]> {
 	const [privateData,] = await openPrivateData(mainKey, encryptedContainer);
 	const state = foldState(privateData);

@@ -5,7 +5,8 @@ import * as SchemaV1 from "./WalletStateSchemaVersion1";
 import * as SchemaV2 from "./WalletStateSchemaVersion2";
 import * as SchemaV3 from "./WalletStateSchemaVersion3";
 import * as SchemaV4 from "./WalletStateSchemaVersion4";
-import * as CurrentSchema from "./WalletStateSchemaVersion4";
+import * as SchemaV5 from "./WalletStateSchemaVersion5";
+import * as CurrentSchema from "./WalletStateSchemaVersion5";
 import { WalletSessionEvent, WalletState, WalletStateContainerGeneric, WalletStateOperations } from "./WalletStateSchemaCommon";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { JWK } from "jose";
@@ -14,7 +15,8 @@ export * as SchemaV1 from "./WalletStateSchemaVersion1";
 export * as SchemaV2 from "./WalletStateSchemaVersion2";
 export * as SchemaV3 from "./WalletStateSchemaVersion3";
 export * as SchemaV4 from "./WalletStateSchemaVersion4";
-export * as CurrentSchema from "./WalletStateSchemaVersion4";
+export * as SchemaV5 from "./WalletStateSchemaVersion5";
+export * as CurrentSchema from "./WalletStateSchemaVersion5";
 
 
 const {
@@ -41,6 +43,8 @@ export function getSchema(schemaVersion: number): WalletStateOperations<WalletSt
 			return SchemaV3.WalletStateOperations;
 		case 4:
 			return SchemaV4.WalletStateOperations;
+		case 5:
+			return SchemaV5.WalletStateOperations;
 		default:
 			throw new Error(`Unknown schema version: ${schemaVersion}`);
 	}
