@@ -6,13 +6,14 @@ import * as config from './config';
 import enTranslation from './locales/en.json';
 import elTranslation from './locales/el.json';
 import ptTranslation from './locales/pt.json';
-
+import esTranslation from './locales/es.json';
 const fallbackLng = 'en';
 
 const resources = {
 	en: { translation: enTranslation },
 	el: { translation: elTranslation },
 	pt: { translation: ptTranslation },
+        es: { translation: esTranslation },
 };
 
 if (config.I18N_WALLET_NAME_OVERRIDE) {
