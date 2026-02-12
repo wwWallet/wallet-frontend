@@ -792,7 +792,7 @@ const customDirSchema = z.object({
  * We could also consume the JSON directly instead of creating files,
  * but doing this is, for now, simpler and more compatible with existing code.
  */
-export async function createCustomDirFromJSON(input: unknown) {
+export async function createCustomBrandingDirFromJSON(input: unknown) {
 	const result = customDirSchema.safeParse(input);
 	if (!result.success) {
 		throw new Error(`Invalid branding JSON: ${JSON.stringify(result.error.issues)}`);
