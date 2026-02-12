@@ -159,4 +159,3 @@ async function writeWellKnownFiles(rootDir: string, files: FileToWrite[]) {
 		await writeFile(filePath, content);
 	}));
 }
-
