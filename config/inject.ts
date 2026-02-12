@@ -33,13 +33,11 @@ export async function injectConfigFiles({ bundleDir, destDir, config }: InjectCo
 		throw new Error(`Destination directory ${destDir} does not exist or is not readable.`);
 	}
 
-	const brandingHash = getBrandingHash(resolve('branding'));
-
 	await Promise.all([
 		wellKnownFiles(destDir, config),
 		robotsTxt(destDir, config),
 		sitemapXml(destDir, config),
-		brandingManifest(destDir, config, brandingHash),
+		brandingManifest(destDir, config, process.env.VITE_BRANDING_HASH),
 		themeCSS(destDir),
 		metadataImage(destDir, config),
 	]);
