@@ -6,12 +6,7 @@ import { precacheAndRoute, cleanupOutdatedCaches, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate } from "workbox-strategies";
 
-let basePath = ''; // Will be set via message from main thread
-self.addEventListener('message', (event) => {
-	if (event.data?.type === 'SET_BASE_PATH') {
-		basePath = event.data.basePath;
-	}
-});
+const basePath = new URL(self.registration.scope).pathname.replace(/\/$/, '') || '/';
 
 clientsClaim();
 

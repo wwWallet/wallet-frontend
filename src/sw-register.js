@@ -6,8 +6,8 @@ const basePath = (() => {
 	return '/'
 })();
 
-const swPath = `${basePath}/service-worker.js`;
-const swScope = `${basePath}/`;
+const swScope = basePath.replace(/\/?$/, '/');
+const swPath = `${swScope}service-worker.js`;
 
 const tt = window.trustedTypes || window.TrustedTypes;
 
@@ -27,26 +27,6 @@ if (MODE === 'production' && 'serviceWorker' in navigator) {
 		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swPath) : swPath;
 		navigator.serviceWorker
 			.register(trustedSwUrl, { scope: swScope })
-			.then((registration) => {
-				// Send BASE_PATH to service worker
-				const sendBasePath = () => {
-					registration.active?.postMessage({ type: 'SET_BASE_PATH', basePath: basePath });
-				};
-
-				if (registration.active) {
-					sendBasePath();
-				}
-
-				// Also send when a new service worker becomes active
-				registration.addEventListener('updatefound', () => {
-					const newWorker = registration.installing;
-					newWorker?.addEventListener('statechange', () => {
-						if (newWorker.state === 'activated') {
-							sendBasePath();
-						}
-					});
-				});
-			})
 			.catch(err => {
 				console.error('Service worker registration failed:', err);
 			});
