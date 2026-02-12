@@ -91,7 +91,7 @@ export const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> 
 		// This event doesn't exist in v3, can safely ignore `mergedByEarlierSchemaVersions` argument
 		return deduplicateBy(
 			a.concat(b)
-				.filter(e => e.type === 'new_arkg_seed')
+				.filter((e): e is (WalletSessionEvent & WalletSessionEventNewArkgSeed) => e.type === 'new_arkg_seed')
 				.sort(compareBy(e => e.timestampSeconds)),
 			e => toBase64Url(e.arkgSeed.credentialId),
 		);
@@ -100,7 +100,7 @@ export const mergeStrategies: Record<WalletSessionEvent["type"], MergeStrategy> 
 		// This event doesn't exist in v3, can safely ignore `mergedByEarlierSchemaVersions` argument
 		return deduplicateBy(
 			a.concat(b)
-				.filter(e => e.type === 'delete_arkg_seed')
+				.filter((e): e is (WalletSessionEvent & WalletSessionEventDeleteArkgSeed) => e.type === 'delete_arkg_seed')
 				.sort(compareBy(e => e.timestampSeconds)),
 			e => toBase64Url(e.credentialId),
 		);
