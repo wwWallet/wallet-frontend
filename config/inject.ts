@@ -1,6 +1,6 @@
 import { readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { load } from 'cheerio';
+import { JSDOM } from 'jsdom';
 import { copyScreenshots, findLogoFiles, generateAllIcons, getBrandingHash } from './branding';
 import { ConfigMap } from './config';
 import { htmlMetaTags, metaTag } from './utils/meta-tags';
@@ -62,9 +62,10 @@ export type InjectHtmlOptions = {
  * Injects meta tags into the built HTML file based on environment variables and branding assets.
  */
 export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptions): Promise<string> {
-	const $ = load(html);
-	const head = $('head');
-	if (head.length === 0) {
+	const dom = new JSDOM(html);
+	const document = dom.window.document;
+	const head = document.head;
+	if (!head) {
 		throw new Error('No <head> element found in HTML.');
 	}
 
@@ -72,22 +73,26 @@ export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptio
 	(function injectConfigMetaTags() {
 		const metaTags = htmlMetaTags(config);
 
-		// // Add branding logo meta tags
+		// Add branding logo meta tags
 		const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));
 		metaTags.push(
 			metaTag('branding_logo_light', `/${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
 			metaTag('branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
 		);
 
-		head.find(`meta[name^="www:"]`).remove();
+		// Remove existing www: meta tags
+		head.querySelectorAll('meta[name^="www:"]').forEach(el => el.remove());
 
 		for (const { name, content } of metaTags) {
-			head.append(`<meta name="${name}" content="${content}">\n`);
+			const meta = document.createElement('meta');
+			meta.setAttribute('name', name);
+			meta.setAttribute('content', content);
+			head.appendChild(meta);
 		}
 	})();
 
 	// remove extra newlines for cleaner HTML output
-	const updatedHtmlContent = $.html({}).replace(/\n{2,}/g, '\n');
+	const updatedHtmlContent = dom.serialize().replace(/\n{2,}/g, '\n');
 
 	return updatedHtmlContent;
 }

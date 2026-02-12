@@ -40,7 +40,7 @@ COPY --from=builder --chown=nginx:nginx /home/node/app/branding/ ./branding/
 RUN npm install -g tsx
 RUN cd ./config && npm install \
 	sharp \
-	cheerio \
+	jsdom \
 	zod \
 	color-convert
 
