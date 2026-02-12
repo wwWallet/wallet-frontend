@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
@@ -614,6 +614,26 @@ export class MetadataImage {
 </fontconfig>
 `;
 
+	private static fontsConfDirName = "fonts";
+
+	/**
+	 * Check if `baseDir` contains the files required for a font environment.
+	 */
+	public static async hasFontsEnvironment(baseDir: string): Promise<boolean> {
+		const fontsConfDir = path.resolve(baseDir, this.fontsConfDirName);
+
+		try {
+			const dir = await readdir(fontsConfDir);
+
+			if (!dir.includes("fonts.conf")) return false;
+			if (dir.filter((name) => name.endsWith(".ttf")).length < 1) return false;
+
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
 	/**
 	 * Sets up a self-contained font environment:
 	 * 1. Converts a WOFF2 font to TTF for Node rendering.
@@ -624,7 +644,7 @@ export class MetadataImage {
 	 * `@fontsource/inter` package and not need to bundle font files.
 	 */
 	public static async setupFontsEnvironment(baseDir: string) {
-		const fontsConfDir = path.resolve(baseDir, "fonts");
+		const fontsConfDir = path.resolve(baseDir, this.fontsConfDirName);
 
 		await mkdir(fontsConfDir, { recursive: true });
 

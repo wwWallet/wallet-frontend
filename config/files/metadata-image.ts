@@ -15,7 +15,9 @@ export default async function metadataImage(destDir: string, config: ConfigMap) 
 
 	const cacheDir = path.resolve(".cache");
 
-	await MetadataImage.setupFontsEnvironment(cacheDir);
+	if (!(await MetadataImage.hasFontsEnvironment(cacheDir))) {
+		await MetadataImage.setupFontsEnvironment(cacheDir);
+	}
 
 	const image = await MetadataImage.generateMetadataImage(generationConfig);
 
