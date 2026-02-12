@@ -6,13 +6,8 @@ import svgr from 'vite-plugin-svgr';
 import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
-import {
-	MetadataImagePlugin,
-} from './vite-plugins';
+import { InjectConfigPlugin } from './vite-plugins';
 import { getBrandingHash } from './branding';
-import InjectConfigPlugin from './vite-plugins/inject-config';
-
-
 
 export default defineConfig(async ({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
@@ -35,7 +30,6 @@ export default defineConfig(async ({ mode }) => {
 					lintCommand: 'eslint "./src/**/*.{js,jsx,ts,tsx}"',
 				}
 			}),
-			MetadataImagePlugin(env),
 			VitePWA({
 				registerType: 'autoUpdate',
 				injectRegister: null,

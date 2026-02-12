@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { Plugin } from 'vite';
 import { getConfigFromEnv, injectConfigFiles, injectHtml } from '../config';
 
-export default function InjectConfigPlugin(env: Record<string, string>): Plugin {
+export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 	const config = getConfigFromEnv(env);
 
 	const runInjectConfigFiles = () => injectConfigFiles({

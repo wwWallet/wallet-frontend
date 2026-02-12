@@ -9,6 +9,7 @@ import wellKnownFiles from './files/well-known';
 import sitemapXml from './files/sitemap';
 import brandingManifest from './files/manifest';
 import themeCSS from './files/theme';
+import metadataImage from './files/metadata-image';
 
 export type InjectConfigOptions = {
 	/**
@@ -40,6 +41,7 @@ export async function injectConfigFiles({ bundleDir, destDir, config }: InjectCo
 		sitemapXml(destDir, config),
 		brandingManifest(destDir, config, brandingHash),
 		themeCSS(destDir),
+		metadataImage(destDir, config),
 	]);
 }
 

@@ -1,4 +1,5 @@
 # compiled output
+.cache/
 /dist
 /config/dist
 /node_modules
