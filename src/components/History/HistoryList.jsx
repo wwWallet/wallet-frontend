@@ -10,8 +10,10 @@ import SessionContext from '@/context/SessionContext';
 import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { reverse, compareBy } from '@/util';
 
+import { formatDate } from 'wallet-common';
+
 // Utils
-import { formatDate,prettyDomain } from '@/utils';
+import { prettyDomain } from '@/utils';
 import Button from '../Buttons/Button';
 
 /** ------------------ Pure view (NO data fetching here) ------------------ */

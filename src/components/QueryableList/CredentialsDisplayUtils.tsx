@@ -23,7 +23,7 @@ export function buildCredentialConfiguration(
 	credentialIssuerIdentifier: string;
 	credentialConfiguration: any;
 } {
-	const display = filterItemByLang(config?.display, 'locale');
+	const display = filterItemByLang(config?.credential_metadata?.display, 'locale');
 	const credentialDisplay = {
 		...display,
 		name: display?.name ?? key,
