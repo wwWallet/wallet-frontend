@@ -13,7 +13,7 @@ export default async function metadataImage(destDir: string, config: ConfigMap) 
 		title: config.META_STATIC_NAME || 'wwWallet',
 	};
 
-	const cacheDir = path.resolve(".cache");
+	const cacheDir = path.resolve("config", ".cache");
 
 	if (!(await MetadataImage.hasFontsEnvironment(cacheDir))) {
 		await MetadataImage.setupFontsEnvironment(cacheDir);
