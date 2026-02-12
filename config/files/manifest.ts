@@ -1,8 +1,8 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { copyScreenshots, generateAllIcons, Icons } from '../../branding';
+import { copyScreenshots, generateAllIcons, Icons } from '../branding';
 import type { ManifestOptions } from 'vite-plugin-pwa';
-import { type ConfigMap } from '../utils/config';
+import { type ConfigMap } from '../config';
 
 /**
  * Generates a web app manifest and icons, and injects them into the build output.

@@ -24,8 +24,12 @@ export function htmlMetaTags(config: Record<string, string>): HTMLMetaTags {
  * The name is prefixed with "www:" and converted to lowercase, with any "vite_" prefix removed.
  */
 export function metaTag(name: string, content: string) {
+	name = name.toLocaleLowerCase()
+		.replace(/^vite_/, '')
+		.replace(/^meta_/, '');
+
 	return {
-		name: `www:${name.toLocaleLowerCase().replace(/^vite_/, '')}`,
+		name: `www:${name}`,
 		content,
 	};
 }

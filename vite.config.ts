@@ -7,7 +7,7 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
 import { InjectConfigPlugin } from './vite-plugins';
-import { getBrandingHash } from './branding';
+import { getBrandingHash } from './config/branding';
 
 export default defineConfig(async ({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');

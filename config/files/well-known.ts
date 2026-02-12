@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { access, mkdir, rm, writeFile } from 'node:fs/promises';
 import { type FileToWrite } from '../utils/resources';
-import { type ConfigMap } from '../utils/config';
+import { type ConfigMap } from '../config';
 
 
 /**

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { writeFile } from 'node:fs/promises';
-import { MetadataImage } from '../../branding';
-import { ConfigMap } from '../utils/config';
+import { MetadataImage } from '../branding';
+import { ConfigMap } from '../config';
 
 /**
  * Generates a metadata image based on the provided configuration and writes it to the specified destination directory.

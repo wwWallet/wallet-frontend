@@ -1,2 +1,3 @@
 export * from './inject';
-export * from './utils/config';
+export * from './branding';
+export * from './config';

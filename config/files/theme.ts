@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
-import { generateThemeCSS } from '../../branding';
+import { generateThemeCSS } from '../branding';
 
 export default async function themeCSS(destDir: string) {
 	const themeCss = generateThemeCSS({

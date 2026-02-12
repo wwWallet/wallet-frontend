@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
-import { resolve } from 'path';
-import { ConfigMap } from '../utils/config';
+import { resolve } from 'node:path';
+import { ConfigMap } from '../config';
 
 /**
  * Generates a robots.txt file.

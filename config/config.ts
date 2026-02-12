@@ -1,14 +1,30 @@
 export type ConfigMap = {
-	// HOST: string;
-	// PORT: string;
-	// VITE_GENERATE_SOURCEMAP: string;
-	// VITE_APP_VERSION: string;
+	/*
+	 * Vite-specific environment variables.
+	 * These can't or shouldn't be set at runtime.
+	 */
+	VITE_HOST?: string;
+	VITE_PORT?: string;
+	VITE_GENERATE_SOURCEMAP?: string;
+	VITE_APP_VERSION?: string;
 
+	/*
+	 * Runtime injected variables.
+	 * These should be injected into index.html as meta tags.
+	 *
+	 * If in a multi-tenancy setup, these *should* likely differ between tenants.
+	 */
 	META_STATIC_PUBLIC_URL: string;
 	META_STATIC_NAME: string;
 	META_I18N_WALLET_NAME_OVERRIDE: string;
 	META_OPENID4VCI_REDIRECT_URI: string;
 
+	/*
+	 * Runtime injected variables.
+	 * These should be injected into index.html as meta tags.
+	 *
+	 * If in a multi-tenancy setup, these *should not* likely differ between tenants.
+	 */
 	META_WS_URL: string;
 	META_WALLET_BACKEND_URL: string;
 	META_LOGIN_WITH_PASSWORD: string;
@@ -29,6 +45,10 @@ export type ConfigMap = {
 	META_OHTTP_RELAY: string;
 	META_VCT_REGISTRY_URL: string;
 
+	/*
+	 * Data for well-known files.
+	 * Are not injected as meta tags.
+	 */
 	WELLKNOWN_APPLE_APPIDS: string;
 	WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS: string;
 

@@ -1,7 +1,11 @@
 export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
 
 function fromMeta(key: string): string | null {
-	return document.head.querySelector(`meta[name="www:${key.toLocaleLowerCase()}"]`)?.getAttribute('content');
+	if (typeof document === 'undefined') {
+		return null;
+	}
+
+	return document.head?.querySelector(`meta[name="www:${key.toLocaleLowerCase()}"]`)?.getAttribute('content');
 }
 
 export const BACKEND_URL = fromMeta('wallet_backend_url');

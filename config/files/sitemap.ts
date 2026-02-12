@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { ConfigMap } from '../utils/config';
+import { ConfigMap } from '../config';
 import { writeFile } from 'node:fs/promises';
 
 /**

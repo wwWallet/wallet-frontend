@@ -1,8 +1,8 @@
 import { readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { load } from 'cheerio';
-import { copyScreenshots, findLogoFiles, generateAllIcons, getBrandingHash } from '../branding';
-import { ConfigMap } from './utils/config';
+import { copyScreenshots, findLogoFiles, generateAllIcons, getBrandingHash } from './branding';
+import { ConfigMap } from './config';
 import { htmlMetaTags, metaTag } from './utils/meta-tags';
 import robotsTxt from './files/robots';
 import wellKnownFiles from './files/well-known';
