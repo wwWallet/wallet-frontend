@@ -1,12 +1,10 @@
 import fs from "node:fs";
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
 import { z } from "zod";
 import convert, { RGB } from "color-convert";
-import { createFont, woff2 } from "fonteditor-core";
-import { fileURLToPath } from "node:url";
 
 // ============================================
 // TYPES
@@ -627,29 +625,23 @@ export class MetadataImage {
 	 */
 	public static async setupFontsEnvironment(baseDir: string) {
 		const fontsConfDir = path.resolve(baseDir, "fonts");
-		const inputFontFiles = [
-			import.meta.resolve("@fontsource/inter/files/inter-latin-600-normal.woff2"),
-		];
 
-		await woff2.init();
 		await mkdir(fontsConfDir, { recursive: true });
 
-		for (const input of inputFontFiles) {
-			const inputBuffer = await readFile(fileURLToPath(input));
+		const fontUrls = [
+			"https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-600-normal.ttf",
+		];
 
-			const font = createFont(inputBuffer, {
-				type: "woff2",
-				hinting: true,
-				kerning: true,
-			});
+		for (const fontUrl of fontUrls) {
+			const res = await fetch(fontUrl);
+			if (!res.ok) {
+				throw new Error(`Failed to fetch font: ${res.status} ${res.statusText}`);
+			}
 
-			const outputBuffer = font.write({
-				type: "ttf",
-				hinting: true,
-				kerning: true,
-			});
+			const fontBuffer = Buffer.from(await res.arrayBuffer());
 
-			await writeFile(path.join(fontsConfDir, path.basename(input)), outputBuffer as Buffer);
+			await writeFile(path.join(fontsConfDir, path.basename(fontUrl)), fontBuffer);
+			console.log(`Font written: ${path.join(fontsConfDir, path.basename(fontUrl))}`);
 		}
 
 		await writeFile(path.join(fontsConfDir, "fonts.conf"), MetadataImage.FONTCONFIG_XML);
