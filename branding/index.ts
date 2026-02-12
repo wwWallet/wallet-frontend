@@ -759,8 +759,8 @@ export class MetadataImage {
  * Enforces that a string is base64 encoded and prefixed with either "png:" or "svg:".
  */
 const base64WithPrefixSchema = z.string().refine(
-	(val) => val.startsWith("png:") || val.startsWith("svg:"),
-	{ message: "Must be prefixed with 'png:' or 'svg:'" }
+	(val) => val.startsWith("png:") || val.startsWith("svg:") || val.startsWith("ico:"),
+	{ message: "Must be prefixed with 'png:', 'svg:' or 'ico:'" }
 ).optional();
 
 /**
@@ -768,6 +768,7 @@ const base64WithPrefixSchema = z.string().refine(
  */
 const customDirSchema = z.object({
 	theme: themeSchema,
+	favicon_b64: base64WithPrefixSchema,
 	logos: z.object({
 		logo_light_b64: base64WithPrefixSchema,
 		logo_dark_b64: base64WithPrefixSchema,
@@ -815,18 +816,27 @@ export async function createCustomBrandingDirFromJSON(input: unknown) {
 	await mkdir(logosDir, { recursive: true });
 
 	for (const [key, b64] of Object.entries(result.data.logos || {})) {
-		if (!b64) continue;
-
-		const [prefix, data] = b64.split(":");
-		const buffer = Buffer.from(data, "base64");
-		const ext = prefix === "png" ? "png" : "svg";
-		const filename = key.replace("_b64", `.${ext}`);
+		const {
+			filename,
+			buffer,
+		} = parseB64Asset(key, b64)
 
 		await writeFile(
 			path.join(logosDir, filename),
 			buffer
 		);
 		console.log(`Wrote logo file: ${filename}`);
+	}
+
+	// Write favicon
+	if (result.data.favicon_b64) {
+		const { filename, buffer } = parseB64Asset('favicon_b64', result.data.favicon_b64);
+
+		await writeFile(
+			path.join(baseDir, filename),
+			buffer
+		);
+		console.log(`Wrote favicon file: ${filename}`);
 	}
 
 	// Write screenshots
@@ -844,5 +854,22 @@ export async function createCustomBrandingDirFromJSON(input: unknown) {
 			);
 			console.log(`Wrote screenshot file: ${filename}`);
 		}
+	}
+}
+
+function parseB64Asset(key: string, b64: string): { filename: string; buffer: Buffer<ArrayBuffer> } {
+	const parsedB64 = base64WithPrefixSchema.parse(b64);
+	if (!parsedB64) {
+		throw new Error("invalid b64 asset");
+	}
+
+	const [prefix, data] = b64.split(":");
+	const buffer = Buffer.from(data, "base64");
+	const ext = prefix.replace(/\:$/, '');
+	const filename = key.replace(/_b64$/, `.${ext}`);
+
+	return {
+		filename,
+		buffer,
 	}
 }
