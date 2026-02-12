@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
@@ -19,6 +19,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
+	const usedPreAuthorizedCodes = useRef<string[]>([])
 
 	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
 	const { syncPrivateData } = api;
@@ -140,6 +141,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					if (!preAuthorizedCode) {
 						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
 					}
+					if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
+						console.log("Pre authorized code already used");
+						return {};
+					}
+					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
 
 					let userInput: string | undefined = undefined;
 					if (txCode) {
