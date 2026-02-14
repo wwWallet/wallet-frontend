@@ -266,7 +266,7 @@ const WebauthnSignupLogin = ({
 				console.log('Tenant discovered during login:', err.tenantId, '- redirecting with auto-retry...');
 				// Redirect to tenant-specific login page with retry flag
 				// The autoRetry param signals that we should automatically trigger login after redirect
-				navigate(`/${err.tenantId}/login?autoRetry=true`, { replace: true });
+				navigate(`${buildTenantRoutePath(err.tenantId, 'login')}?autoRetry=true`, { replace: true });
 				return;
 			}
 
