@@ -152,48 +152,39 @@ export function extractTenantFromUserHandle(userHandle: ArrayBuffer | Uint8Array
 
 /**
  * Paths that should use tenant-scoped backend endpoints.
- * For non-default tenants, these paths are prefixed with /t/{tenantId}.
+ * NOTE: With the X-Tenant-ID header approach, these paths no longer need
+ * prefixing. The tenant is communicated via the header on all requests.
+ * This constant is kept for reference but the function below returns
+ * paths unchanged.
  */
 const TENANT_SCOPED_API_PATHS = ['/issuer/all', '/verifier/all'];
 
 /**
  * Build the backend API path for tenant-scoped resources.
- * - Default tenant uses direct paths: /issuer/all, /verifier/all
- * - Custom tenants use /t/{tenantId}/ prefix: /t/myTenant/issuer/all
+ *
+ * With header-based multi-tenancy (X-Tenant-ID), the path is returned unchanged.
+ * The tenant is communicated via the X-Tenant-ID header set by the API layer.
  *
  * @param path - The API path (e.g., '/issuer/all')
- * @param tenantId - The tenant ID (from getStoredTenant)
- * @returns The backend API path
+ * @param _tenantId - Unused, kept for backwards compatibility
+ * @returns The unmodified API path
  */
-export function buildTenantApiPath(path: string, tenantId?: string): string {
-	if (!TENANT_SCOPED_API_PATHS.includes(path)) {
-		return path;
-	}
-
-	if (isDefaultTenant(tenantId)) {
-		return path;
-	}
-
-	return `/t/${tenantId}${path}`;
+export function buildTenantApiPath(path: string, _tenantId?: string): string {
+	// With X-Tenant-ID header, paths are no longer prefixed
+	return path;
 }
 
 /**
- * Check if a path is a tenant-scoped API path (possibly prefixed with /t/{tenantId}).
- * Returns the base path (e.g., '/issuer/all') if it's a tenant-scoped path.
+ * Check if a path is a tenant-scoped API path.
+ * Returns the base path if it's a tenant-scoped path.
+ *
+ * With header-based multi-tenancy, paths are no longer prefixed with /t/{tenantId}.
+ * This function is simplified to just check if the path is in the known list.
  */
 export function getTenantScopedBasePath(path: string): string | null {
-	// Direct match
+	// Direct match - paths are no longer prefixed
 	if (TENANT_SCOPED_API_PATHS.includes(path)) {
 		return path;
-	}
-
-	// Check for /t/{tenantId}/... prefix
-	const tenantPrefixMatch = path.match(/^\/t\/[^/]+(\/.*)$/);
-	if (tenantPrefixMatch) {
-		const basePath = tenantPrefixMatch[1];
-		if (TENANT_SCOPED_API_PATHS.includes(basePath)) {
-			return basePath;
-		}
 	}
 
 	return null;

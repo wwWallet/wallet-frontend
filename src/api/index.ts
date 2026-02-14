@@ -12,7 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantApiPath } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -179,8 +179,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options: { appToken?: string },
 	): { [header: string]: string } => {
 		const authz = options?.appToken || appToken;
+		// Get tenant ID from storage, defaulting to 'default' for single-tenant and backwards compatibility
+		const tenantId = getStoredTenant() || 'default';
 		return {
 			...headers,
+			'X-Tenant-ID': tenantId,
 			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
 		};
 	}, [appToken]);
@@ -247,10 +250,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options?: { appToken?: string, headers?: { [header: string]: string } },
 		force: boolean = false
 	): Promise<AxiosResponse> => {
-		// Build tenant-aware path for API call (e.g., /t/{tenantId}/issuer/all)
-		const tenantAwarePath = buildTenantApiPath(path, getStoredTenant());
-		// Use tenant-aware path as both API path and cache key so different tenants have separate caches
-		return getWithLocalDbKey(tenantAwarePath, tenantAwarePath, options, force);
+		// Get current tenant for cache key (X-Tenant-ID header is added by buildGetHeaders)
+		const tenantId = getStoredTenant() || 'default';
+		// Include tenant in cache key so different tenants have separate caches
+		const cacheKey = `${tenantId}:${path}`;
+		return getWithLocalDbKey(path, cacheKey, options, force);
 	}, [getWithLocalDbKey]);
 
 	const fetchInitialData = useCallback(async (
