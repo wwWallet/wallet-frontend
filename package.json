@@ -77,7 +77,7 @@
     "vitest": "^1.5.0"
   },
   "scripts": {
-    "start": "vite",
+    "start": "vite --no-open",
     "start-docker": "npx vite --no-open",
     "build": "vite build",
     "preview": "vite preview",
