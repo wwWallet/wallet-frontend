@@ -683,13 +683,11 @@ const Auth = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			// Navigate to the tenant-scoped home page after login
-			// - For non-default tenants: /{tenantId}/
-			// - For default tenant: /
+			// The presumed path of the home page.
+			const path = window.location.pathname.replace(/\/login\/?$/, '');
+
 			// Preserve any query parameters (e.g., redirect URLs)
-			const tenant = getStoredTenant();
-			const basePath = buildTenantRoutePath(tenant);
-			navigate(`${basePath}${window.location.search}`, { replace: true });
+			navigate(`${path}/${window.location.search}`, { replace: true });
 		}
 	}, [isLoggedIn, navigate]);
 
