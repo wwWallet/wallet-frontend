@@ -555,9 +555,9 @@ const WebauthnSignupLogin = ({
 						{!isLoginCache && (
 							[
 								{ btnLabel: t('common.platformPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>("primary") },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline") },
-							].map(({ Icon, hint, btnLabel, variant }) => (
-								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
+								{ btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), hint: "security-key", },
+							].map(({ Icon, btnLabel, variant, hint }) => (
+								<div key={btnLabel} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button
 										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
 										type="submit"
