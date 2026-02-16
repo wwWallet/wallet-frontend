@@ -306,7 +306,7 @@ export function useHttpProxy(): IHttpProxy {
 					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 						headers: headers,
 						url: url,
-						method: 'post',
+						method: 'POST',
 						data: body,
 					}, {
 						timeout: TIMEOUT,
