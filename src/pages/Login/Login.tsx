@@ -18,8 +18,7 @@ import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
-import useScreenType from '@/hooks/useScreenType';
-import { CircleQuestionMark, Eye, EyeOff, FingerprintIcon, Info, Lock, LockKeyholeOpen,SmartphoneNfcIcon, User, UserLock, X } from 'lucide-react';
+import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, UserLock, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 
 const FormInputRow = ({
@@ -215,7 +214,6 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
-	const screenType = useScreenType();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
@@ -556,10 +554,9 @@ const WebauthnSignupLogin = ({
 
 						{!isLoginCache && (
 							[
-								{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon, variant: coerce<Variant>("primary"), helpText: "Fastest option, recommended" },
-								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), helpText: "Use a USB or hardware security key" },
-								{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon, variant: coerce<Variant>("outline"), helpText: "Scan QR or link mobile device" },
-							].map(({ Icon, hint, btnLabel, variant, helpText }) => (
+								{ btnLabel: t('common.platformPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>("primary") },
+								{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline") },
+							].map(({ Icon, hint, btnLabel, variant }) => (
 								<div key={hint} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button
 										id={`${isSubmitting ? 'submitting' : isLogin ? 'loginPasskey' : 'loginSignup.signUpPasskey'}-${hint}-submit-loginsignup`}
@@ -580,24 +577,8 @@ const WebauthnSignupLogin = ({
 													: btnLabel
 												}
 											</div>
-
-											{screenType !== 'desktop' && (
-												<span className="mt-2 text-xs">
-													{helpText}
-												</span>
-											)}
 										</div>
 									</Button>
-
-									{screenType === 'desktop' && (
-										<div className="absolute -right-8 flex items-center ml-2 group">
-											<CircleQuestionMark className={`w-4 h-4 text-lm-gray-800 dark:text-dm-gray-200 cursor-pointer`} aria-hidden="true" />
-
-											<div className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex group-focus-within:flex px-3 py-2 rounded bg-lm-gray-800 text-lm-gray-100 text-xs whitespace-nowrap shadow-lg bottom-6">
-												{helpText}
-											</div>
-										</div>
-									)}
 								</div>
 							))
 						)}
