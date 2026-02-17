@@ -20,6 +20,7 @@ import checkForUpdates from '../../offlineUpdateSW';
 import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
+import PasskeyInfoPopup from '@/components/Popups/PasskeyInfoPopup';
 
 const FormInputRow = ({
 	IconComponent,
@@ -773,6 +774,9 @@ const Auth = () => {
 					</p>
 				)}
 
+				<div className="flex justify-center">
+					<PasskeyInfoPopup/>
+				</div>
 			</div>
 		</LoginLayout>
 	);

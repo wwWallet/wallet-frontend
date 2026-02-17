@@ -129,6 +129,19 @@
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
 	},
+	"passkeyInfoPopup": {
+		"closeAriaLabel": "Close passkey information popup",
+		"description1": "Your digital ID wallet gives you complete control over your digital information and can be used in a web browser or mobile app.",
+		"description2": "A wallet passkey may be kept in one of the following locations:",
+		"onDeviceDescription": "Your passkey can be specific to this device like a fingerprint or facial recognition. It may also be created in a preferred password manager in your browser or on this device.",
+		"onDeviceLabel": "Passkey on this device",
+		"otherDeviceDescription": "Use the camera on a second device to scan a QR code and create a passkey on that device.",
+		"otherDeviceLabel": "Passkey on another device",
+		"securityKeyDescription": "Storing a passkey on a physical security key (such as a USB or NFC Yubikey) offers maximum security and portability.",
+		"securityKeyLabel": "Passkey on a security key",
+		"title": "Choosing where to create your passkey",
+		"triggerButton": "How do passkeys work?"
+	},
 	"loginState": {
 		"confirm": "Confirm",
 		"message": "Use your <strong>passkey</strong> to continue and fetch your credential in your wallet.",
