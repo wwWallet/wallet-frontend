@@ -4,6 +4,7 @@ import { copyScreenshots, generateAllIcons, Icons } from '../branding';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 import { type ConfigMap } from '../config';
 import { type Tag } from '../utils/resources';
+import { pathWithBase } from '../utils/paths';
 
 /**
  * Generates a web app manifest and icons, and injects them into the build output.
@@ -36,21 +37,21 @@ export default async function brandingManifest(destDir: string, config: ConfigMa
 		tag: 'link',
 		props: {
 			rel: 'manifest',
-			href: `/manifest.json?v=${brandingHash}`,
+			href: pathWithBase(config.BASE_PATH, `manifest.json?v=${brandingHash}`),
 		}
 	});
 	tagsToInject?.set('apple-touch-icon', {
 		tag: 'link',
 		props: {
 			rel: 'apple-touch-icon',
-			href: `/icons/apple-touch-icon.png?v=${brandingHash}`
+			href: pathWithBase(config.BASE_PATH, `icons/apple-touch-icon.png?v=${brandingHash}`)
 		},
 	});
 	tagsToInject?.set('favicon', {
 		tag: 'link',
 		props: {
 			rel: 'icon',
-			href: `/favicon.ico?v=${brandingHash}`,
+			href: pathWithBase(config.BASE_PATH, `favicon.ico?v=${brandingHash}`),
 		},
 	});
 }

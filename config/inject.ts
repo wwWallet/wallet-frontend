@@ -12,6 +12,7 @@ import themeCSS from './files/theme';
 import metadataImage from './files/metadata-image';
 import { Tag, TagsMap } from './utils/resources';
 import { getTagSortingPriority, insertTag } from './utils/tags';
+import { pathWithBase } from './utils/paths';
 
 export type InjectConfigOptions = {
 	/**
@@ -47,7 +48,7 @@ export async function injectConfigFiles({ bundleDir, destDir, config, tagsToInje
 		robotsTxt(destDir, config),
 		sitemapXml(destDir, config),
 		brandingManifest(destDir, config, tagsToInject, brandingHash),
-		themeCSS(destDir, tagsToInject, brandingHash),
+		themeCSS(destDir, config, tagsToInject, brandingHash),
 		metadataImage(destDir, config, tagsToInject, brandingHash),
 	]);
 }
@@ -116,8 +117,8 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 		// Add branding logo meta tags
 		const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));
 		metaTags.push(
-			metaTag('branding_logo_light', `/${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
-			metaTag('branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
+			metaTag('branding_logo_light', pathWithBase(config.BASE_PATH, `${logo_light.filename}${brandingHash ? `?v=${brandingHash}` : ''}`)),
+			metaTag('branding_logo_dark', pathWithBase(config.BASE_PATH, `${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`)),
 		);
 
 		for (const { name, content } of metaTags) {
@@ -143,6 +144,13 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 		}
 
 		for (const child of children) {
+			for (const attr of ['href', 'src'] as const) {
+				const value = child.getAttribute(attr);
+				if (value && !value.startsWith(config.BASE_PATH)) {
+					child.setAttribute(attr, pathWithBase(config.BASE_PATH, value));
+				}
+			}
+
 			head.appendChild(child);
 		}
 	})();

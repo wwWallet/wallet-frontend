@@ -9,6 +9,12 @@ export type ConfigMap = {
 	APP_VERSION?: string;
 
 	/*
+	 * Runtime base path.
+	 * Used for asset loading.
+	 */
+	BASE_PATH: string;
+
+	/*
 	 * Runtime injected variables.
 	 * These should be injected into index.html as meta tags.
 	 *
@@ -56,6 +62,7 @@ export type ConfigMap = {
 
 export function getConfigFromEnv(env: Record<string, string>): ConfigMap {
 	return {
+		BASE_PATH: env.BASE_PATH || '/',
 		META_STATIC_PUBLIC_URL: env.META_STATIC_PUBLIC_URL,
 		META_STATIC_NAME: env.META_STATIC_NAME,
 		META_I18N_WALLET_NAME_OVERRIDE: env.META_I18N_WALLET_NAME_OVERRIDE,
