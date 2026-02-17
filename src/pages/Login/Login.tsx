@@ -502,7 +502,13 @@ const WebauthnSignupLogin = ({
 								{PolicyLinks && (
 									<label className="mb-4 text-sm relative block pl-6 has-checked:font-semibold">
 										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" required />
-										<span>I accept {config.VITE_STATIC_NAME} <PolicyLinks/></span>
+										<span>
+											<Trans
+												i18nKey="loginSignup.acceptPolicies"
+												values={{ walletName: config.VITE_STATIC_NAME }}
+												components={{ policyLinks: <PolicyLinks /> }}
+											/>
+										</span>
 									</label>
 								)}
 							</>)}

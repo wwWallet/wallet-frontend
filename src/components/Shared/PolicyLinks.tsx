@@ -1,6 +1,9 @@
 import { POLICY_LINKS } from "@/config";
+import { useTranslation } from "react-i18next";
 
 const PolicyLinks = () => {
+	const { t } = useTranslation();
+
 	if (typeof POLICY_LINKS !== 'string') {
 		return;
 	}
@@ -17,7 +20,7 @@ const PolicyLinks = () => {
 			<>
 				<a className="underline" href={href} target="_blank" rel="noreferrer">{label}</a>
 				{length - idx > 2 && <>, </>}
-				{length - idx === 2 && <> and </>}
+				{length - idx === 2 && <> {t('common.and')} </>}
 			</>
 		));
 

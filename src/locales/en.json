@@ -17,6 +17,7 @@
 		"title": "Enter the Pin"
 	},
 	"common": {
+		"and": "and",
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
@@ -106,6 +107,7 @@
 		"passkeySignupKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"passkeySignupPrfNotSupported": "This browser or security key is not supported. Please make sure that your browser supports the WebAuthn PRF extension and your security key, if any, supports the \"hmac-secret\" extension. <docLink>Learn more here</docLink>.",
 		"passkeySignupPrfNotSupportedAriaLabel": "Learn more about supported browsers or security keys",
+		"acceptPolicies": "I accept {{walletName}} <policyLinks/>.",
 		"passwordLabel": "Password",
 		"passwordLength": "Minimum length: 8 characters",
 		"passwordUnlockFailed": "Failed to unlock wallet with password",

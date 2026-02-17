@@ -16,6 +16,7 @@
 		"title": "Introduza o PIN"
 	},
 	"common": {
+		"and": "e",
 		"cancel": "Cancelar",
 		"continue": "Continuar",
 		"delete": "Eliminar",
@@ -92,6 +93,7 @@
 		"passkeySignupPrfNotSupported": "Este navegador ou a chave de segurança não são suportados. Por favor, assegure-se que o seu navegador suporta a extensão WebAuthn PRF e que a sua chave de segurança, caso exista, suporta a extensão \"hmac-secret\". <docLink>Saiba mais aqui</docLink>.",
 		"passkeySignupPrfNotSupportedAriaLabel": "Saiba mais sobre navegadores suportados ou chaves de segurança.",
 		"passwordLabel": "Palavra-passe",
+		"acceptPolicies": "Aceito os termos do {{walletName}} <policyLinks/>.",
 		"passwordLength": "Tamanho mínimo: 8 caracteres",
 		"passwordUnlockFailed": "Não foi possível desbloquear a carteira com palavra-passe.",
 		"passwordsNotMatchError": "Palavras-passe não correspondem",

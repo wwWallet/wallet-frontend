@@ -16,6 +16,7 @@
 		"title": "Εισάγετε το PIN"
 	},
 	"common": {
+		"and": "και",
 		"cancel": "Ακύρωση",
 		"continue": "Συνέχεια",
 		"delete": "Διαγραφή",
@@ -97,6 +98,7 @@
 		"passkeySignupKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"passkeySignupPrfNotSupported": "Αυτό το πρόγραμμα περιήγησης ή το κλειδί ασφαλείας δεν υποστηρίζεται. Βεβαιωθείτε ότι το πρόγραμμα περιήγησής σας υποστηρίζει την επέκταση WebAuthn PRF και το κλειδί ασφαλείας σας, αν υπάρχει, υποστηρίζει την επέκταση \"hmac-secret\". <docLink>Μάθετε περισσότερα εδώ</docLink>.",
 		"passkeySignupPrfNotSupportedAriaLabel": "Μάθετε περισσότερα για υποστηριζόμενα προγράμματα περιήγησης ή κλειδιά ασφαλείας",
+		"acceptPolicies": "Αποδέχομαι τους όρους του {{walletName}} <policyLinks/>.",
 		"passwordLabel": "Κωδικός",
 		"passwordLength": "Ελάχιστο μήκος: 8 χαρακτήρες",
 		"passwordUnlockFailed": "Απέτυχε το ξεκλείδωμα του wallet με κωδικό",
