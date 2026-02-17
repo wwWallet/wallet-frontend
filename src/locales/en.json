@@ -73,7 +73,7 @@
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
-		"alreadyHaveAccountQuestion": "Already have an account? ",
+		"alreadyHaveAccountQuestion": "Already have a wallet account? ",
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
 		"choosePasskeyPlatform": "Select your preferred passkey type",
@@ -95,7 +95,7 @@
 		"loginSubmit": "Login",
 		"loginTitle": "Login",
 		"messageOffline": "You are offline. Some features may not be available.",
-		"newHereQuestion": "Don't have an account? ",
+		"newHereQuestion": "Don't have a wallet account? ",
 		"number": "At least one number",
 		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",

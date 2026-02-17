@@ -64,7 +64,7 @@
 		"messageResetPermission": "Κάτι <strong>δεν λειτουργεί σωστά με τις ειδοποιήσεις</strong>, <reloadButton>ανανεώστε αυτή τη σελίδα</reloadButton>."
 	},
 	"loginSignup": {
-		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό; ",
+		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό πορτοφολιού; ",
 		"authOnceMoreLogin": "Για να ολοκληρώσετε το ξεκλείδωμα του wallet αυθεντικοποιηθείτε με το κλειδί πρόσβασής σας μία ακόμη φορά.",
 		"capitalLetter": "Τουλάχιστον ένα κεφαλαίο γράμμα",
 		"choosePasskeyPlatform": "Επιλέξτε το είδος κλειδιού πρόσβασης που προτιμάτε",
@@ -86,7 +86,7 @@
 		"loginSubmit": "Σύνδεση",
 		"loginTitle": "Σύνδεση",
 		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
-		"newHereQuestion": "Δεν έχετε λογαριασμό; ",
+		"newHereQuestion": "Δεν έχετε λογαριασμό πορτοφολιού; ",
 		"number": "Τουλάχιστον ένας αριθμός",
 		"or": "Ή",
 		"passkeyInvalid": "Άγνωστο κλειδί πρόσβασης, πιθανώς διαγράφηκε από τον χρήστη.",

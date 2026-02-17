@@ -58,7 +58,7 @@
 		"messageResetPermission": "Algo <strong>não está a funcionar corretamente com as notificações.</strong> Por favor, <reloadButton>recarregue esta página</reloadButton>."
 	},
 	"loginSignup": {
-		"alreadyHaveAccountQuestion": "Já tem uma conta? ",
+		"alreadyHaveAccountQuestion": "Já tem uma conta de carteira? ",
 		"authOnceMoreLogin": "Para concluir o desbloqueio da carteira, por favor autentique-se com a sua chave de acesso novamente.",
 		"capitalLetter": "Pelo menos, uma letra maiúscula",
 		"choosePasskeyPlatform": "Selecione o tipo de chave de acesso preferido",
@@ -80,7 +80,7 @@
 		"loginSubmit": "Iniciar sessão",
 		"loginTitle": "Iniciar sessão",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
-		"newHereQuestion": "Não tem uma conta? ",
+		"newHereQuestion": "Não tem uma conta de carteira? ",
 		"number": "Pelo menos, um número",
 		"or": "OU",
 		"passkeyInvalid": "Chave de acesso desconhecida, possivelmente eliminada pelo utilizador.",
