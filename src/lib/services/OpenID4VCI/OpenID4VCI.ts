@@ -669,8 +669,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			]);
 
 			if (!clientId) {
-				console.error("clientId not found");
-				return;
+				throw new Error("Error generating Authorization Request: ClientID not found");
 			}
 
 			// OID4VCI-specific logic for PAR
@@ -709,7 +708,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				});
 				await openID4VCIClientStateRepository.commitStateChanges();
 				// Build authorization request URL
-				const authorizationRequestURL = new URL(authzServerMetadata.authzServerMetadata.authorization_endpoint);
+				const authorizationEndpoint = authzServerMetadata.authzServerMetadata.authorization_endpoint;
+				if (!authorizationEndpoint) {
+					throw new Error("Error generating Authorization Request: 'authorization_endpoint' parameter not found");
+				}
+				const authorizationRequestURL = new URL(authorizationEndpoint);
 				authorizationRequestURL.searchParams.set('request_uri', parRes.request_uri);
 				authorizationRequestURL.searchParams.set('client_id', clientId.client_id);
 				const age = getRememberIssuerAge();
