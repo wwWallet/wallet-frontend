@@ -11,7 +11,7 @@ import brandingManifest from './files/manifest';
 import themeCSS from './files/theme';
 import metadataImage from './files/metadata-image';
 import { Tag, TagsMap } from './utils/resources';
-import { getTagSortingPriority } from './utils/tags';
+import { getTagSortingPriority, insertTag } from './utils/tags';
 
 export type InjectConfigOptions = {
 	/**
@@ -83,8 +83,8 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 	}
 
 	(function injectSocialMetaTags() {
-		const tags = [
-			{ tag: 'title', content: config.META_STATIC_NAME, props: {} },
+		const tags: Tag[] = [
+			{ tag: 'title', textContent: config.META_STATIC_NAME, props: {} },
 			{ tag: 'meta', props: { name: 'description', content: `${config.META_STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
 			{ tag: 'meta', props: { name: 'keywords', content: 'wwWallet, web wallet, wallet, secure storage, verifiable credentials, digital credentials, credentials management' } },
 			{ tag: 'meta', props: { property: 'og:title', content: `${config.META_STATIC_NAME}: Secure Storage and Management of Verifiable Credentials` } },
@@ -94,48 +94,18 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 			{ tag: 'meta', props: { name: 'twitter:title', content: `${config.META_STATIC_NAME}: Secure Storage and Management of Verifiable Credentials` } },
 			{ tag: 'meta', props: { name: 'twitter:description', content: `${config.META_STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
 			{ tag: 'meta', props: { name: 'twitter:card', content: 'summary_large_image' } },
-		] satisfies Tag[];
+		];
 
-
-		for (const [_, { tag, props, content }] of Object.entries(tags)) {
-			const element = document.createElement(tag);
-			for (const [key, value] of Object.entries(props)) {
-				element.setAttribute(key, value);
-			}
-			if (content) {
-				element.textContent = content;
-			}
-
-			const selectors = `${tag}${Object.entries(props).map(([key, value]) => `[${key}="${value}"]`).join('')}`;
-			const exitingElement = head.querySelector(selectors);
-
-			if (exitingElement) {
-				exitingElement.replaceWith(element);
-				continue;
-			}
-
-			head.appendChild(element);
+		for (const tag of tags) {
+			insertTag(document, head, tag);
 		}
 	})();
 
 	(function injectGeneralMetaTags() {
 		if (!tagsToInject) return;
 
-		for (const [_, { tag, props }] of tagsToInject) {
-			const element = document.createElement(tag);
-			for (const [key, value] of Object.entries(props)) {
-				element.setAttribute(key, value);
-			}
-
-			const selectors = `${tag}${Object.entries(props).map(([key, value]) => `[${key}="${value}"]`).join('')}`;
-			const exitingElement = head.querySelector(selectors);
-
-			if (exitingElement) {
-				exitingElement.replaceWith(element);
-				continue;
-			}
-
-			head.appendChild(element);
+		for (const [_, tagDef] of tagsToInject) {
+			insertTag(document, head, tagDef);
 		}
 	})();
 
@@ -150,14 +120,8 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 			metaTag('branding_logo_dark', `/${logo_dark.filename}${brandingHash ? `?v=${brandingHash}` : ''}`),
 		);
 
-		// Remove existing www: meta tags
-		head.querySelectorAll('meta[name^="www:"]').forEach((el) => el.remove());
-
 		for (const { name, content } of metaTags) {
-			const meta = document.createElement('meta');
-			meta.setAttribute('name', name);
-			meta.setAttribute('content', content);
-			head.appendChild(meta);
+			insertTag(document, head, { tag: 'meta', props: { name, content } });
 		}
 	})();
 

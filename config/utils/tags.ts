@@ -1,3 +1,5 @@
+import { Tag } from "./resources";
+
 export function getTagSortingPriority(el: Element): number {
 	const tag = el.tagName.toLowerCase();
 	const rel = el.getAttribute('rel') || '';
@@ -39,4 +41,26 @@ export function getTagSortingPriority(el: Element): number {
 	if (tag === 'meta' && name.startsWith('www:')) return 7;
 
 	return 8;
+}
+
+export function insertTag(document: Document, head: HTMLHeadElement, { tag, props, textContent }: Tag): void {
+	const element = document.createElement(tag);
+	for (const [key, value] of Object.entries(props || {})) {
+		element.setAttribute(key, value);
+	}
+	if (textContent) {
+		element.textContent = textContent;
+	}
+
+	const identifyingProps = ['name', 'rel', 'property', 'media'];
+	const selectorProps = Object.entries(props || {}).filter(([key]) => identifyingProps.includes(key));
+	const selector = `${tag}${selectorProps.map(([key, value]) => `[${key}="${value}"]`).join('')}`;
+
+	const existingElement = head.querySelector(selector);
+
+	if (existingElement) {
+		existingElement.replaceWith(element);
+	} else {
+		head.appendChild(element);
+	}
 }
