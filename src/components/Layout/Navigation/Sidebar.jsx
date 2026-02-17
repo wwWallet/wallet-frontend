@@ -116,14 +116,6 @@ const Sidebar = ({ isOpen, toggle }) => {
 							</span>
 						</div>
 
-						<div className='px-2'>
-							<TenantSelector
-								currentTenantId={tenantId}
-								isAuthenticated={true}
-								compact
-							/>
-						</div>
-
 						<NavItem
 							id="home"
 							path={buildPath()}
@@ -196,20 +188,30 @@ const Sidebar = ({ isOpen, toggle }) => {
 				</div>
 			</div>
 
-			{/* Powered By */}
-			<div className=" text-sm space-x-2 p-2">
-				<Trans
-					i18nKey="sidebar.poweredBy"
-					components={{
-						docLinkWalletGithub: <a
-							href="https://github.com/wwWallet"
-							rel="noreferrer"
-							target='blank_'
-							className="underline"
-							aria-label={t('sidebar.poweredbyAriaLabel')}
-						/>
-					}}
+			{/* Bottom Section - Tenant Selector + Powered By */}
+			<div className="flex flex-col gap-2">
+				<TenantSelector
+					currentTenantId={tenantId}
+					isAuthenticated={true}
+					openDirection="up"
+					fullWidth
 				/>
+
+				{/* Powered By */}
+				<div className="text-sm p-2">
+					<Trans
+						i18nKey="sidebar.poweredBy"
+						components={{
+							docLinkWalletGithub: <a
+								href="https://github.com/wwWallet"
+								rel="noreferrer"
+								target='blank_'
+								className="underline"
+								aria-label={t('sidebar.poweredbyAriaLabel')}
+							/>
+						}}
+					/>
+				</div>
 			</div>
 		</div>
 	);

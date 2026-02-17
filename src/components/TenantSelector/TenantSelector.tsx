@@ -24,6 +24,10 @@ interface TenantSelectorProps {
 	className?: string;
 	/** Compact mode for mobile/header */
 	compact?: boolean;
+	/** Direction dropdown opens - 'up' for bottom placement, 'down' for top placement */
+	openDirection?: 'up' | 'down';
+	/** Full width mode - expands to fill parent container */
+	fullWidth?: boolean;
 }
 
 export default function TenantSelector({
@@ -31,6 +35,8 @@ export default function TenantSelector({
 	isAuthenticated,
 	className = '',
 	compact = false,
+	openDirection = 'down',
+	fullWidth = false,
 }: TenantSelectorProps) {
 	const { t } = useTranslation();
 	const { keystore, logout } = useContext(SessionContext);
@@ -101,31 +107,34 @@ export default function TenantSelector({
 	};
 
 	return (
-		<div ref={dropdownRef} className={`relative ${className}`}>
+		<div ref={dropdownRef} className={`relative ${fullWidth ? 'w-full' : ''} ${className}`}>
 			{/* Trigger Button */}
 			<button
 				id="tenant-selector-trigger"
 				type="button"
 				onClick={() => setIsOpen(!isOpen)}
 				className={`
-					flex items-center gap-2 px-3 py-2 rounded-lg
+					flex items-center justify-between gap-2 px-3 py-2 rounded-lg
 					bg-lm-gray-200 dark:bg-dm-gray-700
 					hover:bg-lm-gray-300 dark:hover:bg-dm-gray-600
 					border border-lm-gray-400 dark:border-dm-gray-600
 					text-lm-gray-800 dark:text-dm-gray-200
 					transition-colors duration-200
+					${fullWidth ? 'w-full' : ''}
 					${compact ? 'text-sm' : ''}
 				`}
 				aria-expanded={isOpen}
 				aria-haspopup="listbox"
 				aria-label={t('tenantSelector.selectTenant', 'Select tenant')}
 			>
-				<Building2 size={compact ? 16 : 18} className="shrink-0" />
-				{!compact && (
-					<span className="truncate max-w-32">
-						{currentTenant ? getTenantLabel(currentTenant) : t('tenantSelector.selectTenant', 'Select tenant')}
-					</span>
-				)}
+				<div className="flex items-center gap-2 min-w-0">
+					<Building2 size={compact ? 16 : 18} className="shrink-0" />
+					{!compact && (
+						<span className="truncate">
+							{currentTenant ? getTenantLabel(currentTenant) : t('tenantSelector.selectTenant', 'Select tenant')}
+						</span>
+					)}
+				</div>
 				<ChevronDown
 					size={compact ? 14 : 16}
 					className={`shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
@@ -136,11 +145,12 @@ export default function TenantSelector({
 			{isOpen && (
 				<div
 					className={`
-						absolute z-50 mt-1 w-64 max-h-64 overflow-y-auto
+						absolute z-50 ${fullWidth ? 'w-full' : 'w-64'} max-h-64 overflow-y-auto
 						bg-white dark:bg-dm-gray-800
 						border border-lm-gray-300 dark:border-dm-gray-600
 						rounded-lg shadow-lg
-						${compact ? 'right-0' : 'left-0'}
+						${openDirection === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}
+						${compact && openDirection === 'down' ? 'right-0' : 'left-0'}
 					`}
 					role="listbox"
 					aria-label={t('tenantSelector.tenantList', 'Available tenants')}
