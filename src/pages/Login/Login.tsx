@@ -569,7 +569,7 @@ const WebauthnSignupLogin = ({
 										variant={variant}
 										size="lg"
 										textSize="md"
-										additionalClassName="items-center justify-center relative"
+										additionalClassName={`items-center justify-center relative passkey-button-${hint}`}
 										title={!isLogin && !isOnline && t("common.offlineTitle")}
 										value={hint}
 									>
