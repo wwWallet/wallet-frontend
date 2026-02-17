@@ -39,7 +39,7 @@ export async function initializeCredentialEngine(
 		vctResolutionEngine: vctDocumentProvider
 	};
 
-	helper.fetchIssuerMetadataAndCertificates(
+	await helper.fetchIssuerMetadataAndCertificates(
 		getIssuers,
 		(pemCerts) => trustedCertificates.push(...pemCerts),
 		shouldUseCache,
