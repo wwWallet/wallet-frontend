@@ -6,6 +6,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 import { useTenant } from '@/context/TenantContext';
+import TenantSelector from '@/components/TenantSelector';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
@@ -43,7 +44,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
-	const { buildPath } = useTenant();
+	const { buildPath, tenantId } = useTenant();
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -115,13 +116,17 @@ const Sidebar = ({ isOpen, toggle }) => {
 							</span>
 						</div>
 
-						<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+						<div className='px-2'>
+							<TenantSelector
+								currentTenantId={tenantId}
+								isAuthenticated={true}
+								compact
+							/>
+						</div>
 
-						{/* Nav Menu */}
 						<NavItem
-							id="credentials"
+							id="home"
 							path={buildPath()}
-							alias={buildPath('cb')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Wallet}

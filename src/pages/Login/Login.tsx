@@ -14,6 +14,7 @@ import * as config from '../../config';
 import Button, { Variant } from '../../components/Buttons/Button';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
+import TenantSelector from '../../components/TenantSelector/TenantSelector';
 import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
@@ -662,6 +663,7 @@ const WebauthnSignupLogin = ({
 const Auth = () => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { tenantId } = useTenant();
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -778,7 +780,13 @@ const Auth = () => {
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
-
+				<div className="flex justify-center">
+					<TenantSelector
+						currentTenantId={tenantId}
+						isAuthenticated={false}
+						compact
+					/>
+				</div>
 				<div className='absolute text-lm-gray-900 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>

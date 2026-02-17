@@ -189,3 +189,56 @@ export function getTenantScopedBasePath(path: string): string | null {
 
 	return null;
 }
+
+/**
+ * Represents a known tenant derived from cached users.
+ */
+export type KnownTenant = {
+	id: string;
+	displayName?: string;
+	userCount: number;
+};
+
+/**
+ * Derives a list of known tenants from cached users.
+ * Uses tenant metadata if available, falls back to extracting from userHandle.
+ *
+ * @param cachedUsers - Array of cached users from localStorage
+ * @param fromBase64Url - Base64url decoder function
+ * @returns Array of unique tenants with user counts
+ */
+export function getKnownTenants(
+	cachedUsers: Array<{
+		userHandleB64u: string;
+		tenant?: { id: string; displayName?: string };
+	}>,
+	fromBase64Url: (s: string) => Uint8Array
+): KnownTenant[] {
+	const tenantMap = new Map<string, KnownTenant>();
+
+	for (const user of cachedUsers) {
+		// Prefer stored tenant metadata, fall back to extracting from userHandle
+		const tenantId = user.tenant?.id
+			?? extractTenantFromUserHandle(fromBase64Url(user.userHandleB64u))
+			?? DEFAULT_TENANT_ID;
+		const displayName = user.tenant?.displayName;
+
+		const existing = tenantMap.get(tenantId);
+		if (existing) {
+			existing.userCount++;
+			// Update display name if we got one and didn't have one
+			if (displayName && !existing.displayName) {
+				existing.displayName = displayName;
+			}
+		} else {
+			tenantMap.set(tenantId, {
+				id: tenantId,
+				displayName,
+				userCount: 1,
+			});
+		}
+	}
+
+	// Sort by most recently used (assumes cachedUsers is ordered by recency)
+	return Array.from(tenantMap.values());
+}
