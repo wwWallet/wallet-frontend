@@ -160,6 +160,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 				})
 					.catch(err => {
+						setUrl(`${window.location.origin}${window.location.pathname}`);
 						window.history.replaceState({}, '', `${window.location.pathname}`);
 						console.error(err);
 					})
