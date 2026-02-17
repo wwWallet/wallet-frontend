@@ -19,6 +19,7 @@ export type FileToWrite<T = any> = {
 export type Tag = {
 	tag: 'meta' | 'link' | 'title';
 	props: Record<string, string>;
+	content?: string;
 }
 
 export type TagsMap = Map<string, Tag>;

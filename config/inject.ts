@@ -81,10 +81,46 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 		throw new Error('No <head> element found in HTML.');
 	}
 
+	(function injectSocialMetaTags() {
+		const tags = [
+			{ tag: 'title', content: config.META_STATIC_NAME, props: {} },
+			{ tag: 'meta', props: { name: 'description', content: `${config.META_STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{ tag: 'meta', props: { name: 'keywords', content: 'wwWallet, web wallet, wallet, secure storage, verifiable credentials, digital credentials, credentials management' } },
+			{ tag: 'meta', props: { property: 'og:title', content: `${config.META_STATIC_NAME}: Secure Storage and Management of Verifiable Credentials` } },
+			{ tag: 'meta', props: { property: 'og:description', content: `${config.META_STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{ tag: 'meta', props: { property: 'og:url', content: config.META_STATIC_PUBLIC_URL } },
+			{ tag: 'meta', props: { property: 'og:type', content: 'website' } },
+			{ tag: 'meta', props: { name: 'twitter:title', content: `${config.META_STATIC_NAME}: Secure Storage and Management of Verifiable Credentials` } },
+			{ tag: 'meta', props: { name: 'twitter:description', content: `${config.META_STATIC_NAME} is a secure web wallet for storing and managing verifiable credentials.` } },
+			{ tag: 'meta', props: { name: 'twitter:card', content: 'summary_large_image' } },
+		] satisfies Tag[];
+
+
+		for (const [_, { tag, props, content }] of Object.entries(tags)) {
+			const element = document.createElement(tag);
+			for (const [key, value] of Object.entries(props)) {
+				element.setAttribute(key, value);
+			}
+			if (content) {
+				element.textContent = content;
+			}
+
+			const selectors = `${tag}${Object.entries(props).map(([key, value]) => `[${key}="${value}"]`).join('')}`;
+			const exitingElement = head.querySelector(selectors);
+
+			if (exitingElement) {
+				exitingElement.replaceWith(element);
+				continue;
+			}
+
+			head.appendChild(element);
+		}
+	})();
+
 	(function injectGeneralMetaTags() {
 		if (!tagsToInject) return;
 
-		for (const [key, { tag, props }] of tagsToInject) {
+		for (const [_, { tag, props }] of tagsToInject) {
 			const element = document.createElement(tag);
 			for (const [key, value] of Object.entries(props)) {
 				element.setAttribute(key, value);
@@ -95,7 +131,7 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 
 			if (exitingElement) {
 				exitingElement.replaceWith(element);
-				continue
+				continue;
 			}
 
 			head.appendChild(element);
