@@ -1,4 +1,4 @@
-import { VerifiableCredentialFormat } from "wallet-common/dist/types";
+import { VerifiableCredentialFormat } from "wallet-common";
 
 export enum VerifiablePresentationFormat {
 	VP_JWT = "vp_jwt"

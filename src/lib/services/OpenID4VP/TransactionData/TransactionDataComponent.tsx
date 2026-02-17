@@ -1,5 +1,5 @@
 import React from 'react';
-import { TransactionDataRequest } from "./TransactionDataRequest/TransactionDataRequestObject";
+import { TransactionDataRequest } from "wallet-common";
 import { useTranslation } from "react-i18next";
 import document from '../../../../assets/images/document.png';
 

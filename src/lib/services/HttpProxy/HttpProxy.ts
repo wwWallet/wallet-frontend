@@ -11,7 +11,7 @@ import { toU8 } from '@/util';
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
-const TIMEOUT = 100 * 1000;
+const TIMEOUT = 3 * 1000;
 
 const parseCacheControl = (header: string) =>
 	Object.fromEntries(
@@ -38,9 +38,13 @@ export function useHttpProxy(): IHttpProxy {
 		async get(
 			url: string,
 			headers: RequestHeaders = {},
-			options?: { useCache?: boolean; }
+			options?: {
+				useCache?: boolean;
+				cacheOnError?: boolean;
+			}
 		): Promise<{ status: number; headers: ResponseHeaders; data: unknown }> {
 			const useCache = options?.useCache;
+			const cacheOnError = options?.cacheOnError ?? false;
 			const now = Math.floor(Date.now() / 1000);
 			const online = isOnlineRef.current;
 			const isBinaryRequest = /\.(png|jpe?g|gif|webp|bmp|tiff?|ico)(\?.*)?(#.*)?$/i.test(url);
@@ -139,7 +143,7 @@ export function useHttpProxy(): IHttpProxy {
 						response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 							headers,
 							url,
-							method: 'get',
+							method: 'GET',
 						}, {
 							timeout: TIMEOUT,
 							headers: {
@@ -221,6 +225,25 @@ export function useHttpProxy(): IHttpProxy {
 					};
 
 				} catch (err) {
+
+					// Optionally cache failed responses
+					if (cacheOnError) {
+						await addItem(
+							'proxyCache',
+							cacheKey,
+							{
+								data: {
+									status: err.response?.status || 500,
+									headers: err.response?.headers || {},
+									data: err.response?.data || 'GET proxy failed',
+									__error: true,
+								},
+								expiry: now + 60 * 60 * 24 * 30,
+							},
+							'proxyCache'
+						);
+					}
+
 					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
 					if (fallback?.data) {
 						return {
@@ -283,7 +306,7 @@ export function useHttpProxy(): IHttpProxy {
 					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 						headers: headers,
 						url: url,
-						method: 'post',
+						method: 'POST',
 						data: body,
 					}, {
 						timeout: TIMEOUT,

@@ -37,7 +37,8 @@ const storeNameMapping: { [key: string]: string } = {
 	'users': 'users',
 	'/issuer/all': 'externalEntities',
 	'/verifier/all': 'externalEntities',
-	'/user/session/account-info': 'accountInfo'
+	'/user/session/account-info': 'accountInfo',
+	'/helper/iaca-list': 'externalEntities'
 };
 
 function getMappedStoreName(storeName: string): string {
