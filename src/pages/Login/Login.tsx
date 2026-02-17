@@ -557,16 +557,10 @@ const WebauthnSignupLogin = ({
 							</ul>
 						)}
 
-						{!isLoginCache && !isLogin && (
-							<label className="block text-dm-gray-800 dark:text-lm-gray-200 text-sm font-bold mb-2" htmlFor={name}>
-								{t('loginSignup.choosePasskeyPlatform')}
-							</label>
-						)}
-
 						{!isLoginCache && (
 							[
-								{ btnLabel: t('common.platformPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>("primary") },
-								{ btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), hint: "security-key", },
+								{ btnLabel: isLogin ? t('loginSignup.loginWithPasskey') : t('loginSignup.signUpWithPasskey'), Icon: KeyRoundIcon, variant: coerce<Variant>("primary") },
+								{ btnLabel: isLogin ? t('loginSignup.loginWithSecurityKey') : t('loginSignup.signUpWithSecurityKey'), Icon: UsbStickDotIcon, variant: coerce<Variant>("outline"), hint: "security-key", },
 							].map(({ Icon, btnLabel, variant, hint }) => (
 								<div key={btnLabel} className='mt-2 relative w-full flex flex-col justify-center'>
 									<Button
