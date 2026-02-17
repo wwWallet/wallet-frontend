@@ -774,9 +774,11 @@ const Auth = () => {
 					</p>
 				)}
 
-				<div className="flex justify-center">
-					<PasskeyInfoPopup/>
-				</div>
+				{!isLoginCache && (
+					<div className="flex justify-center">
+						<PasskeyInfoPopup/>
+					</div>
+				)}
 			</div>
 		</LoginLayout>
 	);
