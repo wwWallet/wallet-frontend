@@ -19,6 +19,7 @@ import checkForUpdates from '../../offlineUpdateSW';
 
 import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
+import PolicyLinks from '@/components/Shared/PolicyLinks';
 
 const FormInputRow = ({
 	IconComponent,
@@ -498,6 +499,12 @@ const WebauthnSignupLogin = ({
 										</div>
 									</div>
 								</FormInputRow>
+								{PolicyLinks && (
+									<label className="mb-4 text-sm relative block pl-6 has-checked:font-semibold">
+										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" />
+										<span>I accept {config.VITE_STATIC_NAME} <PolicyLinks/></span>
+									</label>
+								)}
 							</>)}
 
 						{isLoginCache && (

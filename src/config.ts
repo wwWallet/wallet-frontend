@@ -27,6 +27,7 @@ export const OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS = import.meta.env.VIT
 export const OHTTP_KEY_CONFIG = import.meta.env.VITE_OHTTP_KEY_CONFIG;
 export const OHTTP_RELAY = import.meta.env.VITE_OHTTP_RELAY;
 export const VCT_REGISTRY_URL: string | undefined = import.meta.env.VITE_VCT_REGISTRY_URL;
+export const POLICY_LINKS = import.meta.env.VITE_POLICY_LINKS;
 export const BRANDING = {
 	LOGO_LIGHT: import.meta.env.BRANDING_LOGO_LIGHT,
 	LOGO_DARK: import.meta.env.BRANDING_LOGO_DARK,
