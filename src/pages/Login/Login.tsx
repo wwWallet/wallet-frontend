@@ -501,7 +501,7 @@ const WebauthnSignupLogin = ({
 								</FormInputRow>
 								{PolicyLinks && (
 									<label className="mb-4 text-sm relative block pl-6 has-checked:font-semibold">
-										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" />
+										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" required />
 										<span>I accept {config.VITE_STATIC_NAME} <PolicyLinks/></span>
 									</label>
 								)}
