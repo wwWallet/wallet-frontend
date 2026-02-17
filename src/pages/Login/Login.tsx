@@ -17,7 +17,7 @@ import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, X } from 'lucide-react';
+import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 
 const FormInputRow = ({
@@ -473,7 +473,7 @@ const WebauthnSignupLogin = ({
 					<>
 						{!isLogin && (
 							<>
-								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={User}>
+								<FormInputRow label={t('loginSignup.choosePasskeyUsername')} name="name" IconComponent={Wallet}>
 									<FormInputField
 										ariaLabel="Passkey name"
 										name="name"
