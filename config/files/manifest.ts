@@ -3,11 +3,12 @@ import { resolve } from 'node:path';
 import { copyScreenshots, generateAllIcons, Icons } from '../branding';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 import { type ConfigMap } from '../config';
+import { type Tag } from '../utils/resources';
 
 /**
  * Generates a web app manifest and icons, and injects them into the build output.
  */
-export default async function brandingManifest(destDir: string, config: ConfigMap, brandingHash?: string) {
+export default async function brandingManifest(destDir: string, config: ConfigMap, tagsToInject?: Map<string, Tag>, brandingHash?: string) {
 	const sourceDir = resolve('branding');
 
 	const icons = await generateAllIcons({
@@ -26,8 +27,32 @@ export default async function brandingManifest(destDir: string, config: ConfigMa
 	const manifestPath = resolve(destDir, 'manifest.json');
 	const manifestContent = JSON.stringify(manifest, null, 2);
 
-	await writeFile(manifestPath, manifestContent, 'utf-8');
-	await copyScreenshots(sourceDir, destDir);
+	await Promise.all([
+		writeFile(manifestPath, manifestContent, 'utf-8'),
+		copyScreenshots(sourceDir, destDir),
+	]);
+
+	tagsToInject?.set('manifest', {
+		tag: 'link',
+		props: {
+			rel: 'manifest',
+			href: `/manifest.json?v=${brandingHash}`,
+		}
+	});
+	tagsToInject?.set('apple-touch-icon', {
+		tag: 'link',
+		props: {
+			rel: 'apple-touch-icon',
+			href: `/icons/apple-touch-icon.png?v=${brandingHash}`
+		},
+	});
+	tagsToInject?.set('favicon', {
+		tag: 'link',
+		props: {
+			rel: 'icon',
+			href: `/favicon.ico?v=${brandingHash}`,
+		},
+	});
 }
 
 export type GenerateManifestOptions = {

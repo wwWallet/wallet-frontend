@@ -1,24 +1,29 @@
 import { resolve } from 'node:path';
 import { Plugin } from 'vite';
 import { getConfigFromEnv, injectConfigFiles, injectHtml } from '../config';
+import { Tag } from '../config/utils/resources';
 
 export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 	const config = getConfigFromEnv(env);
 
+	const tagsToInject = new Map<string, Tag>();
+
 	const runInjectConfigFiles = () => injectConfigFiles({
 		destDir: resolve('public'),
 		config,
+		tagsToInject,
 	});
 
 	return {
 		name: 'inject-config',
 		transformIndexHtml: {
-			order: 'post',
+			order: 'pre',
 			async handler(html) {
 				html = await injectHtml({
 					html,
 					config,
 					brandingHash: env.VITE_BRANDING_HASH,
+					tagsToInject,
 				})
 
 				return {

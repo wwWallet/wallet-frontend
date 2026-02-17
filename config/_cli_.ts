@@ -3,6 +3,7 @@ import { resolve } from 'node:path';
 import { createCustomBrandingDirFromJSON, getBrandingHash } from './branding';
 import { injectConfigFiles, injectHtml } from './inject';
 import { getConfigFromEnv } from './config';
+import { Tag } from './utils/resources';
 
 /**
  * Entry point of the CLI script to inject configuration-dependent files and HTML meta tags.
@@ -26,9 +27,12 @@ import { getConfigFromEnv } from './config';
 
 	const config = getConfigFromEnv(env);
 
+	const tagsToInject = new Map<string, Tag>();
+
 	await injectConfigFiles({
 		destDir: DEST_DIR,
-		config: config,
+		config,
+		tagsToInject,
 	});
 
 	const htmlFilePath = resolve(DEST_DIR, 'index.html');
@@ -36,8 +40,9 @@ import { getConfigFromEnv } from './config';
 
 	const updatedHtml = await injectHtml({
 		html: htmlContent,
-		config: config,
-		brandingHash: brandingHash,
+		config,
+		tagsToInject,
+		brandingHash,
 	});
 
 	await writeFile(htmlFilePath, updatedHtml, 'utf-8');

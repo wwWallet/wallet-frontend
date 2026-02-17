@@ -16,6 +16,13 @@ export type FileToWrite<T = any> = {
 	content: string;
 }
 
+export type Tag = {
+	tag: 'meta' | 'link' | 'title';
+	props: Record<string, string>;
+}
+
+export type TagsMap = Map<string, Tag>;
+
 type ViteManifest = Record<string, {
 	file: string;
 	src?: string;

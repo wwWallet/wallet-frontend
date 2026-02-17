@@ -10,6 +10,7 @@ import sitemapXml from './files/sitemap';
 import brandingManifest from './files/manifest';
 import themeCSS from './files/theme';
 import metadataImage from './files/metadata-image';
+import { TagsMap } from './utils/resources';
 
 export type InjectConfigOptions = {
 	/**
@@ -26,20 +27,27 @@ export type InjectConfigOptions = {
 	 * The environment variables to use for generating meta tags and other configuration.
 	 */
 	config: ConfigMap;
+	/**
+	 * Map of tags to later be injected into the HTML file.
+	 * Used to pass tags generated during file injection (e.g. manifest icons) to the HTML injection step.
+	 */
+	tagsToInject?: TagsMap
 }
 
-export async function injectConfigFiles({ bundleDir, destDir, config }: InjectConfigOptions) {
+export async function injectConfigFiles({ bundleDir, destDir, config, tagsToInject }: InjectConfigOptions) {
 	if (await readdir(destDir).catch(() => false) === false) {
 		throw new Error(`Destination directory ${destDir} does not exist or is not readable.`);
 	}
+
+	const brandingHash = process.env.VITE_BRANDING_HASH;
 
 	await Promise.all([
 		wellKnownFiles(destDir, config),
 		robotsTxt(destDir, config),
 		sitemapXml(destDir, config),
-		brandingManifest(destDir, config, process.env.VITE_BRANDING_HASH),
-		themeCSS(destDir),
-		metadataImage(destDir, config),
+		brandingManifest(destDir, config, tagsToInject, brandingHash),
+		themeCSS(destDir, tagsToInject, brandingHash),
+		metadataImage(destDir, config, tagsToInject, brandingHash),
 	]);
 }
 
@@ -53,6 +61,10 @@ export type InjectHtmlOptions = {
 	 */
 	config: ConfigMap;
 	/**
+	 * Optional map of additional tags to inject into the HTML.
+	 */
+	tagsToInject?: TagsMap
+	/**
 	 * Optional branding hash for cache-busting branding assets.
 	 */
 	brandingHash?: string;
@@ -61,13 +73,34 @@ export type InjectHtmlOptions = {
 /**
  * Injects meta tags into the built HTML file based on environment variables and branding assets.
  */
-export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptions): Promise<string> {
+export async function injectHtml({ html, config, tagsToInject, brandingHash }: InjectHtmlOptions): Promise<string> {
 	const dom = new JSDOM(html);
 	const document = dom.window.document;
 	const head = document.head;
 	if (!head) {
 		throw new Error('No <head> element found in HTML.');
 	}
+
+	(function injectGeneralMetaTags() {
+		if (!tagsToInject) return;
+
+		for (const [key, { tag, props }] of tagsToInject) {
+			const element = document.createElement(tag);
+			for (const [key, value] of Object.entries(props)) {
+				element.setAttribute(key, value);
+			}
+
+			const selectors = `${tag}${Object.entries(props).map(([key, value]) => `[${key}="${value}"]`).join('')}`;
+			const exitingElement = head.querySelector(selectors);
+
+			if (exitingElement) {
+				exitingElement.replaceWith(element);
+				continue
+			}
+
+			head.appendChild(element);
+		}
+	})();
 
 	// Inject meta tags
 	(function injectConfigMetaTags() {
@@ -81,7 +114,7 @@ export async function injectHtml({ html, config, brandingHash }: InjectHtmlOptio
 		);
 
 		// Remove existing www: meta tags
-		head.querySelectorAll('meta[name^="www:"]').forEach(el => el.remove());
+		head.querySelectorAll('meta[name^="www:"]').forEach((el) => el.remove());
 
 		for (const { name, content } of metaTags) {
 			const meta = document.createElement('meta');

@@ -1,8 +1,9 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import { generateThemeCSS } from '../branding';
+import { TagsMap } from '../utils/resources';
 
-export default async function themeCSS(destDir: string) {
+export default async function themeCSS(destDir: string, tagsToInject?: TagsMap, brandingHash?: string) {
 	const themeCss = generateThemeCSS({
 		sourceDir: resolve('branding')
 	});
@@ -12,4 +13,28 @@ export default async function themeCSS(destDir: string) {
 		themeCss,
 		'utf-8',
 	);
+
+	tagsToInject?.set('theme-css', {
+		tag: 'link',
+		props: {
+			rel: 'stylesheet',
+			href: `/theme.css?v=${brandingHash}`
+		}
+	});
+	tagsToInject?.set('theme-color-light', {
+		tag: 'meta',
+		props: {
+			name: 'theme-color',
+			media: '(prefers-color-scheme: light)',
+			content: '#f8f9f9'
+		}
+	});
+	tagsToInject?.set('theme-color-dark', {
+		tag: 'meta',
+		props: {
+			name: 'theme-color',
+			media: '(prefers-color-scheme: dark)',
+			content: '#0c0e11'
+		}
+	});
 }
