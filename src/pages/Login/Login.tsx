@@ -17,7 +17,7 @@ import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
 
-import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, UserLock, X } from 'lucide-react';
+import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 
 const FormInputRow = ({
@@ -518,7 +518,6 @@ const WebauthnSignupLogin = ({
 												ariaLabel={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 												title={t('loginSignup.loginAsUser', { name: cachedUser.displayName })}
 											>
-												<UserLock size={20} className="inline text-xl mr-2 shrink-0" />
 												<span className="truncate">
 													{isSubmitting
 														? t('loginSignup.submitting')
