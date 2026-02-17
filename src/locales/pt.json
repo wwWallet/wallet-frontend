@@ -58,6 +58,7 @@
 		"messageResetPermission": "Algo <strong>não está a funcionar corretamente com as notificações.</strong> Por favor, <reloadButton>recarregue esta página</reloadButton>."
 	},
 	"loginSignup": {
+		"acceptPolicies": "Aceito os termos do {{walletName}} <policyLinks/>.",
 		"alreadyHaveAccountQuestion": "Já tem uma conta de carteira? ",
 		"authOnceMoreLogin": "Para concluir o desbloqueio da carteira, por favor autentique-se com a sua chave de acesso novamente.",
 		"capitalLetter": "Pelo menos, uma letra maiúscula",
@@ -79,6 +80,8 @@
 		"loginMessage": "Faça login em <highlight>$t(common.walletName)</highlight>",
 		"loginSubmit": "Iniciar sessão",
 		"loginTitle": "Iniciar sessão",
+		"loginWithPasskey": "Iniciar sessão com uma chave de acesso",
+		"loginWithSecurityKey": "Iniciar sessão com uma chave de segurança",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",
 		"newHereQuestion": "Não tem uma conta de carteira? ",
 		"number": "Pelo menos, um número",
@@ -93,18 +96,15 @@
 		"passkeySignupPrfNotSupported": "Este navegador ou a chave de segurança não são suportados. Por favor, assegure-se que o seu navegador suporta a extensão WebAuthn PRF e que a sua chave de segurança, caso exista, suporta a extensão \"hmac-secret\". <docLink>Saiba mais aqui</docLink>.",
 		"passkeySignupPrfNotSupportedAriaLabel": "Saiba mais sobre navegadores suportados ou chaves de segurança.",
 		"passwordLabel": "Palavra-passe",
-		"acceptPolicies": "Aceito os termos do {{walletName}} <policyLinks/>.",
 		"passwordLength": "Tamanho mínimo: 8 caracteres",
 		"passwordUnlockFailed": "Não foi possível desbloquear a carteira com palavra-passe.",
 		"passwordsNotMatchError": "Palavras-passe não correspondem",
 		"privateDataConflict": "Outra sessão associada a esta conta interrompeu a tentativa de início de sessão. Por favor, tente novamente.",
 		"reachedLengthLimit": "Tamanho máximo excedido",
 		"signUp": "Registar",
+		"signUpSubmit": "Registar",
 		"signUpWithPasskey": "Criar conta com uma chave de acesso",
 		"signUpWithSecurityKey": "Usar uma chave de segurança",
-		"loginWithPasskey": "Iniciar sessão com uma chave de acesso",
-		"loginWithSecurityKey": "Iniciar sessão com uma chave de segurança",
-		"signUpSubmit": "Registar",
 		"specialCharacter": "Pelo menos, um carácter especial",
 		"strength": "Força",
 		"submitting": "A submeter...",
@@ -113,19 +113,6 @@
 		"usernameLabel": "Nome de utilizador",
 		"weakPasswordError": "Palavra-passe fraca",
 		"welcomeMessage": "Bem-vindo(a) à <highlight>$t(common.walletName)</highlight>"
-	},
-	"passkeyInfoPopup": {
-		"closeAriaLabel": "Fechar popup de informações da chave de acesso",
-		"description1": "A sua carteira de identidade digital dá-lhe controlo total sobre as suas informações digitais e pode ser usada num navegador web ou aplicação móvel.",
-		"description2": "Uma chave de acesso da carteira pode ser guardada num dos seguintes locais:",
-		"onDeviceDescription": "A sua chave de acesso pode ser específica para este dispositivo, como impressão digital ou reconhecimento facial. Também pode ser criada num gestor de palavras-passe preferido no seu navegador ou neste dispositivo.",
-		"onDeviceLabel": "Chave de acesso neste dispositivo",
-		"otherDeviceDescription": "Use a câmara de um segundo dispositivo para digitalizar um código QR e criar uma chave de acesso nesse dispositivo.",
-		"otherDeviceLabel": "Chave de acesso noutro dispositivo",
-		"securityKeyDescription": "Armazenar uma chave de acesso numa chave de segurança física (como USB ou NFC Yubikey) oferece máxima segurança e portabilidade.",
-		"securityKeyLabel": "Chave de acesso numa chave de segurança",
-		"title": "Escolher onde criar a sua chave de acesso",
-		"triggerButton": "Como funcionam as chaves de acesso?"
 	},
 	"loginState": {
 		"confirm": "Confirmar",
@@ -279,6 +266,19 @@
 			"error": "<p>Algo correu mal. Por favor, tente novamente.</p><p>Por favor, lembre-se que precisa de se autenticar com a chave de acesso \"{{passkeyLabel}}\".</p>",
 			"title": "A atualizar a chave de encriptação da chave de acesso"
 		}
+	},
+	"passkeyInfoPopup": {
+		"closeAriaLabel": "Fechar popup de informações da chave de acesso",
+		"description1": "A sua carteira de identidade digital dá-lhe controlo total sobre as suas informações digitais e pode ser usada num navegador web ou aplicação móvel.",
+		"description2": "Uma chave de acesso da carteira pode ser guardada num dos seguintes locais:",
+		"onDeviceDescription": "A sua chave de acesso pode ser específica para este dispositivo, como impressão digital ou reconhecimento facial. Também pode ser criada num gestor de palavras-passe preferido no seu navegador ou neste dispositivo.",
+		"onDeviceLabel": "Chave de acesso neste dispositivo",
+		"otherDeviceDescription": "Use a câmara de um segundo dispositivo para digitalizar um código QR e criar uma chave de acesso nesse dispositivo.",
+		"otherDeviceLabel": "Chave de acesso noutro dispositivo",
+		"securityKeyDescription": "Armazenar uma chave de acesso numa chave de segurança física (como USB ou NFC Yubikey) oferece máxima segurança e portabilidade.",
+		"securityKeyLabel": "Chave de acesso numa chave de segurança",
+		"title": "Escolher onde criar a sua chave de acesso",
+		"triggerButton": "Como funcionam as chaves de acesso?"
 	},
 	"pwaInstallPrompt": {
 		"button": {

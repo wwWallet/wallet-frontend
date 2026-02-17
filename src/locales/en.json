@@ -73,6 +73,7 @@
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
+		"acceptPolicies": "I accept {{walletName}} <policyLinks/>.",
 		"alreadyHaveAccountQuestion": "Already have a wallet account? ",
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
@@ -94,6 +95,8 @@
 		"loginMessage": "Log in to <highlight>$t(common.walletName)</highlight>",
 		"loginSubmit": "Login",
 		"loginTitle": "Login",
+		"loginWithPasskey": "Log in with a Passkey",
+		"loginWithSecurityKey": "Log in with a Security Key",
 		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "Don't have a wallet account? ",
 		"number": "At least one number",
@@ -107,7 +110,6 @@
 		"passkeySignupKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"passkeySignupPrfNotSupported": "This browser or security key is not supported. Please make sure that your browser supports the WebAuthn PRF extension and your security key, if any, supports the \"hmac-secret\" extension. <docLink>Learn more here</docLink>.",
 		"passkeySignupPrfNotSupportedAriaLabel": "Learn more about supported browsers or security keys",
-		"acceptPolicies": "I accept {{walletName}} <policyLinks/>.",
 		"passwordLabel": "Password",
 		"passwordLength": "Minimum length: 8 characters",
 		"passwordUnlockFailed": "Failed to unlock wallet with password",
@@ -115,11 +117,9 @@
 		"privateDataConflict": "Another session for this account disrupted the login attempt. Please try again.",
 		"reachedLengthLimit": "Length limit exceeded",
 		"signUp": "Sign Up",
+		"signUpSubmit": "Sign Up",
 		"signUpWithPasskey": "Create account with a Passkey",
 		"signUpWithSecurityKey": "Use a Security Key",
-		"loginWithPasskey": "Log in with a Passkey",
-		"loginWithSecurityKey": "Log in with a Security Key",
-		"signUpSubmit": "Sign Up",
 		"specialCharacter": "At least one special character",
 		"strength": "Strength",
 		"submitting": "Submitting...",
@@ -128,19 +128,6 @@
 		"usernameLabel": "Username",
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
-	},
-	"passkeyInfoPopup": {
-		"closeAriaLabel": "Close passkey information popup",
-		"description1": "Your digital ID wallet gives you complete control over your digital information and can be used in a web browser or mobile app.",
-		"description2": "A wallet passkey may be kept in one of the following locations:",
-		"onDeviceDescription": "Your passkey can be specific to this device like a fingerprint or facial recognition. It may also be created in a preferred password manager in your browser or on this device.",
-		"onDeviceLabel": "Passkey on this device",
-		"otherDeviceDescription": "Use the camera on a second device to scan a QR code and create a passkey on that device.",
-		"otherDeviceLabel": "Passkey on another device",
-		"securityKeyDescription": "Storing a passkey on a physical security key (such as a USB or NFC Yubikey) offers maximum security and portability.",
-		"securityKeyLabel": "Passkey on a security key",
-		"title": "Choosing where to create your passkey",
-		"triggerButton": "How do passkeys work?"
 	},
 	"loginState": {
 		"confirm": "Confirm",
@@ -338,6 +325,19 @@
 		"errorInvalidDatatype": "Credential could not be parsed.",
 		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorNotSupportedCredentialType": "This type of credential is not supported."
+	},
+	"passkeyInfoPopup": {
+		"closeAriaLabel": "Close passkey information popup",
+		"description1": "Your digital ID wallet gives you complete control over your digital information and can be used in a web browser or mobile app.",
+		"description2": "A wallet passkey may be kept in one of the following locations:",
+		"onDeviceDescription": "Your passkey can be specific to this device like a fingerprint or facial recognition. It may also be created in a preferred password manager in your browser or on this device.",
+		"onDeviceLabel": "Passkey on this device",
+		"otherDeviceDescription": "Use the camera on a second device to scan a QR code and create a passkey on that device.",
+		"otherDeviceLabel": "Passkey on another device",
+		"securityKeyDescription": "Storing a passkey on a physical security key (such as a USB or NFC Yubikey) offers maximum security and portability.",
+		"securityKeyLabel": "Passkey on a security key",
+		"title": "Choosing where to create your passkey",
+		"triggerButton": "How do passkeys work?"
 	},
 	"pendingTransactions": {
 		"subtitle": "Waiting for issuance to complete",
