@@ -85,7 +85,8 @@ export interface BackendApi {
 	useClearOnClearSession<T>(storageHandle: UseStorageHandle<T>): UseStorageHandle<T>,
 
 	syncPrivateData(
-		cachedUser: CachedUser | undefined
+		cachedUser: CachedUser | undefined,
+		keystore?: LocalStorageKeystore,
 	): Promise<Result<void,
 		| 'syncFailed'
 		| 'loginKeystoreFailed'
@@ -282,7 +283,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	}, [buildMutationHeaders]);
 
 	const syncPrivateData = useCallback(async (
-		cachedUser: CachedUser | undefined
+		cachedUser: CachedUser | undefined,
+		keystore?: LocalStorageKeystore,
 	): Promise<Result<void,
 		| 'syncFailed'
 		| 'loginKeystoreFailed'
@@ -300,6 +302,27 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			if (getPrivateDataResponse.status === 304) {
 				return Ok.EMPTY; // already synced
 			}
+
+			// Try to merge without re-authentication if keystore is available
+			if (keystore) {
+				const remotePrivateData = getPrivateDataResponse.data.privateData;
+				const mergedContainer = await keystore.syncWithRemoteData(remotePrivateData);
+				if (mergedContainer) {
+					// Successfully merged - update ETag and push merged state to server
+					updatePrivateDataEtag(getPrivateDataResponse);
+					const updateResp = updatePrivateDataEtag(
+						await post('/user/session/private-data', serializePrivateData(mergedContainer)),
+					);
+					if (updateResp.status === 204) {
+						console.log('syncPrivateData: merged remote and local data successfully');
+						return Ok.EMPTY;
+					}
+				}
+				// If merge failed, fall through to legacy behavior
+				console.log('syncPrivateData: merge failed, falling back to re-authentication flow');
+			}
+
+			// Fallback: navigate to sync-fail state for re-authentication
 			const queryParams = new URLSearchParams(window.location.search);
 			queryParams.delete('user');
 			queryParams.delete('sync');
@@ -309,15 +332,13 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 			navigate(`${window.location.pathname}?${queryParams.toString()}`, { replace: true });
 			return Err('syncFailed');
-			// const privateData = await parsePrivateData(getPrivateDataResponse.data.privateData);
-			// return await loginWebauthn(keystore, promptForPrfRetry, cachedUser);
 		}
 		catch (err) {
 			console.error(err);
 			return Err('syncFailed');
 		}
 
-	}, [getPrivateDataEtag, get, navigate, isOnline]);
+	}, [getPrivateDataEtag, get, navigate, isOnline, post, updatePrivateDataEtag]);
 
 	const updateShowWelcome = useCallback((showWelcome: boolean): void => {
 		if (sessionState) {
