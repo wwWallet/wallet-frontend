@@ -10,7 +10,8 @@ import sitemapXml from './files/sitemap';
 import brandingManifest from './files/manifest';
 import themeCSS from './files/theme';
 import metadataImage from './files/metadata-image';
-import { TagsMap } from './utils/resources';
+import { Tag, TagsMap } from './utils/resources';
+import { getTagSortingPriority } from './utils/tags';
 
 export type InjectConfigOptions = {
 	/**
@@ -160,7 +161,29 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 		}
 	})();
 
-	// remove extra newlines for cleaner HTML output
+	(function sortHead() {
+		const children = Array.from(head.children);
+
+		children.sort((a, b) => {
+			const priorityDiff = getTagSortingPriority(a) - getTagSortingPriority(b);
+			if (priorityDiff !== 0) return priorityDiff;
+
+			// Secondary sort: alphabetically by relevant attribute
+			const aAttr = a.getAttribute('href') || a.getAttribute('src') || a.getAttribute('name') || '';
+			const bAttr = b.getAttribute('href') || b.getAttribute('src') || b.getAttribute('name') || '';
+			return aAttr.localeCompare(bAttr);
+		});
+
+		while (head.firstChild) {
+			head.removeChild(head.firstChild);
+		}
+
+		for (const child of children) {
+			head.appendChild(child);
+		}
+	})();
+
+	// remove possible extra newlines for cleaner HTML output
 	const updatedHtmlContent = dom.serialize().replace(/\n{2,}/g, '\n');
 
 	return updatedHtmlContent;
