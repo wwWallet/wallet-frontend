@@ -90,6 +90,7 @@
 		"loginCache": "Select your wallet account",
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
+		"loginMessage": "Log in to <highlight>$t(common.walletName)</highlight>",
 		"loginSubmit": "Login",
 		"loginTitle": "Login",
 		"messageOffline": "You are offline. Some features may not be available.",

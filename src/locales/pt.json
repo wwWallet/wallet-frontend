@@ -75,6 +75,7 @@
 		"loginCache": "Selecione sua conta de carteira",
 		"loginKeystoreFailed": "Não foi possível aceder ao armazenamento de chaves da carteira. Por favor, tente novamente.",
 		"loginLocalKeystoreFailed": "Não foi possível iniciar o armazenamento de chaves da carteira. Por favor, tente novamente.",
+		"loginMessage": "Faça login em <highlight>$t(common.walletName)</highlight>",
 		"loginSubmit": "Iniciar sessão",
 		"loginTitle": "Iniciar sessão",
 		"messageOffline": "Está offline. Algumas funcionalidades podem não estar disponíveis",

@@ -695,7 +695,7 @@ const Auth = () => {
 	return (
 		<LoginLayout heading={
 			<Trans
-				i18nKey="loginSignup.welcomeMessage"
+				i18nKey={(isLoginCache || isLogin) ? 'loginSignup.loginMessage' : 'loginSignup.welcomeMessage'}
 				components={{
 					highlight: <span className="text-primary dark:text-brand-light" />
 				}}
