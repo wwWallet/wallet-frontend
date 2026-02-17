@@ -16,7 +16,6 @@ import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
-import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 
 import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, UserLock, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
@@ -706,10 +705,6 @@ const Auth = () => {
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
-
-				<div className='absolute text-lm-gray-900 dark:text-white top-5 left-5'>
-					<ConnectionStatusIcon backgroundColor='light' />
-				</div>
 
 				<div className='absolute top-5 right-5'>
 					<LanguageSelector className='min-w-12 text-sm text-lm-gray-900 dark:text-white cursor-pointer bg-white dark:bg-dm-gray-900 appearance-none' />
