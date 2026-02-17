@@ -160,6 +160,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 				})
 					.catch(err => {
+						setUrl(`${window.location.origin}${window.location.pathname}`);
 						window.history.replaceState({}, '', `${window.location.pathname}`);
 						console.error(err);
 					})
@@ -171,6 +172,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				console.log("Handling authorization response...");
 				handleAuthorizationResponse(u.toString()).then(() => {
 				}).catch(err => {
+					setUrl(`${window.location.origin}${window.location.pathname}`);
 					console.log("Error during the handling of authorization response")
 					window.history.replaceState({}, '', `${window.location.pathname}`);
 					console.error(err)
@@ -209,6 +211,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						setRedirectUri(res.url);
 					}
 				}).catch(err => {
+					setUrl(`${window.location.origin}${window.location.pathname}`);
 					console.log("Failed to handle authorization req");
 					window.history.replaceState({}, '', `${window.location.pathname}`);
 					console.error(err);
@@ -220,6 +223,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			const state = urlParams.get('state');
 			const error = urlParams.get('error');
 			if (url && isLoggedIn && state && error) {
+				setUrl(`${window.location.origin}${window.location.pathname}`);
 				window.history.replaceState({}, '', `${window.location.pathname}`);
 				const errorDescription = urlParams.get('error_description');
 				setTextMessagePopup({ title: error, description: errorDescription });
