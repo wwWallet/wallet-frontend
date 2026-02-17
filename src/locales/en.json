@@ -91,7 +91,7 @@
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
 		"loginSubmit": "Login",
-		"loginTitle": "Login with a Passkey",
+		"loginTitle": "Select your wallet account",
 		"messageOffline": "You are offline. Some features may not be available.",
 		"newHereQuestion": "Don't have an account? ",
 		"number": "At least one number",
