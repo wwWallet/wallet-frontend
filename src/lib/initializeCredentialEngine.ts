@@ -19,7 +19,7 @@ export async function initializeCredentialEngine(
 				if (!VCT_REGISTRY_URL) return err(VctResolutionErrors.NotFound);
 				const url = new URL(VCT_REGISTRY_URL);
 				url.searchParams.set('vct', vct);
-				const res = await httpProxy.get(url.toString(), { useCache: true });
+				const res = await httpProxy.get(url.toString(), {}, { useCache: true });
 				if (!res?.data || res.status!==200) return err(VctResolutionErrors.NotFound);
 				return ok(res.data as any);
 			} catch (e) {
