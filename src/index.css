@@ -288,9 +288,6 @@ input:-webkit-autofill {
 }
 
 /* Hide security key button by default */
-.passkey-button-security-key {
-	/* TODO: show/hide based on html.is-wrapper-app existance */
-	@media (width > 640px) {
-		display: none;
-	}
+html:not(.is-wrapper-app) .passkey-button-security-key {
+	display: none;
 }
