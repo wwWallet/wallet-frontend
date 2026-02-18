@@ -780,13 +780,6 @@ const Auth = () => {
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
-				<div className="flex justify-center">
-					<TenantSelector
-						currentTenantId={urlTenantId || 'default'}
-						isAuthenticated={false}
-						compact
-					/>
-				</div>
 				<div className='absolute text-lm-gray-900 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
@@ -851,6 +844,12 @@ const Auth = () => {
 						</Button>
 					</p>
 				)}
+
+				<TenantSelector
+					currentTenantId={urlTenantId || 'default'}
+					isAuthenticated={false}
+					className='block w-3xs max-w-full ml-auto mr-auto'
+				/>
 
 			</div>
 		</LoginLayout>

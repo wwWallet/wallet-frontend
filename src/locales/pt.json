@@ -319,6 +319,14 @@
 	"updateNotification": {
 		"description": "Nova versão disponível!"
 	},
+	"tenantSelector": {
+		"defaultTenant": "Predefinição",
+		"label": "Mudar Tenant",
+		"selectTenant": "Selecionar tenant",
+		"switchActiveTenant": "Mudar tenant ativo",
+		"userCount_one": "{{count}} utilizador",
+		"userCount_other": "{{count}} utilizadores"
+	},
 	"welcomeModal": {
 		"description": "Explore a <strong> $t(common.walletName) </strong>, a sua ferramenta para gerir credenciais digitais. Consulte, apresente e acompanhe todas as suas credenciais com facilidade!",
 		"dismissButton": "Dispensar",

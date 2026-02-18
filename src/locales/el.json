@@ -343,6 +343,14 @@
 	"updateNotification": {
 		"description": "Μια νέα έκδοση είναι διαθέσιμη!"
 	},
+	"tenantSelector": {
+		"defaultTenant": "Προεπιλογή",
+		"label": "Αλλαγή Tenant",
+		"selectTenant": "Επιλογή tenant",
+		"switchActiveTenant": "Αλλαγή ενεργού tenant",
+		"userCount_one": "{{count}} χρήστης",
+		"userCount_other": "{{count}} χρήστες"
+	},
 	"welcomeModal": {
 		"description": "Ανακαλύψτε το <strong> $t(common.walletName) </strong>, το απόλυτο εργαλείο σας για τη διαχείριση ψηφιακών πιστοποιητικών. Δείτε, λάβετε, στείλτε και παρακολουθήστε όλα τα πιστοποιητικά σας με ευκολία!",
 		"dismissButton": "Απόρριψη",
