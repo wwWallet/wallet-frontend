@@ -4,12 +4,12 @@ import { IHttpProxy, RequestHeaders, ResponseHeaders } from '../../interfaces/IH
 import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
 import { encryptedHttpRequest, toArrayBuffer } from '@/lib/utils/ohttpHelpers';
-import { OHTTP_RELAY } from "@/config";
+import { BACKEND_URL, OHTTP_RELAY } from "@/config";
 import SessionContext from '@/context/SessionContext';
 import { toU8 } from '@/util';
 
 // @ts-ignore
-const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
+const walletBackendServerUrl = BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
 const TIMEOUT = 3 * 1000;
 

@@ -25,11 +25,25 @@ RUN --mount=type=secret,id=wallet_frontend_envfile,dst=/home/node/app/.env,requi
 
 FROM nginx:alpine AS deploy
 
-WORKDIR /usr/share/nginx/html
+RUN apk add --no-cache nodejs=~24 npm=~11
+
+WORKDIR /usr/share/nginx/
 
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ .
+COPY --from=builder --chown=nginx:nginx /home/node/app/docker-entrypoint.sh .
+COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ ./html/
+COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ ./dist/
+COPY --from=builder --chown=nginx:nginx /home/node/app/config/ ./config/
+COPY --from=builder --chown=nginx:nginx /home/node/app/branding/ ./branding/
+
+# TODO: These should likely be pinned to specific versions
+RUN npm install -g tsx
+RUN cd ./config && npm install \
+	sharp \
+	jsdom \
+	zod \
+	color-convert
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["./docker-entrypoint.sh"]

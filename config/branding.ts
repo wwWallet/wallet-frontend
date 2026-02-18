@@ -1,12 +1,10 @@
 import fs from "node:fs";
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
 import { z } from "zod";
 import convert, { RGB } from "color-convert";
-import { createFont, woff2 } from "fonteditor-core";
-import { fileURLToPath } from "node:url";
 
 // ============================================
 // TYPES
@@ -616,6 +614,26 @@ export class MetadataImage {
 </fontconfig>
 `;
 
+	private static fontsConfDirName = "fonts";
+
+	/**
+	 * Check if `baseDir` contains the files required for a font environment.
+	 */
+	public static async hasFontsEnvironment(baseDir: string): Promise<boolean> {
+		const fontsConfDir = path.resolve(baseDir, this.fontsConfDirName);
+
+		try {
+			const dir = await readdir(fontsConfDir);
+
+			if (!dir.includes("fonts.conf")) return false;
+			if (dir.filter((name) => name.endsWith(".ttf")).length < 1) return false;
+
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
 	/**
 	 * Sets up a self-contained font environment:
 	 * 1. Converts a WOFF2 font to TTF for Node rendering.
@@ -626,30 +644,28 @@ export class MetadataImage {
 	 * `@fontsource/inter` package and not need to bundle font files.
 	 */
 	public static async setupFontsEnvironment(baseDir: string) {
-		const fontsConfDir = path.resolve(baseDir, "fonts");
-		const inputFontFiles = [
-			import.meta.resolve("@fontsource/inter/files/inter-latin-600-normal.woff2"),
-		];
+		const fontsConfDir = path.resolve(baseDir, this.fontsConfDirName);
 
-		await woff2.init();
 		await mkdir(fontsConfDir, { recursive: true });
 
-		for (const input of inputFontFiles) {
-			const inputBuffer = await readFile(fileURLToPath(input));
+		// TODO:
+		// - Using @latest means builds aren't reproducible
+		// - CDN fetch is a point of failure.
+		// - Consider vendoring the TTF files.
+		const fontUrls = [
+			"https://cdn.jsdelivr.net/fontsource/fonts/inter@latest/latin-600-normal.ttf",
+		];
 
-			const font = createFont(inputBuffer, {
-				type: "woff2",
-				hinting: true,
-				kerning: true,
-			});
+		for (const fontUrl of fontUrls) {
+			const res = await fetch(fontUrl);
+			if (!res.ok) {
+				throw new Error(`Failed to fetch font: ${res.status} ${res.statusText}`);
+			}
 
-			const outputBuffer = font.write({
-				type: "ttf",
-				hinting: true,
-				kerning: true,
-			});
+			const fontBuffer = Buffer.from(await res.arrayBuffer());
 
-			await writeFile(path.join(fontsConfDir, path.basename(input)), outputBuffer as Buffer);
+			await writeFile(path.join(fontsConfDir, path.basename(fontUrl)), fontBuffer);
+			console.log(`Font written: ${path.join(fontsConfDir, path.basename(fontUrl))}`);
 		}
 
 		await writeFile(path.join(fontsConfDir, "fonts.conf"), MetadataImage.FONTCONFIG_XML);
@@ -760,5 +776,124 @@ export class MetadataImage {
 	</g>
 </svg>
 `;
+	}
+}
+
+/**
+ * Enforces that a string is base64 encoded and prefixed with either "png:" or "svg:".
+ */
+const base64WithPrefixSchema = z.string().refine(
+	(val) => val.startsWith("png:") || val.startsWith("svg:") || val.startsWith("ico:"),
+	{ message: "Must be prefixed with 'png:', 'svg:' or 'ico:'" }
+).optional();
+
+/**
+ * Schema for the custom branding directory structure.
+ */
+const customDirSchema = z.object({
+	theme: themeSchema,
+	favicon_b64: base64WithPrefixSchema,
+	logos: z.object({
+		logo_light_b64: base64WithPrefixSchema,
+		logo_dark_b64: base64WithPrefixSchema,
+	}).partial(),
+	screenshots: z.object({
+		screen_mobile_1_b64: z.string(),
+		screen_mobile_2_b64: z.string(),
+		screen_tablet_1_b64: z.string(),
+		screen_tablet_2_b64: z.string(),
+	}).optional(),
+});
+
+
+/**
+ * Creates a custom branding directory from a JSON input.
+ * The input must conform to the expected schema.
+ *
+ * The idea here is to allow storage of branding data in a database
+ * or other non-file-based storage, and then generate the necessary
+ * branding files on disk for the build process.
+ *
+ * We could also consume the JSON directly instead of creating files,
+ * but doing this is, for now, simpler and more compatible with existing code.
+ */
+export async function createCustomBrandingDirFromJSON(input: unknown) {
+	const result = customDirSchema.safeParse(input);
+	if (!result.success) {
+		throw new Error(`Invalid branding JSON: ${JSON.stringify(result.error.issues)}`);
+	}
+
+	const baseDir = path.resolve("branding", "custom");
+	console.log(`Creating custom branding directory at: ${baseDir}`);
+
+	await mkdir(baseDir, { recursive: true });
+
+	// Write theme.json
+	await writeFile(
+		path.join(baseDir, "theme.json"),
+		JSON.stringify(result.data.theme, null, 2),
+		"utf8"
+	);
+
+	// Write logos
+	const logosDir = path.join(baseDir, "logo");
+	await mkdir(logosDir, { recursive: true });
+
+	for (const [key, b64] of Object.entries(result.data.logos || {})) {
+		const {
+			filename,
+			buffer,
+		} = parseB64Asset(key, b64)
+
+		await writeFile(
+			path.join(logosDir, filename),
+			buffer
+		);
+		console.log(`Wrote logo file: ${filename}`);
+	}
+
+	// Write favicon
+	if (result.data.favicon_b64) {
+		const { filename, buffer } = parseB64Asset('favicon_b64', result.data.favicon_b64);
+
+		await writeFile(
+			path.join(baseDir, filename),
+			buffer
+		);
+		console.log(`Wrote favicon file: ${filename}`);
+	}
+
+	// Write screenshots
+	if (result.data.screenshots) {
+		const screenshotsDir = path.join(baseDir, "screenshots");
+		await mkdir(screenshotsDir, { recursive: true });
+
+		for (const [key, b64] of Object.entries(result.data.screenshots)) {
+			const buffer = Buffer.from(b64, "base64");
+			const filename = key.replace("_b64", ".png");
+
+			await writeFile(
+				path.join(screenshotsDir, filename),
+				buffer
+			);
+			console.log(`Wrote screenshot file: ${filename}`);
+		}
+	}
+}
+
+function parseB64Asset(key: string, b64: string): { filename: string; buffer: Buffer<ArrayBuffer> } {
+	const parsedB64 = base64WithPrefixSchema.parse(b64);
+	if (!parsedB64) {
+		throw new Error("invalid b64 asset");
+	}
+
+	const [prefix, data] = b64.split(":");
+	const buffer = Buffer.from(data, "base64");
+	const ext = prefix.replace(/\:$/, '');
+	const filename = key.replace(/_b64$/, `.${ext}`);
+
+	return {
+		filename,
+		buffer,
 	}
 }
