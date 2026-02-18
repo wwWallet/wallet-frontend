@@ -197,6 +197,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 					fullWidth
 				/>
 
+				<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+
 				{/* Powered By */}
 				<div className="text-sm p-2">
 					<Trans
