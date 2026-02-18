@@ -322,8 +322,8 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Sair",
-		"poweredBy": "Desenvolvido por <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
-		"poweredByAriaLabel": "Repositório GitHub da wwWallet"
+		"poweredBy": "Desenvolvido por <docLinkWalletGithub>{{name}}</docLinkWalletGithub>",
+		"poweredByAriaLabel": "Visite {{name}}"
 	},
 	"tourGuide": {
 		"closeTourButton": "Fechar apresentação",

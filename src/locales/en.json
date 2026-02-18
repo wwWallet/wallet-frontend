@@ -403,8 +403,8 @@
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"obliviousEnabled": "Private requests with Oblivious HTTP enabled",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
-		"poweredByAriaLabel": "GitHub repository of wwWallet"
+		"poweredBy": "Powered by <docLinkWalletGithub>{{name}}</docLinkWalletGithub>",
+		"poweredByAriaLabel": "Visit {{name}}"
 	},
 	"syncPopup": {
 		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to sync your wallet.",

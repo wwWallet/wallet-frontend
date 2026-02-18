@@ -1,12 +1,11 @@
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
 import * as config from '../../config';
 import Logo from '../Logo/Logo';
 import PWAInstallPrompt from '../PWAInstall/PWAInstallPrompt';
 import useScreenType from '@/hooks/useScreenType';
+import PoweredBy from '../Shared/PoweredBy';
 
 export default function LoginLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
-	const { t } = useTranslation();
 	const screenType = useScreenType();
 
 	return (
@@ -32,22 +31,10 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			</div>
 
 			<footer className="py-4">
-				<p className="text-sm text-lm-gray-800 dark:text-dm-gray-200 text-center">
-					<Trans
-						i18nKey="sidebar.poweredBy"
-						components={{
-							docLinkWalletGithub: (
-								<a
-									href="https://github.com/wwWallet"
-									rel="noreferrer"
-									target="_blank"
-									className="underline font-semibold text-lm-gray-800 dark:text-dm-gray-300"
-									aria-label={t('sidebar.poweredbyAriaLabel')}
-								/>
-							)
-						}}
-					/>
-				</p>
+				<PoweredBy
+					className="text-sm text-lm-gray-800 dark:text-dm-gray-200 text-center"
+					linkClassName="underline font-semibold text-lm-gray-800 dark:text-dm-gray-300"
+				/>
 				<p className="hidden">v{config.APP_VERSION}</p>
 			</footer>
 		</section>

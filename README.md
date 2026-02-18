@@ -89,6 +89,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
   - VITE_VCT_REGISTRY_URL: URL of the Type Metadata registry for SD-JWT VC credentials.
   - VITE_POLICY_LINKS: Links to any TOS or other policies. This should be in the format `"<LABEL>::<URL>,<LABEL>::<URL>,<LABEL>::<URL>,..."` Can be left blank.
+  - VITE_POWERED_BY: Customize the "Powered by" attribution link. Format: `"<NAME>::<URL>"`. Defaults to wwWallet if left blank or invalid.
 
 - Install dependencies:
     ```bash
