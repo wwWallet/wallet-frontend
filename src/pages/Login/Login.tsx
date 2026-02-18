@@ -218,7 +218,7 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
-	const { tenantId } = useTenant(); // Get tenant from URL path or storage
+	const { effectiveTenantId } = useTenant(); // Get tenant from URL path or storage
 	const screenType = useScreenType();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -256,7 +256,7 @@ const WebauthnSignupLogin = ({
 	const onLogin = useCallback(async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		// Pass the tenantId from URL path to ensure proper tenant-scoped login
 		// This is critical for auto-retry after tenant discovery redirect
-		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, tenantId);
+		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, effectiveTenantId);
 		if (result.ok) {
 			// Success - no action needed, session will be set by API
 		} else {
@@ -297,7 +297,7 @@ const WebauthnSignupLogin = ({
 					throw result;
 			}
 		}
-	}, [api, keystore, tenantId, navigate, setError, t]);
+	}, [api, keystore, effectiveTenantId, navigate, setError, t]);
 
 	// Auto-retry login after tenant discovery redirect
 	// When redirected from global /login with ?autoRetry=true, automatically trigger login
@@ -337,7 +337,7 @@ const WebauthnSignupLogin = ({
 				: promptForPrfRetry,
 			webauthnHints,
 			retrySignupFrom,
-			tenantId, // Tenant from URL path or storage
+			effectiveTenantId, // Tenant from URL path or storage
 		);
 		if (result.ok) {
 
@@ -663,7 +663,7 @@ const WebauthnSignupLogin = ({
 const Auth = () => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
-	const { tenantId } = useTenant();
+	const { urlTenantId } = useTenant();
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -782,7 +782,7 @@ const Auth = () => {
 				</h1>
 				<div className="flex justify-center">
 					<TenantSelector
-						currentTenantId={tenantId}
+						currentTenantId={urlTenantId || 'default'}
 						isAuthenticated={false}
 						compact
 					/>

@@ -44,7 +44,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
-	const { buildPath, tenantId } = useTenant();
+	const { buildPath, effectiveTenantId } = useTenant();
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -191,7 +191,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 			{/* Bottom Section - Tenant Selector + Powered By */}
 			<div className="flex flex-col gap-2">
 				<TenantSelector
-					currentTenantId={tenantId}
+					currentTenantId={effectiveTenantId}
 					isAuthenticated={true}
 					openDirection="up"
 					fullWidth

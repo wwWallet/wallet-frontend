@@ -18,14 +18,14 @@ const WebauthnLogin = ({
 	const [error, setError] = useState('');
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const { tenantId } = useTenant();
+	const { effectiveTenantId } = useTenant();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
 			// Pass the tenantId from URL path to ensure proper tenant-scoped login
-			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser, tenantId);
+			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser, effectiveTenantId);
 			if (result.ok) {
 				const params = new URLSearchParams(window.location.search);
 				params.delete("user");
@@ -64,7 +64,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t, tenantId],
+		[api, keystore, navigate, t, effectiveTenantId],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {

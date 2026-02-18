@@ -27,7 +27,9 @@ import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePa
 
 export interface TenantContextValue {
 	/** Current tenant ID (from URL, prop, or storage) */
-	tenantId: string | undefined;
+	effectiveTenantId: string | undefined;
+	/** The tenant id in the URL path. Might not match `effectiveTenantId` */
+	urlTenantId: string | undefined;
 	/** Whether we're in a tenant-scoped context */
 	isMultiTenant: boolean;
 	/** Switch to a different tenant (navigates to new tenant's home) */
@@ -102,12 +104,13 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 	}, [effectiveTenantId]);
 
 	const value = useMemo<TenantContextValue>(() => ({
-		tenantId: effectiveTenantId,
+		effectiveTenantId,
+		urlTenantId,
 		isMultiTenant: !!effectiveTenantId,
 		switchTenant,
 		clearTenant,
 		buildPath,
-	}), [effectiveTenantId, switchTenant, clearTenant, buildPath]);
+	}), [effectiveTenantId, urlTenantId, switchTenant, clearTenant, buildPath]);
 
 	return (
 		<TenantContext.Provider value={value}>
@@ -122,12 +125,15 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
  */
 export function useTenant(): TenantContextValue {
 	const context = useContext(TenantContext);
+	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();
+
 	if (!context) {
 		// Return a default context for components outside TenantProvider
 		// This allows the app to work in single-tenant mode
 		const storedTenant = getStoredTenant();
 		return {
-			tenantId: storedTenant,
+			effectiveTenantId: storedTenant,
+			urlTenantId,
 			isMultiTenant: false,
 			switchTenant: () => {
 				console.warn('switchTenant called outside TenantProvider');
@@ -144,9 +150,9 @@ export function useTenant(): TenantContextValue {
  * Use this when tenant is required (e.g., in tenant-scoped routes).
  */
 export function useRequiredTenant(): string {
-	const { tenantId } = useTenant();
-	if (!tenantId) {
+	const { effectiveTenantId } = useTenant();
+	if (!effectiveTenantId) {
 		throw new Error('Tenant ID is required but not available. Ensure this component is within a tenant-scoped route (/id/:tenantId/*).');
 	}
-	return tenantId;
+	return effectiveTenantId;
 }

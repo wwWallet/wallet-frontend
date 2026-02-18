@@ -23,14 +23,14 @@ const WebauthnLogin = ({
 	const location = useLocation();
 	const from = location.search || '/';
 	const { t } = useTranslation();
-	const { buildPath, tenantId } = useTenant();
+	const { buildPath, effectiveTenantId } = useTenant();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
 			// Pass the tenantId from URL path to ensure proper tenant-scoped login
-			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser, tenantId);
+			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser, effectiveTenantId);
 			if (result.ok) {
 				const params = new URLSearchParams(from);
 				params.append('authenticated', 'true');
@@ -69,7 +69,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t, from, tenantId],
+		[api, keystore, navigate, t, from, effectiveTenantId],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {
