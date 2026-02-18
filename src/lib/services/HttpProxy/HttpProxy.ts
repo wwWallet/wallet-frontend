@@ -1,5 +1,5 @@
 import { useMemo, useRef, useContext, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError, AxiosHeaders } from 'axios';
 import { IHttpProxy, RequestHeaders, ResponseHeaders } from '../../interfaces/IHttpProxy';
 import StatusContext from '@/context/StatusContext';
 import { addItem, getItem, removeItem } from '@/indexedDB';
@@ -122,6 +122,30 @@ export function useHttpProxy(): IHttpProxy {
 							url,
 						})
 						response.data = response.body;
+						if (response.status !== 200) {
+							const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
+							throw new AxiosError(
+								`Request failed with status code ${response.status}`,
+								undefined,
+								{
+									headers: axiosHeaders,
+									method: 'get',
+									url,
+								},
+								undefined,
+								{
+									data: response,
+									status: response.status,
+									statusText: String(response.status),
+									headers: response.headers || {},
+									config: {
+										headers: axiosHeaders,
+										method: 'get',
+										url,
+									},
+								}
+							);
+						}
 						if (isBinaryRequest) {
 							response = {
 								...response,
@@ -295,6 +319,32 @@ export function useHttpProxy(): IHttpProxy {
 					response = {
 						data: { ...response }
 					};
+					if (response.data.status !== 200) {
+						const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
+						throw new AxiosError(
+							`Request failed with status code ${response.data.status}`,
+							undefined,
+							{
+								headers: axiosHeaders,
+								method: 'post',
+								url,
+								data: body,
+							},
+							undefined,
+							{
+								data: response.data,
+								status: response.data.status,
+								statusText: String(response.data.status),
+								headers: response.data.headers || {},
+								config: {
+									headers: axiosHeaders,
+									method: 'post',
+									url,
+									data: body,
+								},
+							}
+						);
+					}
 					const responseHeader = response?.data?.headers?.['content-type'];
 					console.log("Content-Type parsed: ", responseHeader);
 					if (responseHeader && responseHeader.trim().startsWith('application/json')) {
