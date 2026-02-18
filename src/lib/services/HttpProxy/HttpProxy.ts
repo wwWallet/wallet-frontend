@@ -122,7 +122,7 @@ export function useHttpProxy(): IHttpProxy {
 							url,
 						})
 						response.data = response.body;
-						if (response.status !== 200) {
+						if (response.data.status > 299 || response.data.status < 200) {
 							const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 							throw new AxiosError(
 								`Request failed with status code ${response.status}`,
@@ -319,7 +319,7 @@ export function useHttpProxy(): IHttpProxy {
 					response = {
 						data: { ...response }
 					};
-					if (response.data.status !== 200) {
+					if (response.data.status > 299 || response.data.status < 200) {
 						const axiosHeaders = AxiosHeaders.from(headers as Record<string, string>);
 						throw new AxiosError(
 							`Request failed with status code ${response.data.status}`,
