@@ -1,19 +1,11 @@
 import React from 'react';
 import * as config from '../../config';
 import Logo from '../Logo/Logo';
-import PWAInstallPrompt from '../PWAInstall/PWAInstallPrompt';
-import useScreenType from '@/hooks/useScreenType';
 import PoweredBy from '../Shared/PoweredBy';
 
 export default function LoginLayout({ children, heading }: { children: React.ReactNode, heading: React.ReactNode }) {
-	const screenType = useScreenType();
-
 	return (
 		<section className="bg-lm-gray-100 dark:bg-dm-gray-900 min-h-dvh flex flex-col">
-			{screenType !== 'desktop' && (
-				<PWAInstallPrompt />
-			)}
-
 			<div className="grow flex flex-col items-center justify-center px-6 py-8">
 				<Logo aClassName='mb-6' imgClassName='w-20' />
 
@@ -24,10 +16,6 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 				<div className="relative w-full sm:max-w-md xl:p-0">
 					{children}
 				</div>
-
-				{screenType === 'desktop' && (
-					<PWAInstallPrompt />
-				)}
 			</div>
 
 			<footer className="py-4">
