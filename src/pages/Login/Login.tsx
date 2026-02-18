@@ -388,7 +388,7 @@ const WebauthnSignupLogin = ({
 	const nameByteLimitApproaching = nameByteLength >= nameByteLimit / 2;
 
 	return (
-		<form onSubmit={onSubmit}>
+		<form className='mb-6' onSubmit={onSubmit}>
 			{inProgress || retrySignupFrom
 				? (
 					needPrfRetry
