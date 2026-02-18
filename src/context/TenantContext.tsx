@@ -22,7 +22,7 @@
  */
 
 import React, { createContext, useContext, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath, TENANT_PATH_PREFIX } from '../lib/tenant';
 
 export interface TenantContextValue {
@@ -60,9 +60,6 @@ interface TenantProviderProps {
  * 3. Stores tenant in sessionStorage when found in URL
  */
 export function TenantProvider({ children, tenantId: propTenantId }: TenantProviderProps) {
-	const navigate = useNavigate();
-	const location = useLocation();
-
 	// Get tenant from URL path parameter
 	// This requires the route to be defined as /id/:tenantId/*
 	const { tenantId: urlTenantId } = useParams<{ tenantId: string }>();

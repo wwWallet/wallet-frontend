@@ -12,7 +12,7 @@ import React, { useContext, useState, useRef, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Building2, ChevronDown, Check } from 'lucide-react';
 import SessionContext from '@/context/SessionContext';
-import { getKnownTenants, KnownTenant, buildTenantRoutePath, isDefaultTenant } from '@/lib/tenant';
+import { getKnownTenants, KnownTenant, isDefaultTenant } from '@/lib/tenant';
 import { fromBase64Url } from '@/util';
 
 interface TenantSelectorProps {
