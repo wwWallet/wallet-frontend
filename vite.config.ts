@@ -56,6 +56,9 @@ export default defineConfig(({ mode }) => {
 				'@': '/src',
 			},
 		},
+		optimizeDeps: {
+			include: ['wallet-common'],
+		},
 		server: {
 			host: true,
 			port: 3000,
