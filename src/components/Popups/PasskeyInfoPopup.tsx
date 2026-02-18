@@ -37,7 +37,15 @@ const PasskeyInfoPopup = () => {
 
 	return (
 		<>
-			<Button variant="link" onClick={handleOpen} linkClassName="font-semibold">{t('passkeyInfoPopup.triggerButton')}</Button>
+			<Button
+				variant="link"
+				onClick={handleOpen}
+				linkClassName="font-semibold"
+				aria-expanded={isOpen}
+				aria-haspopup="dialog"
+			>
+				{t('passkeyInfoPopup.triggerButton')}
+			</Button>
 			{isOpen && (
 				<PopupLayout padding="p-4 md:p-8" isOpen={isOpen} onClose={handleClose} shouldCloseOnOverlayClick={true}>
 					<div className="flex items-start justify-between mb-4" role="dialog" aria-modal="true" aria-labelledby="passkey-info-title">
