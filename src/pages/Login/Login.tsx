@@ -501,7 +501,7 @@ const WebauthnSignupLogin = ({
 									</div>
 								</FormInputRow>
 								{PolicyLinks && (
-									<label className="mb-4 text-sm relative block pl-6 has-checked:font-semibold">
+									<label className="mb-4 text-sm relative block pl-6">
 										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" required />
 										<span>
 											<Trans
