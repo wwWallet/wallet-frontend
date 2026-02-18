@@ -40,7 +40,7 @@ const PasskeyInfoPopup = () => {
 			<Button
 				variant="link"
 				onClick={handleOpen}
-				linkClassName="font-semibold"
+				linkClassName="font-semibold no-underline!"
 				aria-expanded={isOpen}
 				aria-haspopup="dialog"
 			>
