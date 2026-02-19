@@ -10,12 +10,30 @@ clientsClaim();
 
 precacheAndRoute(self.__WB_MANIFEST);
 
+const SPA_ROUTE_ALLOWLIST = [
+	/^\/$/,                              // Home
+	/^\/settings$/,                      // Settings
+	/^\/history$/,                       // History list
+	/^\/pending$/,                       // Pending
+	/^\/add$/,                           // Add credentials
+	/^\/send$/,                          // Send credentials
+	/^\/verification\/result$/,          // Verification result
+	/^\/login$/,                         // Login
+	/^\/login-state$/,                   // Login state
+	/^\/cb(\/.*)?$/,                     // Callback routes
+	/^\/credential\/[^/]+$/,             // Credential
+	/^\/credential\/[^/]+\/history$/,    // Credential history
+	/^\/credential\/[^/]+\/details$/,    // Credential details
+	/^\/history\/[^/]+$/,                // History detail
+];
+
 registerRoute(
 	({ request, url }) => {
 		if (request.mode !== "navigate") return false;
 		if (url.pathname.startsWith("/_")) return false;
-		if (/\.[a-zA-Z]+$/.test(url.pathname)) return false;
-		return true;
+		if (/\.[a-zA-Z0-9]+$/.test(url.pathname)) return false;
+
+		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(url.pathname));
 	},
 	createHandlerBoundToURL('/index.html')
 );
