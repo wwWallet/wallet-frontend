@@ -212,7 +212,7 @@
 	"pagePending": {
 		"description": "View pending issuance requests",
 		"noFound": "No pending issuance requests found",
-		"title": "Pending issuance requests"
+		"title": "Pending Issuance Requests"
 	},
 	"pageSendCredentials": {
 		"description": "Search and choose a verifier to share credentials with",
