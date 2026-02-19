@@ -16,6 +16,7 @@
 		"title": "Εισάγετε το PIN"
 	},
 	"common": {
+		"and": "και",
 		"cancel": "Ακύρωση",
 		"continue": "Συνέχεια",
 		"delete": "Διαγραφή",
@@ -63,13 +64,14 @@
 		"messageResetPermission": "Κάτι <strong>δεν λειτουργεί σωστά με τις ειδοποιήσεις</strong>, <reloadButton>ανανεώστε αυτή τη σελίδα</reloadButton>."
 	},
 	"loginSignup": {
-		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό; ",
+		"acceptPolicies": "Αποδέχομαι τους όρους του {{walletName}} <policyLinks/>.",
+		"alreadyHaveAccountQuestion": "Έχετε ήδη λογαριασμό πορτοφολιού; ",
 		"authOnceMoreLogin": "Για να ολοκληρώσετε το ξεκλείδωμα του wallet αυθεντικοποιηθείτε με το κλειδί πρόσβασής σας μία ακόμη φορά.",
 		"capitalLetter": "Τουλάχιστον ένα κεφαλαίο γράμμα",
 		"choosePasskeyPlatform": "Επιλέξτε το είδος κλειδιού πρόσβασης που προτιμάτε",
-		"choosePasskeyUsername": "Πώς να σας αποκαλούμε;",
+		"choosePasskeyUsername": "Ψευδώνυμο Πορτοφολιού",
 		"confirmPasswordLabel": "Επιβεβαίωση Κωδικού",
-		"enterPasskeyName": "Επιλέξτε ένα όνομα για εσάς",
+		"enterPasskeyName": "Πορτοφόλι της Jane Doe",
 		"enterPassword": "Εισάγετε τον κωδικό σας",
 		"enterUsername": "Εισάγετε το όνομα χρήστη σας",
 		"enterconfirmPasswordLabel": "Εισάγετε την επιβεβαίωση κωδικού σας",
@@ -78,13 +80,16 @@
 		"incorrectCredentialsError": "Λάθος όνομα χρήστη ή κωδικός",
 		"login": "Σύνδεση",
 		"loginAsUser": "Συνδεθείτε ως {{name}}",
-		"loginCache": "Επιλέξτε τον λογαριασμό σας",
+		"loginCache": "Επιλέξτε τον λογαριασμό του πορτοφολιού σας",
 		"loginKeystoreFailed": "Απέτυχε η προσπέλαση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
 		"loginLocalKeystoreFailed": "Απέτυχε η αρχικοποίηση του αποθηκευτικού χώρου του wallet, δοκιμάστε ξανά.",
+		"loginMessage": "Συνδεθείτε στο <highlight>$t(common.walletName)</highlight>",
 		"loginSubmit": "Σύνδεση",
-		"loginTitle": "Σύνδεση με Κλειδί Πρόσβασης",
+		"loginTitle": "Σύνδεση",
+		"loginWithPasskey": "Σύνδεση με κλειδί πρόσβασης",
+		"loginWithSecurityKey": "Σύνδεση με κλειδί ασφαλείας",
 		"messageOffline": "Είστε εκτός σύνδεσης. Ορισμένες λειτουργίες ενδέχεται να μην είναι διαθέσιμες.",
-		"newHereQuestion": "Δεν έχετε λογαριασμό; ",
+		"newHereQuestion": "Δεν έχετε λογαριασμό πορτοφολιού; ",
 		"number": "Τουλάχιστον ένας αριθμός",
 		"or": "Ή",
 		"passkeyInvalid": "Άγνωστο κλειδί πρόσβασης, πιθανώς διαγράφηκε από τον χρήστη.",
@@ -104,6 +109,8 @@
 		"reachedLengthLimit": "Υπερβαίνει το όριο μήκους",
 		"signUp": "Εγγραφή",
 		"signUpSubmit": "Εγγραφή",
+		"signUpWithPasskey": "Δημιουργία λογαριασμού με κλειδί πρόσβασης",
+		"signUpWithSecurityKey": "Χρήση κλειδιού ασφαλείας",
 		"specialCharacter": "Τουλάχιστον ένας ειδικός χαρακτήρας",
 		"strength": "Ισχύς",
 		"submitting": "Υποβολή...",
@@ -272,6 +279,19 @@
 		"errorMissingIssuerIdentifier": "Δεν βρέθηκε αναγνωριστικό του issuer.",
 		"errorNotSupportedCredentialType": "Αυτός ο τύπος credential δεν υποστηρίζεται."
 	},
+	"passkeyInfoPopup": {
+		"closeAriaLabel": "Κλείσιμο αναδυόμενου παραθύρου πληροφοριών κλειδιού πρόσβασης",
+		"description1": "Το ψηφιακό σας πορτοφόλι ταυτότητας σας δίνει πλήρη έλεγχο των ψηφιακών σας πληροφοριών και μπορεί να χρησιμοποιηθεί σε πρόγραμμα περιήγησης ή εφαρμογή κινητού.",
+		"description2": "Ένα κλειδί πρόσβασης πορτοφολιού μπορεί να αποθηκευτεί σε μία από τις ακόλουθες τοποθεσίες:",
+		"onDeviceDescription": "Το κλειδί πρόσβασής σας μπορεί να είναι συγκεκριμένο για αυτή τη συσκευή, όπως δακτυλικό αποτύπωμα ή αναγνώριση προσώπου. Μπορεί επίσης να δημιουργηθεί σε έναν διαχειριστή κωδικών στο πρόγραμμα περιήγησής σας ή σε αυτή τη συσκευή.",
+		"onDeviceLabel": "Κλειδί πρόσβασης σε αυτή τη συσκευή",
+		"otherDeviceDescription": "Χρησιμοποιήστε την κάμερα μιας δεύτερης συσκευής για να σαρώσετε έναν κωδικό QR και να δημιουργήσετε ένα κλειδί πρόσβασης σε αυτή τη συσκευή.",
+		"otherDeviceLabel": "Κλειδί πρόσβασης σε άλλη συσκευή",
+		"securityKeyDescription": "Η αποθήκευση ενός κλειδιού πρόσβασης σε φυσικό κλειδί ασφαλείας (όπως USB ή NFC Yubikey) προσφέρει μέγιστη ασφάλεια και φορητότητα.",
+		"securityKeyLabel": "Κλειδί πρόσβασης σε κλειδί ασφαλείας",
+		"title": "Επιλογή τοποθεσίας δημιουργίας κλειδιού πρόσβασης",
+		"triggerButton": "Πώς λειτουργούν τα κλειδιά πρόσβασης;"
+	},
 	"pwaInstallPrompt": {
 		"button": {
 			"closeTitle": "Κάντε κλικ για να κλείσετε την προτροπή εγκατάστασης του PWA",
@@ -326,8 +346,8 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Αποσύνδεση",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
-		"poweredByAriaLabel": "GitHub repository του wwWallet"
+		"poweredBy": "Powered by <docLinkWalletGithub>{{name}}</docLinkWalletGithub>",
+		"poweredByAriaLabel": "Επισκεφθείτε {{name}}"
 	},
 	"tourGuide": {
 		"closeTourButton": "Κλείσιμο Ξενάγησης",

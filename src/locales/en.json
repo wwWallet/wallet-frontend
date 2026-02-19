@@ -17,6 +17,7 @@
 		"title": "Enter the Pin"
 	},
 	"common": {
+		"and": "and",
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
@@ -72,13 +73,14 @@
 		"messageResetPermission": "Something <strong>not working properly with the notifications</strong>, please <reloadButton>reload this page</reloadButton>."
 	},
 	"loginSignup": {
-		"alreadyHaveAccountQuestion": "Already have an account? ",
+		"acceptPolicies": "I accept {{walletName}} <policyLinks/>.",
+		"alreadyHaveAccountQuestion": "Already have a wallet account? ",
 		"authOnceMoreLogin": "To finish unlocking the wallet, please authenticate with your passkey once more.",
 		"capitalLetter": "At least one capital letter",
 		"choosePasskeyPlatform": "Select your preferred passkey type",
-		"choosePasskeyUsername": "What should we call you?",
+		"choosePasskeyUsername": "Wallet Nickname",
 		"confirmPasswordLabel": "Confirm Password",
-		"enterPasskeyName": "Choose a name for yourself",
+		"enterPasskeyName": "Jane Doe's Wallet",
 		"enterPassword": "Enter your password",
 		"enterUsername": "Enter your username",
 		"enterconfirmPasswordLabel": "Enter your confirm password",
@@ -87,13 +89,16 @@
 		"incorrectCredentialsError": "Incorrect username or password",
 		"login": "Login",
 		"loginAsUser": "Log in as {{name}}",
-		"loginCache": "Choose your account",
+		"loginCache": "Select your wallet account",
 		"loginKeystoreFailed": "Failed to access wallet key store, please try again.",
 		"loginLocalKeystoreFailed": "Failed to initialize wallet key store, please try again.",
+		"loginMessage": "Log in to <highlight>$t(common.walletName)</highlight>",
 		"loginSubmit": "Login",
-		"loginTitle": "Login with a Passkey",
+		"loginTitle": "Login",
+		"loginWithPasskey": "Log in with a Passkey",
+		"loginWithSecurityKey": "Log in with a Security Key",
 		"messageOffline": "You are offline. Some features may not be available.",
-		"newHereQuestion": "Don't have an account? ",
+		"newHereQuestion": "Don't have a wallet account? ",
 		"number": "At least one number",
 		"or": "OR",
 		"passkeyInvalid": "Unknown passkey, possibly deleted by user.",
@@ -113,6 +118,8 @@
 		"reachedLengthLimit": "Length limit exceeded",
 		"signUp": "Sign Up",
 		"signUpSubmit": "Sign Up",
+		"signUpWithPasskey": "Create account with a Passkey",
+		"signUpWithSecurityKey": "Use a Security Key",
 		"specialCharacter": "At least one special character",
 		"strength": "Strength",
 		"submitting": "Submitting...",
@@ -319,6 +326,19 @@
 		"errorMissingIssuerIdentifier": "Issuer identifier is missing.",
 		"errorNotSupportedCredentialType": "This type of credential is not supported."
 	},
+	"passkeyInfoPopup": {
+		"closeAriaLabel": "Close passkey information popup",
+		"description1": "Your digital ID wallet gives you complete control over your digital information and can be used in a web browser or mobile app.",
+		"description2": "A wallet passkey may be kept in one of the following locations:",
+		"onDeviceDescription": "Your passkey can be specific to this device like a fingerprint or facial recognition. It may also be created in a preferred password manager in your browser or on this device.",
+		"onDeviceLabel": "Passkey on this device",
+		"otherDeviceDescription": "Use the camera on a second device to scan a QR code and create a passkey on that device.",
+		"otherDeviceLabel": "Passkey on another device",
+		"securityKeyDescription": "Storing a passkey on a physical security key (such as a USB or NFC Yubikey) offers maximum security and portability.",
+		"securityKeyLabel": "Passkey on a security key",
+		"title": "Choosing where to create your passkey",
+		"triggerButton": "How do passkeys work?"
+	},
 	"pendingTransactions": {
 		"subtitle": "Waiting for issuance to complete",
 		"title": "{{count}} pending credential(s)",
@@ -383,8 +403,8 @@
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"obliviousEnabled": "Private requests with Oblivious HTTP enabled",
-		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
-		"poweredByAriaLabel": "GitHub repository of wwWallet"
+		"poweredBy": "Powered by <docLinkWalletGithub>{{name}}</docLinkWalletGithub>",
+		"poweredByAriaLabel": "Visit {{name}}"
 	},
 	"syncPopup": {
 		"description": "Looks like you've <strong>modified your wallet in another session</strong>. Use your <strong>passkey</strong> to sync your wallet.",
