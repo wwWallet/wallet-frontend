@@ -16,10 +16,14 @@ import { Tag } from './utils/resources';
 		throw new Error('Destination directory flag --dest is required.');
 	}
 
-	const BRANDING_CUSTOM_DATA = getFlag('--branding-custom-data');
+	if (typeof env.BRANDING_CUSTOM_FILE_PATH === 'string' && env.BRANDING_CUSTOM_FILE_PATH !== '') {
+		const brandingCustomData = await readFile(env.BRANDING_CUSTOM_FILE_PATH, {
+			encoding: 'utf-8',
+		});
 
-	if (BRANDING_CUSTOM_DATA) {
-		await createCustomBrandingDirFromJSON(JSON.parse(BRANDING_CUSTOM_DATA));
+		if (brandingCustomData) {
+			await createCustomBrandingDirFromJSON(JSON.parse(brandingCustomData));
+		}
 	}
 
 	const brandingHash = getBrandingHash(resolve('branding')); // Compute branding hash from your branding folder
