@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
+import React, { useContext, useEffect, useState, useCallback, ChangeEventHandler, FormEventHandler } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 
@@ -7,11 +7,14 @@ import { calculateByteSize, coerce } from '../../util';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '../../context/TenantContext';
+import { buildTenantRoutePath, matchesTenantFromUrl } from '../../lib/tenant';
 
 import * as config from '../../config';
 import Button, { Variant } from '../../components/Buttons/Button';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
+import TenantSelector from '../../components/TenantSelector/TenantSelector';
 import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
@@ -215,13 +218,17 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
+	const { effectiveTenantId } = useTenant(); // Get tenant from URL path or storage
 	const screenType = useScreenType();
+	const navigate = useNavigate();
+	const location = useLocation();
 
 	const [inProgress, setInProgress] = useState(false);
 	const [name, setName] = useState("");
 	const [needPrfRetry, setNeedPrfRetry] = useState(false);
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
+	const [autoRetryTriggered, setAutoRetryTriggered] = useState(false);
 
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
@@ -246,13 +253,26 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
-	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
-		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
+	const onLogin = useCallback(async (webauthnHints: string[], cachedUser?: CachedUser) => {
+		// Pass the tenantId from URL path to ensure proper tenant-scoped login
+		// This is critical for auto-retry after tenant discovery redirect
+		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, effectiveTenantId);
 		if (result.ok) {
-
+			// Success - no action needed, session will be set by API
 		} else {
+			const err = result.val;
+
+			// Handle tenant discovery error - redirect to tenant-specific login
+			if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
+				console.log('Tenant discovered during login:', err.tenantId, '- redirecting with auto-retry...');
+				// Redirect to tenant-specific login page with retry flag
+				// The autoRetry param signals that we should automatically trigger login after redirect
+				navigate(`${buildTenantRoutePath(err.tenantId, 'login')}?autoRetry=true`, { replace: true });
+				return;
+			}
+
 			// Using a switch here so the t() argument can be a literal, to ease searching
-			switch (result.val) {
+			switch (err) {
 				case 'loginKeystoreFailed':
 					setError(t('loginSignup.loginKeystoreFailed'));
 					break;
@@ -277,9 +297,38 @@ const WebauthnSignupLogin = ({
 					throw result;
 			}
 		}
-	};
+	}, [api, keystore, effectiveTenantId, navigate, setError, t]);
+
+	// Auto-retry login after tenant discovery redirect
+	// When redirected from global /login with ?autoRetry=true, automatically trigger login
+	useEffect(() => {
+		const params = new URLSearchParams(location.search);
+		const shouldAutoRetry = params.get('autoRetry') === 'true';
+
+		if (shouldAutoRetry && isLogin && !autoRetryTriggered && !inProgress && !isSubmitting) {
+			setAutoRetryTriggered(true);
+			// Clear the autoRetry param from URL
+			params.delete('autoRetry');
+			const newSearch = params.toString();
+			navigate(`${location.pathname}${newSearch ? '?' + newSearch : ''}`, { replace: true });
+
+			// Trigger login automatically
+			console.log('Auto-retrying login after tenant discovery redirect');
+			(async () => {
+				setInProgress(true);
+				setIsSubmitting(true);
+				await onLogin([]);
+				setInProgress(false);
+				setIsSubmitting(false);
+				checkForUpdates();
+				updateOnlineStatus();
+			})();
+		}
+	}, [location.search, isLogin, autoRetryTriggered, inProgress, isSubmitting, navigate, location.pathname, onLogin, setIsSubmitting, updateOnlineStatus]);
 
 	const onSignup = async (name: string, webauthnHints: string[]) => {
+		// Pass tenantId to ensure the passkey's userHandle includes the tenant prefix
+		// This enables tenant-scoped authentication
 		const result = await api.signupWebauthn(
 			name,
 			keystore,
@@ -288,6 +337,7 @@ const WebauthnSignupLogin = ({
 				: promptForPrfRetry,
 			webauthnHints,
 			retrySignupFrom,
+			effectiveTenantId, // Tenant from URL path or storage
 		);
 		if (result.ok) {
 
@@ -613,6 +663,7 @@ const WebauthnSignupLogin = ({
 const Auth = () => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { urlTenantId, effectiveTenantId } = useTenant();
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -634,9 +685,13 @@ const Auth = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			navigate(`/${window.location.search}`, { replace: true });
+			if (matchesTenantFromUrl(effectiveTenantId, urlTenantId)) {
+				navigate(buildTenantRoutePath(effectiveTenantId, `/${location.search}`), { replace: true });
+			} else {
+				window.location.href = buildTenantRoutePath(effectiveTenantId, `/${location.search}`);
+			}
 		}
-	}, [isLoggedIn, navigate]);
+	}, [effectiveTenantId, isLoggedIn, navigate, location.search, urlTenantId]);
 
 	const handleFormChange = () => setError('');
 
@@ -725,7 +780,6 @@ const Auth = () => {
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
 				</h1>
-
 				<div className='absolute text-lm-gray-900 dark:text-white top-5 left-5'>
 					<ConnectionStatusIcon backgroundColor='light' />
 				</div>
@@ -767,7 +821,7 @@ const Auth = () => {
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 text-center">
+					<p className="mb-4 text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
@@ -780,7 +834,7 @@ const Auth = () => {
 						</Button>
 					</p>
 				) : (
-					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
+					<p className="mb-4 text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
 						<Button
 							id="useOtherAccount-switch-loginsignup"
 							variant="link"
@@ -791,7 +845,15 @@ const Auth = () => {
 					</p>
 				)}
 
-			</div>
+				{TenantSelector && (
+					<div className="mb-4 text-sm flex justify-center">
+						<TenantSelector
+							currentTenantId={urlTenantId || 'default'}
+							isAuthenticated={false}
+						/>
+					</div>
+				)}
+				</div>
 		</LoginLayout>
 	);
 };

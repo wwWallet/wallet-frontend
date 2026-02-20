@@ -4,6 +4,8 @@ import { Trans, useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
+import { buildTenantRoutePath } from '@/lib/tenant';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import Button from '../../components/Buttons/Button';
@@ -21,20 +23,31 @@ const WebauthnLogin = ({
 	const location = useLocation();
 	const from = location.search || '/';
 	const { t } = useTranslation();
+	const { buildPath, effectiveTenantId } = useTenant();
 
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const onLogin = useCallback(
 		async (cachedUser) => {
-			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
+			// Pass the tenantId from URL path to ensure proper tenant-scoped login
+			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser, effectiveTenantId);
 			if (result.ok) {
 				const params = new URLSearchParams(from);
 				params.append('authenticated', 'true');
 				navigate(`?${params.toString()}`, { replace: true });
 
 			} else {
+				const err = result.val;
+
+				// Handle tenant discovery error - redirect to tenant-specific login
+				if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
+					console.log('Tenant discovered during login state:', err.tenantId, '- redirecting with auto-retry...');
+					navigate(`${buildTenantRoutePath(err.tenantId, 'login')}?autoRetry=true`, { replace: true });
+					return;
+				}
+
 				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (result.val) {
+				switch (err) {
 					case 'loginKeystoreFailed':
 						setError(t('loginSignup.loginKeystoreFailed'));
 						break;
@@ -56,7 +69,7 @@ const WebauthnLogin = ({
 				}
 			}
 		},
-		[api, keystore, navigate, t, from],
+		[api, keystore, navigate, t, from, effectiveTenantId],
 	);
 
 	const onLoginCachedUser = async (cachedUser) => {
@@ -73,7 +86,7 @@ const WebauthnLogin = ({
 				<div className='flex flex-row gap-4 justify-center mr-2'>
 					<Button
 						id="cancel-login-state"
-						onClick={() => navigate('/')}
+						onClick={() => navigate(buildPath())}
 						disabled={isSubmitting}
 						additionalClassName='w-full'
 					>
@@ -103,6 +116,7 @@ const LoginState = () => {
 	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
 	const location = useLocation();
+	const { buildPath } = useTenant();
 
 	const cachedUsers = keystore.getCachedUsers();
 	const from = location.search || '/';
@@ -131,9 +145,9 @@ const LoginState = () => {
 	const [filteredUser, forceAuthenticate, authenticated] = getfilteredUser();
 
 	if (!filteredUser) {
-		return <Navigate to="/login" replace />;
+		return <Navigate to={buildPath('login')} replace />;
 	} else if ((isLoggedIn && !forceAuthenticate) || (forceAuthenticate === true && authenticated)) {
-		return <Navigate to={`/${window.location.search}`} replace />;
+		return <Navigate to={`${buildPath()}${window.location.search}`} replace />;
 	}
 
 	return (

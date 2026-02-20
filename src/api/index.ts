@@ -12,6 +12,7 @@ import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage 
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
 import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
+import { getStoredTenant, setStoredTenant, clearStoredTenant } from '../lib/tenant';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -64,8 +65,16 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		cachedUser: CachedUser | undefined,
+		urlTenantId?: string,
 	): Promise<
-		Result<void, 'loginKeystoreFailed' | 'passkeyInvalid' | 'passkeyLoginFailedTryAgain' | 'passkeyLoginFailedServerError' | 'x-private-data-etag'>
+		Result<void,
+			| 'loginKeystoreFailed'
+			| 'passkeyInvalid'
+			| 'passkeyLoginFailedTryAgain'
+			| 'passkeyLoginFailedServerError'
+			| 'x-private-data-etag'
+			| { errorId: 'tenantDiscovered', tenantId: string }
+		>
 	>,
 	signupWebauthn(
 		name: string,
@@ -73,6 +82,7 @@ export interface BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		retryFrom?: SignupWebauthnRetryParams,
+		tenantId?: string,
 	): Promise<Result<void, SignupWebauthnError>>,
 	updatePrivateData(newPrivateData: EncryptedContainer): Promise<void>,
 	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
@@ -93,7 +103,13 @@ export interface BackendApi {
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
+		| { errorId: 'tenantDiscovered', tenantId: string }
 	>>;
+
+	/** Get the current tenant ID (from session storage) */
+	getTenantId(): string | undefined,
+	/** Set the current tenant ID (stored in session storage) */
+	setTenantId(tenantId: string): void,
 }
 
 export function useApi(isOnlineProp: boolean = true): BackendApi {
@@ -149,8 +165,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options: { appToken?: string },
 	): { [header: string]: string } => {
 		const authz = options?.appToken || appToken;
+		// Get tenant ID from storage, defaulting to 'default' for single-tenant and backwards compatibility
+		const tenantId = getStoredTenant() || 'default';
 		return {
 			...headers,
+			'X-Tenant-ID': tenantId,
 			...(authz ? { Authorization: `Bearer ${authz}` } : {}),
 		};
 	}, [appToken]);
@@ -217,7 +236,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options?: { appToken?: string, headers?: { [header: string]: string } },
 		force: boolean = false
 	): Promise<AxiosResponse> => {
-		return getWithLocalDbKey(path, path, options, force);
+		// Get current tenant for cache key (X-Tenant-ID header is added by buildGetHeaders)
+		const tenantId = getStoredTenant() || 'default';
+		// Include tenant in cache key so different tenants have separate caches
+		const cacheKey = `${tenantId}:${path}`;
+		return getWithLocalDbKey(path, cacheKey, options, force);
 	}, [getWithLocalDbKey]);
 
 	const fetchInitialData = useCallback(async (
@@ -339,6 +362,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const clearSession = useCallback((): void => {
 		clearSessionStorage();
 		removePrivateDataEtag();
+		clearStoredTenant(); // Clear tenant on logout
 		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 	}, [clearSessionStorage, removePrivateDataEtag]);
 
@@ -519,15 +543,22 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
-		cachedUser: CachedUser | undefined
+		cachedUser: CachedUser | undefined,
+		urlTenantId?: string
 	): Promise<Result<void,
 		| 'loginKeystoreFailed'
 		| 'passkeyInvalid'
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
+		| { errorId: 'tenantDiscovered', tenantId: string }
 	>> => {
 		try {
+			// Login always uses global endpoints - the backend discovers the tenant
+			// from the userHandle which contains a hashed tenant ID.
+			// The urlTenantId is kept for redirect handling after tenant discovery.
+			console.log("Login: using global endpoint, urlTenant for redirect:", urlTenantId);
+
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
@@ -542,109 +573,134 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				}
 			})();
 
-			try {
-				const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
-				const getOptions = prfInputs
-					? {
-						...beginData.getOptions,
-						publicKey: {
-							...beginData.getOptions.publicKey,
-							allowCredentials: prfInputs.allowCredentials,
-							extensions: {
-								...beginData.getOptions.publicKey.extensions,
-								prf: prfInputs.prfInput,
-							},
+			const prfInputs = cachedUser && makeAssertionPrfExtensionInputs(cachedUser.prfKeys);
+
+			// Build credential options with PRF inputs
+			// allowCredentials improves UX by filtering the credential picker to show only matching passkeys
+			// PRF extension inputs (evalByCredential) are needed for passkey decryption
+			const getOptions = prfInputs
+				? {
+					...beginData.getOptions,
+					publicKey: {
+						...beginData.getOptions.publicKey,
+						allowCredentials: prfInputs.allowCredentials,
+						extensions: {
+							...beginData.getOptions.publicKey.extensions,
+							prf: prfInputs.prfInput,
 						},
-					}
-					: beginData.getOptions;
-				const credential = await navigator.credentials.get({
-					...getOptions,
-					publicKey: withHintsFromAllowCredentials({
-						...getOptions.publicKey,
-						hints: webauthnHints,
-					}),
-				}) as PublicKeyCredential;
-				const response = credential.response as AuthenticatorAssertionResponse;
-
-				try {
-					const finishResp = await (async () => {
-						if (isOnline) {
-							return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
-								challengeId: beginData.challengeId,
-								credential: {
-									type: credential.type,
-									id: credential.id,
-									rawId: credential.rawId,
-									response: {
-										authenticatorData: response.authenticatorData,
-										clientDataJSON: response.clientDataJSON,
-										signature: response.signature,
-										userHandle: response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u),
-									},
-									authenticatorAttachment: credential.authenticatorAttachment,
-									clientExtensionResults: credential.getClientExtensionResults(),
-								},
-							}));
-						}
-						else {
-							const userId = UserId.fromUserHandle(response.userHandle);
-							const user = await getItem("users", userId.id);
-							return {
-								data: {
-									uuid: user.uuid,
-									appToken: "",
-									did: user.did,
-									displayName: user.displayName,
-									privateData: user.privateData,
-									username: null,
-								},
-							};
-						}
-					})() as any;
-
-					try {
-						const userData = finishResp.data as UserData;
-						const privateData = await parsePrivateData(userData.privateData);
-						const privateDataUpdate = await keystore.unlockPrf(
-							privateData,
-							credential,
-							promptForPrfRetry,
-							cachedUser || {
-								...userData,
-								// response.userHandle will always be non-null if cachedUser is
-								// null, because then allowCredentials was empty
-								userHandle: new Uint8Array(response.userHandle),
-							},
-						);
-						if (privateDataUpdate) {
-							const [newPrivateData, keystoreCommit] = privateDataUpdate;
-							try {
-								await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
-								await keystoreCommit();
-							} catch (e) {
-								console.error("Failed to upgrade PRF key", e, e.status);
-								if (e?.cause === 'x-private-data-etag') {
-									return Err('x-private-data-etag');
-								}
-								return Err('loginKeystoreFailed');
-							}
-						}
-						await setSession(finishResp, credential, 'login');
-						return Ok.EMPTY;
-					} catch (e) {
-						console.error("Failed to open keystore", e);
-						return Err('loginKeystoreFailed');
-					}
-
-				} catch (e) {
-					return Err('passkeyInvalid');
+					},
 				}
+				: beginData.getOptions;
+			const credential = await navigator.credentials.get({
+				...getOptions,
+				publicKey: withHintsFromAllowCredentials({
+					...getOptions.publicKey,
+					hints: webauthnHints,
+				}),
+			}) as PublicKeyCredential;
+			const response = credential.response as AuthenticatorAssertionResponse;
 
-			} catch (e) {
-				return Err('passkeyLoginFailedTryAgain');
+			// Get the userHandle for the finish request
+			// The backend extracts tenant from the userHandle's binary format (v1: version + tenant hash + UUID)
+			const userHandleForFinish = response.userHandle ?? fromBase64Url(cachedUser?.userHandleB64u);
+
+			const finishResp = await (async () => {
+				if (isOnline) {
+					return updatePrivateDataEtag(await post('/user/login-webauthn-finish', {
+						challengeId: beginData.challengeId,
+						credential: {
+							type: credential.type,
+							id: credential.id,
+							rawId: credential.rawId,
+							response: {
+								authenticatorData: response.authenticatorData,
+								clientDataJSON: response.clientDataJSON,
+								signature: response.signature,
+								userHandle: userHandleForFinish,
+							},
+							authenticatorAttachment: credential.authenticatorAttachment,
+							clientExtensionResults: credential.getClientExtensionResults(),
+						},
+					}));
+				}
+				else {
+					const userId = UserId.fromUserHandle(response.userHandle);
+					const user = await getItem("users", userId.id);
+					return {
+						data: {
+							uuid: user.uuid,
+							appToken: "",
+							did: user.did,
+							displayName: user.displayName,
+							privateData: user.privateData,
+							username: null,
+							tenantId: user.tenantId,  // Use stored tenant from offline user data
+						},
+					};
+				}
+			})() as any;
+
+			const userData = finishResp.data as UserData;
+			const privateData = await parsePrivateData(userData.privateData);
+			const privateDataUpdate = await keystore.unlockPrf(
+				privateData,
+				credential,
+				promptForPrfRetry,
+				cachedUser || {
+					...userData,
+					userHandle: new Uint8Array(response.userHandle),
+				},
+			);
+			if (privateDataUpdate) {
+				const [newPrivateData, keystoreCommit] = privateDataUpdate;
+				try {
+					await updatePrivateData(newPrivateData, { appToken: finishResp.data.appToken });
+					await keystoreCommit();
+				} catch (e) {
+					console.error("Failed to upgrade PRF key", e, e.status);
+					if (e?.cause === 'x-private-data-etag') {
+						return Err('x-private-data-etag');
+					}
+					return Err('loginKeystoreFailed');
+				}
 			}
 
+			// Store the tenant from response, falling back to 'default' if not provided
+			// This ensures we always have a valid tenant context
+			const tenantToStore = finishResp?.data?.tenantId ?? 'default';
+			setStoredTenant(tenantToStore);
+
+			// Store tenant metadata on the cached user for tenant selector
+			if (response.userHandle) {
+				const userHandleB64u = toBase64Url(response.userHandle);
+				keystore.updateCachedUserTenant(userHandleB64u, {
+					id: tenantToStore,
+					displayName: finishResp?.data?.tenantDisplayName,
+				});
+			}
+
+			await setSession(finishResp, credential, 'login');
+			return Ok.EMPTY;
+
 		} catch (e) {
+			console.error("Login failed", e);
+
+			// Handle 409 tenant redirect - user's passkey belongs to a different tenant
+			// This enables "tenant discovery from passkey" when logging in via global endpoint
+			if (e?.response?.status === 409 && e?.response?.data?.redirect_tenant) {
+				const discoveredTenant = e.response.data.redirect_tenant;
+				console.log("Login: tenant redirect required to:", discoveredTenant);
+				return Err({ errorId: 'tenantDiscovered', tenantId: discoveredTenant });
+			}
+
+			if (e?.response?.status === 403) {
+				// Tenant access denied - passkey belongs to different tenant
+				return Err('passkeyLoginFailedTryAgain');
+			}
+			if (e?.name === 'NotAllowedError') {
+				// User cancelled or passkey not available
+				return Err('passkeyLoginFailedTryAgain');
+			}
 			return Err('passkeyLoginFailedServerError');
 		}
 	}, [post, updatePrivateDataEtag, updatePrivateData, setSession, isOnline]);
@@ -654,10 +710,15 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		keystore: LocalStorageKeystore,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
-		retryFrom?: SignupWebauthnRetryParams
+		retryFrom?: SignupWebauthnRetryParams,
+		tenantId?: string
 	): Promise<Result<void, SignupWebauthnError>> => {
+		// Registration uses the global endpoint with tenantId in request body
+		// This ensures the passkey's userHandle encodes the tenant for proper isolation
+		const storedTenant = tenantId || getStoredTenant();
+
 		try {
-			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', {})).data;
+			const beginData = retryFrom?.beginData || (await post('/user/register-webauthn-begin', { tenantId: storedTenant })).data;
 			console.log("begin", beginData);
 
 			try {
@@ -711,6 +772,19 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
 						}));
+
+						// Store the tenant from the response, falling back to 'default' if not provided
+						// This ensures we always have a valid tenant context
+						const tenantToStore = finishResp?.data?.tenantId ?? 'default';
+						setStoredTenant(tenantToStore);
+
+						// Store tenant metadata on the cached user for tenant selector
+						const userHandleB64u = toBase64Url(beginData.createOptions.publicKey.user.id);
+						keystore.updateCachedUserTenant(userHandleB64u, {
+							id: tenantToStore,
+							displayName: finishResp?.data?.tenantDisplayName,
+						});
+
 						await setSession(finishResp, credential, 'signup');
 						return Ok.EMPTY;
 
@@ -790,6 +864,10 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		removeEventListener,
 
 		syncPrivateData,
+
+		// Tenant utilities
+		getTenantId: getStoredTenant,
+		setTenantId: setStoredTenant,
 	}), [
 		del,
 		get,

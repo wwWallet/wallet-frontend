@@ -417,6 +417,15 @@
 		},
 		"view": "View"
 	},
+	"tenantSelector": {
+		"currentlySelected": "Currently selected",
+		"defaultTenant": "Default",
+		"label": "Switch Tenant",
+		"description": "Select tenant",
+		"switchActiveTenant": "Switch active tenant",
+		"userCount_one": "{{count}} user",
+		"userCount_other": "{{count}} users"
+	},
 	"welcomeModal": {
 		"description": "Discover the <strong> $t(common.walletName) </strong>, your ultimate tool for managing digital credentials. Effortlessly view, get, present and keep track of all your credentials!",
 		"dismissButton": "Dismiss",
