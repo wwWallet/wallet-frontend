@@ -75,7 +75,6 @@ export default function TenantSelector({
 		`)}`;
 	}, [knownTenants]);
 
-
 	const handleSelectTenant = async (tenantId: string) => {
 		if (tenantId === currentTenantId) {
 			return;
