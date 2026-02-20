@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
@@ -6,263 +6,219 @@ import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestError } from "../lib/interfaces/IOpenID4VP";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
-import CredentialsContext from "@/context/CredentialsContext";
-import { CachedUser } from "@/services/LocalStorageKeystore";
-import SyncPopup from "@/components/Popups/SyncPopup";
-import { useSessionStorage } from "@/hooks/useStorage";
+import CredentialsContext from "../context/CredentialsContext";
+import SyncPopup from "../components/Popups/SyncPopup";
+import pkce from 'pkce-challenge';
+import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
+import { generateDPoP } from '../lib/utils/dpop';
+import { useHttpProxy } from "../lib/services/HttpProxy/HttpProxy";
+import { notify } from "../context/notifier";
+import * as config from '../config';
+
+
+
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
-const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
+const PinInputPopup = React.lazy(() => import('../components/Popups/PinPopup'));
+
 
 export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
-	const { isOnline } = useContext(StatusContext);
+		const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
+		const location = useLocation();
+		const { t } = useTranslation();
 
-	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
-	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
+		const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
+		const { openID4VCI } = useContext(OpenID4VCIContext);
+		const { openID4VP } = useContext(OpenID4VPContext);
+		const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse , handlePreAuthorization} = openID4VCI;
+		const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
+		const { vcEntityList } = useContext(CredentialsContext);
+		const processedOffersRef = useRef<Set<string>>(new Set());
+		const isProcessingRef = useRef(false);
 
-	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
-	const { syncPrivateData } = api;
-	const { getUserHandleB64u, getCachedUsers, getCalculatedWalletState } = keystore;
+		const [synced, setSynced] = useState(false);
+		const [showPinInput, setShowPinInput] = useState(false);
+		const [activeUrl, setActiveUrl] = useState<string | null>(null);
+		const [pinLength, setPinLength] = useState<number>(4);
+		const [pinInputMode, setPinInputMode] = useState<"numeric" | "text">("numeric");
 
-	const location = useLocation();
-	const [url, setUrl] = useState(window.location.href);
+		const [showMessagePopup, setMessagePopup] = useState(false);
+		const [textMessagePopup, setTextMessagePopup] = useState({ title: "", description: "" });
+		const [typeMessagePopup, setTypeMessagePopup] = useState("");
+		const [showSyncPopup, setSyncPopup] = useState(false);
+		const [textSyncPopup, setTextSyncPopup] = useState({ description: "" });
+		const [redirectURI, setRedirectURI] = useState<string | null>(null);
+		const httpProxy = useHttpProxy();
+		const [commitStateChanges, setCommitStateChanges] = useState<number>(0);
 
-	const { openID4VCI } = useContext(OpenID4VCIContext);
-	const { openID4VP } = useContext(OpenID4VPContext);
-
-	const { handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse } = openID4VCI;
-	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
-
-	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
-
-	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
-	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
-
-	const [showMessagePopup, setMessagePopup] = useState<boolean>(false);
-	const [textMessagePopup, setTextMessagePopup] = useState<{ title: string, description: string }>({ title: "", description: "" });
-	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
-	const { t } = useTranslation();
-
-	const [redirectUri, setRedirectUri] = useState(null);
-	const { vcEntityList } = useContext(CredentialsContext);
-
-	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
-	const [synced, setSynced] = useState(false);
-	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
-
-	useEffect(() => {
-		if (!keystore || cachedUser !== null || !isLoggedIn) {
-			return;
-		}
-
-		const userHandle = getUserHandleB64u();
-		if (!userHandle) {
-			return;
-		}
-		const u = getCachedUsers().filter((user) => user.userHandleB64u === userHandle)[0];
-		if (u) {
-			setCachedUser(u);
-		}
-	}, [keystore, getCachedUsers, getUserHandleB64u, setCachedUser, cachedUser, isLoggedIn]);
-
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		if (window.location.search !== '' && params.get('sync') !== 'fail') {
-			setSynced(false);
-		}
-	}, [location]);
-
-	useEffect(() => {
-		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
-			api.syncPrivateData(cachedUser);
-		}
-		if (isLoggedIn) {
-			setLatestIsOnlineStatus(isOnline);
-		} else {
-			setLatestIsOnlineStatus(null);
-		}
-	}, [
-		api,
-		isLoggedIn,
-		isOnline,
-		latestIsOnlineStatus,
-		setLatestIsOnlineStatus,
-		cachedUser
-	]);
-
-	useEffect(() => {
-		if (!getCalculatedWalletState || !cachedUser || !syncPrivateData) {
-			return;
-		}
-		const params = new URLSearchParams(location.search);
-		if (synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
-			console.log("Actually syncing...");
-			syncPrivateData(cachedUser).then((r) => {
-				if (!r.ok) {
-					return;
+		const handle = useCallback(async (urlToCheck: string, submittedPin?: string) => {
+				if (!urlToCheck) return;
+				const u = new URL(urlToCheck);
+				if (u.searchParams.size === 0) return;
+				// Prevent re-processing the same URL multiple times
+				if (processedOffersRef.current.has(urlToCheck) && !submittedPin) {
+						return;
 				}
-				setSynced(true);
-				// checkForUpdates();
-				// updateOnlineStatus(false);
-			});
-		}
-
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search]);
-
-	useEffect(() => {
-		if (synced === true && window.location.search !== '') {
-			setUrl(window.location.href);
-		}
-	}, [synced, setUrl, location]);
-
-	useEffect(() => {
-		if (redirectUri) {
-			window.location.href = redirectUri;
-		}
-	}, [redirectUri]);
-
-	useEffect(() => {
-		if (
-			!isLoggedIn || !url || !t || !vcEntityList || !synced ||
-			!handleCredentialOffer || !generateAuthorizationRequest || !handleAuthorizationResponse ||
-			!handleAuthorizationRequest || !promptForCredentialSelection || !sendAuthorizationResponse
-		) return;
-
-		async function handle(urlToCheck: string) {
-			const u = new URL(urlToCheck);
-			if (u.searchParams.size === 0) return;
-			// setUrl(window.location.origin);
-			console.log('[Uri Handler]: check', url);
-
-			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state }) => {
-					console.log("Generating authorization request...");
-					return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
-				}).then((res) => {
-					if ('url' in res && res.url) {
-						window.location.href = res.url;
-					}
-				})
-					.catch(err => {
-						window.history.replaceState({}, '', `${window.location.pathname}`);
-						console.error(err);
-					})
-				return;
-			}
-			else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code'))) {
-				setUsedAuthorizationCodes((codes) => [...codes, u.searchParams.get('code')]);
-
-				console.log("Handling authorization response...");
-				handleAuthorizationResponse(u.toString()).then(() => {
-				}).catch(err => {
-					console.log("Error during the handling of authorization response")
-					window.history.replaceState({}, '', `${window.location.pathname}`);
-					console.error(err)
-				})
-			}
-			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
-				setUsedRequestUris((uriArray) => [...uriArray, u.searchParams.get('request_uri')]);
-				await handleAuthorizationRequest(u.toString(), vcEntityList).then((result) => {
-					console.log("Result = ", result);
-					if ('error' in result) {
-						if (result.error === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS) {
-							setTextMessagePopup({ title: `${t('messagePopup.insufficientCredentials.title')}`, description: `${t('messagePopup.insufficientCredentials.description')}` });
-							setTypeMessagePopup('error');
-							setMessagePopup(true);
+				if (u.protocol === 'openid-credential-offer:' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
+						const offerParam = u.searchParams.get('credential_offer');
+						const offerUri = u.searchParams.get('credential_offer_uri');
+						let decoded = null;
+						try {
+								if (offerParam) {
+										decoded = JSON.parse(decodeURIComponent(offerParam));
+								} else if (offerUri) {
+										const nestedUrl = new URL(offerUri);
+										const nestedJson = nestedUrl.searchParams.get('credential_offer');
+										if (nestedJson) decoded = JSON.parse(decodeURIComponent(nestedJson));
+								}
+								const preAuthGrant = decoded?.grants?.["urn:ietf:params:oauth:grant-type:pre-authorized_code"];
+								if (preAuthGrant) {
+										const url = new URL(offerUri);
+										const rawOffer = url.searchParams.get('credential_offer');
+										const decoded = JSON.parse(rawOffer);
+										const configId = (decoded.credential_configuration_ids || decoded.credentials)?.[0];
+										if (!configId) {
+												throw new Error("No configuration IDs found in the Credential Offer.");
+										}
+										const issuerBaseUrl = decoded.credential_issuer.replace(/\/$/, '');
+										const metadataUrl = `${issuerBaseUrl}/.well-known/openid-credential-issuer`;
+										const { data: metadata } = await httpProxy.get(metadataUrl);
+										const config = metadata["credential_configurations_supported"][configId];
+										const format = config?.format;
+										const preAuthGrant = decoded.grants?.["urn:ietf:params:oauth:grant-type:pre-authorized_code"];
+										const pinRequired = !!preAuthGrant?.tx_code;
+										const backendURL = decoded?.credential_issuer;
+										if (pinRequired && !submittedPin) {
+												setActiveUrl(urlToCheck);
+												const txCodeSettings = preAuthGrant?.["tx_code"];
+												setPinInputMode(txCodeSettings?.input_mode === "text" ? "text" : "numeric");
+												setPinLength(txCodeSettings?.length || 4);
+												setShowPinInput(true);
+												return;
+										}
+										if (isProcessingRef.current) return;
+										isProcessingRef.current = true;
+										processedOffersRef.current.add(urlToCheck);
+										window.history.replaceState({}, '', window.location.pathname);
+										const { code_challenge, code_verifier } = await pkce();
+										const tokenParams = new URLSearchParams({
+												redirect_uri: redirectURI,
+												grant_type: "urn:ietf:params:oauth:grant-type:pre-authorized_code", code: preAuthGrant["pre-authorized_code"], code_verifier
+										});
+										if (submittedPin) tokenParams.append("tx_code", submittedPin);
+										const tokenData = await httpProxy.post(`${backendURL}/token`, {
+											"grant_type": "urn:ietf:params:oauth:grant-type:pre-authorized_code",
+											"pre-authorized_code": preAuthGrant["pre-authorized_code"],
+											"tx_code": submittedPin
+										}, {
+											"Content-Type": "application/json",
+										});
+										const nonceData = await httpProxy.post(`${backendURL}/nonce`, {},{})
+										const { privateKey, publicKey } = await generateKeyPair('ES256', { extractable: true });
+										const jwk = await exportJWK(publicKey);
+										const dpop = await generateDPoP(privateKey, jwk, "POST", `${backendURL}/credentials`, nonceData.data['c_nonce']);
+										const [{ proof_jwts }] = await keystore.generateOpenid4vciProofs([{
+												nonce: nonceData.data['c_nonce'], issuer: backendURL, audience: backendURL
+										}]);
+										const credentialResponse = await httpProxy.post(`${backendURL}/credentials`, {
+											"credential_configuration_ids": preAuthGrant["credential_configuration_ids"],
+											"proofs": { "jwt": [proof_jwts[0]] },
+											"format": format
+									}, {
+										"Content-Type": "application/json",
+										"Authorization": `Bearer ${tokenData.data['access_token']}`,
+										"DPoP": dpop
+								});
+								const rawCredential = credentialResponse.data;
+								const kid = await calculateJwkThumbprint(jwk, "sha256");
+								const [, privateData, keystoreCommit] = await keystore.addCredentials([{
+												data: rawCredential['credential'],
+												format: format,
+												kid: kid,
+												credentialConfigurationId: preAuthGrant["credential_configuration_ids"],
+												credentialIssuerIdentifier: preAuthGrant["credential_issuer"],
+												batchId: Date.now(),
+												instanceId: 0,
+										}]);
+								await api.updatePrivateData(privateData);
+								await keystoreCommit();
+								setCommitStateChanges(1);
+								notify("newCredential");
+								isProcessingRef.current = false;
+								} else {
+										const { credentialIssuer, selectedCredentialConfigurationId, issuer_state } = await handleCredentialOffer(u.toString());
+										const res = await generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
+										if (res?.url) window.location.href = res.url;
+								}
+						} catch (e) {
+								console.error("[Uri Handler] VCI Error:", e);
+								isProcessingRef.current = false;
 						}
-						else if (result.error === HandleAuthorizationRequestError.NONTRUSTED_VERIFIER) {
-							setTextMessagePopup({ title: `${t('messagePopup.nonTrustedVerifier.title')}`, description: `${t('messagePopup.nonTrustedVerifier.description')}` });
-							setTypeMessagePopup('error');
-							setMessagePopup(true);
+				}
+				else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code')!)) {
+						const code = u.searchParams.get('code')!;
+						setUsedAuthorizationCodes((prev) => [...prev, code]);
+						handleAuthorizationResponse(u.toString()).catch(console.error);
+				}
+				else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri')!)) {
+						const reqUri = u.searchParams.get('request_uri')!;
+						setUsedRequestUris((prev) => [...prev, reqUri]);
+						try {
+								const result = await handleAuthorizationRequest(u.toString(), vcEntityList);
+								if ('error' in result) {
+										const isInsufficient = result.error === HandleAuthorizationRequestError.INSUFFICIENT_CREDENTIALS;
+										setTextMessagePopup({
+												title: t(isInsufficient ? 'messagePopup.insufficientCredentials.title' : 'messagePopup.nonTrustedVerifier.title'),
+												description: t(isInsufficient ? 'messagePopup.insufficientCredentials.description' : 'messagePopup.nonTrustedVerifier.description')
+										});
+										setTypeMessagePopup('error');
+										setMessagePopup(true);
+										return;
+								}
+								const selection = await promptForCredentialSelection(Object.fromEntries(result.conformantCredentialsMap), result.verifierDomainName, result.verifierPurpose, result.parsedTransactionData);
+								if (selection instanceof Map) {
+										const res = await sendAuthorizationResponse(selection, vcEntityList);
+										if (res?.url) setRedirectURI(res.url);
+								}
+						} catch (err) {
+							console.error("[Uri Handler] VP Error:", err);
 						}
-						return;
-					}
-					const { conformantCredentialsMap, verifierDomainName, verifierPurpose, parsedTransactionData } = result;
-					const jsonedMap = Object.fromEntries(conformantCredentialsMap);
-					console.log("Prompting for selection..")
-					return promptForCredentialSelection(jsonedMap, verifierDomainName, verifierPurpose, parsedTransactionData);
-				}).then((selection) => {
-					if (!(selection instanceof Map)) {
-						return;
-					}
-					console.log("Selection = ", selection);
-					return sendAuthorizationResponse(selection, vcEntityList);
+				}
+		}, [isLoggedIn, vcEntityList, synced, keystore, api, handleCredentialOffer, generateAuthorizationRequest, handleAuthorizationResponse, handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse, t]);
 
-				}).then((res) => {
-					if (res && 'url' in res && res.url) {
-						setRedirectUri(res.url);
-					}
-				}).catch(err => {
-					console.log("Failed to handle authorization req");
-					window.history.replaceState({}, '', `${window.location.pathname}`);
-					console.error(err);
-				})
-				return;
-			}
+		useEffect(() => {
+				if (isLoggedIn && synced && keystore.getCalculatedWalletState() && !showPinInput) {
+						handle(window.location.href);
+				}
+		}, [location.pathname, location.search, isLoggedIn, synced, handle, showPinInput]);
+		useEffect(() => {
+				if (redirectURI) window.location.href = redirectURI;
+		}, [redirectURI]);
 
-			const urlParams = new URLSearchParams(window.location.search);
-			const state = urlParams.get('state');
-			const error = urlParams.get('error');
-			if (url && isLoggedIn && state && error) {
-				window.history.replaceState({}, '', `${window.location.pathname}`);
-				const errorDescription = urlParams.get('error_description');
-				setTextMessagePopup({ title: error, description: errorDescription });
-				setTypeMessagePopup('error');
-				setMessagePopup(true);
-			}
-		}
-		if (getCalculatedWalletState()) {
-			handle(url);
-		}
-	}, [
-		url,
-		t,
-		isLoggedIn,
-		setRedirectUri,
-		vcEntityList,
-		synced,
-		getCalculatedWalletState,
-		usedAuthorizationCodes,
-		usedRequestUris,
-		// depend on methods, not whole context objects
-		handleCredentialOffer,
-		generateAuthorizationRequest,
-		handleAuthorizationResponse,
-		handleAuthorizationRequest,
-		promptForCredentialSelection,
-		sendAuthorizationResponse,
-	]);
+		useEffect(() => {
+				if (keystore.getCalculatedWalletState()) setSynced(true);
+		}, [keystore]);
 
-	useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		if (synced === true && params.get('sync') === 'fail') {
-			setSynced(false);
-		}
-		else if (params.get('sync') === 'fail' && synced === false) {
-			setTextSyncPopup({ description: 'syncPopup.description' });
-			setSyncPopup(true);
-		} else {
-			setSyncPopup(false);
-		}
-	}, [location, t, synced]);
-
-	return (
-		<>
-			{children}
-			{showPinInputPopup &&
-				<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
-			}
-			{showMessagePopup &&
-				<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-			}
-			{showSyncPopup &&
-				<SyncPopup message={textSyncPopup}
-					onClose={() => {
-						setSyncPopup(false);
-						logout();
-					}}
-				/>
-			}
-		</>
-	);
-}
+		return (
+				<>
+						{children}
+						<PinInputPopup
+								isOpen={showPinInput}
+								setIsOpen={setShowPinInput}
+								inputsCount={pinLength}
+								inputsMode={pinInputMode}
+								onCancel={() => { setShowPinInput(false); setActiveUrl(null); }}
+								onSubmit={(pin) => {
+										setShowPinInput(false);
+										if (activeUrl) handle(activeUrl, pin);
+								}}
+						/>
+						{showMessagePopup && (
+								<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+						)}
+						{showSyncPopup && (
+								<SyncPopup message={textSyncPopup} onClose={() => { setSyncPopup(false); logout(); }} />
+						)}
+				</>
+		);
+};

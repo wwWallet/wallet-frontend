@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 import AppSettingsContext from "@/context/AppSettingsContext";
-import { usePreAuthorization, PreAuthorizationProvider } from '@/context/PreAuthorizationContext';
 
 // Hooks
 import useScreenType from '../../hooks/useScreenType';
@@ -27,7 +26,6 @@ const Home = () => {
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const preAuthorization = usePreAuthorization();
 
 	const {
 		vcEntityList,
@@ -41,13 +39,23 @@ const Home = () => {
 	const screenType = useScreenType();
 	const mobileVcHomeView = settings.mobileVcHomeView;
 
+	const hasProcessed = useRef(false);
+
 	useEffect(() => {
-		const credentialOfferUrl = searchParams.get('credential_offer_uri');
-		if (credentialOfferUrl) {
-			preAuthorization(credentialOfferUrl);
-			navigate('/', { replace: true });
+		if (hasProcessed.current) return;
+		const offerUri = searchParams.get('credential_offer_uri');
+		if (!offerUri) return;
+		hasProcessed.current = true;
+		try {
+			const nestedUrl = new URL(offerUri);
+			const rawJson = nestedUrl.searchParams.get('credential_offer');
+			if (!rawJson) return;
+			const credentialOffer = JSON.parse(rawJson);
+			navigate("/", { replace: true });
+		} catch (err) {
+			console.error("Failed parsing offer:", err);
 		}
-	}, [searchParams, preAuthorization, navigate]);
+	}, []);
 
 	const handleAddCredential = () => {
 		navigate('/add');
@@ -178,10 +186,3 @@ const Home = () => {
 			</>
 			);
 }
-
-
-export default () => (
-	<PreAuthorizationProvider>
-		<Home />
-	</PreAuthorizationProvider>
-);
