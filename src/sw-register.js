@@ -1,9 +1,14 @@
 import { MODE } from './config';
 
 const basePath = (() => {
-	// TODO: set a different base path depending on tenants, e.g. /id/tenant1/, /id/tenant2/, etc.
-	// For now, just return '/'.
-	return '/'
+	const path = window.location.pathname;
+	const match = path.match(/^(?<path>\/id\/(?<id>[a-z0-9-]+))/);
+
+	if (match && 'groups' in match) {
+		return match.groups.path;
+	}
+
+	return '/';
 })();
 
 const swScope = basePath.replace(/\/?$/, '/');
