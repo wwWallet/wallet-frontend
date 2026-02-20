@@ -99,7 +99,7 @@ export default function TenantSelector({
 	};
 
 	// Nothing to switch to
-	if (knownTenants.length < 2) {
+	if (!knownTenants.some(t => t.id !== currentTenantId)) {
 		return;
 	}
 
