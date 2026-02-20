@@ -46,7 +46,7 @@ export function getTagSortingPriority(el: Element): number {
 export function insertTag(document: Document, head: HTMLHeadElement, { tag, props, textContent }: Tag): void {
 	const element = document.createElement(tag);
 	for (const [key, value] of Object.entries(props || {})) {
-		element.setAttribute(key, value);
+		element.setAttribute(key, value ?? '');
 	}
 	if (textContent) {
 		element.textContent = textContent;

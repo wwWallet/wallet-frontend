@@ -13,7 +13,7 @@ export function htmlMetaTags(config: Record<string, string>): HTMLMetaTags {
 		// Only include environment variables that start with "META_" as meta tags.
 		if (!key.startsWith('META_')) continue;
 
-		tags.push(metaTag(key, value));
+		tags.push(metaTag(key, value ?? ''));
 	}
 
 	return tags;
