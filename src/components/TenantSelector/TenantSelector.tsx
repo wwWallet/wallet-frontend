@@ -153,9 +153,10 @@ export default function TenantSelector({
 									)}
 								</span>
 							</span>
-							{tenant.id === currentTenantId ? (
-								<CircleCheckIcon size={30} className="m-0.5 text-brand-base dark:text-dm-gray-200" />
-							) : <CircleIcon size={30} className="m-0.5 text-brand-base dark:text-dm-gray-200" />}
+							{(() => {
+								const Icon = tenant.id === currentTenantId ? CircleCheckIcon : CircleIcon;
+								return <Icon size={30} className="m-0.5 shrink-0 text-brand-base dark:text-dm-gray-200" />;
+							})()}
 						</Button>
 					))}
 				</ul>
