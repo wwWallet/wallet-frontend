@@ -1,6 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { createCustomBrandingDirFromJSON, getBrandingHash } from './branding';
+import { getBrandingHash } from './branding';
 import { injectConfigFiles, injectHtml } from './inject';
 import { getConfigFromEnv } from './config';
 import { Tag } from './utils/resources';
@@ -14,16 +14,6 @@ import { Tag } from './utils/resources';
 	const DEST_DIR = getFlag('--dest');
 	if (!DEST_DIR) {
 		throw new Error('Destination directory flag --dest is required.');
-	}
-
-	if (typeof env.BRANDING_CUSTOM_FILE_PATH === 'string' && env.BRANDING_CUSTOM_FILE_PATH !== '') {
-		const brandingCustomData = await readFile(env.BRANDING_CUSTOM_FILE_PATH, {
-			encoding: 'utf-8',
-		});
-
-		if (brandingCustomData) {
-			await createCustomBrandingDirFromJSON(JSON.parse(brandingCustomData));
-		}
 	}
 
 	const brandingHash = getBrandingHash(resolve('branding')); // Compute branding hash from your branding folder
