@@ -663,7 +663,7 @@ const WebauthnSignupLogin = ({
 const Auth = () => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, isLoggedIn, keystore } = useContext(SessionContext);
-	const { urlTenantId } = useTenant();
+	const { urlTenantId, effectiveTenantId } = useTenant();
 	const { t } = useTranslation();
 	const location = useLocation();
 
@@ -685,13 +685,13 @@ const Auth = () => {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			// The presumed path of the home page.
-			const path = window.location.pathname.replace(/\/login\/?$/, '');
-
-			// Preserve any query parameters (e.g., redirect URLs)
-			navigate(`${path}/${window.location.search}`, { replace: true });
+			if (matchesTenantFromUrl(effectiveTenantId, urlTenantId)) {
+				navigate(buildTenantRoutePath(effectiveTenantId, `/${location.search}`), { replace: true });
+			} else {
+				window.location.href = buildTenantRoutePath(effectiveTenantId, `/${location.search}`);
+			}
 		}
-	}, [isLoggedIn, navigate]);
+	}, [effectiveTenantId, isLoggedIn, navigate, location.search, urlTenantId]);
 
 	const handleFormChange = () => setError('');
 
