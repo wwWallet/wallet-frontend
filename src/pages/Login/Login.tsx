@@ -845,13 +845,15 @@ const Auth = () => {
 					</p>
 				)}
 
-				<TenantSelector
-					currentTenantId={urlTenantId || 'default'}
-					isAuthenticated={false}
-					className='block mb-4 text-sm w-3xs max-w-full ml-auto mr-auto'
-				/>
-
-			</div>
+				{TenantSelector && (
+					<div className="mb-4 text-sm flex justify-center">
+						<TenantSelector
+							currentTenantId={urlTenantId || 'default'}
+							isAuthenticated={false}
+						/>
+					</div>
+				)}
+				</div>
 		</LoginLayout>
 	);
 };

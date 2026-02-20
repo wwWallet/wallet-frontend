@@ -10,7 +10,7 @@ import TenantSelector from '@/components/TenantSelector';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
-import { Bell, History, LogOut, PlusCircle, Send, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
+import { Bell, Building2Icon, History, LogOut, PlusCircle, Send, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
 
 const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
@@ -193,7 +193,11 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<TenantSelector
 					currentTenantId={effectiveTenantId}
 					isAuthenticated={true}
-					className="text-left p-2"
+					button={
+						<button className="cursor-pointer flex items-center space-x-2 p-2 rounded-lg hover:bg-lm-gray-400 dark:hover:bg-dm-gray-500 transition-colors w-full">
+							<Building2Icon size={20} className="m-1" /> {t('tenantSelector.label')}
+						</button>
+					}
 				/>
 
 				<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />

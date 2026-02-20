@@ -12,8 +12,8 @@ interface TenantSelectorProps {
 	currentTenantId?: string;
 	/** Whether user is authenticated (controls logout behavior) */
 	isAuthenticated: boolean;
-	/** Additional CSS classes */
-	className?: string;
+	/** Custom toggle element */
+	button?: React.ReactElement;
 }
 
 /**
@@ -28,7 +28,7 @@ interface TenantSelectorProps {
 export default function TenantSelector({
 	currentTenantId,
 	isAuthenticated,
-	className = '',
+	button = <Button variant="link" />,
 }: TenantSelectorProps) {
 	const { t } = useTranslation();
 	const { keystore, logout } = useContext(SessionContext);
@@ -103,17 +103,16 @@ export default function TenantSelector({
 		return;
 	}
 
+	const buttonElement = React.cloneElement(button, {
+		onClick: handleOpen,
+		'aria-expanded': isOpen,
+		'aria-haspopup': 'dialog',
+		children: button.props.children || t('tenantSelector.label'),
+	});
+
 	return (
 		<>
-			<Button
-				variant="link"
-				onClick={handleOpen}
-				aria-expanded={isOpen}
-				aria-haspopup="dialog"
-				linkClassName={className}
-			>
-				{t('tenantSelector.label')}
-			</Button>
+			{buttonElement}
 			<PopupLayout padding="p-4 md:p-8" isOpen={isOpen} onClose={handleClose}>
 				<div className="flex items-start justify-between mb-4" role="dialog" aria-modal="true" aria-labelledby="switch-tenant-title">
 					<h2 id="switch-tenant-title" className="flex items-center text-lg font-bold text-lm-gray-900 dark:text-dm-gray-50 pr-6">
