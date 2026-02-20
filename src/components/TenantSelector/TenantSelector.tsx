@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { SyntheticEvent, useCallback, useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CircleCheckIcon, CircleIcon } from 'lucide-react';
 import SessionContext from '@/context/SessionContext';
@@ -47,7 +47,7 @@ export default function TenantSelector({
 		return getKnownTenants(cachedUsers, fromBase64Url);
 	}, [keystore]);
 
-	const favicon = '/favicon.ico';
+	const favicon = 'favicon.ico';
 	const tenantFavicons = useMemo(() => {
 		const favicons: Record<string, string> = {};
 
@@ -59,6 +59,21 @@ export default function TenantSelector({
 		return favicons;
 	}, [knownTenants]);
 
+	const generateFaviconFallback = useCallback((event: SyntheticEvent<HTMLImageElement>, id: string) => {
+		const target = event.target as HTMLImageElement;
+		event.preventDefault();
+
+		const style = window.getComputedStyle(document.body);
+		const brandColor = style.getPropertyValue('--theme-brand-color').trim() || '#000000';
+		const name = knownTenants.find(t => t.id === id)?.displayName?.charAt(0).toUpperCase() || '';
+
+		target.src = `data:image/svg+xml;base64,${btoa(`
+			<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+				<rect width="100%" height="100%" fill="${brandColor}"/>
+				<text x="50%" y="50%" font-size="20" fill="white" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif">${name}</text>
+			</svg>
+		`)}`;
+	}, [knownTenants]);
 
 
 	const handleSelectTenant = async (tenantId: string) => {
@@ -130,7 +145,7 @@ export default function TenantSelector({
 							title={tenant.id === currentTenantId ? t('tenantSelector.currentlySelected') : undefined}
 						>
 							<span className="flex items-center gap-3 w-full">
-								<img src={tenantFavicons[tenant.id]} alt={tenant.displayName || t('tenantSelector.defaultTenant')} className="w-10 h-10 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg"></img>
+								<img src={tenantFavicons[tenant.id]} onError={(event) => generateFaviconFallback(event, tenant.id)} alt={tenant.displayName || t('tenantSelector.defaultTenant')} className="w-10 h-10 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg"></img>
 								<span className="flex flex-col items-start gap-0.5">
 									<span className="text-base">
 										{tenant.displayName || t('tenantSelector.defaultTenant')}
