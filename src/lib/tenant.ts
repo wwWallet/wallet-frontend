@@ -75,6 +75,13 @@ export function isDefaultTenant(tenantId: string | undefined): boolean {
 }
 
 /**
+ * Check if a tenant ID matches the URL tenant context.
+ */
+export function matchesTenantFromUrl(tenantId: string | undefined, urlTenantId: string | undefined): boolean {
+	return tenantId === urlTenantId || (!urlTenantId && isDefaultTenant(tenantId));
+}
+
+/**
  * Check if a tenant name is reserved and cannot be used for custom tenants.
  */
 export function isReservedTenantName(name: string): boolean {
