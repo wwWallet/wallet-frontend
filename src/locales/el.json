@@ -344,9 +344,10 @@
 		"description": "Μια νέα έκδοση είναι διαθέσιμη!"
 	},
 	"tenantSelector": {
+		"currentlySelected": "Επιλεγμένο",
 		"defaultTenant": "Προεπιλογή",
 		"label": "Αλλαγή Tenant",
-		"selectTenant": "Επιλογή tenant",
+		"description": "Επιλογή tenant",
 		"switchActiveTenant": "Αλλαγή ενεργού tenant",
 		"userCount_one": "{{count}} χρήστης",
 		"userCount_other": "{{count}} χρήστες"

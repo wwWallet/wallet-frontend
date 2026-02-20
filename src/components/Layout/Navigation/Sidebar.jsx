@@ -189,12 +189,11 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Bottom Section - Tenant Selector + Powered By */}
-			<div className="flex flex-col gap-2">
+			<div className="flex flex-col gap-1">
 				<TenantSelector
 					currentTenantId={effectiveTenantId}
 					isAuthenticated={true}
-					openDirection="up"
-					fullWidth
+					className="text-left p-2"
 				/>
 
 				<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />

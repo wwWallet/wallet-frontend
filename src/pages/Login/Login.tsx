@@ -821,7 +821,7 @@ const Auth = () => {
 				/>
 
 				{!isLoginCache ? (
-					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 text-center">
+					<p className="mb-4 text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 text-center">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
 							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
@@ -834,7 +834,7 @@ const Auth = () => {
 						</Button>
 					</p>
 				) : (
-					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
+					<p className="mb-4 text-sm font-light text-lm-gray-900 dark:text-dm-gray-100 cursor-pointer">
 						<Button
 							id="useOtherAccount-switch-loginsignup"
 							variant="link"
@@ -848,7 +848,7 @@ const Auth = () => {
 				<TenantSelector
 					currentTenantId={urlTenantId || 'default'}
 					isAuthenticated={false}
-					className='block w-3xs max-w-full ml-auto mr-auto'
+					className='block mb-4 text-sm w-3xs max-w-full ml-auto mr-auto'
 				/>
 
 			</div>

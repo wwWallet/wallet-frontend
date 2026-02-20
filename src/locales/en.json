@@ -418,9 +418,10 @@
 		"view": "View"
 	},
 	"tenantSelector": {
+		"currentlySelected": "Currently selected",
 		"defaultTenant": "Default",
 		"label": "Switch Tenant",
-		"selectTenant": "Select tenant",
+		"description": "Select tenant",
 		"switchActiveTenant": "Switch active tenant",
 		"userCount_one": "{{count}} user",
 		"userCount_other": "{{count}} users"

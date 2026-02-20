@@ -320,9 +320,10 @@
 		"description": "Nova versão disponível!"
 	},
 	"tenantSelector": {
+		"currentlySelected": "Selecionado atualmente",
 		"defaultTenant": "Predefinição",
 		"label": "Mudar Tenant",
-		"selectTenant": "Selecionar tenant",
+		"description": "Selecionar tenant",
 		"switchActiveTenant": "Mudar tenant ativo",
 		"userCount_one": "{{count}} utilizador",
 		"userCount_other": "{{count}} utilizadores"

@@ -1,9 +1,11 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building2Icon, ChevronDownIcon } from 'lucide-react';
+import { CircleCheckIcon, CircleIcon } from 'lucide-react';
 import SessionContext from '@/context/SessionContext';
 import { getKnownTenants, KnownTenant, isDefaultTenant } from '@/lib/tenant';
 import { fromBase64Url } from '@/util';
+import PopupLayout from '../Popups/PopupLayout';
+import Button from '../Buttons/Button';
 
 interface TenantSelectorProps {
 	/** Currently active tenant ID */
@@ -30,11 +32,34 @@ export default function TenantSelector({
 }: TenantSelectorProps) {
 	const { t } = useTranslation();
 	const { keystore, logout } = useContext(SessionContext);
+	const [isOpen, setIsOpen] = useState<boolean>(false);
+
+	const handleOpen = () => {
+		setIsOpen(true);
+	};
+
+	const handleClose = () => {
+		setIsOpen(false);
+	};
 
 	const knownTenants = useMemo((): KnownTenant[] => {
 		const cachedUsers = keystore.getCachedUsers();
 		return getKnownTenants(cachedUsers, fromBase64Url);
 	}, [keystore]);
+
+	const favicon = '/favicon.ico';
+	const tenantFavicons = useMemo(() => {
+		const favicons: Record<string, string> = {};
+
+		for (const tenant of knownTenants) {
+			const url = isDefaultTenant(tenant.id) ? '/' : `/id/${tenant.id}/`;
+			favicons[tenant.id] = new URL(favicon, window.location.origin + url).href;
+		}
+
+		return favicons;
+	}, [knownTenants]);
+
+
 
 	const handleSelectTenant = async (tenantId: string) => {
 		if (tenantId === currentTenantId) {
@@ -64,54 +89,64 @@ export default function TenantSelector({
 		return;
 	}
 
-	const getTenantLabel = (tenant: KnownTenant) => {
-		let label: string;
-		if (tenant.displayName) {
-			label = tenant.displayName;
-		} else if (isDefaultTenant(tenant.id)) {
-			label = t('tenantSelector.defaultTenant');
-		} else {
-			label = tenant.id;
-		}
-
-		if (tenant.userCount > 0) {
-			label += ` (${t('tenantSelector.userCount', { count: tenant.userCount })})`;
-		}
-
-		return label;
-	};
-
 	return (
-		<div className={className}>
-			<div className="relative">
-				<span className="absolute top-[50%] left-3 transform -translate-y-[50%] pointer-events-none">
-					<Building2Icon size={14} />
-				</span>
-				<select
-					id="tenant-selector"
-					className="w-full h-8 px-8 text-sm bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none"
-					onChange={(e) => handleSelectTenant(e.target.value)}
-					aria-label={t('tenantSelector.selectTenant')}
-					title={t('tenantSelector.switchActiveTenant')}
-				>
-					<option value="" disabled selected hidden>
-						{t('tenantSelector.selectTenant', 'Select tenant')}
-					</option>
+		<>
+			<Button
+				variant="link"
+				onClick={handleOpen}
+				aria-expanded={isOpen}
+				aria-haspopup="dialog"
+				linkClassName={className}
+			>
+				{t('tenantSelector.label')}
+			</Button>
+			<PopupLayout padding="p-4 md:p-8" isOpen={isOpen} onClose={handleClose}>
+				<div className="flex items-start justify-between mb-4" role="dialog" aria-modal="true" aria-labelledby="switch-tenant-title">
+					<h2 id="switch-tenant-title" className="flex items-center text-lg font-bold text-lm-gray-900 dark:text-dm-gray-50 pr-6">
+						{t('tenantSelector.switchActiveTenant')}
+					</h2>
+					<button
+						id="dismiss-switch-tenant-popup"
+						type="button"
+						className="md:absolute top-6 right-6 text-lm-gray-900 dark:text-dm-gray-100 bg-transparent hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600 transition-all rounded-lg text-sm w-8 h-8 ml-auto inline-flex justify-center items-center"
+						onClick={handleClose}
+						aria-label="Close popup"
+					>
+						<svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+							<path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+						</svg>
+					</button>
+				</div>
+				<p className="mb-6">{t('tenantSelector.description')}</p>
+				<ul>
 					{knownTenants.map((tenant) => (
-						<option
+						<Button
 							key={tenant.id}
-							value={tenant.id}
+							variant='outline'
+							square
+							additionalClassName={`w-full mb-2 flex justify-between gap-3 ${tenant.id === currentTenantId && 'dark:border-lm-gray-200'}`}
+							onClick={() => handleSelectTenant(tenant.id)}
 							disabled={tenant.id === currentTenantId}
-							title={tenant.id === currentTenantId && 'Currently selected'}
+							title={tenant.id === currentTenantId ? t('tenantSelector.currentlySelected') : undefined}
 						>
-							{getTenantLabel(tenant)}
-						</option>
+							<span className="flex items-center gap-3 w-full">
+								<img src={tenantFavicons[tenant.id]} alt={tenant.displayName || t('tenantSelector.defaultTenant')} className="w-10 h-10 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg"></img>
+								<span className="flex flex-col items-start gap-0.5">
+									<span className="text-base">
+										{tenant.displayName || t('tenantSelector.defaultTenant')}
+										</span>
+									{tenant.userCount > 0 && (
+										<span className="text-xs text-lm-gray-800 dark:text-dm-gray-200">({t('tenantSelector.userCount', { count: tenant.userCount })})</span>
+									)}
+								</span>
+							</span>
+							{tenant.id === currentTenantId ? (
+								<CircleCheckIcon size={30} className="m-0.5 text-brand-base dark:text-dm-gray-200" />
+							) : <CircleIcon size={30} className="m-0.5 text-brand-base dark:text-dm-gray-200" />}
+						</Button>
 					))}
-				</select>
-				<span className="absolute right-2 top-[50%] transform -translate-y-[50%] pointer-events-none">
-					<ChevronDownIcon size={18} />
-				</span>
-			</div>
-		</div>
+				</ul>
+			</PopupLayout>
+		</>
 	);
 }
