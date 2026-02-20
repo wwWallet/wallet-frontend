@@ -37,12 +37,12 @@ COPY --from=builder --chown=nginx:nginx /home/node/app/config/ ./config/
 COPY --from=builder --chown=nginx:nginx /home/node/app/branding/ ./branding/
 
 # TODO: These should likely be pinned to specific versions
-RUN npm install -g tsx
+RUN npm install -g tsx@^4.21.0
 RUN cd ./config && npm install \
-	sharp \
-	jsdom \
-	zod \
-	color-convert
+	sharp@^0.34.5 \
+	jsdom@^28.0.0 \
+	zod@^3.23.8 \
+	color-convert@^3.1.3
 
 EXPOSE 80
 
