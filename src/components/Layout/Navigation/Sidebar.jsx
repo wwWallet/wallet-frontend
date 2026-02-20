@@ -115,7 +115,9 @@ const Sidebar = ({ isOpen, toggle }) => {
 								{displayName || username}
 							</span>
 						</div>
+						<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
+						{/* Nav Menu */}
 						<NavItem
 							id="home"
 							path={buildPath()}
