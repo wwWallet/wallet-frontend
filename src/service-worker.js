@@ -8,7 +8,9 @@ import { StaleWhileRevalidate } from "workbox-strategies";
 
 clientsClaim();
 
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST, {
+	ignoreURLParametersMatching: [/^v$/],
+});
 
 const SPA_ROUTE_ALLOWLIST = [
 	/^\/$/,                              // Home
