@@ -57,6 +57,18 @@ registerRoute(
 	})
 );
 
+registerRoute(
+	({ request }) => request.destination === "font",
+	new CacheFirst({
+		cacheName: "fonts",
+		plugins: [
+			new ExpirationPlugin({
+				maxEntries: 50,
+			}),
+		],
+	})
+);
+
 self.addEventListener('install', (event) => {
 	self.skipWaiting();
 });
