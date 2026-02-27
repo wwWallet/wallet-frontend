@@ -48,8 +48,8 @@ export default defineConfig(({ mode }) => {
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.VITE_GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
 					additionalManifestEntries: [
-						{ url: "/manifest.json", revision: null },
-						{ url: "/favicon.ico", revision: null },
+						{ url: "/manifest.json", revision: env.VITE_BRANDING_HASH },
+						{ url: "/favicon.ico", revision: env.VITE_BRANDING_HASH },
 					],
 				},
 			}),
