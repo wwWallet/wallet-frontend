@@ -80,7 +80,7 @@ const Credential = () => {
 		if (!cachedUser) {
 			return;
 		}
-		const result = await api.syncPrivateData(cachedUser);
+		const result = await api.syncPrivateData(cachedUser, keystore);
 		if (!result.ok) {
 			setLoading(false);
 			return;
