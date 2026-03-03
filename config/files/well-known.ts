@@ -45,7 +45,7 @@ type AndroidAssetLinks = Array<{
 function generateAndroidAssetLinks(packages: unknown): FileToWrite<AndroidAssetLinks> | undefined {
 	if (typeof packages !== 'string') return;
 
-	let pkgsList = new Map<string, string[]>();
+	const pkgsList = new Map<string, string[]>();
 
 	for (const pkg of packages.split(',')) {
 		const [pkgName, fingerprint] = pkg.split('::').map(str => str.trim());
