@@ -66,28 +66,41 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
 
   Now, open the .env file and fill in the variables according to your own configuration. Below is an explanation for each variable:
 
-  - HOST: The IP address where your app will be running (default is '0.0.0.0').
-  - PORT: The port on which your app will run (default is 3000).
-  - VITE_WS_URL: The URL of the websocket service.
-  - VITE_WALLET_BACKEND_URL: The URL of your backend service.
-  - VITE_LOGIN_WITH_PASSWORD: A Boolean value which show/hide the classic login/signup.
-  - VITE_DISPLAY_CONSOLE: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
-  - VITE_INACTIVE_LOGOUT_SECONDS: Session will time out after approximately this time in seconds since the last user activity (default is 15 minutes).
-  - VITE_WEBAUTHN_RPID: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
-  - VITE_OPENID4VCI_REDIRECT_URI: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
-  - VITE_OPENID4VP_SAN_DNS_CHECK: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri (`true` or `false`).
-  - VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
-  - VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
-  - VITE_MULTI_LANGUAGE_DISPLAY: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
-  - VITE_CLOCK_TOLERANCE: Αpplied on the verification of timestamps in credential signatures (default is 60 seconds).
-  - VITE_STATIC_PUBLIC_URL: The installation's public url
-  - VITE_STATIC_NAME: The installation's public name
-  - VITE_I18N_WALLET_NAME_OVERRIDE: String to override translations of common.walletName (Optional)
-  - VITE_DISPLAY_ISSUANCE_WARNINGS: Enable or disable (`true` or `false`) the display of the issuance warnings popup
-  - VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: Configure the maximum accepted batch size during an OpenID4VCI flow
-  - VITE_WELLKNOWN_APPLE_APPIDS: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
-  - VITE_WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
-  - VITE_VCT_REGISTRY_URL: URL of the Type Metadata registry for SD-JWT VC credentials.
+  **Build-time variables (Vite):**
+  - `HOST`: The IP address where your app will be running (default is '0.0.0.0').
+  - `PORT`: The port on which your app will run (default is 3000).
+  - `GENERATE_SOURCEMAP`: Generate source maps for debugging (`true` or `false`).
+  - `APP_VERSION`: Application version (default: `$npm_package_version`).
+
+  **Runtime variables (injected at container startup):**
+  - `BASE_PATH`: Base path for asset loading (default is `/`). Used for sub-path deployments.
+  - `WS_URL`: The URL of the websocket service.
+  - `WALLET_BACKEND_URL`: The URL of your backend service.
+  - `LOGIN_WITH_PASSWORD`: A Boolean value which show/hide the classic login/signup.
+  - `DID_KEY_VERSION`: DID key version format (e.g., `jwk_jcs-pub`).
+  - `DISPLAY_CONSOLE`: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
+  - `WEBAUTHN_RPID`: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
+  - `OPENID4VCI_REDIRECT_URI`: Redirect uri after authentication and token request at the authorization server in OID4VCI flow.
+  - `OPENID4VCI_PROOF_TYPE_PRECEDENCE`: Proof type precedence for OID4VCI (e.g., `"attestation,jwt"`).
+  - `OPENID4VP_SAN_DNS_CHECK`: Verify at the OID4VP incoming authorization request that the SAN contained in the certificate is the same with the response_uri (`true` or `false`).
+  - `OPENID4VP_SAN_DNS_CHECK_SSL_CERTS`: Flag to switch (`true` or `false`) the Subject Alternative Name validation of the certificates during the OpenID4VP.
+  - `VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS`: Flag to switch (`true` or `false`) the validation of issued credentials with the registered trust anchors that were defined in the wallet-backend-server.
+  - `MULTI_LANGUAGE_DISPLAY`: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
+  - `STATIC_PUBLIC_URL`: The installation's public url.
+  - `STATIC_NAME`: The installation's public name.
+  - `I18N_WALLET_NAME_OVERRIDE`: String to override translations of common.walletName (Optional).
+  - `FOLD_EVENT_HISTORY_AFTER_SECONDS`: Fold history events older than this value in seconds (default: 2592000 = 30 days).
+  - `DISPLAY_ISSUANCE_WARNINGS`: Enable or disable (`true` or `false`) the display of the issuance warnings popup.
+  - `OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE`: Configure the maximum accepted batch size during an OpenID4VCI flow.
+  - `OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS`: Polling interval in seconds for transaction ID.
+  - `OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS`: Lifetime in seconds of transaction ID.
+  - `OHTTP_KEY_CONFIG`: URL of OHTTP key config endpoint.
+  - `OHTTP_RELAY`: URL of OHTTP relay endpoint.
+  - `VCT_REGISTRY_URL`: URL of the Type Metadata registry for SD-JWT VC credentials.
+
+  **Well-known file generation:**
+  - `WELLKNOWN_APPLE_APPIDS`: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
+  - `WELLKNOWN_ANDROID_PACKAGE_NAMES_AND_FINGERPRINTS`: Used to generate the `.well-known/assetlinks.json` file, used for Android wrappers. This should be in the format `"<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,<PKG_NAME>::<FINGERPRINT>,..."` Can be left blank.
 
 - Install dependencies:
     ```bash

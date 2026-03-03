@@ -1,11 +1,14 @@
-const appMode = import.meta.env.MODE || 'development';
+import { BASE_PATH, MODE } from './config';
+
+const swScope = BASE_PATH.replace(/\/?$/, '/');
+const swPath = `${swScope}service-worker.js`;
 
 const tt = window.trustedTypes || window.TrustedTypes;
 
 const swPolicy = tt
 	? tt.createPolicy('sw-register', {
 		createScriptURL(url) {
-			if (url === '/service-worker.js') {
+			if (url === swPath) {
 				return url;
 			}
 			throw new TypeError('Untrusted service worker URL blocked by Trusted Types policy');
@@ -13,12 +16,11 @@ const swPolicy = tt
 	})
 	: null;
 
-if (appMode === 'production' && 'serviceWorker' in navigator) {
+if (MODE === 'production' && 'serviceWorker' in navigator) {
 	window.addEventListener('load', () => {
-		const swUrl = '/service-worker.js';
-		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swUrl) : swUrl;
+		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swPath) : swPath;
 		navigator.serviceWorker
-			.register(trustedSwUrl, { scope: '/' })
+			.register(trustedSwUrl, { scope: swScope })
 			.catch(err => {
 				console.error('Service worker registration failed:', err);
 			});

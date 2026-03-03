@@ -2,9 +2,11 @@
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, createHandlerBoundToURL, cleanupOutdatedCaches, } from "workbox-precaching";
+import { precacheAndRoute, cleanupOutdatedCaches, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate } from "workbox-strategies";
+
+const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 
 clientsClaim();
 
@@ -33,9 +35,16 @@ registerRoute(
 		if (url.pathname.startsWith("/_")) return false;
 		if (/\.[a-zA-Z0-9]+$/.test(url.pathname)) return false;
 
-		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(url.pathname));
+		const pathname = url.pathname.replace(/^(\/id\/([a-z0-9-]+))/, '');
+
+		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
-	createHandlerBoundToURL('/index.html')
+	async () => {
+		const indexPath = `${basePath}index.html`;
+		const cached = await caches.match(indexPath);
+
+		return cached || await fetch(indexPath);
+	}
 );
 
 registerRoute(

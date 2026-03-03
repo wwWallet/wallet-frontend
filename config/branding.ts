@@ -1,12 +1,10 @@
 import fs from "node:fs";
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
 import { z } from "zod";
 import convert, { RGB } from "color-convert";
-import { createFont, woff2 } from "fonteditor-core";
-import { fileURLToPath } from "node:url";
 
 // ============================================
 // TYPES
@@ -616,45 +614,58 @@ export class MetadataImage {
 </fontconfig>
 `;
 
+	private static fontsConfDirName = "fonts";
+
+	public static getFontsConfigDir(baseDir: string): string {
+		const fontsConfDir = path.resolve(baseDir, this.fontsConfDirName);
+		process.env.FONTCONFIG_PATH = fontsConfDir;
+
+		return fontsConfDir;
+	}
+
 	/**
-	 * Sets up a self-contained font environment:
-	 * 1. Converts a WOFF2 font to TTF for Node rendering.
-	 * 2. Writes the font and a minimal Fontconfig XML to a project directory.
-	 * 3. Sets FONTCONFIG_PATH so rendering libraries can find the font.
-	 *
-	 * The reason for converting from WOFF2 to TTF is so we can keep using the
-	 * `@fontsource/inter` package and not need to bundle font files.
+	 * Check if `baseDir` contains the files required for a font environment.
+	 */
+	public static async hasFontsEnvironment(baseDir: string): Promise<boolean> {
+		const fontsConfDir = this.getFontsConfigDir(baseDir);
+
+		try {
+			const dir = await readdir(fontsConfDir);
+
+			if (!dir.includes("fonts.conf")) return false;
+			if (dir.filter((name) => name.endsWith(".ttf")).length < 1) return false;
+
+			return true;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Sets up a self-contained font environment.
 	 */
 	public static async setupFontsEnvironment(baseDir: string) {
-		const fontsConfDir = path.resolve(baseDir, "fonts");
-		const inputFontFiles = [
-			import.meta.resolve("@fontsource/inter/files/inter-latin-600-normal.woff2"),
-		];
+		const fontsConfDir = this.getFontsConfigDir(baseDir);
 
-		await woff2.init();
 		await mkdir(fontsConfDir, { recursive: true });
 
-		for (const input of inputFontFiles) {
-			const inputBuffer = await readFile(fileURLToPath(input));
+		const fontUrls = [
+			"https://cdn.jsdelivr.net/fontsource/fonts/inter@5.2.8/latin-600-normal.ttf",
+		];
 
-			const font = createFont(inputBuffer, {
-				type: "woff2",
-				hinting: true,
-				kerning: true,
-			});
+		for (const fontUrl of fontUrls) {
+			const res = await fetch(fontUrl);
+			if (!res.ok) {
+				throw new Error(`Failed to fetch font: ${res.status} ${res.statusText}`);
+			}
 
-			const outputBuffer = font.write({
-				type: "ttf",
-				hinting: true,
-				kerning: true,
-			});
+			const fontBuffer = Buffer.from(await res.arrayBuffer());
 
-			await writeFile(path.join(fontsConfDir, path.basename(input)), outputBuffer as Buffer);
+			await writeFile(path.join(fontsConfDir, path.basename(fontUrl)), fontBuffer);
+			console.log(`Font written: ${path.join(fontsConfDir, path.basename(fontUrl))}`);
 		}
 
 		await writeFile(path.join(fontsConfDir, "fonts.conf"), MetadataImage.FONTCONFIG_XML);
-
-		process.env.FONTCONFIG_PATH = fontsConfDir;
 	}
 
 	/**
