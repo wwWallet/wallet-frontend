@@ -45,18 +45,23 @@ type AndroidAssetLinks = Array<{
 function generateAndroidAssetLinks(packages: unknown): FileToWrite<AndroidAssetLinks> | undefined {
 	if (typeof packages !== 'string') return;
 
-	const pkgsList = packages
-		.split(',')
-		.map(item => {
-			const [pkgName, fingerprints] = item.split('::').map(str => str.trim());
+	let pkgsList = new Map<string, string[]>();
 
-			return pkgName && fingerprints ? { pkgName, fingerprints } : null;
-		})
-		.filter(pkg => pkg !== null);
+	for (const pkg of packages.split(',')) {
+		const [pkgName, fingerprint] = pkg.split('::').map(str => str.trim());
 
-	if (pkgsList.length < 1) return;
+		if (!pkgName || !fingerprint) continue;
 
-	const tmpl = pkgsList.map(({ pkgName, fingerprints}) => ({
+		if (!pkgsList.has(pkgName)) {
+			pkgsList.set(pkgName, []);
+		}
+
+		pkgsList.get(pkgName).push(fingerprint);
+	}
+
+	if (pkgsList.size < 1) return;
+
+	const tmpl = pkgsList.entries().map(([pkgName, fingerprints]) => ({
 		'relation': [
 			'delegate_permission/common.handle_all_urls',
 			'delegate_permission/common.get_login_creds'
@@ -64,9 +69,9 @@ function generateAndroidAssetLinks(packages: unknown): FileToWrite<AndroidAssetL
 		'target': {
 			'namespace': 'android_app',
 			'package_name': pkgName,
-			'sha256_cert_fingerprints': [fingerprints]
+			'sha256_cert_fingerprints': fingerprints,
 		}
-	})) satisfies AndroidAssetLinks;
+	})).toArray() satisfies AndroidAssetLinks;
 
 	return {
 		filename: 'assetlinks.json',
