@@ -5,10 +5,12 @@ import Logo from '../../Logo/Logo';
 import { Trans, useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
+import TenantSelector from '@/components/TenantSelector';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
 import CounterBadge from '@/components/Shared/CounterBadge';
-import { Bell, History, LogOut, PlusCircle, Send, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
+import { Bell, Building2Icon, History, LogOut, PlusCircle, Send, Settings, ShieldHalf, UserCircle, Wallet } from 'lucide-react';
 
 const NavItem = ({ icon: Icon, id, label, handleNavigate, location, path, alias, counter, notificationIcon, className = '' }) => {
 	const isActive = location.pathname === path || location.pathname === alias;
@@ -42,6 +44,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { api, logout, obliviousKeyConfig } = useContext(SessionContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
+	const { buildPath, effectiveTenantId } = useTenant();
 	const { username, displayName } = api.getSession();
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -75,7 +78,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<div className="md:hidden flex items-center justify-between mb-4">
 					<div className='flex items-center'>
 						<Logo aClassName='mr-2' imgClassName='w-10 h-auto' />
-						<a href={('/')}
+						<a href={buildPath()}
 							className=" text-xl font-bold cursor-pointer"
 						>
 							{t('common.walletName')}
@@ -85,7 +88,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 				<div>
 					<div className="hidden md:flex md:gap-4 justify-between items-center mb-4">
 						<Logo aClassName='w-4/12' imgClassName='object-contain' />
-						<a href={('/')}
+						<a href={buildPath()}
 							className=" text-xl font-bold cursor-pointer w-8/12"
 						>
 							{t('common.walletName')}
@@ -112,14 +115,12 @@ const Sidebar = ({ isOpen, toggle }) => {
 								{displayName || username}
 							</span>
 						</div>
-
 						<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 
 						{/* Nav Menu */}
 						<NavItem
-							id="credentials"
-							path="/"
-							alias="/cb"
+							id="home"
+							path={buildPath()}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Wallet}
@@ -130,7 +131,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="add"
-							path="/add"
+							path={buildPath('add')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={PlusCircle}
@@ -140,7 +141,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="send"
-							path="/send"
+							path={buildPath('send')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Send}
@@ -150,7 +151,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="history"
-							path="/history"
+							path={buildPath('history')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={History}
@@ -160,7 +161,7 @@ const Sidebar = ({ isOpen, toggle }) => {
 
 						<NavItem
 							id="settings"
-							path="/settings"
+							path={buildPath('settings')}
 							location={location}
 							handleNavigate={handleNavigate}
 							icon={Settings}
@@ -189,20 +190,35 @@ const Sidebar = ({ isOpen, toggle }) => {
 				</div>
 			</div>
 
-			{/* Powered By */}
-			<div className=" text-sm space-x-2 p-2">
-				<Trans
-					i18nKey="sidebar.poweredBy"
-					components={{
-						docLinkWalletGithub: <a
-							href="https://github.com/wwWallet"
-							rel="noreferrer"
-							target='blank_'
-							className="underline"
-							aria-label={t('sidebar.poweredbyAriaLabel')}
-						/>
-					}}
+			{/* Bottom Section - Tenant Selector + Powered By */}
+			<div className="flex flex-col gap-1">
+				<TenantSelector
+					currentTenantId={effectiveTenantId}
+					isAuthenticated={true}
+					button={
+						<button className="cursor-pointer flex items-center space-x-2 p-2 rounded-lg hover:bg-lm-gray-400 dark:hover:bg-dm-gray-500 transition-colors w-full">
+							<Building2Icon size={20} className="m-1" /> {t('tenantSelector.label')}
+						</button>
+					}
 				/>
+
+				<hr className="my-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
+
+				{/* Powered By */}
+				<div className="text-sm p-2">
+					<Trans
+						i18nKey="sidebar.poweredBy"
+						components={{
+							docLinkWalletGithub: <a
+								href="https://github.com/wwWallet"
+								rel="noreferrer"
+								target='blank_'
+								className="underline"
+								aria-label={t('sidebar.poweredbyAriaLabel')}
+							/>
+						}}
+					/>
+				</div>
 			</div>
 		</div>
 	);

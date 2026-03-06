@@ -8,6 +8,7 @@ import i18n from '@/i18n';
 // Contexts
 import SessionContext from '@/context/SessionContext';
 import CredentialsContext from '@/context/CredentialsContext';
+import { useTenant } from '@/context/TenantContext';
 import { useCredentialName } from '@/hooks/useCredentialName';
 
 // Hooks
@@ -33,6 +34,7 @@ import { BookCheck, QrCode } from 'lucide-react';
 const Credential = () => {
 	const { batchId } = useParams();
 	const { api, keystore } = useContext(SessionContext);
+	const { buildPath } = useTenant();
 	const history = useFetchPresentations(keystore, batchId, null);
 	const [showDeletePopup, setShowDeletePopup] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -51,9 +53,9 @@ const Credential = () => {
 
 	useEffect(() => {
 		if (vcEntity === undefined) {
-			navigate(`/${window.location.search}`, { replace: true });
+			navigate(`${buildPath()}${window.location.search}`, { replace: true });
 		}
-	}, [vcEntity, navigate]);
+	}, [vcEntity, navigate, buildPath]);
 
 	const credentialName = useCredentialName(
 		vcEntity?.parsedCredential?.metadata?.credential?.name,
@@ -191,7 +193,7 @@ const Credential = () => {
 							<Button
 								id="navigate-credential-history"
 								variant="primary"
-								onClick={() => navigate(`/credential/${batchId}/history`)}
+								onClick={() => navigate(buildPath(`credential/${batchId}/history`))}
 								additionalClassName='w-full my-2'
 							>
 								{t('pageCredentials.presentationsTitle')}
@@ -199,7 +201,7 @@ const Credential = () => {
 							<Button
 								id="navigate-credential-details"
 								variant="primary"
-								onClick={() => navigate(`/credential/${batchId}/details`)}
+								onClick={() => navigate(buildPath(`credential/${batchId}/details`))}
 								additionalClassName='w-full my-2'
 							>
 								{t('pageCredentials.datasetTitle')}

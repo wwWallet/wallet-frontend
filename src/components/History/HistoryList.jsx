@@ -7,6 +7,7 @@ import HistoryDetailPopup from '../Popups/HistoryDetailPopup';
 
 // Context
 import SessionContext from '@/context/SessionContext';
+import { useTenant } from '@/context/TenantContext';
 import useFetchPresentations from '@/hooks/useFetchPresentations';
 import { reverse, compareBy } from '@/util';
 
@@ -20,6 +21,7 @@ import Button from '../Buttons/Button';
 function HistoryListView({ batchId = null, title = '', limit = null, history = {} }) {
 	const navigate = useNavigate();
 	const screenType = useScreenType();
+	const { buildPath } = useTenant();
 
 	// normalize in case history is [] (some callers return [] on empty)
 	const groups = useMemo(() => {
@@ -38,7 +40,7 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 
 	const handleHistoryItemClick = (item) => {
 		const transactionId = item[0].presentation.transactionId;
-		if (screenType === 'mobile') navigate(`/history/${transactionId}`);
+		if (screenType === 'mobile') navigate(buildPath(`history/${transactionId}`));
 		else {
 			setSelectedByTx(item);
 			setImageModalOpen(true);

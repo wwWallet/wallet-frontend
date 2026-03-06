@@ -329,6 +329,20 @@
 		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "GitHub repository του wwWallet"
 	},
+	"tenantSelector": {
+		"closePopup": "Κλείσιμο παραθύρου",
+		"currentTenantHeading": "Τρέχον tenant",
+		"currentlySelected": "Επιλεγμένο",
+		"defaultTenant": "Προεπιλογή",
+		"description": "Επιλογή tenant",
+		"label": "Αλλαγή Tenant",
+		"selectOtherTenant": "Επιλογή άλλου tenant",
+		"selectTenant": "Επιλογή tenant",
+		"switchActiveTenant": "Αλλαγή ενεργού tenant",
+		"switchDescription": "Η αλλαγή tenant θα σας αποσυνδέσει από την τρέχουσα συνεδρία του πορτοφολιού σας",
+		"userCount_one": "{{count}} χρήστης",
+		"userCount_other": "{{count}} χρήστες"
+	},
 	"tourGuide": {
 		"closeTourButton": "Κλείσιμο Ξενάγησης",
 		"tourComplete": "Ευχαριστούμε που ολοκληρώσατε την ξενάγηση, ελπίζουμε να σας ήταν χρήσιμη!",

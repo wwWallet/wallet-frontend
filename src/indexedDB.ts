@@ -1,5 +1,6 @@
 // src/indexedDB.ts
 import localforage from 'localforage';
+import { getTenantScopedBasePath } from './lib/tenant';
 // import { UserId } from './api/types';
 // import { fromBase64Url } from './util';
 
@@ -44,6 +45,13 @@ function getMappedStoreName(storeName: string): string {
 	if (storeName.includes('well-known')) {
 		return 'externalEntities';
 	}
+
+	// Check for tenant-prefixed paths (e.g., /t/myTenant/issuer/all)
+	const basePath = getTenantScopedBasePath(storeName);
+	if (basePath) {
+		return 'externalEntities';
+	}
+
 	const mappedStoreName = storeNameMapping[storeName];
 	if (!mappedStoreName) {
 		throw new Error(`Store name ${storeName} does not exist in the mapping.`);

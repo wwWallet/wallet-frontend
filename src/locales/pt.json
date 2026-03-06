@@ -305,6 +305,20 @@
 		"poweredBy": "Desenvolvido por <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
 		"poweredByAriaLabel": "Repositório GitHub da wwWallet"
 	},
+	"tenantSelector": {
+		"closePopup": "Fechar popup",
+		"currentTenantHeading": "Tenant atual",
+		"currentlySelected": "Selecionado atualmente",
+		"defaultTenant": "Predefinição",
+		"description": "Selecionar tenant",
+		"label": "Mudar Tenant",
+		"selectOtherTenant": "Selecionar outro tenant",
+		"selectTenant": "Selecionar tenant",
+		"switchActiveTenant": "Mudar tenant ativo",
+		"switchDescription": "Mudar de tenant irá terminar a sua sessão atual da carteira",
+		"userCount_one": "{{count}} utilizador",
+		"userCount_other": "{{count}} utilizadores"
+	},
 	"tourGuide": {
 		"closeTourButton": "Fechar apresentação",
 		"tourComplete": "Obrigado por ter concluído esta apresentação. Esperamos ter ajudado!",
