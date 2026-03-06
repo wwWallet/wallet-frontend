@@ -7,6 +7,7 @@ import { encryptedHttpRequest, toArrayBuffer } from '@/lib/utils/ohttpHelpers';
 import { OHTTP_RELAY } from "@/config";
 import SessionContext from '@/context/SessionContext';
 import { toU8 } from '@/util';
+import { getStoredTenant } from '@/lib/tenant';
 
 // @ts-ignore
 const walletBackendServerUrl = import.meta.env.VITE_WALLET_BACKEND_URL;
@@ -140,6 +141,7 @@ export function useHttpProxy(): IHttpProxy {
 							}
 						}
 					} else {
+						const tenantId = getStoredTenant() || 'default';
 						response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 							headers,
 							url,
@@ -148,6 +150,7 @@ export function useHttpProxy(): IHttpProxy {
 							timeout: TIMEOUT,
 							headers: {
 								Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
+								'X-Tenant-ID': tenantId,
 							},
 							...(isBinaryRequest && { responseType: 'arraybuffer' }),
 						}
@@ -303,6 +306,7 @@ export function useHttpProxy(): IHttpProxy {
 						response.data.data = new TextDecoder().decode(response.data.data);
 					}
 				} else {
+					const tenantId = getStoredTenant() || 'default';
 					response = await axios.post(`${walletBackendServerUrl}/proxy`, {
 						headers: headers,
 						url: url,
@@ -311,7 +315,8 @@ export function useHttpProxy(): IHttpProxy {
 					}, {
 						timeout: TIMEOUT,
 						headers: {
-							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken'))
+							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')),
+							'X-Tenant-ID': tenantId,
 						}
 					});
 				}
