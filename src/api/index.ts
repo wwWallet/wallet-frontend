@@ -551,12 +551,17 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			// The urlTenantId is kept for redirect handling after tenant discovery.
 			console.log("Login: using global endpoint, urlTenant for redirect:", urlTenantId);
 
+			// Use URL tenant ID for infrastructure routing (falls back to 'default')
+			const loginTenantId = urlTenantId || 'default';
+
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
 				if (isOnline) {
-					const beginResp = await post('/user/login-webauthn-begin', {});
+					const beginResp = await post('/user/login-webauthn-begin', {}, {
+						headers: { 'X-Tenant-ID': loginTenantId },
+					});
 					console.log("begin", beginResp);
 					return beginResp.data;
 				}
@@ -613,6 +618,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							authenticatorAttachment: credential.authenticatorAttachment,
 							clientExtensionResults: credential.getClientExtensionResults(),
 						},
+					}, {
+						headers: { 'X-Tenant-ID': loginTenantId },
 					}));
 				}
 				else {
@@ -768,6 +775,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								authenticatorAttachment: credential.authenticatorAttachment,
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
+						}, {
+							headers: { 'X-Tenant-ID': storedTenant },
 						}));
 
 						// Store the tenant from the response, falling back to 'default' if not provided

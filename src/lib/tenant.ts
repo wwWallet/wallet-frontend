@@ -253,6 +253,22 @@ export function getKnownTenants(
 }
 
 /**
+ * Extract tenant ID from the current URL path.
+ * This is useful for non-React contexts where hooks cannot be used.
+ *
+ * URL structure:
+ * - /id/{tenantId}/* -> returns tenantId
+ * - /* (root paths) -> returns 'default'
+ *
+ * @returns The tenant ID from URL, or 'default' for root paths
+ */
+export function getTenantFromUrlPath(): string {
+	const pathname = window.location.pathname;
+	const match = pathname.match(/^\/id\/([^/]+)/);
+	return match ? match[1] : DEFAULT_TENANT_ID;
+}
+
+/**
  * Filter cached users based on tenant ID.
  * - If tenantId is undefined (global login): show default tenant users AND legacy users (no tenant info)
  * - If tenantId is defined: show matching users AND legacy users (no tenant info for backwards compatibility)
