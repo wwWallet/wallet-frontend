@@ -14,7 +14,7 @@ export default defineConfig(async ({ mode }) => {
 	mkdirSync(resolve('public'), { recursive: true });
 
 	return {
-		base: '/',
+		base: './',
 		define: {
 			'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
 		},
