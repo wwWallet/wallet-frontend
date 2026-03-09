@@ -40,7 +40,7 @@ WORKDIR /usr/share/nginx/
 
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY ./nginx/docker-entrypoint.d/wallet-config.sh /docker-entrypoint.d/wallet-config.sh
-COPY ./utils/apply_branding.sh /home/node/app/
+COPY ./utils/create_custom_branding_resources.sh /home/node/app/
 
 COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ ./html/
 COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ ./dist/
