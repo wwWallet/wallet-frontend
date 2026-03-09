@@ -14,7 +14,10 @@ export default defineConfig(async ({ mode }) => {
 	mkdirSync(resolve('public'), { recursive: true });
 
 	return {
-		base: '/',
+		base: './',
+		define: {
+			'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
+		},
 		plugins: [
 			InjectConfigPlugin(env),
 			react(),
@@ -34,6 +37,10 @@ export default defineConfig(async ({ mode }) => {
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
+					additionalManifestEntries: [
+						{ url: `${env.BASE_PATH.replace(/\/?$/, '/') || '/'}manifest.json`, revision: env.BRANDING_HASH },
+						{ url: `${env.BASE_PATH.replace(/\/?$/, '/') || '/'}favicon.ico`, revision: env.BRANDING_HASH },
+					],
 				},
 			}),
 
