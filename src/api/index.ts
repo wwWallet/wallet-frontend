@@ -73,7 +73,6 @@ export interface BackendApi {
 			| 'passkeyLoginFailedTryAgain'
 			| 'passkeyLoginFailedServerError'
 			| 'x-private-data-etag'
-			| { errorId: 'tenantDiscovered', tenantId: string }
 		>
 	>,
 	signupWebauthn(
@@ -103,13 +102,7 @@ export interface BackendApi {
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
-		| { errorId: 'tenantDiscovered', tenantId: string }
 	>>;
-
-	/** Get the current tenant ID (from session storage) */
-	getTenantId(): string | undefined,
-	/** Set the current tenant ID (stored in session storage) */
-	setTenantId(tenantId: string): void,
 }
 
 export function useApi(isOnlineProp: boolean = true): BackendApi {
@@ -551,7 +544,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		| 'passkeyLoginFailedTryAgain'
 		| 'passkeyLoginFailedServerError'
 		| 'x-private-data-etag'
-		| { errorId: 'tenantDiscovered', tenantId: string }
 	>> => {
 		try {
 			// Login always uses global endpoints - the backend discovers the tenant
@@ -559,12 +551,16 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			// The urlTenantId is kept for redirect handling after tenant discovery.
 			console.log("Login: using global endpoint, urlTenant for redirect:", urlTenantId);
 
+			const loginTenantId = urlTenantId || 'default';
+
 			const beginData = await (async (): Promise<{
 				challengeId?: string,
 				getOptions: { publicKey: PublicKeyCredentialRequestOptions },
 			}> => {
 				if (isOnline) {
-					const beginResp = await post('/user/login-webauthn-begin', {});
+					const beginResp = await post('/user/login-webauthn-begin', {}, {
+						headers: { 'X-Tenant-ID': loginTenantId },
+					});
 					console.log("begin", beginResp);
 					return beginResp.data;
 				}
@@ -621,6 +617,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 							authenticatorAttachment: credential.authenticatorAttachment,
 							clientExtensionResults: credential.getClientExtensionResults(),
 						},
+					}, {
+						headers: { 'X-Tenant-ID': loginTenantId },
 					}));
 				}
 				else {
@@ -684,14 +682,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 
 		} catch (e) {
 			console.error("Login failed", e);
-
-			// Handle 409 tenant redirect - user's passkey belongs to a different tenant
-			// This enables "tenant discovery from passkey" when logging in via global endpoint
-			if (e?.response?.status === 409 && e?.response?.data?.redirect_tenant) {
-				const discoveredTenant = e.response.data.redirect_tenant;
-				console.log("Login: tenant redirect required to:", discoveredTenant);
-				return Err({ errorId: 'tenantDiscovered', tenantId: discoveredTenant });
-			}
 
 			if (e?.response?.status === 403) {
 				// Tenant access denied - passkey belongs to different tenant
@@ -784,6 +774,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 								authenticatorAttachment: credential.authenticatorAttachment,
 								clientExtensionResults: credential.getClientExtensionResults(),
 							},
+						}, {
+							headers: { 'X-Tenant-ID': storedTenant },
 						}));
 
 						// Store the tenant from the response, falling back to 'default' if not provided
@@ -877,10 +869,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		removeEventListener,
 
 		syncPrivateData,
-
-		// Tenant utilities
-		getTenantId: getStoredTenant,
-		setTenantId: setStoredTenant,
 	}), [
 		del,
 		get,

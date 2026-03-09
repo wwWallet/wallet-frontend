@@ -34,13 +34,6 @@ const WebauthnLogin = ({
 			} else {
 				const err = result.val;
 
-				// Handle tenant discovery error - redirect to tenant-specific login
-				if (typeof err === 'object' && err.errorId === 'tenantDiscovered') {
-					console.log('Tenant discovered during sync login:', err.tenantId, '- redirecting with auto-retry...');
-					navigate(`${buildTenantRoutePath(err.tenantId, 'login')}?autoRetry=true`, { replace: true });
-					return;
-				}
-
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (err) {
 					case 'loginKeystoreFailed':
