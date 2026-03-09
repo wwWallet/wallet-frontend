@@ -2,7 +2,7 @@ import { useMemo, useRef, useContext, useEffect } from 'react';
 import axios, { AxiosError, AxiosHeaders } from 'axios';
 import { IHttpProxy, RequestHeaders, ResponseHeaders } from '../../interfaces/IHttpProxy';
 import StatusContext from '@/context/StatusContext';
-import { addItem, getItem, removeItem } from '@/indexedDB';
+import { addItem, getItem } from '@/indexedDB';
 import { encryptedHttpRequest, toArrayBuffer } from '@/lib/utils/ohttpHelpers';
 import { BACKEND_URL, OHTTP_RELAY } from "@/config";
 import SessionContext from '@/context/SessionContext';
@@ -269,16 +269,13 @@ export function useHttpProxy(): IHttpProxy {
 					}
 
 					const fallback = await getItem('proxyCache', cacheKey, 'proxyCache');
+
 					if (fallback?.data) {
 						return {
 							status: 200,
 							headers: {},
 							data: fallback.data,
 						};
-					}
-
-					if (isOnlineRef.current) {
-						await removeItem('proxyCache', cacheKey, 'proxyCache');
 					}
 
 					return {
