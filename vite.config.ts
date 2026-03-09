@@ -38,8 +38,8 @@ export default defineConfig(async ({ mode }) => {
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
 					additionalManifestEntries: [
-						{ url: `${env.BASE_PATH.replace(/\/?$/, '/') || '/'}manifest.json`, revision: env.BRANDING_HASH },
-						{ url: `${env.BASE_PATH.replace(/\/?$/, '/') || '/'}favicon.ico`, revision: env.BRANDING_HASH },
+						{ url: './manifest.json', revision: env.BRANDING_HASH },
+						{ url: './favicon.ico', revision: env.BRANDING_HASH },
 					],
 				},
 			}),
