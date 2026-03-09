@@ -39,12 +39,7 @@ registerRoute(
 
 		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
-	async () => {
-		const indexPath = `${basePath}index.html`;
-		const cached = await caches.match(indexPath);
-
-		return cached || await fetch(indexPath);
-	}
+	createHandlerBoundToURL(`${basePath}index.html`)
 );
 
 registerRoute(
