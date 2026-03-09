@@ -2,7 +2,7 @@
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, cleanupOutdatedCaches, } from "workbox-precaching";
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
 
