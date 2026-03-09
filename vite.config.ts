@@ -17,7 +17,7 @@ export default defineConfig(async ({ mode }) => {
 		base: '/',
 		define: {
 			'import.meta.env.VITE_APP_VERSION': JSON.stringify(process.env.npm_package_version),
-    },
+		},
 		plugins: [
 			InjectConfigPlugin(env),
 			react(),
