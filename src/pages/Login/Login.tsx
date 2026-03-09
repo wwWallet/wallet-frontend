@@ -21,6 +21,7 @@ import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, Wallet, X
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import PasskeyInfoPopup from '@/components/Popups/PasskeyInfoPopup';
+import { usePolicyLinks } from '@/hooks/usePolicyLinks';
 
 const FormInputRow = ({
 	IconComponent,
@@ -222,6 +223,7 @@ const WebauthnSignupLogin = ({
 	const [resolvePrfRetryPrompt, setResolvePrfRetryPrompt] = useState<(accept: boolean) => void>(null);
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 
+	const { hasPolicyLinks } = usePolicyLinks();
 	const { t } = useTranslation();
 	const [retrySignupFrom, setRetrySignupFrom] = useState(null);
 
@@ -500,7 +502,7 @@ const WebauthnSignupLogin = ({
 										</div>
 									</div>
 								</FormInputRow>
-								{PolicyLinks && (
+								{hasPolicyLinks && (
 									<label className="mb-4 text-sm relative block pl-6">
 										<input className="absolute top-1 left-0 w-4 h-4 accent-primary cursor-pointer" type="checkbox" required />
 										<span>
