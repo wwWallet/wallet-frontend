@@ -551,7 +551,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			// The urlTenantId is kept for redirect handling after tenant discovery.
 			console.log("Login: using global endpoint, urlTenant for redirect:", urlTenantId);
 
-			// Use URL tenant ID for infrastructure routing (falls back to 'default')
 			const loginTenantId = urlTenantId || 'default';
 
 			const beginData = await (async (): Promise<{
