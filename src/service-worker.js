@@ -55,7 +55,10 @@ registerRoute(
 	})
 );
 
+let isFirstVisit = false;
+
 self.addEventListener('install', (event) => {
+	isFirstVisit = !self.registration.active;
 	self.skipWaiting();
 });
 
@@ -76,10 +79,13 @@ self.addEventListener("activate", (event) => {
 
 			// Claim and reload clients
 			await self.clients.claim();
-			const clients = await self.clients.matchAll();
-			clients.forEach((client) => {
-				client.navigate(client.url);
-			});
+
+			if (!isFirstVisit) {
+				const clients = await self.clients.matchAll();
+				clients.forEach((client) => {
+					client.navigate(client.url);
+				});
+			}
 		})()
 	);
 });
