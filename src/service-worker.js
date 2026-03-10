@@ -4,11 +4,13 @@ import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
 import { precacheAndRoute, createHandlerBoundToURL, cleanupOutdatedCaches, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
-import { StaleWhileRevalidate } from "workbox-strategies";
+import { StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
 
 clientsClaim();
 
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST, {
+	ignoreURLParametersMatching: [/^v$/],
+});
 
 const SPA_ROUTE_ALLOWLIST = [
 	/^\/$/,                              // Home
@@ -55,13 +57,24 @@ registerRoute(
 	})
 );
 
+registerRoute(
+	({ request }) => request.destination === "font",
+	new CacheFirst({
+		cacheName: "fonts",
+		plugins: [
+			new ExpirationPlugin({
+				maxEntries: 50,
+			}),
+		],
+	})
+);
+
 let isFirstVisit = false;
 
 self.addEventListener('install', (event) => {
 	isFirstVisit = !self.registration.active;
 	self.skipWaiting();
 });
-
 
 self.addEventListener("activate", (event) => {
 	event.waitUntil(
