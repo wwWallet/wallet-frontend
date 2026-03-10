@@ -20,9 +20,6 @@ on:
       - 'feature/**'
       - 'fix/**'
       - 'develop'
-    # Don't trigger on master - separate release workflow handles that
-    branches-ignore:
-      - master
   pull_request:
     branches:
       - master
