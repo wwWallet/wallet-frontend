@@ -177,7 +177,7 @@ export function useOpenID4VP({
 			if (responseData.redirect_uri) {
 				return { url: responseData.redirect_uri };
 			}
-			if (!res.status.toString().startsWith('2')) {
+			if (res.status >= 400) {
 				throw new Error(`Direct post to verifier failed with status ${res.status}`);
 			}
 			showStatusPopup({
