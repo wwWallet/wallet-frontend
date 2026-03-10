@@ -3,7 +3,7 @@ set -e
 
 # Available options from environment variables:
 # BRANDING_OUTPUT_BASE_PATH: Branding directory in which "custom/*" should be created (required)
-# BRAND_THEME_JSON: JSON formatted theme configuration
+# BRANDING_THEME_JSON: JSON formatted theme configuration
 # BRANDING_FAVICON: Data URL with favicon ("image/vnd.microsoft.icon")
 # BRANDING_LOGO_LIGHT: Data URL with logo light ("image/png" or "image/svg")
 # BRANDING_LOGO_DARK: Data URL with logo dark ("image/png" or "image/svg")
@@ -38,11 +38,11 @@ OUTPUT_PATH="${BRANDING_OUTPUT_BASE_PATH}/custom"
 mkdir -p "${OUTPUT_PATH}/logo"
 
 # -------------------------------------------------------------------------------------------------
-if [ -n "${BRAND_THEME_JSON}" ]; then
+if [ -n "${BRANDING_THEME_JSON}" ]; then
 	log INFO "Processing custom theme JSON"
 
 	log INFO "Writing custom theme JSON to output file"
-	echo "${BRAND_THEME_JSON}" > "${OUTPUT_PATH}/theme.json"
+	echo "${BRANDING_THEME_JSON}" > "${OUTPUT_PATH}/theme.json"
 fi
 
 # -------------------------------------------------------------------------------------------------
