@@ -1,8 +1,8 @@
-import { readdir, rm, writeFile } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
-import { copyScreenshots, findLogoFiles, generateAllIcons, getBrandingHash } from './branding';
-import { ClientMetaConfigSchema, EnvConfigMap, getMetaConfigFromEnvConfig } from './config';
+import { findLogoFiles } from './branding';
+import { EnvConfigMap, getMetaConfigFromEnvConfig } from './config';
 import robotsTxt from './files/robots';
 import wellKnownFiles from './files/well-known';
 import sitemapXml from './files/sitemap';
@@ -105,7 +105,7 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 	(function injectGeneralMetaTags() {
 		if (!tagsToInject) return;
 
-		for (const [_, tagDef] of tagsToInject) {
+		for (const [, tagDef] of tagsToInject) {
 			insertTag(document, head, tagDef);
 		}
 	})();
