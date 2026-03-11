@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 import CredentialImage from './CredentialImage';
 import { useCredentialName } from '@/hooks/useCredentialName';
 
-const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick }) => {
+const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick, fixedRatio }) => {
 	const { t } = useTranslation();
 
 	const credentialName = useCredentialName(
@@ -32,6 +32,7 @@ const CredentialSlideCard = ({ vcEntity, isActive, latestCredentials, onClick })
 				parsedCredential={vcEntity.parsedCredential}
 				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
 					}`}
+				fixedRatio={fixedRatio}
 			/>
 		</button>
 	);

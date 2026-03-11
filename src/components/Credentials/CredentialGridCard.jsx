@@ -4,7 +4,7 @@ import i18n from '@/i18n';
 import { useCredentialName } from '@/hooks/useCredentialName';
 import CredentialImage from './CredentialImage';
 
-const CredentialGridCard = ({ vcEntity, onClick, latestCredentials }) => {
+const CredentialGridCard = ({ vcEntity, onClick, latestCredentials, fixedRatio }) => {
 	const { t } = useTranslation();
 
 	const credentialName = useCredentialName(
@@ -31,6 +31,7 @@ const CredentialGridCard = ({ vcEntity, onClick, latestCredentials }) => {
 				parsedCredential={vcEntity.parsedCredential}
 				className={`w-full h-full object-cover rounded-xl ${latestCredentials.has(vcEntity.batchId) ? 'highlight-filter' : ''
 					}`}
+				fixedRatio={fixedRatio}
 			/>
 		</button>
 	);

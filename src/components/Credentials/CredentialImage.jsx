@@ -4,7 +4,17 @@ import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
 
-const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEntityInstances = null, filter = null, onLoad, borderColor = undefined }) => {
+const CredentialImage = ({
+	vcEntity,
+	className,
+	onClick,
+	showRibbon = true,
+	vcEntityInstances = null,
+	filter = null,
+	onLoad,
+	borderColor = undefined,
+	fixedRatio = true
+}) => {
 	const [imageSrc, setImageSrc] = useState(undefined);
 
 	useEffect(() => {
@@ -44,13 +54,20 @@ const CredentialImage = ({ vcEntity, className, onClick, showRibbon = true, vcEn
 		<>
 			{vcEntity && imageSrc ? (
 				<>
-					<img src={imageSrc} alt={"Credential"} className={className} onClick={onClick} />
-					{showRibbon &&
-						<ExpiredRibbon vcEntity={vcEntity} borderColor={borderColor} />
-					}
-					{showRibbon &&
-						<UsagesRibbon vcEntityInstances={vcEntityInstances} borderColor={borderColor} />
-					}
+					<div className={`relative w-full overflow-visible ${fixedRatio ? 'aspect-[1.6]' : ''}`}>
+						<img
+							src={imageSrc}
+							alt="Credential"
+							className={`w-full h-full w-full h-full object-cover object-top ${className ?? ''}`}
+							onClick={onClick}
+						/>
+						{showRibbon &&
+							<ExpiredRibbon vcEntity={vcEntity} borderColor={borderColor} />
+						}
+						{showRibbon &&
+							<UsagesRibbon vcEntityInstances={vcEntityInstances} borderColor={borderColor} />
+						}
+					</div>
 				</>
 			) : (
 				<CredentialCardSkeleton />
