@@ -15,12 +15,6 @@ import { pathWithBase } from './utils/paths';
 
 export type InjectConfigOptions = {
 	/**
-	 * The directory containing the built assets.
-	 *
-	 * TODO: figure out if we should use this.
-	 */
-	bundleDir?: string;
-	/**
 	 * The directory to write the configuration-dependant files to.
 	 */
 	destDir: string;
@@ -35,7 +29,7 @@ export type InjectConfigOptions = {
 	tagsToInject?: TagsMap
 }
 
-export async function injectConfigFiles({ bundleDir, destDir, config, tagsToInject }: InjectConfigOptions) {
+export async function injectConfigFiles({ destDir, config, tagsToInject }: InjectConfigOptions) {
 	if (await readdir(destDir).catch(() => false) === false) {
 		throw new Error(`Destination directory ${destDir} does not exist or is not readable.`);
 	}
