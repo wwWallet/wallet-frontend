@@ -44,7 +44,7 @@
     "typescript": "^5.1.6",
     "uuid": "^9.0.0",
     "vite-plugin-pwa": "^0.21.1",
-    "wallet-common": "git+https://github.com/sirosfoundation/wallet-common.git#ffd8f32",
+    "wallet-common": "git+https://github.com/sirosfoundation/wallet-common.git#b9eeb9d",
     "web-vitals": "^2.1.4",
     "workbox-core": "^7.3.0",
     "workbox-expiration": "^7.3.0",
