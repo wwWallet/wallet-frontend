@@ -60,9 +60,9 @@ const PasskeyInfoPopup = () => {
 							</svg>
 						</button>
 					</div>
-					<div className="mb-6">
-						<p className="mb-2">{t('passkeyInfoPopup.description1')}</p>
-						<p className="mb-2">{t('passkeyInfoPopup.description2')}</p>
+					<div className="mb-6 space-y-2">
+						<p>{t('passkeyInfoPopup.description1')}</p>
+						<p>{t('passkeyInfoPopup.description2')}</p>
 					</div>
 					<ul>
 						{Object.entries(passKeyTypes).map(([key, { label, description, icon: Icon }]) => (
