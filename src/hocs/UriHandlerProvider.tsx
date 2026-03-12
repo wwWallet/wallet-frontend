@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
@@ -19,6 +19,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
+	const usedPreAuthorizedCodes = useRef<string[]>([]);
 
 	const { isLoggedIn, api, keystore, logout } = useContext(SessionContext);
 	const { syncPrivateData } = api;
@@ -139,6 +140,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					console.log("Generating authorization request...");
 					if (!preAuthorizedCode) {
 						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
+					} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
+						throw new Error("Already used pre-authorized code");
 					}
 
 					let userInput: string | undefined = undefined;
@@ -153,6 +156,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 							}
 						}
 					}
+					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
 					if ('url' in res && typeof res.url === 'string' && res.url) {

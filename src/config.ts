@@ -1,34 +1,59 @@
+import { type ClientMetaConfig } from '../config';
 export type DidKeyVersion = "p256-pub" | "jwk_jcs-pub";
 
-export const APP_VERSION = import.meta.env.VITE_APP_VERSION;
-export const BACKEND_URL = import.meta.env.VITE_WALLET_BACKEND_URL;
-export const DID_KEY_VERSION: DidKeyVersion = import.meta.env.VITE_DID_KEY_VERSION as DidKeyVersion;
-export const DISPLAY_CONSOLE = import.meta.env.VITE_DISPLAY_CONSOLE;
+type Config = ClientMetaConfig & Record<string, string | undefined>;
 
-export const MULTI_LANGUAGE_DISPLAY: boolean = import.meta.env.VITE_MULTI_LANGUAGE_DISPLAY ? JSON.parse(import.meta.env.VITE_MULTI_LANGUAGE_DISPLAY) : false;
-export const I18N_WALLET_NAME_OVERRIDE: string | undefined = import.meta.env.VITE_I18N_WALLET_NAME_OVERRIDE;
-export const INACTIVE_LOGOUT_MILLIS = (import.meta.env.VITE_INACTIVE_LOGOUT_SECONDS ? parseInt(import.meta.env.VITE_INACTIVE_LOGOUT_SECONDS, 10) : 60 * 15) * 1000
-export const LOGIN_WITH_PASSWORD: boolean = import.meta.env.VITE_LOGIN_WITH_PASSWORD ? JSON.parse(import.meta.env.VITE_LOGIN_WITH_PASSWORD) === true : false;
-export const WEBAUTHN_RPID = import.meta.env.VITE_WEBAUTHN_RPID ?? "localhost";
-export const WS_URL = import.meta.env.VITE_WS_URL;
-export const OPENID4VP_SAN_DNS_CHECK = import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK ? import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK === 'true' : false;
-export const OPENID4VP_SAN_DNS_CHECK_SSL_CERTS = import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS ? import.meta.env.VITE_OPENID4VP_SAN_DNS_CHECK_SSL_CERTS === 'true' : false;
-export const VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS = import.meta.env.VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS ? import.meta.env.VITE_VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS  === 'true' : false;
-export const OPENID4VCI_REDIRECT_URI = import.meta.env.VITE_OPENID4VCI_REDIRECT_URI ?  import.meta.env.VITE_OPENID4VCI_REDIRECT_URI : "http://localhost:3000/";
-export const CLOCK_TOLERANCE = import.meta.env.VITE_CLOCK_TOLERANCE && !isNaN(parseInt(import.meta.env.VITE_CLOCK_TOLERANCE)) ? parseInt(import.meta.env.VITE_CLOCK_TOLERANCE) : 60;
-export const VITE_STATIC_PUBLIC_URL = import.meta.env.VITE_STATIC_PUBLIC_URL || 'https://demo.wwwallet.org';
-export const VITE_STATIC_NAME = import.meta.env.VITE_STATIC_NAME || 'wwWallet';
-export const OPENID4VCI_PROOF_TYPE_PRECEDENCE = import.meta.env.VITE_OPENID4VCI_PROOF_TYPE_PRECEDENCE || 'jwt';
-export const FOLD_EVENT_HISTORY_AFTER_SECONDS = import.meta.env.VITE_FOLD_EVENT_HISTORY_AFTER_SECONDS && !isNaN(parseInt(import.meta.env.VITE_FOLD_EVENT_HISTORY_AFTER_SECONDS)) ? parseInt(import.meta.env.VITE_FOLD_EVENT_HISTORY_AFTER_SECONDS) : 2592000; // 30 days
-export const VITE_DISPLAY_ISSUANCE_WARNINGS: boolean = import.meta.env.VITE_DISPLAY_ISSUANCE_WARNINGS ? JSON.parse(import.meta.env.VITE_DISPLAY_ISSUANCE_WARNINGS) : false;
-export const OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: number = import.meta.env.VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE && !isNaN(parseInt(import.meta.env.VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE)) ? parseInt(import.meta.env.VITE_OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE) : 10;
-export const OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS = import.meta.env.VITE_OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS && !isNaN(parseInt(import.meta.env.VITE_OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS)) ? parseInt(import.meta.env.VITE_OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS) : 200;
-export const OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS = import.meta.env.VITE_OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS && !isNaN(parseInt(import.meta.env.VITE_OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS)) ? parseInt(import.meta.env.VITE_OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS) : 2592000;
-export const OHTTP_KEY_CONFIG = import.meta.env.VITE_OHTTP_KEY_CONFIG;
-export const OHTTP_RELAY = import.meta.env.VITE_OHTTP_RELAY;
-export const VCT_REGISTRY_URL: string | undefined = import.meta.env.VITE_VCT_REGISTRY_URL;
-export const POLICY_LINKS = import.meta.env.VITE_POLICY_LINKS;
+const config: Config = {};
+
+(function () {
+	if (typeof window === 'undefined') {
+		console.warn('Config injection is only supported in a browser environment.');
+		return;
+	}
+
+	const metaTag = document.querySelector('meta[name="www:config"]');
+	if (metaTag) {
+		try {
+			const content = metaTag.getAttribute('content');
+			if (content) {
+				Object.assign(config, JSON.parse(content));
+			}
+		} catch (error) {
+			console.error('Failed to parse config from meta tag:', error);
+		}
+	}
+})();
+export const BASE_PATH = config.base_path || '/';
+export const BACKEND_URL = config.wallet_backend_url;
+export const DID_KEY_VERSION: DidKeyVersion = config.did_key_version as DidKeyVersion;
+export const DISPLAY_CONSOLE = config.display_console;
+export const MULTI_LANGUAGE_DISPLAY: boolean = config.multi_language_display ? JSON.parse(config.multi_language_display) : false;
+export const I18N_WALLET_NAME_OVERRIDE: string | undefined = config.i18n_wallet_name_override;
+export const INACTIVE_LOGOUT_MILLIS = (config.inactive_logout_seconds ? parseInt(config.inactive_logout_seconds, 10) : 60 * 15) * 1000
+export const LOGIN_WITH_PASSWORD: boolean = config.login_with_password ? JSON.parse(config.login_with_password) === true : false;
+export const WEBAUTHN_RPID = config.webauthn_rpid ?? "localhost";
+export const WS_URL = config.ws_url;
+export const OPENID4VP_SAN_DNS_CHECK = config.openid4vp_san_dns_check ? config.openid4vp_san_dns_check === 'true' : false;
+export const OPENID4VP_SAN_DNS_CHECK_SSL_CERTS = config.openid4vp_san_dns_check_ssl_certs ? config.openid4vp_san_dns_check_ssl_certs === 'true' : false;
+export const VALIDATE_CREDENTIALS_WITH_TRUST_ANCHORS = config.validate_credentials_with_trust_anchors ? config.validate_credentials_with_trust_anchors  === 'true' : false;
+export const OPENID4VCI_REDIRECT_URI = config.openid4vci_redirect_uri ?  config.openid4vci_redirect_uri : "http://localhost:3000/";
+export const CLOCK_TOLERANCE = config.clock_tolerance && !isNaN(parseInt(config.clock_tolerance)) ? parseInt(config.clock_tolerance) : 60;
+export const STATIC_PUBLIC_URL = config.static_public_url || 'https://demo.wwwallet.org';
+export const STATIC_NAME = config.static_name || 'wwWallet';
+export const OPENID4VCI_PROOF_TYPE_PRECEDENCE = config.openid4vci_proof_type_precedence || 'jwt';
+export const FOLD_EVENT_HISTORY_AFTER_SECONDS = config.fold_event_history_after_seconds && !isNaN(parseInt(config.fold_event_history_after_seconds)) ? parseInt(config.fold_event_history_after_seconds) : 2592000; // 30 days
+export const DISPLAY_ISSUANCE_WARNINGS: boolean = config.display_issuance_warnings ? JSON.parse(config.display_issuance_warnings) : false;
+export const OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: number = config.openid4vci_max_accepted_batch_size && !isNaN(parseInt(config.openid4vci_max_accepted_batch_size)) ? parseInt(config.openid4vci_max_accepted_batch_size) : 10;
+export const OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS = config.openid4vci_transaction_id_polling_interval_in_seconds && !isNaN(parseInt(config.openid4vci_transaction_id_polling_interval_in_seconds)) ? parseInt(config.openid4vci_transaction_id_polling_interval_in_seconds) : 200;
+export const OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS = config.openid4vci_transaction_id_lifetime_in_seconds && !isNaN(parseInt(config.openid4vci_transaction_id_lifetime_in_seconds)) ? parseInt(config.openid4vci_transaction_id_lifetime_in_seconds) : 2592000;
+export const OHTTP_KEY_CONFIG = config.ohttp_key_config;
+export const OHTTP_RELAY = config.ohttp_relay;
+export const VCT_REGISTRY_URL: string | undefined = config.vct_registry_url;
+export const POLICY_LINKS = config.policy_links;
 export const BRANDING = {
-	LOGO_LIGHT: import.meta.env.BRANDING_LOGO_LIGHT,
-	LOGO_DARK: import.meta.env.BRANDING_LOGO_DARK,
+	LOGO_LIGHT: config.branding?.logo_light || '/logo_light.svg',
+	LOGO_DARK: config.branding?.logo_dark || '/logo_dark.svg',
 }
+
+export const MODE = import.meta.env.MODE as 'development' | 'production' || 'production';
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION;
