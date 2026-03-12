@@ -1,5 +1,5 @@
 import { Tag } from "./resources";
-import { ClientEnvConfig, ClientMetaConfig, type EnvConfigMap } from '../config';
+import { ClientMetaConfig } from '../config';
 
 export function getTagSortingPriority(el: Element): number {
 	const tag = el.tagName.toLowerCase();
@@ -22,7 +22,7 @@ export function getTagSortingPriority(el: Element): number {
 		(tag === 'link' && /icon/i.test(rel)) ||
 		(tag === 'link' && rel === 'manifest') ||
 		(tag === 'meta' && name === 'theme-color') ||
-		(tag == 'link' && /theme.css/i.test(href))
+		(tag === 'link' && /theme.css/i.test(href))
 	) return 4;
 
 	// description, keywords, og:*, twitter:*

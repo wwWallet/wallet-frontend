@@ -132,6 +132,7 @@ const Home = () => {
 															vcEntity={vcEntity}
 															latestCredentials={latestCredentials}
 															onClick={handleImageClick}
+															fixedRatio={false}
 														/>
 													))}
 												</div>

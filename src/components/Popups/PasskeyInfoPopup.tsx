@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { FingerprintIcon, QrCodeIcon } from "lucide-react";
 import PopupLayout from "./PopupLayout";
 import { UsbStickDotIcon } from "../Shared/CustomIcons";
-import Button from "../Buttons/Button";
 
 const PasskeyInfoPopup = () => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -33,19 +32,16 @@ const PasskeyInfoPopup = () => {
 			description: t('passkeyInfoPopup.otherDeviceDescription'),
 			icon: QrCodeIcon,
 		},
-	}
+	};
 
 	return (
 		<>
-			<Button
-				variant="link"
+			<button
+				className="relative mt-4 p-6 sm:px-12 w-full flex justify-center cursor-pointer font-semibold rounded-lg hover:bg-lm-gray-200 hover:dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 hover:border-lm-gray-600 dark:hover:border-dm-gray-400"
 				onClick={handleOpen}
-				linkClassName="font-semibold no-underline!"
-				aria-expanded={isOpen}
-				aria-haspopup="dialog"
 			>
 				{t('passkeyInfoPopup.triggerButton')}
-			</Button>
+			</button>
 			{isOpen && (
 				<PopupLayout padding="p-4 md:p-8" isOpen={isOpen} onClose={handleClose} shouldCloseOnOverlayClick={true}>
 					<div className="flex items-start justify-between mb-4" role="dialog" aria-modal="true" aria-labelledby="passkey-info-title">
@@ -64,9 +60,9 @@ const PasskeyInfoPopup = () => {
 							</svg>
 						</button>
 					</div>
-					<div className="mb-6">
-						<p className="mb-2">{t('passkeyInfoPopup.description1')}</p>
-						<p className="mb-2">{t('passkeyInfoPopup.description2')}</p>
+					<div className="mb-6 space-y-2">
+						<p>{t('passkeyInfoPopup.description1')}</p>
+						<p>{t('passkeyInfoPopup.description2')}</p>
 					</div>
 					<ul>
 						{Object.entries(passKeyTypes).map(([key, { label, description, icon: Icon }]) => (

@@ -42,7 +42,7 @@ const UsageStats = ({ zeroSigCount, sigTotal, screenType, t }) => {
 	);
 };
 
-const CredentialLayout = ({ children, title = null, displayCredentialInfo = null }) => {
+const CredentialLayout = ({ children, title = null, displayCredentialInfo = null, fixedRatioImage = true }) => {
 	const { batchId } = useParams();
 	const screenType = useScreenType();
 	const [showFullscreenImgPopup, setShowFullscreenImgPopup] = useState(false);
@@ -74,6 +74,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		onClick = () => setShowFullscreenImgPopup(true),
 		ariaLabel,
 		title,
+		fixedRatioImage = false
 	}) => (
 		<button
 			id="show-full-screen-credential"
@@ -87,6 +88,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				parsedCredential={vcEntity.parsedCredential}
 				className={className}
 				showRibbon={showRibbon}
+				fixedRatio={fixedRatioImage}
 			/>
 		</button>
 	);
@@ -95,7 +97,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		<div className="w-full flex flex-col lg:flex-row gap-4">
 			{/* LEFT COLUMN (always full width, shrinks on lg) */}
 			<div className="w-full lg:w-1/2 flex flex-col gap-4">
-				<CredentialImageButton showRibbon />
+				<CredentialImageButton showRibbon fixedRatioImage={false} />
 				{zeroSigCount !== null && sigTotal && (
 					<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
@@ -120,7 +122,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		<div className="w-full flex flex-col">
 			<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
 				<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
-					<CredentialImageButton showRibbon={false} />
+					<CredentialImageButton showRibbon={false} fixedRatioImage={fixedRatioImage} />
 					{screenType !== 'mobile' && zeroSigCount !== null && sigTotal && (
 						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
@@ -179,7 +181,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			<PageDescription description={t('pageCredentials.details.description')} />
 
 			<div className={`w-full flex flex-col ${displayCredentialInfo && screenType === 'desktop' ? 'lg:flex-row gap-4' : ''} mt-0 lg:mt-5 px-2`}>
-				{screenType === 'desktop' && displayCredentialInfo ? <DesktopLayout /> : <MobileLayout />}
+				{ (screenType === 'desktop' || !fixedRatioImage) ? <DesktopLayout /> : <MobileLayout />}
 			</div>
 			{/* Fullscreen credential Popup*/}
 			{showFullscreenImgPopup && (
@@ -187,7 +189,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage vcEntity={vcEntity} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} />
+						<CredentialImage vcEntity={vcEntity} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} fixedRatio={false} />
 					}
 				/>
 			)}

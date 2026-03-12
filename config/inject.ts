@@ -1,8 +1,8 @@
-import { readdir, rm, writeFile } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
-import { copyScreenshots, findLogoFiles, generateAllIcons, getBrandingHash } from './branding';
-import { ClientMetaConfigSchema, EnvConfigMap, getMetaConfigFromEnvConfig } from './config';
+import { findLogoFiles } from './branding';
+import { EnvConfigMap, getMetaConfigFromEnvConfig } from './config';
 import robotsTxt from './files/robots';
 import wellKnownFiles from './files/well-known';
 import sitemapXml from './files/sitemap';
@@ -14,12 +14,6 @@ import { configMetaTag, getTagSortingPriority, insertTag } from './utils/tags';
 import { pathWithBase } from './utils/paths';
 
 export type InjectConfigOptions = {
-	/**
-	 * The directory containing the built assets.
-	 *
-	 * TODO: figure out if we should use this.
-	 */
-	bundleDir?: string;
 	/**
 	 * The directory to write the configuration-dependant files to.
 	 */
@@ -35,7 +29,7 @@ export type InjectConfigOptions = {
 	tagsToInject?: TagsMap
 }
 
-export async function injectConfigFiles({ bundleDir, destDir, config, tagsToInject }: InjectConfigOptions) {
+export async function injectConfigFiles({ destDir, config, tagsToInject }: InjectConfigOptions) {
 	if (await readdir(destDir).catch(() => false) === false) {
 		throw new Error(`Destination directory ${destDir} does not exist or is not readable.`);
 	}
@@ -105,7 +99,7 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 	(function injectGeneralMetaTags() {
 		if (!tagsToInject) return;
 
-		for (const [_, tagDef] of tagsToInject) {
+		for (const [, tagDef] of tagsToInject) {
 			insertTag(document, head, tagDef);
 		}
 	})();

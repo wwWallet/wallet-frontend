@@ -1,5 +1,5 @@
-import { POWERED_BY } from '@/config';
 import { Trans, useTranslation } from 'react-i18next';
+import { POWERED_BY } from '@/config';
 
 interface PoweredByProps {
 	className?: string;
@@ -10,6 +10,7 @@ const DEFAULT_NAME = 'wwWallet';
 const DEFAULT_URL = 'https://github.com/wwWallet';
 
 function parsePoweredBy(): { name: string; url: string } {
+
 	if (!POWERED_BY || typeof POWERED_BY !== 'string') {
 		return { name: DEFAULT_NAME, url: DEFAULT_URL };
 	}
