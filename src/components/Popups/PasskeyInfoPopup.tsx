@@ -32,7 +32,7 @@ const PasskeyInfoPopup = () => {
 			description: t('passkeyInfoPopup.otherDeviceDescription'),
 			icon: QrCodeIcon,
 		},
-	}
+	};
 
 	return (
 		<>
