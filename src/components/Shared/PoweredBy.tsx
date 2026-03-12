@@ -1,4 +1,5 @@
 import { Trans, useTranslation } from 'react-i18next';
+import { POWERED_BY } from '@/config';
 
 interface PoweredByProps {
 	className?: string;
@@ -9,13 +10,12 @@ const DEFAULT_NAME = 'wwWallet';
 const DEFAULT_URL = 'https://github.com/wwWallet';
 
 function parsePoweredBy(): { name: string; url: string } {
-	const envValue = import.meta.env.VITE_POWERED_BY;
 
-	if (!envValue || typeof envValue !== 'string') {
+	if (!POWERED_BY || typeof POWERED_BY !== 'string') {
 		return { name: DEFAULT_NAME, url: DEFAULT_URL };
 	}
 
-	const parts = envValue.split('::');
+	const parts = POWERED_BY.split('::');
 	if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
 		return { name: DEFAULT_NAME, url: DEFAULT_URL };
 	}
