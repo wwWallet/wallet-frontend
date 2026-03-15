@@ -106,7 +106,25 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 
 	// Inject meta tags
 	(function injectConfigMetaTags() {
-		const metaConfig = getMetaConfigFromEnvConfig(config);
+		const existingMetaTag = document.querySelector('meta[name="www:config"]');
+		let existingMetaConfig = {};
+
+		if (existingMetaTag) {
+			const existingContent = existingMetaTag.getAttribute('content');
+
+			if (existingContent) {
+				try {
+					existingMetaConfig = JSON.parse(existingContent);
+				} catch (error) {
+					console.warn('Failed to parse existing www:config meta tag:', error);
+				}
+			}
+		}
+
+		const metaConfig = {
+			...existingMetaConfig,
+			...getMetaConfigFromEnvConfig(config),
+		};
 
 		// Add branding logo meta tags
 		const { logo_light, logo_dark } = findLogoFiles(resolve('branding'));
