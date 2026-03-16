@@ -4,7 +4,7 @@ import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
-import { StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
 
 const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 
@@ -31,6 +31,12 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/history\/[^/]+$/,                // History detail
 ];
 
+const appShellHandler = createHandlerBoundToURL(`${basePath}index.html`);
+const appShellStrategy = new NetworkFirst({
+	cacheName: "app-shell",
+	networkTimeoutSeconds: 3,
+});
+
 registerRoute(
 	({ request, url }) => {
 		if (request.mode !== "navigate") return false;
@@ -41,7 +47,24 @@ registerRoute(
 
 		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
-	createHandlerBoundToURL(`${basePath}index.html`)
+	async ({ event }) => {
+		const appShellUrl = new URL(`${basePath}index.html`, self.location.origin);
+
+		try {
+			const response = await appShellStrategy.handle({
+				event,
+				request: new Request(appShellUrl, {
+					credentials: "same-origin",
+				}),
+			});
+
+			if (response) {
+				return response;
+			}
+		} catch {}
+
+		return appShellHandler({ event });
+	}
 );
 
 registerRoute(
