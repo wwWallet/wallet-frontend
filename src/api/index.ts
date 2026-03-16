@@ -31,6 +31,8 @@ type SignupWebauthnError = (
 	| 'passkeySignupFinishFailedServerError'
 	| 'passkeySignupKeystoreFailed'
 	| 'passkeySignupPrfNotSupported'
+	| 'inviteRequired'
+	| 'inviteInvalid'
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
@@ -82,6 +84,7 @@ export interface BackendApi {
 		webauthnHints: string[],
 		retryFrom?: SignupWebauthnRetryParams,
 		tenantId?: string,
+		inviteCode?: string,
 	): Promise<Result<void, SignupWebauthnError>>,
 	updatePrivateData(newPrivateData: EncryptedContainer): Promise<void>,
 	updatePrivateDataEtag(resp: AxiosResponse): AxiosResponse,
@@ -701,7 +704,8 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		webauthnHints: string[],
 		retryFrom?: SignupWebauthnRetryParams,
-		tenantId?: string
+		tenantId?: string,
+		inviteCode?: string,
 	): Promise<Result<void, SignupWebauthnError>> => {
 		// Registration uses the global endpoint with tenantId in request body
 		// This ensures the passkey's userHandle encodes the tenant for proper isolation
@@ -712,6 +716,7 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 				'/user/register-webauthn-begin',
 				{
 					tenantId: storedTenant,
+					inviteCode,
 				},
 				{
 					headers: {
@@ -812,6 +817,9 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			}
 
 		} catch (e) {
+			const errorMsg = e?.response?.data?.error;
+			if (errorMsg === 'invite_required') return Err('inviteRequired');
+			if (errorMsg === 'invite_invalid') return Err('inviteInvalid');
 			return Err('passkeySignupFinishFailedServerError');
 		}
 	}, [post, updatePrivateDataEtag, setSession]);

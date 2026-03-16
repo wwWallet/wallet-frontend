@@ -87,6 +87,8 @@
 		"fillInFieldsError": "Please fill in all required fields",
 		"forgetCachedUser": "Click to Forget Cached User {{name}}",
 		"incorrectCredentialsError": "Incorrect username or password",
+		"inviteInvalid": "The invite code is invalid or has expired.",
+		"inviteRequired": "An invite code is required to register with this tenant.",
 		"login": "Login",
 		"loginAsUser": "Log in as {{name}}",
 		"loginCache": "Select your wallet account",
