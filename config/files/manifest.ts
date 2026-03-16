@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { copyScreenshots, generateAllIcons, Icons } from '../branding';
@@ -27,6 +28,10 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 
 	const manifestPath = resolve(destDir, 'manifest.json');
 	const manifestContent = JSON.stringify(manifest, null, 2);
+	const manifestRevision = getManifestRevision({
+		brandingHash,
+		name: config.STATIC_NAME || 'wwWallet',
+	});
 
 	await Promise.all([
 		writeFile(manifestPath, manifestContent, 'utf-8'),
@@ -37,7 +42,7 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 		tag: 'link',
 		props: {
 			rel: 'manifest',
-			href: pathWithBase(config.BASE_PATH, `manifest.json?v=${brandingHash}`),
+			href: pathWithBase(config.BASE_PATH, `manifest.json?v=${manifestRevision}`),
 		}
 	});
 	tagsToInject?.set('apple-touch-icon', {
@@ -54,6 +59,17 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 			href: pathWithBase(config.BASE_PATH, `favicon.ico?v=${brandingHash}`),
 		},
 	});
+}
+
+export function getManifestRevision({ brandingHash, name }: { brandingHash?: string; name?: string }) {
+	return crypto
+		.createHash('sha256')
+		.update(JSON.stringify({
+			brandingHash: brandingHash || '',
+			name: name || 'wwWallet',
+		}))
+		.digest('hex')
+		.slice(0, 12);
 }
 
 export type GenerateManifestOptions = {
