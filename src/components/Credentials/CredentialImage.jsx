@@ -13,12 +13,17 @@ const CredentialImage = ({
 	filter = null,
 	onLoad,
 	borderColor = undefined,
-	fixedRatio = true
+	fixedRatio = true,
+	preferredOrientation = fixedRatio ? 'landscape' : 'portrait',
 }) => {
 	const [imageSrc, setImageSrc] = useState(undefined);
 
 	useEffect(() => {
 		let isMounted = true;
+
+		const svgPreference = {
+			orientation: preferredOrientation,
+		};
 
 		async function loadImage() {
 			const imageFn = vcEntity?.parsedCredential?.metadata?.credential?.image?.dataUri;
@@ -29,7 +34,7 @@ const CredentialImage = ({
 			}
 
 			try {
-				const uri = await (filter !== null ? imageFn(filter) : imageFn());
+				const uri = await imageFn(filter ?? undefined, ['en-US'], svgPreference);
 				if (isMounted && uri) {
 					setImageSrc(uri);
 					onLoad?.();
@@ -48,7 +53,7 @@ const CredentialImage = ({
 		loadImage();
 
 		return () => { isMounted = false };
-	}, [vcEntity, filter, onLoad]);
+	}, [vcEntity, filter, fixedRatio, onLoad, preferredOrientation]);
 
 	return (
 		<>
