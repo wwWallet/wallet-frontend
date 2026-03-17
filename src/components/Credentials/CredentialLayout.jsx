@@ -72,7 +72,8 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		onClick = () => setShowFullscreenImgPopup(true),
 		ariaLabel,
 		title,
-		fixedRatioImage = false
+		fixedRatioImage = false,
+		preferredOrientation = fixedRatioImage ? 'landscape' : 'portrait',
 	}) => (
 		<button
 			id="show-full-screen-credential"
@@ -87,6 +88,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				className={className}
 				showRibbon={showRibbon}
 				fixedRatio={fixedRatioImage}
+				preferredOrientation={preferredOrientation}
 			/>
 		</button>
 	);
@@ -95,7 +97,11 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 		<div className="w-full flex flex-col lg:flex-row gap-4">
 			{/* LEFT COLUMN (always full width, shrinks on lg) */}
 			<div className="w-full lg:w-1/2 flex flex-col gap-4">
-				<CredentialImageButton showRibbon fixedRatioImage={false} />
+				<CredentialImageButton
+					showRibbon
+					fixedRatioImage={screenType === 'desktop'}
+					preferredOrientation={screenType === 'desktop' ? 'landscape' : 'portrait'}
+				/>
 				{zeroSigCount !== null && sigTotal && (
 					<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
@@ -179,7 +185,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			<PageDescription description={t('pageCredentials.details.description')} />
 
 			<div className={`w-full flex flex-col ${displayCredentialInfo && screenType === 'desktop' ? 'lg:flex-row gap-4' : ''} mt-0 lg:mt-5 px-2`}>
-				{ (screenType === 'desktop' || !fixedRatioImage) ? <DesktopLayout /> : <MobileLayout />}
+				{(screenType === 'desktop' || !fixedRatioImage) ? <DesktopLayout /> : <MobileLayout />}
 			</div>
 			{/* Fullscreen credential Popup*/}
 			{showFullscreenImgPopup && (
@@ -187,7 +193,13 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 					isOpen={showFullscreenImgPopup}
 					onClose={() => setShowFullscreenImgPopup(false)}
 					content={
-						<CredentialImage vcEntity={vcEntity} className={"max-w-full max-h-full rounded-xl"} showRibbon={false} fixedRatio={false} />
+						<CredentialImage
+							vcEntity={vcEntity}
+							className={"max-w-full max-h-full rounded-xl"}
+							showRibbon={false}
+							fixedRatio={screenType === 'desktop'}
+							preferredOrientation={screenType === 'desktop' ? 'landscape' : 'portrait'}
+						/>
 					}
 				/>
 			)}
