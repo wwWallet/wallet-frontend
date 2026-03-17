@@ -43,7 +43,6 @@ export function useHttpProxy(): IHttpProxy {
 				cacheOnError?: boolean;
 			}
 		): Promise<{ status: number; headers: ResponseHeaders; data: unknown }> {
-			const tenantId = getStoredTenant() || 'default';
 			const useCache = options?.useCache;
 			const cacheOnError = options?.cacheOnError ?? false;
 			const now = Math.floor(Date.now() / 1000);
@@ -124,8 +123,6 @@ export function useHttpProxy(): IHttpProxy {
 							method: 'GET',
 							headers: {
 								...headers,
-								// If request target is backend, include tenant id header in proxied request.
-								...(targetIsBackend && { 'X-Tenant-ID': tenantId }),
 							},
 							url,
 						})
@@ -175,7 +172,6 @@ export function useHttpProxy(): IHttpProxy {
 						response = await axios.get(url, {
 							headers: {
 								Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')!),
-								'X-Tenant-ID': tenantId,
 							},
 						});
 					} else {
@@ -313,7 +309,6 @@ export function useHttpProxy(): IHttpProxy {
 			body: any,
 			headers: Record<string, string>
 		): Promise<{ status: number; headers: Record<string, unknown>; data: unknown }> {
-			const tenantId = getStoredTenant() || 'default';
 			const shouldUseOblivious = obliviousKeyConfig !== null;
 			const targetIsBackend = (new URL(url)).origin === (new URL(BACKEND_URL)).origin;
 
@@ -330,8 +325,6 @@ export function useHttpProxy(): IHttpProxy {
 						method: 'POST',
 						headers: {
 							...headers,
-							// If request target is backend, include tenant id header in proxied request.
-							...(targetIsBackend && { 'X-Tenant-ID': tenantId }),
 						},
 						url,
 						body
@@ -378,7 +371,6 @@ export function useHttpProxy(): IHttpProxy {
 						timeout: TIMEOUT,
 						headers: {
 							Authorization: 'Bearer ' + JSON.parse(sessionStorage.getItem('appToken')),
-							'X-Tenant-ID': tenantId,
 						},
 					});
 				} else {
