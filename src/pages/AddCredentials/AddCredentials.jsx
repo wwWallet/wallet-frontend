@@ -153,7 +153,7 @@ const AddCredentials = () => {
 	}, [api, isOnline, openID4VCIHelper, openID4VCI, filterItemByLang]);
 
 	const handleCredentialConfigurationClick = async (credentialConfigurationIdWithCredentialIssuerIdentifier) => {
-		const result = await api.syncPrivateData(cachedUser);
+		const result = await api.syncPrivateData(cachedUser, keystore);
 		if (!result.ok) {
 			return {};
 		}
