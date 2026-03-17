@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
+import { useTenant } from '@/context/TenantContext';
 import { useQRScanner } from '../../../hooks/useQRScanner';
 import QRCodeScanner from '../../QRCodeScanner/QRCodeScanner';
 import CredentialsContext from '@/context/CredentialsContext';
@@ -11,16 +12,17 @@ import { Bell, PlusCircle, QrCode, Send, UserCircle, Wallet } from 'lucide-react
 const BottomNav = ({ isOpen, toggle }) => {
 	const { updateAvailable } = useContext(StatusContext);
 	const { pendingTransactions } = useContext(CredentialsContext);
+	const { buildPath } = useTenant();
 	const { isQRScannerOpen, openQRScanner, closeQRScanner } = useQRScanner();
 	const location = useLocation();
 	const navigate = useNavigate();
 	const { t } = useTranslation();
 
 	const navItems = [
-		{ icon: <Wallet size={20} />, id: 'credentials', path: '/', alias: '/cb', label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
-		{ icon: <PlusCircle size={20} />, id: 'add', path: '/add', label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
-		{ icon: <QrCode size={20} />, id: 'qr', path: '/qr', label: ``, stepClass: 'step-4', isQR: true }, // QR button
-		{ icon: <Send size={20} />, id: 'send', path: '/send', label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
+		{ icon: <Wallet size={20} />, id: 'credentials', path: buildPath(), alias: buildPath('cb'), label: `${t("common.navItemCredentials")}`, stepClass: 'step-2-small-screen', counter: pendingTransactions?.length ?? undefined, },
+		{ icon: <PlusCircle size={20} />, id: 'add', path: buildPath('add'), label: `${t("common.navItemAddCredentialsSimple")}`, stepClass: 'step-3-small-screen' },
+		{ icon: <QrCode size={20} />, id: 'qr', path: buildPath('qr'), label: ``, stepClass: 'step-4', isQR: true }, // QR button
+		{ icon: <Send size={20} />, id: 'send', path: buildPath('send'), label: `${t("common.navItemSendCredentialsSimple")}`, stepClass: 'step-5-small-screen' },
 	];
 
 	const handleNavigate = (path) => {

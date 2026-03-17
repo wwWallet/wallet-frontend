@@ -739,9 +739,9 @@ const Settings = () => {
 	const deleteAccount = async () => {
 		try {
 			await api.del('/user/session');
-			const userHandleB64u = new TextEncoder().encode(userData.uuid);
+			const userHandleB64u = keystore.getUserHandleB64u();
 			const cachedUser = keystore.getCachedUsers()
-				.find((cachedUser) => cachedUser.userHandleB64u === toBase64Url(userHandleB64u));
+				.find((cachedUser) => cachedUser.userHandleB64u === userHandleB64u);
 			if (cachedUser) {
 				keystore.forgetCachedUser(cachedUser);
 			}

@@ -1,0 +1,97 @@
+# Trigger E2E Tests for wallet-frontend commits
+#
+# This workflow triggers the CDP E2E test suite in wallet-e2e-tests
+# when code is pushed to feature branches.
+#
+# Requirements:
+#   - Secret E2E_TESTS_TOKEN: A GitHub token (PAT or fine-grained) with
+#     permission to trigger workflow dispatches in wallet-e2e-tests repo
+#
+# The e2e-tests workflow will:
+#   - Checkout this commit of wallet-frontend
+#   - Build and test with go-wallet-backend@main
+#   - Run full CDP test suite (WebAuthn, credential flows, trust integration)
+
+name: E2E Tests
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'fix/**'
+      - 'develop'
+    # Don't trigger on master - separate release workflow handles that
+    branches-ignore:
+      - master
+  pull_request:
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
+    inputs:
+      backend_ref:
+        description: 'go-wallet-backend ref to test against'
+        required: false
+        default: 'main'
+        type: string
+
+jobs:
+  trigger-e2e:
+    name: Trigger E2E Tests
+    runs-on: ubuntu-latest
+    # Only run if the secret is available (won't work on forks without the secret)
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && !github.event.repository.fork)
+
+    steps:
+      - name: Trigger E2E Tests in wallet-e2e-tests
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.E2E_TESTS_TOKEN }}
+          repository: sirosfoundation/wallet-e2e-tests
+          event-type: frontend-ci
+          client-payload: |
+            {
+              "frontend_ref": "${{ github.sha }}",
+              "frontend_repo": "${{ github.repository }}",
+              "backend_ref": "${{ github.event.inputs.backend_ref || 'main' }}",
+              "debug": "false"
+            }
+
+      - name: Log trigger details
+        run: |
+          echo "### E2E Tests Triggered" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Frontend commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View E2E test results at: https://github.com/sirosfoundation/wallet-e2e-tests/actions/workflows/frontend-ci.yml" >> $GITHUB_STEP_SUMMARY
+
+  # For PRs, add a status check that the tests are triggered
+  pr-check:
+    name: PR E2E Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Trigger E2E Tests
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.E2E_TESTS_TOKEN }}
+          repository: sirosfoundation/wallet-e2e-tests
+          event-type: frontend-ci
+          client-payload: |
+            {
+              "frontend_ref": "${{ github.event.pull_request.head.sha }}",
+              "frontend_repo": "${{ github.event.pull_request.head.repo.full_name }}",
+              "backend_ref": "main",
+              "debug": "false"
+            }
+
+      - name: PR Status
+        run: |
+          echo "### E2E Tests Triggered for PR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **PR**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Head SHA**: ${{ github.event.pull_request.head.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Base branch**: ${{ github.event.pull_request.base.ref }}" >> $GITHUB_STEP_SUMMARY
