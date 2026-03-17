@@ -7,9 +7,16 @@ import checker from 'vite-plugin-checker';
 import { VitePWA } from 'vite-plugin-pwa';
 import tailwindcss from '@tailwindcss/vite';
 import { InjectConfigPlugin } from './vite-plugins';
+import { getManifestRevision } from './config/files/manifest';
+import { getBrandingHash } from './config/branding';
 
 export default defineConfig(async ({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
+	const brandingHash = getBrandingHash(resolve('branding'));
+	const manifestRevision = getManifestRevision({
+		brandingHash,
+		name: env.STATIC_NAME || 'wwWallet',
+	});
 
 	mkdirSync(resolve('public'), { recursive: true });
 
@@ -38,8 +45,8 @@ export default defineConfig(async ({ mode }) => {
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
 					additionalManifestEntries: [
-						{ url: './manifest.json', revision: env.BRANDING_HASH },
-						{ url: './favicon.ico', revision: env.BRANDING_HASH },
+						{ url: './manifest.json', revision: manifestRevision },
+						{ url: './favicon.ico', revision: brandingHash },
 					],
 				},
 			}),
