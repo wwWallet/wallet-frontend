@@ -3,6 +3,7 @@ import ExpiredRibbon from './ExpiredRibbon';
 import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
+import { useTranslation } from 'react-i18next';
 
 const CredentialImage = ({
 	vcEntity,
@@ -17,6 +18,8 @@ const CredentialImage = ({
 	preferredOrientation = fixedRatio ? 'landscape' : 'portrait',
 }) => {
 	const [imageSrc, setImageSrc] = useState(undefined);
+	const { i18n } = useTranslation();
+	const preferredLangs = i18n.languages;
 
 	useEffect(() => {
 		let isMounted = true;
@@ -34,7 +37,7 @@ const CredentialImage = ({
 			}
 
 			try {
-				const uri = await imageFn(filter ?? undefined, ['en-US'], svgPreference);
+				const uri = await imageFn(filter ?? undefined, preferredLangs, svgPreference);
 				if (isMounted && uri) {
 					setImageSrc(uri);
 					onLoad?.();
@@ -53,7 +56,7 @@ const CredentialImage = ({
 		loadImage();
 
 		return () => { isMounted = false };
-	}, [vcEntity, filter, fixedRatio, onLoad, preferredOrientation]);
+	}, [vcEntity, filter, fixedRatio, onLoad, preferredLangs, preferredOrientation]);
 
 	return (
 		<>
