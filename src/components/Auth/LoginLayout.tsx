@@ -10,7 +10,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 
 	return (
 		<section className="bg-lm-gray-100 dark:bg-dm-gray-900 min-h-dvh flex flex-col">
-			{screenType !== 'desktop' && (
+			{config.SHOW_PWA_INSTALL_PROMPT && screenType !== 'desktop' && (
 				<PWAInstallPrompt />
 			)}
 
@@ -25,7 +25,7 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 					{children}
 				</div>
 
-				{screenType === 'desktop' && (
+				{config.SHOW_PWA_INSTALL_PROMPT && screenType === 'desktop' && (
 					<PWAInstallPrompt />
 				)}
 			</div>
