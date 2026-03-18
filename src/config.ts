@@ -50,7 +50,6 @@ export const OHTTP_KEY_CONFIG = config.ohttp_key_config;
 export const OHTTP_RELAY = config.ohttp_relay;
 export const VCT_REGISTRY_URL: string | undefined = config.vct_registry_url;
 export const POLICY_LINKS = config.policy_links;
-export const POWERED_BY = config.powered_by;
 export const SHOW_PWA_INSTALL_PROMPT = config.show_pwa_install_prompt === 'true';
 export const BRANDING = {
 	LOGO_LIGHT: config.branding?.logo_light || '/logo_light.svg',

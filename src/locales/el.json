@@ -346,8 +346,8 @@
 	},
 	"sidebar": {
 		"navItemLogout": "Αποσύνδεση",
-		"poweredBy": "Powered by <docLinkWalletGithub>{{name}}</docLinkWalletGithub>",
-		"poweredByAriaLabel": "Επισκεφθείτε {{name}}"
+		"poweredBy": "Powered by <docLinkWalletGithub>wwWallet</docLinkWalletGithub>",
+		"poweredByAriaLabel": "GitHub repository του wwWallet"
 	},
 	"tourGuide": {
 		"closeTourButton": "Κλείσιμο Ξενάγησης",
