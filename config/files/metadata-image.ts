@@ -30,8 +30,9 @@ export default async function metadataImage(destDir: string, config: EnvConfigMa
 
 	try {
 		await execFileAsync(
-			tsxPath,
+			process.execPath,
 			[
+				...process.execArgv,
 				path.resolve('config', 'files', 'metadata-image-worker.ts'),
 				'--dest',
 				filePath,
