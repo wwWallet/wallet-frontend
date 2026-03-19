@@ -26,7 +26,6 @@ export default async function metadataImage(destDir: string, config: EnvConfigMa
 	}
 
 	const filePath = path.join(destDir, fileName);
-	const tsxPath = join(dirname(process.execPath), 'tsx');
 
 	try {
 		await execFileAsync(
