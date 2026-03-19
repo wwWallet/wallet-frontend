@@ -21,7 +21,8 @@ export type AccessToken = {
 };
 
 export enum GrantType {
-	AUTHORIZATION_CODE = "code",
+	CODE = "code",
+	AUTHORIZATION_CODE = "authorization_code",
 	REFRESH = "refresh_token",
 	PRE_AUTHORIZED_CODE = "urn:ietf:params:oauth:grant-type:pre-authorized_code",
 }

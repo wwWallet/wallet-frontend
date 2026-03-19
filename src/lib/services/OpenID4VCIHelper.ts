@@ -8,6 +8,7 @@ import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacas
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
+import { GrantsSchemaType } from "../types/GrantsSchema";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
@@ -71,25 +72,38 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	// Fetches authorization server metadata with fallback
 	// According to OpenID4VCI 1.0, section 12.2.4, paragraph 2.2, the authorization server is to be fetched from the credential issuer metadata.
-	// If not available from metadata, then the issuer is imlplied to also act as the authorization server.
+	// If not available from metadata, then the issuer is implied to also act as the authorization server.
 	const getAuthorizationServerMetadata = useCallback(
-		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
+		async (credentialIssuerIdentifier: string, useCache?: boolean, credentialOfferGrants?: GrantsSchemaType, authorizationServerRequestedFromGrant?: string): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
 			const authorizationServerWellKnownLocation = ".well-known/oauth-authorization-server";
 			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
-			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
-				`${metadata.authorization_servers[0]}/${authorizationServerWellKnownLocation}` :
-				null;
 			const pathIssuerAuthorizationServer = `${credentialIssuerIdentifier}/${authorizationServerWellKnownLocation}`;
 			const pathIssuerOpenIdConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
-			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
+			let authzServerMetadata: OpenidAuthorizationServerMetadata | null = null;
 
-			if (pathAuthorizationServerFromCredentialIssuerMetadata) {
-				// 1st attempt: authorization server from credential issuer metadata
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					pathAuthorizationServerFromCredentialIssuerMetadata,
+			for (const as of metadata.authorization_servers || []) {
+
+				if (authorizationServerRequestedFromGrant && as !== authorizationServerRequestedFromGrant) {
+					continue;
+				}
+
+				// 1st attempt: authorization server from credential issuer metadata authorization_servers array
+				let asMetadata: OpenidAuthorizationServerMetadata | null = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+					`${as}/${authorizationServerWellKnownLocation}`,
 					OpenidAuthorizationServerMetadataSchema,
 					useCache,
 				).catch(() => null);
+
+				if (credentialOfferGrants && asMetadata && asMetadata.grant_types_supported) {
+					if(!asMetadata.grant_types_supported.some(grantType => Object.keys(credentialOfferGrants).includes(grantType))) {
+						asMetadata = null;
+					}
+				}
+
+				if (asMetadata) {
+					authzServerMetadata = asMetadata;
+					break;
+				}
 			}
 
 			if (!authzServerMetadata) {

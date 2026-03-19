@@ -23,6 +23,7 @@ import { COSEKeyToJWK } from "cose-kit";
 import { notify } from "@/context/notifier";
 import { IOpenID4VCIClientStateRepository } from '@/lib/interfaces/IOpenID4VCIClientStateRepository';
 import { useNavigate } from 'react-router-dom';
+import { GrantsSchemaType } from '@/lib/types/GrantsSchema';
 
 type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
 
@@ -31,6 +32,18 @@ const openid4vciProofTypePrecedence = config.OPENID4VCI_PROOF_TYPE_PRECEDENCE.sp
 
 const textDecoder = new TextDecoder();
 
+type CredentialOfferResponse = {
+	credentialIssuer: string;
+	selectedCredentialConfigurationId: string;
+	issuer_state?: string;
+	txCode?: {
+		inputMode?: string;
+		length?: number;
+		description?: string;
+	};
+	preAuthorizedCode?: string;
+	authorizationServer?: string;
+}
 
 export const deriveHolderKidFromCredential = async (credential: string, format: string) => {
 	if (format === VerifiableCredentialFormat.VC_SDJWT || format === VerifiableCredentialFormat.DC_SDJWT) {
@@ -98,6 +111,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const credentialConfigurationIdRef = useRef(null);
 	const credentialIssuerMetadataRef = useRef(null);
 
+	const selectedGrantRef = useRef<Record<string, unknown>>(null);
+	const grantsRef = useRef<GrantsSchemaType | null>(null);
 
 	const { getCalculatedWalletState } = keystore;
 
@@ -591,7 +606,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
  */
 
 	const handleCredentialOffer = useCallback(
-		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: { inputMode?: string; length?: number; description?: string; }; preAuthorizedCode?: string; }> => {
+		async (credentialOfferURL: string): Promise<CredentialOfferResponse> => {
 			const parsedUrl = new URL(credentialOfferURL);
 			let offer;
 			if (parsedUrl.searchParams.get("credential_offer")) {
@@ -606,6 +621,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					return;
 				}
 			}
+			grantsRef.current = offer.grants;
 
 
 			const [credentialIssuerMetadata] = await Promise.all([
@@ -618,19 +634,44 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw new Error("Credential configuration not found");
 			}
 
-			if (GrantType.PRE_AUTHORIZED_CODE in offer.grants) {
+			const credentialOfferReturnValue: CredentialOfferResponse = {
+				credentialIssuer: offer.credential_issuer,
+				selectedCredentialConfigurationId: selectedConfigurationId
+			};
+
+			if (!offer.grants) {
+				return credentialOfferReturnValue;
+			}
+
+			let grantTypeSelected: GrantType;
+			if (GrantType.AUTHORIZATION_CODE in offer.grants) {
+				grantTypeSelected = GrantType.AUTHORIZATION_CODE;
+				selectedGrantRef.current = {
+					[GrantType.AUTHORIZATION_CODE]: offer.grants[GrantType.AUTHORIZATION_CODE]
+				};
+				credentialOfferReturnValue.issuer_state = offer.grants[GrantType.AUTHORIZATION_CODE].issuer_state;
+			}
+			else if (GrantType.CODE in offer.grants) {
+				grantTypeSelected = GrantType.AUTHORIZATION_CODE;
+				selectedGrantRef.current = {
+					[GrantType.CODE]: offer.grants[GrantType.CODE]
+				};
+				credentialOfferReturnValue.issuer_state = offer.grants[GrantType.CODE].issuer_state;
+			}
+			else if (GrantType.PRE_AUTHORIZED_CODE in offer.grants) {
+				grantTypeSelected = GrantType.AUTHORIZATION_CODE;
+				selectedGrantRef.current = {
+					[GrantType.PRE_AUTHORIZED_CODE]: offer.grants[GrantType.PRE_AUTHORIZED_CODE]
+				};
 				const preAuthorizedCodeObject = offer.grants[GrantType.PRE_AUTHORIZED_CODE];
 				const preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"];
 				const txCode = preAuthorizedCodeObject["tx_code"];
-				return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, txCode, preAuthorizedCode };
+				credentialOfferReturnValue.preAuthorizedCode = preAuthorizedCode;
+				credentialOfferReturnValue.txCode = txCode;
 			}
 
-			let issuer_state = undefined;
-			if (offer.grants?.authorization_code?.issuer_state) {
-				issuer_state = offer.grants.authorization_code.issuer_state;
-			}
-
-			return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, issuer_state };
+			credentialOfferReturnValue.authorizationServer = offer.grants[grantTypeSelected].authorization_server;
+			return credentialOfferReturnValue;
 		},
 		[httpProxy, openID4VCIHelper]
 	);
@@ -663,7 +704,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			catch (err) { console.error(err) }
 
 			const [authzServerMetadata, credentialIssuerMetadata, clientId] = await Promise.all([
-				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
+				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier, undefined, grantsRef.current),
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
