@@ -97,6 +97,8 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `OHTTP_KEY_CONFIG`: URL of OHTTP key config endpoint.
   - `OHTTP_RELAY`: URL of OHTTP relay endpoint.
   - `VCT_REGISTRY_URL`: URL of the Type Metadata registry for SD-JWT VC credentials.
+  - `POLICY_LINKS`: Links to any TOS or other policies. This should be in the format `"<LABEL>::<URL>,<LABEL>::<URL>,<LABEL>::<URL>,..."` Can be left blank.
+  - `SHOW_PWA_INSTALL_PROMPT`: Hide or show the PWA installation prompt on the login screen. Defaults to false if left blank or invalid.
 
   **Well-known file generation:**
   - `WELLKNOWN_APPLE_APPIDS`: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.

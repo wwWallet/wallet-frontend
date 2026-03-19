@@ -286,3 +286,8 @@ input:-webkit-autofill {
 .vertical-stack-swiper .swiper-wrapper {
 	overflow: visible !important;
 }
+
+/* Hide security key button by default */
+html:not(.is-wrapper-app) .passkey-button-security-key {
+	display: none;
+}
