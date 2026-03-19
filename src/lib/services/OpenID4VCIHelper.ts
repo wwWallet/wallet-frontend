@@ -5,7 +5,7 @@ import { useHttpProxy } from "./HttpProxy/HttpProxy";
 import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema } from "../schemas/MdocIacasResponseSchema";
-import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
+import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema, resolveWellKnownUrl } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
 
@@ -36,7 +36,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	const getCredentialIssuerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
-			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
+			const pathCredentialIssuer = resolveWellKnownUrl(credentialIssuerIdentifier, 'openid-credential-issuer');
 			try {
 				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
 					pathCredentialIssuer,
@@ -74,12 +74,11 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	// If not available from metadata, then the issuer is imlplied to also act as the authorization server.
 	const getAuthorizationServerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
-			const authorizationServerWellKnownLocation = ".well-known/oauth-authorization-server";
 			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
 			const pathAuthorizationServerFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
-				`${metadata.authorization_servers[0]}/${authorizationServerWellKnownLocation}` :
+				resolveWellKnownUrl(metadata.authorization_servers[0], 'oauth-authorization-server') :
 				null;
-			const pathIssuerAuthorizationServer = `${credentialIssuerIdentifier}/${authorizationServerWellKnownLocation}`;
+			const pathIssuerAuthorizationServer = resolveWellKnownUrl(credentialIssuerIdentifier, 'oauth-authorization-server');
 			const pathIssuerOpenIdConfiguration = `${credentialIssuerIdentifier}/.well-known/openid-configuration`;
 			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
 
