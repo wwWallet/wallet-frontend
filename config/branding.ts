@@ -4,7 +4,8 @@ import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
 import { z } from "zod";
-import convert, { RGB } from "color-convert";
+import convert from "color-convert";
+import type { RGB } from "color-convert";
 
 // ============================================
 // TYPES
@@ -597,6 +598,7 @@ export class MetadataImage {
 	private static readonly IMAGE_WIDTH = 1200;
 	private static readonly IMAGE_HEIGHT = 628;
 	private static readonly LOGO_SIZE = 250;
+	private static readonly FALLBACK_LOGO_SIZE = 340;
 	private static readonly MARGIN = 100;
 
 	// Typography
@@ -718,6 +720,54 @@ export class MetadataImage {
 			type: "image/png",
 			source: pngBuffer,
 		}
+	}
+
+	public static async generateMetadataImageFallback(): Promise<{ type: string; source: Buffer; }> {
+		const sourceDir = path.resolve("branding");
+
+		const logoFile = findLogoFile(sourceDir, "logo_dark");
+		if (!logoFile) {
+			throw new Error("Logo not found");
+		}
+
+		const themeFile = findBrandingFile(sourceDir, "theme.json");
+		if (!themeFile) {
+			throw new Error("theme.json not found");
+		}
+
+		const theme = getThemeFile(themeFile.pathname);
+
+		return {
+			type: "image/png",
+			source: await this.createFallbackMetadataImage(theme.brand.color, logoFile.pathname),
+		};
+	}
+
+	private static async createFallbackMetadataImage(background: string, logoPath: string): Promise<Buffer> {
+		const logoBuffer = await sharp(logoPath)
+			.resize(this.FALLBACK_LOGO_SIZE, this.FALLBACK_LOGO_SIZE, { fit: "contain" })
+			.png()
+			.toBuffer();
+		const logoY = Math.round((this.IMAGE_HEIGHT / 2) - (this.FALLBACK_LOGO_SIZE / 2));
+		const logoX = Math.round((this.IMAGE_WIDTH / 2) - (this.FALLBACK_LOGO_SIZE / 2));
+
+		return await sharp({
+			create: {
+				width: this.IMAGE_WIDTH,
+				height: this.IMAGE_HEIGHT,
+				channels: 4,
+				background,
+			},
+		})
+			.composite([
+				{
+					input: logoBuffer,
+					left: logoX,
+					top: logoY,
+				},
+			])
+			.png()
+			.toBuffer();
 	}
 
 	private static wrapTextToLines(text: string, maxLineLength: number): string[] {
