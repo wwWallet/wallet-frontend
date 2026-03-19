@@ -8,16 +8,18 @@ function getFlag(flag: string): string | undefined {
 	return index >= 0 ? args[index + 1] : undefined;
 }
 
-const dest = getFlag('--dest');
-const title = getFlag('--title');
+(async () => {
+	const dest = getFlag('--dest');
+	const title = getFlag('--title');
 
-if (!dest) {
-	throw new Error('Missing required flag --dest');
-}
+	if (!dest) {
+		throw new Error('Missing required flag --dest');
+	}
 
-if (!title) {
-	throw new Error('Missing required flag --title');
-}
+	if (!title) {
+		throw new Error('Missing required flag --title');
+	}
 
-const image = await MetadataImage.generateMetadataImage({ title });
-await writeFile(dest, image.source);
+	const image = await MetadataImage.generateMetadataImage({ title });
+	await writeFile(dest, image.source);
+})();
