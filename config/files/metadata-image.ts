@@ -1,4 +1,4 @@
-import path, { dirname, join } from 'node:path';
+import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { promisify } from 'node:util';
