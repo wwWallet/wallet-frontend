@@ -46,6 +46,22 @@ export async function injectConfigFiles({ destDir, config, tagsToInject }: Injec
 	]);
 }
 
+export function mergeConfigWithExistingHtml(html: string, config: EnvConfigMap): EnvConfigMap {
+	const dom = new JSDOM(html);
+	const existingMetaConfig = getExistingMetaConfig(dom.window.document);
+
+	const existingEnvConfig = Object.fromEntries(
+		Object.entries(existingMetaConfig)
+			.filter(([key, value]) => key !== 'branding' && typeof value === 'string')
+			.map(([key, value]) => [key.toUpperCase(), value])
+	);
+
+	return {
+		...existingEnvConfig,
+		...config,
+	};
+}
+
 export type InjectHtmlOptions = {
 	/**
 	 * The HTML content to inject meta tags into.
@@ -106,21 +122,7 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 
 	// Inject meta tags
 	(function injectConfigMetaTags() {
-		const existingMetaTag = document.querySelector('meta[name="www:config"]');
-		let existingMetaConfig = {};
-
-		if (existingMetaTag) {
-			const existingContent = existingMetaTag.getAttribute('content');
-
-			if (existingContent) {
-				try {
-					existingMetaConfig = JSON.parse(existingContent);
-				} catch (error) {
-					console.warn('Failed to parse existing www:config meta tag:', error);
-				}
-			}
-		}
-
+		const existingMetaConfig = getExistingMetaConfig(document);
 		const metaConfig = {
 			...existingMetaConfig,
 			...getMetaConfigFromEnvConfig(config),
@@ -170,4 +172,25 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 	const updatedHtmlContent = dom.serialize().replace(/\n{2,}/g, '\n');
 
 	return updatedHtmlContent;
+}
+
+function getExistingMetaConfig(document: Document): Record<string, unknown> {
+	const existingMetaTag = document.querySelector('meta[name="www:config"]');
+
+	if (!existingMetaTag) {
+		return {};
+	}
+
+	const existingContent = existingMetaTag.getAttribute('content');
+
+	if (!existingContent) {
+		return {};
+	}
+
+	try {
+		return JSON.parse(existingContent) as Record<string, unknown>;
+	} catch (error) {
+		console.warn('Failed to parse existing www:config meta tag:', error);
+		return {};
+	}
 }
