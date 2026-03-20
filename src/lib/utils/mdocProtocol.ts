@@ -47,7 +47,7 @@ export async function encryptMessage(sessionKey, plaintext, iv=null) {
 		sessionKey,
 		// enc.encode(plaintext)
 		// plaintext
-		new TextEncoder().encode(plaintext).buffer
+		new TextEncoder().encode(plaintext)
 	);
 
 	return { iv, ciphertext };
@@ -154,7 +154,7 @@ export async function getKey(keyMaterial, salt, info) {
 		{
 			name: "HKDF",
 			salt: salt,
-			info: new TextEncoder().encode(info).buffer,
+			info: new TextEncoder().encode(info),
 			hash: "SHA-256",
 		},
 		keyMaterial,
