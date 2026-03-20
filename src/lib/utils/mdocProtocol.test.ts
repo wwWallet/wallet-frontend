@@ -106,7 +106,7 @@ it("can decrypt a message with a derviced session key (zab)", async () => {
 	/* ---------------------------------------------------------- */
 
 	const zab = await deriveSharedSecret(ephemeralKey.privateKey, verifierKeypair.publicKey);
-	const salt = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("test").buffer);
+	const salt = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("test"));
 
 	console.log("SHARED SECRET KEY:");
 	console.log(zab);
@@ -190,7 +190,7 @@ it.skip('can encode, encrypt, decrypt and decode an mdoc response', async () => 
 
 
 	const zab = await deriveSharedSecret(ephemeralKey.privateKey, verifierKeypair.publicKey);
-	const salt = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("test").buffer);
+	const salt = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("test"));
 
 	console.log("SHARED SECRET KEY:");
 	console.log(zab);
