@@ -1,8 +1,7 @@
 {
   "exclude": [
     "cli/",
-    "lib/",
-    "src/utils/qr/worker.ts"
+    "lib/"
   ],
   "include": [
     "src"
@@ -110,10 +109,5 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
-  },
-  "references": [
-    {
-      "path": "./tsconfig.worker.json"
-    }
-  ]
+  }
 }
