@@ -1,10 +1,10 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "composite": true,
-    "lib": ["es2022", "WebWorker"],
-    "outDir": "dist/worker",
-    "types": []
-  },
-  "include": ["src/utils/qr/worker.ts"]
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"composite": true,
+		"lib": ["es2022", "WebWorker"],
+		"outDir": "dist/worker",
+		"types": []
+	},
+	"include": ["src/utils/qr/worker.ts"]
 }
