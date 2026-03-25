@@ -110,7 +110,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 	const [appToken, setAppToken, clearAppToken] = useSessionStorage<string | null>("appToken", null);
 	const [userHandle,] = useSessionStorage<string | null>("userHandle", null);
 	const [cachedUsers] = useLocalStorage<CachedUser[] | null>("cachedUsers", null);
-
 	const [sessionState, setSessionState, clearSessionState] = useSessionStorage<SessionState | null>("sessionState", null);
 
 	/**
@@ -158,7 +157,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options: { appToken?: string },
 	): { [header: string]: string } => {
 		const authz = options?.appToken || appToken;
-		// Get tenant ID from storage, defaulting to 'default' for single-tenant and backwards compatibility
 		const tenantId = getTenantFromUrlPath() || 'default';
 		return {
 			...headers,
@@ -229,7 +227,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		options?: { appToken?: string, headers?: { [header: string]: string } },
 		force: boolean = false
 	): Promise<AxiosResponse> => {
-		// Get current tenant for cache key (X-Tenant-ID header is added by buildGetHeaders)
 		const tenantId = getTenantFromUrlPath() || 'default';
 		// Include tenant in cache key so different tenants have separate caches
 		const cacheKey = `${tenantId}:${path}`;
