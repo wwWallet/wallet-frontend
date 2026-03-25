@@ -218,7 +218,7 @@ const WebauthnSignupLogin = ({
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
-	const { effectiveTenantId, urlTenantId } = useTenant();
+	const { urlTenantId } = useTenant();
 	const screenType = useScreenType();
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -253,7 +253,7 @@ const WebauthnSignupLogin = ({
 	};
 
 	const onLogin = useCallback(async (webauthnHints: string[], cachedUser?: CachedUser) => {
-		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, effectiveTenantId);
+		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, urlTenantId);
 		if (result.ok) {
 			// Success - no action needed, session will be set by API
 		} else {
@@ -285,7 +285,7 @@ const WebauthnSignupLogin = ({
 					throw result;
 			}
 		}
-	}, [api, keystore, effectiveTenantId, navigate, setError, t]);
+	}, [api, keystore, urlTenantId, navigate, setError, t]);
 
 	const onSignup = async (name: string, webauthnHints: string[]) => {
 		// Pass tenantId to ensure the passkey's userHandle includes the tenant prefix
