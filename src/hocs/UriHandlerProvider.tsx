@@ -130,6 +130,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		setShowRedirectPopup(false);
 		setPopupRedirectUrl(null);
 		setRedirectPopupContent({ title: "", message: "" });
+		setUrl(`${window.location.origin}${window.location.pathname}`);
+		window.history.replaceState({}, '', `${window.location.pathname}`);
 	};
 
 	const handleRedirectContinue = () => {
