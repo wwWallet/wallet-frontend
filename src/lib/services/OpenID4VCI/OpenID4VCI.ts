@@ -1,5 +1,4 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
-import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
@@ -12,7 +11,7 @@ import { GrantType, TokenRequestError, useTokenRequest } from './OAuth/TokenRequ
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
-import { CredentialConfigurationSupported, VerifiableCredentialFormat } from 'wallet-common';
+import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
