@@ -367,6 +367,10 @@
 		"all": "All",
 		"recent": "Recent"
 	},
+	"redirectPopup": {
+		"issuanceMessage": "To continue credential issuance, you will be redirected to the issuer so you can authenticate or review the request. After approval, you will return to the wallet to complete issuance.",
+		"issuanceTitle": "Continue to issuer authorization"
+	},
 	"registerPasskey": {
 		"authOnceMore": "To finish setting up, please authenticate with it once more.",
 		"giveNickname": "Give this credential a nickname:",
