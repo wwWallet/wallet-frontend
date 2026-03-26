@@ -9,6 +9,7 @@ import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import SyncPopup from "@/components/Popups/SyncPopup";
+import RedirectPopup from "@/components/Popups/RedirectPopup";
 import { useSessionStorage } from "@/hooks/useStorage";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
@@ -44,7 +45,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const { t } = useTranslation();
 
-	const [redirectUri, setRedirectUri] = useState(null);
+	const [redirectUri, setRedirectUri] = useState<string | null>(null);
+	const [popupRedirectUrl, setPopupRedirectUrl] = useState<string | null>(null);
+	const [redirectPopupContent, setRedirectPopupContent] = useState<{ title: string, message: string }>({ title: "", message: "" });
+	const [showRedirectPopup, setShowRedirectPopup] = useState<boolean>(false);
 	const { vcEntityList } = useContext(CredentialsContext);
 
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
@@ -116,6 +120,24 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 	}, [synced, setUrl, location]);
 
+	const openRedirectPopup = (url: string, content: { title: string, message: string }) => {
+		setPopupRedirectUrl(url);
+		setRedirectPopupContent(content);
+		setShowRedirectPopup(true);
+	};
+
+	const closeRedirectPopup = () => {
+		setShowRedirectPopup(false);
+		setPopupRedirectUrl(null);
+		setRedirectPopupContent({ title: "", message: "" });
+	};
+
+	const handleRedirectContinue = () => {
+		if (popupRedirectUrl) {
+			window.location.href = popupRedirectUrl;
+		}
+	};
+
 	useEffect(() => {
 		if (redirectUri) {
 			window.location.href = redirectUri;
@@ -160,7 +182,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
 					if ('url' in res && typeof res.url === 'string' && res.url) {
-						window.location.href = res.url;
+						openRedirectPopup(res.url, {
+							title: t('redirectPopup.issuanceTitle'),
+							message: t('redirectPopup.issuanceMessage'),
+						});
 					}
 				})
 					.catch(err => {
@@ -235,15 +260,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				setMessagePopup(true);
 			}
 		}
-		if (getCalculatedWalletState()) {
+		if (popupRedirectUrl === null && getCalculatedWalletState()) {
 			handle(url);
 		}
 	}, [
 		url,
 		t,
 		isLoggedIn,
-		setRedirectUri,
 		vcEntityList,
+		popupRedirectUrl,
 		synced,
 		getCalculatedWalletState,
 		usedAuthorizationCodes,
@@ -286,6 +311,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						setSyncPopup(false);
 						logout();
 					}}
+				/>
+			}
+			{showRedirectPopup && popupRedirectUrl &&
+				<RedirectPopup
+					loading={false}
+					onClose={closeRedirectPopup}
+					handleContinue={handleRedirectContinue}
+					popupTitle={redirectPopupContent.title}
+					popupMessage={redirectPopupContent.message}
 				/>
 			}
 		</>

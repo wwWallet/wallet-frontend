@@ -400,6 +400,12 @@
 		"summaryTitle": "Summary",
 		"transactionDataExample": "Accept example transaction data terms & conditions"
 	},
+	"redirectPopup": {
+		"issuanceTitle": "Continue to issuer authorization",
+		"issuanceMessage": "To continue credential issuance, you will be redirected to the issuer so you can authenticate or review the request. After approval, you will return to the wallet to complete issuance.",
+		"presentationTitle": "Continue to verifier",
+		"presentationMessage": "You are about to leave the wallet and continue the credential presentation flow with the verifier."
+	},
 	"sidebar": {
 		"navItemLogout": "Logout",
 		"obliviousEnabled": "Private requests with Oblivious HTTP enabled",
