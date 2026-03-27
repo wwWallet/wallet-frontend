@@ -158,6 +158,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			if (u.searchParams.size === 0) return;
 			// setUrl(window.location.origin);
 			console.log('[Uri Handler]: check', url);
+			setUrl('');
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
@@ -262,7 +263,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				setMessagePopup(true);
 			}
 		}
-		if (popupRedirectUrl === null && getCalculatedWalletState()) {
+		if (getCalculatedWalletState()) {
 			handle(url);
 		}
 	}, [
