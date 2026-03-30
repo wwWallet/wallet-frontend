@@ -16,6 +16,7 @@
  * See go-wallet-backend/docs/adr/011-multi-tenancy.md for full design.
  */
 
+import { BASE_PATH } from "@/config";
 import { type CachedUser } from "@/services/LocalStorageKeystore";
 
 const TENANT_STORAGE_KEY = 'wallet_tenant_id';
@@ -67,6 +68,14 @@ export const DEFAULT_TENANT_ID = 'default';
  * - 'default' - Reserved for the default tenant
  */
 const RESERVED_TENANT_NAMES = new Set(['id', 'default']);
+
+/**
+ * Check if wallet is deployed in a multi-tenancy configuration.
+ */
+export function isMultiTenant(): boolean {
+	const tenantPathRegex = new RegExp(`^/${TENANT_PATH_PREFIX}/[^/]+/?$`);
+	return tenantPathRegex.test(BASE_PATH);
+}
 
 /**
  * Check if a tenant ID represents the default tenant.
