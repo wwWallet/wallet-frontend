@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
@@ -10,13 +10,17 @@ import CredentialsContext from "@/context/CredentialsContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import SyncPopup from "@/components/Popups/SyncPopup";
 import RedirectPopup from "@/components/Popups/RedirectPopup";
+import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
 import { useSessionStorage } from "@/hooks/useStorage";
+import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
+
+	const filterItemByLang = useFilterItemByLang();
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
@@ -47,7 +51,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [redirectUri, setRedirectUri] = useState<string | null>(null);
 	const [popupRedirectUrl, setPopupRedirectUrl] = useState<string | null>(null);
-	const [redirectPopupContent, setRedirectPopupContent] = useState<{ title: string, message: string }>({ title: "", message: "" });
+	const [redirectPopupContent, setRedirectPopupContent] = useState<{ title: string, message: React.ReactNode }>({ title: "", message: "" });
 	const [showRedirectPopup, setShowRedirectPopup] = useState<boolean>(false);
 	const { vcEntityList } = useContext(CredentialsContext);
 
@@ -120,7 +124,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 	}, [synced, setUrl, location]);
 
-	const openRedirectPopup = (url: string, content: { title: string, message: string }) => {
+	const openRedirectPopup = (url: string, content: { title: string, message: React.ReactNode }) => {
 		setPopupRedirectUrl(url);
 		setRedirectPopupContent(content);
 		setShowRedirectPopup(true);
@@ -133,6 +137,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		setUrl(`${window.location.origin}${window.location.pathname}`);
 		window.history.replaceState({}, '', `${window.location.pathname}`);
 	};
+
+	const popupContentFromIssuerMetadata = useMemo(() => {
+		return (issuerMetadata: any, credentialConfigurationId?: string | null) => buildCredentialRedirectPopupContent({
+			t,
+			credentialConfigurationId,
+			issuerMetadata,
+			filterItemByLang,
+		});
+	}, [t, filterItemByLang]);
 
 	const handleRedirectContinue = () => {
 		if (popupRedirectUrl) {
@@ -185,9 +198,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
 					if ('url' in res && typeof res.url === 'string' && res.url) {
+						const popupContent = popupContentFromIssuerMetadata(res.issuerMetadata, res.credentialConfigurationId);
+
 						openRedirectPopup(res.url, {
-							title: t('redirectPopup.issuanceTitle'),
-							message: t('redirectPopup.issuanceMessage'),
+							title: popupContent.title,
+							message: popupContent.message,
 						});
 					}
 				})
@@ -277,6 +292,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		usedAuthorizationCodes,
 		usedRequestUris,
 		// depend on methods, not whole context objects
+		popupContentFromIssuerMetadata,
 		handleCredentialOffer,
 		generateAuthorizationRequest,
 		handleAuthorizationResponse,
