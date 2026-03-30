@@ -1,4 +1,4 @@
-import { BRANDING } from '@/config';
+import { BASE_PATH, BRANDING } from '@/config';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -49,7 +49,7 @@ const Logo: React.FC<LogoProps> = ({
 	const img = <img src={logoUrl} alt={alt || t('common.walletName')} className={imgClassName} />
 
 	if (clickable) return (
-		<a href="/" className={aClassName} aria-label={t('common.walletName')}>
+		<a href={BASE_PATH} className={aClassName} aria-label={t('common.walletName')}>
 			{img}
 		</a>
 	);
