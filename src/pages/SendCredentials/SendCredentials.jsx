@@ -119,7 +119,7 @@ const SendCredentials = () => {
 					popupTitle={`${selectedVerifier?.name}`}
 					popupMessage={
 						<Trans
-							i18nKey="pageSendCredentials.popup.message"
+							i18nKey="redirectPopup.presentationMessage"
 							values={{ verifierName: selectedVerifier?.name ?? "Unknown" }}
 							components={{ strong: <strong /> }}
 						/>

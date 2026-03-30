@@ -29,7 +29,7 @@ export function buildCredentialRedirectPopupContent({
 		title: `${resolvedCredentialName} (${resolvedIssuerName})`,
 		message: (
 			<Trans
-				i18nKey="pageAddCredentials.popup.message"
+				i18nKey="redirectPopup.issuanceMessage"
 				values={{
 					issuerName: resolvedIssuerName,
 					issuerDescription: resolvedIssuerDescription ? `(${resolvedIssuerDescription})` : '',

@@ -157,9 +157,6 @@
 	"pageAddCredentials": {
 		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
-		"popup": {
-			"message": "Θα ανακατευθυνθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>."
-		},
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},
 	"pageCredentials": {
@@ -197,10 +194,6 @@
 	"pageSendCredentials": {
 		"description": "Αναζητήστε και επιλέξτε ένα verifier για να μοιραστείτε πιστοποιητικά",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι verifiers.",
-		"popup": {
-			"message": "Θα ανακατευθυνθείτε στo {{verifierName}}.",
-			"title": "Επιλεγμένο:"
-		},
 		"searchPlaceholder": "Αναζήτηση verifiers..."
 	},
 	"pageSettings": {
@@ -313,6 +306,10 @@
 	"queryableList": {
 		"all": "Όλα",
 		"recent": "Πρόσφατα"
+	},
+	"redirectPopup": {
+		"issuanceMessage": "Θα ανακατευθυνθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"presentationMessage": "Θα ανακατευθυνθείτε στο <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {
 		"authOnceMore": "Για να ολοκληρώσετε τη ρύθμιση, αυθεντικοποιηθείτε μία ακόμη φορά.",
