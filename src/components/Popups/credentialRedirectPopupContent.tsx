@@ -25,7 +25,7 @@ export function buildCredentialRedirectPopupContent({
 	const resolvedCredentialDescription = credentialDisplay?.description ?? '';
 
 	return {
-		title: `${t('pageAddCredentials.popup.title')} ${resolvedCredentialName} (${resolvedIssuerName})`,
+		title: `${resolvedCredentialName} (${resolvedIssuerName})`,
 		message: (
 			<Trans
 				i18nKey="pageAddCredentials.popup.message"

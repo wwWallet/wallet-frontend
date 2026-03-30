@@ -158,8 +158,7 @@
 		"description": "Αναζητήστε και επιλέξτε ένα credential που θέλετε να εκδώσετε",
 		"noFound": "Δεν βρέθηκαν αντίστοιχοι issuers.",
 		"popup": {
-			"message": "Θα ανακατευθυνθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
-			"title": "Επιλεγμένο:"
+			"message": "Θα ανακατευθυνθείτε στο <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> για να εκδώσετε ένα <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>."
 		},
 		"searchPlaceholder": "Αναζήτηση credential..."
 	},

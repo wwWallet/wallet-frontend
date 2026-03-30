@@ -116,7 +116,7 @@ const SendCredentials = () => {
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageSendCredentials.popup.title')} ${selectedVerifier?.name}`}
+					popupTitle={`${selectedVerifier?.name}`}
 					popupMessage={
 						<Trans
 							i18nKey="pageSendCredentials.popup.message"
