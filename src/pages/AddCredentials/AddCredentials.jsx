@@ -87,7 +87,7 @@ const AddCredentials = () => {
 	}, [issuers, selectedCredentialConfiguration]);
 
 	const redirectPopupContent = useMemo(() => {
-		if (!selectedCredentialConfiguration) {
+		if (!selectedCredentialConfiguration || !selectedIssuer) {
 			return null;
 		}
 

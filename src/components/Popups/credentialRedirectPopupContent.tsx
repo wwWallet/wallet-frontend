@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trans } from 'react-i18next';
+import type { OpenidCredentialIssuerMetadata } from 'wallet-common';
 
 export function buildCredentialRedirectPopupContent({
 	t,
@@ -8,8 +9,8 @@ export function buildCredentialRedirectPopupContent({
 	filterItemByLang,
 }: {
 	t: (key: string) => string;
-	credentialConfigurationId?: string | null;
-	issuerMetadata?: any;
+	credentialConfigurationId: string;
+	issuerMetadata: OpenidCredentialIssuerMetadata;
 	filterItemByLang: (items: any[], langKey: string) => any;
 }): { title: string; message: React.ReactNode } {
 

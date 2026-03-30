@@ -4,6 +4,7 @@ import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestErrors as HandleAuthorizationRequestError } from "wallet-common";
+import type { OpenidCredentialIssuerMetadata } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -139,7 +140,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	};
 
 	const popupContentFromIssuerMetadata = useMemo(() => {
-		return (issuerMetadata: any, credentialConfigurationId?: string | null) => buildCredentialRedirectPopupContent({
+		return (
+			issuerMetadata: OpenidCredentialIssuerMetadata,
+			credentialConfigurationId: string
+		) => buildCredentialRedirectPopupContent({
 			t,
 			credentialConfigurationId,
 			issuerMetadata,
