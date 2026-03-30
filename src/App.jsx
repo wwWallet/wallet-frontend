@@ -1,5 +1,5 @@
 // App.jsx
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
@@ -9,6 +9,7 @@ import Spinner from './components/Shared/Spinner';
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 import { TenantProvider } from './context/TenantContext';
+import { isMultiTenant } from './lib/tenant';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
@@ -37,10 +38,6 @@ const Login = lazyWithDelay(() => import('./pages/Login/Login'), 400);
 const LoginState = lazyWithDelay(() => import('./pages/Login/LoginState'), 400);
 const NotFound = lazyWithDelay(() => import('./pages/NotFound/NotFound'), 400);
 
-/**
- * Protected routes layout - wraps authenticated content with Layout and transitions.
- * Used for both global routes (/) and tenant-scoped routes (/:tenantId/).
- */
 const ProtectedLayout = () => {
 	const location = useLocation();
 	return (
@@ -57,80 +54,72 @@ const ProtectedLayout = () => {
 	);
 };
 
+const PublicLayout = () => {
+	const location = useLocation();
+	return (
+		<FadeInContentTransition reanimateKey={location.pathname}>
+			<Outlet />
+		</FadeInContentTransition>
+	);
+}
+
 /**
  * Authenticated route definitions.
  * Returns an array of Route elements for use in both tenant-scoped and global contexts.
  * Uses relative paths which React Router resolves against the parent route.
  * @param prefix - Optional path prefix ("/" for global routes, "" for nested routes)
  */
-const authenticatedRoutes = (prefix = "") => [
-	<Route key="home" path={`${prefix}` || undefined} index={!prefix} element={<Home />} />,
-	<Route key="settings" path={`${prefix}settings`} element={<Settings />} />,
-	<Route key="credential" path={`${prefix}credential/:batchId`} element={<Credential />} />,
-	<Route key="credential-history" path={`${prefix}credential/:batchId/history`} element={<CredentialHistory />} />,
-	<Route key="credential-details" path={`${prefix}credential/:batchId/details`} element={<CredentialDetails />} />,
-	<Route key="history" path={`${prefix}history`} element={<History />} />,
-	<Route key="pending" path={`${prefix}pending`} element={<Pending />} />,
-	<Route key="history-detail" path={`${prefix}history/:transactionId`} element={<HistoryDetail />} />,
-	<Route key="add" path={`${prefix}add`} element={<AddCredentials />} />,
-	<Route key="send" path={`${prefix}send`} element={<SendCredentials />} />,
-	<Route key="verification" path={`${prefix}verification/result`} element={<VerificationResult />} />,
-	<Route key="cb" path={`${prefix}cb/*`} element={<Home />} />,
+const authenticatedRoutes = [
+	<Route key="home" index element={<Home />} />,
+	<Route key="settings" path="settings" element={<Settings />} />,
+	<Route key="credential" path="credential/:batchId" element={<Credential />} />,
+	<Route key="credential-history" path="credential/:batchId/history" element={<CredentialHistory />} />,
+	<Route key="credential-details" path="credential/:batchId/details" element={<CredentialDetails />} />,
+	<Route key="history" path="history" element={<History />} />,
+	<Route key="pending" path="pending" element={<Pending />} />,
+	<Route key="history-detail" path="history/:transactionId" element={<HistoryDetail />} />,
+	<Route key="add" path="add" element={<AddCredentials />} />,
+	<Route key="send" path="send" element={<SendCredentials />} />,
+	<Route key="verification" path="verification/result" element={<VerificationResult />} />,
+	<Route key="cb" path="cb/*" element={<Home />} />,
+];
+
+/**
+ * Public route definitions.
+ */
+const publicRoutes = [
+	<Route key="login" path="login" element={<Login />} />,
+	<Route key="login-state" path="login-state" element={<LoginState />} />,
+	<Route key="not-found" path="*" element={<NotFound />} />,
 ];
 
 function App() {
-	const location = useLocation();
+	const multiTenant = useMemo(() => isMultiTenant(), []);
+	const routeWrapper = useMemo(
+		() => (multiTenant
+			? <TenantProvider><Outlet /></TenantProvider>
+			: <Outlet />
+		),
+		[multiTenant],
+	);
+	const basePath = useMemo(
+		() => multiTenant ? '/id/:tenantId/*' : '/*',
+		[multiTenant]
+	);
+
 	return (
 		<>
 			<Snowfalling />
 			<Suspense fallback={<Spinner />}>
 				<UpdateNotification />
 				<Routes>
-					{/*
-					 * Tenant-scoped routes (/id/:tenantId/*)
-					 * These routes extract the tenant ID from the URL path and provide it
-					 * via TenantContext. Used for multi-tenant deployments where users
-					 * access the wallet via tenant-specific URLs like /id/acme-corp/login.
-					 *
-					 * URL Structure:
-					 * - Default tenant: /* (backwards compatible root paths)
-					 * - Custom tenants: /id/{tenantId}/* (prefixed paths)
-					 */}
-					<Route path="/id/:tenantId/*" element={<TenantProvider><Outlet /></TenantProvider>}>
-						{/* Tenant-scoped protected routes */}
+					<Route path={basePath} element={routeWrapper}>
 						<Route element={<ProtectedLayout />}>
-							{authenticatedRoutes()}
+							{authenticatedRoutes}
 						</Route>
-						{/* Tenant-scoped public routes */}
-						<Route element={
-							<FadeInContentTransition reanimateKey={location.pathname}>
-								<Outlet />
-							</FadeInContentTransition>
-						}>
-							<Route path="login" element={<Login />} />
-							<Route path="login-state" element={<LoginState />} />
-							<Route path="*" element={<NotFound />} />
+						<Route element={<PublicLayout/>}>
+							{publicRoutes}
 						</Route>
-					</Route>
-
-					{/*
-					 * Global routes (no tenant prefix)
-					 * These routes are used for:
-					 * 1. Single-tenant deployments (backward compatible)
-					 * 2. Global login page where tenant is discovered from passkey
-					 * 3. Returning users who already have passkeys
-					 */}
-					<Route element={<ProtectedLayout />}>
-						{authenticatedRoutes("/")}
-					</Route>
-					<Route element={
-						<FadeInContentTransition reanimateKey={location.pathname}>
-							<Outlet />
-						</FadeInContentTransition>
-					}>
-						<Route path="/login" element={<Login />} />
-						<Route path="/login-state" element={<LoginState />} />
-						<Route path="*" element={<NotFound />} />
 					</Route>
 				</Routes>
 			</Suspense>
