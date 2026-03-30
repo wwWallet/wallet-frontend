@@ -5,15 +5,18 @@ import { useTranslation } from 'react-i18next';
 import Button from '../../components/Buttons/Button';
 import { useTenant } from '@/context/TenantContext';
 import { matchesTenantFromUrl } from '@/lib/tenant';
+import { BASE_PATH } from '@/config';
 
 
 const NotFound = () => {
 	const navigate = useNavigate();
 	const { t } = useTranslation();
-	const { buildPath, effectiveTenantId, urlTenantId } = useTenant();
+	const { isMultiTenant, buildPath, effectiveTenantId, urlTenantId } = useTenant();
 
 	const handleBackToHome = () => {
-		if (!matchesTenantFromUrl(effectiveTenantId, urlTenantId)) {
+		if (!isMultiTenant) {
+			navigate(BASE_PATH);
+		} else if (!matchesTenantFromUrl(effectiveTenantId, urlTenantId)) {
 			window.location.href = buildPath();
 		} else {
 			navigate(buildPath());
