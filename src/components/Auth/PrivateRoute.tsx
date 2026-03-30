@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useEffect, useState } from 'react';
 import { Navigate, useParams, useLocation } from 'react-router-dom';
 import SessionContext from '@/context/SessionContext';
-import { getStoredTenant, buildTenantRoutePath, isDefaultTenant, TENANT_PATH_PREFIX } from '@/lib/tenant';
+import { getStoredTenant, TENANT_PATH_PREFIX, isMultiTenant, buildTenantRoutePath } from '@/lib/tenant';
 
 const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.ReactElement => {
 	const { isLoggedIn, keystore } = useContext(SessionContext);
@@ -31,7 +31,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 
 	// Calculate redirect path for tenant enforcement
 	const tenantRedirectPath = useMemo(() => {
-		if (!isLoggedIn || !storedTenantId) {
+		if (!isLoggedIn || !storedTenantId || !isMultiTenant()) {
 			return null; // No redirect needed for unauthenticated users or no tenant
 		}
 
@@ -52,9 +52,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 		}
 
 		// Redirect if URL tenant doesn't match authenticated user's tenant
-		const urlMatchesStored = isDefaultTenant(storedTenantId)
-			? !urlTenantId
-			: urlTenantId === storedTenantId;
+		const urlMatchesStored = urlTenantId === storedTenantId;
 
 		if (!urlMatchesStored) {
 			const correctPath = buildTenantRoutePath(storedTenantId, subPath);
@@ -81,7 +79,7 @@ const PrivateRoute = ({ children }: { children?: React.ReactNode }): React.React
 	// Handle unauthenticated users first
 	if (!isLoggedIn) {
 		// For unauthenticated users, preserve the tenant from URL if present
-		const loginTenantPath = urlTenantId && !isDefaultTenant(urlTenantId)
+		const loginTenantPath = urlTenantId && isMultiTenant()
 			? `/${TENANT_PATH_PREFIX}/${urlTenantId}`
 			: '';
 

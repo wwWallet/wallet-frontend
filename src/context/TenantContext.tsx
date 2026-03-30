@@ -2,8 +2,8 @@
  * TenantContext - React context for multi-tenancy support.
  *
  * URL Structure:
- * - Default tenant uses root paths: /, /settings, /login (backwards compatible)
- * - Custom tenants use /id/ prefix: /id/{tenantId}/, /id/{tenantId}/settings
+ * - All tenants use /id/ prefix: /id/{tenantId}/, /id/{tenantId}/settings
+ * - Single-tenant deployments omit the prefix (routes at root)
  *
  * The tenant ID can come from multiple sources (in order of precedence):
  * 1. URL path parameter (/id/:tenantId/*) - for path-based routing
@@ -23,7 +23,7 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath, TENANT_PATH_PREFIX } from '../lib/tenant';
+import { getStoredTenant, setStoredTenant, clearStoredTenant, buildTenantRoutePath, TENANT_PATH_PREFIX, isMultiTenant } from '../lib/tenant';
 
 export interface TenantContextValue {
 	/** Current tenant ID (from URL, prop, or storage) */
@@ -106,7 +106,7 @@ export function TenantProvider({ children, tenantId: propTenantId }: TenantProvi
 	const value = useMemo<TenantContextValue>(() => ({
 		effectiveTenantId,
 		urlTenantId,
-		isMultiTenant: !!effectiveTenantId,
+		isMultiTenant: isMultiTenant(),
 		switchTenant,
 		clearTenant,
 		buildPath,

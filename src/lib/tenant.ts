@@ -2,8 +2,7 @@
  * Tenant utilities for multi-tenancy support.
  *
  * URL Structure:
- * - Default tenant uses root paths: /, /settings, /login (backwards compatible)
- * - Custom tenants use /id/ prefix: /id/{tenantId}/, /id/{tenantId}/settings
+ * - Tenants use /id/ prefix: /id/{tenantId}/, /id/{tenantId}/settings
  *
  * Multi-tenancy Design:
  * - Login is global (tenant-discovering): The user selects a passkey, and the tenant
@@ -64,8 +63,8 @@ export const DEFAULT_TENANT_ID = 'default';
 
 /**
  * Tenant names that are reserved and cannot be used for custom tenants.
- * - 'id' - Used as the URL prefix for custom tenants (/id/{tenant}/)
- * - 'default' - Reserved for the default tenant
+ * - 'id' - Used as the URL prefix for tenants (/id/{tenant}/)
+ * - 'default' - Reserved for the system default tenant
  */
 const RESERVED_TENANT_NAMES = new Set(['id', 'default']);
 
@@ -79,17 +78,16 @@ export function isMultiTenant(): boolean {
 
 /**
  * Check if a tenant ID represents the default tenant.
- * Default tenant users should use the root path (/) instead of /id/default/.
  */
 export function isDefaultTenant(tenantId: string | undefined): boolean {
-	return !tenantId || tenantId === DEFAULT_TENANT_ID;
+	return tenantId === DEFAULT_TENANT_ID;
 }
 
 /**
  * Check if a tenant ID matches the URL tenant context.
  */
 export function matchesTenantFromUrl(tenantId: string | undefined, urlTenantId: string | undefined): boolean {
-	return tenantId === urlTenantId || (!urlTenantId && isDefaultTenant(tenantId));
+	return tenantId === urlTenantId;
 }
 
 /**
@@ -101,8 +99,7 @@ export function isReservedTenantName(name: string): boolean {
 
 /**
  * Build the frontend route path for a given tenant.
- * - Default tenant uses root paths: / (backwards compatible)
- * - Custom tenants use /id/{tenantId}/ prefix
+ * - Tenants use /id/{tenantId}/ prefix
  *
  * @param tenantId - The tenant ID
  * @param subPath - Optional path within the tenant (e.g., 'settings')
@@ -111,12 +108,10 @@ export function isReservedTenantName(name: string): boolean {
 export function buildTenantRoutePath(tenantId: string | undefined, subPath?: string): string {
 	const cleanSubPath = subPath?.startsWith('/') ? subPath.slice(1) : (subPath || '');
 
-	// Default tenant uses root paths (backwards compatible)
-	if (isDefaultTenant(tenantId)) {
+	if (!tenantId) {
 		return cleanSubPath ? `/${cleanSubPath}` : '/';
 	}
 
-	// Custom tenants use /id/{tenantId}/ prefix
 	return cleanSubPath
 		? `/${TENANT_PATH_PREFIX}/${tenantId}/${cleanSubPath}`
 		: `/${TENANT_PATH_PREFIX}/${tenantId}/`;
@@ -267,14 +262,13 @@ export function getKnownTenants(
  *
  * URL structure:
  * - /id/{tenantId}/* -> returns tenantId
- * - /* (root paths) -> returns 'default'
  *
  * @returns The tenant ID from URL, or 'default' for root paths
  */
-export function getTenantFromUrlPath(): string {
+export function getTenantFromUrlPath(): string | null {
 	const pathname = window.location.pathname;
 	const match = pathname.match(/^\/id\/([^/]+)/);
-	return match ? match[1] : DEFAULT_TENANT_ID;
+	return match ? match[1] : null;
 }
 
 /**
@@ -288,10 +282,6 @@ export function filterUsersByTenantID(tenantId: string | undefined, users: Cache
 
 		if (userTenantId === undefined) {
 			return true;
-		}
-
-		if (!tenantId) {
-			return isDefaultTenant(userTenantId);
 		}
 
 		return userTenantId === tenantId;

@@ -59,12 +59,12 @@ describe('tenant utilities', () => {
 	// Backend discovers tenant from userHandle (login) or tenantId parameter (registration).
 
 	describe('isDefaultTenant', () => {
-		it('should return true for undefined', () => {
-			expect(isDefaultTenant(undefined)).toBe(true);
+		it('should return false for undefined', () => {
+			expect(isDefaultTenant(undefined)).toBe(false);
 		});
 
-		it('should return true for empty string', () => {
-			expect(isDefaultTenant('')).toBe(true);
+		it('should return false for empty string', () => {
+			expect(isDefaultTenant('')).toBe(false);
 		});
 
 		it('should return true for "default"', () => {
@@ -98,24 +98,23 @@ describe('tenant utilities', () => {
 	});
 
 	describe('buildTenantRoutePath', () => {
-		it('should return root path for default tenant', () => {
+		it('should return root path when tenantId is undefined or empty', () => {
 			expect(buildTenantRoutePath(undefined)).toBe('/');
 			expect(buildTenantRoutePath('')).toBe('/');
-			expect(buildTenantRoutePath(DEFAULT_TENANT_ID)).toBe('/');
 		});
 
-		it('should return root subpath for default tenant with subPath', () => {
+		it('should return root subpath when tenantId is undefined', () => {
 			expect(buildTenantRoutePath(undefined, 'settings')).toBe('/settings');
-			expect(buildTenantRoutePath(DEFAULT_TENANT_ID, 'login')).toBe('/login');
-			expect(buildTenantRoutePath('default', '/settings')).toBe('/settings');
 		});
 
-		it('should use /id/ prefix for custom tenants', () => {
+		it('should use /id/ prefix for all tenants including default', () => {
+			expect(buildTenantRoutePath(DEFAULT_TENANT_ID)).toBe(`/${TENANT_PATH_PREFIX}/default/`);
 			expect(buildTenantRoutePath('acme-corp')).toBe(`/${TENANT_PATH_PREFIX}/acme-corp/`);
 			expect(buildTenantRoutePath('my-tenant')).toBe('/id/my-tenant/');
 		});
 
-		it('should use /id/ prefix for custom tenants with subPath', () => {
+		it('should use /id/ prefix for tenants with subPath', () => {
+			expect(buildTenantRoutePath(DEFAULT_TENANT_ID, 'login')).toBe('/id/default/login');
 			expect(buildTenantRoutePath('acme-corp', 'settings')).toBe('/id/acme-corp/settings');
 			expect(buildTenantRoutePath('acme-corp', '/login')).toBe('/id/acme-corp/login');
 		});

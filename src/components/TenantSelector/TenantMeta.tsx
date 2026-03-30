@@ -1,6 +1,6 @@
 import { SyntheticEvent, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { isDefaultTenant, KnownTenant, TENANT_PATH_PREFIX } from "@/lib/tenant";
+import { KnownTenant, TENANT_PATH_PREFIX } from "@/lib/tenant";
 
 export type TenantMetaProps = {
 	knownTenants: KnownTenant[];
@@ -13,7 +13,7 @@ export default function TenantMeta({ knownTenants, tenantId }: TenantMetaProps) 
 	const tenant = useMemo(() => knownTenants.find((t) => t.id === tenantId), [knownTenants, tenantId]);
 
 	const faviconUrl = useMemo(() => {
-			const basePath = isDefaultTenant(tenantId) ? '/' : `/${TENANT_PATH_PREFIX}/${tenantId}/`;
+			const basePath = `/${TENANT_PATH_PREFIX}/${tenantId}/`;
 			return new URL('favicon.ico', window.location.origin + basePath).href;
 	}, [tenantId]);
 
