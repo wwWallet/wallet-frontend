@@ -17,7 +17,7 @@ function calculateNetworkSpeed(rtt: number): number {
 async function checkInternetConnection(): Promise<{ isConnected: boolean; speed: number }> {
 	try {
 		const startTime = new Date().getTime();
-		const tenantId = getTenantFromUrlPath();
+		const tenantId = getTenantFromUrlPath() || 'default';
 		await axios.get(`${BACKEND_URL}/status`, {
 			timeout: 5000, // Timeout of 5 seconds
 			headers: {
