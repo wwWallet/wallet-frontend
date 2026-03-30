@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
@@ -12,6 +12,7 @@ import OpenID4VCIContext from '@/context/OpenID4VCIContext';
 import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 import { buildCredentialConfiguration } from '@/components/QueryableList/CredentialsDisplayUtils';
+import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -76,26 +77,27 @@ const AddCredentials = () => {
 		}
 	}, [vcEntityList]);
 
-	const getSelectedIssuer = () => {
-		if (selectedCredentialConfiguration) {
-			const { credentialIssuerIdentifier } = selectedCredentialConfiguration;
-			return issuers.filter((issuer) => issuer.credential_issuer === credentialIssuerIdentifier)[0];
+	const selectedIssuer = useMemo(() => {
+		if (!selectedCredentialConfiguration) {
+			return null;
 		}
-		return null;
-	}
 
-	const getSelectedIssuerDisplay = () => {
-		const selectedIssuer = getSelectedIssuer();
+		const { credentialIssuerIdentifier } = selectedCredentialConfiguration;
+		return issuers.find((issuer) => issuer.credential_issuer === credentialIssuerIdentifier) ?? null;
+	}, [issuers, selectedCredentialConfiguration]);
 
-		if (selectedIssuer) {
-			const selectedDisplayBasedOnLang = filterItemByLang(selectedIssuer.display, 'locale')
-			if (selectedDisplayBasedOnLang) {
-				const { name, description } = selectedDisplayBasedOnLang;
-				return { name, description };
-			}
+	const redirectPopupContent = useMemo(() => {
+		if (!selectedCredentialConfiguration) {
+			return null;
 		}
-		return null;
-	}
+
+		return buildCredentialRedirectPopupContent({
+			t,
+			credentialConfigurationId: selectedCredentialConfiguration?.credentialConfigurationId,
+			issuerMetadata: selectedIssuer,
+			filterItemByLang,
+		});
+	}, [t, selectedCredentialConfiguration, selectedIssuer, filterItemByLang]);
 
 	useEffect(() => {
 		const fetchIssuers = async () => {
@@ -220,19 +222,8 @@ const AddCredentials = () => {
 					loading={loading}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
-					popupTitle={`${t('pageAddCredentials.popup.title')} ${selectedCredentialConfiguration?.credentialConfigurationDisplayName}`}
-					popupMessage={
-						<Trans
-							i18nKey="pageAddCredentials.popup.message"
-							values={{
-								issuerName: getSelectedIssuerDisplay()?.name ?? "Unknown",
-								issuerDescription: getSelectedIssuerDisplay()?.description ? `(${getSelectedIssuerDisplay()?.description})` : "",
-								credentialName: selectedCredentialConfiguration?.credentialDisplay.name ?? "Unknown",
-								credentialDescription: selectedCredentialConfiguration?.credentialDisplay?.description ? `(${selectedCredentialConfiguration?.credentialDisplay?.description})` : "",
-							}}
-							components={{ strong: <strong />, italic: <i /> }}
-						/>
-					}
+					popupTitle={redirectPopupContent?.title}
+					popupMessage={redirectPopupContent?.message}
 				/>
 			)}
 		</>
