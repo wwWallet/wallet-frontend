@@ -13,7 +13,6 @@ export function buildCredentialRedirectPopupContent({
 	filterItemByLang: (items: any[], langKey: string) => any;
 }): { title: string; message: React.ReactNode } {
 
-	console.log("Building credential redirect popup content with: ", { credentialConfigurationId, issuerMetadata });
 	const issuerDisplay = filterItemByLang(issuerMetadata?.display, 'locale');
 	const selectedCredentialConfiguration = credentialConfigurationId
 		? issuerMetadata?.credential_configurations_supported?.[credentialConfigurationId]
