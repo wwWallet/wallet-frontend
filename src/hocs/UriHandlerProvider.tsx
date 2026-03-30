@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef, useMemo } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
@@ -139,17 +139,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		window.history.replaceState({}, '', `${window.location.pathname}`);
 	};
 
-	const popupContentFromIssuerMetadata = useMemo(() => {
-		return (
-			issuerMetadata: OpenidCredentialIssuerMetadata,
-			credentialConfigurationId: string
-		) => buildCredentialRedirectPopupContent({
+	const popupContentFromIssuerMetadata = useCallback((
+		issuerMetadata: OpenidCredentialIssuerMetadata,
+		credentialConfigurationId: string
+	) => buildCredentialRedirectPopupContent({
 			t,
 			credentialConfigurationId,
 			issuerMetadata,
 			filterItemByLang,
-		});
-	}, [t, filterItemByLang]);
+		}), [t, filterItemByLang]);
 
 	const handleRedirectContinue = () => {
 		if (popupRedirectUrl) {
