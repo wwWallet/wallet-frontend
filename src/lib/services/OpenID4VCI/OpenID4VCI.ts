@@ -719,7 +719,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				if (age != null && age === 0) {
 					authorizationRequestURL.searchParams.set('prompt', 'login');
 				}
-				return { url: authorizationRequestURL.toString() };
+				return { url: authorizationRequestURL.toString(), issuerMetadata: credentialIssuerMetadata.metadata, credentialConfigurationId };
 			}
 		},
 		[openID4VCIClientStateRepository, openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge]
