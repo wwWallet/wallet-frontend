@@ -133,7 +133,7 @@ const formatClaimValue = (value) => {
 			src={src}
 			alt=""
 			aria-hidden="true"
-			className="max-h-10 max-w-full rounded-sm border"
+			className="max-h-10 max-w-full rounded-sm border bg-white"
 		/>
 	);
 
