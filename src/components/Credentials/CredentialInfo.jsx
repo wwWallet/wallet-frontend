@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatDate } from 'wallet-common';
 import { getLanguage } from '@/i18n';
 import { useTranslation } from 'react-i18next';
 import JsonViewer from '../JsonViewer/JsonViewer';
 import useScreenType from '../../hooks/useScreenType';
+import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
 
 const Legend = ({ showRequired, showRequested, t }) => {
@@ -126,15 +127,22 @@ const isDisplayClaim = (claim) => {
 	return claim.display.some(d => d.locale && d.label);
 };
 
-const formatClaimValue = (value) => {
+const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 
 	const renderImg = (src) => (
-		<img
-			src={src}
-			alt=""
-			aria-hidden="true"
-			className="max-h-10 max-w-full rounded-sm border"
-		/>
+		<button
+			type="button"
+			onClick={() => onImageClick({ src, alt: imageAlt })}
+			className="max-w-full cursor-pointer"
+			aria-label={fullscreenTitle}
+			title={fullscreenTitle}
+		>
+			<img
+				src={src}
+				alt=""
+				className="max-h-10 max-w-full rounded-sm border bg-white"
+			/>
+		</button>
 	);
 
 	const renderJson = (v) => (
@@ -192,6 +200,7 @@ const formatClaimValue = (value) => {
 const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
 	const { t, i18n } = useTranslation();
 	const screenType = useScreenType();
+	const [fullscreenImage, setFullscreenImage] = useState(null);
 	const { language, options: { fallbackLng } } = i18n;
 
 	const requestedFields = requested?.fields ?? null;
@@ -314,7 +323,11 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLng);
 		const display = { label, description };
 
-		const formattedValue = formatClaimValue(rawValue);
+		const imageAlt = label || '';
+		const fullscreenTitle = t('pageCredentials.credentialFullScreenTitle', {
+			friendlyName: label
+		});
+		const formattedValue = formatClaimValue(rawValue, imageAlt, fullscreenTitle, setFullscreenImage);
 
 		addToNestedObject(nestedClaims, claim.path, display, formattedValue, claim.required);
 	});
@@ -429,18 +442,33 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		});
 	};
 	return (
-		<div className={mainClassName} data-testid="credential-info">
-			{Object.keys(nestedClaims).length > 0 && (
-				<div className="flex flex-col w-full gap-1">
-					<Legend
-						showRequired={legendFlags.showRequired}
-						showRequested={legendFlags.showRequested}
-						t={t}
-					/>
-					{renderClaims(nestedClaims)}
-				</div>
+		<>
+			<div className={mainClassName} data-testid="credential-info">
+				{Object.keys(nestedClaims).length > 0 && (
+					<div className="flex flex-col w-full gap-1">
+						<Legend
+							showRequired={legendFlags.showRequired}
+							showRequested={legendFlags.showRequested}
+							t={t}
+						/>
+						{renderClaims(nestedClaims)}
+					</div>
+				)}
+			</div>
+			{fullscreenImage && (
+				<FullscreenPopup
+					isOpen={Boolean(fullscreenImage)}
+					onClose={() => setFullscreenImage(null)}
+					content={
+						<img
+							src={fullscreenImage.src}
+							alt={fullscreenImage.alt}
+							className="max-w-full max-h-[85vh] rounded-xl border bg-white"
+						/>
+					}
+				/>
 			)}
-		</div>
+		</>
 	);
 };
 
