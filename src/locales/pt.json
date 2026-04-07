@@ -151,10 +151,6 @@
 	"pageAddCredentials": {
 		"description": "Pesquise e selecione um credencial que deseja emitir",
 		"noFound": "Sem issuers correspondentes.",
-		"popup": {
-			"message": "Será redirecionado para <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir uma <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
-			"title": "Selecionado:"
-		},
 		"searchPlaceholder": "Procurar credencial..."
 	},
 	"pageCredentials": {
@@ -192,10 +188,6 @@
 	"pageSendCredentials": {
 		"description": "Pesquise e selecione um verifier para partilhar credenciais",
 		"noFound": "Sem verifiers correspondentes.",
-		"popup": {
-			"message": "Será redirecionado para {{verifierName}}.",
-			"title": "Selecionado:"
-		},
 		"searchPlaceholder": "Procurar verifiers..."
 	},
 	"pageSettings": {
@@ -295,6 +287,10 @@
 	"queryableList": {
 		"all": "Todos",
 		"recent": "Recentes"
+	},
+	"redirectPopup": {
+		"issuanceMessage": "Será redirecionado para <strong>{{issuerName}}</strong> <i>{{issuerDescription}}</i> para emitir uma <strong>{{credentialName}}</strong> <i>{{credentialDescription}}</i>.",
+		"presentationMessage": "Será redirecionado para <strong>{{verifierName}}</strong>."
 	},
 	"registerPasskey": {
 		"authOnceMore": "Para concluir a configuração, por favor autentique-se novamente.",

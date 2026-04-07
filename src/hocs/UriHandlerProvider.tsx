@@ -1,21 +1,27 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
 import { HandleAuthorizationRequestErrors as HandleAuthorizationRequestError } from "wallet-common";
+import type { OpenidCredentialIssuerMetadata } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import SyncPopup from "@/components/Popups/SyncPopup";
+import RedirectPopup from "@/components/Popups/RedirectPopup";
+import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
 import { useSessionStorage } from "@/hooks/useStorage";
+import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
+
+	const filterItemByLang = useFilterItemByLang();
 
 	const [usedAuthorizationCodes, setUsedAuthorizationCodes] = useState<string[]>([]);
 	const [usedRequestUris, setUsedRequestUris] = useState<string[]>([]);
@@ -44,7 +50,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [typeMessagePopup, setTypeMessagePopup] = useState<string>("");
 	const { t } = useTranslation();
 
-	const [redirectUri, setRedirectUri] = useState(null);
+	const [redirectUri, setRedirectUri] = useState<string | null>(null);
+	const [popupRedirectUrl, setPopupRedirectUrl] = useState<string | null>(null);
+	const [redirectPopupContent, setRedirectPopupContent] = useState<{ title: string, message: React.ReactNode }>({ title: "", message: "" });
+	const [showRedirectPopup, setShowRedirectPopup] = useState<boolean>(false);
 	const { vcEntityList } = useContext(CredentialsContext);
 
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
@@ -116,6 +125,36 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 	}, [synced, setUrl, location]);
 
+	const openRedirectPopup = (url: string, content: { title: string, message: React.ReactNode }) => {
+		setPopupRedirectUrl(url);
+		setRedirectPopupContent(content);
+		setShowRedirectPopup(true);
+	};
+
+	const closeRedirectPopup = () => {
+		setShowRedirectPopup(false);
+		setPopupRedirectUrl(null);
+		setRedirectPopupContent({ title: "", message: "" });
+		setUrl(`${window.location.origin}${window.location.pathname}`);
+		window.history.replaceState({}, '', `${window.location.pathname}`);
+	};
+
+	const popupContentFromIssuerMetadata = useCallback((
+		issuerMetadata: OpenidCredentialIssuerMetadata,
+		credentialConfigurationId: string
+	) => buildCredentialRedirectPopupContent({
+			t,
+			credentialConfigurationId,
+			issuerMetadata,
+			filterItemByLang,
+		}), [t, filterItemByLang]);
+
+	const handleRedirectContinue = () => {
+		if (popupRedirectUrl) {
+			window.location.href = popupRedirectUrl;
+		}
+	};
+
 	useEffect(() => {
 		if (redirectUri) {
 			window.location.href = redirectUri;
@@ -134,6 +173,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			if (u.searchParams.size === 0) return;
 			// setUrl(window.location.origin);
 			console.log('[Uri Handler]: check', url);
+			setUrl('');
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
 				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
@@ -160,7 +200,12 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
 					if ('url' in res && typeof res.url === 'string' && res.url) {
-						window.location.href = res.url;
+						const popupContent = popupContentFromIssuerMetadata(res.issuerMetadata, res.credentialConfigurationId);
+
+						openRedirectPopup(res.url, {
+							title: popupContent.title,
+							message: popupContent.message,
+						});
 					}
 				})
 					.catch(err => {
@@ -242,13 +287,14 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		url,
 		t,
 		isLoggedIn,
-		setRedirectUri,
 		vcEntityList,
+		popupRedirectUrl,
 		synced,
 		getCalculatedWalletState,
 		usedAuthorizationCodes,
 		usedRequestUris,
 		// depend on methods, not whole context objects
+		popupContentFromIssuerMetadata,
 		handleCredentialOffer,
 		generateAuthorizationRequest,
 		handleAuthorizationResponse,
@@ -286,6 +332,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						setSyncPopup(false);
 						logout();
 					}}
+				/>
+			}
+			{showRedirectPopup && popupRedirectUrl &&
+				<RedirectPopup
+					loading={false}
+					onClose={closeRedirectPopup}
+					handleContinue={handleRedirectContinue}
+					popupTitle={redirectPopupContent.title}
+					popupMessage={redirectPopupContent.message}
 				/>
 			}
 		</>
