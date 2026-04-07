@@ -230,19 +230,34 @@ export function useCredentialRequest() {
 
 		if (credentialIssuerMetadata.metadata.credential_response_encryption) {
 			encryptionRequested = true;
+
+			const encryptionRequired = credentialIssuerMetadata.metadata.credential_response_encryption.encryption_required;
+
+			const credentialResponseEncryptionSupportedErrors = [];
 			if (!credentialIssuerMetadata.metadata.credential_response_encryption.alg_values_supported.includes('ECDH-ES')) {
-				throw new Error("Unsupported credential_response_encryption.alg_values_supported. ['ECDH-ES'] are supported");
+				credentialResponseEncryptionSupportedErrors.push("Unsupported credential_response_encryption.alg_values_supported. ['ECDH-ES'] are supported");
 			}
 			if (!credentialIssuerMetadata.metadata.credential_response_encryption.enc_values_supported.includes('A128CBC-HS256')) {
-				throw new Error("Unsupported credential_response_encryption.enc_values_supported. ['A128CBC-HS256'] are supported");
+				credentialResponseEncryptionSupportedErrors.push("Unsupported credential_response_encryption.enc_values_supported. ['A128CBC-HS256'] are supported");
 			}
 
-			const ephemeralPublicKeyJwk = await exportJWK(ephemeralKeypair.publicKey);
-			credentialEndpointBody.credential_response_encryption = {
-				alg: 'ECDH-ES',
-				enc: 'A128CBC-HS256',
-				jwk: { ...ephemeralPublicKeyJwk, "use": "enc", },
-			};
+			if (credentialResponseEncryptionSupportedErrors.length > 0) {
+				if (encryptionRequired) {
+					throw new Error("Credential response encryption requirements not met: " + credentialResponseEncryptionSupportedErrors.join("; "));
+				}
+				else {
+					encryptionRequested = false;
+				}
+			}
+
+			if (encryptionRequested) {
+				const ephemeralPublicKeyJwk = await exportJWK(ephemeralKeypair.publicKey);
+				credentialEndpointBody.credential_response_encryption = {
+					alg: 'ECDH-ES',
+					enc: 'A128CBC-HS256',
+					jwk: { ...ephemeralPublicKeyJwk, "use": "enc", },
+				};
+			}
 		}
 
 		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);

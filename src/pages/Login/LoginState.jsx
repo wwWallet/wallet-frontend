@@ -9,7 +9,6 @@ import LanguageSelector from '../../components/LanguageSelector/LanguageSelector
 import Button from '../../components/Buttons/Button';
 import LoginPageLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
-import ConnectionStatusIcon from '../../components/Layout/Navigation/ConnectionStatusIcon';
 import { Info, UserLock } from 'lucide-react';
 
 const WebauthnLogin = ({
@@ -145,23 +144,22 @@ const LoginState = () => {
 				}}
 			/>
 		}>
-			<div className="relative p-8 space-y-4 md:space-y-6 bg-white rounded-lg shadow dark:bg-dm-gray-800">
+			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
 					{t('loginState.title')} {filteredUser.displayName}
 				</h1>
-				<div className='absolute text-lm-gray-800 dark:text-dm-gray-200  top-0 left-5'>
-					<ConnectionStatusIcon backgroundColor='light' />
+
+				<div className='absolute top-5 right-5'>
+					<LanguageSelector className='min-w-12 text-sm text-lm-gray-900 dark:text-white cursor-pointer bg-white dark:bg-dm-gray-900 appearance-none' />
 				</div>
-				<div className='absolute top-0 right-3'>
-					<LanguageSelector className='min-w-12 text-sm text-primary dark:text-white cursor-pointer bg-white dark:bg-dm-gray-800 appearance-none' />
-				</div>
+
 				{isOnline === false && (
 					<p className="text-sm font-light text-lm-gray-800 dark:text-dm-gray-200 italic mb-2">
 						<Info size={14} className="text-md inline-block text-lm-gray-800 dark:text-dm-gray-200 mr-2" />
 						{t('loginSignup.messageOffline')}
 					</p>
 				)}
-				<p className="text-sm text-center text-lm-gray-800 dark:text-dm-gray-20 mb-2">
+				<p className="text-sm text-center text-lm-gray-800 dark:text-white mb-2">
 					<Trans
 						i18nKey="loginState.message"
 						components={{ strong: <strong /> }}

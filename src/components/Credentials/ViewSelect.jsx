@@ -12,17 +12,13 @@ const viewOptions = [
 export default function ViewSelect({ value, onChange }) {
 	const { t } = useTranslation();
 	const [open, setOpen] = useState(false);
-	const triggerRef = useRef(null);
-	const menuRef = useRef(null);
+	const containerRef = useRef(null);
 
 	// Close on outside click
 	useEffect(() => {
 		if (!open) return;
 		const handler = (e) => {
-			if (
-				triggerRef.current?.contains(e.target) ||
-				menuRef.current?.contains(e.target)
-			) {
+			if (containerRef.current?.contains(e.target)) {
 				return;
 			}
 			setOpen(false);
@@ -35,10 +31,9 @@ export default function ViewSelect({ value, onChange }) {
 	const SelectedIcon = selected.Icon;
 
 	return (
-		<div className="relative inline-block text-lm-gray-900 dark:text-dm-gray-100 text-sm">
+		<div ref={containerRef} className="relative inline-block text-lm-gray-900 dark:text-dm-gray-100 text-sm">
 			<Button
 				id="credential-view-select"
-				ref={triggerRef}
 				type="button"
 				variant="outline"
 				size="sm"
@@ -53,7 +48,6 @@ export default function ViewSelect({ value, onChange }) {
 
 			{open && (
 				<div
-					ref={menuRef}
 					role="menu"
 					aria-label={t("viewSelect.aria.menuLabel")}
 					className="absolute right-0 mt-2 min-w-48 border border-lm-gray-400 dark:border-dm-gray-600 bg-lm-gray-100 dark:bg-dm-gray-900 rounded-lg shadow-lg z-50"
