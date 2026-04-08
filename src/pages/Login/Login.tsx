@@ -16,6 +16,7 @@ import SeparatorLine from '../../components/Shared/SeparatorLine';
 import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
+import Spinner from '../../components/Shared/Spinner';
 
 import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
@@ -206,6 +207,7 @@ const WebauthnSignupLogin = ({
 	isLoginCache,
 	error,
 	setError,
+	setIsAwaitingRedirect,
 }: {
 	isLogin: boolean,
 	isSubmitting: boolean,
@@ -213,6 +215,7 @@ const WebauthnSignupLogin = ({
 	isLoginCache: boolean,
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
+	setIsAwaitingRedirect: (isAwaitingRedirect: boolean) => void,
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -250,7 +253,7 @@ const WebauthnSignupLogin = ({
 	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
 		if (result.ok) {
-
+			setIsAwaitingRedirect(true);
 		} else {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {
@@ -291,7 +294,7 @@ const WebauthnSignupLogin = ({
 			retrySignupFrom,
 		);
 		if (result.ok) {
-
+			setIsAwaitingRedirect(true);
 		} else if (result.err) {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {
@@ -610,6 +613,7 @@ const Auth = () => {
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isAwaitingRedirect, setIsAwaitingRedirect] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -625,6 +629,10 @@ const Auth = () => {
 			navigate(`/${window.location.search}`, { replace: true });
 		}
 	}, [isLoggedIn, navigate]);
+
+	if (isAwaitingRedirect || isLoggedIn) {
+		return <Spinner />;
+	}
 
 	const handleFormChange = () => setError('');
 
@@ -673,10 +681,10 @@ const Auth = () => {
 
 		} else {
 			const result = await api.signup(username, password, keystore);
-			if (result.ok) {
-				navigate(from, { replace: true });
-			} else {
+			if (!result.ok) {
 				setError(t('loginSignup.usernameExistsError'));
+			} else {
+				setIsAwaitingRedirect(true);
 			}
 		}
 
@@ -748,6 +756,7 @@ const Auth = () => {
 					isLoginCache={isLoginCache}
 					error={webauthnError}
 					setError={setWebauthnError}
+					setIsAwaitingRedirect={setIsAwaitingRedirect}
 				/>
 				{!isLoginCache ? (
 					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
