@@ -342,6 +342,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 	}, [clearSessionStorage, removePrivateDataEtag]);
 
+	const shouldShowWelcomeOnSignup = useCallback((): boolean => {
+		const queryParams = new URLSearchParams(window.location.search);
+		return queryParams.size === 0;
+	}, []);
+
 	const setSession = useCallback(async (
 		response: AxiosResponse,
 		credential: PublicKeyCredential | null,
@@ -354,14 +359,14 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			username: response.data.username,
 			webauthnCredentialCredentialId: credential?.id,
 			authenticationType,
-			showWelcome: authenticationType === 'signup',
+			showWelcome: authenticationType === 'signup' && shouldShowWelcomeOnSignup(),
 		});
 
 		await addItem('users', response.data.uuid, response.data);
 		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-	}, [setAppToken, setSessionState, fetchInitialData, isOnline]);
+	}, [setAppToken, setSessionState, fetchInitialData, isOnline, shouldShowWelcomeOnSignup]);
 
 	const updatePrivateData = useCallback(async (
 		newPrivateData: EncryptedContainer,
