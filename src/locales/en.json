@@ -298,12 +298,6 @@
 			"manageOtherPasskeys": "Manage other Passkeys",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockPassword": {
-			"description": "Please enter your password to unlock the wallet.",
-			"passwordInputAriaLabel": "Password",
-			"passwordInputPlaceholder": "Password",
-			"title": "Enter password"
-		},
 		"unlockSensitive": "Unlock sensitive actions",
 		"unlockSensitiveTitle": "Click to unlock sensitive actions",
 		"upgradePrfKey": {

@@ -253,12 +253,6 @@
 			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockPassword": {
-			"description": "Παρακαλώ εισάγετε τον κωδικό σας για να ξεκλειδώσετε το wallet.",
-			"passwordInputAriaLabel": "Κωδικός",
-			"passwordInputPlaceholder": "Κωδικός",
-			"title": "Εισάγετε Κωδικό"
-		},
 		"upgradePrfKey": {
 			"description": "Παρακαλώ αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\"...",
 			"error": "<p>Κάτι πήγε στραβά, δοκιμάστε ξανά.</p><p>Σημειώστε ότι πρέπει να αυθεντικοποιηθείτε με το κλειδί πρόσβασης \"{{passkeyLabel}}\".</p>",

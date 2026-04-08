@@ -247,12 +247,6 @@
 			"manageOtherPasskeys": "Gerir outras chaves de acesso",
 			"rememberIssuer": "Relembrar issuer"
 		},
-		"unlockPassword": {
-			"description": "Por favor, introduza a sua palavra-passe para desbloquear a gestão da carteira.",
-			"passwordInputAriaLabel": "Palavra-passe",
-			"passwordInputPlaceholder": "Palavra-passe",
-			"title": "Introduzir Palavra-passe"
-		},
 		"upgradePrfKey": {
 			"description": "Por favor, autentique-se com a chave de acesso \"{{passkeyLabel}}\"...",
 			"error": "<p>Algo correu mal. Por favor, tente novamente.</p><p>Por favor, lembre-se que precisa de se autenticar com a chave de acesso \"{{passkeyLabel}}\".</p>",
