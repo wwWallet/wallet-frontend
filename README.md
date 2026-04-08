@@ -76,7 +76,6 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `BASE_PATH`: Base path for asset loading (default is `/`). Used for sub-path deployments.
   - `WS_URL`: The URL of the websocket service.
   - `WALLET_BACKEND_URL`: The URL of your backend service.
-  - `LOGIN_WITH_PASSWORD`: A Boolean value which show/hide the classic login/signup.
   - `DID_KEY_VERSION`: DID key version format (e.g., `jwk_jcs-pub`).
   - `DISPLAY_CONSOLE`: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
   - `WEBAUTHN_RPID`: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
