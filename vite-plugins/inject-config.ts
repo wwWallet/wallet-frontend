@@ -51,6 +51,10 @@ export function InjectConfigPlugin(env: Record<string, string>): Plugin {
 
 			// Make sure paths resolve in dev server
 			server.middlewares.use((req, res, next) => {
+				if (!config.BASE_PATH.startsWith('/id/')) {
+					return next();
+				}
+
 				if (req.url === '/' && config.BASE_PATH.startsWith('/id/')) {
 					res.writeHead(302, { Location: config.BASE_PATH });
 					res.end();
