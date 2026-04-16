@@ -103,6 +103,38 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const [tick, setTick] = useState(0);
 
 	const [commitStateChanges, setCommitStateChanges] = useState<number>(0);
+	const pendingEndSessionRef = useRef<{ endSessionEndpoint: string; clientId: string | null } | null>(null);
+
+	const attemptEndSessionLogout = useCallback(
+		async (): Promise<boolean> => {
+			try {
+				const pendingEndSession = pendingEndSessionRef.current;
+				if (!pendingEndSession) {
+					return false;
+				}
+				const endSessionEndpoint = pendingEndSession.endSessionEndpoint;
+				if (!endSessionEndpoint) {
+					return false;
+				}
+
+				const logoutUrl = new URL(endSessionEndpoint);
+				logoutUrl.searchParams.set(
+					"post_logout_redirect_uri",
+					`${window.location.origin}${window.location.pathname}`
+				);
+				if (pendingEndSession.clientId) {
+					logoutUrl.searchParams.set("client_id", pendingEndSession.clientId);
+				}
+
+				window.location.href = logoutUrl.toString();
+				return true;
+			} catch (err) {
+				console.warn("LOGOUT end-session attempt failed:", err);
+				return false;
+			}
+		},
+		[]
+	);
 
 	useEffect(() => {
 		if (!receivedCredentialsArray || !keystore || verificationFlowInProgress || commitStateChanges === 1) {
@@ -179,6 +211,11 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					setCommitStateChanges(1);
 					// display notification
 					notify("newCredential");
+					const didRedirectToLogout = await attemptEndSessionLogout();
+					pendingEndSessionRef.current = null;
+					if (!didRedirectToLogout) {
+						navigate("/");
+					}
 				}
 			}
 			catch (err) {
@@ -194,7 +231,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		showMessagePopup,
 		showPopupConsent,
 		t,
-		api
+		api,
+		attemptEndSessionLogout,
+		navigate
 	]);
 
 	const credentialRequest = useCallback(
@@ -339,6 +378,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 						throw new Error("Using active access token: No dpop in flowstate");
 					}
 
+						const resolvedAuthzMetadata = authzServerMetadata?.authzServerMetadata as { end_session_endpoint?: string } | undefined;
+						const endSessionEndpoint = resolvedAuthzMetadata?.end_session_endpoint;
+						pendingEndSessionRef.current = endSessionEndpoint
+							? {
+								endSessionEndpoint,
+								clientId: clientId?.client_id ?? null,
+							}
+							: null;
 					await credentialRequest(flowState.tokenResponse, flowState);
 					return;
 				}
@@ -460,7 +507,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw new Error("Failed to extract the response and update the OpenID4VCIClientStateRepository");
 			}
 
-			try {
+				try {
+					const resolvedAuthzMetadata = authzServerMetadata?.authzServerMetadata as { end_session_endpoint?: string } | undefined;
+					const endSessionEndpoint = resolvedAuthzMetadata?.end_session_endpoint;
+					pendingEndSessionRef.current = endSessionEndpoint
+						? {
+							endSessionEndpoint,
+							clientId: clientId?.client_id ?? null,
+						}
+						: null;
 				// Credential Request
 				await credentialRequest(flowState.tokenResponse, flowState);
 			}
@@ -515,8 +570,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	);
 
 	const requestCredentialsWithPreAuthorization = useCallback(async (credentialIssuer: string, selectedCredentialConfigurationId: string, preAuthorizedCode: string, txCode?: string): Promise<{}> => {
-		const [authzServerMetadata] = await Promise.all([
+		const [authzServerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
+			openID4VCIHelper.getClientId(credentialIssuer),
 		]);
 
 		const flowState: WalletStateCredentialIssuanceSession = {
@@ -576,7 +632,14 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			headers: { ...result.response.httpResponseHeaders }
 		};
 
-
+		const resolvedAuthzMetadata = authzServerMetadata?.authzServerMetadata as { end_session_endpoint?: string } | undefined;
+		const endSessionEndpoint = resolvedAuthzMetadata?.end_session_endpoint;
+		pendingEndSessionRef.current = endSessionEndpoint
+			? {
+				endSessionEndpoint,
+				clientId: clientId?.client_id ?? null,
+			}
+			: null;
 		await credentialRequest(tokenResponse, flowState);
 		return {};
 	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper]);
