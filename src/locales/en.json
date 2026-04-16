@@ -136,6 +136,10 @@
 		"welcomeBackMessage": "Welcome back to <highlight>$t(common.walletName)</highlight>"
 	},
 	"messagePopup": {
+		"addCredentialProcessFailed": {
+			"description": "Something went wrong while issuing the credential.",
+			"title": "Add Credential Process Failed"
+		},
 		"close": "Close",
 		"insufficientCredentials": {
 			"description": "One or more of the credentials you want to present do not exist for selection.",
@@ -148,6 +152,10 @@
 		"onlyOneInputDescriptor": {
 			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
 			"title": "Unsupported protocol version"
+		},
+		"sendCredentialProcessFailed": {
+			"description": "Something went wrong while presenting the credential.",
+			"title": "Send Credential Process Failed"
 		},
 		"sendResponseError": {
 			"description": "An error occured during the presentation of the credentials.",

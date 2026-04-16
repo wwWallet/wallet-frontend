@@ -143,11 +143,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		issuerMetadata: OpenidCredentialIssuerMetadata,
 		credentialConfigurationId: string
 	) => buildCredentialRedirectPopupContent({
-			t,
-			credentialConfigurationId,
-			issuerMetadata,
-			filterItemByLang,
-		}), [t, filterItemByLang]);
+		t,
+		credentialConfigurationId,
+		issuerMetadata,
+		filterItemByLang,
+	}), [t, filterItemByLang]);
 
 	const handleRedirectContinue = () => {
 		if (popupRedirectUrl) {
@@ -207,12 +207,14 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 							message: popupContent.message,
 						});
 					}
+				}).catch(err => {
+					setUrl(`${window.location.origin}${window.location.pathname}`);
+					window.history.replaceState({}, '', `${window.location.pathname}`);
+					setTextMessagePopup({ title: `${t('messagePopup.addCredentialProcessFailed.title')}`, description: `${t('messagePopup.addCredentialProcessFailed.description')}` });
+					setTypeMessagePopup('error');
+					setMessagePopup(true);
+					console.error(err);
 				})
-					.catch(err => {
-						setUrl(`${window.location.origin}${window.location.pathname}`);
-						window.history.replaceState({}, '', `${window.location.pathname}`);
-						console.error(err);
-					})
 				return;
 			}
 			else if (u.searchParams.get('code') && !usedAuthorizationCodes.includes(u.searchParams.get('code'))) {
@@ -224,6 +226,9 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					setUrl(`${window.location.origin}${window.location.pathname}`);
 					console.log("Error during the handling of authorization response")
 					window.history.replaceState({}, '', `${window.location.pathname}`);
+					setTextMessagePopup({ title: `${t('messagePopup.addCredentialProcessFailed.title')}`, description: `${t('messagePopup.addCredentialProcessFailed.description')}` });
+					setTypeMessagePopup('error');
+					setMessagePopup(true);
 					console.error(err)
 				})
 			}
@@ -263,6 +268,9 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					setUrl(`${window.location.origin}${window.location.pathname}`);
 					console.log("Failed to handle authorization req");
 					window.history.replaceState({}, '', `${window.location.pathname}`);
+					setTextMessagePopup({ title: `${t('messagePopup.sendCredentialProcessFailed.title')}`, description: `${t('messagePopup.sendCredentialProcessFailed.description')}` });
+					setTypeMessagePopup('error');
+					setMessagePopup(true);
 					console.error(err);
 				})
 				return;
