@@ -2,9 +2,11 @@
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, createHandlerBoundToURL, cleanupOutdatedCaches, } from "workbox-precaching";
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
-import { StaleWhileRevalidate, CacheFirst } from "workbox-strategies";
+import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
+
+const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
 
 clientsClaim();
 
@@ -29,15 +31,40 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/history\/[^/]+$/,                // History detail
 ];
 
+const appShellHandler = createHandlerBoundToURL(`${basePath}index.html`);
+const appShellStrategy = new NetworkFirst({
+	cacheName: "app-shell",
+	networkTimeoutSeconds: 3,
+});
+
 registerRoute(
 	({ request, url }) => {
 		if (request.mode !== "navigate") return false;
 		if (url.pathname.startsWith("/_")) return false;
 		if (/\.[a-zA-Z0-9]+$/.test(url.pathname)) return false;
 
-		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(url.pathname));
+		const pathname = url.pathname.replace(/^(\/id\/([a-z0-9-]+))/, '');
+
+		return SPA_ROUTE_ALLOWLIST.some((re) => re.test(pathname));
 	},
-	createHandlerBoundToURL('/index.html')
+	async ({ event }) => {
+		const appShellUrl = new URL(`${basePath}index.html`, self.location.origin);
+
+		try {
+			const response = await appShellStrategy.handle({
+				event,
+				request: new Request(appShellUrl, {
+					credentials: "same-origin",
+				}),
+			});
+
+			if (response) {
+				return response;
+			}
+		} catch {}
+
+		return appShellHandler({ event });
+	}
 );
 
 registerRoute(
@@ -69,10 +96,12 @@ registerRoute(
 	})
 );
 
+let isFirstVisit = false;
+
 self.addEventListener('install', (event) => {
+	isFirstVisit = !self.registration.active;
 	self.skipWaiting();
 });
-
 
 self.addEventListener("activate", (event) => {
 	event.waitUntil(
@@ -90,10 +119,13 @@ self.addEventListener("activate", (event) => {
 
 			// Claim and reload clients
 			await self.clients.claim();
-			const clients = await self.clients.matchAll();
-			clients.forEach((client) => {
-				client.navigate(client.url);
-			});
+
+			if (!isFirstVisit) {
+				const clients = await self.clients.matchAll();
+				clients.forEach((client) => {
+					client.navigate(client.url);
+				});
+			}
 		})()
 	);
 });

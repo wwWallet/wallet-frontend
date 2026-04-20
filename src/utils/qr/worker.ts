@@ -25,6 +25,7 @@ SOFTWARE.
 */
 /* eslint-env worker */
 // @ts-ignore jsqr-es6 does not provide types currently
+/// <reference lib="webworker" />
 import jsQR from "jsqr-es6";
 
 type GrayscaleWeights = {

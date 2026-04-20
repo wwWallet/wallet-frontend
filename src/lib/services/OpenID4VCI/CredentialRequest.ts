@@ -230,23 +230,51 @@ export function useCredentialRequest() {
 
 		if (credentialIssuerMetadata.metadata.credential_response_encryption) {
 			encryptionRequested = true;
-			if (!credentialIssuerMetadata.metadata.credential_response_encryption.alg_values_supported.includes('ECDH-ES')) {
-				throw new Error("Unsupported credential_response_encryption.alg_values_supported. ['ECDH-ES'] are supported");
-			}
-			if (!credentialIssuerMetadata.metadata.credential_response_encryption.enc_values_supported.includes('A128CBC-HS256')) {
-				throw new Error("Unsupported credential_response_encryption.enc_values_supported. ['A128CBC-HS256'] are supported");
+
+			const encryptionRequired = credentialIssuerMetadata.metadata.credential_response_encryption.encryption_required;
+
+			const credentialResponseEncryptionSupportedErrors = [];
+
+			const walletSupportedAlg = ['ECDH-ES'];
+			const issuerSupportedAlgs = credentialIssuerMetadata.metadata.credential_response_encryption.alg_values_supported;
+			const mutuallySupportedAlg = walletSupportedAlg.find(alg => issuerSupportedAlgs.includes(alg));
+			if (!mutuallySupportedAlg) {
+				credentialResponseEncryptionSupportedErrors.push(`Unsupported credential_response_encryption.alg_values_supported. [${walletSupportedAlg.join(', ')}] are supported`);
 			}
 
-			const ephemeralPublicKeyJwk = await exportJWK(ephemeralKeypair.publicKey);
-			credentialEndpointBody.credential_response_encryption = {
-				alg: 'ECDH-ES',
-				enc: 'A128CBC-HS256',
-				jwk: { ...ephemeralPublicKeyJwk, "use": "enc", },
-			};
+			const walletSupportedEnc = ['A128CBC-HS256', 'A256GCM'];
+			const issuerSupportedEnc = credentialIssuerMetadata.metadata.credential_response_encryption.enc_values_supported;
+			const mutuallySupportedEnc = walletSupportedEnc.find(enc => issuerSupportedEnc.includes(enc));
+			if (!mutuallySupportedEnc) {
+				credentialResponseEncryptionSupportedErrors.push("Unsupported credential_response_encryption.enc_values_supported. ['A128CBC-HS256', 'A256GCM'] are supported");
+			}
+
+			if (credentialResponseEncryptionSupportedErrors.length > 0) {
+				if (encryptionRequired) {
+					throw new Error("Credential response encryption requirements not met: " + credentialResponseEncryptionSupportedErrors.join("; "));
+				}
+				else {
+					encryptionRequested = false;
+				}
+			}
+
+			if (encryptionRequested) {
+				const ephemeralPublicKeyJwk = await exportJWK(ephemeralKeypair.publicKey);
+				credentialEndpointBody.credential_response_encryption = {
+					alg: mutuallySupportedAlg,
+					enc: mutuallySupportedEnc,
+					jwk: {
+						...ephemeralPublicKeyJwk,
+						alg: mutuallySupportedAlg,
+						use: 'enc'
+					},
+				};
+			}
 		}
 
 		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialEndpointBody, httpHeaders);
-		if (encryptionRequested && credentialResponse.headers['content-type'] === 'application/jwt') {
+		const contentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
+		if (encryptionRequested && typeof contentType === 'string' && contentType.startsWith('application/jwt')) {
 			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
 			if (result.err) {
 				throw new Error("Credential Response decryption failed");

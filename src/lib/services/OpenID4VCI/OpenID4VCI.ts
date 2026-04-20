@@ -1,5 +1,4 @@
 import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
-import { CredentialOfferSchema } from '../../schemas/CredentialOfferSchema';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
@@ -12,7 +11,7 @@ import { GrantType, TokenRequestError, useTokenRequest } from './OAuth/TokenRequ
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
-import { CredentialConfigurationSupported, VerifiableCredentialFormat } from 'wallet-common';
+import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
@@ -155,7 +154,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				}
 
 				let userConsent = true;
-				if (warnings.length > 0 && config.VITE_DISPLAY_ISSUANCE_WARNINGS === true) {
+				if (warnings.length > 0 && config.DISPLAY_ISSUANCE_WARNINGS === true) {
 					userConsent = await showPopupConsent({
 						title: t("issuance.title"),
 						warnings: warnings
@@ -719,7 +718,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				if (age != null && age === 0) {
 					authorizationRequestURL.searchParams.set('prompt', 'login');
 				}
-				return { url: authorizationRequestURL.toString() };
+				return { url: authorizationRequestURL.toString(), issuerMetadata: credentialIssuerMetadata.metadata, credentialConfigurationId };
 			}
 		},
 		[openID4VCIClientStateRepository, openID4VCIHelper, openID4VCIPushedAuthorizationRequest, requestCredentials, keystore, getRememberIssuerAge]
@@ -870,11 +869,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	]);
 
 	useEffect(() => {
-		setTimeout(() => {
+		const timeoutId = setTimeout(() => {
 			intervalCallback().then(() => {
 				setTick((current) => current + 1);
 			});
 		}, config.OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS * 1000);
+
+		return () => {
+			clearTimeout(timeoutId);
+		};
 	}, [tick, intervalCallback])
 
 	return useMemo(() => {

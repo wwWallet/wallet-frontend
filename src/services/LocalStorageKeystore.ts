@@ -196,6 +196,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	const closeSessionTabLocal = useCallback(
 		async (): Promise<void> => {
 			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
+			setPrivateData(null);
+			setCalculatedWalletState(null);
 			clearSessionStorage();
 		},
 		[clearSessionStorage, eventTarget],

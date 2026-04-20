@@ -21,6 +21,7 @@ import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
 import { Bell, ChevronDown, Edit, FingerprintIcon, Laptop, Lock, LockOpen, Moon, RefreshCcw, Smartphone, SmartphoneNfcIcon, Sun, Trash2 } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
+import { APP_VERSION } from '@/config';
 
 function useWebauthnCredentialNickname(credential: WebauthnCredential): string {
 	const { t } = useTranslation();
@@ -1116,7 +1117,7 @@ const Settings = () => {
 								<p className='mb-2 dark:text-white'>
 									<Trans
 										i18nKey="pageSettings.appVersion.descriptionOldVersion"
-										values={{ react_app_version: import.meta.env.VITE_APP_VERSION }}
+										values={{ react_app_version: APP_VERSION }}
 										components={{
 											reloadButton:
 												<button
@@ -1131,7 +1132,7 @@ const Settings = () => {
 								</p>
 							) : (
 								<p className='mb-2 dark:text-white'>
-									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: import.meta.env.VITE_APP_VERSION })}
+									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: APP_VERSION })}
 								</p>
 							)}
 

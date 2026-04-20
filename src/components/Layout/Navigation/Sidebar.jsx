@@ -2,8 +2,9 @@ import React, { useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useScreenType from '../../../hooks/useScreenType';
 import Logo from '../../Logo/Logo';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import StatusContext from '@/context/StatusContext';
+import PoweredBy from '@/components/Shared/PoweredBy';
 import SessionContext from '@/context/SessionContext';
 import ConnectionStatusIcon from './ConnectionStatusIcon';
 import CredentialsContext from '@/context/CredentialsContext';
@@ -190,19 +191,8 @@ const Sidebar = ({ isOpen, toggle }) => {
 			</div>
 
 			{/* Powered By */}
-			<div className=" text-sm space-x-2 p-2">
-				<Trans
-					i18nKey="sidebar.poweredBy"
-					components={{
-						docLinkWalletGithub: <a
-							href="https://github.com/wwWallet"
-							rel="noreferrer"
-							target='blank_'
-							className="underline"
-							aria-label={t('sidebar.poweredbyAriaLabel')}
-						/>
-					}}
-				/>
+			<div className="text-sm space-x-2 p-2">
+				<PoweredBy linkClassName="underline" />
 			</div>
 		</div>
 	);
