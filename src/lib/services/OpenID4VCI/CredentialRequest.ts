@@ -1,4 +1,4 @@
-import { compactDecrypt, CompactDecryptResult, CompactEncrypt, exportJWK, generateKeyPair, importJWK, JWK, KeyLike } from "jose";
+import { compactDecrypt, CompactDecryptResult, CompactEncrypt, CompactJWEHeaderParameters, exportJWK, generateKeyPair, importJWK, JWK, KeyLike } from "jose";
 import { generateDPoP } from "../../utils/dpop";
 import { useHttpProxy } from "../HttpProxy/HttpProxy";
 import { useOpenID4VCIHelper } from "../OpenID4VCIHelper";
@@ -6,6 +6,25 @@ import { useContext, useCallback, useMemo, useRef } from "react";
 import SessionContext from "@/context/SessionContext";
 import { OpenidCredentialIssuerMetadata } from "wallet-common";
 import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
+
+/**
+ * Compression options for jose v4 using native Browser/Node CompressionStream API.
+ * This satisfies the 'deflateRaw' and 'inflateRaw' requirements for zip: "DEF".
+ */
+export const compressionOptions = {
+    deflateRaw: async (data: Uint8Array): Promise<Uint8Array> => {
+		const stream = new Blob([data as BlobPart])
+            .stream()
+            .pipeThrough(new CompressionStream('deflate-raw'));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+    },
+    inflateRaw: async (data: Uint8Array): Promise<Uint8Array> => {
+        const stream = new Blob([data as BlobPart])
+            .stream()
+            .pipeThrough(new DecompressionStream('deflate-raw'));
+        return new Uint8Array(await new Response(stream).arrayBuffer());
+    }
+};
 
 export function useCredentialRequest() {
 	const httpProxy = useHttpProxy();
@@ -228,6 +247,7 @@ export function useCredentialRequest() {
 		let credentialRequestEncryptionRequested = false;
 		let credentialRequestEncryptionAlg: string | undefined;
 		let credentialRequestEncryptionEnc: string | undefined;
+		let credentialRequestEncryptionZip: string | undefined;
 
 		if (credentialIssuerMetadata.metadata.credential_request_encryption) {
 			credentialRequestEncryptionRequested = true;
@@ -250,6 +270,15 @@ export function useCredentialRequest() {
 				credentialRequestEncryptionSupportedErrors.push(`Unsupported credential_request_encryption.enc_values_supported. [${credentialRequestWalletSupportedEnc.join(', ')}] are supported.`);
 			}
 
+			if (credentialIssuerMetadata.metadata.credential_request_encryption.zip_values_supported) {
+				const credentialRequestWalletSupportedZip = ['DEF'];
+				const credentialRequestIssuerSupportedZip = credentialIssuerMetadata.metadata.credential_request_encryption.zip_values_supported;
+				credentialRequestEncryptionZip = credentialRequestWalletSupportedZip.find(zip => credentialRequestIssuerSupportedZip.includes(zip));
+				if (!credentialRequestEncryptionZip) {
+					credentialRequestEncryptionSupportedErrors.push(`Unsupported credential_request_encryption.zip_values_supported. [${credentialRequestWalletSupportedZip.join(', ')}] are supported.`);
+				}
+			}
+
 			if (credentialRequestEncryptionSupportedErrors.length > 0) {
 				if (credentialRequestEncryptionRequired) {
 					throw new Error("Credential request encryption requirements not met: " + credentialRequestEncryptionSupportedErrors.join("; "));
@@ -263,6 +292,7 @@ export function useCredentialRequest() {
 		let credentialResponseEncryptionRequested = false;
 		let credentialResponseEncryptionAlg: string | undefined;
 		let credentialResponseEncryptionEnc: string | undefined;
+		let credentialResponseEncryptionZip: string | undefined;
 		let ephemeralKeypair: CryptoKeyPair | undefined;
 
 		if (credentialIssuerMetadata.metadata.credential_response_encryption) {
@@ -284,6 +314,15 @@ export function useCredentialRequest() {
 			credentialResponseEncryptionEnc = credentialResponseWalletSupportedEnc.find(enc => credentialResponseIssuerSupportedEnc.includes(enc));
 			if (!credentialResponseEncryptionEnc) {
 				credentialResponseEncryptionSupportedErrors.push(`Unsupported credential_response_encryption.enc_values_supported. [${credentialResponseWalletSupportedEnc.join(', ')}] are supported`);
+			}
+
+			if (credentialIssuerMetadata.metadata.credential_response_encryption.zip_values_supported) {
+				const credentialResponseWalletSupportedZip = ['DEF'];
+				const credentialResponseIssuerSupportedZip = credentialIssuerMetadata.metadata.credential_response_encryption.zip_values_supported;
+				credentialResponseEncryptionZip = credentialResponseWalletSupportedZip.find(zip => credentialResponseIssuerSupportedZip.includes(zip));
+				if (!credentialResponseEncryptionZip) {
+					credentialResponseEncryptionSupportedErrors.push(`Unsupported credential_response_encryption.zip_values_supported. [${credentialResponseWalletSupportedZip.join(', ')}] are supported.`);
+				}
 			}
 
 			if (credentialResponseEncryptionSupportedErrors.length > 0) {
@@ -317,12 +356,20 @@ export function useCredentialRequest() {
 		if (credentialRequestEncryptionRequested) {
 			const jwk = credentialIssuerMetadata.metadata.credential_request_encryption.jwks.keys.find(k => k.alg === credentialRequestEncryptionAlg);
 			const clientPublicKey = await importJWK(jwk, credentialRequestEncryptionAlg);
-			const jwe = await new CompactEncrypt(new TextEncoder().encode(JSON.stringify(credentialEndpointBody)))
-				.setProtectedHeader({
-					enc: credentialRequestEncryptionEnc,
-					alg: credentialRequestEncryptionAlg,
-				})
-				.encrypt(clientPublicKey);
+
+			const encryptor = new CompactEncrypt(new TextEncoder().encode(JSON.stringify(credentialEndpointBody)));
+
+			const protectedHeader: CompactJWEHeaderParameters = {
+				alg: credentialRequestEncryptionAlg,
+				enc: credentialRequestEncryptionEnc,
+			};
+			if (credentialRequestEncryptionZip) {
+				protectedHeader.zip = credentialRequestEncryptionZip;
+			}
+
+			const jwe = await encryptor
+				.setProtectedHeader(protectedHeader)
+				.encrypt(clientPublicKey, compressionOptions);
 
 			credentialRequestContentType = 'application/jwt';
 			credentialRequestBody = jwe;
@@ -338,7 +385,7 @@ export function useCredentialRequest() {
 
 		const credentialResponseContentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
 		if (credentialResponseEncryptionRequested && typeof credentialResponseContentType === 'string' && credentialResponseContentType.startsWith('application/jwt')) {
-			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
+			const result = await compactDecrypt(credentialResponse.data as string, ephemeralKeypair.privateKey, compressionOptions).then((r) => ({ data: r, err: null })).catch((err) => ({ data: null, err: err }));
 			if (result.err) {
 				throw new Error("Credential Response decryption failed");
 			}
