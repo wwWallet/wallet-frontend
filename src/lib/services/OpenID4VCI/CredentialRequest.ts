@@ -12,18 +12,18 @@ import { OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE } from "@/config";
  * This satisfies the 'deflateRaw' and 'inflateRaw' requirements for zip: "DEF".
  */
 export const compressionOptions = {
-    deflateRaw: async (data: Uint8Array): Promise<Uint8Array> => {
+	deflateRaw: async (data: Uint8Array): Promise<Uint8Array> => {
 		const stream = new Blob([data as BlobPart])
-            .stream()
-            .pipeThrough(new CompressionStream('deflate-raw'));
-        return new Uint8Array(await new Response(stream).arrayBuffer());
-    },
-    inflateRaw: async (data: Uint8Array): Promise<Uint8Array> => {
-        const stream = new Blob([data as BlobPart])
-            .stream()
-            .pipeThrough(new DecompressionStream('deflate-raw'));
-        return new Uint8Array(await new Response(stream).arrayBuffer());
-    }
+			.stream()
+			.pipeThrough(new CompressionStream('deflate-raw'));
+		return new Uint8Array(await new Response(stream).arrayBuffer());
+	},
+	inflateRaw: async (data: Uint8Array): Promise<Uint8Array> => {
+		const stream = new Blob([data as BlobPart])
+			.stream()
+			.pipeThrough(new DecompressionStream('deflate-raw'));
+		return new Uint8Array(await new Response(stream).arrayBuffer());
+	}
 };
 
 export function useCredentialRequest() {
