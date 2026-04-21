@@ -251,7 +251,6 @@ export function useCredentialRequest() {
 			}
 
 			if (credentialRequestEncryptionSupportedErrors.length > 0) {
-				console.log(credentialRequestEncryptionSupportedErrors);
 				if (credentialRequestEncryptionRequired) {
 					throw new Error("Credential request encryption requirements not met: " + credentialRequestEncryptionSupportedErrors.join("; "));
 				}
@@ -333,8 +332,8 @@ export function useCredentialRequest() {
 			credentialRequestBody = credentialEndpointBody;
 		}
 
-		console.log(`Sending ${credentialRequestEncryptionRequested ? 'encrypted (JWT)' : 'unencrypted (JSON)'} credential request to `, credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
 		httpHeaders['Content-Type'] = credentialRequestContentType;
+		console.log(`Sending ${credentialRequestEncryptionRequested ? 'encrypted (JWT)' : 'unencrypted (JSON)'} credential request to `, credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
 		const credentialResponse = await httpProxy.post(credentialEndpointURLRef.current, credentialRequestBody, httpHeaders);
 
 		const credentialResponseContentType = credentialResponse.headers['Content-Type'] ?? credentialResponse.headers['content-type'];
