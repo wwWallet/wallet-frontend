@@ -1,7 +1,4 @@
 import { IOpenID4VP } from "../../interfaces/IOpenID4VP";
-import {
-	HandleAuthorizationRequestError as HandleAuthorizationRequestErrorType,
-} from "wallet-common";
 import type { OpenID4VPServerCredential } from "wallet-common";
 import { OpenID4VPServerAPI, OpenID4VPResponseMode } from "wallet-common";
 import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartyState";
@@ -120,18 +117,15 @@ export function useOpenID4VP({
 	const handleAuthorizationRequest = useCallback(async (
 		url: string,
 		vcEntityList: ExtendedVcEntity[],
-	): Promise<
-		{
-			conformantCredentialsMap: Map<string, any>,
-			verifierDomainName: string,
-			verifierPurpose: string,
-			parsedTransactionData: ParsedTransactionData[] | null,
-		}
-		| { error: HandleAuthorizationRequestErrorType }
-	> => {
+	): Promise<{
+		conformantCredentialsMap: Map<string, any>,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData: ParsedTransactionData[] | null,
+	}> => {
 		const result = await openID4VPServer.handleAuthorizationRequest(url, vcEntityList);
 		if ("error" in result) {
-			return { error: result.error as HandleAuthorizationRequestErrorType };
+			throw new Error(result.error);
 		}
 		return result;
 	}, [openID4VPServer]);

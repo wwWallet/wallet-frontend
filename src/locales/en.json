@@ -137,7 +137,7 @@
 	},
 	"messagePopup": {
 		"addCredentialProcessFailed": {
-			"description": "Something went wrong while issuing the credential.",
+			"defaultDescription": "Something went wrong while issuing the credential.",
 			"title": "Add Credential Process Failed"
 		},
 		"close": "Close",
@@ -154,7 +154,9 @@
 			"title": "Unsupported protocol version"
 		},
 		"sendCredentialProcessFailed": {
-			"description": "Something went wrong while presenting the credential.",
+			"defaultDescription": "Something went wrong while presenting the credential.",
+			"insufficientCredentials": "Insufficient Credentials. One or more of the credentials you want to present do not exist for selection.",
+			"nonTrustedVerifier": "Verifier is not Trusted, did not provide valid data for verification",
 			"title": "Send Credential Process Failed"
 		},
 		"sendResponseError": {

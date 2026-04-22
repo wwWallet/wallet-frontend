@@ -1,20 +1,16 @@
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { ParsedTransactionData } from "../services/OpenID4VP/TransactionData/parseTransactionData";
-import type { HandleAuthorizationRequestError } from "wallet-common";
 
 export interface IOpenID4VP {
 	handleAuthorizationRequest(
 		url: string,
 		vcEntitylist: ExtendedVcEntity[],
-	): Promise<
-		{
-			conformantCredentialsMap: Map<string, any>,
-			verifierDomainName: string,
-			verifierPurpose: string,
-			parsedTransactionData: ParsedTransactionData[] | null,
-		}
-		| { error: HandleAuthorizationRequestError }
-	>;
+	): Promise<{
+		conformantCredentialsMap: Map<string, any>,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData: ParsedTransactionData[] | null,
+	}>;
 	promptForCredentialSelection(
 		conformantCredentialsMap: { [x: string]: number[] },
 		verifierDomainName: string,
