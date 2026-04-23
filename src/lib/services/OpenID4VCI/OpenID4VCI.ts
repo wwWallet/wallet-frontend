@@ -7,11 +7,11 @@ import { useCallback, useMemo, useEffect, useRef, useState, useContext } from 'r
 import { useLocation } from "react-router-dom";
 import { usePushedAuthorizationRequest } from './OAuth/PushedAuthorizationRequest';
 import { useOpenID4VCIHelper } from '../OpenID4VCIHelper';
-import { GrantType, TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
+import { TokenRequestError, useTokenRequest } from './OAuth/TokenRequest';
 import { useCredentialRequest } from './CredentialRequest';
 import { CurrentSchema } from '@/services/WalletStateSchema';
 import SessionContext from '@/context/SessionContext';
-import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema } from 'wallet-common';
+import { CredentialConfigurationSupported, VerifiableCredentialFormat, CredentialOfferSchema, CredentialOffer, Grant, GrantType } from 'wallet-common';
 import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
@@ -590,22 +590,21 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
  */
 
 	const handleCredentialOffer = useCallback(
-		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: { inputMode?: string; length?: number; description?: string; }; preAuthorizedCode?: string; }> => {
+		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; grant?: Grant }> => {
 			const parsedUrl = new URL(credentialOfferURL);
-			let offer;
+			let offer: CredentialOffer;
 			if (parsedUrl.searchParams.get("credential_offer")) {
 				offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
 			} else {
 				try {
 					let response = await httpProxy.get(parsedUrl.searchParams.get("credential_offer_uri"), {})
-					offer = response.data;
+					offer = response.data as CredentialOffer;
 				}
 				catch (err) {
 					console.error(err);
 					return;
 				}
 			}
-
 
 			const [credentialIssuerMetadata] = await Promise.all([
 				openID4VCIHelper.getCredentialIssuerMetadata(offer.credential_issuer)
@@ -617,19 +616,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw new Error("Credential configuration not found");
 			}
 
-			if (GrantType.PRE_AUTHORIZED_CODE in offer.grants) {
-				const preAuthorizedCodeObject = offer.grants[GrantType.PRE_AUTHORIZED_CODE];
-				const preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"];
-				const txCode = preAuthorizedCodeObject["tx_code"];
-				return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, txCode, preAuthorizedCode };
-			}
+			const grant: Grant = offer.grants[GrantType.AUTHORIZATION_CODE]
+				? { [GrantType.AUTHORIZATION_CODE]: offer.grants[GrantType.AUTHORIZATION_CODE] }
+				: offer.grants[GrantType.PRE_AUTHORIZED_CODE]
+				? { [GrantType.PRE_AUTHORIZED_CODE]: offer.grants[GrantType.PRE_AUTHORIZED_CODE] }
+				: undefined;
 
-			let issuer_state = undefined;
-			if (offer.grants?.authorization_code?.issuer_state) {
-				issuer_state = offer.grants.authorization_code.issuer_state;
-			}
-
-			return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, issuer_state };
+			return {
+				credentialIssuer: offer.credential_issuer,
+				selectedCredentialConfigurationId: selectedConfigurationId,
+				grant
+			};
 		},
 		[httpProxy, openID4VCIHelper]
 	);
@@ -648,7 +645,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	);
 
 	const generateAuthorizationRequest = useCallback(
-		async (credentialIssuerIdentifier: string, credentialConfigurationId: string, issuer_state?: string) => {
+		async (credentialIssuerIdentifier: string, credentialConfigurationId: string, grant: Grant) => {
 			await openID4VCIClientStateRepository.cleanupExpired();
 
 			try { // attempt to get credentials using active session
@@ -662,7 +659,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			catch (err) { console.error(err) }
 
 			const [authzServerMetadata, credentialIssuerMetadata, clientId] = await Promise.all([
-				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier),
+				openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuerIdentifier, grant),
 				openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier),
 				openID4VCIHelper.getClientId(credentialIssuerIdentifier)
 			]);
@@ -686,8 +683,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				state,
 				redirect_uri: redirectUri
 			};
-			if (issuer_state) {
-				params["issuer_state"] = issuer_state;
+			if  (grant?.[GrantType.AUTHORIZATION_CODE]?.issuer_state) {
+				params["issuer_state"] = grant[GrantType.AUTHORIZATION_CODE].issuer_state;
 			}
 
 			if (authzServerMetadata.authzServerMetadata.pushed_authorization_request_endpoint) {
