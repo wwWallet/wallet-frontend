@@ -17,7 +17,6 @@ import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
-	showStatusPopup,
 	showTransactionDataConsentPopup,
 }: {
 	showCredentialSelectionPopup: (
@@ -26,10 +25,6 @@ export function useOpenID4VP({
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
 	) => Promise<Map<string, number>>,
-	showStatusPopup: (
-		message: { title: string, description: string },
-		type: 'error' | 'success',
-	) => Promise<void>,
 	showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean>,
 }): IOpenID4VP {
 
@@ -133,7 +128,7 @@ export function useOpenID4VP({
 	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
 		const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
 		if (!response || !(response as any).formData) {
-			return {};
+			return { type: "skipped" as const };
 		}
 		const { formData, generatedVPs, filteredVCEntities, response_uri, client_id } = response as {
 			formData: URLSearchParams;
@@ -166,29 +161,25 @@ export function useOpenID4VP({
 			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
 			if (responseData.presentation_during_issuance_session) {
-				return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
+				// return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
+				return { type: "skipped" as const };
 			}
 			if (responseData.redirect_uri) {
-				return { url: responseData.redirect_uri };
+				return {
+					type: "redirect" as const,
+					url: responseData.redirect_uri,
+				};
 			}
 			if (res.status >= 400) {
 				throw new Error(`Direct post to verifier failed with status ${res.status}`);
 			}
-			showStatusPopup({
-				title: "Verification succeeded",
-				description: "The verification process has been completed",
-			}, 'success');
+			return { type: "success" as const };
 		} catch (err) {
 			console.error(err);
-			showStatusPopup({
-				title: "Error in verification",
-				description: "The verification process was not completed successfully",
-			}, 'error');
-			return {};
+			throw err;
 		}
 	}, [
 		httpProxy,
-		showStatusPopup,
 		api,
 		keystore,
 		openID4VPServer,

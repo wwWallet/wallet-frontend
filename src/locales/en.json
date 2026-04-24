@@ -159,6 +159,10 @@
 			"nonTrustedVerifier": "Verifier is not Trusted, did not provide valid data for verification",
 			"title": "Send Credential Process Failed"
 		},
+		"sendCredentialProcessSuccess": {
+			"defaultDescription": "The send credential has been completed.",
+			"title": "Send Credential Process succeeded"
+		},
 		"sendResponseError": {
 			"description": "An error occured during the presentation of the credentials.",
 			"title": "Send Response Error"

@@ -1,6 +1,11 @@
 import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { ParsedTransactionData } from "../services/OpenID4VP/TransactionData/parseTransactionData";
 
+export type SendAuthorizationResponseResult =
+	| { type: "skipped" }
+	| { type: "redirect", url: string }
+	| { type: "success" };
+
 export interface IOpenID4VP {
 	handleAuthorizationRequest(
 		url: string,
@@ -17,5 +22,8 @@ export interface IOpenID4VP {
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
 	): Promise<Map<string, number>>;
-	sendAuthorizationResponse(selectionMap: Map<string, number>, vcEntitylist: ExtendedVcEntity[]): Promise<{ url?: string } | { presentation_during_issuance_session: string }>;
+	sendAuthorizationResponse(
+		selectionMap: Map<string, number>,
+		vcEntitylist: ExtendedVcEntity[],
+	): Promise<SendAuthorizationResponseResult>;
 }
