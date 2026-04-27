@@ -248,7 +248,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				}).catch(err => {
 					cleanCurrentUrl();
 					showMessagePopup('addCredentialProcessFailed');
-					console.error(err);
+					console.error('Error during the handling of credential offer', err);
 				})
 				return;
 			}
@@ -259,9 +259,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				handleAuthorizationResponse(u.toString()).then(() => {
 				}).catch(err => {
 					cleanCurrentUrl();
-					console.log("Error during the handling of authorization response")
 					showMessagePopup('addCredentialProcessFailed');
-					console.error('ERRRROR', err);
+					console.error('Error during the handling of authorization response', err);
 				})
 			}
 			else if (u.searchParams.get('client_id') && u.searchParams.get('request_uri') && !usedRequestUris.includes(u.searchParams.get('request_uri'))) {
@@ -289,19 +288,24 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 				}).catch(err => {
 					cleanCurrentUrl();
-					console.log("Failed to handle authorization req");
 					showMessagePopup(
 						'sendCredentialProcessFailed',
 						getAuthorizationRequestErrorMessageKey(err),
 					);
-					console.error(err);
+					console.error('Failed to handle authorization req', err);
 				})
 				return;
 			}
 			else if (u.searchParams.get('error') && u.searchParams.get('state')) {
 				cleanCurrentUrl();
-				const mappedDescriptionKey = getAuthorizationResponseErrorMessageKey(u.searchParams.get('error'));
-				showMessagePopup('authorizationProcessFailed', mappedDescriptionKey);
+				const error = u.searchParams.get('error');
+				const errorDescription = u.searchParams.get('error_description');
+				const mappedDescriptionKey = getAuthorizationResponseErrorMessageKey(error);
+				showMessagePopup(
+					'authorizationProcessFailed',
+					mappedDescriptionKey
+				);
+				console.error('Authorization error', { error, error_description: errorDescription });
 			}
 		}
 		if (getCalculatedWalletState()) {
