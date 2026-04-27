@@ -684,7 +684,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				response_type: "code",
 				client_id: clientId.client_id,
 				state,
-				redirect_uri: redirectUri
+				redirect_uri: redirectUri,
+				resource: credentialIssuerIdentifier
 			};
 			if (issuer_state) {
 				params["issuer_state"] = issuer_state;
