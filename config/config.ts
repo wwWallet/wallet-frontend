@@ -30,7 +30,6 @@ export const ClientEnvConfigSchema = z.object({
 	// If in a multi-tenancy setup, these *should not* likely differ between tenants.
 	WS_URL: z.string().optional(),
 	WALLET_BACKEND_URL: z.string().optional(),
-	LOGIN_WITH_PASSWORD: z.string().optional(),
 	DID_KEY_VERSION: z.string().optional(),
 	DISPLAY_CONSOLE: z.string().optional(),
 	WEBAUTHN_RPID: z.string().optional(),
