@@ -14,6 +14,7 @@ import { buildCredentialRedirectPopupContent } from "@/components/Popups/credent
 import { useSessionStorage } from "@/hooks/useStorage";
 import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey";
+import { getAuthorizationResponseErrorMessageKey } from "@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -299,11 +300,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			}
 			else if (u.searchParams.get('error') && u.searchParams.get('state')) {
 				cleanCurrentUrl();
-				const errorDescription = u.searchParams.get('error_description');
-				const error = u.searchParams.get('error');
-				setTextMessagePopup({ title: error, description: errorDescription });
-				setTypeMessagePopup('error');
-				setMessagePopup(true);
+				const mappedDescriptionKey = getAuthorizationResponseErrorMessageKey(u.searchParams.get('error'));
+				showMessagePopup('authorizationProcessFailed', mappedDescriptionKey);
 			}
 		}
 		if (getCalculatedWalletState()) {

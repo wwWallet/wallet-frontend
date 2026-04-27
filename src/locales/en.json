@@ -140,6 +140,13 @@
 			"defaultDescription": "Something went wrong while issuing the credential.",
 			"title": "Add Credential Process Failed"
 		},
+		"authorizationProcessFailed": {
+			"accessDenied": "Authorization was denied. Please allow the request and try again.",
+			"defaultDescription": "Something went wrong during authorization. Please try again.",
+			"invalidRequest": "The authorization request is invalid or malformed.",
+			"serverError": "The authorization server encountered an unexpected error.",
+			"title": "Authorization Process Failed"
+		},
 		"close": "Close",
 		"insufficientCredentials": {
 			"description": "One or more of the credentials you want to present do not exist for selection.",
