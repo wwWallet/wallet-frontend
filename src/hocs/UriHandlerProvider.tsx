@@ -279,11 +279,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					return sendAuthorizationResponse(selection, vcEntityList);
 
 				}).then((res) => {
-					// if (res.type === 'skipped')  do nothing
-					if (res.type === 'redirect') {
-						setRedirectUri(res.url);
+					// if (res.state === 'skipped') do nothing
+					if (res?.redirect_uri) {
+						setRedirectUri(res.redirect_uri);
 					}
-					else if (res.type === 'success') {
+					else if (res?.state === 'success') {
 						showMessagePopup('sendCredentialProcessSuccess', undefined, 'success');
 					}
 				}).catch(err => {

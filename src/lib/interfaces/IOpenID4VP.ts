@@ -2,9 +2,10 @@ import { ExtendedVcEntity } from "@/context/CredentialsContext";
 import { ParsedTransactionData } from "../services/OpenID4VP/TransactionData/parseTransactionData";
 
 export type SendAuthorizationResponseResult =
-	| { type: "skipped" }
-	| { type: "redirect", url: string }
-	| { type: "success" };
+	{
+		state: "skipped" | "success";
+		redirect_uri?: string;
+	};
 
 export interface IOpenID4VP {
 	handleAuthorizationRequest(

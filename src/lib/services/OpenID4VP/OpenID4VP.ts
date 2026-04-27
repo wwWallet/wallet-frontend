@@ -128,7 +128,7 @@ export function useOpenID4VP({
 	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
 		const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
 		if (!response || !(response as any).formData) {
-			return { type: "skipped" as const };
+			return { state: "skipped" as const };
 		}
 		const { formData, generatedVPs, filteredVCEntities, response_uri, client_id } = response as {
 			formData: URLSearchParams;
@@ -162,18 +162,18 @@ export function useOpenID4VP({
 			console.log("Direct post response = ", JSON.stringify(res.data));
 			if (responseData.presentation_during_issuance_session) {
 				// return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
-				return { type: "skipped" as const };
+				return { state: "skipped" as const };
 			}
 			if (responseData.redirect_uri) {
 				return {
-					type: "redirect" as const,
-					url: responseData.redirect_uri,
+					state: "success" as const,
+					redirect_uri: responseData.redirect_uri,
 				};
 			}
 			if (res.status >= 400) {
 				throw new Error(`Direct post to verifier failed with status ${res.status}`);
 			}
-			return { type: "success" as const };
+			return { state: "success" as const };
 		} catch (err) {
 			console.error(err);
 			throw err;
