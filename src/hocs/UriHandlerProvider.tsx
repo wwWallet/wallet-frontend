@@ -60,6 +60,12 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [synced, setSynced] = useState(false);
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus,] = api.useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
+	const cleanCurrentUrl = useCallback(() => {
+		const cleanPath = window.location.pathname;
+		window.history.replaceState({}, '', cleanPath);
+		setUrl(`${window.location.origin}${cleanPath}`);
+	}, [setUrl]);
+
 	useEffect(() => {
 		if (!keystore || cachedUser !== null || !isLoggedIn) {
 			return;
@@ -135,8 +141,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		setShowRedirectPopup(false);
 		setPopupRedirectUrl(null);
 		setRedirectPopupContent({ title: "", message: "" });
-		setUrl(`${window.location.origin}${window.location.pathname}`);
-		window.history.replaceState({}, '', `${window.location.pathname}`);
+		cleanCurrentUrl();
 	};
 
 	const popupContentFromIssuerMetadata = useCallback((
@@ -181,15 +186,17 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const handleRedirectContinue = () => {
 		if (popupRedirectUrl) {
+			cleanCurrentUrl();
 			window.location.href = popupRedirectUrl;
 		}
 	};
 
 	useEffect(() => {
 		if (redirectUri) {
+			cleanCurrentUrl();
 			window.location.href = redirectUri;
 		}
-	}, [redirectUri]);
+	}, [cleanCurrentUrl, redirectUri]);
 
 	useEffect(() => {
 		if (
@@ -238,8 +245,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						});
 					}
 				}).catch(err => {
-					setUrl(`${window.location.origin}${window.location.pathname}`);
-					window.history.replaceState({}, '', `${window.location.pathname}`);
+					cleanCurrentUrl();
 					showMessagePopup('addCredentialProcessFailed');
 					console.error(err);
 				})
@@ -251,9 +257,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				console.log("Handling authorization response...");
 				handleAuthorizationResponse(u.toString()).then(() => {
 				}).catch(err => {
-					setUrl(`${window.location.origin}${window.location.pathname}`);
+					cleanCurrentUrl();
 					console.log("Error during the handling of authorization response")
-					window.history.replaceState({}, '', `${window.location.pathname}`);
 					showMessagePopup('addCredentialProcessFailed');
 					console.error('ERRRROR', err);
 				})
@@ -282,9 +287,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						showMessagePopup('sendCredentialProcessSuccess', undefined, 'success');
 					}
 				}).catch(err => {
-					setUrl(`${window.location.origin}${window.location.pathname}`);
+					cleanCurrentUrl();
 					console.log("Failed to handle authorization req");
-					window.history.replaceState({}, '', `${window.location.pathname}`);
 					showMessagePopup(
 						'sendCredentialProcessFailed',
 						getAuthorizationRequestErrorMessageKey(err),
@@ -298,8 +302,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			const state = urlParams.get('state');
 			const error = urlParams.get('error');
 			if (url && isLoggedIn && state && error) {
-				setUrl(`${window.location.origin}${window.location.pathname}`);
-				window.history.replaceState({}, '', `${window.location.pathname}`);
+				cleanCurrentUrl();
 				const errorDescription = urlParams.get('error_description');
 				setTextMessagePopup({ title: error, description: errorDescription });
 				setTypeMessagePopup('error');
@@ -329,6 +332,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		promptForCredentialSelection,
 		sendAuthorizationResponse,
 		requestCredentialsWithPreAuthorization,
+		cleanCurrentUrl,
 	]);
 
 	useEffect(() => {
