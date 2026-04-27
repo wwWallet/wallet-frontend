@@ -297,13 +297,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 				})
 				return;
 			}
-
-			const urlParams = new URLSearchParams(window.location.search);
-			const state = urlParams.get('state');
-			const error = urlParams.get('error');
-			if (url && isLoggedIn && state && error) {
+			else if (u.searchParams.get('error') && u.searchParams.get('state')) {
 				cleanCurrentUrl();
-				const errorDescription = urlParams.get('error_description');
+				const errorDescription = u.searchParams.get('error_description');
+				const error = u.searchParams.get('error');
 				setTextMessagePopup({ title: error, description: errorDescription });
 				setTypeMessagePopup('error');
 				setMessagePopup(true);
