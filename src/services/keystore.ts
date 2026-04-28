@@ -10,10 +10,7 @@ import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SDJwt } from "@sd-jwt/core";
-import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
-import { DeviceResponse, MDoc } from "@auth0/mdl";
-import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
-import { COSEKeyToJWK } from "cose-kit";
+import { cborEncode, CoseKey, DataItem, DeviceRequest, DocRequest, Holder, ItemsRequest, IssuerSigned, type DeviceResponse, type MdocContext } from "@owf/mdoc";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 
@@ -24,6 +21,143 @@ type WalletStateContainer = CurrentSchema.WalletStateContainer;
 
 const keyDidResolver = KeyDidResolver.getResolver();
 const didResolver = new Resolver(keyDidResolver);
+
+type MDoc = DeviceResponse | {
+	documents?: any[];
+	encode?: () => Uint8Array;
+};
+
+async function importP256SigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
+	const jwk = key.jwk as JsonWebKey;
+	return await crypto.subtle.importKey(
+		"jwk",
+		jwk,
+		{ name: "ECDSA", namedCurve: "P-256" },
+		false,
+		["sign"]
+	);
+}
+
+async function importP256VerifyKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
+	const jwk = key.jwk as JsonWebKey;
+	const publicJwk: JsonWebKey = { ...jwk, d: undefined };
+	return await crypto.subtle.importKey(
+		"jwk",
+		publicJwk,
+		{ name: "ECDSA", namedCurve: "P-256" },
+		false,
+		["verify"]
+	);
+}
+
+const mdocContext = {
+	crypto: {
+		digest: async ({ digestAlgorithm, bytes }) => {
+			const digest = await crypto.subtle.digest(digestAlgorithm, bytes as Uint8Array<ArrayBuffer>);
+			return new Uint8Array(digest);
+		},
+		random: (length: number) => crypto.getRandomValues(new Uint8Array(length)),
+		calculateEphemeralMacKey: async () => {
+			throw new Error("calculateEphemeralMacKey is not used in holder flow");
+		},
+	},
+	cose: {
+		mac0: {
+			sign: async () => {
+				throw new Error("mac0.sign is not used in holder flow");
+			},
+			verify: async () => {
+				throw new Error("mac0.verify is not used in holder flow");
+			},
+		},
+		sign1: {
+			sign: async ({ key, toBeSigned }) => {
+				const signingKey = await importP256SigningKeyFromCoseKey(key);
+				return new Uint8Array(await crypto.subtle.sign(
+					{ name: "ECDSA", hash: "SHA-256" },
+					signingKey,
+					toBeSigned
+				));
+			},
+			verify: async ({ sign1, key }) => {
+				const verifyKey = await importP256VerifyKeyFromCoseKey(key);
+				return await crypto.subtle.verify(
+					{ name: "ECDSA", hash: "SHA-256" },
+					verifyKey,
+					sign1.signature,
+					sign1.toBeSigned
+				);
+			},
+		},
+	},
+} satisfies Pick<MdocContext, "crypto" | "cose">;
+
+function toDeviceRequestFromPresentationDefinition(presentationDefinition: any): DeviceRequest {
+	const inputDescriptors = Array.isArray(presentationDefinition?.input_descriptors)
+		? presentationDefinition.input_descriptors
+		: [];
+	if (inputDescriptors.length === 0) {
+		throw new Error("Missing input_descriptors in presentation definition");
+	}
+
+	const docRequests = inputDescriptors.map((descriptor: any) => {
+		const docType = descriptor?.id;
+		if (!docType) {
+			throw new Error("Input descriptor is missing id");
+		}
+
+		const fields = Array.isArray(descriptor?.constraints?.fields) ? descriptor.constraints.fields : [];
+		const namespaces: Record<string, Record<string, boolean>> = {};
+		for (const field of fields) {
+			const intentToRetain = Boolean(field?.intent_to_retain);
+			const paths = Array.isArray(field?.path) ? field.path : [];
+			let foundPath = false;
+
+			for (const path of paths) {
+				const match = /^\$\['([^']+)'\]\['([^']+)'\]$/.exec(path);
+				if (!match) {
+					continue;
+				}
+				foundPath = true;
+				const namespace = match[1];
+				const elementIdentifier = match[2];
+				namespaces[namespace] ??= {};
+				namespaces[namespace][elementIdentifier] = intentToRetain;
+			}
+
+			if (!foundPath && field?.name) {
+				namespaces[docType] ??= {};
+				namespaces[docType][field.name] = intentToRetain;
+			}
+		}
+
+		const itemsRequest = ItemsRequest.create({
+			docType,
+			namespaces: Object.keys(namespaces).length > 0 ? namespaces : { [docType]: {} },
+		});
+		return DocRequest.create({ itemsRequest });
+	});
+
+	return DeviceRequest.create({ docRequests });
+}
+
+function getIssuerSignedFromMdoc(mdocCredential: MDoc): IssuerSigned {
+	const issuerSigned = (mdocCredential as any)?.documents?.[0]?.issuerSigned;
+	if (!issuerSigned) {
+		throw new Error("Unsupported mdoc credential shape");
+	}
+	if (issuerSigned instanceof IssuerSigned) {
+		return issuerSigned;
+	}
+	if (typeof issuerSigned?.encode === "function") {
+		return IssuerSigned.decode(issuerSigned.encode());
+	}
+	return IssuerSigned.decode(cborEncode(issuerSigned));
+}
+
+function extractDevicePublicKeyJwkFromMdoc(mdocCredential: MDoc): JWK {
+	return getIssuerSignedFromMdoc(mdocCredential).issuerAuth.mobileSecurityObject.deviceKeyInfo.deviceKey.jwk as JWK;
+}
 
 
 type EncryptedContainerContent = { jwe: string }
@@ -1262,15 +1396,8 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 				]
 			]
 		)
-	);
-	// extract the COSE device public key from mdoc
-	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
-	const deviceKeyInfo = p.data.get('deviceKeyInfo');
-	const deviceKey = deviceKeyInfo.get('deviceKey');
-	console.log("Device key = ", deviceKey);
-
-	// @ts-ignore
-	const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+		);
+	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
 	// get the keypair based on the jwk Thumbprint
@@ -1298,21 +1425,24 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
-	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
-		.usingPresentationDefinition(presentationDefinition)
-		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
-		.sign();
+	const deviceRequest = toDeviceRequestFromPresentationDefinition(presentationDefinition);
+	const issuerSigned = getIssuerSignedFromMdoc(mdocCredential);
+	const deviceResponseMDoc = await Holder.createDeviceResponseForDeviceRequest(
+		{
+			deviceRequest,
+			sessionTranscript: sessionTranscriptBytes,
+			issuerSigned: [issuerSigned],
+			signature: {
+				signingKey: CoseKey.fromJwk({ ...privateKeyJwk, alg, kid } as Record<string, unknown>),
+			},
+		},
+		mdocContext
+	);
 	return { deviceResponseMDoc };
 }
 
 export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
-	// extract the COSE device public key from mdoc
-	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
-	const deviceKeyInfo = p.data.get('deviceKeyInfo');
-	const deviceKey = deviceKeyInfo.get('deviceKey');
-
-	const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 
 	// get the keypair based on the jwk Thumbprint
@@ -1324,14 +1454,18 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 	const { alg, privateKey } = keypair.keypair;
 	const privateKeyJwk = privateKey;
 
-	const options = getCborEncodeDecodeOptions();
-	options.variableMapSize = true;
-	setCborEncodeDecodeOptions(options);
-
-	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
-		.usingPresentationDefinition(presentationDefinition)
-		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
-		.sign();
+	const deviceRequest = toDeviceRequestFromPresentationDefinition(presentationDefinition);
+	const issuerSigned = getIssuerSignedFromMdoc(mdocCredential);
+	const deviceResponseMDoc = await Holder.createDeviceResponseForDeviceRequest(
+		{
+			deviceRequest,
+			sessionTranscript: sessionTranscriptBytes,
+			issuerSigned: [issuerSigned],
+			signature: {
+				signingKey: CoseKey.fromJwk({ ...privateKeyJwk, alg, kid } as Record<string, unknown>),
+			},
+		},
+		mdocContext
+	);
 	return { deviceResponseMDoc };
 }
