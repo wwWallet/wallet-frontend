@@ -8,6 +8,7 @@ import { MdocIacasResponse, MdocIacasResponseSchema } from "wallet-common"
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
+import { getIssuerMetadataUrl } from "wallet-common";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
@@ -36,7 +37,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 	const getCredentialIssuerMetadata = useCallback(
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
-			const pathCredentialIssuer = `${credentialIssuerIdentifier}/.well-known/openid-credential-issuer`;
+			const pathCredentialIssuer = await getIssuerMetadataUrl(credentialIssuerIdentifier);
 			try {
 				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
 					pathCredentialIssuer,
