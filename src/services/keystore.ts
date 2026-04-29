@@ -29,14 +29,12 @@ const didResolver = new Resolver(keyDidResolver);
 type EncryptedContainerContent = { jwe: string }
 export type EncryptedContainerKeys = {
 	mainKey?: EphemeralEncapsulationInfo,
-	passwordKey?: PasswordKeyInfo,
 	prfKeys: WebauthnPrfEncryptionKeyInfo[],
 }
 export type MixedEncryptedContainer = EncryptedContainerKeys & EncryptedContainerContent;
 
 export type AsymmetricEncryptedContainerKeys = {
 	mainKey: EphemeralEncapsulationInfo,
-	passwordKey?: AsymmetricPasswordKeyInfo,
 	prfKeys: WebauthnPrfEncryptionKeyInfoV2[],
 }
 export type AsymmetricEncryptedContainer = AsymmetricEncryptedContainerKeys & EncryptedContainerContent;
@@ -63,14 +61,7 @@ type StaticEncapsulationInfo = {
 
 
 function isAsymmetricEncryptedContainer(privateData: EncryptedContainer): privateData is AsymmetricEncryptedContainer {
-	return (
-		(privateData.passwordKey
-			? isAsymmetricPasswordKeyInfo(privateData.passwordKey)
-			: true)
-		&& (privateData.prfKeys
-			? privateData.prfKeys.every(isPrfKeyV2)
-			: true)
-	);
+	return privateData.prfKeys.every(isPrfKeyV2);
 }
 
 export function assertAsymmetricEncryptedContainer(privateData: EncryptedContainer): AsymmetricEncryptedContainer {
@@ -81,9 +72,6 @@ export function assertAsymmetricEncryptedContainer(privateData: EncryptedContain
 	}
 }
 
-// Values from OWASP password guidelines https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2
-const pbkdfHash: HashAlgorithmIdentifier = "SHA-256";
-const pbkdfIterations: number = 600000;
 
 type SymmetricWrappedKeyInfo = {
 	wrappedKey: Uint8Array,
@@ -127,24 +115,6 @@ type EncapsulationUnwrappingKeyInfo = {
 		derivedKeyAlgorithm: { name: "AES-KW", length: 256 },
 	},
 };
-
-type DerivePasswordKeyInfo = {
-	pbkdf2Params: Pbkdf2Params;
-	algorithm?: { name: "AES-GCM", length: 256 },
-}
-
-export type AsymmetricPasswordKeyInfo = DerivePasswordKeyInfo & StaticEncapsulationInfo;
-type SymmetricPasswordKeyInfo = DerivePasswordKeyInfo & {
-	mainKey: SymmetricWrappedKeyInfo,
-}
-type PasswordKeyInfo = (SymmetricPasswordKeyInfo | AsymmetricPasswordKeyInfo);
-export function isAsymmetricPasswordKeyInfo(passwordKeyInfo: PasswordKeyInfo): passwordKeyInfo is AsymmetricPasswordKeyInfo {
-	return (
-		"mainKey" in passwordKeyInfo
-			? false
-			: isAsymmetricWrappedKeyInfo(passwordKeyInfo)
-	);
-}
 
 export type WebauthnPrfSaltInfo = {
 	credentialId: Uint8Array,
@@ -350,15 +320,6 @@ export async function updatePrivateData(
 		{
 			mainKey: newMainPublicKeyInfo,
 			jwe: await encryptPrivateData(privateDataContent, newMainKey),
-			passwordKey: privateData.passwordKey && {
-				...privateData.passwordKey,
-				...await encapsulateKey(
-					newMainPrivateKey,
-					privateData.passwordKey.keypair.publicKey,
-					privateData.passwordKey.keypair,
-					newMainKey,
-				),
-			},
 			prfKeys: privateData.prfKeys && await Promise.all(
 				privateData.prfKeys.map(async keyInfo => ({
 					...keyInfo,
@@ -581,58 +542,6 @@ async function decryptPrivateData(privateDataJwe: string, encryptionKey: CryptoK
 			)), encryptionKey);
 };
 
-
-async function derivePasswordKey(password: string, keyInfo: DerivePasswordKeyInfo): Promise<CryptoKey> {
-	const keyMaterial = await crypto.subtle.importKey(
-		"raw",
-		new TextEncoder().encode(password),
-		"PBKDF2",
-		false,
-		["deriveKey"],
-	);
-
-	return await crypto.subtle.deriveKey(
-		keyInfo.pbkdf2Params,
-		keyMaterial,
-		keyInfo.algorithm || { name: "AES-KW", length: 256 },
-		true,
-		["wrapKey", "unwrapKey"],
-	);
-};
-
-export async function upgradePasswordKey(
-	privateData: MixedEncryptedContainer,
-	password: string,
-	currentKeyInfo: SymmetricPasswordKeyInfo,
-	currentPasswordKey: CryptoKey,
-): Promise<EncryptedContainer> {
-	const newDeriveKeyInfo: DerivePasswordKeyInfo = {
-		pbkdf2Params: currentKeyInfo.pbkdf2Params,
-		algorithm: { name: "AES-GCM", length: 256 },
-	};
-	const newPasswordKey = await derivePasswordKey(password, newDeriveKeyInfo);
-	const mainKey = await unwrapKey(
-		currentPasswordKey,
-		privateData.mainKey || null,
-		currentKeyInfo.mainKey,
-		true,
-	);
-	const mainKeyInfo = privateData.mainKey || (await createAsymmetricMainKey(mainKey)).keyInfo;
-	const [passwordKeypair, passwordPrivateKey] = await generateWrappedEncapsulationKeypair(newPasswordKey);
-	return {
-		...privateData,
-		mainKey: mainKeyInfo,
-		passwordKey: {
-			...newDeriveKeyInfo,
-			...await encapsulateKey(
-				passwordPrivateKey,
-				mainKeyInfo.publicKey,
-				passwordKeypair,
-				mainKey,
-			),
-		},
-	};
-}
 
 async function derivePrfKey(
 	prfOutput: BufferSource,
@@ -895,45 +804,6 @@ export async function unlock(mainKey: CryptoKey, privateData: EncryptedContainer
 	};
 }
 
-export async function getPasswordKey(privateData: EncryptedContainer, password: string): Promise<[CryptoKey, PasswordKeyInfo]> {
-	const keyInfo = privateData.passwordKey;
-	if (keyInfo === undefined) {
-		throw new Error("Password key not found");
-	}
-	const passwordKey = await derivePasswordKey(password, keyInfo);
-
-	// Throw an error if the password is incorrect
-	await unwrapKey(
-		passwordKey,
-		privateData.mainKey,
-		isAsymmetricPasswordKeyInfo(keyInfo) ? keyInfo : keyInfo.mainKey,
-	);
-
-	return [passwordKey, keyInfo];
-};
-
-export async function unlockPassword(
-	privateData: EncryptedContainer,
-	password: string,
-): Promise<[UnlockSuccess, EncryptedContainer | null]> {
-	const keyInfo = privateData.passwordKey;
-	if (keyInfo === undefined) {
-		throw new Error("Password key not found");
-	}
-	const passwordKey = await derivePasswordKey(password, keyInfo);
-	const mainKey = isAsymmetricPasswordKeyInfo(keyInfo)
-		? await decapsulateKey(passwordKey, privateData.mainKey, keyInfo, true, ["decrypt", "wrapKey", "unwrapKey"])
-		: await unwrapKey(passwordKey, null, keyInfo.mainKey, true);
-
-	const newPrivateData = (
-		isAsymmetricPasswordKeyInfo(keyInfo)
-			? null
-			: await upgradePasswordKey(privateData, password, keyInfo, passwordKey)
-	);
-
-	return [await unlock(mainKey, privateData), newPrivateData];
-};
-
 export async function unlockPrf(
 	privateData: EncryptedContainer,
 	credential: PublicKeyCredential,
@@ -962,38 +832,6 @@ export async function init(
 		jwe: await encryptPrivateData(SchemaV3.WalletStateOperations.initialWalletStateContainer(), mainKey),
 	};
 	return await unlock(mainKey, privateData);
-}
-
-export async function initPassword(
-	password: string,
-	options?: { pbkdfIterations: number },
-): Promise<{ mainKey: CryptoKey, keyInfo: AsymmetricEncryptedContainerKeys }> {
-	const pbkdf2Params: Pbkdf2Params = {
-		name: "PBKDF2",
-		hash: pbkdfHash,
-		iterations: options?.pbkdfIterations ?? pbkdfIterations,
-		salt: crypto.getRandomValues(new Uint8Array(32)),
-	};
-	const deriveKeyInfo: DerivePasswordKeyInfo = {
-		pbkdf2Params,
-		algorithm: { name: "AES-GCM", length: 256 },
-	};
-	const passwordKey = await derivePasswordKey(password, deriveKeyInfo);
-	const [passwordKeypair, passwordPrivateKey] = await generateWrappedEncapsulationKeypair(passwordKey);
-	const mainKeyInfo = await createAsymmetricMainKey();
-	const passwordKeyInfo = {
-		...deriveKeyInfo,
-		...await encapsulateKey(passwordPrivateKey, mainKeyInfo.keyInfo.publicKey, passwordKeypair, mainKeyInfo.mainKey)
-	};
-
-	return {
-		mainKey: mainKeyInfo.mainKey,
-		keyInfo: {
-			mainKey: mainKeyInfo.keyInfo,
-			passwordKey: passwordKeyInfo,
-			prfKeys: [],
-		},
-	};
 }
 
 export async function initPrf(

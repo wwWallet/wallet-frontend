@@ -358,12 +358,8 @@ const UnlockMainKey = ({
 	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
-	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
-	const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
-	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
 	const { t } = useTranslation();
-	const isPromptingForPassword = Boolean(resolvePasswordPromise);
 	const screenType = useScreenType();
 
 	useEffect(
@@ -377,15 +373,7 @@ const UnlockMainKey = ({
 		async () => {
 			setInProgress(true);
 			try {
-				await keystore.getPasswordOrPrfKeyFromSession(
-					() => new Promise<string>(resolve => {
-						setResolvePasswordPromise(() => resolve);
-					}).finally(() => {
-						setResolvePasswordPromise(null);
-						setPassword("");
-					}),
-					async () => true,
-				);
+				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
 				onUnlock();
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
@@ -398,37 +386,15 @@ const UnlockMainKey = ({
 						setError(t('passkeyLoginFailedTryAgain'));
 						break;
 
-					case 'passwordUnlockFailed':
-						setError(t('passwordUnlockFailed'));
-						onBeginUnlock();
-						break;
-
 					default:
 						throw e;
 				}
 			} finally {
 				setInProgress(false);
-				setIsSubmittingPassword(false);
 			}
 		},
 		[keystore, onUnlock, t],
 	);
-
-	const onSubmitPassword = (event) => {
-		event.preventDefault();
-		if (resolvePasswordPromise) {
-			setIsSubmittingPassword(true);
-			resolvePasswordPromise(password);
-		}
-	};
-
-	const onCancelPassword = () => {
-		if (resolvePasswordPromise) {
-			setIsSubmittingPassword(false);
-			resolvePasswordPromise(null);
-		}
-		onLock();
-	};
 
 	return (
 		<>
@@ -457,49 +423,6 @@ const UnlockMainKey = ({
 					}
 				</div>
 			</Button>
-			<Dialog
-				open={isPromptingForPassword}
-				onCancel={onCancelPassword}
-			>
-				<form method="dialog" onSubmit={onSubmitPassword}>
-					<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.unlockPassword.title')}</h3>
-					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
-					<input
-						type="password"
-						className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
-						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
-						autoFocus={true}
-						disabled={isSubmittingPassword}
-						onChange={(event) => setPassword(event.target.value)}
-						placeholder={t('pageSettings.unlockPassword.passwordInputPlaceholder')}
-						value={password}
-					/>
-
-					<div className='flex gap-2 justify-center align-center'>
-						<Button
-							id="cancel-password-management-settings"
-							onClick={onCancelPassword}
-							disabled={isSubmittingPassword}
-						>
-							{t('common.cancel')}
-						</Button>
-						<Button
-							id="submit-password-management-settings"
-							type="submit"
-							variant='primary'
-							disabled={isSubmittingPassword}
-						>
-							{t('common.submit')}
-						</Button>
-					</div>
-
-					{error &&
-						<p className="text-lm-red dark:text-dm-red mt-2">
-							{error}
-						</p>
-					}
-				</form>
-			</Dialog>
 		</>
 	);
 };

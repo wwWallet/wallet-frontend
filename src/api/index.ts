@@ -53,8 +53,6 @@ export interface BackendApi {
 	clearSession(): void,
 	getAppToken(): string | null,
 
-	login(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
-	signup(username: string, password: string, keystore: LocalStorageKeystore): Promise<Result<void, any>>,
 	getAllVerifiers(): Promise<Verifier[]>,
 	getAllPresentations(): Promise<{ vp_list: any[] }>,
 	initiatePresentationExchange(verifier_id: number, scope_name: string): Promise<{ redirect_to?: string }>,
@@ -342,6 +340,11 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		events.dispatchEvent(new CustomEvent<ClearSessionEvent>(CLEAR_SESSION_EVENT));
 	}, [clearSessionStorage, removePrivateDataEtag]);
 
+	const shouldShowWelcomeOnSignup = useCallback((): boolean => {
+		const queryParams = new URLSearchParams(window.location.search);
+		return queryParams.size === 0;
+	}, []);
+
 	const setSession = useCallback(async (
 		response: AxiosResponse,
 		credential: PublicKeyCredential | null,
@@ -354,14 +357,14 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			username: response.data.username,
 			webauthnCredentialCredentialId: credential?.id,
 			authenticationType,
-			showWelcome: authenticationType === 'signup',
+			showWelcome: authenticationType === 'signup' && shouldShowWelcomeOnSignup(),
 		});
 
 		await addItem('users', response.data.uuid, response.data);
 		if (isOnline) {
 			await fetchInitialData(response.data.appToken, response.data.uuid).catch((error) => console.error('Error in performGetRequests', error));
 		}
-	}, [setAppToken, setSessionState, fetchInitialData, isOnline]);
+	}, [setAppToken, setSessionState, fetchInitialData, isOnline, shouldShowWelcomeOnSignup]);
 
 	const updatePrivateData = useCallback(async (
 		newPrivateData: EncryptedContainer,
@@ -407,74 +410,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			throw e;
 		}
 	}, [post, updatePrivateDataEtag, cachedUsers, userHandle, syncPrivateData, isOnline]);
-
-	const login = useCallback(async (
-		username: string,
-		password: string,
-		keystore: LocalStorageKeystore
-	): Promise<Result<void, any>> => {
-		try {
-			const response = updatePrivateDataEtag(await post('/user/login', { username, password }));
-			const userData = response.data as UserData;
-			const privateData = await parsePrivateData(userData.privateData);
-			try {
-				const privateDataUpdate = await keystore.unlockPassword(privateData, password, { displayName: userData.displayName, userHandle: UserId.fromId(userData.uuid).asUserHandle() });
-				if (privateDataUpdate) {
-					const [newPrivateData, keystoreCommit] = privateDataUpdate;
-					try {
-						await updatePrivateData(newPrivateData, { appToken: response.data.appToken });
-						await keystoreCommit();
-					} catch (e) {
-						console.error("Failed to upgrade password key", e, e.status);
-						if (e?.cause === 'x-private-data-etag') {
-							return Err('x-private-data-etag');
-						}
-						return Err('loginKeystoreFailed');
-					}
-				}
-				await setSession(response, null, 'login');
-				return Ok.EMPTY;
-			} catch (e) {
-				console.error("Failed to unlock local keystore", e);
-				return Err(e);
-			}
-
-		} catch (error) {
-			console.error('Failed to log in', error);
-			return Err(error);
-		}
-	}, [post, setSession, updatePrivateDataEtag, updatePrivateData]);
-
-	const signup = useCallback(async (
-		username: string,
-		password: string,
-		keystore: LocalStorageKeystore
-	): Promise<Result<void, any>> => {
-		try {
-			const [privateData, setUserHandleB64u] = await keystore.initPassword(password);
-
-			try {
-				const response = updatePrivateDataEtag(await post('/user/register', {
-					username,
-					password,
-					displayName: username,
-					privateData: serializePrivateData(privateData),
-				}));
-				const userData = response.data as UserData;
-				setUserHandleB64u(toBase64Url(UserId.fromId(userData.uuid).asUserHandle()));
-				await setSession(response, null, 'signup');
-				return Ok.EMPTY;
-
-			} catch (e) {
-				console.error("Signup failed", e);
-				return Err(e);
-			}
-
-		} catch (e) {
-			console.error("Failed to initialize local keystore", e);
-			return Err(e);
-		}
-	}, [post, setSession, updatePrivateDataEtag]);
 
 	const getAllVerifiers = useCallback(async (): Promise<Verifier[]> => {
 		try {
@@ -774,8 +709,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		isLoggedIn,
 		clearSession,
 
-		login,
-		signup,
 		getAllVerifiers,
 		getAllPresentations,
 		getAppToken,
@@ -802,8 +735,6 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 		isLoggedIn,
 		clearSession,
 
-		login,
-		signup,
 		getAllVerifiers,
 		getAllPresentations,
 		getAppToken,

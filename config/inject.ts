@@ -138,7 +138,7 @@ export async function injectHtml({ html, config, tagsToInject, brandingHash }: I
 	})();
 
 	(function sortHead() {
-		const children = Array.from(head.children);
+		const children = Array.from(head.children) as Element[];
 
 		children.sort((a, b) => {
 			const priorityDiff = getTagSortingPriority(a) - getTagSortingPriority(b);
