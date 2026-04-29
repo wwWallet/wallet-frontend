@@ -5,6 +5,7 @@ import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
+import { p256 } from "@noble/curves/nist.js";
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
@@ -73,19 +74,28 @@ const mdocContext = {
 		sign1: {
 			sign: async ({ key, toBeSigned }) => {
 				const signingKey = await importP256SigningKeyFromCoseKey(key);
-				return new Uint8Array(await crypto.subtle.sign(
+				const signature = new Uint8Array(await crypto.subtle.sign(
 					{ name: "ECDSA", hash: "SHA-256" },
 					signingKey,
-					toBeSigned
+					toBeSigned as BufferSource
 				));
+				// Some runtimes return compact (r||s) directly, others return DER
+				if (signature.length === 64) {
+					return signature;
+				}
+				try {
+					return p256.Signature.fromBytes(signature, "der").toBytes("compact");
+				} catch {
+					throw new Error(`Unsupported ECDSA signature encoding from WebCrypto (length=${signature.length})`);
+				}
 			},
 			verify: async ({ sign1, key }) => {
 				const verifyKey = await importP256VerifyKeyFromCoseKey(key);
 				return await crypto.subtle.verify(
 					{ name: "ECDSA", hash: "SHA-256" },
 					verifyKey,
-					sign1.signature,
-					sign1.toBeSigned
+					sign1.signature as BufferSource,
+					sign1.toBeSigned as BufferSource
 				);
 			},
 		},
@@ -1396,7 +1406,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 				]
 			]
 		)
-		);
+	);
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
