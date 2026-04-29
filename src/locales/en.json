@@ -114,6 +114,16 @@
 		"welcomeBackMessage": "Welcome back to <highlight>$t(common.walletName)</highlight>"
 	},
 	"messagePopup": {
+		"addCredentialProcessFailed": {
+			"defaultDescription": "Something went wrong while issuing the credential.",
+			"title": "Add Credential Process Failed"
+		},
+		"authorizationProcessFailed": {
+			"defaultDescription": "Something went wrong during authorization.",
+			"invalidRequest": "The authorization request is invalid or malformed.",
+			"serverError": "The authorization server encountered an unexpected error.",
+			"title": "Authorization Process Failed"
+		},
 		"close": "Close",
 		"insufficientCredentials": {
 			"description": "One or more of the credentials you want to present do not exist for selection.",
@@ -126,6 +136,16 @@
 		"onlyOneInputDescriptor": {
 			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
 			"title": "Unsupported protocol version"
+		},
+		"sendCredentialProcessFailed": {
+			"defaultDescription": "Something went wrong while presenting the credential.",
+			"insufficientCredentials": "Insufficient Credentials. One or more of the credentials you want to share do not exist for selection.",
+			"nonTrustedVerifier": "Error during the validation of the verifier.",
+			"title": "Failed to send credentials"
+		},
+		"sendCredentialProcessSuccess": {
+			"defaultDescription": "One or more credentials were successfully shared.",
+			"title": "Successful credential sharing"
 		},
 		"sendResponseError": {
 			"description": "An error occured during the presentation of the credentials.",
