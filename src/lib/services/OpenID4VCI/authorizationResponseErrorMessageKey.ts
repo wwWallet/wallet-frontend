@@ -1,5 +1,4 @@
 const authorizationResponseErrorMessageKeyMap: Record<string, string> = {
-	access_denied: "accessDenied",
 	invalid_request: "invalidRequest",
 	server_error: "serverError",
 };

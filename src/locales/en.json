@@ -141,8 +141,7 @@
 			"title": "Add Credential Process Failed"
 		},
 		"authorizationProcessFailed": {
-			"accessDenied": "Authorization was denied. Please allow the request and try again.",
-			"defaultDescription": "Something went wrong during authorization. Please try again.",
+			"defaultDescription": "Something went wrong during authorization.",
 			"invalidRequest": "The authorization request is invalid or malformed.",
 			"serverError": "The authorization server encountered an unexpected error.",
 			"title": "Authorization Process Failed"
@@ -162,13 +161,13 @@
 		},
 		"sendCredentialProcessFailed": {
 			"defaultDescription": "Something went wrong while presenting the credential.",
-			"insufficientCredentials": "Insufficient Credentials. One or more of the credentials you want to present do not exist for selection.",
-			"nonTrustedVerifier": "Verifier is not Trusted, did not provide valid data for verification",
-			"title": "Send Credential Process Failed"
+			"insufficientCredentials": "Insufficient Credentials. One or more of the credentials you want to share do not exist for selection.",
+			"nonTrustedVerifier": "Error during the validation of the verifier.",
+			"title": "Failed to send credentials"
 		},
 		"sendCredentialProcessSuccess": {
-			"defaultDescription": "The send credential has been completed.",
-			"title": "Send Credential Process succeeded"
+			"defaultDescription": "One or more credentials were successfully shared.",
+			"title": "Successful credential sharing"
 		},
 		"sendResponseError": {
 			"description": "An error occured during the presentation of the credentials.",
