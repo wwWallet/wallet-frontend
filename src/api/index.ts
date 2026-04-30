@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { Err, Ok, Result } from 'ts-results';
 
 import * as config from '../config';
-import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from '../util';
+import { fromBase64Url, jsonParseTaggedBinary, jsonStringifyTaggedBinary } from '../util';
 import { EncryptedContainer, makeAssertionPrfExtensionInputs, parsePrivateData, serializePrivateData } from '../services/keystore';
 import { CachedUser, LocalStorageKeystore } from '../services/LocalStorageKeystore';
 import { UserData, UserId, Verifier } from './types';
