@@ -1,6 +1,5 @@
 import { IMdocAppCommunication } from "../interfaces/IMdocAppCommunication";
-import { DataItem, parse } from "@auth0/mdl";
-import { cborDecode, cborEncode, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
+import { cborDecode, cborEncode, DataItem, IssuerSigned } from "@owf/mdoc";
 import { v4 as uuidv4 } from 'uuid';
 import { decryptMessage, hexToUint8Array, uint8ArrayToBase64Url, deriveSharedSecret, getKey, uint8ArraytoHexString, getSessionTranscriptBytes, getDeviceEngagement, encryptUint8Array } from "../utils/mdocProtocol";
 import { base64url } from "jose";
@@ -16,9 +15,9 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	const uuid = uuidv4();
 	let deviceEngagementBytesRef = useRef<any>(null);
 	let credentialRef = useRef<any>(null);
-	let sessionDataEncodedRef = useRef<Buffer | null>(null);
+	let sessionDataEncodedRef = useRef<Uint8Array | null>(null);
 	let fieldsPEXRef = useRef<any[]>([]);
-	let sessionTranscriptBytesRef = useRef<Buffer | null>(null);
+	let sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
 	let skDeviceRef = useRef<CryptoKey>(null);
 	const assumedChunkSize = 512;
 
@@ -68,10 +67,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		// const uuid =  '00179c7a-eec6-4f88-8646-045fda9ac4d8'
 
 		const deviceEngagement = getDeviceEngagement(uuid, publicKeyJWK);
-
-		const options = getCborEncodeDecodeOptions();
-		options.variableMapSize = true;
-		setCborEncodeDecodeOptions(options);
 		const cbor = cborEncode(deviceEngagement);
 
 		deviceEngagementBytesRef.current = DataItem.fromData(deviceEngagement);
@@ -120,10 +115,10 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 		console.log('Assumed chunk size: ', assumedChunkSize);
 		const sessionMessage = uint8ArraytoHexString(new Uint8Array(aggregatedData));
-		const decoded = cborDecode(hexToUint8Array(sessionMessage));
+		const decoded = cborDecode<Map<string, any>>(hexToUint8Array(sessionMessage));
 		const readerKey = decoded.get('eReaderKey');
 		const verifierData = decoded.get('data');
-		const coseKey = cborDecode(new Uint8Array(readerKey.buffer));
+		const coseKey = cborDecode<Map<number, Uint8Array>>(new Uint8Array(readerKey.buffer));
 		const verifierJWK = {
 			kty: "EC",
 			alg: "ECDH",
@@ -153,7 +148,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 		const fieldKeys: string[] = [];
 		if (decryptedVerifierData) {
-			const mdocRequestDecoded = cborDecode(decryptedVerifierData);
+			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
 			const fields: Map<string, boolean> = mdocRequestDecoded.get("docRequests")[0].get("itemsRequest").data.get("nameSpaces").get("eu.europa.ec.eudi.pid.1");
 
 			const fieldsPEX = [];
@@ -197,25 +192,17 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		}
 
 		// const presentationDefinition = fullPEX;
-		const credentialBytes = base64url.decode(credentialRef.current.data);
-		const issuerSigned = cborDecode(credentialBytes);
+		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
 		// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 		const descriptor = { "id": "eu.europa.ec.eudi.pid.1" }
-		const m = {
-			version: '1.0',
-			documents: [new Map([
-				['docType', descriptor.id],
-				['issuerSigned', issuerSigned]
-			])],
-			status: 0
+		const mdoc = {
+			documents: [{
+				docType: descriptor.id,
+				issuerSigned
+			}]
 		};
-		const options = getCborEncodeDecodeOptions();
-		options.variableMapSize = true;
-		setCborEncodeDecodeOptions(options);
-		const encoded = cborEncode(m);
-		const mdoc = parse(encoded);
 
-		const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc, fullPEX, sessionTranscriptBytesRef.current);
+		const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc as any, fullPEX, sessionTranscriptBytesRef.current);
 
 		// encrypt mdoc response
 		const ivEncryption = new Uint8Array([
@@ -273,9 +260,6 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 				status: 20
 			}
 
-			const options = getCborEncodeDecodeOptions();
-			options.variableMapSize = true;
-			setCborEncodeDecodeOptions(options);
 			const sessionDataEncoded = cborEncode(sessionData);
 			/* @ts-ignore */
 			await nativeWrapper.bluetoothSendToServer(JSON.stringify([0, ...sessionDataEncoded]));

@@ -9,12 +9,16 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
-import { MDoc } from "@auth0/mdl";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteCredentialIssuanceSessionEvent, addDeleteKeypairEvent, addNewCredentialEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, mergeEventHistories } from "./WalletStateSchema";
 import { UserId } from "@/api/types";
 import { getItem } from "@/indexedDB";
 import { WalletStateContainerGeneric } from "./WalletStateSchemaCommon";
+
+type MDoc = {
+	encode: () => Uint8Array;
+	documents?: any[];
+} | import("@owf/mdoc").DeviceResponse | import("@owf/mdoc").Document;
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
@@ -584,14 +588,14 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const generateDeviceResponse = useCallback(
 		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri)
+			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
 
 	const generateDeviceResponseWithProximity = useCallback(
 		async (mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential, presentationDefinition, sessionTranscriptBytes)
+			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, presentationDefinition, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
