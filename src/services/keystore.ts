@@ -5,7 +5,7 @@ import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
-import { p256 } from "@noble/curves/nist.js";
+import { p256, p384, p521 } from "@noble/curves/nist.js";
 
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
@@ -28,24 +28,62 @@ type MDoc = DeviceResponse | {
 	encode?: () => Uint8Array;
 };
 
-async function importP256SigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
+type EcdsaProfile = {
+	namedCurve: "P-256" | "P-384" | "P-521";
+	hash: "SHA-256" | "SHA-384" | "SHA-512";
+	compactSignatureSize: number;
+};
+
+function getEcdsaProfileFromJwk(jwk: JsonWebKey): EcdsaProfile {
+	if (jwk.crv === "P-384" || jwk.alg === "ES384") {
+		return { namedCurve: "P-384", hash: "SHA-384", compactSignatureSize: 96 };
+	}
+	if (jwk.crv === "P-521" || jwk.alg === "ES512") {
+		return { namedCurve: "P-521", hash: "SHA-512", compactSignatureSize: 132 };
+	}
+	return { namedCurve: "P-256", hash: "SHA-256", compactSignatureSize: 64 };
+}
+
+function convertDerToCompact(signature: Uint8Array, profile: EcdsaProfile): Uint8Array {
+	if (profile.namedCurve === "P-384") {
+		return p384.Signature.fromBytes(signature, "der").toBytes("compact");
+	}
+	if (profile.namedCurve === "P-521") {
+		return p521.Signature.fromBytes(signature, "der").toBytes("compact");
+	}
+	return p256.Signature.fromBytes(signature, "der").toBytes("compact");
+}
+
+function convertCompactToDer(signature: Uint8Array, profile: EcdsaProfile): Uint8Array {
+	if (profile.namedCurve === "P-384") {
+		return p384.Signature.fromBytes(signature, "compact").toBytes("der");
+	}
+	if (profile.namedCurve === "P-521") {
+		return p521.Signature.fromBytes(signature, "compact").toBytes("der");
+	}
+	return p256.Signature.fromBytes(signature, "compact").toBytes("der");
+}
+
+async function importSigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
 	const jwk = key.jwk as JsonWebKey;
+	const { namedCurve } = getEcdsaProfileFromJwk(jwk);
 	return await crypto.subtle.importKey(
 		"jwk",
 		jwk,
-		{ name: "ECDSA", namedCurve: "P-256" },
+		{ name: "ECDSA", namedCurve },
 		false,
 		["sign"]
 	);
 }
 
-async function importP256VerifyKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
+async function importVerifyKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
 	const jwk = key.jwk as JsonWebKey;
+	const { namedCurve } = getEcdsaProfileFromJwk(jwk);
 	const publicJwk: JsonWebKey = { ...jwk, d: undefined };
 	return await crypto.subtle.importKey(
 		"jwk",
 		publicJwk,
-		{ name: "ECDSA", namedCurve: "P-256" },
+		{ name: "ECDSA", namedCurve },
 		false,
 		["verify"]
 	);
@@ -73,28 +111,36 @@ const mdocContext = {
 		},
 		sign1: {
 			sign: async ({ key, toBeSigned }) => {
-				const signingKey = await importP256SigningKeyFromCoseKey(key);
+				const jwk = key.jwk as JsonWebKey;
+				const { hash, compactSignatureSize } = getEcdsaProfileFromJwk(jwk);
+				const signingKey = await importSigningKeyFromCoseKey(key);
 				const signature = new Uint8Array(await crypto.subtle.sign(
-					{ name: "ECDSA", hash: "SHA-256" },
+					{ name: "ECDSA", hash },
 					signingKey,
 					toBeSigned as BufferSource
 				));
 				// Some runtimes return compact (r||s) directly, others return DER
-				if (signature.length === 64) {
+				if (signature.length === compactSignatureSize) {
 					return signature;
 				}
 				try {
-					return p256.Signature.fromBytes(signature, "der").toBytes("compact");
+					return convertDerToCompact(signature, getEcdsaProfileFromJwk(jwk));
 				} catch {
 					throw new Error(`Unsupported ECDSA signature encoding from WebCrypto (length=${signature.length})`);
 				}
 			},
 			verify: async ({ sign1, key }) => {
-				const verifyKey = await importP256VerifyKeyFromCoseKey(key);
+				const jwk = key.jwk as JsonWebKey;
+				const { hash, compactSignatureSize } = getEcdsaProfileFromJwk(jwk);
+				const verifyKey = await importVerifyKeyFromCoseKey(key);
+				const signature = sign1.signature as Uint8Array;
+				const signatureForVerify = signature.length === compactSignatureSize
+					? convertCompactToDer(signature, getEcdsaProfileFromJwk(jwk))
+					: signature;
 				return await crypto.subtle.verify(
-					{ name: "ECDSA", hash: "SHA-256" },
+					{ name: "ECDSA", hash },
 					verifyKey,
-					sign1.signature as BufferSource,
+					signatureForVerify as BufferSource,
 					sign1.toBeSigned as BufferSource
 				);
 			},
