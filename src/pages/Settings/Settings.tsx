@@ -303,7 +303,7 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false}/>
+				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false} />
 				<p className='dark:text-white'>{t('registerPasskey.passkeyCreated')}</p>
 				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
@@ -392,33 +392,31 @@ const UnlockMainKey = ({
 	);
 
 	return (
-		<>
-			<Button
-				id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
-				onClick={unlocked ? onLock : onBeginUnlock}
-				variant="primary"
-				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
-			>
-				<div className="flex items-center">
-					{unlocked
-						? <>
-							<LockOpen size={18} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.lockSensitive')}
-							</span>
-						</>
-						: <>
-							<Lock size={18} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.unlockSensitive')}
-							</span>
-						</>
-					}
-				</div>
-			</Button>
-		</>
+		<Button
+			id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
+			onClick={unlocked ? onLock : onBeginUnlock}
+			variant="primary"
+			disabled={inProgress || (!unlocked && !isOnline)}
+			ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
+			title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
+		>
+			<div className="flex items-center">
+				{unlocked
+					? <>
+						<LockOpen size={18} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.lockSensitive')}
+						</span>
+					</>
+					: <>
+						<Lock size={18} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.unlockSensitive')}
+						</span>
+					</>
+				}
+			</div>
+		</Button>
 	);
 };
 
@@ -1089,8 +1087,8 @@ const Settings = () => {
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
 									onClick={onCancelUpgradePrfKey}
-									>
-										{t('common.cancel')}
+								>
+									{t('common.cancel')}
 								</Button>
 							</div>
 						</>
@@ -1104,13 +1102,13 @@ const Settings = () => {
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
 									onClick={onCancelUpgradePrfKey}
-									>
+								>
 									{t('common.cancel')}
 								</Button>
 								<Button
 									variant='primary'
 									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-									>
+								>
 									{t('common.tryAgain')}
 								</Button>
 							</div>
