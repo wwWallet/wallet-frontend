@@ -1007,7 +1007,7 @@ const Settings = () => {
 											onUnlockErrorChange={setUnlockMainKeyError}
 										/>
 									</H3>
-									{unlockMainKeyError && <div className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</div>}
+									{unlockMainKeyError && <p className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
