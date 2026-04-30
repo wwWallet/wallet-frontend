@@ -349,28 +349,23 @@ const WebauthnRegistation = ({
 const UnlockMainKey = ({
 	onLock,
 	onUnlock,
+	onUnlockErrorChange,
 	unlocked,
 }: {
 	onLock: () => void,
 	onUnlock: () => void,
+	onUnlockErrorChange: (error: string) => void,
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
-	const [error, setError] = useState('');
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
-	useEffect(
-		() => {
-			setError("");
-		},
-		[],
-	);
-
 	const onBeginUnlock = useCallback(
 		async () => {
+			onUnlockErrorChange('');
 			setInProgress(true);
 			try {
 				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
@@ -379,11 +374,11 @@ const UnlockMainKey = ({
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e?.cause?.errorId) {
 					case 'passkeyInvalid':
-						setError(t('passkeyInvalid'));
+						onUnlockErrorChange(t('passkeyInvalid'));
 						break;
 
 					case 'passkeyLoginFailedTryAgain':
-						setError(t('passkeyLoginFailedTryAgain'));
+						onUnlockErrorChange(t('passkeyLoginFailedTryAgain'));
 						break;
 
 					default:
@@ -393,7 +388,7 @@ const UnlockMainKey = ({
 				setInProgress(false);
 			}
 		},
-		[keystore, onUnlock, t],
+		[keystore, onUnlock, onUnlockErrorChange, t],
 	);
 
 	return (
@@ -644,6 +639,7 @@ const Settings = () => {
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
+	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -1005,10 +1001,15 @@ const Settings = () => {
 									<H3 heading={t('pageSettings.deleteAccount.title')}>
 										<UnlockMainKey
 											unlocked={unlocked}
-											onLock={() => setUnlocked(false)}
+											onLock={() => {
+												setUnlocked(false);
+												setUnlockMainKeyError('');
+											}}
 											onUnlock={() => setUnlocked(true)}
+											onUnlockErrorChange={setUnlockMainKeyError}
 										/>
 									</H3>
+									{unlockMainKeyError && <div className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</div>}
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
