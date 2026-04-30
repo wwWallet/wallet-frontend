@@ -20,9 +20,9 @@ const PWAInstallPrompt = () => {
 						) : (
 							<Download className='mr-2' size={32} />
 						)}
-						<a href="/" className={`font-semibold cursor-pointer transition-all duration-300 text-sm`}>
+						<p className='font-semibold text-sm'>
 							{t('pwaInstallPrompt.message')}
-						</a>
+						</p>
 					</div>
 					<div className='flex items-center space-y'>
 						<Button
