@@ -303,7 +303,7 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false}/>
+				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false} />
 				<p className='dark:text-white'>{t('registerPasskey.passkeyCreated')}</p>
 				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
@@ -349,28 +349,23 @@ const WebauthnRegistation = ({
 const UnlockMainKey = ({
 	onLock,
 	onUnlock,
+	onUnlockErrorChange,
 	unlocked,
 }: {
 	onLock: () => void,
 	onUnlock: () => void,
+	onUnlockErrorChange: (error: string) => void,
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
-	const [error, setError] = useState('');
 	const { t } = useTranslation();
 	const screenType = useScreenType();
 
-	useEffect(
-		() => {
-			setError("");
-		},
-		[],
-	);
-
 	const onBeginUnlock = useCallback(
 		async () => {
+			onUnlockErrorChange('');
 			setInProgress(true);
 			try {
 				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
@@ -379,11 +374,11 @@ const UnlockMainKey = ({
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e?.cause?.errorId) {
 					case 'passkeyInvalid':
-						setError(t('passkeyInvalid'));
+						onUnlockErrorChange(t('passkeyInvalid'));
 						break;
 
 					case 'passkeyLoginFailedTryAgain':
-						setError(t('passkeyLoginFailedTryAgain'));
+						onUnlockErrorChange(t('passkeyLoginFailedTryAgain'));
 						break;
 
 					default:
@@ -393,37 +388,35 @@ const UnlockMainKey = ({
 				setInProgress(false);
 			}
 		},
-		[keystore, onUnlock, t],
+		[keystore, onUnlock, onUnlockErrorChange, t],
 	);
 
 	return (
-		<>
-			<Button
-				id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
-				onClick={unlocked ? onLock : onBeginUnlock}
-				variant="primary"
-				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
-			>
-				<div className="flex items-center">
-					{unlocked
-						? <>
-							<LockOpen size={18} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.lockSensitive')}
-							</span>
-						</>
-						: <>
-							<Lock size={18} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.unlockSensitive')}
-							</span>
-						</>
-					}
-				</div>
-			</Button>
-		</>
+		<Button
+			id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
+			onClick={unlocked ? onLock : onBeginUnlock}
+			variant="primary"
+			disabled={inProgress || (!unlocked && !isOnline)}
+			ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
+			title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
+		>
+			<div className="flex items-center">
+				{unlocked
+					? <>
+						<LockOpen size={18} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.lockSensitive')}
+						</span>
+					</>
+					: <>
+						<Lock size={18} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.unlockSensitive')}
+						</span>
+					</>
+				}
+			</div>
+		</Button>
 	);
 };
 
@@ -644,6 +637,7 @@ const Settings = () => {
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
+	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -1005,10 +999,15 @@ const Settings = () => {
 									<H3 heading={t('pageSettings.deleteAccount.title')}>
 										<UnlockMainKey
 											unlocked={unlocked}
-											onLock={() => setUnlocked(false)}
+											onLock={() => {
+												setUnlocked(false);
+												setUnlockMainKeyError('');
+											}}
 											onUnlock={() => setUnlocked(true)}
+											onUnlockErrorChange={setUnlockMainKeyError}
 										/>
 									</H3>
+									{unlockMainKeyError && <p className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
@@ -1088,8 +1087,8 @@ const Settings = () => {
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
 									onClick={onCancelUpgradePrfKey}
-									>
-										{t('common.cancel')}
+								>
+									{t('common.cancel')}
 								</Button>
 							</div>
 						</>
@@ -1103,13 +1102,13 @@ const Settings = () => {
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
 									onClick={onCancelUpgradePrfKey}
-									>
+								>
 									{t('common.cancel')}
 								</Button>
 								<Button
 									variant='primary'
 									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-									>
+								>
 									{t('common.tryAgain')}
 								</Button>
 							</div>
