@@ -11,7 +11,7 @@ import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
 import { SDJwt } from "@sd-jwt/core";
-import { cborEncode, CoseKey, DataItem, DeviceRequest, DocRequest, Holder, ItemsRequest, IssuerSigned, type DeviceResponse, type MdocContext } from "@owf/mdoc";
+import { cborEncode, CoseKey, DeviceRequest, DocRequest, Holder, ItemsRequest, IssuerSigned, type DeviceResponse, type MdocContext } from "@owf/mdoc";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 
@@ -1432,27 +1432,43 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>): Promise<{ deviceResponseMDoc: MDoc }> {
 
-	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
-		DataItem.fromData(
+	const base64urlToBytes = (base64urlValue: string): Uint8Array => {
+		const base64 = base64urlValue.replace(/-/g, "+").replace(/_/g, "/");
+		const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+		const binary = atob(padded);
+		const bytes = new Uint8Array(binary.length);
+		for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+		return bytes;
+	};
+
+	const getSessionTranscriptBytesForOID4VP = async (
+		clId: string,
+		respUri: string,
+		nonce: string,
+		encJwk?: JsonWebKey | Record<string, unknown>
+	) => {
+		const thumbprintB64u = encJwk
+			? await jose.calculateJwkThumbprint(encJwk as jose.JWK, "sha256")
+			: null;
+		const jwkThumbprint = thumbprintB64u ? base64urlToBytes(thumbprintB64u) : null;
+
+		const handoverInfoBytes = cborEncode(
+			[clId, nonce, jwkThumbprint, respUri]
+		);
+		const handoverInfoHash = new Uint8Array(
+			await crypto.subtle.digest("SHA-256", handoverInfoBytes)
+		);
+
+		return cborEncode(
 			[
 				null,
 				null,
-				[
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([clId, mdocNonce]),
-					),
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([respUri, mdocNonce]),
-					),
-					nonce
-				]
+				["OpenID4VPHandover", handoverInfoHash],
 			]
-		)
-	);
+		);
+	};
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
@@ -1475,7 +1491,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		clientId,
 		responseUri,
 		verifierGeneratedNonce,
-		mdocGeneratedNonce
+		verifierEncryptionJwk
 	);
 
 	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
