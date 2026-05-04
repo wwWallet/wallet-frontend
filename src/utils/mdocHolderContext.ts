@@ -43,16 +43,6 @@ function convertDerToCompact(signature: Uint8Array, profile: EcdsaProfile): Uint
 	return p256.Signature.fromBytes(signature, "der").toBytes("compact");
 }
 
-function convertCompactToDer(signature: Uint8Array, profile: EcdsaProfile): Uint8Array {
-	if (profile.namedCurve === "P-384") {
-		return p384.Signature.fromBytes(signature, "compact").toBytes("der");
-	}
-	if (profile.namedCurve === "P-521") {
-		return p521.Signature.fromBytes(signature, "compact").toBytes("der");
-	}
-	return p256.Signature.fromBytes(signature, "compact").toBytes("der");
-}
-
 async function importSigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
 	const jwk = key.jwk as JsonWebKey;
 	const { namedCurve } = getEcdsaProfileFromJwk(jwk);
@@ -62,19 +52,6 @@ async function importSigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
 		{ name: "ECDSA", namedCurve },
 		false,
 		["sign"]
-	);
-}
-
-async function importVerifyKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
-	const jwk = key.jwk as JsonWebKey;
-	const { namedCurve } = getEcdsaProfileFromJwk(jwk);
-	const publicJwk: JsonWebKey = { ...jwk, d: undefined };
-	return await crypto.subtle.importKey(
-		"jwk",
-		publicJwk,
-		{ name: "ECDSA", namedCurve },
-		false,
-		["verify"]
 	);
 }
 
@@ -117,20 +94,8 @@ export const mdocContext = {
 					throw new Error(`Unsupported ECDSA signature encoding from WebCrypto (length=${signature.length})`);
 				}
 			},
-			verify: async ({ sign1, key }) => {
-				const jwk = key.jwk as JsonWebKey;
-				const { hash, compactSignatureSize } = getEcdsaProfileFromJwk(jwk);
-				const verifyKey = await importVerifyKeyFromCoseKey(key);
-				const signature = sign1.signature as Uint8Array;
-				const signatureForVerify = signature.length === compactSignatureSize
-					? convertCompactToDer(signature, getEcdsaProfileFromJwk(jwk))
-					: signature;
-				return await crypto.subtle.verify(
-					{ name: "ECDSA", hash },
-					verifyKey,
-					signatureForVerify as BufferSource,
-					sign1.toBeSigned as BufferSource
-				);
+			verify: async () => {
+				throw new Error("cose.sign1.verify is not used in holder flow");
 			},
 		},
 	},
