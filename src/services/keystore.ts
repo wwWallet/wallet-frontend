@@ -5,17 +5,14 @@ import { varint } from 'multiformats';
 import * as KeyDidResolver from 'key-did-resolver'
 import { Resolver } from 'did-resolver'
 import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
-
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
+import { buildOpenId4VpSessionTranscriptBytes } from "wallet-common";
 import { SDJwt } from "@sd-jwt/core";
-import { cborEncode, cborDecode, DataItem, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
-import { DeviceResponse, MDoc } from "@auth0/mdl";
-import { SupportedAlgs } from "@auth0/mdl/lib/mdoc/model/types";
-import { COSEKeyToJWK } from "cose-kit";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
+import { createDeviceResponseForPresentationDefinition, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -1080,35 +1077,8 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
-
-	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
-		DataItem.fromData(
-			[
-				null,
-				null,
-				[
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([clId, mdocNonce]),
-					),
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([respUri, mdocNonce]),
-					),
-					nonce
-				]
-			]
-		)
-	);
-	// extract the COSE device public key from mdoc
-	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
-	const deviceKeyInfo = p.data.get('deviceKeyInfo');
-	const deviceKey = deviceKeyInfo.get('deviceKey');
-	console.log("Device key = ", deviceKey);
-
-	// @ts-ignore
-	const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType: "redirect" | "dc_api" = "redirect", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> {
+	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
 	// get the keypair based on the jwk Thumbprint
@@ -1125,32 +1095,38 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
 	console.log("clientId = ", clientId);
 	console.log("responseUri = ", responseUri);
+	console.log("handoverType = ", handoverType);
 
-	const sessionTranscriptBytes = await getSessionTranscriptBytesForOID4VP(
+	const resolvedDcApiOrigin = handoverType === "dc_api"
+		? (dcApiOrigin ?? clientId.replace(/^origin:/, ""))
+		: undefined;
+
+	const sessionTranscriptBytes = await buildOpenId4VpSessionTranscriptBytes({
+		subtle: crypto.subtle,
+		handoverType,
 		clientId,
 		responseUri,
-		verifierGeneratedNonce,
-		mdocGeneratedNonce
-	);
+		nonce: verifierGeneratedNonce,
+		dcApiOrigin: resolvedDcApiOrigin,
+		verifierEncryptionJwk,
+	});
 
 	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
-	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
-		.usingPresentationDefinition(presentationDefinition)
-		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
-		.sign();
+	const deviceResponseMDoc = await createDeviceResponseForPresentationDefinition({
+		mdocCredential,
+		presentationDefinition,
+		sessionTranscript: sessionTranscriptBytes,
+		privateKeyJwk: privateKeyJwk as JWK,
+		alg,
+		kid,
+	});
 	return { deviceResponseMDoc };
 }
 
 export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
-	// extract the COSE device public key from mdoc
-	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
-	const deviceKeyInfo = p.data.get('deviceKeyInfo');
-	const deviceKey = deviceKeyInfo.get('deviceKey');
-
-	const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
+	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 
 	// get the keypair based on the jwk Thumbprint
@@ -1162,14 +1138,13 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 	const { alg, privateKey } = keypair.keypair;
 	const privateKeyJwk = privateKey;
 
-	const options = getCborEncodeDecodeOptions();
-	options.variableMapSize = true;
-	setCborEncodeDecodeOptions(options);
-
-	const deviceResponseMDoc = await DeviceResponse.from(mdocCredential)
-		.usingPresentationDefinition(presentationDefinition)
-		.usingSessionTranscriptBytes(sessionTranscriptBytes)
-		.authenticateWithSignature({ ...privateKeyJwk, alg, kid } as JWK, alg as SupportedAlgs)
-		.sign();
+	const deviceResponseMDoc = await createDeviceResponseForPresentationDefinition({
+		mdocCredential,
+		presentationDefinition,
+		sessionTranscript: sessionTranscriptBytes as Uint8Array,
+		privateKeyJwk: privateKeyJwk as JWK,
+		alg,
+		kid,
+	});
 	return { deviceResponseMDoc };
 }
