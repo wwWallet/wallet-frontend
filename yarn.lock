@@ -7101,9 +7101,9 @@ w3c-xmlserializer@^5.0.0:
   dependencies:
     xml-name-validator "^5.0.0"
 
-"wallet-common@git+https://github.com/wwWallet/wallet-common.git#a74c6f7d2e5c553c4d633d3af559b561026ce479":
+"wallet-common@git+https://github.com/wwWallet/wallet-common.git#daf25260c860f6a8be66e246e848fddcf53479b3":
   version "0.0.1"
-  resolved "git+https://github.com/wwWallet/wallet-common.git#a74c6f7d2e5c553c4d633d3af559b561026ce479"
+  resolved "git+https://github.com/wwWallet/wallet-common.git#daf25260c860f6a8be66e246e848fddcf53479b3"
   dependencies:
     "@noble/curves" "^2.2.0"
     "@owf/mdoc" "^0.6.0"
