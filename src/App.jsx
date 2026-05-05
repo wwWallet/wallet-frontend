@@ -5,6 +5,7 @@ import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import FadeInContentTransition from './components/Transitions/FadeInContentTransition';
 import Snowfalling from './components/ChristmasAnimation/Snowfalling';
 import Spinner from './components/Shared/Spinner';
+import PWAInstallPrompt from './components/PWAInstall/PWAInstallPrompt';
 
 import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
@@ -41,6 +42,7 @@ function App() {
 	return (
 		<>
 			<Snowfalling />
+			<PWAInstallPrompt />
 			<Suspense fallback={<Spinner />}>
 				<UpdateNotification />
 				<Routes>
