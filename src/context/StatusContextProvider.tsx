@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BACKEND_URL } from '../config';
 import StatusContext, { Connectivity } from './StatusContext';
-import { useLocalStorage } from '@/hooks/useStorage';
 
 // Function to calculate speed based on RTT (lower RTT means higher speed)
 function calculateNetworkSpeed(rtt: number): number {
@@ -44,8 +43,6 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 		Internet: null,
 		speed: null,
 	});
-	const [pwaInstallable, setPwaInstallable] = useState(null);
-	const [hidePwaPrompt, setHidePwaPrompt] = useLocalStorage<boolean>("hidePwaPrompt", false);
 
 	const lastUpdateCallTime = React.useRef<number>(0);
 
@@ -171,29 +168,6 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 	}, [isOnline]);
 
 	useEffect(() => {
-		// beforeinstallprompt is triggered if browser can install pwa
-		// it will not trigger if pwa is already installed
-		const handleBeforeInstallPrompt = (event) => {
-			event.preventDefault();
-			setPwaInstallable(event);
-		};
-
-		// appinstaled is triggered if pwa was installed
-		// we want to remove installation prompts in that case
-		const handleAppInstalled = () => {
-			setPwaInstallable(null);
-		};
-
-		window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-		window.addEventListener("appinstalled", handleAppInstalled);
-
-		return () => {
-			window.removeEventListener("appinstalled", handleAppInstalled);
-			window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-		};
-	}, []);
-
-	useEffect(() => {
 		const handler = (event: MessageEvent) => {
 			if (event.data?.type === "NEW_CONTENT_AVAILABLE") {
 				if (document.hidden) {
@@ -215,15 +189,11 @@ export const StatusContextProvider = ({ children }: React.PropsWithChildren) => 
 		};
 	}, []);
 
-	const dismissPwaPrompt = () => {
-		setHidePwaPrompt(true);
-	}
-
 	useEffect(() => {
 		updateOnlineStatus();
 	}, []);
 	return (
-		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus, pwaInstallable, dismissPwaPrompt, hidePwaPrompt }}>
+		<StatusContext.Provider value={{ isOnline, updateAvailable, connectivity, updateOnlineStatus }}>
 			{children}
 		</StatusContext.Provider>
 	);
