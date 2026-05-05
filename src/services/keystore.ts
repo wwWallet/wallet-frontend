@@ -8,8 +8,8 @@ import * as didUtil from "@cef-ebsi/key-did-resolver/dist/util.js";
 import * as config from '../config';
 import type { DidKeyVersion } from '../config';
 import { byteArrayEquals, filterObject, jsonParseTaggedBinary, jsonStringifyTaggedBinary, toBase64Url } from "../util";
+import { buildOpenId4VpSessionTranscriptBytes } from "wallet-common";
 import { SDJwt } from "@sd-jwt/core";
-import { cborEncode, DataItem } from "@owf/mdoc";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
 import { createDeviceResponseForPresentationDefinition, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
@@ -1239,27 +1239,7 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
-
-	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
-		DataItem.fromData(
-			[
-				null,
-				null,
-				[
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([clId, mdocNonce]),
-					),
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([respUri, mdocNonce]),
-					),
-					nonce
-				]
-			]
-		)
-	);
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType: "redirect" | "dc_api" = "redirect", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> {
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
@@ -1277,13 +1257,21 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
 	console.log("clientId = ", clientId);
 	console.log("responseUri = ", responseUri);
+	console.log("handoverType = ", handoverType);
 
-	const sessionTranscriptBytes = await getSessionTranscriptBytesForOID4VP(
+	const resolvedDcApiOrigin = handoverType === "dc_api"
+		? (dcApiOrigin ?? clientId.replace(/^origin:/, ""))
+		: undefined;
+
+	const sessionTranscriptBytes = await buildOpenId4VpSessionTranscriptBytes({
+		subtle: crypto.subtle,
+		handoverType,
 		clientId,
 		responseUri,
-		verifierGeneratedNonce,
-		mdocGeneratedNonce
-	);
+		nonce: verifierGeneratedNonce,
+		dcApiOrigin: resolvedDcApiOrigin,
+		verifierEncryptionJwk,
+	});
 
 	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));

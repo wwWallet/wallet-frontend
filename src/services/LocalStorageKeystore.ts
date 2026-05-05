@@ -98,7 +98,7 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletState | null,
@@ -639,8 +639,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const generateDeviceResponse = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri) as unknown as { deviceResponseMDoc: MDoc }
+		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
