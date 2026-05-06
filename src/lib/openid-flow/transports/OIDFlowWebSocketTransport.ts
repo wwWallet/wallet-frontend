@@ -191,7 +191,8 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 		this.connectionPromise = new Promise((resolve, reject) => {
 			try {
 				// Connect using the base WebSocket URL; send auth token in a message after connection
-				const url = this.wsUrl;
+				const url = new URL(this.wsUrl);
+				url.searchParams.set('tenant_id', this.tenantId);
 				this.ws = new WebSocket(url);
 
 				this.ws.onopen = () => {
@@ -202,7 +203,6 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 								JSON.stringify({
 									type: 'handshake',
 									app_token: this.authToken,
-									tenantId: this.tenantId
 								})
 							);
 						}
