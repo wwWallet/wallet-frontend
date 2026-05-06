@@ -223,7 +223,6 @@ const WebauthnSignupLogin = ({
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
 	const { urlTenantId, buildPath, tenantConfig } = useTenant();
-	const navigate = useNavigate();
 	const location = useLocation();
 
 	// OIDC gate hooks - registration and login are independent
@@ -267,48 +266,53 @@ const WebauthnSignupLogin = ({
 		});
 	};
 
-	const onLogin = useCallback(async (webauthnHints: string[], cachedUser?: CachedUser) => {
-		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, urlTenantId, activeGate.idToken || undefined);
-		if (result.ok) {
-			// Success - no action needed, session will be set by API
-		} else {
-			const err = result.val;
+	const onLogin = useCallback(
+		async (webauthnHints: string[], cachedUser?: CachedUser) => {
+			const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser, urlTenantId, activeGate.idToken || undefined);
+			if (result.ok) {
+				// Success - no action needed, session will be set by API
+			} else {
+				const err = result.val;
 
 
-			// Using a switch here so the t() argument can be a literal, to ease searching
-			switch (err) {
-				case 'loginKeystoreFailed':
-					setError(t('loginSignup.loginKeystoreFailed'));
-					break;
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (err) {
+					case 'loginKeystoreFailed':
+						setError(t('loginSignup.loginKeystoreFailed'));
+						break;
 
-				case 'passkeyInvalid':
-					setError(t('loginSignup.passkeyInvalid'));
-					break;
+					case 'passkeyInvalid':
+						setError(t('loginSignup.passkeyInvalid'));
+						break;
 
-				case 'passkeyLoginFailedTryAgain':
-					setError(t('loginSignup.passkeyLoginFailedTryAgain'));
-					break;
+					case 'passkeyLoginFailedTryAgain':
+						setError(t('loginSignup.passkeyLoginFailedTryAgain'));
+						break;
 
-				case 'passkeyLoginFailedServerError':
-					setError(t('loginSignup.passkeyLoginFailedServerError'));
-					break;
+					case 'passkeyLoginFailedServerError':
+						setError(t('loginSignup.passkeyLoginFailedServerError'));
+						break;
 
-				case 'oidcTokenExpired':
-					// OIDC gate token has expired — clear it and re-show the gate so the user
-					// can re-authenticate via the IdP before retrying the passkey login
-					activeGate.reset();
-					setError(t('oidcGate.errorExpired'));
-					break;
+					case 'oidcTokenExpired':
+						// OIDC gate token has expired — clear it and re-show the gate so the user
+						// can re-authenticate via the IdP before retrying the passkey login
+						activeGate.reset();
+						setError(t('oidcGate.errorExpired'));
+						break;
 
-				case 'x-private-data-etag':
-					setError(t('loginSignup.privateDataConflict'));
-					break;
+					case 'x-private-data-etag':
+						setError(t('loginSignup.privateDataConflict'));
+						break;
 
-				default:
-					throw result;
+					default:
+						throw result;
+				}
 			}
-		}
-	}, [api, keystore, urlTenantId, activeGate.idToken, activeGate.reset, setError, t]);
+		},
+		// we only want to reset this callback if the gate's ID token changes, not on every gate state change
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		[api, keystore, urlTenantId, activeGate.idToken, activeGate.reset, setError, t],
+	);
 
 	const onSignup = async (name: string, webauthnHints: string[]) => {
 		// Pass tenantId to ensure the passkey's userHandle includes the tenant prefix
