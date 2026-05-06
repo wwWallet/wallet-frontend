@@ -16,6 +16,7 @@
 		"title": "Introduza o PIN"
 	},
 	"common": {
+		"accept": "Aceitar",
 		"and": "e",
 		"cancel": "Cancelar",
 		"continue": "Continuar",
@@ -39,6 +40,7 @@
 		"previous": "Anterior",
 		"privateDataConflict": "A sua sessão não está sincronizada com o servidor. Por favor, volte a iniciar sessão e tente novamente.",
 		"refresh": "Atualizar",
+		"reject": "Rejeitar",
 		"save": "Guardar",
 		"showLess": "Mostrar menos",
 		"showMore": "Mostrar mais",
@@ -48,6 +50,20 @@
 	},
 	"expiredRibbon": {
 		"expired": "Expirada"
+	},
+	"issuanceWarningPopup": {
+		"codes": {
+			"FailFetchIssuerMetadata": "Não foi possível obter os metadados do emissor: o credencial poderá ser apresentado com informação limitada",
+			"FailSchemaIssuerMetadata": "Os metadados do emissor são inválidos: alguns detalhes do emissor poderão não ser apresentados corretamente",
+			"IntegrityFail": "Verificação de integridade dos metadados falhou: a informação de apresentação pode ter sido adulterada",
+			"IntegrityMissing": "Não foi possível verificar a integridade dos metadados: a informação de apresentação pode ter sido modificada",
+			"JwtVcIssuerFail": "Verificação do emissor falhou: não foi possível confirmar a autenticidade do credencial",
+			"JwtVcIssuerMismatch": "O emissor do credencial não corresponde ao emissor esperado: não foi possível confirmar a origem do credencial",
+			"NotFound": "Metadados do tipo não encontrados: o credencial poderá ser apresentado com informação limitada",
+			"NotFoundExtends": "Metadados estendidos do tipo não puderam ser resolvidos: alguns detalhes de apresentação poderão estar em falta"
+		},
+		"description": "O credencial foi recebido, mas algumas verificações não foram bem-sucedidas. Reveja os detalhes abaixo antes de decidir se pretende aceitá-lo.",
+		"title": "Avisos do Credencial"
 	},
 	"language": {
 		"label": "Idioma"

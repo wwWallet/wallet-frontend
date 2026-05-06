@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { logger } from '@/logger';
+import { jsonToLog, logger } from '@/logger';
 import { OIDFlowError } from '@/lib/openid-flow/errors';
 import { OIDFlowCallbackURL, OIDFlowProgressEvent } from '@/lib/openid-flow/types/OIDFlowTypes';
 import useErrorDialog from '@/hooks/useErrorDialog';
@@ -15,6 +15,7 @@ import Spinner from '@/components/Shared/Spinner';
 import { useOIDFlowTransport } from '@/context/OIDFlowTransportContext';
 import { useTenant } from '@/context/TenantContext';
 import { parseOIDFlowCallbackUrl } from '@/lib/openid-flow/utils/oidFlowCallbackUrl';
+import IssuanceWarningPopup from '@/components/Popups/IssuanceWarningPopup';
 
 type OpenIDFlowCallbackProps = {
 	callbackUrl: OIDFlowCallbackURL;
@@ -102,6 +103,8 @@ const OpenID4VCIFlow: OpenIDFlowCallbackHandler = ({ callbackUrl }) => {
 		handleCancel: handleTxCodeCancel,
 	} = useTxCodeInput();
 	const navigateHome = useNavigateHome();
+	const [warningState, setWarningState] = useState<{ isOpen: boolean; warnings: Array<{ code: string }> }>({ isOpen: false, warnings: [] });
+	const warningResolverRef = useRef<((proceed: boolean) => void) | null>(null);
 	const flowIsActive = useRef(false);
 
 	const handleError = useCallback(
@@ -122,11 +125,15 @@ const OpenID4VCIFlow: OpenIDFlowCallbackHandler = ({ callbackUrl }) => {
 
 	const handleIssuanceWarnings = useCallback(
 		async (warnings: Array<{ code: string }>) => {
-			logger.warn('Credential issuance warnings:', warnings);
-			const codes = warnings.map((w) => w.code).join(', ');
-			return window.confirm(
-				`Credential has warning(s): ${codes}. Proceed anyway?`,
-			);
+			logger.warn('Credential issuance warnings:', jsonToLog(warnings));
+
+			return new Promise<boolean>((resolve) => {
+				warningResolverRef.current = resolve;
+				setWarningState({
+					isOpen: true,
+					warnings,
+				});
+			});
 		},
 		[],
 	);
@@ -209,6 +216,18 @@ const OpenID4VCIFlow: OpenIDFlowCallbackHandler = ({ callbackUrl }) => {
 		}
 	};
 
+	const handleWarningConfirm = useCallback(() => {
+		warningResolverRef.current?.(true);
+		warningResolverRef.current = null;
+		setWarningState({ isOpen: false, warnings: [] });
+	}, []);
+
+	const handleWarningCancel = useCallback(() => {
+		warningResolverRef.current?.(false);
+		warningResolverRef.current = null;
+		setWarningState({ isOpen: false, warnings: [] });
+	}, []);
+
 	useEffect(() => {
 		if (flowIsActive.current) return;
 		flowIsActive.current = true;
@@ -247,15 +266,23 @@ const OpenID4VCIFlow: OpenIDFlowCallbackHandler = ({ callbackUrl }) => {
 	}, []);
 
 	return (
-		<TxCodeInputPopup
-			isOpen={txCodeState.isOpen}
-			txCodeConfig={txCodeState.config}
-			onSubmit={handleTxCodeSubmit}
-			onCancel={() => {
-				handleTxCodeCancel();
-				navigateHome();
-			}}
-		/>
+		<>
+			<IssuanceWarningPopup
+				isOpen={warningState.isOpen}
+				warnings={warningState.warnings}
+				onConfirm={handleWarningConfirm}
+				onCancel={handleWarningCancel}
+			/>
+			<TxCodeInputPopup
+				isOpen={txCodeState.isOpen}
+				txCodeConfig={txCodeState.config}
+				onSubmit={handleTxCodeSubmit}
+				onCancel={() => {
+					handleTxCodeCancel();
+					navigateHome();
+				}}
+			/>
+		</>
 	);
 };
 

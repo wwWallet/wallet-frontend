@@ -17,6 +17,7 @@
 		"title": "Enter the Pin"
 	},
 	"common": {
+		"accept": "Accept",
 		"and": "and",
 		"cancel": "Cancel",
 		"continue": "Continue",
@@ -44,6 +45,7 @@
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then log in and try again.",
 		"refresh": "Refresh",
+		"reject": "Reject",
 		"save": "Save",
 		"showLess": "Show less",
 		"showMore": "Show more",
@@ -64,6 +66,20 @@
 		"error": "Issuance Error",
 		"proceed": "Do you want to receive this credential?",
 		"title": "Credential Issuance"
+	},
+	"issuanceWarningPopup": {
+		"codes": {
+			"FailFetchIssuerMetadata": "Issuer metadata could not be retrieved: the credential may display with limited information",
+			"FailSchemaIssuerMetadata": "Issuer metadata is malformed: some issuer details may not display correctly",
+			"IntegrityFail": "Metadata integrity check failed: display information may have been tampered with",
+			"IntegrityMissing": "Metadata integrity could not be verified: display information may have been modified",
+			"JwtVcIssuerFail": "Issuer verification failed: the credential's authenticity could not be confirmed",
+			"JwtVcIssuerMismatch": "The credential issuer does not match the expected issuer: the credential's origin could not be confirmed",
+			"NotFound": "Type metadata could not be found: the credential may display with limited information",
+			"NotFoundExtends": "Extended type metadata could not be resolved: some display details may be missing"
+		},
+		"description": "The credential was received but some verification checks did not pass. Review the details below before deciding whether to accept it.",
+		"title": "Credential Warnings"
 	},
 	"language": {
 		"label": "Language"
@@ -132,23 +148,6 @@
 		"weakPasswordError": "Weak password",
 		"welcomeMessage": "Welcome to <highlight>$t(common.walletName)</highlight>"
 	},
-	"oidcGate": {
-		"signUpWith": "Sign up with {{provider}}",
-		"signInWith": "Sign in with {{provider}}",
-		"registrationExplanation": "Your organization ({{tenant}}) requires you to verify your identity before creating a wallet.",
-		"loginExplanation": "Your organization ({{tenant}}) requires you to verify your identity before accessing your wallet.",
-		"awaitingAuth": "Waiting for authentication...",
-		"awaitingAuthHint": "Complete the sign-in process in the popup or new tab.",
-		"verified": "Verified: {{name}}",
-		"verifiedUser": "Identity verified",
-		"errorGeneric": "Authentication failed. Please try again.",
-		"errorCancelled": "Authentication was cancelled.",
-		"errorExpired": "Your session has expired. Please try again.",
-		"errorIdentityMismatch": "This wallet is registered to a different identity.",
-		"callbackProcessing": "Processing authentication...",
-		"callbackError": "Authentication error",
-		"callbackSuccess": "Authentication successful! Redirecting..."
-	},
 	"loginState": {
 		"confirm": "Confirm",
 		"message": "Use your <strong>passkey</strong> to continue and fetch your credential in your wallet.",
@@ -180,6 +179,23 @@
 			"message": "The operation completed successfully.",
 			"title": "Success"
 		}
+	},
+	"oidcGate": {
+		"awaitingAuth": "Waiting for authentication...",
+		"awaitingAuthHint": "Complete the sign-in process in the popup or new tab.",
+		"callbackError": "Authentication error",
+		"callbackProcessing": "Processing authentication...",
+		"callbackSuccess": "Authentication successful! Redirecting...",
+		"errorCancelled": "Authentication was cancelled.",
+		"errorExpired": "Your session has expired. Please try again.",
+		"errorGeneric": "Authentication failed. Please try again.",
+		"errorIdentityMismatch": "This wallet is registered to a different identity.",
+		"loginExplanation": "Your organization ({{tenant}}) requires you to verify your identity before accessing your wallet.",
+		"registrationExplanation": "Your organization ({{tenant}}) requires you to verify your identity before creating a wallet.",
+		"signInWith": "Sign in with {{provider}}",
+		"signUpWith": "Sign up with {{provider}}",
+		"verified": "Verified: {{name}}",
+		"verifiedUser": "Identity verified"
 	},
 	"openIdCallback": {
 		"authorizationError": {
