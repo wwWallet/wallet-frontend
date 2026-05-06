@@ -106,7 +106,7 @@ const IssuanceWarningPopup: React.FC<IssuanceWarningPopupProps> = ({
 			</ul>
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button id="cancel-issuance-warning" onClick={onCancel}>
-					{t('common.cancel')}
+					{t('common.reject')}
 				</Button>
 				<Button
 					id="confirm-issuance-warning"
