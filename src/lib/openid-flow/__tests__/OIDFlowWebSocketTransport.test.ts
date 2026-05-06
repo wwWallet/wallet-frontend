@@ -23,8 +23,8 @@ class MockWebSocket {
 
 	sentMessages: string[] = [];
 
-	constructor(url: string) {
-		this.url = url;
+	constructor(url: string | URL) {
+		this.url = typeof url === 'string' ? url : url.toString();
 		// Simulate async connection based on shouldFail flag
 		setTimeout(() => {
 			if (MockWebSocket.shouldFail) {
@@ -77,7 +77,7 @@ beforeEach(() => {
 	MockWebSocket.shouldFail = false; // Reset to success mode
 	// @ts-expect-error - mocking WebSocket
 	globalThis.WebSocket = class extends MockWebSocket {
-		constructor(url: string) {
+		constructor(url: string | URL) {
 			super(url);
 			mockWebSocketInstances.push(this);
 		}
