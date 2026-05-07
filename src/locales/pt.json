@@ -100,14 +100,6 @@
 	},
 	"messagePopup": {
 		"close": "Fechar",
-		"insufficientCredentials": {
-			"description": "Uma ou mais das credenciais que deseja apresentar não estão disponíveis para seleção.",
-			"title": "Credenciais insuficientes"
-		},
-		"nonTrustedVerifier": {
-			"description": "O verifier não forneceu informação válida para verificação.",
-			"title": "Verifier não confiável"
-		},
 		"onlyOneInputDescriptor": {
 			"description": "Neste momento, a carteira não pode aceitar um Pedido de Apresentação para mais do que uma credencial em simultâneo.",
 			"title": "Versão de protocolo não suportada"

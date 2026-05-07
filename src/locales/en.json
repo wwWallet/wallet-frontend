@@ -116,7 +116,7 @@
 	"messagePopup": {
 		"addCredentialProcessFailed": {
 			"defaultDescription": "Something went wrong while issuing the credential.",
-			"title": "Add Credential Process Failed"
+			"title": "Failed to add credential"
 		},
 		"authorizationProcessFailed": {
 			"defaultDescription": "Something went wrong during authorization.",
@@ -125,14 +125,6 @@
 			"title": "Authorization Process Failed"
 		},
 		"close": "Close",
-		"insufficientCredentials": {
-			"description": "One or more of the credentials you want to present do not exist for selection.",
-			"title": "Insufficient Credentials"
-		},
-		"nonTrustedVerifier": {
-			"description": "Verifier did not provide valid data for verification",
-			"title": "Verifier is not Trusted"
-		},
 		"onlyOneInputDescriptor": {
 			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
 			"title": "Unsupported protocol version"
