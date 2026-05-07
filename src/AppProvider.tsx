@@ -18,10 +18,6 @@ import { WebSocketSignHandlerProvider } from './context/WebSocketSignHandlerProv
 import { ErrorDialogContextProvider } from './context/ErrorDialogContextProvider';
 import { TxCodeInputProvider } from './context/TxCodeInputContext';
 
-// Hocs
-import { UriHandlerProvider } from './hocs/UriHandlerProvider';
-import { NativeWrapperProvider } from './hocs/NativeWrapperProvider';
-
 type RootProviderProps = {
 	children: ReactNode;
 };
@@ -34,24 +30,20 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 					<OIDFlowTransportProviderWrapper>
 						<WebSocketSignHandlerProvider>
 							<I18nextProvider i18n={i18n}>
-										<ErrorDialogContextProvider>
-											<OpenID4VPContextProvider>
-												<OpenID4VCIContextProvider>
-													<TxCodeInputProvider>
-														<NotificationProvider>
-															<UriHandlerProvider>
-																<AppSettingsProvider>
-																	<NativeWrapperProvider>
-																		{children}
-																	</NativeWrapperProvider>
-																</AppSettingsProvider>
-															</UriHandlerProvider>
-														</NotificationProvider>
-													</TxCodeInputProvider>
-												</OpenID4VCIContextProvider>
-											</OpenID4VPContextProvider>
-										</ErrorDialogContextProvider>
-									</I18nextProvider>
+								<ErrorDialogContextProvider>
+									<OpenID4VPContextProvider>
+										<OpenID4VCIContextProvider>
+											<TxCodeInputProvider>
+												<NotificationProvider>
+													<AppSettingsProvider>
+														{children}
+													</AppSettingsProvider>
+												</NotificationProvider>
+											</TxCodeInputProvider>
+										</OpenID4VCIContextProvider>
+									</OpenID4VPContextProvider>
+								</ErrorDialogContextProvider>
+							</I18nextProvider>
 						</WebSocketSignHandlerProvider>
 					</OIDFlowTransportProviderWrapper>
 				</CredentialsContextProvider>
