@@ -10,6 +10,7 @@ import UpdateNotification from './components/Notifications/UpdateNotification';
 import CredentialDetails from './pages/Home/CredentialDetails';
 import { TenantProvider } from './context/TenantContext';
 import { isMultiTenant } from './lib/tenant';
+import { HocProvider } from './HocProvider';
 
 const lazyWithDelay = (importFunction, delay = 1000) => {
 	return React.lazy(() =>
@@ -71,10 +72,13 @@ const PublicRouteWrapper = () => {
 function App() {
 	const multiTenant = useMemo(() => isMultiTenant(), []);
 	const routeWrapper = useMemo(
-		() => (multiTenant
-			? <TenantProvider><Outlet /></TenantProvider>
-			: <Outlet />
-		),
+		() => {
+			const wrapper = <HocProvider><Outlet /></HocProvider>;
+
+			return multiTenant
+				? <TenantProvider>{wrapper}</TenantProvider>
+				: wrapper;
+		},
 		[multiTenant],
 	);
 	const basePath = useMemo(
