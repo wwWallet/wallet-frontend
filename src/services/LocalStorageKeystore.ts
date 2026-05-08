@@ -252,8 +252,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const isKeystoreOpen = useCallback((): false | [EncryptedContainer, BufferSource] => {
-		const pd = privateDataRef.current ?? privateData;
-		const mk = mainKeyRef.current ?? mainKey;
+		const pd = privateDataRef.current === undefined ? privateData : privateDataRef.current;
+		const mk = mainKeyRef.current === undefined ? mainKey : mainKeyRef.current;
 		if (pd && mk) {
 			return [pd, mk];
 		}
