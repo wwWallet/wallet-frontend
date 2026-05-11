@@ -252,8 +252,10 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const isKeystoreOpen = useCallback((): false | [EncryptedContainer, BufferSource] => {
-		if (privateData && mainKey) {
-			return [privateData, mainKey];
+		const pd = privateDataRef.current === undefined ? privateData : privateDataRef.current;
+		const mk = mainKeyRef.current === undefined ? mainKey : mainKeyRef.current;
+		if (pd && mk) {
+			return [pd, mk];
 		}
 
 		return false;
@@ -266,7 +268,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return [pd, await keystore.importMainKey(mk)];
 		}
 		throw new Error("Key store is closed.", { cause: 'keystore_closed' });
-	}, [privateData, mainKey]);
+	}, [isKeystoreOpen]);
 
 	useOnUserInactivity(close, config.INACTIVE_LOGOUT_MILLIS);
 
@@ -471,7 +473,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		tabId,
 		writePrivateDataOnIdb,
 		assertKeystoreOpen,
-		privateData,
+		isKeystoreOpen,
 	]);
 
 
