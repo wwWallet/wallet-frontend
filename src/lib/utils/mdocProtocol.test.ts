@@ -1,5 +1,5 @@
 import { assert, expect, it } from "vitest";
-import { cborEncode, cborDecode } from "@auth0/mdl/lib/cbor";
+import { cborEncode, cborDecode } from "@owf/mdoc";
 import { createSessionKey, encryptMessage, decryptMessage, hexToUint8Array, deriveSharedSecret, getKey, uint8ArraytoHexString, encryptUint8Array } from "../utils/mdocProtocol";
 
 it("can decrypt a message with a session key", async () => {
@@ -121,7 +121,7 @@ it("can decrypt a message with a derviced session key (zab)", async () => {
 	assert.strictEqual(decryptedText, msg);
 })
 
-it.skip('can cbor encode a data structure', () => {
+it('can cbor encode a data structure', () => {
 	const m = {
 		version: '1.0',
 		documents: [new Map([
@@ -130,21 +130,21 @@ it.skip('can cbor encode a data structure', () => {
 		status: 0
 	};
 
-	const encoded = cborEncode(m);
+	const encoded = cborEncode(m, { variableMapSize: false });
 	// console.log(uint8ArraytoHexString(encoded));
 	expect(uint8ArraytoHexString(encoded)).toBe("b900036776657273696f6e63312e3069646f63756d656e747381a167646f635479706572756e69742e746573742e646f632e747970656673746174757300");
 });
 
-it.skip('can cbor decode a cbor structrure', () => {
+it('can cbor decode a cbor structrure', () => {
 	const cbor = "b900036776657273696f6e63312e3069646f63756d656e747381a167646f635479706572756e69742e746573742e646f632e747970656673746174757300";
 
-	const decoded = cborDecode(hexToUint8Array(cbor));
+	const decoded = cborDecode<Map<string, any>>(hexToUint8Array(cbor));
 	// console.log(decoded);
 	expect(decoded.get('version')).toBe('1.0');
 	expect(decoded.get('documents')[0].get('docType')).toBe('unit.test.doc.type');
 });
 
-it.skip('can encode, encrypt, decrypt and decode an mdoc response', async () => {
+it('can encode, encrypt, decrypt and decode an mdoc response', async () => {
 	const keyPair = await crypto.subtle.generateKey(
 		{
 			name: "ECDH",
@@ -221,7 +221,7 @@ it.skip('can encode, encrypt, decrypt and decode an mdoc response', async () => 
 	const sessionDataEncoded = cborEncode(sessionData);
 
 	// Verifier Side
-	const sessionDataDecoded = cborDecode(sessionDataEncoded);
+	const sessionDataDecoded = cborDecode<Map<string, Uint8Array>>(sessionDataEncoded);
 
 	const decryptedText = await decryptMessage(SKDevice, iv, sessionDataDecoded.get("data"), true) as Uint8Array;
 

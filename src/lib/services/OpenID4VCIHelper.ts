@@ -17,7 +17,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const fetchAndParseWithSchema = useCallback(
 		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false): Promise<T> {
 			try {
-				const response = await httpProxy.get(path, {}, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
+				const response = await httpProxy.get(path, {"Accept": "application/json"}, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
 				if (!response) throw new Error("Couldn't get response");
 
 				const result = schema.safeParse(response.data);

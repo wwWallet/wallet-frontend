@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useState, ChangeEventHandler, FormEventHandler } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useContext, useEffect, useState, ChangeEventHandler } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 
 import type { CachedUser } from '../../services/LocalStorageKeystore';
@@ -8,16 +8,14 @@ import { calculateByteSize, coerce } from '../../util';
 import StatusContext from '@/context/StatusContext';
 import SessionContext from '@/context/SessionContext';
 
-import * as config from '../../config';
 import Button, { Variant } from '../../components/Buttons/Button';
 
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import SeparatorLine from '../../components/Shared/SeparatorLine';
-import PasswordStrength from '../../components/Auth/PasswordStrength';
 import LoginLayout from '../../components/Auth/LoginLayout';
 import checkForUpdates from '../../offlineUpdateSW';
+import Spinner from '../../components/Shared/Spinner';
 
-import { Eye, EyeOff, Info, KeyRoundIcon, Lock, LockKeyholeOpen, User, Wallet, X } from 'lucide-react';
+import { Info, KeyRoundIcon, Wallet, X } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import PolicyLinks from '@/components/Shared/PolicyLinks';
 import PasskeyInfoPopup from '@/components/Popups/PasskeyInfoPopup';
@@ -38,15 +36,6 @@ const FormInputRow = ({
 	</div>
 );
 
-const PasswordCriterionMessage = ({ text, ok }) => (
-	<div className={ok ? "text-lm-green dark:text-dm-green" : "text-lm-red dark:text-dm-red"}>
-		<p className="text-sm">
-			<LockKeyholeOpen className="inline-block mr-2" />
-			{text}
-		</p>
-	</div>
-);
-
 const FormInputField = ({
 	ariaLabel,
 	disabled,
@@ -64,17 +53,13 @@ const FormInputField = ({
 	placeholder?: string,
 	required?: boolean,
 	value: string,
-	type?: 'password' | 'text',
+	type?: 'text',
 }) => {
-	const [show, setShow] = useState(false);
-	const onToggleShow = () => { setShow(!show); };
-	const { t } = useTranslation();
-
 	return (
 		<div className="relative">
 			<input
 				className="w-full pl-10 pr-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
-				type={show ? 'text' : type}
+				type={type}
 				name={name}
 				placeholder={placeholder}
 				value={value}
@@ -83,119 +68,7 @@ const FormInputField = ({
 				required={required}
 				disabled={disabled}
 			/>
-
-			{type === 'password' && (
-				<div className="absolute inset-y-0 right-3 flex items-center">
-					<button
-						id={`${show ? 'hide' : 'show'}-password-loginsignup`}
-						type="button"
-						onClick={onToggleShow}
-						className="text-lm-gray-700 hover:text-lm-gray-900 dark:text-dm-gray-300 dark:hover:text-dm-gray-100"
-						aria-label={show ? (t('common.passwordHideAriaLabel')) : (t('common.passwordShowAriaLabel'))}
-						title={show ? (t('common.passwordHideTitle')) : (t('common.passwordShowTitle'))}
-						disabled={disabled}
-					>
-						{show ? <EyeOff /> : <Eye />}
-					</button>
-				</div>
-			)}
 		</div>
-	);
-};
-
-type UsernamePasswordFormData = {
-	username: string,
-	password: string,
-	confirmPassword: string,
-}
-
-const UsernamePasswordForm = ({
-	choosePassword,
-	disabled,
-	onChange,
-	onSubmit,
-	submitButtonContent,
-}: {
-	choosePassword?: boolean,
-	disabled?: boolean,
-	onChange: (changed: { username?: string, password?: string, confirmPassword?: string }) => void,
-	onSubmit: (event: React.FormEvent<HTMLFormElement>, formData: UsernamePasswordFormData) => void,
-	submitButtonContent: React.ReactNode,
-}) => {
-	const { t } = useTranslation();
-
-	const [formData, setFormData] = useState<UsernamePasswordFormData>({
-		username: '',
-		password: '',
-		confirmPassword: '',
-	});
-	const { username, password, confirmPassword } = formData;
-
-	const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-		const { name, value } = event.target;
-		setFormData((prevFormData) => ({
-			...prevFormData,
-			[name]: value,
-		}));
-		onChange({ [name]: value });
-	};
-
-	const handleFormSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
-		onSubmit(event, formData);
-	};
-
-	return (
-		<>
-			<form className="space-y-4 md:space-y-6" onSubmit={handleFormSubmit}>
-				<FormInputRow label={t('loginSignup.usernameLabel')} name="username" IconComponent={User}>
-					<FormInputField
-						ariaLabel="Username"
-						name="username"
-						onChange={handleInputChange}
-						placeholder={t('loginSignup.enterUsername')}
-						type="text"
-						value={username}
-						disabled={disabled}
-					/>
-				</FormInputRow>
-
-				<FormInputRow label={t('loginSignup.passwordLabel')} name="password" IconComponent={Lock}>
-					<FormInputField
-						ariaLabel="Password"
-						name="password"
-						onChange={handleInputChange}
-						placeholder={t('loginSignup.enterPassword')}
-						type="password"
-						value={password}
-						disabled={disabled}
-					/>
-					{choosePassword && password !== '' && <PasswordStrength label={t('loginSignup.strength')} password={password} />}
-				</FormInputRow>
-
-				{choosePassword && (
-					<FormInputRow label={t('loginSignup.confirmPasswordLabel')} name="confirm-password" IconComponent={Lock}>
-						<FormInputField
-							ariaLabel="Confirm Password"
-							name="confirmPassword"
-							onChange={handleInputChange}
-							placeholder={t('loginSignup.enterconfirmPasswordLabel')}
-							type="password"
-							value={confirmPassword}
-							disabled={disabled}
-						/>
-					</FormInputRow>
-				)}
-				<Button
-					id="submit-username-password-loginsignup"
-					type="submit"
-					variant="primary"
-					disabled={disabled}
-					additionalClassName='w-full'
-				>
-					{submitButtonContent}
-				</Button>
-			</form>
-		</>
 	);
 };
 
@@ -206,6 +79,7 @@ const WebauthnSignupLogin = ({
 	isLoginCache,
 	error,
 	setError,
+	setIsAwaitingRedirect,
 }: {
 	isLogin: boolean,
 	isSubmitting: boolean,
@@ -213,6 +87,7 @@ const WebauthnSignupLogin = ({
 	isLoginCache: boolean,
 	error: React.ReactNode,
 	setError: (error: React.ReactNode) => void,
+	setIsAwaitingRedirect: (isAwaitingRedirect: boolean) => void,
 }) => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
 	const { api, keystore } = useContext(SessionContext);
@@ -250,7 +125,7 @@ const WebauthnSignupLogin = ({
 	const onLogin = async (webauthnHints: string[], cachedUser?: CachedUser) => {
 		const result = await api.loginWebauthn(keystore, promptForPrfRetry, webauthnHints, cachedUser);
 		if (result.ok) {
-
+			setIsAwaitingRedirect(true);
 		} else {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {
@@ -291,7 +166,7 @@ const WebauthnSignupLogin = ({
 			retrySignupFrom,
 		);
 		if (result.ok) {
-
+			setIsAwaitingRedirect(true);
 		} else if (result.err) {
 			// Using a switch here so the t() argument can be a literal, to ease searching
 			switch (result.val) {
@@ -600,16 +475,13 @@ const WebauthnSignupLogin = ({
 
 const Auth = () => {
 	const { isOnline, updateOnlineStatus } = useContext(StatusContext);
-	const { api, isLoggedIn, keystore } = useContext(SessionContext);
+	const { isLoggedIn, keystore } = useContext(SessionContext);
 	const { t } = useTranslation();
-	const location = useLocation();
 
-	const from = location.search || '/';
-
-	const [error, setError] = useState<React.ReactNode>('');
 	const [webauthnError, setWebauthnError] = useState<React.ReactNode>('');
 	const [isLogin, setIsLogin] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isAwaitingRedirect, setIsAwaitingRedirect] = useState(false);
 
 	const navigate = useNavigate();
 
@@ -626,67 +498,14 @@ const Auth = () => {
 		}
 	}, [isLoggedIn, navigate]);
 
-	const handleFormChange = () => setError('');
-
-	const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>, { username, password, confirmPassword }: UsernamePasswordFormData) => {
-		event.preventDefault();
-
-		if (username === '' || password === '') {
-			setError(t('loginSignup.fillInFieldsError'));
-			return;
-		}
-
-		if (!isLogin && password !== confirmPassword) {
-			setError(t('loginSignup.passwordsNotMatchError'));
-			return;
-		}
-
-		// Validate password criteria
-		if (!isLogin) {
-			const validations = [
-				{ ok: password.length >= 8, text: t('loginSignup.passwordLength') },
-				{ ok: /[A-Z]/.test(password), text: t('loginSignup.capitalLetter') },
-				{ ok: /[0-9]/.test(password), text: t('loginSignup.number') },
-				{ ok: /[^A-Za-z0-9]/.test(password), text: t('loginSignup.specialCharacter') },
-			];
-
-			if (!validations.every(({ ok }) => ok)) {
-				setError(
-					<>
-						<p className="text-lm-red dark:text-dm-red font-bold">{t('loginSignup.weakPasswordError')}</p>
-						{validations.map(({ ok, text }) => <PasswordCriterionMessage key={text} ok={ok} text={text} />)}
-					</>
-				);
-				return;
-			}
-		}
-
-		setIsSubmitting(true);
-
-		if (isLogin) {
-			const result = await api.login(username, password, keystore);
-			if (result.ok) {
-				navigate(from, { replace: true });
-			} else {
-				setError(t('loginSignup.incorrectCredentialsError'));
-			}
-
-		} else {
-			const result = await api.signup(username, password, keystore);
-			if (result.ok) {
-				navigate(from, { replace: true });
-			} else {
-				setError(t('loginSignup.usernameExistsError'));
-			}
-		}
-
-		setIsSubmitting(false);
-	};
+	if (isAwaitingRedirect || isLoggedIn) {
+		return <Spinner />;
+	}
 
 	const toggleForm = () => {
 		if (isOnline || !isLogin) {
 			setIsLogin(!isLogin);
-			setError('');
+			setWebauthnError('');
 			checkForUpdates();
 			updateOnlineStatus();
 		};
@@ -694,7 +513,6 @@ const Auth = () => {
 
 	const useOtherAccount = () => {
 		setIsLoginCache(false);
-		setError('');
 		setWebauthnError('');
 		checkForUpdates();
 		updateOnlineStatus();
@@ -725,22 +543,6 @@ const Auth = () => {
 					</p>
 				)}
 
-				{!isLoginCache && config.LOGIN_WITH_PASSWORD ?
-					<>
-						{error && <div className="text-lm-red dark:text-dm-red">{error}</div>}
-						<UsernamePasswordForm
-							choosePassword={!isLogin}
-							disabled={isSubmitting}
-							onChange={handleFormChange}
-							onSubmit={handleFormSubmit}
-							submitButtonContent={isSubmitting ? t('loginSignup.submitting') : isLogin ? t('loginSignup.login') : t('loginSignup.signUp')}
-						/>
-						<SeparatorLine>{t('loginSignup.or')}</SeparatorLine>
-					</>
-					:
-					<></>
-				}
-
 				<WebauthnSignupLogin
 					isLogin={isLogin}
 					isSubmitting={isSubmitting}
@@ -748,6 +550,7 @@ const Auth = () => {
 					isLoginCache={isLoginCache}
 					error={webauthnError}
 					setError={setWebauthnError}
+					setIsAwaitingRedirect={setIsAwaitingRedirect}
 				/>
 				{!isLoginCache ? (
 					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
