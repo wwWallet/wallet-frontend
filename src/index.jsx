@@ -1,4 +1,5 @@
 // Index.jsx
+// Required by @peculiar/x509 via wallet-common before tsyringe is evaluated.
 import 'reflect-metadata';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
