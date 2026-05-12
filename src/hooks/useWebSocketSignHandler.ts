@@ -142,6 +142,11 @@ export function useWebSocketSignHandler(): void {
 								throw new Error('Missing responseUri for mdoc presentation');
 							}
 
+							if (!c.disclosedClaims?.length) {
+								throw new Error('disclosedClaims required for mdoc presentation');
+							}
+
+
 							const mdoc = parseIssuerSignedToMDoc(c.credentialRaw);
 							const presentationDefinition = buildMdocPresentationDefinition(
 								mdoc.documents[0].docType,
