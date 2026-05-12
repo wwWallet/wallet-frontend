@@ -1244,27 +1244,30 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> {
-
-	const getSessionTranscriptBytesForOID4VP = async (clId: string, respUri: string, nonce: string, mdocNonce: string) => cborEncode(
-		DataItem.fromData(
-			[
-				null,
-				null,
-				[
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([clId, mdocNonce]),
-					),
-					await crypto.subtle.digest(
-						'SHA-256',
-						cborEncode([respUri, mdocNonce]),
-					),
-					nonce
-				]
-			]
-		)
-	);
+export async function generateDeviceResponse(
+	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState],
+	mdocCredential: MDoc,
+	presentationDefinition: any,
+	nonce: string,
+	clientId: string,
+	responseUri: string,
+	verifierJwkThumbprint: string | null,
+): Promise<{ deviceResponseMDoc: MDoc }> {
+	const getSessionTranscriptBytesForOID4VP = async (
+		clId: string, nonce: string, respUri: string, jwkThumbprint: string | null,
+	) => {
+		const handoverInfo = [
+			clId,
+			nonce,
+			jwkThumbprint ? jose.base64url.decode(jwkThumbprint) : null,
+			respUri,
+		];
+		const handoverInfoHash = new Uint8Array(
+			await crypto.subtle.digest('SHA-256', cborEncode(handoverInfo)),
+		);
+		const handover = ["OpenID4VPHandover", handoverInfoHash];
+		return cborEncode(DataItem.fromData([null, null, handover]));
+	};
 	// extract the COSE device public key from mdoc
 	const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
 	const deviceKeyInfo = p.data.get('deviceKeyInfo');
@@ -1289,9 +1292,9 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 
 	const sessionTranscriptBytes = await getSessionTranscriptBytesForOID4VP(
 		clientId,
+		nonce,
 		responseUri,
-		verifierGeneratedNonce,
-		mdocGeneratedNonce
+		verifierJwkThumbprint,
 	);
 
 	logger.debug("Session transcript bytes created, length:", sessionTranscriptBytes.byteLength);

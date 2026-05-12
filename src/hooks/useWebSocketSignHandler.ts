@@ -112,7 +112,7 @@ export function useWebSocketSignHandler(): void {
 			}
 
 			case 'sign_presentation': {
-				const { audience, nonce, credentialsToInclude, responseUri, mdocNonce } = request.params;
+				const { audience, nonce, credentialsToInclude, responseUri, verifierJwkThumbprint } = request.params;
 				if (!audience || !nonce) {
 					throw new Error('Missing audience or nonce for presentation signing');
 				}
@@ -138,8 +138,8 @@ export function useWebSocketSignHandler(): void {
 							break;
 						}
 						case VerifiableCredentialFormat.MSO_MDOC: {
-							if (!responseUri || !mdocNonce) {
-								throw new Error('Missing responseUri or mdocNonce for mdoc presentation');
+							if (!responseUri) {
+								throw new Error('Missing responseUri for mdoc presentation');
 							}
 
 							const mdoc = parseIssuerSignedToMDoc(c.credentialRaw);
@@ -149,7 +149,8 @@ export function useWebSocketSignHandler(): void {
 							);
 
 							const { deviceResponseMDoc } = await keystore.generateDeviceResponse(
-								mdoc, presentationDefinition, mdocNonce, nonce, audience, responseUri,
+								mdoc, presentationDefinition, nonce, audience, responseUri,
+								verifierJwkThumbprint ?? null,
 							);
 
 							vpToken = base64url.encode(new Uint8Array(deviceResponseMDoc.encode()));
