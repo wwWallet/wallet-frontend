@@ -7541,9 +7541,9 @@ w3c-xmlserializer@^5.0.0:
   dependencies:
     xml-name-validator "^5.0.0"
 
-"wallet-common@git+https://github.com/sirosfoundation/wallet-common.git#v0.5.0-sirosid.3":
+"wallet-common@git+https://github.com/sirosfoundation/wallet-common.git#v0.5.0-sirosid.4":
   version "0.0.1"
-  resolved "git+https://github.com/sirosfoundation/wallet-common.git#f50ed5d6a88dc2b47eec0586b6137815cc160515"
+  resolved "git+https://github.com/sirosfoundation/wallet-common.git#ba99113479debbcd594af8f63e0220e6c6ef3524"
   dependencies:
     "@auth0/mdl" "^2.2.0"
     "@sd-jwt/core" "^0.10.0"
