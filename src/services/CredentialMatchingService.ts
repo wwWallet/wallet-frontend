@@ -106,13 +106,16 @@ function shapeCredential(credential: ExtendedVcEntity): (DcqlCredential & { _bat
 		try {
 			const mdoc = parseIssuerSignedToMDoc(credential.data);
 			const [document] = mdoc.documents;
-			const nsName = document.issuerSignedNameSpaces[0];
-			const nsObject = document.getIssuerNameSpace(nsName);
+
+			const namespaces: Record<string, any> = {};
+			for (const nsName of document.issuerSignedNameSpaces) {
+				namespaces[nsName] = document.getIssuerNameSpace(nsName);
+			}
 
 			return {
 				credential_format: 'mso_mdoc',
 				doctype: document.docType,
-				namespaces: { [nsName]: nsObject },
+				namespaces,
 				cryptographic_holder_binding: true,
 				_batchId: credential.batchId,
 			} as DcqlCredential & { _batchId?: number };
