@@ -989,6 +989,14 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 			return;
 		}
 
+		// Mobile WebViews may suspend networking while app is backgrounded during
+		// external OAuth redirects. Avoid consuming reconnect attempts until the app
+		// is visible again; foreground logic will trigger reconnect.
+		if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+			logger.debug('WebSocket disconnected while app not visible; deferring reconnect attempts');
+			return;
+		}
+
 		// Attempt reconnect with exponential backoff
 		if (this.reconnectAttempts < this.maxReconnectAttempts) {
 			const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);

@@ -269,6 +269,43 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 		}
 	}, [wsTransport, authToken, tenantId]);
 
+	// Mobile WebViews can background the app during external redirects, causing
+	// WebSocket disconnects. Reconnect when page becomes visible or network returns.
+	useEffect(() => {
+		if (!wsTransport || !WEBSOCKET_TRANSPORT_ALLOWED || !authToken) return;
+
+		const attemptReconnect = async () => {
+			if (wsTransport.isConnected()) return;
+			try {
+				await wsTransport.connect();
+				setIsConnected(true);
+				setLastError(null);
+			} catch (error) {
+				logger.warn('WebSocket foreground/online reconnect failed:', error);
+				setIsConnected(false);
+				setLastError(error instanceof Error ? error : new Error('WebSocket reconnect failed'));
+			}
+		};
+
+		const onVisibilityChange = () => {
+			if (document.visibilityState === 'visible') {
+				void attemptReconnect();
+			}
+		};
+
+		const onOnline = () => {
+			void attemptReconnect();
+		};
+
+		document.addEventListener('visibilitychange', onVisibilityChange);
+		window.addEventListener('online', onOnline);
+
+		return () => {
+			document.removeEventListener('visibilitychange', onVisibilityChange);
+			window.removeEventListener('online', onOnline);
+		};
+	}, [wsTransport, authToken]);
+
 	// Select active transport based on preference order and availability
 	const { transport, transportType } = useMemo(() => {
 		// Follow TRANSPORT_PREFERENCE order
