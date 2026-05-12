@@ -8,6 +8,7 @@ import { MdocIacasResponse, MdocIacasResponseSchema, prependToPath } from "walle
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
+import { z } from "zod";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
@@ -89,36 +90,45 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	 * Attempts to fetch metadata from multiple endpoint paths with fallback logic.
 	 * Returns the first successful response or null if all attempts fail.
 	 */
-	const fetchMetadataWithFallback = useCallback(
-		async (
-			endpointPaths: string[],
-			useCache?: boolean
-		): Promise<OpenidCredentialIssuerMetadata | null> => {
-			const errors: Array<{ path: string; error: Error }> = [];
+const fetchDataWithSchemaWithFallback = useCallback(
+	async function fetchDataWithSchemaWithFallback<T>(
+		endpointPaths: string[],
+		schema: z.ZodSchema<T>,
+		useCache?: boolean
+	): Promise<T | null> {
+		const errors: Array<{ path: string; error: Error }> = [];
 
-			for (const path of endpointPaths) {
-				try {
-					return await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
-						path,
-						OpenidCredentialIssuerMetadataSchema,
-						useCache,
-						useCache === false
-					);
-				} catch (err) {
-					const error = err instanceof Error ? err : new Error(String(err));
-					errors.push({ path, error });
-					continue;
-				}
-			}
+		for (const path of endpointPaths) {
+			try {
+				return await fetchAndParseWithSchema<T>(
+					path,
+					schema,
+					useCache,
+					useCache === false
+				);
+			} catch (err) {
+				const error =
+					err instanceof Error ? err : new Error(String(err));
 
-			if (errors.length > 0) {
-				const errorMessages = errors.map(e => `${e.path}: ${e.error.message}`).join('; ');
-				console.error('All metadata endpoints failed:', errorMessages);
+				errors.push({ path, error });
 			}
-			return null;
-		},
-		[fetchAndParseWithSchema]
-	);
+		}
+
+		if (errors.length > 0) {
+			const errorMessages = errors
+				.map(e => `${e.path}: ${e.error.message}`)
+				.join("; ");
+
+			console.error(
+				"All metadata endpoints failed:",
+				errorMessages
+			);
+		}
+
+		return null;
+	},
+	[fetchAndParseWithSchema]
+);
 
 	/**
 	 * Retrieves credential issuer metadata with signature verification if present.
@@ -135,23 +145,25 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				`${credentialIssuerIdentifier}/.well-known/openid-configuration`,
 			];
 
-			const metadata = await fetchMetadataWithFallback(endpointPaths, useCache);
+			const metadata = await fetchDataWithSchemaWithFallback(endpointPaths, OpenidCredentialIssuerMetadataSchema, useCache);
 			if (!metadata) {
 				return null;
 			}
 
 			// If signed metadata is present, verify it and return the verified payload
 			if (metadata.signed_metadata) {
-				const verifiedMetadata = await verifySignedMetadata(metadata.signed_metadata);
-				if (verifiedMetadata) {
-					return { metadata: verifiedMetadata };
-				}
-				console.warn('Signed metadata verification failed, using unverified metadata as fallback');
+					const verifiedMetadata = await verifySignedMetadata(metadata.signed_metadata);
+					if (verifiedMetadata) {
+						return { metadata: verifiedMetadata };
+					} else {
+						console.warn('Signed metadata verification failed.');
+						return { metadata: null };
+					}
 			}
 
 			return { metadata };
 		},
-		[fetchMetadataWithFallback, verifySignedMetadata]
+		[fetchDataWithSchemaWithFallback, verifySignedMetadata]
 	);
 
 	// Fetches authorization server metadata with fallback
@@ -168,62 +180,19 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 				null;
 			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
 
-			// Attempt to fetch authorization server metadata from the authorization server specified in the credential issuer metadata
-			if (authorizationServerIdentifierFromCredentialIssuerMetadata) {
-				// 1st attempt: authorization server from credential issuer metadata
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					prependToPath(authorizationServerIdentifierFromCredentialIssuerMetadata, wellKnownOauthAuthorizationServer),
-					OpenidAuthorizationServerMetadataSchema,
-					useCache,
-				).catch(() => null);
-
-				// 2nd attempt: Fallback to legacy oauth-authorization-server endpoint if oauth-authorization-server fetch fails
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOauthAuthorizationServer}`,
-					OpenidAuthorizationServerMetadataSchema,
-					useCache,
-					useCache === false
-				).catch(() => null);
-
-				// 3rd attempt: Fallback to openid-configuration if both oauth-authorization-server fetches fail
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOpenidConfiguration}`,
-					OpenidAuthorizationServerMetadataSchema,
-					useCache,
-					useCache === false
-				).catch(() => null);
-			}
-
-			// Attempt to fetch authorization server metadata from issuer itself, which may be acting as an authorization-server
-			if (!authzServerMetadata) {
-				// 1st attempt: authorization server from oauth-authorization-server endpoint on issuer
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					prependToPath(credentialIssuerIdentifier, wellKnownOauthAuthorizationServer),
-					OpenidAuthorizationServerMetadataSchema,
-					useCache,
-					useCache === false
-				).catch(() => null);
-
-				// 2nd attempt: Fallback to legacy oauth-authorization-server endpoint if oauth-authorization-server fetch fails
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					`${credentialIssuerIdentifier}/${wellKnownOauthAuthorizationServer}`,
-					OpenidAuthorizationServerMetadataSchema,
-					useCache,
-					useCache === false
-				).catch(() => null);
-
-				// 3rd attempt: Fallback to openid-configuration if both oauth-authorization-server fetches fail
-				authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
-					`${credentialIssuerIdentifier}/${wellKnownOpenidConfiguration}`,
-					OpenidAuthorizationServerMetadataSchema,
-					useCache,
-					useCache === false
-				).catch(() => null);
-			}
+			const endpointPaths = [
+				prependToPath(authorizationServerIdentifierFromCredentialIssuerMetadata, wellKnownOauthAuthorizationServer),
+				`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOauthAuthorizationServer}`,
+				`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOpenidConfiguration}`,
+				prependToPath(credentialIssuerIdentifier, wellKnownOauthAuthorizationServer),
+				`${credentialIssuerIdentifier}/${wellKnownOauthAuthorizationServer}`,
+				`${credentialIssuerIdentifier}/${wellKnownOpenidConfiguration}`
+			];
+			authzServerMetadata = await fetchDataWithSchemaWithFallback(endpointPaths, OpenidAuthorizationServerMetadataSchema, useCache);
 
 			return authzServerMetadata ? { authzServerMetadata } : null;
 		},
-		[fetchAndParseWithSchema, getCredentialIssuerMetadata]
+		[fetchDataWithSchemaWithFallback, getCredentialIssuerMetadata]
 	);
 
 	const getClientId = useCallback(
