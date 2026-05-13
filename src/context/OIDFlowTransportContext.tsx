@@ -328,7 +328,7 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 			document.removeEventListener('visibilitychange', onVisibilityChange);
 			window.removeEventListener('online', onOnline);
 		};
-	}, [wsTransport, authToken]);
+	}, [wsTransport, authToken, tenantId]);
 
 	// Select active transport based on preference order and availability
 	const { transport, transportType } = useMemo(() => {
