@@ -206,7 +206,13 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 				this.ws = new WebSocket(url);
 
 				this.ws.onopen = () => {
-					// Send auth token and tenant ID as first message for security (avoids logging in URL)
+					logger.debug('WebSocket connected, sending handshake', {
+						hasAuthToken: !!this.authToken,
+						tenantId: this.tenantId,
+						pendingRequests: this.pending.size,
+					});
+
+					// Send auth token as first message for security (avoids logging in URL)
 					try {
 						if (this.ws && this.ws.readyState === WebSocket.OPEN) {
 							this.ws.send(
@@ -225,7 +231,13 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 				};
 
 				this.ws.onerror = (event) => {
-					logger.error('WebSocket error:', event);
+					logger.error('WebSocket error:', {
+						event,
+						readyState: this.ws?.readyState,
+						visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+						online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+						reconnectAttemptsUsed: this.reconnectAttempts,
+					});
 					this.connectionPromise = null;
 					reject(new Error('WebSocket connection failed'));
 				};
@@ -1020,7 +1032,13 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 			const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
 			this.reconnectAttempts++;
 
-			logger.debug(`WebSocket reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+			logger.debug('WebSocket reconnect scheduled', {
+				delayMs: delay,
+				attempt: this.reconnectAttempts,
+				maxReconnectAttempts: this.maxReconnectAttempts,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+			});
 
 			setTimeout(() => {
 				this.connect().catch((error) => {
@@ -1029,6 +1047,12 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 				});
 			}, delay);
 		} else {
+			logger.error('WebSocket reconnect budget exhausted', {
+				reconnectAttemptsUsed: this.reconnectAttempts,
+				maxReconnectAttempts: this.maxReconnectAttempts,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+			});
 			this.emitError(new Error('WebSocket connection lost after max reconnect attempts'));
 		}
 	}

@@ -275,7 +275,18 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 		if (!wsTransport || !WEBSOCKET_TRANSPORT_ALLOWED || !authToken) return;
 
 		const attemptReconnect = async () => {
-			if (wsTransport.isConnected()) return;
+			if (wsTransport.isConnected()) {
+				logger.debug('WebSocket reconnect skipped: already connected');
+				return;
+			}
+
+			logger.debug('WebSocket reconnect triggered by app foreground/online', {
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+				tenantId,
+				hasAuthToken: !!authToken,
+			});
+
 			// Reset the retry counter so the transport gets a fresh backoff budget after
 			// the automatic 5 retries were already exhausted while the network was down.
 			wsTransport.resetReconnectAttempts();
@@ -291,12 +302,17 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 		};
 
 		const onVisibilityChange = () => {
+			logger.debug('visibilitychange event observed for WebSocket reconnect', {
+				visibilityState: document.visibilityState,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+			});
 			if (document.visibilityState === 'visible') {
 				void attemptReconnect();
 			}
 		};
 
 		const onOnline = () => {
+			logger.debug('Online event observed for WebSocket reconnect');
 			void attemptReconnect();
 		};
 
