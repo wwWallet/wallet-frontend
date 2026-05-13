@@ -35,6 +35,7 @@
     "react-transition-group": "^4.4.5",
     "react-webcam": "^7.2.0",
     "reactour": "^1.19.2",
+    "reflect-metadata": "^0.2.2",
     "sharp": "^0.34.5",
     "styled-components": "^6.1.13",
     "swiper": "^11.1.14",
