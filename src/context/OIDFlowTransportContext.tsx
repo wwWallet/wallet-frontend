@@ -274,6 +274,8 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 	useEffect(() => {
 		if (!wsTransport || !WEBSOCKET_TRANSPORT_ALLOWED || !authToken) return;
 
+		let cancelled = false;
+
 		const attemptReconnect = async () => {
 			if (wsTransport.isConnected()) {
 				logger.debug('WebSocket reconnect skipped: already connected');
@@ -292,9 +294,11 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 			wsTransport.resetReconnectAttempts();
 			try {
 				await wsTransport.connect();
+				if (cancelled) return;
 				setIsConnected(true);
 				setLastError(null);
 			} catch (error) {
+				if (cancelled) return;
 				logger.warn('WebSocket foreground/online reconnect failed:', error);
 				setIsConnected(false);
 				setLastError(error instanceof Error ? error : new Error('WebSocket reconnect failed'));
@@ -320,6 +324,7 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 		window.addEventListener('online', onOnline);
 
 		return () => {
+			cancelled = true;
 			document.removeEventListener('visibilitychange', onVisibilityChange);
 			window.removeEventListener('online', onOnline);
 		};
