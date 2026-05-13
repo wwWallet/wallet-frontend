@@ -1003,6 +1003,16 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 	}
 
 	private handleDisconnect(event: CloseEvent): void {
+		logger.debug('WebSocket closed', {
+			code: event.code,
+			reason: event.reason,
+			wasClean: event.wasClean,
+			visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+			online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+			reconnectAttemptsUsed: this.reconnectAttempts,
+			maxReconnectAttempts: this.maxReconnectAttempts,
+		});
+
 		// Reject all pending requests
 		Array.from(this.pending.entries()).forEach(([id, pending]) => {
 			clearTimeout(pending.timeout);
