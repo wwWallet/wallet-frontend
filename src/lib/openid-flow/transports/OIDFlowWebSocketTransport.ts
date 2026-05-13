@@ -1026,6 +1026,10 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 		// is visible again; foreground logic will trigger reconnect.
 		if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
 			logger.debug('WebSocket disconnected while app not visible; deferring reconnect attempts');
+			// TODO: Notify subscribers of the disconnect (e.g. via a dedicated onDisconnect
+			// callback) so that consumer state (isConnected in OIDFlowTransportContext) stays
+			// accurate while the app is backgrounded. Currently the stale window only exists
+			// while the UI is not visible, and the foreground reconnect handler corrects it.
 			return;
 		}
 
