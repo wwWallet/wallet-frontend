@@ -105,7 +105,11 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponse(
+		mdocCredential: MDoc, presentationDefinition: any,
+		nonce: string, clientId: string, responseUri: string,
+		verifierJwkThumbprint: string | null,
+	): Promise<{ deviceResponseMDoc: MDoc }>,
 	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletState | null,
@@ -698,8 +702,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const generateDeviceResponse = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri)
+		async (mdocCredential: MDoc, presentationDefinition: any, nonce: string, clientId: string, responseUri: string, verifierJwkThumbprint: string | null): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential, presentationDefinition, nonce, clientId, responseUri, verifierJwkThumbprint)
 		),
 		[openPrivateData]
 	);

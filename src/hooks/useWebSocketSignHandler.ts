@@ -19,6 +19,9 @@ import { logger } from '@/logger';
 import type { ProofObject } from '@/lib/openid-flow/transports/OIDFlowWebSocketTransport';
 import { OPENID4VCI_PROOF_TYPE_PRECEDENCE } from '@/config';
 import { applySelectiveDisclosure } from '@/lib/sd-jwt/sd-jwt';
+import { base64url } from 'jose';
+import { buildMdocPresentationDefinition, parseIssuerSignedToMDoc } from '@/lib/mdoc/mdoc';
+import { detectCredentialFormat, VerifiableCredentialFormat } from 'wallet-common';
 
 /**
  * Hook that registers a sign handler with the WebSocket transport.
@@ -109,7 +112,7 @@ export function useWebSocketSignHandler(): void {
 			}
 
 			case 'sign_presentation': {
-				const { audience, nonce, credentialsToInclude } = request.params;
+				const { audience, nonce, credentialsToInclude, responseUri, verifierJwkThumbprint } = request.params;
 				if (!audience || !nonce) {
 					throw new Error('Missing audience or nonce for presentation signing');
 				}
@@ -117,29 +120,60 @@ export function useWebSocketSignHandler(): void {
 					throw new Error('No credentials to include in presentation');
 				}
 
-				const vpTokens: string[] = [];
 				const vpTokenMap: Record<string, string[]> = {};
 				for (const c of credentialsToInclude) {
 					if (!c.credentialRaw) {
 						throw new Error(`Credential not in cache: ${c.credentialId}`);
 					}
 
-					const credential = await applySelectiveDisclosure(c.credentialRaw, c.disclosedClaims ?? []);
+					let vpToken: string;
 
-					const { vpjwt } = await keystore.signJwtPresentation(
-						nonce,
-						audience,
-						[credential],
-					);
+					switch (detectCredentialFormat(c.credentialRaw)) {
+						case VerifiableCredentialFormat.DC_SDJWT:
+						case VerifiableCredentialFormat.VC_SDJWT:
+						case VerifiableCredentialFormat.JWT_VC_JSON: {
+							const credential = await applySelectiveDisclosure(c.credentialRaw, c.disclosedClaims ?? []);
+							const { vpjwt } = await keystore.signJwtPresentation(nonce, audience, [credential]);
+							vpToken = vpjwt;
+							break;
+						}
+						case VerifiableCredentialFormat.MSO_MDOC: {
+							if (!responseUri) {
+								throw new Error('Missing responseUri for mdoc presentation');
+							}
 
-					vpTokens.push(vpjwt);
+							if (!c.disclosedClaims?.length) {
+								throw new Error('disclosedClaims required for mdoc presentation');
+							}
 
-					if (c.credentialQueryId) {
-						vpTokenMap[c.credentialQueryId] = [vpjwt];
+
+							const mdoc = parseIssuerSignedToMDoc(c.credentialRaw);
+							const presentationDefinition = buildMdocPresentationDefinition(
+								mdoc.documents[0].docType,
+								c.disclosedClaims ?? [],
+							);
+
+							const { deviceResponseMDoc } = await keystore.generateDeviceResponse(
+								mdoc, presentationDefinition, nonce, audience, responseUri,
+								verifierJwkThumbprint ?? null,
+							);
+
+							vpToken = base64url.encode(new Uint8Array(deviceResponseMDoc.encode()));
+							break;
+						}
+						default: {
+							throw new Error('Unsupported credential format for presentation signing');
+						}
 					}
+
+					if (!c.credentialQueryId) {
+						throw new Error(`Missing credentialQueryId for credential: ${c.credentialId}`);
+					}
+
+					vpTokenMap[c.credentialQueryId] = [vpToken];
 				}
 
-				logger.debug(`[WS Sign Handler] Signed ${vpTokens.length} VP JWT(s)`);
+				logger.debug(`[WS Sign Handler] Signed VP token(s) for ${Object.keys(vpTokenMap).length} query/queries`);
 
 				return {
 					vpToken: JSON.stringify(vpTokenMap)

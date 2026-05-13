@@ -77,6 +77,8 @@ export interface SignRequest {
 			disclosedClaims?: string[];
 			credentialRaw?: string;
 		}>;
+		responseUri?: string;
+		verifierJwkThumbprint?: string;
 	};
 }
 
@@ -799,6 +801,8 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 				proofType: rawParams.proof_type as string | undefined,
 				proofTypesSupported: rawParams.proof_types_supported as SignRequest['params']['proofTypesSupported'],
 				count: rawParams.count as number | undefined,
+				responseUri: rawParams.response_uri as string | undefined,
+				verifierJwkThumbprint: rawParams.verifier_jwk_thumbprint as string | undefined,
 				credentialsToInclude: (
 					rawParams.credentials_to_include as Array<{
 						credential_id: string;

@@ -12,10 +12,8 @@
 
 import { ExtendedVcEntity } from '@/context/CredentialsContext';
 import { DcqlQuery, DcqlCredential, DcqlQueryResult } from 'dcql';
-import { base64url } from 'jose';
-import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
-import { parse } from '@auth0/mdl';
 import { logger } from '@/logger';
+import { parseIssuerSignedToMDoc } from '@/lib/mdoc/mdoc';
 
 export interface CredentialMatch {
 	input_descriptor_id: string;
@@ -106,32 +104,18 @@ function shapeCredential(credential: ExtendedVcEntity): (DcqlCredential & { _bat
 
 	if (format === 'mso_mdoc') {
 		try {
-			const credentialBytes = base64url.decode(credential.data);
-			const issuerSigned = cborDecode(credentialBytes);
-			const issuerAuth = issuerSigned.get("issuerAuth") as Array<Uint8Array>;
-			const payload = issuerAuth?.[2];
-			const decodedIssuerAuthPayload = cborDecode(payload);
-			const docType = decodedIssuerAuthPayload.data.get("docType");
-			const envelope = {
-				version: "1.0",
-				documents: [
-					new Map([
-						["docType", docType],
-						["issuerSigned", issuerSigned],
-					]),
-				],
-				status: 0,
-			};
-
-			const mdoc = parse(cborEncode(envelope));
+			const mdoc = parseIssuerSignedToMDoc(credential.data);
 			const [document] = mdoc.documents;
-			const nsName = document.issuerSignedNameSpaces[0];
-			const nsObject = document.getIssuerNameSpace(nsName);
+
+			const namespaces: Record<string, any> = {};
+			for (const nsName of document.issuerSignedNameSpaces) {
+				namespaces[nsName] = document.getIssuerNameSpace(nsName);
+			}
 
 			return {
 				credential_format: 'mso_mdoc',
-				doctype: docType,
-				namespaces: { [nsName]: nsObject },
+				doctype: document.docType,
+				namespaces,
 				cryptographic_holder_binding: true,
 				_batchId: credential.batchId,
 			} as DcqlCredential & { _batchId?: number };
