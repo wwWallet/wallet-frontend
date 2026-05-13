@@ -269,6 +269,67 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 		}
 	}, [wsTransport, authToken, tenantId]);
 
+	// Mobile WebViews can background the app during external redirects, causing
+	// WebSocket disconnects. Reconnect when page becomes visible or network returns.
+	useEffect(() => {
+		if (!wsTransport || !WEBSOCKET_TRANSPORT_ALLOWED || !authToken) return;
+
+		let cancelled = false;
+
+		const attemptReconnect = async () => {
+			if (wsTransport.isConnected()) {
+				logger.debug('WebSocket reconnect skipped: already connected');
+				return;
+			}
+
+			logger.debug('WebSocket reconnect triggered by app foreground/online', {
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+				tenantId,
+				hasAuthToken: !!authToken,
+			});
+
+			// Reset the retry counter so the transport gets a fresh backoff budget after
+			// the automatic 5 retries were already exhausted while the network was down.
+			wsTransport.resetReconnectAttempts();
+			try {
+				await wsTransport.connect();
+				if (cancelled) return;
+				setIsConnected(true);
+				setLastError(null);
+			} catch (error) {
+				if (cancelled) return;
+				logger.warn('WebSocket foreground/online reconnect failed:', error);
+				setIsConnected(false);
+				setLastError(error instanceof Error ? error : new Error('WebSocket reconnect failed'));
+			}
+		};
+
+		const onVisibilityChange = () => {
+			logger.debug('visibilitychange event observed for WebSocket reconnect', {
+				visibilityState: document.visibilityState,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+			});
+			if (document.visibilityState === 'visible') {
+				void attemptReconnect();
+			}
+		};
+
+		const onOnline = () => {
+			logger.debug('Online event observed for WebSocket reconnect');
+			void attemptReconnect();
+		};
+
+		document.addEventListener('visibilitychange', onVisibilityChange);
+		window.addEventListener('online', onOnline);
+
+		return () => {
+			cancelled = true;
+			document.removeEventListener('visibilitychange', onVisibilityChange);
+			window.removeEventListener('online', onOnline);
+		};
+	}, [wsTransport, authToken, tenantId]);
+
 	// Select active transport based on preference order and availability
 	const { transport, transportType } = useMemo(() => {
 		// Follow TRANSPORT_PREFERENCE order

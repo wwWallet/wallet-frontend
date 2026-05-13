@@ -192,13 +192,28 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 
 		this.connectionPromise = new Promise((resolve, reject) => {
 			try {
-				// Connect using the base WebSocket URL; send auth token in a message after connection
 				const url = new URL(this.wsUrl);
 				url.searchParams.set('tenant_id', this.tenantId);
+
+				logger.debug('WebSocket connect attempt', {
+					hasAuthToken: !!this.authToken,
+					tenantId: this.tenantId,
+					reconnectAttemptsUsed: this.reconnectAttempts,
+					maxReconnectAttempts: this.maxReconnectAttempts,
+					visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+					online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				});
+
 				this.ws = new WebSocket(url);
 
 				this.ws.onopen = () => {
-					// Send auth token and tenant ID as first message for security (avoids logging in URL)
+					logger.debug('WebSocket connected, sending handshake', {
+						hasAuthToken: !!this.authToken,
+						tenantId: this.tenantId,
+						pendingRequests: this.pending.size,
+					});
+
+					// Send auth token as first message for security (avoids logging in URL)
 					try {
 						if (this.ws && this.ws.readyState === WebSocket.OPEN) {
 							this.ws.send(
@@ -217,7 +232,13 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 				};
 
 				this.ws.onerror = (event) => {
-					logger.error('WebSocket error:', event);
+					logger.error('WebSocket error:', {
+						event,
+						readyState: this.ws?.readyState,
+						visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+						online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+						reconnectAttemptsUsed: this.reconnectAttempts,
+					});
 					this.connectionPromise = null;
 					reject(new Error('WebSocket connection failed'));
 				};
@@ -258,6 +279,17 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 		this.currentFlowId = null;
 		this.connectionPromise = null;
 		this.vpCredentialCache.clear();
+	}
+
+	/**
+	 * Reset the reconnect attempt counter so that a manually-triggered reconnect
+	 * (e.g. from visibilitychange / online events) gets a fresh retry budget.
+	 * Without this, once the 5 automatic retries are exhausted the transport
+	 * stops retrying automatically, even though it can still be reconnected
+	 * manually if the backend comes back a few seconds later.
+	 */
+	resetReconnectAttempts(): void {
+		this.reconnectAttempts = 0;
 	}
 
 	isConnected(): boolean {
@@ -971,6 +1003,16 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 	}
 
 	private handleDisconnect(event: CloseEvent): void {
+		logger.debug('WebSocket closed', {
+			code: event.code,
+			reason: event.reason,
+			wasClean: event.wasClean,
+			visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+			online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+			reconnectAttemptsUsed: this.reconnectAttempts,
+			maxReconnectAttempts: this.maxReconnectAttempts,
+		});
+
 		// Reject all pending requests
 		Array.from(this.pending.entries()).forEach(([id, pending]) => {
 			clearTimeout(pending.timeout);
@@ -989,12 +1031,30 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 			return;
 		}
 
+		// Mobile WebViews may suspend networking while app is backgrounded during
+		// external OAuth redirects. Avoid consuming reconnect attempts until the app
+		// is visible again; foreground logic will trigger reconnect.
+		if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+			logger.debug('WebSocket disconnected while app not visible; deferring reconnect attempts');
+			// TODO: Notify subscribers of the disconnect (e.g. via a dedicated onDisconnect
+			// callback) so that consumer state (isConnected in OIDFlowTransportContext) stays
+			// accurate while the app is backgrounded. Currently the stale window only exists
+			// while the UI is not visible, and the foreground reconnect handler corrects it.
+			return;
+		}
+
 		// Attempt reconnect with exponential backoff
 		if (this.reconnectAttempts < this.maxReconnectAttempts) {
 			const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts);
 			this.reconnectAttempts++;
 
-			logger.debug(`WebSocket reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+			logger.debug('WebSocket reconnect scheduled', {
+				delayMs: delay,
+				attempt: this.reconnectAttempts,
+				maxReconnectAttempts: this.maxReconnectAttempts,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+			});
 
 			setTimeout(() => {
 				this.connect().catch((error) => {
@@ -1003,6 +1063,12 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 				});
 			}, delay);
 		} else {
+			logger.error('WebSocket reconnect budget exhausted', {
+				reconnectAttemptsUsed: this.reconnectAttempts,
+				maxReconnectAttempts: this.maxReconnectAttempts,
+				online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
+				visibilityState: typeof document !== 'undefined' ? document.visibilityState : 'unknown',
+			});
 			this.emitError(new Error('WebSocket connection lost after max reconnect attempts'));
 		}
 	}
