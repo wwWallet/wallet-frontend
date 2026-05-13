@@ -276,6 +276,9 @@ export const OIDFlowTransportProvider: React.FC<OIDFlowTransportProviderProps> =
 
 		const attemptReconnect = async () => {
 			if (wsTransport.isConnected()) return;
+			// Reset the retry counter so the transport gets a fresh backoff budget after
+			// the automatic 5 retries were already exhausted while the network was down.
+			wsTransport.resetReconnectAttempts();
 			try {
 				await wsTransport.connect();
 				setIsConnected(true);

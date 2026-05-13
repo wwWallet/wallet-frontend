@@ -260,6 +260,16 @@ export class OIDFlowWebSocketTransport implements IOIDFlowTransport {
 		this.vpCredentialCache.clear();
 	}
 
+	/**
+	 * Reset the reconnect attempt counter so that a manually-triggered reconnect
+	 * (e.g. from visibilitychange / online events) gets a fresh retry budget.
+	 * Without this, once the 5 automatic retries are exhausted the transport is
+	 * permanently dead even if the backend comes back a few seconds later.
+	 */
+	resetReconnectAttempts(): void {
+		this.reconnectAttempts = 0;
+	}
+
 	isConnected(): boolean {
 		return this.ws?.readyState === WebSocket.OPEN;
 	}
