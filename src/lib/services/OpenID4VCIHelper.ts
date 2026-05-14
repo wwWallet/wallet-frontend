@@ -8,7 +8,6 @@ import { MdocIacasResponse, MdocIacasResponseSchema, prependToPath } from "walle
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
-import { z } from "zod";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
