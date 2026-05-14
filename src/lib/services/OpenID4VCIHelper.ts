@@ -93,7 +93,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 const fetchDataWithSchemaWithFallback = useCallback(
 	async function fetchDataWithSchemaWithFallback<T>(
 		endpointPaths: string[],
-		schema: z.ZodSchema<T>,
+		schema: any,
 		useCache?: boolean
 	): Promise<T | null> {
 		const errors: Array<{ path: string; error: Error }> = [];
@@ -145,7 +145,7 @@ const fetchDataWithSchemaWithFallback = useCallback(
 				`${credentialIssuerIdentifier}/.well-known/openid-configuration`,
 			];
 
-			const metadata = await fetchDataWithSchemaWithFallback(endpointPaths, OpenidCredentialIssuerMetadataSchema, useCache);
+			const metadata = await fetchDataWithSchemaWithFallback<OpenidCredentialIssuerMetadata>(endpointPaths, OpenidCredentialIssuerMetadataSchema, useCache);
 			if (!metadata) {
 				return null;
 			}
@@ -188,7 +188,7 @@ const fetchDataWithSchemaWithFallback = useCallback(
 				`${credentialIssuerIdentifier}/${wellKnownOauthAuthorizationServer}`,
 				`${credentialIssuerIdentifier}/${wellKnownOpenidConfiguration}`
 			];
-			authzServerMetadata = await fetchDataWithSchemaWithFallback(endpointPaths, OpenidAuthorizationServerMetadataSchema, useCache);
+			authzServerMetadata = await fetchDataWithSchemaWithFallback<OpenidAuthorizationServerMetadata>(endpointPaths, OpenidAuthorizationServerMetadataSchema, useCache);
 
 			return authzServerMetadata ? { authzServerMetadata } : null;
 		},
