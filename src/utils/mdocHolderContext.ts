@@ -101,53 +101,51 @@ export const mdocContext = {
 	},
 } satisfies Pick<MdocContext, "crypto" | "cose">;
 
-export function toDeviceRequestFromPresentationDefinition(presentationDefinition: any): DeviceRequest {
-	const inputDescriptors = Array.isArray(presentationDefinition?.input_descriptors)
-		? presentationDefinition.input_descriptors
-		: [];
-	if (inputDescriptors.length === 0) {
-		throw new Error("Missing input_descriptors in presentation definition");
+function selectDcqlCredential(dcqlQuery: any, selectedCredentialId?: string): any {
+	const credentials = Array.isArray(dcqlQuery?.credentials) ? dcqlQuery.credentials : [];
+	if (credentials.length === 0) {
+		throw new Error("Missing credentials in dcql_query");
+	}
+	if (selectedCredentialId) {
+		const selected = credentials.find((credential: any) => credential?.id === selectedCredentialId);
+		if (!selected) {
+			throw new Error(`Missing credential in dcql_query for id '${selectedCredentialId}'`);
+		}
+		return selected;
+	}
+	if (credentials.length !== 1) {
+		throw new Error("selectedCredentialId is required when dcql_query has multiple credentials");
+	}
+	return credentials[0];
+}
+
+export function toDeviceRequestFromDcql(dcqlQuery: any, selectedCredentialId?: string): DeviceRequest {
+	const credential = selectDcqlCredential(dcqlQuery, selectedCredentialId);
+	const claims = Array.isArray(credential?.claims) ? credential.claims : [];
+	const docTypeFromMeta = credential?.meta?.doctype_value;
+	const docTypeFromPath = claims.find((claim: any) => Array.isArray(claim?.path) && claim.path.length > 0)?.path?.[0];
+	const docType = docTypeFromMeta ?? docTypeFromPath;
+	if (!docType || typeof docType !== "string") {
+		throw new Error("Could not determine mdoc docType from dcql_query");
 	}
 
-	const docRequests = inputDescriptors.map((descriptor: any) => {
-		const docType = descriptor?.id;
-		if (!docType) {
-			throw new Error("Input descriptor is missing id");
+	const namespaces: Record<string, Record<string, boolean>> = {};
+	for (const claim of claims) {
+		const path = Array.isArray(claim?.path) ? claim.path : [];
+		if (path.length < 2 || typeof path[0] !== "string" || typeof path[1] !== "string") {
+			continue;
 		}
+		const namespace = path[0];
+		const elementIdentifier = path[1];
+		namespaces[namespace] ??= {};
+		namespaces[namespace][elementIdentifier] = Boolean(claim?.intent_to_retain);
+	}
 
-		const fields = Array.isArray(descriptor?.constraints?.fields) ? descriptor.constraints.fields : [];
-		const namespaces: Record<string, Record<string, boolean>> = {};
-		for (const field of fields) {
-			const intentToRetain = Boolean(field?.intent_to_retain);
-			const paths = Array.isArray(field?.path) ? field.path : [];
-			let foundPath = false;
-
-			for (const path of paths) {
-				const match = /^\$\['([^']+)'\]\['([^']+)'\]$/.exec(path);
-				if (!match) {
-					continue;
-				}
-				foundPath = true;
-				const namespace = match[1];
-				const elementIdentifier = match[2];
-				namespaces[namespace] ??= {};
-				namespaces[namespace][elementIdentifier] = intentToRetain;
-			}
-
-			if (!foundPath && field?.name) {
-				namespaces[docType] ??= {};
-				namespaces[docType][field.name] = intentToRetain;
-			}
-		}
-
-		const itemsRequest = ItemsRequest.create({
-			docType,
-			namespaces: Object.keys(namespaces).length > 0 ? namespaces : { [docType]: {} },
-		});
-		return DocRequest.create({ itemsRequest });
+	const itemsRequest = ItemsRequest.create({
+		docType,
+		namespaces: Object.keys(namespaces).length > 0 ? namespaces : { [docType]: {} },
 	});
-
-	return DeviceRequest.create({ docRequests });
+	return DeviceRequest.create({ docRequests: [DocRequest.create({ itemsRequest })] });
 }
 
 export function getIssuerSignedFromMdoc(mdocCredential: MDoc): IssuerSigned {
@@ -168,15 +166,16 @@ export function extractDevicePublicKeyJwkFromMdoc(mdocCredential: MDoc): JWK {
 	return getIssuerSignedFromMdoc(mdocCredential).issuerAuth.mobileSecurityObject.deviceKeyInfo.deviceKey.jwk as JWK;
 }
 
-export async function createDeviceResponseForPresentationDefinition(params: {
+export async function createDeviceResponseForDcql(params: {
 	mdocCredential: MDoc;
-	presentationDefinition: any;
+	dcqlQuery: any;
+	selectedCredentialId?: string;
 	sessionTranscript: Uint8Array;
 	privateKeyJwk: JWK;
 	alg: string;
 	kid: string;
 }): Promise<MDoc> {
-	const deviceRequest = toDeviceRequestFromPresentationDefinition(params.presentationDefinition);
+	const deviceRequest = toDeviceRequestFromDcql(params.dcqlQuery, params.selectedCredentialId);
 	const issuerSigned = getIssuerSignedFromMdoc(params.mdocCredential);
 	return await Holder.createDeviceResponseForDeviceRequest(
 		{

@@ -91,8 +91,8 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
-	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponse(mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponseWithProximity(mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletState | null,
 	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
@@ -587,15 +587,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const generateDeviceResponse = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
+		async (mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, dcqlQuery, selectedCredentialId, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
 
 	const generateDeviceResponseWithProximity = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, presentationDefinition, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
+		async (mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, dcqlQuery, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);

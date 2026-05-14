@@ -16,7 +16,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	let deviceEngagementBytesRef = useRef<any>(null);
 	let credentialRef = useRef<any>(null);
 	let sessionDataEncodedRef = useRef<Uint8Array | null>(null);
-	let fieldsPEXRef = useRef<any[]>([]);
+	let requestedDcqlClaimsRef = useRef<any[]>([]);
 	let sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
 	let skDeviceRef = useRef<CryptoKey>(null);
 	const assumedChunkSize = 512;
@@ -151,49 +151,33 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
 			const fields: Map<string, boolean> = mdocRequestDecoded.get("docRequests")[0].get("itemsRequest").data.get("nameSpaces").get("eu.europa.ec.eudi.pid.1");
 
-			const fieldsPEX = [];
+			const requestedDcqlClaims = [];
 			fields.forEach((value, key) => {
 				fieldKeys.push(key);
-				fieldsPEX.push({
-					"name": key,
-					"path": [
-						`$['eu.europa.ec.eudi.pid.1']['${key}']`
-					],
-					"intent_to_retain": value
-				},)
+				requestedDcqlClaims.push({
+					id: key,
+					path: ["eu.europa.ec.eudi.pid.1", key],
+					intent_to_retain: value
+				});
 			})
-			fieldsPEXRef.current = fieldsPEX;
+			requestedDcqlClaimsRef.current = requestedDcqlClaims;
 		}
 
 		return fieldKeys;
 	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
-		const fullPEX = {
-			"id": "MdocPID",
-			"title": "MDOC PID",
-			"description": "Placeholder description",
-			"input_descriptors": [
+		const dcqlQuery = {
+			credentials: [
 				{
-					"id": "eu.europa.ec.eudi.pid.1",
-					"format": {
-						"mso_mdoc": {
-							"alg": [
-								"ES256"
-							]
-						},
-					},
-					"constraints": {
-						"limit_disclosure": "required",
-						"fields": fieldsPEXRef.current
-					}
+					id: "eu.europa.ec.eudi.pid.1",
+					format: VerifiableCredentialFormat.MSO_MDOC,
+					meta: { doctype_value: "eu.europa.ec.eudi.pid.1" },
+					claims: requestedDcqlClaimsRef.current
 				}
 			]
-		}
-
-		// const presentationDefinition = fullPEX;
+		};
 		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
-		// const descriptor = presentationDefinition.input_descriptors.filter((desc) => desc.id === descriptor_id)[0];
 		const descriptor = { "id": "eu.europa.ec.eudi.pid.1" }
 		const mdoc = {
 			documents: [{
@@ -202,7 +186,7 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 			}]
 		};
 
-		const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc as any, fullPEX, sessionTranscriptBytesRef.current);
+		const { deviceResponseMDoc } = await generateDeviceResponseWithProximity(mdoc as any, dcqlQuery, sessionTranscriptBytesRef.current);
 
 		// encrypt mdoc response
 		const ivEncryption = new Uint8Array([
@@ -234,10 +218,10 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 
 			const presentationSubmission = {
 				id: generateRandomIdentifier(8),
-				definition_id: fullPEX.id,
+				definition_id: "MdocPID",
 				descriptor_map: [
 					{
-						id: fullPEX.input_descriptors[0].id,
+						id: dcqlQuery.credentials[0].id,
 						format: VerifiableCredentialFormat.MSO_MDOC,
 						path: `$`
 					}
