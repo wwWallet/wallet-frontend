@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback, Suspense } from "react";
 import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
@@ -350,12 +350,14 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	return (
 		<>
 			{children}
-			{showPinInputPopup &&
-				<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
-			}
-			{isMessagePopupOpen &&
-				<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
-			}
+			<Suspense fallback={null}>
+				{showPinInputPopup &&
+					<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
+				}
+				{isMessagePopupOpen &&
+					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
+				}
+			</Suspense>
 			{showSyncPopup &&
 				<SyncPopup message={textSyncPopup}
 					onClose={() => {
