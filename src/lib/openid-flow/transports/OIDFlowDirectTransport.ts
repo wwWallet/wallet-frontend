@@ -182,7 +182,8 @@ export class OIDFlowDirectTransport implements IOIDFlowTransport {
 	 */
 	async checkIssuerCorsSupport(issuerUrl: string): Promise<CorsCheckResult> {
 		// Check the well-known endpoint first
-		const wellKnownUrl = new URL('/.well-known/openid-credential-issuer', issuerUrl);
+		const parsed = new URL(issuerUrl);
+		const wellKnownUrl = `${parsed.origin}/.well-known/openid-credential-issuer${parsed.pathname}`;
 		const wellKnownResult = await this.checkCorsSupport(wellKnownUrl.toString());
 
 		if (!wellKnownResult.supported) {

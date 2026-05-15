@@ -39,7 +39,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ metadata: OpenidCredentialIssuerMetadata } | null> => {
 			// RFC8414 well-known URI construction: https://host/.well-known/openid-credential-issuer/path
 			const issuerUrl = new URL(credentialIssuerIdentifier);
-			const pathCredentialIssuer = `${issuerUrl.origin}/.well-known/openid-credential-issuer${issuerUrl.pathname.replace(/\/$/, '')}`;
+			const pathCredentialIssuer = `${issuerUrl.origin}/.well-known/openid-credential-issuer${issuerUrl.pathname}`;
 			try {
 				const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
 					pathCredentialIssuer,
