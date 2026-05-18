@@ -193,7 +193,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Linux</td>
       <td>iOS</td>
       <td>Hybrid</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>❌</td>
       <td> </td>
     </tr>
