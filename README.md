@@ -209,8 +209,8 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Windows</td>
       <td>Windows</td>
       <td>Internal</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
