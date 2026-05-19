@@ -58,7 +58,7 @@ const FormInputField = ({
 	return (
 		<div className="relative">
 			<input
-				className="w-full pl-10 pr-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 dark:text-white rounded-lg dark:inputDarkModeOverride"
+				className="w-full pl-10 pr-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 dark:text-white rounded-lg inputDarkModeOverride"
 				type={type}
 				name={name}
 				placeholder={placeholder}
