@@ -122,11 +122,9 @@ function selectDcqlCredential(dcqlQuery: any, selectedCredentialId?: string): an
 export function toDeviceRequestFromDcql(dcqlQuery: any, selectedCredentialId?: string): DeviceRequest {
 	const credential = selectDcqlCredential(dcqlQuery, selectedCredentialId);
 	const claims = Array.isArray(credential?.claims) ? credential.claims : [];
-	const docTypeFromMeta = credential?.meta?.doctype_value;
-	const docTypeFromPath = claims.find((claim: any) => Array.isArray(claim?.path) && claim.path.length > 0)?.path?.[0];
-	const docType = docTypeFromMeta ?? docTypeFromPath;
+	const docType = credential?.meta?.doctype_value;
 	if (!docType || typeof docType !== "string") {
-		throw new Error("Could not determine mdoc docType from dcql_query");
+		throw new Error("Could not determine mdoc docType from dcql_query.meta.doctype_value");
 	}
 
 	const namespaces: Record<string, Record<string, boolean>> = {};

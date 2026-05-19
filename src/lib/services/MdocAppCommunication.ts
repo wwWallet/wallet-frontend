@@ -17,6 +17,8 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	let credentialRef = useRef<any>(null);
 	let sessionDataEncodedRef = useRef<Uint8Array | null>(null);
 	let requestedDcqlClaimsRef = useRef<any[]>([]);
+	let requestedDocTypeRef = useRef<string | null>(null);
+	let requestedNamespaceRef = useRef<string | null>(null);
 	let sessionTranscriptBytesRef = useRef<Uint8Array | null>(null);
 	let skDeviceRef = useRef<CryptoKey>(null);
 	const assumedChunkSize = 512;
@@ -149,14 +151,26 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 		const fieldKeys: string[] = [];
 		if (decryptedVerifierData) {
 			const mdocRequestDecoded = cborDecode<Map<string, any>>(decryptedVerifierData);
-			const fields: Map<string, boolean> = mdocRequestDecoded.get("docRequests")[0].get("itemsRequest").data.get("nameSpaces").get("eu.europa.ec.eudi.pid.1");
+			const firstDocRequest = mdocRequestDecoded.get("docRequests")?.[0];
+			const itemsRequestData = firstDocRequest?.get("itemsRequest")?.data;
+			const requestedDocType = itemsRequestData?.get("docType");
+			const nameSpaces: Map<string, Map<string, boolean>> | undefined = itemsRequestData?.get("nameSpaces");
+			const firstNamespaceEntry = nameSpaces?.entries?.().next?.().value as [string, Map<string, boolean>] | undefined;
+			const namespace = firstNamespaceEntry?.[0];
+			const fields = firstNamespaceEntry?.[1];
+			if (!fields || !namespace) {
+				requestedDcqlClaimsRef.current = [];
+				return fieldKeys;
+			}
+			requestedDocTypeRef.current = typeof requestedDocType === "string" ? requestedDocType : null;
+			requestedNamespaceRef.current = namespace;
 
 			const requestedDcqlClaims = [];
 			fields.forEach((value, key) => {
 				fieldKeys.push(key);
 				requestedDcqlClaims.push({
 					id: key,
-					path: ["eu.europa.ec.eudi.pid.1", key],
+					path: [namespace, key],
 					intent_to_retain: value
 				});
 			})
@@ -167,18 +181,29 @@ export function useMdocAppCommunication(): IMdocAppCommunication {
 	}, []);
 
 	const sendMdocResponse = useCallback(async (): Promise<void> => {
+		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
+		const credentialDocType = issuerSigned.issuerAuth.mobileSecurityObject.docType;
+		const descriptorDocType = requestedDocTypeRef.current ?? credentialDocType;
+		const descriptorNamespace = requestedNamespaceRef.current ?? credentialDocType;
+
+		const claims = requestedDcqlClaimsRef.current.length > 0
+			? requestedDcqlClaimsRef.current
+			: [];
+
 		const dcqlQuery = {
 			credentials: [
 				{
-					id: "eu.europa.ec.eudi.pid.1",
+					id: descriptorDocType,
 					format: VerifiableCredentialFormat.MSO_MDOC,
-					meta: { doctype_value: "eu.europa.ec.eudi.pid.1" },
-					claims: requestedDcqlClaimsRef.current
+					meta: { doctype_value: descriptorDocType },
+					claims: claims.map((claim) => ({
+						...claim,
+						path: [descriptorNamespace, claim.path?.[1] ?? claim.id]
+					}))
 				}
 			]
 		};
-		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credentialRef.current.data);
-		const descriptor = { "id": "eu.europa.ec.eudi.pid.1" }
+		const descriptor = { "id": descriptorDocType }
 		const mdoc = {
 			documents: [{
 				docType: descriptor.id,
