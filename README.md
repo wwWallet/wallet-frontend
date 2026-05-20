@@ -209,8 +209,8 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Windows</td>
       <td>Windows</td>
       <td>Internal</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -250,7 +250,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -258,7 +258,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -267,14 +267,14 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>USB</td>
       <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>Android</td>
       <td>Android</td>
       <td>Internal</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -282,7 +282,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -290,7 +290,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -298,7 +298,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅<sup>[1]</sup></td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -337,9 +337,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>FIDO Security Key</td>
       <td>USB</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>iOS</td>
