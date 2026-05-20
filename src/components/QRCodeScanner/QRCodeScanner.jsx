@@ -151,6 +151,7 @@ const QRScanner = ({ onClose }) => {
 						case 'credential_offer':
 						case 'presentation_request':
 							url.search = result.url.search;
+							url.searchParams.set('wwwallet_camera_was_used', 'true');
 							window.location.href = url.toString();
 							break;
 						default:
