@@ -102,5 +102,12 @@
     "onlyBuiltDependencies": [
       "wallet-common"
     ]
+  },
+  "resolutions": {
+    "minimatch": ">=3.1.4",
+    "brace-expansion": ">=2.0.3",
+    "picomatch": ">=2.3.2",
+    "fast-uri": ">=3.1.0",
+    "form-data": ">=4.0.4"
   }
 }
