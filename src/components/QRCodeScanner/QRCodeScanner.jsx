@@ -64,7 +64,7 @@ const QRScanner = ({ onClose }) => {
 						const track = stream.getVideoTracks()[0];
 						const capabilities = track.getCapabilities();
 						// const isBackCamera = device.label.toLowerCase().includes('back');
-						const isBackCamera = capabilities.facingMode.includes('environment');
+						const isBackCamera = capabilities.facingMode?.includes('environment');
 
 						const resolution = {
 							width: capabilities.width?.max || 0,
