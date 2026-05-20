@@ -8,6 +8,9 @@ import useScreenType from '../../hooks/useScreenType';
 import { H1 } from '../Shared/Heading';
 import Button from '../Buttons/Button';
 import { ArrowLeft, CheckCircle, QrCode, RotateCw, ZoomIn, ZoomOut } from 'lucide-react';
+import { useTenant } from '@/context/TenantContext';
+import { parseOIDFlowCallbackUrl } from '@/lib/openid-flow/utils/oidFlowCallbackUrl';
+import useErrorDialog from '@/hooks/useErrorDialog';
 
 const QRScanner = ({ onClose }) => {
 	const [devices, setDevices] = useState([]);
@@ -19,6 +22,8 @@ const QRScanner = ({ onClose }) => {
 	const [zoomLevel, setZoomLevel] = useState(1);
 	const [hasCameraPermission, setHasCameraPermission] = useState(null);
 	const { t } = useTranslation();
+	const { buildPath } = useTenant();
+	const { displayError } = useErrorDialog();
 	const screenType = useScreenType();
 
 	const handleZoomChange = (event) => {
@@ -137,10 +142,30 @@ const QRScanner = ({ onClose }) => {
 					setLoading(true);
 				}, 3000);
 				setTimeout(() => {
-					const baseUrl = window.location.origin;
-					const params = scannedUrl.split('?');
-					const cvUrl = `${baseUrl}/cb?${params[1]}&wwwallet_camera_was_used=true`;
-					window.location.href = cvUrl;
+					// Parse url
+					const result = parseOIDFlowCallbackUrl(new URL(scannedUrl));
+
+					const url = new URL(buildPath('cb'), window.location.origin);
+
+					switch (result.type) {
+						case 'credential_offer':
+						case 'presentation_request':
+							url.search = result.url.search;
+							window.location.href = url.toString();
+							break;
+						default:
+							logger.error('Unsupported QR code type:', result);
+							displayError({
+								title: t('qrCodeScanner.unsupportedTitle'),
+								description: t('qrCodeScanner.unsupportedDescription'),
+								onClose: () => {
+									setQrDetected(false);
+									setLoading(false);
+									onClose();
+								}
+							});
+							return;
+					}
 				}, 1000);
 			}, { highlightScanRegion: true, highlightCodeOutline: false });
 
