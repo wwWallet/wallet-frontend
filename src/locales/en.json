@@ -433,7 +433,9 @@
 	"qrCodeScanner": {
 		"cameraPermissionAllow": "Please allow camera permission to use the QR scanner.",
 		"description": "Target the QR Code, and you will redirect to proceed with the process",
-		"title": "Scan the QR Code"
+		"title": "Scan the QR Code",
+		"unsupportedTitle": "Unsupported QR code",
+		"unsupportedDescription": "This QR code is not supported by the wallet. Please scan a credential offer or presentation request."
 	},
 	"qrShareMdoc": {
 		"communicating": "Communicating with verifier...",
