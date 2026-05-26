@@ -1,0 +1,40 @@
+# Trigger conformance tests via @conformance in a PR comment.
+# See https://developers.siros.org/howto/running-conformance-tests
+#
+# Prerequisites:
+#   - CONFORMANCE_DISPATCH_TOKEN secret: fine-grained PAT with Contents
+#     read/write on sirosfoundation/siros-conformance (to trigger repository_dispatch)
+
+name: Conformance Tests
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  trigger-conformance:
+    runs-on: ubuntu-latest
+    # Only run on PR comments from org members/collaborators starting with @conformance
+    if: |
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '@conformance') &&
+      (
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'
+      )
+    steps:
+      - name: Trigger conformance tests
+        uses: sirosfoundation/siros-conformance/.github/actions/trigger-conformance@main
+        with:
+          comment-body: ${{ github.event.comment.body }}
+          dispatch-token: ${{ secrets.CONFORMANCE_DISPATCH_TOKEN }}
+          github-token: ${{ github.token }}
+          repo: ${{ github.repository }}
+          pr-number: ${{ github.event.issue.number }}
+          comment-id: ${{ github.event.comment.id }}
