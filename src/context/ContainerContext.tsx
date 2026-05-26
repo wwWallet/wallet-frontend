@@ -227,7 +227,7 @@ export const ContainerContextProvider = ({ children }) => {
 							const domainParts = issDomain.split('.');
     					const domain = domainParts.slice(-3).join('.');
 							const subDomain = domainParts.slice(0, -3).join('');
-							iss = `https://agent.${domain}/${subDomain}`;
+							iss = subDomain ? `https://agent.${domain}/${subDomain}` : `https://${issDomain}`;
 						}
 
 						const metadataResponse = await cont.resolve<IOpenID4VCIHelper>('OpenID4VCIHelper').getCredentialIssuerMetadata(true, iss, false);

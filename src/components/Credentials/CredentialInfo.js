@@ -96,7 +96,7 @@ const CredentialInfo = ({ credential, mainClassName = "text-sm lg:text-base w-fu
 				const domainParts = issDomain.split('.');
 				const domain = domainParts.slice(-3).join('.');
 				const subDomain = domainParts.slice(0, -3).join('');
-				iss = `https://agent.${domain}/${subDomain}`;
+				iss = subDomain ? `https://agent.${domain}/${subDomain}` : `https://${issDomain}`;
 			}
 
 			const metadataResponse = await container.openID4VCIHelper.getCredentialIssuerMetadata(true, iss, true);
