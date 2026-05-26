@@ -4,11 +4,11 @@ import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import { ExternalLink } from 'lucide-react';
 
-const RedirectPopup = ({ loading, onClose, handleContinue, popupTitle, popupMessage }) => {
+const RedirectPopup = ({ loading, loadingDelayMs = 0, onClose, handleContinue, popupTitle, popupMessage }) => {
 	const { t } = useTranslation();
 
 	return (
-		<PopupLayout isOpen={true} onClose={onClose} loading={loading}>
+		<PopupLayout isOpen={true} onClose={onClose} loading={loading} loadingDelayMs={loadingDelayMs}>
 			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 				<ExternalLink size={20} className="inline mr-1 mb-1" />
 				{popupTitle}
