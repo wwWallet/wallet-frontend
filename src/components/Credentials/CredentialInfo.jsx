@@ -6,6 +6,7 @@ import JsonViewer from '../JsonViewer/JsonViewer';
 import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
+import { isCborDate } from '@/utils/cborDate';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -190,11 +191,81 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 		}
 	}
 
+	if (isCborDate(value)) {
+		return formatDate(value.date, 'date');
+	}
+
 	if (typeof value === 'object') {
 		return renderJson(value);
 	}
 
 	return formatDate(value, 'date');
+};
+
+const flattenMdocSignedClaims = (signedClaims) => {
+	if (!signedClaims || typeof signedClaims !== 'object') {
+		return signedClaims;
+	}
+
+	const flattened = {};
+
+	Object.values(signedClaims).forEach(namespaceObj => {
+		if (
+			namespaceObj &&
+			typeof namespaceObj === 'object'
+		) {
+			Object.assign(flattened, namespaceObj);
+		}
+	});
+
+	return flattened;
+};
+
+const isNumericObject = (v) =>
+	v &&
+	typeof v === 'object' &&
+	!Array.isArray(v) &&
+	Object.keys(v).length > 0 &&
+	Object.keys(v).every(k => !isNaN(Number(k)));
+
+const normalizeArrayClaim = (value, display, required) => {
+	if (!Array.isArray(value)) return value;
+
+	return Object.fromEntries(
+		value.map((item, idx) => [
+			String(idx),
+			{
+				display,
+				value: item,
+				required
+			}
+		])
+	);
+};
+
+const normalizeMdocValue = (value, display, required) => {
+	if (Array.isArray(value)) {
+		return Object.fromEntries(
+			value.map((v, i) => [
+				String(i),
+				{
+					display,
+					value: v,
+					required
+				}
+			])
+		);
+	}
+
+	if (isNumericObject(value)) {
+		return value;
+	}
+
+	if (value && typeof value === 'object') {
+		return value;
+	}
+
+	return value;
 };
 
 const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-base w-full", fallbackClaims, requested }) => {
@@ -206,8 +277,29 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	const requestedFields = requested?.fields ?? null;
 	const requestedDisplay = requested?.display ?? undefined;
 
-	const signedClaims = parsedCredential?.signedClaims;
-	const claims = parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
+	const isMsoMdoc = parsedCredential?.metadata?.credential?.format === 'mso_mdoc';
+
+	const signedClaims = isMsoMdoc
+		? flattenMdocSignedClaims(parsedCredential?.signedClaims)
+		: parsedCredential?.signedClaims;
+
+	const claims = isMsoMdoc
+		? parsedCredential?.metadata?.credential?.TypeMetadata?.claims?.map(claim => {
+			const path = claim.path || [];
+
+			if (
+				parsedCredential?.metadata?.credential?.format === 'mso_mdoc' &&
+				path.length > 1
+			) {
+				return {
+					...claim,
+					path: path.slice(1),
+				};
+			}
+
+			return claim;
+		})
+		: parsedCredential?.metadata?.credential?.TypeMetadata?.claims;
 
 	// Define custom claims to display from signedClaims if claims is missing
 	const customClaims = fallbackClaims ? fallbackClaims :
@@ -322,12 +414,32 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 
 		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLng);
 		const display = { label, description };
+		const normalizedValue = normalizeMdocValue(
+			rawValue,
+			display,
+			claim.required
+		);
 
 		const imageAlt = label || '';
 		const fullscreenTitle = t('pageCredentials.credentialFullScreenTitle', {
 			friendlyName: label
 		});
-		const formattedValue = formatClaimValue(rawValue, imageAlt, fullscreenTitle, setFullscreenImage);
+		let formattedValue;
+
+		if (Array.isArray(rawValue)) {
+			formattedValue = normalizeArrayClaim(
+				normalizedValue,
+				display,
+				claim.required
+			);
+		} else {
+			formattedValue = formatClaimValue(
+				normalizedValue,
+				imageAlt,
+				fullscreenTitle,
+				setFullscreenImage
+			);
+		}
 
 		addToNestedObject(nestedClaims, claim.path, display, formattedValue, claim.required);
 	});
@@ -378,11 +490,15 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
 			);
 
-			const isRequired = requestedFields && node.required;
+const isRequired = requestedFields && node.required;
 			if (!node.display) {
 				return renderClaims(value, [...currentPath, key]);
 			}
-			if (typeof value === 'object' && !React.isValidElement(value)) {
+			if (
+				typeof value === 'object' &&
+				value !== null &&
+				!React.isValidElement(value)
+			) {
 				return (
 					<div key={fullPath} className="w-full">
 						<details className="pl-2 py-1 rounded-md" open={isRequested || isRequired}>
