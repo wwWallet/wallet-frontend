@@ -4,7 +4,7 @@ import Modal from 'react-modal';
 import Spinner from '../Shared/Spinner';
 import Header from '../Layout/Header';
 
-const PopupLayout = ({ isOpen, onClose, loading = false, loadingDelayMs = 0, fullScreen = false, children, padding = 'p-4', shouldCloseOnOverlayClick = true }) => {
+const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0, fullScreen = false, children, padding = 'p-4', shouldCloseOnOverlayClick = true }) => {
 	const [showLoading, setShowLoading] = useState(false);
 
 	useEffect(() => {
@@ -13,14 +13,14 @@ const PopupLayout = ({ isOpen, onClose, loading = false, loadingDelayMs = 0, ful
 			return;
 		}
 
-		if (loadingDelayMs <= 0) {
+		if (showLoadingAfterMs <= 0) {
 			setShowLoading(true);
 			return;
 		}
 
-		const timeoutId = setTimeout(() => setShowLoading(true), loadingDelayMs);
+		const timeoutId = setTimeout(() => setShowLoading(true), showLoadingAfterMs);
 		return () => clearTimeout(timeoutId);
-	}, [loading, loadingDelayMs]);
+	}, [loading, showLoadingAfterMs]);
 
 	if (!isOpen) return null;
 

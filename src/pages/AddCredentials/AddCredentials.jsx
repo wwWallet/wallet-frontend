@@ -231,7 +231,7 @@ const AddCredentials = () => {
 			{showRedirectPopup && selectedCredentialConfiguration && (
 				<RedirectPopup
 					loading={loading}
-					loadingDelayMs={200}
+					showLoadingAfterMs={200}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={redirectPopupContent?.title}
