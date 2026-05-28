@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { isCborDate, formatCborDate } from '@/utils/cborDate';
 
 const MAX_STRING_LENGTH = 100;
 
@@ -8,13 +9,29 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 	const [expanded, setExpanded] = useState(depth === 0);
 	const [showFullString, setShowFullString] = useState(false);
 
-	const isObject = (val) => val && typeof val === 'object' && !Array.isArray(val);
+	const isObject = (val) => val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Map);
 	const isArray = Array.isArray;
 
 	const toggleExpanded = () => setExpanded((prev) => !prev);
 	const toggleString = () => setShowFullString((prev) => !prev);
 
 	const indentClass = depth === 0 ? '' : 'pl-4';
+
+
+	if (isCborDate(value)) {
+		value = formatCborDate(value);
+	}
+
+	if (value instanceof Map) {
+		const normalized = Object.fromEntries(value);
+
+		// Single-entry map -> behave like scalar value
+		if (Object.keys(normalized).length === 1) {
+			value = Object.values(normalized)[0];
+		} else {
+			value = normalized;
+		}
+	}
 
 	if (isArray(value)) {
 		return (
