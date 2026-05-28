@@ -6,7 +6,7 @@ WORKDIR /home/node/app
 # Install dependencies first so rebuild of these layers is only needed when dependencies change
 COPY package.json yarn.lock .
 COPY .env.template .env
-RUN yarn install --frozen-lockfile --network-timeout 600000
+RUN yarn install --frozen-lockfile
 
 COPY . .
 RUN npm run test
