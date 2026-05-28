@@ -70,7 +70,14 @@ const getValueByPath = (path, obj) => {
 		!React.isValidElement(result) &&
 		Object.keys(result).length === 0
 	) {
-		return undefined;
+		if (result instanceof Map) {
+			if (result.size === 0) {
+				return undefined;
+			}
+		}
+		else if (Object.keys(result).length === 0) {
+			return undefined;
+		}
 	}
 
 	return result;
@@ -120,6 +127,35 @@ const expandDisplayClaims = (claims, signedClaims) => {
 	});
 
 	return expanded;
+};
+
+export const findDisplayForPath = (
+	visibleClaims,
+	path,
+	language,
+	fallbackLng,
+	getLabelAndDescriptionByLang
+) => {
+	const matchingClaim = visibleClaims.find(c =>
+		Array.isArray(c.path) &&
+		c.path.length === path.length &&
+		c.path.every((segment, index) => segment === path[index])
+	);
+
+	if (!matchingClaim?.display) {
+		return {
+			label: path[path.length - 1],
+			description: ''
+		};
+	}
+
+	const { label, description } = getLabelAndDescriptionByLang(
+		matchingClaim.display,
+		language,
+		fallbackLng
+	);
+
+	return { label, description };
 };
 
 const isDisplayClaim = (claim) => {
@@ -241,6 +277,34 @@ const normalizeArrayClaim = (value, display, required) => {
 			}
 		])
 	);
+};
+
+export const normalizeMapClaim = (
+	map,
+	parentPath,
+	visibleClaims,
+	language,
+	fallbackLng,
+	required,
+	getLabelAndDescriptionByLang
+) => {
+	if (!(map instanceof Map)) return [];
+
+	return Array.from(map.entries()).map(([key, value]) => {
+		const nestedPath = [...parentPath, key];
+
+		return {
+			display: findDisplayForPath(
+				visibleClaims,
+				nestedPath,
+				language,
+				fallbackLng,
+				getLabelAndDescriptionByLang
+			),
+			required,
+			value
+		};
+	});
 };
 
 const normalizeMdocValue = (value, display, required) => {
@@ -426,7 +490,17 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 		});
 		let formattedValue;
 
-		if (Array.isArray(rawValue)) {
+		if (rawValue instanceof Map) {
+			formattedValue = normalizeMapClaim(
+				rawValue,
+				claim.path,
+				visibleClaims,
+				language,
+				fallbackLng,
+				claim.required,
+				getLabelAndDescriptionByLang
+			);
+		} else if (Array.isArray(rawValue)) {
 			formattedValue = normalizeArrayClaim(
 				normalizedValue,
 				display,
@@ -490,7 +564,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
 			);
 
-const isRequired = requestedFields && node.required;
+			const isRequired = requestedFields && node.required;
 			if (!node.display) {
 				return renderClaims(value, [...currentPath, key]);
 			}
