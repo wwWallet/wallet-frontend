@@ -10,7 +10,7 @@ const Header = () => {
 		<header className="sticky top-0 z-50 w-full bg-inherit text-inherit flex items-center justify-between md:hidden border-b border-lm-gray-400 dark:border-dm-gray-600 transition-all duration-300 p-3">
 			<ConnectionStatusIcon size='small' className="transition-all duration-300" />
 			<div className="flex items-center">
-				<Logo type='dark' aClassName='mr-2' imgClassName="cursor-pointer transition-all duration-300 w-8" />
+				<Logo aClassName='mr-2' imgClassName="cursor-pointer transition-all duration-300 w-8" />
 				<a href="/" className="text-lm-gray-900 dark:text-dm-gray-100 font-bold cursor-pointer transition-all duration-300 text-sm">
 					{t('common.walletName')}
 				</a>
