@@ -52,6 +52,14 @@ const getValueByPath = (path, obj) => {
 		if (segments.length === 0) return current;
 		const [head, ...tail] = segments;
 
+		if (current instanceof Map) {
+			if (current.has(head)) {
+				return traverse(tail, current.get(head));
+			}
+
+			return undefined;
+		}
+
 		if (head === null && typeof current === 'object' && current !== null) {
 			return Object.values(current).map(item => traverse(tail, item)).filter(v => v !== undefined);
 		}
@@ -63,6 +71,10 @@ const getValueByPath = (path, obj) => {
 	};
 
 	const result = traverse(path, obj);
+
+	if (result instanceof Map) {
+		return result.size === 0 ? undefined : result;
+	}
 
 	if (
 		typeof result === 'object' &&
@@ -198,8 +210,7 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 	}
 
 	if (value instanceof Map) {
-		console.log("Map!");
-		return renderJson(value);
+		return renderJson(Object.fromEntries(value));
 	}
 
 	if (typeof value === 'object') {
