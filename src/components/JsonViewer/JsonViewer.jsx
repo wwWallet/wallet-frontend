@@ -34,6 +34,20 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 		);
 	}
 
+	if (value instanceof Map) {
+		const entries = Array.from(value.entries());
+		return (
+			<div className={`${indentClass}`}>
+				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
+					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {"{"}Map({value.size}){"}"}
+				</span>
+				{expanded && entries.map(([key, mapValue], idx) => (
+					<JsonViewer key={`${String(key)}-${idx}`} name={String(key)} value={mapValue} depth={depth + 1} />
+				))}
+			</div>
+		);
+	}
+
 	if (isObject(value)) {
 		const keys = Object.keys(value);
 		return (
