@@ -142,8 +142,6 @@ const isDisplayClaim = (claim) => {
 
 const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 
-	console.log(value);
-
 	const renderImg = (src) => (
 		<button
 			type="button"
@@ -337,13 +335,10 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			: claimsWithDisplay;
 
 	visibleClaims.forEach(claim => {
-		console.log(claim);
 		if (!Array.isArray(claim.path)) return;
 		if (!Array.isArray(claim.display)) return;
-		console.log(claim.path, signedClaims);
 
 		const rawValue = getValueByPath(claim.path, signedClaims);
-		console.log(rawValue);
 		if (rawValue === undefined) return;
 
 		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLng);
@@ -396,15 +391,9 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	})();
 
 	const renderClaims = (data, currentPath = []) => {
-		console.log(currentPath);
-		console.log(data);
-		console.log(typeof data);
 		return Object.entries(data ?? {}).map(([key, node]) => {
-			console.log(key);
-			console.log(node);
 			const label = node.display?.label || null;
 			const value = node.value;
-			console.log(typeof value);
 			const fullPath = [...currentPath, key].join('.');
 			const isRequested = !requestedPaths || Array.from(requestedPaths).some(requested =>
 				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
