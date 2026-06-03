@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatDate, isCborDate } from 'wallet-common';
 
 const MAX_STRING_LENGTH = 100;
 
@@ -15,6 +16,10 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 	const toggleString = () => setShowFullString((prev) => !prev);
 
 	const indentClass = depth === 0 ? '' : 'pl-4';
+
+	if (isCborDate(value)) {
+		value = formatDate(value);
+	}
 
 	if (isArray(value)) {
 		return (

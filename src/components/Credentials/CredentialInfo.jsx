@@ -6,6 +6,7 @@ import JsonViewer from '../JsonViewer/JsonViewer';
 import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
+import { isCborDate } from 'wallet-common';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -129,6 +130,8 @@ const isDisplayClaim = (claim) => {
 
 const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 
+	console.log(value);
+
 	const renderImg = (src) => (
 		<button
 			type="button"
@@ -188,6 +191,15 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 			// fallback if conversion fails
 			return renderJson(value);
 		}
+	}
+
+	if (isCborDate(value)) {
+		return formatDate(value, 'date');
+	}
+
+	if (value instanceof Map) {
+		console.log("Map!");
+		return renderJson(value);
 	}
 
 	if (typeof value === 'object') {
@@ -314,10 +326,13 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 			: claimsWithDisplay;
 
 	visibleClaims.forEach(claim => {
+		console.log(claim);
 		if (!Array.isArray(claim.path)) return;
 		if (!Array.isArray(claim.display)) return;
+		console.log(claim.path, signedClaims);
 
 		const rawValue = getValueByPath(claim.path, signedClaims);
+		console.log(rawValue);
 		if (rawValue === undefined) return;
 
 		const { label, description } = getLabelAndDescriptionByLang(claim.display || [], language, fallbackLng);
@@ -370,9 +385,15 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	})();
 
 	const renderClaims = (data, currentPath = []) => {
-		return Object.entries(data).map(([key, node]) => {
+		console.log(currentPath);
+		console.log(data);
+		console.log(typeof data);
+		return Object.entries(data ?? {}).map(([key, node]) => {
+			console.log(key);
+			console.log(node);
 			const label = node.display?.label || null;
 			const value = node.value;
+			console.log(typeof value);
 			const fullPath = [...currentPath, key].join('.');
 			const isRequested = !requestedPaths || Array.from(requestedPaths).some(requested =>
 				requested === fullPath || requested.startsWith(fullPath + '.') || fullPath.startsWith(requested + '.')
