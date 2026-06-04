@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatDate, isCborDate } from 'wallet-common';
 
 const MAX_STRING_LENGTH = 100;
 
@@ -16,6 +17,10 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 
 	const indentClass = depth === 0 ? '' : 'pl-4';
 
+	if (isCborDate(value)) {
+		value = formatDate(value);
+	}
+
 	if (isArray(value)) {
 		return (
 			<div className={`${indentClass}`}>
@@ -24,6 +29,20 @@ const JsonViewer = ({ name, value, depth = 0 }) => {
 				</span>
 				{expanded && value.map((item, idx) => (
 					<JsonViewer key={idx} name={String(idx)} value={item} depth={depth + 1} />
+				))}
+			</div>
+		);
+	}
+
+	if (value instanceof Map) {
+		const entries = Array.from(value.entries());
+		return (
+			<div className={`${indentClass}`}>
+				<span className="cursor-pointer text-lm-gray-900 dark:text-dm-gray-100" onClick={toggleExpanded}>
+					{expanded ? '▼' : '▶'} {name && `"${name}"`}: {"{"}Map({value.size}){"}"}
+				</span>
+				{expanded && entries.map(([key, mapValue], idx) => (
+					<JsonViewer key={`${String(key)}-${idx}`} name={String(key)} value={mapValue} depth={depth + 1} />
 				))}
 			</div>
 		);

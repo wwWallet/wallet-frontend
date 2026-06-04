@@ -6,6 +6,7 @@ import JsonViewer from '../JsonViewer/JsonViewer';
 import useScreenType from '../../hooks/useScreenType';
 import FullscreenPopup from '../Popups/FullscreenImg';
 import { Asterisk, Send } from 'lucide-react';
+import { isCborDate } from 'wallet-common';
 
 const Legend = ({ showRequired, showRequested, t }) => {
 	if (!showRequired && !showRequested) return null;
@@ -51,6 +52,14 @@ const getValueByPath = (path, obj) => {
 		if (segments.length === 0) return current;
 		const [head, ...tail] = segments;
 
+		if (current instanceof Map) {
+			if (current.has(head)) {
+				return traverse(tail, current.get(head));
+			}
+
+			return undefined;
+		}
+
 		if (head === null && typeof current === 'object' && current !== null) {
 			return Object.values(current).map(item => traverse(tail, item)).filter(v => v !== undefined);
 		}
@@ -62,6 +71,10 @@ const getValueByPath = (path, obj) => {
 	};
 
 	const result = traverse(path, obj);
+
+	if (result instanceof Map) {
+		return result.size === 0 ? undefined : result;
+	}
 
 	if (
 		typeof result === 'object' &&
@@ -188,6 +201,14 @@ const formatClaimValue = (value, imageAlt, fullscreenTitle, onImageClick) => {
 			// fallback if conversion fails
 			return renderJson(value);
 		}
+	}
+
+	if (isCborDate(value)) {
+		return formatDate(value, 'date');
+	}
+
+	if (value instanceof Map) {
+		return renderJson(Object.fromEntries(value));
 	}
 
 	if (typeof value === 'object') {
@@ -370,7 +391,7 @@ const CredentialInfo = ({ parsedCredential, mainClassName = "text-sm lg:text-bas
 	})();
 
 	const renderClaims = (data, currentPath = []) => {
-		return Object.entries(data).map(([key, node]) => {
+		return Object.entries(data ?? {}).map(([key, node]) => {
 			const label = node.display?.label || null;
 			const value = node.value;
 			const fullPath = [...currentPath, key].join('.');
