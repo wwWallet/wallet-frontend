@@ -129,6 +129,7 @@ async function generateManifest({ hash, name, icons }: GenerateManifestOptions):
 		],
 		'start_url': '/',
 		'display': 'standalone',
+		'orientation': 'portrait',
 		'theme_color': '#111827',
 		'description': `${name || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
 		'background_color': '#ffffff',
