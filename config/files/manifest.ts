@@ -134,6 +134,7 @@ function generateManifest({ hash, name, icons }: GenerateManifestOptions): Parti
 				'label': 'Credential selection view'
 			}
 		],
+		'id': '/',
 		'start_url': '/',
 		'display': 'standalone',
 		'orientation': 'portrait',
