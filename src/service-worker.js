@@ -68,6 +68,20 @@ registerRoute(
 );
 
 registerRoute(
+	({ request, url }) =>
+		request.destination === "style" &&
+		url.pathname.endsWith("theme.css"),
+	new StaleWhileRevalidate({
+		cacheName: "theme",
+		plugins: [
+			new ExpirationPlugin({
+				maxEntries: 5,
+			}),
+		],
+	})
+);
+
+registerRoute(
 	({ url }) =>
 		url.pathname.endsWith(".png") ||
 		url.pathname.endsWith(".jpg") ||

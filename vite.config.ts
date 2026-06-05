@@ -44,6 +44,7 @@ export default defineConfig(async ({ mode }) => {
 				manifest: false, // Vite will use `public/manifest.json` automatically
 				injectManifest: {
 					maximumFileSizeToCacheInBytes: env.GENERATE_SOURCEMAP === 'true' ? 12 * 1024 * 1024 : 4 * 1024 * 1024,
+					globIgnores: ['theme.css'],
 					additionalManifestEntries: [
 						{ url: './manifest.json', revision: manifestRevision },
 						{ url: './favicon.ico', revision: brandingHash },
