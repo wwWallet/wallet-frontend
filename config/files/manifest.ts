@@ -1,11 +1,13 @@
 import crypto from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { copyScreenshots, generateAllIcons, Icons } from '../branding';
+import { copyScreenshots, generateAllIcons, getManifestIconEntries, Icons } from '../branding';
 import type { ManifestOptions } from 'vite-plugin-pwa';
 import { type EnvConfigMap } from '../config';
 import { type Tag } from '../utils/resources';
 import { pathWithBase } from '../utils/paths';
+
+const MANIFEST_ICON_SIZES = [16, 32, 64, 192, 512];
 
 /**
  * Generates a web app manifest and icons, and injects them into the build output.
@@ -16,11 +18,11 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 	const icons = await generateAllIcons({
 		sourceDir,
 		publicDir: destDir,
-		manifestIconSizes: [16, 32, 64, 192, 512],
+		manifestIconSizes: MANIFEST_ICON_SIZES,
 		brandingHash,
 	});
 
-	const manifest = await generateManifest({
+	const manifest = generateManifest({
 		hash: brandingHash,
 		name: config.STATIC_NAME || 'wwWallet',
 		icons,
@@ -28,10 +30,7 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 
 	const manifestPath = resolve(destDir, 'manifest.json');
 	const manifestContent = JSON.stringify(manifest, null, 2);
-	const manifestRevision = getManifestRevision({
-		brandingHash,
-		name: config.STATIC_NAME || 'wwWallet',
-	});
+	const manifestRevision = getManifestRevisionFromContent(manifestContent);
 
 	await Promise.all([
 		writeFile(manifestPath, manifestContent, 'utf-8'),
@@ -62,12 +61,20 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 }
 
 export function getManifestRevision({ brandingHash, name }: { brandingHash?: string; name?: string }) {
+	return getManifestRevisionFromContent(JSON.stringify(generateManifest({
+		hash: brandingHash,
+		name,
+		icons: getManifestIconEntries({
+			manifestIconSizes: MANIFEST_ICON_SIZES,
+			brandingHash,
+		}),
+	}), null, 2));
+}
+
+function getManifestRevisionFromContent(manifestContent: string) {
 	return crypto
 		.createHash('sha256')
-		.update(JSON.stringify({
-			brandingHash: brandingHash || '',
-			name: name || 'wwWallet',
-		}))
+		.update(manifestContent)
 		.digest('hex')
 		.slice(0, 12);
 }
@@ -90,7 +97,7 @@ export type GenerateManifestOptions = {
 /**
  * Generates a web app manifest based on provided options, including cache-busting for icons and screenshots.
  */
-async function generateManifest({ hash, name, icons }: GenerateManifestOptions): Promise<Partial<ManifestOptions>> {
+function generateManifest({ hash, name, icons }: GenerateManifestOptions): Partial<ManifestOptions> {
 	const hashSuffix = hash ? `?v=${hash}` : '';
 
 	return {
@@ -127,8 +134,10 @@ async function generateManifest({ hash, name, icons }: GenerateManifestOptions):
 				'label': 'Credential selection view'
 			}
 		],
+		'id': '/',
 		'start_url': '/',
 		'display': 'standalone',
+		'orientation': 'any',
 		'theme_color': '#111827',
 		'description': `${name || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
 		'background_color': '#ffffff',
