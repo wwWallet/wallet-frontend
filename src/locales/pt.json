@@ -100,6 +100,10 @@
 	},
 	"messagePopup": {
 		"close": "Fechar",
+		"credentialIssuanceAlreadyPending": {
+			"description": "Este pedido de emissão de credencial já está pendente. A carteira continuará a consultar o pedido de emissão existente.",
+			"title": "Pedido pendente"
+		},
 		"onlyOneInputDescriptor": {
 			"description": "Neste momento, a carteira não pode aceitar um Pedido de Apresentação para mais do que uma credencial em simultâneo.",
 			"title": "Versão de protocolo não suportada"
