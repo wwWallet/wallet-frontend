@@ -47,7 +47,6 @@ export default defineConfig(async ({ mode }) => {
 					globIgnores: ['theme.css'],
 					additionalManifestEntries: [
 						{ url: './manifest.json', revision: manifestRevision },
-						{ url: './favicon.ico', revision: brandingHash },
 					],
 				},
 			}),

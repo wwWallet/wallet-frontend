@@ -83,6 +83,7 @@ registerRoute(
 
 registerRoute(
 	({ url }) =>
+		url.pathname.endsWith(".ico") ||
 		url.pathname.endsWith(".png") ||
 		url.pathname.endsWith(".jpg") ||
 		url.pathname.endsWith(".jpeg") ||
