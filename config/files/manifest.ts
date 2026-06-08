@@ -138,7 +138,7 @@ function generateManifest({ hash, name, icons }: GenerateManifestOptions): Parti
 		'start_url': '/',
 		'display': 'standalone',
 		'orientation': 'any',
-		'theme_color': '#111827',
+		'theme_color': '#0c0e11',
 		'description': `${name || 'wwWallet'} enables secure storage and management of verifiable credentials.`,
 		'background_color': '#ffffff',
 		'scope': '/',
