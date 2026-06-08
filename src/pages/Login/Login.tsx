@@ -520,16 +520,11 @@ const Auth = () => {
 
 	return (
 		<LoginLayout heading={
-			<Trans
-				i18nKey={(isLoginCache || isLogin) ? 'loginSignup.loginMessage' : 'loginSignup.welcomeMessage'}
-				components={{
-					highlight: <span className="text-primary dark:text-brand-light" />
-				}}
-			/>
+			<span className="text-primary dark:text-brand-light"> {t('common.walletName')}</span>
 		}>
 			<div className="relative p-8 sm:px-12 space-y-4 md:space-y-6 lg:space-y-8 bg-white rounded-lg dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600">
 				<h1 className="pt-4 text-xl font-bold leading-tight tracking-tight text-dm-gray-900 md:text-2xl text-center dark:text-white">
-					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.loginTitle') : t('loginSignup.signUp')}
+					{isLoginCache ? t('loginSignup.loginCache') : isLogin ? t('loginSignup.signIn') : t('loginSignup.signUp')}
 				</h1>
 
 				<div className='absolute top-5 right-5'>
@@ -556,13 +551,13 @@ const Auth = () => {
 					<p className="text-sm font-light text-lm-gray-900 dark:text-dm-gray-100">
 						{isLogin ? t('loginSignup.newHereQuestion') : t('loginSignup.alreadyHaveAccountQuestion')}
 						<Button
-							id={`${isLogin ? 'signUp' : 'loginSignup.login'}-switch-loginsignup`}
+							id={`${isLogin ? 'signUp' : 'signIn'}-switch-loginsignup`}
 							variant="link"
 							onClick={toggleForm}
 							disabled={!isOnline}
 							title={!isOnline && t('common.offlineTitle')}
 						>
-							{isLogin ? t('loginSignup.signUp') : t('loginSignup.login')}
+							{isLogin ? t('loginSignup.signUp') : t('loginSignup.signIn')}
 						</Button>
 					</p>
 				) : (
