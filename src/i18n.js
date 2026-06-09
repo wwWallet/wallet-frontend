@@ -15,9 +15,9 @@ const resources = {
 	pt: { translation: ptTranslation },
 };
 
-if (config.STATIC_NAME) {
+if (config.WALLET_NAME) {
 	for (const lang in resources) {
-		resources[lang].translation.common.walletName = config.STATIC_NAME;
+		resources[lang].translation.common.walletName = config.WALLET_NAME;
 	}
 }
 
