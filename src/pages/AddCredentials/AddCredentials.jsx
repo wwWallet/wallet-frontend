@@ -13,6 +13,7 @@ import CredentialsContext from '@/context/CredentialsContext';
 import useFilterItemByLang from '@/hooks/useFilterItemByLang';
 import { buildCredentialConfiguration } from '@/components/QueryableList/CredentialsDisplayUtils';
 import { buildCredentialRedirectPopupContent } from '@/components/Popups/credentialRedirectPopupContent';
+import MessagePopup from '@/components/Popups/MessagePopup';
 
 const AddCredentials = () => {
 	const { isOnline } = useContext(StatusContext);
@@ -24,6 +25,7 @@ const AddCredentials = () => {
 
 	const [selectedCredentialConfiguration, setSelectedCredentialConfiguration] = useState(null);
 	const [loading, setLoading] = useState(false);
+	const [messagePopupState, setMessagePopupState] = useState(null);
 
 	const openID4VCIHelper = useOpenID4VCIHelper();
 	const { openID4VCI } = useContext(OpenID4VCIContext);
@@ -172,10 +174,12 @@ const AddCredentials = () => {
 		setSelectedCredentialConfiguration(null);
 	};
 
-	const handleContinue = () => {
+	const handleContinue = async () => {
 		setLoading(true);
-
-		if (selectedCredentialConfiguration) {
+		try {
+			if (!selectedCredentialConfiguration) {
+				return;
+			}
 			const { credentialConfigurationId, credentialIssuerIdentifier } = selectedCredentialConfiguration;
 
 			const userHandleB64u = keystore.getUserHandleB64u();
@@ -183,19 +187,26 @@ const AddCredentials = () => {
 				console.error("Could not generate authorization request because user handle is null");
 				return;
 			}
-			openID4VCI.generateAuthorizationRequest(credentialIssuerIdentifier, credentialConfigurationId).then((result) => {
-				if ('url' in result) {
-					const { url } = result;
-					window.location.href = url;
-				}
-			}).catch((err) => {
-				console.error(err)
-				console.error("Couldn't generate authz req")
-			});
-		}
 
-		setLoading(false);
-		setShowRedirectPopup(false);
+			const result = await openID4VCI.generateAuthorizationRequest(credentialIssuerIdentifier, credentialConfigurationId);
+			if ('url' in result) {
+				const { url } = result;
+				window.location.href = url;
+			}
+		} catch (err) {
+			console.error(err);
+			console.error("Couldn't generate authz req");
+			setMessagePopupState({
+				type: 'error',
+				message: {
+					title: t('issuance.error'),
+					description: t('messagePopup.addCredentialProcessFailed.defaultDescription'),
+				},
+			});
+		} finally {
+			setLoading(false);
+			setShowRedirectPopup(false);
+		}
 	};
 
 	return (
@@ -220,10 +231,18 @@ const AddCredentials = () => {
 			{showRedirectPopup && selectedCredentialConfiguration && (
 				<RedirectPopup
 					loading={loading}
+					showLoadingAfterMs={200}
 					onClose={handleCancel}
 					handleContinue={handleContinue}
 					popupTitle={redirectPopupContent?.title}
 					popupMessage={redirectPopupContent?.message}
+				/>
+			)}
+			{messagePopupState && (
+				<MessagePopup
+					type={messagePopupState.type}
+					message={messagePopupState.message}
+					onClose={() => setMessagePopupState(null)}
 				/>
 			)}
 		</>

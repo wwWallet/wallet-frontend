@@ -254,6 +254,50 @@ export type Icons = Array<{
 	purpose?: 'monochrome' | 'maskable' | 'any' | (string & {}) | ('monochrome' | 'maskable' | 'any')[];
 }>
 
+export type GetManifestIconEntriesOptions = Pick<GenerateAllIconsOptions, 'manifestIconSizes' | 'brandingHash'>;
+
+/**
+ * Builds manifest icon entries without writing icon files.
+ */
+export function getManifestIconEntries({
+	manifestIconSizes,
+	brandingHash,
+}: GetManifestIconEntriesOptions): Icons {
+	const hashSuffix = brandingHash ? `?v=${brandingHash}` : '';
+	const icons: Icons = [];
+
+	for (const size of manifestIconSizes) {
+		const sizeStr = `${size}x${size}`;
+		const noPurposeFile = `icon-${sizeStr}.png`;
+		const maskableFile = `icon-${sizeStr}-maskable.png`;
+
+		if (size === 192 || size === 512) {
+			icons.push({
+				src: `icons/${noPurposeFile}${hashSuffix}`,
+				sizes: sizeStr,
+				type: "image/png",
+			});
+
+			icons.push({
+				src: `icons/${maskableFile}${hashSuffix}`,
+				sizes: sizeStr,
+				type: "image/png",
+				purpose: "maskable",
+			});
+
+			continue;
+		}
+
+		icons.push({
+			src: `icons/${noPurposeFile}${hashSuffix}`,
+			sizes: sizeStr,
+			type: "image/png",
+		});
+	}
+
+	return icons;
+}
+
 /**
  * Generates all icons (favicon, apple touch icon, manifest icons).
  *
@@ -268,8 +312,6 @@ export async function generateAllIcons({
 	manifestIconSizes,
 	brandingHash,
 }: GenerateAllIconsOptions): Promise<Icons> {
-	const hashSuffix = brandingHash ? `?v=${brandingHash}` : '';
-
 	const favicon = findBrandingFile(sourceDir, path.join("favicon.ico"))
 		|| deprecated_findBrandingFile(path.join(sourceDir, "favicon.ico"));
 
@@ -320,10 +362,7 @@ export async function generateAllIcons({
 			.toFile(path.join(iconsDir, 'apple-touch-icon.png'));
 	}
 
-	// Manifest icons
-	const icons: Icons = [];
-
-	const manifestLogoPathname = logoDark.pathname;
+	const manifestLogoPathname = logoLight.pathname;
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;
@@ -367,12 +406,6 @@ export async function generateAllIcons({
 				.png()
 				.toFile(path.join(iconsDir, noPurposeFile));
 
-			icons.push({
-				src: `icons/${noPurposeFile}${hashSuffix}`,
-				sizes: sizeStr,
-				type: "image/png",
-			});
-
 			// ---------- MASKABLE - FULL WHITE BACKGROUND ----------
 			await sharp({
 				create: {
@@ -395,13 +428,6 @@ export async function generateAllIcons({
 				.png()
 				.toFile(path.join(iconsDir, maskableFile));
 
-			icons.push({
-				src: `icons/${maskableFile}${hashSuffix}`,
-				sizes: sizeStr,
-				type: "image/png",
-				purpose: "maskable",
-			});
-
 			continue;
 		}
 
@@ -410,15 +436,9 @@ export async function generateAllIcons({
 			.resize(size, size, { fit: "contain" })
 			.png()
 			.toFile(path.join(iconsDir, noPurposeFile));
-
-		icons.push({
-			src: `icons/${noPurposeFile}${hashSuffix}`,
-			sizes: sizeStr,
-			type: "image/png",
-		});
 	}
 
-	return icons;
+	return getManifestIconEntries({ manifestIconSizes, brandingHash });
 }
 
 // ============================================

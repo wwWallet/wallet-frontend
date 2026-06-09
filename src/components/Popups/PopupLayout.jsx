@@ -1,14 +1,30 @@
 // PopupLayout.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from 'react-modal';
 import Spinner from '../Shared/Spinner';
 import Header from '../Layout/Header';
 
-const PopupLayout = ({ isOpen, onClose, loading = false, fullScreen = false, children, padding = 'p-4', shouldCloseOnOverlayClick = true }) => {
+const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0, fullScreen = false, children, padding = 'p-4', shouldCloseOnOverlayClick = true }) => {
+	const [showLoading, setShowLoading] = useState(false);
+
+	useEffect(() => {
+		if (!loading) {
+			setShowLoading(false);
+			return;
+		}
+
+		if (showLoadingAfterMs <= 0) {
+			setShowLoading(true);
+			return;
+		}
+
+		const timeoutId = setTimeout(() => setShowLoading(true), showLoadingAfterMs);
+		return () => clearTimeout(timeoutId);
+	}, [loading, showLoadingAfterMs]);
 
 	if (!isOpen) return null;
 
-	if (loading) {
+	if (loading && showLoading) {
 		return (
 			<Modal
 				isOpen={true}

@@ -180,6 +180,30 @@ describe('CredentialInfo Component', () => {
 		expect(screen.getByText('8')).toBeInTheDocument();
 	});
 
+	it('renders non-empty Map claim values', () => {
+		const parsedCredential = {
+			signedClaims: new Map([
+				['person', new Map([['given_name', 'Ada']])],
+			]),
+			metadata: {
+				credential: {
+					TypeMetadata: {
+						claims: [
+							{
+								path: ['person'],
+								display: [{ locale: 'en-US', label: 'Person' }],
+							},
+						],
+					},
+				},
+			},
+		};
+
+		render(<CredentialInfo parsedCredential={parsedCredential} />);
+		expect(screen.getByText('Person:')).toBeInTheDocument();
+		expect(screen.getByText(/Ada/)).toBeInTheDocument();
+	});
+
 
 	it('renders claims when the dafult language not exists in display languages', () => {
 		i18n.changeLanguage('el'); // Change to greek
