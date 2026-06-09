@@ -1,0 +1,1 @@
+{"version":3,"file":"MsoMdocVerifier.d.ts","sourceRoot":"","sources":["../../src/credential-verifiers/MsoMdocVerifier.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,OAAO,EAAE,kBAAkB,EAAE,wBAAwB,EAAE,MAAM,eAAe,CAAC;AAQtF,wBAAgB,eAAe,CAAC,IAAI,EAAE;IAAE,OAAO,EAAE,OAAO,CAAC;IAAC,gBAAgB,EAAE,wBAAwB,CAAA;CAAE,GAAG,kBAAkB,CA4O1H"}

@@ -1,0 +1,1 @@
+{"version":3,"file":"RequestMessage.d.ts","sourceRoot":"","sources":["../../../src/core/communication/RequestMessage.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,cAAc,GAAG;IAC5B,GAAG,EAAE,MAAM,CAAC;IAEZ,IAAI,EAAE,OAAO,CAAC;IACd,OAAO,EAAE,MAAM,CAAC,MAAM,EAAE,MAAM,CAAC,CAAC;IAChC,MAAM,EAAE,MAAM,CAAC;CACf,CAAA"}

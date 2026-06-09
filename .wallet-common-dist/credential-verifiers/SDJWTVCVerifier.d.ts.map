@@ -1,0 +1,1 @@
+{"version":3,"file":"SDJWTVCVerifier.d.ts","sourceRoot":"","sources":["../../src/credential-verifiers/SDJWTVCVerifier.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,OAAO,EAAE,kBAAkB,EAAE,wBAAwB,EAAE,UAAU,EAAE,MAAM,eAAe,CAAC;AAalG,wBAAgB,eAAe,CAAC,IAAI,EAAE;IAAE,OAAO,EAAE,OAAO,CAAC;IAAC,gBAAgB,EAAE,wBAAwB,CAAC;IAAC,UAAU,EAAE,UAAU,CAAA;CAAE,GAAG,kBAAkB,CA6TlJ"}

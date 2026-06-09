@@ -1,0 +1,1 @@
+{"version":3,"file":"JWTVCJSONParser.d.ts","sourceRoot":"","sources":["../../src/credential-parsers/JWTVCJSONParser.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,OAAO,EAAE,gBAAgB,EAAE,UAAU,EAAwB,MAAM,eAAe,CAAC;AAU5F,wBAAgB,eAAe,CAAC,IAAI,EAAE;IAAE,OAAO,EAAE,OAAO,CAAC;IAAC,UAAU,EAAE,UAAU,CAAA;CAAE,GAAG,gBAAgB,CA6JpG"}

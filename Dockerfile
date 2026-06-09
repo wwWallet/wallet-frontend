@@ -41,9 +41,9 @@ WORKDIR /usr/share/nginx/
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
 COPY ./nginx/docker-entrypoint.d/wallet-config.sh /docker-entrypoint.d/wallet-config.sh
 
-COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ ./html/
-COPY --from=builder --chown=nginx:nginx /home/node/app/dist/ ./dist/
-COPY --from=builder --chown=nginx:nginx /home/node/app/config/ ./config/
-COPY --from=builder --chown=nginx:nginx /home/node/app/branding/ ./branding/
+COPY --from=builder --chown=nginx:nginx --chmod=0444 /home/node/app/dist/ ./html/
+COPY --from=builder --chown=nginx:nginx --chmod=0444 /home/node/app/dist/ ./dist/
+COPY --from=builder --chown=nginx:nginx --chmod=0444 /home/node/app/config/ ./config/
+COPY --from=builder --chown=nginx:nginx --chmod=0444 /home/node/app/branding/ ./branding/
 
 EXPOSE 80

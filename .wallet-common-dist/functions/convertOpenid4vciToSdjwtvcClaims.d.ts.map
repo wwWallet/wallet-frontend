@@ -1,0 +1,1 @@
+{"version":3,"file":"convertOpenid4vciToSdjwtvcClaims.d.ts","sourceRoot":"","sources":["../../src/functions/convertOpenid4vciToSdjwtvcClaims.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,WAAW,EAAE,MAAM,YAAY,CAAC;AACzC,OAAO,EAAE,kBAAkB,EAAqB,MAAM,sCAAsC,CAAC;AAE7F,wBAAgB,gCAAgC,CAC/C,cAAc,CAAC,EAAE,WAAW,EAAE,GAAG,IAAI,GACnC,kBAAkB,EAAE,CA+BtB;AAED,eAAe,gCAAgC,CAAC"}

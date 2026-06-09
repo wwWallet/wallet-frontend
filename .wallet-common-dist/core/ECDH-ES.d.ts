@@ -1,0 +1,51 @@
+export declare function generateECDHKeypair(): Promise<{
+    privateKeyJwk: {
+        crv?: string;
+        d?: string;
+        dp?: string;
+        dq?: string;
+        e?: string;
+        k?: string;
+        n?: string;
+        p?: string;
+        q?: string;
+        qi?: string;
+        x?: string;
+        y?: string;
+        kty: string;
+        alg?: string;
+        key_ops?: string[];
+        ext?: boolean;
+        use?: string;
+        x5c?: string[];
+        x5t?: string;
+        'x5t#S256'?: string;
+        x5u?: string;
+        kid: string;
+    };
+    publicKeyJwk: {
+        crv?: string;
+        d?: string;
+        dp?: string;
+        dq?: string;
+        e?: string;
+        k?: string;
+        n?: string;
+        p?: string;
+        q?: string;
+        qi?: string;
+        x?: string;
+        y?: string;
+        kty: string;
+        alg?: string;
+        key_ops?: string[];
+        ext?: boolean;
+        use?: string;
+        x5c?: string[];
+        x5t?: string;
+        'x5t#S256'?: string;
+        x5u?: string;
+        kid: string;
+    };
+}>;
+//# sourceMappingURL=ECDH-ES.d.ts.map
