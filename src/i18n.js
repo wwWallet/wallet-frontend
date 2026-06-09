@@ -15,9 +15,9 @@ const resources = {
 	pt: { translation: ptTranslation },
 };
 
-if (config.I18N_WALLET_NAME_OVERRIDE) {
+if (config.STATIC_NAME) {
 	for (const lang in resources) {
-		resources[lang].translation.common.walletName = config.I18N_WALLET_NAME_OVERRIDE;
+		resources[lang].translation.common.walletName = config.STATIC_NAME;
 	}
 }
 

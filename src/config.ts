@@ -28,7 +28,6 @@ export const BACKEND_URL = config.wallet_backend_url;
 export const DID_KEY_VERSION: DidKeyVersion = config.did_key_version as DidKeyVersion;
 export const DISPLAY_CONSOLE = config.display_console;
 export const MULTI_LANGUAGE_DISPLAY: boolean = config.multi_language_display ? JSON.parse(config.multi_language_display) : false;
-export const I18N_WALLET_NAME_OVERRIDE: string | undefined = config.i18n_wallet_name_override;
 export const INACTIVE_LOGOUT_MILLIS = (config.inactive_logout_seconds ? parseInt(config.inactive_logout_seconds, 10) : 60 * 15) * 1000
 export const WEBAUTHN_RPID = config.webauthn_rpid ?? "localhost";
 export const WS_URL = config.ws_url;
