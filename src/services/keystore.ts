@@ -1077,7 +1077,17 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType: "redirect" | "dc_api" = "redirect", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse(
+	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState],
+	mdocCredential: MDoc,
+	presentationDefinition: any,
+	nonce: string,
+	clientId: string,
+	responseUri: string,
+	verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>,
+	handoverType: "redirect" | "dc_api" = "redirect",
+	dcApiOrigin?: string
+): Promise<{ deviceResponseMDoc: MDoc }> {
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
@@ -1091,8 +1101,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	const { alg, privateKey } = keypair.keypair;
 	const privateKeyJwk = privateKey;
 
-	console.log("mdocGeneratedNonce = ", mdocGeneratedNonce);
-	console.log("verifierGeneratedNonce = ", verifierGeneratedNonce);
+	console.log("nonce = ", nonce);
 	console.log("clientId = ", clientId);
 	console.log("responseUri = ", responseUri);
 	console.log("handoverType = ", handoverType);
@@ -1106,7 +1115,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 		handoverType,
 		clientId,
 		responseUri,
-		nonce: verifierGeneratedNonce,
+		nonce: nonce,
 		dcApiOrigin: resolvedDcApiOrigin,
 		verifierEncryptionJwk,
 	});
@@ -1125,7 +1134,12 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	return { deviceResponseMDoc };
 }
 
-export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponseWithProximity(
+	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState],
+	mdocCredential: MDoc,
+	presentationDefinition: any,
+	sessionTranscriptBytes: any
+): Promise<{ deviceResponseMDoc: MDoc }> {
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 
