@@ -14,6 +14,7 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - 📦 [Installation](#installation)
 - ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
+- ⚙️ [Local Vite Config](#local-vite-config)
 - 🔐 [PRF Compatibility](#prf-compatibility)
 - 🎨 [Tailwind CSS](#tailwind-css)
 - 💡 [Contributing](#contributing)
@@ -142,6 +143,28 @@ git add -A
 ## 🚀Usage
 
 Once the development server is running, you can access the app by visiting http://localhost:3000 in your web browser. The app provides various pages and components that you can interact with. Explore the features and enjoy using the Wallet Frontend!
+
+## ⚙️Local Vite Config
+
+For local development, you can create an optional `vite.config.local.ts` file in the project root. This file is ignored by git and is merged into the main Vite config when present.
+
+This is useful for machine-specific settings, such as custom dev server proxy rules, without editing the committed `vite.config.ts`.
+
+Example:
+
+```ts
+import type { UserConfig } from 'vite';
+
+export const localViteConfig: Partial<UserConfig> = {
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
+};
+```
+
+If `vite.config.local.ts` does not exist, the app uses the default Vite config unchanged.
 
 ## 🔐PRF Compatibility
 
