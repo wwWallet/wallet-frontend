@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 
 import * as config from "../config";
@@ -195,8 +195,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [writePrivateDataOnIdb]);
 
 	const closeSessionTabLocal = useCallback(
-		async (): Promise<void> => {
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
+		async (preserveUrlParams: boolean = false): Promise<void> => {
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: { preserveUrlParams } }));
 			setPrivateData(null);
 			setCalculatedWalletState(null);
 			clearSessionStorage();
@@ -250,11 +250,17 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
+	const isFirstTabIdCheck = useRef(true);
+
 	useEffect(
 		() => {
+			const wasInitialMount = isFirstTabIdCheck.current;
+			isFirstTabIdCheck.current = false;
 			if (tabId && globalTabId && (tabId !== globalTabId)) {
-				// When user logs in in any tab, log out in all other tabs
-				closeSessionTabLocal();
+				// When user logs in in any tab, log out in all other tabs.
+				// Preserve URL params only if discovered on initial mount
+				// (eg. returning from a redirect with a pending login).
+				closeSessionTabLocal(wasInitialMount);
 			}
 		},
 		[closeSessionTabLocal, tabId, globalTabId],
