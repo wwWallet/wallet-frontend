@@ -169,11 +169,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	useEffect(() => {
 		if (userHandleB64u) {
+			let cancelled = false;
 			readPrivateDataFromIdb(userHandleB64u).then((val) => {
-				if (val) {
+				if (val && !cancelled) {
 					setPrivateData(val);
 				}
 			})
+			return () => {
+				cancelled = true;
+			};
 		}
 	}, [userHandleB64u, readPrivateDataFromIdb]);
 
@@ -328,7 +332,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			);
 			let newEncryptedContainer: keystore.EncryptedContainer;
 
-			if (privateData) { // keystore is already opened
+			if (privateData && mainKey) { // keystore is already opened
 				const [localPrivateData, localMainKey] = await assertKeystoreOpen();
 				const [remoteContainer, remoteMainKey,] = await keystore.openPrivateData(unlockSuccess.mainKey, unlockSuccess.privateData);
 				const [localContainer, ,] = await keystore.openPrivateData(localMainKey, localPrivateData);
@@ -424,6 +428,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		writePrivateDataOnIdb,
 		assertKeystoreOpen,
 		privateData,
+		mainKey
 	]);
 
 
