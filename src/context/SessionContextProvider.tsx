@@ -8,6 +8,7 @@ import SessionContext, { SessionContextValue } from './SessionContext';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
 import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
 import { OHTTP_KEY_CONFIG } from '@/config';
+import { setAppBadgeCount } from '@/utils';
 
 export const SessionContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
@@ -34,6 +35,7 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 		window.history.replaceState({}, '', `${window.location.pathname}`);
 		console.log('[Session Context] Clear Session');
 		api.clearSession();
+		await setAppBadgeCount(0);
 	}, [api]);
 
 	// Update the ref whenever clearSession changes
