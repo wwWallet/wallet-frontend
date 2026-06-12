@@ -1,4 +1,4 @@
-import { CLOCK_TOLERANCE, VCT_REGISTRY_URL } from "../config";
+import { CLOCK_TOLERANCE, VCT_REGISTRY_URLS } from "../config";
 import { IHttpProxy } from "./interfaces/IHttpProxy";
 import { ParsingEngine, SDJWTVCParser, PublicKeyResolverEngine, SDJWTVCVerifier, MsoMdocParser, MsoMdocVerifier } from "wallet-common";
 import { IOpenID4VCIHelper } from "./interfaces/IOpenID4VCIHelper";
@@ -13,11 +13,10 @@ export async function initializeCredentialEngine(
 	onIssuerMetadataResolved?: (issuerIdentifier: string) => void
 ): Promise<any> {
 
-	const provider: VctDocumentProvider = {
+	const vctRegistryProviders: VctDocumentProvider[] = VCT_REGISTRY_URLS.map((registryUrl) => ({
 		getVctMetadataDocument: async (vct: string) => {
 			try {
-				if (!VCT_REGISTRY_URL) return err(VctResolutionErrors.NotFound);
-				const url = new URL(VCT_REGISTRY_URL);
+				const url = new URL(registryUrl);
 				url.searchParams.set('vct', vct);
 				const res = await httpProxy.get(url.toString(), {}, { useCache: true });
 				if (!res?.data || res.status!==200) return err(VctResolutionErrors.NotFound);
@@ -27,9 +26,9 @@ export async function initializeCredentialEngine(
 				return err(VctResolutionErrors.NotFound);
 			}
 		},
-	};
+	}));
 
-	const vctDocumentProvider = createVctDocumentResolutionEngine([provider]);
+	const vctDocumentProvider = createVctDocumentResolutionEngine(vctRegistryProviders);
 
 	const ctx = {
 		clockTolerance: CLOCK_TOLERANCE,

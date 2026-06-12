@@ -48,7 +48,9 @@ export const OPENID4VCI_TRANSACTION_ID_POLLING_INTERVAL_IN_SECONDS = config.open
 export const OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS = config.openid4vci_transaction_id_lifetime_in_seconds && !isNaN(parseInt(config.openid4vci_transaction_id_lifetime_in_seconds)) ? parseInt(config.openid4vci_transaction_id_lifetime_in_seconds) : 2592000;
 export const OHTTP_KEY_CONFIG = config.ohttp_key_config;
 export const OHTTP_RELAY = config.ohttp_relay;
-export const VCT_REGISTRY_URL: string | undefined = config.vct_registry_url;
+export const VCT_REGISTRY_URLS: string[] = config.vct_registry_urls
+	? config.vct_registry_urls.split(',').map((url) => url.trim()).filter((url) => url.length > 0)
+	: [];
 export const POLICY_LINKS = config.policy_links;
 export const SHOW_PWA_INSTALL_PROMPT = config.show_pwa_install_prompt ? config.show_pwa_install_prompt === 'true' : false;
 export const BRANDING = {
