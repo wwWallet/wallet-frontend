@@ -12,7 +12,7 @@ import { buildOpenId4VpSessionTranscriptBytes } from "wallet-common";
 import { SDJwt } from "@sd-jwt/core";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
-import { createDeviceResponseForPresentationDefinition, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
+import { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -1077,7 +1077,7 @@ export async function generateKeypairs(
 	return [{ keypairs }, newPrivateData];
 }
 
-export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType: "redirect" | "dc_api" = "redirect", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponse([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType: "redirect" | "dc_api" = "redirect", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> {
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 	console.log("KID = ", kid)
@@ -1114,9 +1114,10 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
-	const deviceResponseMDoc = await createDeviceResponseForPresentationDefinition({
+	const deviceResponseMDoc = await createDeviceResponseForDcql({
 		mdocCredential,
-		presentationDefinition,
+		dcqlQuery,
+		selectedCredentialId,
 		sessionTranscript: sessionTranscriptBytes,
 		privateKeyJwk: privateKeyJwk as JWK,
 		alg,
@@ -1125,7 +1126,7 @@ export async function generateDeviceResponse([privateData, mainKey, calculatedSt
 	return { deviceResponseMDoc };
 }
 
-export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
+export async function generateDeviceResponseWithProximity([privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState], mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> {
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
 	const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
 
@@ -1138,9 +1139,9 @@ export async function generateDeviceResponseWithProximity([privateData, mainKey,
 	const { alg, privateKey } = keypair.keypair;
 	const privateKeyJwk = privateKey;
 
-	const deviceResponseMDoc = await createDeviceResponseForPresentationDefinition({
+	const deviceResponseMDoc = await createDeviceResponseForDcql({
 		mdocCredential,
-		presentationDefinition,
+		dcqlQuery,
 		sessionTranscript: sessionTranscriptBytes as Uint8Array,
 		privateKeyJwk: privateKeyJwk as JWK,
 		alg,

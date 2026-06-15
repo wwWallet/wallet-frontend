@@ -87,6 +87,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `MULTI_LANGUAGE_DISPLAY`: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
   - `STATIC_PUBLIC_URL`: The installation's public url.
   - `STATIC_NAME`: The installation's public name.
+  - `WALLET_TAGLINE`: Optional tagline displayed below the wallet name on the login page.
   - `I18N_WALLET_NAME_OVERRIDE`: String to override translations of common.walletName (Optional).
   - `FOLD_EVENT_HISTORY_AFTER_SECONDS`: Fold history events older than this value in seconds (default: 2592000 = 30 days).
   - `DISPLAY_ISSUANCE_WARNINGS`: Enable or disable (`true` or `false`) the display of the issuance warnings popup.
