@@ -28,7 +28,7 @@ export default async function themeCSS(destDir: string, config: EnvConfigMap, ta
 		props: {
 			name: 'theme-color',
 			media: '(prefers-color-scheme: light)',
-			content: '#f8f9f9'
+			content: '#ffffff'
 		}
 	});
 	tagsToInject?.set('theme-color-dark', {

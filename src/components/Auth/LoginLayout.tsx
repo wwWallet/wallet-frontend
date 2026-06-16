@@ -15,11 +15,19 @@ export default function LoginLayout({ children, heading }: { children: React.Rea
 			)}
 
 			<div className="grow flex flex-col items-center justify-center px-6 py-8">
-				<Logo aClassName='mb-6' imgClassName='w-20' />
+				<Logo aClassName='mb-2' imgClassName='w-20' />
 
-				<h1 className="text-3xl mb-8 font-bold leading-tight tracking-tight text-lm-gray-900 text-center dark:text-white">
-					{heading}
-				</h1>
+				<div className="mb-5 text-center">
+					<h1 className="text-3xl mb-2 font-bold leading-tight tracking-tight text-lm-gray-900 dark:text-white">
+						{heading}
+					</h1>
+
+					{config.WALLET_TAGLINE && (
+						<p className="text-sm mb-2 text-lm-gray-700 dark:text-dm-gray-300">
+							{config.WALLET_TAGLINE}
+						</p>
+					)}
+				</div>
 
 				<div className="relative w-full sm:max-w-md xl:p-0">
 					{children}

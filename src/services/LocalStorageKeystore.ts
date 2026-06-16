@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 
 import * as config from "../config";
@@ -91,8 +91,8 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
-	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponse(mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponseWithProximity(mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletState | null,
 	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
@@ -169,11 +169,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	useEffect(() => {
 		if (userHandleB64u) {
+			let cancelled = false;
 			readPrivateDataFromIdb(userHandleB64u).then((val) => {
-				if (val) {
+				if (val && !cancelled) {
 					setPrivateData(val);
 				}
 			})
+			return () => {
+				cancelled = true;
+			};
 		}
 	}, [userHandleB64u, readPrivateDataFromIdb]);
 
@@ -191,8 +195,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [writePrivateDataOnIdb]);
 
 	const closeSessionTabLocal = useCallback(
-		async (): Promise<void> => {
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
+		async (preserveUrlParams: boolean = false): Promise<void> => {
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: { preserveUrlParams } }));
 			setPrivateData(null);
 			setCalculatedWalletState(null);
 			clearSessionStorage();
@@ -246,11 +250,17 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
+	const isFirstTabIdCheck = useRef(true);
+
 	useEffect(
 		() => {
+			const wasInitialMount = isFirstTabIdCheck.current;
+			isFirstTabIdCheck.current = false;
 			if (tabId && globalTabId && (tabId !== globalTabId)) {
-				// When user logs in in any tab, log out in all other tabs
-				closeSessionTabLocal();
+				// When user logs in in any tab, log out in all other tabs.
+				// Preserve URL params only if discovered on initial mount
+				// (eg. returning from a redirect with a pending login).
+				closeSessionTabLocal(wasInitialMount);
 			}
 		},
 		[closeSessionTabLocal, tabId, globalTabId],
@@ -328,7 +338,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			);
 			let newEncryptedContainer: keystore.EncryptedContainer;
 
-			if (privateData) { // keystore is already opened
+			if (privateData && mainKey) { // keystore is already opened
 				const [localPrivateData, localMainKey] = await assertKeystoreOpen();
 				const [remoteContainer, remoteMainKey,] = await keystore.openPrivateData(unlockSuccess.mainKey, unlockSuccess.privateData);
 				const [localContainer, ,] = await keystore.openPrivateData(localMainKey, localPrivateData);
@@ -424,6 +434,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		writePrivateDataOnIdb,
 		assertKeystoreOpen,
 		privateData,
+		mainKey
 	]);
 
 
@@ -587,15 +598,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const generateDeviceResponse = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
+		async (mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, dcqlQuery, selectedCredentialId, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
 
 	const generateDeviceResponseWithProximity = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, presentationDefinition, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
+		async (mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, dcqlQuery, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);

@@ -362,7 +362,7 @@ export async function generateAllIcons({
 			.toFile(path.join(iconsDir, 'apple-touch-icon.png'));
 	}
 
-	const manifestLogoPathname = logoDark.pathname;
+	const manifestLogoPathname = logoLight.pathname;
 
 	for (const size of manifestIconSizes) {
 		const sizeStr = `${size}x${size}`;

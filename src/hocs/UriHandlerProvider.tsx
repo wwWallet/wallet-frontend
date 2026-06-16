@@ -13,6 +13,7 @@ import RedirectPopup from "@/components/Popups/RedirectPopup";
 import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
 import { useSessionStorage } from "@/hooks/useStorage";
 import useFilterItemByLang from "@/hooks/useFilterItemByLang";
+import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey";
 import { getAuthorizationResponseErrorMessageKey } from "@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey";
 
@@ -52,10 +53,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { t, i18n } = useTranslation();
 
 	const [redirectUri, setRedirectUri] = useState<string | null>(null);
-	const [popupRedirectUrl, setPopupRedirectUrl] = useState<string | null>(null);
 	const [redirectPopupContent, setRedirectPopupContent] = useState<{ title: string, message: React.ReactNode }>({ title: "", message: "" });
 	const [showRedirectPopup, setShowRedirectPopup] = useState<boolean>(false);
+	const redirectPopupResolverRef = useRef<((approved: boolean) => void) | null>(null);
 	const { vcEntityList } = useContext(CredentialsContext);
+	const openID4VCIHelper = useOpenID4VCIHelper();
 
 	const [cachedUser, setCachedUser] = useState<CachedUser | null>(null);
 	const [synced, setSynced] = useState(false);
@@ -132,18 +134,37 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		}
 	}, [synced, setUrl, location]);
 
-	const openRedirectPopup = (url: string, content: { title: string, message: React.ReactNode }) => {
-		setPopupRedirectUrl(url);
+	const openRedirectPopup = (content: { title: string, message: React.ReactNode }, onResolve: (approved: boolean) => void) => {
 		setRedirectPopupContent(content);
+		redirectPopupResolverRef.current = onResolve;
 		setShowRedirectPopup(true);
 	};
 
 	const closeRedirectPopup = () => {
+		if (redirectPopupResolverRef.current) {
+			redirectPopupResolverRef.current(false);
+		}
 		setShowRedirectPopup(false);
-		setPopupRedirectUrl(null);
+		redirectPopupResolverRef.current = null;
 		setRedirectPopupContent({ title: "", message: "" });
 		cleanCurrentUrl();
 	};
+
+	const confirmRedirectPopup = () => {
+		if (redirectPopupResolverRef.current) {
+			redirectPopupResolverRef.current(true);
+		}
+		setShowRedirectPopup(false);
+		redirectPopupResolverRef.current = null;
+		setRedirectPopupContent({ title: "", message: "" });
+		cleanCurrentUrl();
+	};
+
+	const requestRedirectConsent = useCallback((content: { title: string, message: React.ReactNode }) => {
+		return new Promise<boolean>((resolve) => {
+			openRedirectPopup(content, resolve);
+		});
+	}, []);
 
 	const popupContentFromIssuerMetadata = useCallback((
 		issuerMetadata: OpenidCredentialIssuerMetadata,
@@ -185,13 +206,6 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		setMessagePopup(true);
 	}, [i18n, t]);
 
-	const handleRedirectContinue = () => {
-		if (popupRedirectUrl) {
-			cleanCurrentUrl();
-			window.location.href = popupRedirectUrl;
-		}
-	};
-
 	useEffect(() => {
 		if (redirectUri) {
 			cleanCurrentUrl();
@@ -214,7 +228,20 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			setUrl('');
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				handleCredentialOffer(u.toString()).then(({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
+				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
+					const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer);
+					if (!metadataResult?.metadata) {
+						throw new Error('Could not resolve issuer metadata for credential offer');
+					}
+					const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
+					const userApproved = await requestRedirectConsent({
+						title: popupContent.title,
+						message: popupContent.message,
+					});
+					if (!userApproved) {
+						return null;
+					}
+
 					console.log("Generating authorization request...");
 					if (!preAuthorizedCode) {
 						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
@@ -237,13 +264,12 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
 				}).then((res) => {
+					if (!res) {
+						return;
+					}
 					if ('url' in res && typeof res.url === 'string' && res.url) {
-						const popupContent = popupContentFromIssuerMetadata(res.issuerMetadata, res.credentialConfigurationId);
-
-						openRedirectPopup(res.url, {
-							title: popupContent.title,
-							message: popupContent.message,
-						});
+						cleanCurrentUrl();
+						window.location.href = res.url;
 					}
 				}).catch(err => {
 					cleanCurrentUrl();
@@ -316,13 +342,13 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		t,
 		isLoggedIn,
 		vcEntityList,
-		popupRedirectUrl,
 		synced,
 		getCalculatedWalletState,
 		usedAuthorizationCodes,
 		usedRequestUris,
 		// depend on methods, not whole context objects
 		popupContentFromIssuerMetadata,
+		requestRedirectConsent,
 		showMessagePopup,
 		handleCredentialOffer,
 		generateAuthorizationRequest,
@@ -331,6 +357,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		promptForCredentialSelection,
 		sendAuthorizationResponse,
 		requestCredentialsWithPreAuthorization,
+		openID4VCIHelper,
 		cleanCurrentUrl,
 	]);
 
@@ -366,11 +393,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}}
 				/>
 			}
-			{showRedirectPopup && popupRedirectUrl &&
+			{showRedirectPopup &&
 				<RedirectPopup
 					loading={false}
 					onClose={closeRedirectPopup}
-					handleContinue={handleRedirectContinue}
+					handleContinue={confirmRedirectPopup}
 					popupTitle={redirectPopupContent.title}
 					popupMessage={redirectPopupContent.message}
 				/>

@@ -124,7 +124,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 
 	const MobileLayout = () => (
 		<div className="w-full flex flex-col">
-			<div className={`flex flex-row items-center gap-5 mt-2 mb-4 px-2`}>
+			<div className="flex flex-row items-center gap-5 px-2">
 				<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
 					<CredentialImageButton showRibbon={false} fixedRatioImage={fixedRatioImage} />
 					{screenType !== 'mobile' && zeroSigCount !== null && sigTotal && (
@@ -159,32 +159,34 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 	if (!vcEntity) return null;
 
 	return (
-		<div className="px-6">
-			{screenType !== 'mobile' ? (
-				<H1
-					heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
-					flexJustifyContent="start"
-					textColorClass="text-lm-gray-700 dark:text-dm-gray-300 hover:underline"
-				>					<ArrowRight size={20} className="mx-2 text-2xl mb-2 text-inherit" />
-
-					<H1 heading={credentialName} hr={false} />
-				</H1>
-			) : (
-				<div className='flex'>
-					<button
-						id="go-previous"
-						onClick={() => navigate(-1)}
-						className="mr-2 mb-2"
-						aria-label="Go back to the previous page"
+		<div className="px-6 sm:px-12 w-full">
+			<div className=' mb-4'>
+				{screenType !== 'mobile' ? (
+					<H1
+						heading={<Link to="/">{t('common.navItemCredentials')}</Link>}
+						flexJustifyContent="start"
+						textColorClass="text-lm-gray-700 dark:text-dm-gray-300 hover:underline"
 					>
-						<ArrowLeft size={20} className="text-2xl text-inherit" />
-					</button>
-					{title && <H1 heading={title} hr={false} />}
-				</div>
-			)}
-			<PageDescription description={t('pageCredentials.details.description')} />
+						<ArrowRight size={20} className="mx-2 text-2xl text-inherit" />
+						<H1 heading={credentialName} />
+					</H1>
+				) : (
+					<div className='flex flex-wrap mb-4'>
+						<button
+							id="go-previous"
+							onClick={() => navigate(-1)}
+							className="mr-2"
+							aria-label="Go back to the previous page"
+						>
+							<ArrowLeft size={20} className="text-2xl text-inherit" />
+						</button>
+						{title && <H1 heading={title} />}
+					</div>
+				)}
+				<PageDescription description={t('pageCredentials.details.description')} />
+			</div>
 
-			<div className={`w-full flex flex-col ${displayCredentialInfo && screenType === 'desktop' ? 'lg:flex-row gap-4' : ''} mt-0 lg:mt-5 px-2`}>
+			<div className={`w-full flex flex-col ${displayCredentialInfo && screenType === 'desktop' ? 'lg:flex-row gap-4' : ''} mt-0 lg:mt-5`}>
 				{(screenType === 'desktop' || !fixedRatioImage) ? <DesktopLayout /> : <MobileLayout />}
 			</div>
 			{/* Fullscreen credential Popup*/}
