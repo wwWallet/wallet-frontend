@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { getBrandingHash } from './branding';
-import { injectConfigFiles, injectHtml } from './inject';
+import { injectConfigFiles, injectHtml, mergeConfigWithExistingHtml } from './inject';
 import { EnvConfigMapSchema } from './config';
 import { Tag } from './utils/resources';
 
@@ -19,7 +19,10 @@ import { Tag } from './utils/resources';
 	const brandingHash = getBrandingHash(resolve('branding')); // Compute branding hash from your branding folder
 	env.BRANDING_HASH = brandingHash;
 
-	const config = EnvConfigMapSchema.parse(env);
+	let config = EnvConfigMapSchema.parse(env);
+	const htmlFilePath = resolve(DEST_DIR, 'index.html');
+	const htmlContent = await readFile(htmlFilePath, 'utf-8');
+	config = mergeConfigWithExistingHtml(htmlContent, config);
 
 	const tagsToInject = new Map<string, Tag>();
 
@@ -28,9 +31,6 @@ import { Tag } from './utils/resources';
 		config,
 		tagsToInject,
 	});
-
-	const htmlFilePath = resolve(DEST_DIR, 'index.html');
-	const htmlContent = await readFile(htmlFilePath, 'utf-8');
 
 	const updatedHtml = await injectHtml({
 		html: htmlContent,
