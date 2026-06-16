@@ -41,14 +41,18 @@ const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0,
 			isOpen={isOpen}
 			onRequestClose={onClose}
 			className={`relative overflow-y-auto overflow-x-hidden bg-lm-gray-100 dark:bg-dm-gray-900 border border-lm-gray-400 dark:border-dm-gray-600 ${fullScreen ? 'flex flex-col space-between w-full h-full' : 'w-full sm:w-1/2 md:w-5/12 lg:w-1/3 max-h-[90vh] rounded-lg shadow-lg m-4'}`}
-			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50' : 'bg-lm-gray-900/50 dark:bg-dm-gray-500/50 backdrop-blur-xs z-50'}`}
+			overlayClassName={`fixed inset-0  flex items-center justify-center ${fullScreen ? 'z-50 bg-lm-gray-100 dark:bg-dm-gray-900' : 'bg-lm-gray-900/50 dark:bg-dm-gray-500/50 backdrop-blur-xs z-50'}`}
 			bodyOpenClassName="overflow-hidden"
 			shouldCloseOnOverlayClick={shouldCloseOnOverlayClick}
 		>
 
 			<div className={`${fullScreen && 'h-full'}`}>
-				{fullScreen && <Header toggleSidebar={() => { }} />}
-				<div className={`${padding} ${fullScreen && 'px-6 pt-6 pb-20 flex flex-col justify-between'}`}>
+				{fullScreen &&
+					<div className='z-60'>
+						<Header toggleSidebar={() => { }} />
+					</div>
+				}
+				<div className={`${padding} ${fullScreen && 'px-6 pt-3 pb-20 flex flex-col justify-between'}`}>
 					{children}
 				</div>
 			</div>

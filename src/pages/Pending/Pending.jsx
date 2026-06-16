@@ -55,7 +55,7 @@ const Pending = () => {
 			<H1 heading={t("pagePending.title")} />
 			<PageDescription description={t("pagePending.description")} />
 
-			<div className="py-2 w-full">
+			<div className="py-4 w-full">
 				<div className="space-y-2">
 					{[...pendingTransactions]
 						.sort(reverse(compareBy(pt => pt.created)))
