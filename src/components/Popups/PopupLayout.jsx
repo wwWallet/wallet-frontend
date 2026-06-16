@@ -48,7 +48,7 @@ const PopupLayout = ({ isOpen, onClose, loading = false, showLoadingAfterMs = 0,
 
 			<div className={`${fullScreen && 'h-full'}`}>
 				{fullScreen && <Header toggleSidebar={() => { }} />}
-				<div className={`${padding} ${fullScreen && 'px-6 pt-6 pb-20 flex flex-col justify-between'}`}>
+				<div className={`${padding} ${fullScreen && 'px-6 pt-3 pb-20 flex flex-col justify-between'}`}>
 					{children}
 				</div>
 			</div>
