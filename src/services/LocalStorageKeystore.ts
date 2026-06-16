@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 
 import * as config from "../config";
@@ -9,12 +9,16 @@ import { useOnUserInactivity } from "../hooks/useOnUserInactivity";
 
 import * as keystore from "./keystore";
 import type { AsymmetricEncryptedContainer, AsymmetricEncryptedContainerKeys, EncryptedContainer, OpenedContainer, PrivateData, UnlockSuccess, WebauthnPrfEncryptionKeyInfo, WebauthnPrfSaltInfo, WrappedKeyInfo } from "./keystore";
-import { MDoc } from "@auth0/mdl";
 import { WalletStateUtils } from "./WalletStateUtils";
 import { addAlterSettingsEvent, addDeleteCredentialEvent, addDeleteCredentialIssuanceSessionEvent, addDeleteKeypairEvent, addNewCredentialEvent, addNewPresentationEvent, addSaveCredentialIssuanceSessionEvent, CurrentSchema, foldOldEventsIntoBaseState, foldState, mergeEventHistories } from "./WalletStateSchema";
 import { UserId } from "@/api/types";
 import { getItem } from "@/indexedDB";
 import { WalletStateContainerGeneric } from "./WalletStateSchemaCommon";
+
+type MDoc = {
+	encode: () => Uint8Array;
+	documents?: any[];
+} | import("@owf/mdoc").DeviceResponse | import("@owf/mdoc").Document;
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
@@ -49,7 +53,6 @@ export interface LocalStorageKeystore {
 	isOpen(): boolean,
 	close(): Promise<void>,
 
-	initPassword(password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]>,
 	initPrf(
 		credential: PublicKeyCredential,
 		prfSalt: Uint8Array,
@@ -61,11 +64,6 @@ export interface LocalStorageKeystore {
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[EncryptedContainer, CommitCallback]>,
 	deletePrf(credentialId: Uint8Array): [EncryptedContainer, CommitCallback],
-	unlockPassword(
-		privateData: EncryptedContainer,
-		password: string,
-		user: UserData,
-	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	unlockPrf(
 		privateData: EncryptedContainer,
 		credential: PublicKeyCredential,
@@ -74,7 +72,6 @@ export interface LocalStorageKeystore {
 	): Promise<[EncryptedContainer, CommitCallback] | null>,
 	getPrfKeyInfo(id: BufferSource): WebauthnPrfEncryptionKeyInfo,
 	getPasswordOrPrfKeyFromSession(
-		promptForPassword: () => Promise<string | null>,
 		promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 	): Promise<[CryptoKey, WrappedKeyInfo]>,
 	upgradePrfKey(prfKeyInfo: WebauthnPrfEncryptionKeyInfo, promptForPrfRetry: () => Promise<boolean | AbortSignal>): Promise<[EncryptedContainer, CommitCallback]>,
@@ -94,8 +91,8 @@ export interface LocalStorageKeystore {
 		CommitCallback,
 	]>,
 
-	generateDeviceResponse(mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }>,
-	generateDeviceResponseWithProximity(mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponse(mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }>,
+	generateDeviceResponseWithProximity(mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }>,
 
 	getCalculatedWalletState(): WalletState | null,
 	addCredentials(credentials: { data: string, format: string, kid: string, batchId: number, credentialIssuerIdentifier: string, credentialConfigurationId: string, instanceId: number, credentialId?: number }[]): Promise<[
@@ -172,11 +169,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	useEffect(() => {
 		if (userHandleB64u) {
+			let cancelled = false;
 			readPrivateDataFromIdb(userHandleB64u).then((val) => {
-				if (val) {
+				if (val && !cancelled) {
 					setPrivateData(val);
 				}
 			})
+			return () => {
+				cancelled = true;
+			};
 		}
 	}, [userHandleB64u, readPrivateDataFromIdb]);
 
@@ -194,8 +195,8 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}, [writePrivateDataOnIdb]);
 
 	const closeSessionTabLocal = useCallback(
-		async (): Promise<void> => {
-			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal));
+		async (preserveUrlParams: boolean = false): Promise<void> => {
+			eventTarget.dispatchEvent(new CustomEvent(KeystoreEvent.CloseSessionTabLocal, { detail: { preserveUrlParams } }));
 			setPrivateData(null);
 			setCalculatedWalletState(null);
 			clearSessionStorage();
@@ -249,11 +250,17 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[closeSessionTabLocal, privateData, userHandleB64u, globalUserHandleB64u, setCachedUsers],
 	);
 
+	const isFirstTabIdCheck = useRef(true);
+
 	useEffect(
 		() => {
+			const wasInitialMount = isFirstTabIdCheck.current;
+			isFirstTabIdCheck.current = false;
 			if (tabId && globalTabId && (tabId !== globalTabId)) {
-				// When user logs in in any tab, log out in all other tabs
-				closeSessionTabLocal();
+				// When user logs in in any tab, log out in all other tabs.
+				// Preserve URL params only if discovered on initial mount
+				// (eg. returning from a redirect with a pending login).
+				closeSessionTabLocal(wasInitialMount);
 			}
 		},
 		[closeSessionTabLocal, tabId, globalTabId],
@@ -331,7 +338,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			);
 			let newEncryptedContainer: keystore.EncryptedContainer;
 
-			if (privateData) { // keystore is already opened
+			if (privateData && mainKey) { // keystore is already opened
 				const [localPrivateData, localMainKey] = await assertKeystoreOpen();
 				const [remoteContainer, remoteMainKey,] = await keystore.openPrivateData(unlockSuccess.mainKey, unlockSuccess.privateData);
 				const [localContainer, ,] = await keystore.openPrivateData(localMainKey, localPrivateData);
@@ -427,6 +434,7 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		writePrivateDataOnIdb,
 		assertKeystoreOpen,
 		privateData,
+		mainKey
 	]);
 
 
@@ -452,29 +460,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 		[finishUnlock]
 	);
 
-	const unlockPassword = useCallback(
-		async (
-			privateData: EncryptedContainer,
-			password: string,
-			user: UserData,
-		): Promise<[EncryptedContainer, CommitCallback] | null> => {
-			const [unlockResult, newPrivateData] = await keystore.unlockPassword(privateData, password);
-			await finishUnlock(unlockResult, user, null, async () => false);
-			return (
-				newPrivateData
-					?
-					[newPrivateData,
-						async () => {
-							await writePrivateDataOnIdb(newPrivateData, userHandleB64u);
-							setPrivateData(newPrivateData);
-						},
-					]
-					: null
-			);
-		},
-		[finishUnlock, setPrivateData, writePrivateDataOnIdb, userHandleB64u]
-	);
-
 	const initPrf = useCallback(
 		async (
 			credential: PublicKeyCredential,
@@ -487,14 +472,6 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 			return result;
 		},
 		[init]
-	);
-
-	const initPassword = useCallback(
-		async (password: string): Promise<[EncryptedContainer, (userHandleB64u: string) => void]> => {
-			const { mainKey, keyInfo } = await keystore.initPassword(password);
-			return [await init(mainKey, keyInfo, null), setUserHandleB64u];
-		},
-		[init, setUserHandleB64u]
 	);
 
 	const getPrfKeyInfo = useCallback(
@@ -575,25 +552,11 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 
 	const getPasswordOrPrfKeyFromSession = useCallback(
 		async (
-			promptForPassword: () => Promise<string | null>,
 			promptForPrfRetry: () => Promise<boolean | AbortSignal>,
 		): Promise<[CryptoKey, WrappedKeyInfo]> => {
 			if (privateData && privateData?.prfKeys?.length > 0) {
 				const [prfKey, prfKeyInfo,] = await keystore.getPrfKey(privateData, null, promptForPrfRetry);
 				return [prfKey, keystore.isPrfKeyV2(prfKeyInfo) ? prfKeyInfo : prfKeyInfo.mainKey];
-
-			} else if (privateData && privateData?.passwordKey) {
-				const password = await promptForPassword();
-				if (password === null) {
-					throw new Error("Password prompt aborted");
-				} else {
-					try {
-						const [passwordKey, passwordKeyInfo] = await keystore.getPasswordKey(privateData, password);
-						return [passwordKey, keystore.isAsymmetricPasswordKeyInfo(passwordKeyInfo) ? passwordKeyInfo : passwordKeyInfo.mainKey];
-					} catch {
-						throw new Error("Failed to unlock key store", { cause: { errorId: "passwordUnlockFailed" } });
-					}
-				}
 
 			} else {
 				throw new Error("Session not initialized");
@@ -635,15 +598,15 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	);
 
 	const generateDeviceResponse = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential, presentationDefinition, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri)
+		async (mdocCredential: MDoc, dcqlQuery: any, selectedCredentialId: string, mdocGeneratedNonce: string, verifierGeneratedNonce: string, clientId: string, responseUri: string, verifierEncryptionJwk?: JsonWebKey | Record<string, unknown>, handoverType?: "redirect" | "dc_api", dcApiOrigin?: string): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponse(await openPrivateData(), mdocCredential as any, dcqlQuery, selectedCredentialId, mdocGeneratedNonce, verifierGeneratedNonce, clientId, responseUri, verifierEncryptionJwk, handoverType, dcApiOrigin) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
 
 	const generateDeviceResponseWithProximity = useCallback(
-		async (mdocCredential: MDoc, presentationDefinition: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
-			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential, presentationDefinition, sessionTranscriptBytes)
+		async (mdocCredential: MDoc, dcqlQuery: any, sessionTranscriptBytes: any): Promise<{ deviceResponseMDoc: MDoc }> => (
+			await keystore.generateDeviceResponseWithProximity(await openPrivateData(), mdocCredential as any, dcqlQuery, sessionTranscriptBytes) as unknown as { deviceResponseMDoc: MDoc }
 		),
 		[openPrivateData]
 	);
@@ -825,11 +788,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	return useMemo(() => ({
 		isOpen,
 		close,
-		initPassword,
 		initPrf,
 		addPrf,
 		deletePrf,
-		unlockPassword,
 		unlockPrf,
 		getPrfKeyInfo,
 		getPasswordOrPrfKeyFromSession,
@@ -854,11 +815,9 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 	}), [
 		isOpen,
 		close,
-		initPassword,
 		initPrf,
 		addPrf,
 		deletePrf,
-		unlockPassword,
 		unlockPrf,
 		getPrfKeyInfo,
 		getPasswordOrPrfKeyFromSession,

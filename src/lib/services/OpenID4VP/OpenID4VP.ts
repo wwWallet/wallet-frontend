@@ -1,7 +1,4 @@
 import { IOpenID4VP } from "../../interfaces/IOpenID4VP";
-import {
-	HandleAuthorizationRequestError as HandleAuthorizationRequestErrorType,
-} from "wallet-common";
 import type { OpenID4VPServerCredential } from "wallet-common";
 import { OpenID4VPServerAPI, OpenID4VPResponseMode } from "wallet-common";
 import { OpenID4VPRelyingPartyState } from "../../types/OpenID4VPRelyingPartyState";
@@ -20,7 +17,6 @@ import { verifyRequestUriAndCerts } from "../../utils/verifyRequestUriAndCerts";
 
 export function useOpenID4VP({
 	showCredentialSelectionPopup,
-	showStatusPopup,
 	showTransactionDataConsentPopup,
 }: {
 	showCredentialSelectionPopup: (
@@ -29,10 +25,6 @@ export function useOpenID4VP({
 		verifierPurpose: string,
 		parsedTransactionData?: ParsedTransactionData[],
 	) => Promise<Map<string, number>>,
-	showStatusPopup: (
-		message: { title: string, description: string },
-		type: 'error' | 'success',
-	) => Promise<void>,
 	showTransactionDataConsentPopup: (options: Record<string, unknown>) => Promise<boolean>,
 }): IOpenID4VP {
 
@@ -120,18 +112,15 @@ export function useOpenID4VP({
 	const handleAuthorizationRequest = useCallback(async (
 		url: string,
 		vcEntityList: ExtendedVcEntity[],
-	): Promise<
-		{
-			conformantCredentialsMap: Map<string, any>,
-			verifierDomainName: string,
-			verifierPurpose: string,
-			parsedTransactionData: ParsedTransactionData[] | null,
-		}
-		| { error: HandleAuthorizationRequestErrorType }
-	> => {
+	): Promise<{
+		conformantCredentialsMap: Map<string, any>,
+		verifierDomainName: string,
+		verifierPurpose: string,
+		parsedTransactionData: ParsedTransactionData[] | null,
+	}> => {
 		const result = await openID4VPServer.handleAuthorizationRequest(url, vcEntityList);
 		if ("error" in result) {
-			return { error: result.error as HandleAuthorizationRequestErrorType };
+			throw new Error(result.error);
 		}
 		return result;
 	}, [openID4VPServer]);
@@ -139,7 +128,7 @@ export function useOpenID4VP({
 	const sendAuthorizationResponse = useCallback(async (selectionMap, vcEntityList) => {
 		const response = await openID4VPServer.createAuthorizationResponse(selectionMap, vcEntityList);
 		if (!response || !(response as any).formData) {
-			return {};
+			return { state: "skipped" as const };
 		}
 		const { formData, generatedVPs, filteredVCEntities, response_uri, client_id } = response as {
 			formData: URLSearchParams;
@@ -172,29 +161,25 @@ export function useOpenID4VP({
 			const responseData = res.data as { presentation_during_issuance_session?: string, redirect_uri?: string };
 			console.log("Direct post response = ", JSON.stringify(res.data));
 			if (responseData.presentation_during_issuance_session) {
-				return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
+				// return { presentation_during_issuance_session: responseData.presentation_during_issuance_session };
+				return { state: "skipped" as const };
 			}
 			if (responseData.redirect_uri) {
-				return { url: responseData.redirect_uri };
+				return {
+					state: "success" as const,
+					redirect_uri: responseData.redirect_uri,
+				};
 			}
 			if (res.status >= 400) {
 				throw new Error(`Direct post to verifier failed with status ${res.status}`);
 			}
-			showStatusPopup({
-				title: "Verification succeeded",
-				description: "The verification process has been completed",
-			}, 'success');
+			return { state: "success" as const };
 		} catch (err) {
 			console.error(err);
-			showStatusPopup({
-				title: "Error in verification",
-				description: "The verification process was not completed successfully",
-			}, 'error');
-			return {};
+			throw err;
 		}
 	}, [
 		httpProxy,
-		showStatusPopup,
 		api,
 		keystore,
 		openID4VPServer,

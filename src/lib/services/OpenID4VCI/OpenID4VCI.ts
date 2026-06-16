@@ -16,9 +16,7 @@ import { useTranslation } from 'react-i18next';
 import CredentialsContext from "@/context/CredentialsContext";
 import { WalletStateUtils } from '@/services/WalletStateUtils';
 import { fromBase64Url } from '@/util';
-import { DataItem, parse } from '@auth0/mdl';
-import { cborDecode, cborEncode } from '@auth0/mdl/lib/cbor';
-import { COSEKeyToJWK } from "cose-kit";
+import { IssuerSigned } from '@owf/mdoc';
 import { notify } from "@/context/notifier";
 import { IOpenID4VCIClientStateRepository } from '@/lib/interfaces/IOpenID4VCIClientStateRepository';
 import { useNavigate } from 'react-router-dom';
@@ -41,25 +39,9 @@ export const deriveHolderKidFromCredential = async (credential: string, format: 
 		}
 	}
 	else if (format === VerifiableCredentialFormat.MSO_MDOC) {
-		const credentialBytes = fromBase64Url(credential);
-		const issuerSigned = cborDecode(credentialBytes);
-		const dataItem = cborDecode(issuerSigned.get('issuerAuth')[2]);
-		const m = {
-			version: '1.0',
-			documents: [new Map([
-				['docType', dataItem.data.get('docType')],
-				['issuerSigned', issuerSigned]
-			])],
-			status: 0
-		};
-		const encoded = cborEncode(m);
-		const mdocCredential = parse(encoded);
-		const p: DataItem = cborDecode(mdocCredential.documents[0].issuerSigned.issuerAuth.payload);
-		const deviceKeyInfo = p.data.get('deviceKeyInfo');
-		const deviceKey = deviceKeyInfo.get('deviceKey');
-		// @ts-ignore
-		const devicePublicKeyJwk = COSEKeyToJWK(deviceKey);
-		const kid = await jose.calculateJwkThumbprint(devicePublicKeyJwk, "sha256");
+		const issuerSigned = IssuerSigned.fromEncodedForOid4Vci(credential);
+		const deviceKey = issuerSigned.issuerAuth.mobileSecurityObject.deviceKeyInfo.deviceKey;
+		const kid = await jose.calculateJwkThumbprint(deviceKey.jwk as jose.JWK, "sha256");
 		return kid;
 	}
 }

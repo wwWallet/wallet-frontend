@@ -15,14 +15,10 @@ const PWAInstallPrompt = () => {
 			<div className={`w-full flex justify-center ${screenType === 'desktop' && 'mt-5'}`}>
 				<div className='flex border border-lm-gray-400 dark:border-dm-gray-600 m-3 p-3 rounded-lg shadow justify-between w-full sm:w-96'>
 					<div className='flex items-center text-lm-gray-900 dark:text-dm-gray-100'>
-						{screenType !== 'desktop' ? (
-							<Download className='mr-2' size={32} />
-						) : (
-							<Download className='mr-2' size={32} />
-						)}
-						<a href="/" className={`font-semibold cursor-pointer transition-all duration-300 text-sm`}>
+						<Download className='mr-2' size={32} />
+						<p className='font-semibold text-sm'>
 							{t('pwaInstallPrompt.message')}
-						</a>
+						</p>
 					</div>
 					<div className='flex items-center space-y'>
 						<Button

@@ -10,7 +10,9 @@ export const useVcEntity = (fetchVcData, vcEntityList, batchId) => {
 					(vcEntity) => vcEntity.batchId === parseInt(batchId)
 				);
 				if (!vcEntity) {
-					throw new Error("Credential not found");
+					console.log("Credential not found");
+					setVcEntity(undefined);
+					return;
 				}
 
 				setVcEntity(vcEntity);

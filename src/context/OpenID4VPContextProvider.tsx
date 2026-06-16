@@ -3,7 +3,6 @@ import SelectCredentialsPopup from "../components/Popups/SelectCredentialsPopup"
 import CredentialsContext from "./CredentialsContext";
 import { useOpenID4VP } from "../lib/services/OpenID4VP/OpenID4VP";
 import OpenID4VPContext from "./OpenID4VPContext";
-import MessagePopup from "@/components/Popups/MessagePopup";
 import GenericConsentPopup from "@/components/Popups/GenericConsentPopup";
 import SessionContext from "./SessionContext";
 import { ParsedTransactionData } from "@/lib/services/OpenID4VP/TransactionData/parseTransactionData";
@@ -26,15 +25,6 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 		resolve: (value: unknown) => { },
 		reject: () => { },
 	});
-
-	const [messagePopupState, setMessagePopupState] = useState<{
-		type: 'error' | 'success',
-		message: {
-			title: string,
-			description: string
-		},
-		onClose: (e) => Promise<void>
-	} | null>(null);
 
 	const showPopup = useCallback((options): Promise<Map<string, number>> =>
 		new Promise((resolve, reject) => {
@@ -70,17 +60,6 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 		}));
 	}, [setPopupConsentState]);
 
-	const showStatusPopup = useCallback(
-		async (message: { title: string, description: string }, type: 'error' | 'success'): Promise<void> => {
-			setMessagePopupState({
-				message,
-				type,
-				onClose: async () => {
-					setMessagePopupState(null);
-				}
-			})
-		}, [setMessagePopupState]);
-
 	const showCredentialSelectionPopup = useCallback(
 		async (
 			conformantCredentialsMap: Map<string, string[]>,
@@ -100,7 +79,7 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 		[showPopupConsent]
 	);
 
-	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup, showStatusPopup, showTransactionDataConsentPopup });
+	const openID4VP = useOpenID4VP({ showCredentialSelectionPopup, showTransactionDataConsentPopup });
 
 	return (
 		<OpenID4VPContext.Provider value={{ openID4VP }}>
@@ -109,10 +88,6 @@ export const OpenID4VPContextProvider = ({ children }: React.PropsWithChildren) 
 				<>
 					<GenericConsentPopup popupConsentState={popupConsentState} setPopupConsentState={setPopupConsentState} showConsentPopup={showPopupConsent} hidePopupConsent={hidePopupConsent} />
 					<SelectCredentialsPopup popupState={popupState} setPopupState={setPopupState} showPopup={showPopup} hidePopup={hidePopup} vcEntityList={vcEntityList} />
-					{messagePopupState !== null ?
-						<MessagePopup type={messagePopupState.type} message={messagePopupState.message} onClose={messagePopupState.onClose} />
-						: <></>
-					}
 				</>
 			)}
 		</OpenID4VPContext.Provider>

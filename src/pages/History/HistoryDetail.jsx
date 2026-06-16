@@ -44,7 +44,7 @@ const HistoryDetail = () => {
 					>
 						<ArrowLeft size={20} className="text-2xl text-lm-gray-900 dark:text-dm-gray-100" />
 					</button>
-					<H1 heading={t('pageHistory.presentationDetails.title')} hr={false} />
+					<H1 heading={t('pageHistory.presentationDetails.title')} />
 				</div>
 				{selectedHistoryItem.length > 0 && (
 					<HistoryDetailContent historyItem={selectedHistoryItem} />

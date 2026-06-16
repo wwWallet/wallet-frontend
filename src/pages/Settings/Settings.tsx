@@ -258,7 +258,7 @@ const WebauthnRegistation = ({
 								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
-									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
+									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
 									aria-label={t('registerPasskey.nicknameAriaLabel')}
 									autoFocus={true}
 									disabled={isSubmitting}
@@ -303,7 +303,7 @@ const WebauthnRegistation = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false}/>
+				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false} />
 				<p className='dark:text-white'>{t('registerPasskey.passkeyCreated')}</p>
 				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
 
@@ -349,58 +349,36 @@ const WebauthnRegistation = ({
 const UnlockMainKey = ({
 	onLock,
 	onUnlock,
+	onUnlockErrorChange,
 	unlocked,
 }: {
 	onLock: () => void,
 	onUnlock: () => void,
+	onUnlockErrorChange: (error: string) => void,
 	unlocked: boolean,
 }) => {
 	const { isOnline } = useContext(StatusContext);
 	const { keystore } = useContext(SessionContext);
 	const [inProgress, setInProgress] = useState(false);
-	const [resolvePasswordPromise, setResolvePasswordPromise] = useState<((password: string) => void) | null>(null);
-	const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
-	const [password, setPassword] = useState('');
-	const [error, setError] = useState('');
 	const { t } = useTranslation();
-	const isPromptingForPassword = Boolean(resolvePasswordPromise);
 	const screenType = useScreenType();
-
-	useEffect(
-		() => {
-			setError("");
-		},
-		[],
-	);
 
 	const onBeginUnlock = useCallback(
 		async () => {
+			onUnlockErrorChange('');
 			setInProgress(true);
 			try {
-				await keystore.getPasswordOrPrfKeyFromSession(
-					() => new Promise<string>(resolve => {
-						setResolvePasswordPromise(() => resolve);
-					}).finally(() => {
-						setResolvePasswordPromise(null);
-						setPassword("");
-					}),
-					async () => true,
-				);
+				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
 				onUnlock();
 			} catch (e) {
 				// Using a switch here so the t() argument can be a literal, to ease searching
 				switch (e?.cause?.errorId) {
 					case 'passkeyInvalid':
-						setError(t('passkeyInvalid'));
+						onUnlockErrorChange(t('passkeyInvalid'));
 						break;
 
 					case 'passkeyLoginFailedTryAgain':
-						setError(t('passkeyLoginFailedTryAgain'));
-						break;
-
-					case 'passwordUnlockFailed':
-						setError(t('passwordUnlockFailed'));
-						onBeginUnlock();
+						onUnlockErrorChange(t('passkeyLoginFailedTryAgain'));
 						break;
 
 					default:
@@ -408,99 +386,37 @@ const UnlockMainKey = ({
 				}
 			} finally {
 				setInProgress(false);
-				setIsSubmittingPassword(false);
 			}
 		},
-		[keystore, onUnlock, t],
+		[keystore, onUnlock, onUnlockErrorChange, t],
 	);
 
-	const onSubmitPassword = (event) => {
-		event.preventDefault();
-		if (resolvePasswordPromise) {
-			setIsSubmittingPassword(true);
-			resolvePasswordPromise(password);
-		}
-	};
-
-	const onCancelPassword = () => {
-		if (resolvePasswordPromise) {
-			setIsSubmittingPassword(false);
-			resolvePasswordPromise(null);
-		}
-		onLock();
-	};
-
 	return (
-		<>
-			<Button
-				id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
-				onClick={unlocked ? onLock : onBeginUnlock}
-				variant="primary"
-				disabled={inProgress || (!unlocked && !isOnline)}
-				ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
-				title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
-			>
-				<div className="flex items-center">
-					{unlocked
-						? <>
-							<LockOpen size={18} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.lockSensitive')}
-							</span>
-						</>
-						: <>
-							<Lock size={18} />
-							<span className='hidden md:block ml-2'>
-								{t('pageSettings.unlockSensitive')}
-							</span>
-						</>
-					}
-				</div>
-			</Button>
-			<Dialog
-				open={isPromptingForPassword}
-				onCancel={onCancelPassword}
-			>
-				<form method="dialog" onSubmit={onSubmitPassword}>
-					<h3 className="text-2xl mt-4 mb-2 font-bold text-custom-blue">{t('pageSettings.unlockPassword.title')}</h3>
-					<p className="mb-2">{t('pageSettings.unlockPassword.description')}</p>
-					<input
-						type="password"
-						className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
-						aria-label={t('pageSettings.unlockPassword.passwordInputAriaLabel')}
-						autoFocus={true}
-						disabled={isSubmittingPassword}
-						onChange={(event) => setPassword(event.target.value)}
-						placeholder={t('pageSettings.unlockPassword.passwordInputPlaceholder')}
-						value={password}
-					/>
-
-					<div className='flex gap-2 justify-center align-center'>
-						<Button
-							id="cancel-password-management-settings"
-							onClick={onCancelPassword}
-							disabled={isSubmittingPassword}
-						>
-							{t('common.cancel')}
-						</Button>
-						<Button
-							id="submit-password-management-settings"
-							type="submit"
-							variant='primary'
-							disabled={isSubmittingPassword}
-						>
-							{t('common.submit')}
-						</Button>
-					</div>
-
-					{error &&
-						<p className="text-lm-red dark:text-dm-red mt-2">
-							{error}
-						</p>
-					}
-				</form>
-			</Dialog>
-		</>
+		<Button
+			id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
+			onClick={unlocked ? onLock : onBeginUnlock}
+			variant="primary"
+			disabled={inProgress || (!unlocked && !isOnline)}
+			ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
+			title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
+		>
+			<div className="flex items-center">
+				{unlocked
+					? <>
+						<LockOpen size={18} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.lockSensitive')}
+						</span>
+					</>
+					: <>
+						<Lock size={18} />
+						<span className='hidden md:block ml-2'>
+							{t('pageSettings.unlockSensitive')}
+						</span>
+					</>
+				}
+			</div>
+		</Button>
 	);
 };
 
@@ -584,7 +500,7 @@ const WebauthnCredentialItem = ({
 									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
 								</p>
 								<input
-									className="w-36 px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride"
+									className="w-36 px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
 
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
@@ -721,6 +637,7 @@ const Settings = () => {
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
+	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -934,7 +851,7 @@ const Settings = () => {
 							<H2 heading={t('pageSettings.title.language')} />
 							<div className="relative inline-block min-w-36">
 								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none" showName={true} />
+									<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none" showName={true} />
 								</div>
 							</div>
 						</div>
@@ -955,7 +872,7 @@ const Settings = () => {
 										{settings.colorScheme === 'system' && (screenType === 'desktop' ? <Laptop size={18} /> : <Smartphone size={18} />)}
 									</span>
 									<select
-										className="h-10 pl-10 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none"
+										className="h-10 pl-10 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none"
 										value={settings.colorScheme}
 										onChange={(e) => setColorScheme(e.target.value as ColorScheme)}
 									>
@@ -996,7 +913,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
 											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
 										>
@@ -1027,7 +944,7 @@ const Settings = () => {
 								<div className="relative inline-block min-w-36">
 									<div className="relative">
 										<select
-											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 text-lm-gray-900 dark:text-white rounded-lg dark:inputDarkModeOverride appearance-none`}
+											className={`h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 text-lm-gray-900 dark:text-white rounded-lg inputDarkModeOverride appearance-none`}
 											defaultValue={userData.settings.useOblivious}
 											onChange={(e) => handleObliviousChange(e.target.value)}
 											disabled={!isOnline}
@@ -1082,10 +999,15 @@ const Settings = () => {
 									<H3 heading={t('pageSettings.deleteAccount.title')}>
 										<UnlockMainKey
 											unlocked={unlocked}
-											onLock={() => setUnlocked(false)}
+											onLock={() => {
+												setUnlocked(false);
+												setUnlockMainKeyError('');
+											}}
 											onUnlock={() => setUnlocked(true)}
+											onUnlockErrorChange={setUnlockMainKeyError}
 										/>
 									</H3>
+									{unlockMainKeyError && <p className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
@@ -1165,8 +1087,8 @@ const Settings = () => {
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
 									onClick={onCancelUpgradePrfKey}
-									>
-										{t('common.cancel')}
+								>
+									{t('common.cancel')}
 								</Button>
 							</div>
 						</>
@@ -1180,13 +1102,13 @@ const Settings = () => {
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
 									onClick={onCancelUpgradePrfKey}
-									>
+								>
 									{t('common.cancel')}
 								</Button>
 								<Button
 									variant='primary'
 									onClick={() => onUpgradePrfKey(upgradePrfState.prfKeyInfo)}
-									>
+								>
 									{t('common.tryAgain')}
 								</Button>
 							</div>

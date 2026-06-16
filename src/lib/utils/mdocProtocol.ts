@@ -1,5 +1,4 @@
-import { cborEncode, getCborEncodeDecodeOptions, setCborEncodeDecodeOptions } from "@auth0/mdl/lib/cbor";
-import { DataItem } from "@auth0/mdl";
+import { cborEncode, DataItem } from "@owf/mdoc";
 
 export async function createSessionKey(rawPublic: ArrayBuffer, ephemeralKey: CryptoKeyPair) : Promise<CryptoKey> {
 	const importedVerifierPublicKey = await crypto.subtle.importKey(
@@ -165,9 +164,6 @@ export async function getKey(keyMaterial, salt, info) {
 }
 
 export function getSessionTranscriptBytes(deviceEngagementBytes, eReaderKeyBytes) {
-	const options = getCborEncodeDecodeOptions();
-	options.variableMapSize = true;
-	setCborEncodeDecodeOptions(options);
 	return cborEncode(DataItem.fromData([
 		deviceEngagementBytes, // DeviceEngagementBytes
 		eReaderKeyBytes, // EReaderKeyBytes

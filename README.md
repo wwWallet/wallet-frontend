@@ -76,7 +76,6 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `BASE_PATH`: Base path for asset loading (default is `/`). Used for sub-path deployments.
   - `WS_URL`: The URL of the websocket service.
   - `WALLET_BACKEND_URL`: The URL of your backend service.
-  - `LOGIN_WITH_PASSWORD`: A Boolean value which show/hide the classic login/signup.
   - `DID_KEY_VERSION`: DID key version format (e.g., `jwk_jcs-pub`).
   - `DISPLAY_CONSOLE`: Handle console logs (`true` or `false`). If left empty, it will be handled as `true`.
   - `WEBAUTHN_RPID`: WebAuthn relying party ID (when running locally, set to `localhost`). This must match the `config.webauthn.rp.id` setting in `wallet-backend-server`.
@@ -88,6 +87,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `MULTI_LANGUAGE_DISPLAY`: Enable or disable multi-language support (`true` or `false`). If left empty, it will be handled as `false`.
   - `STATIC_PUBLIC_URL`: The installation's public url.
   - `STATIC_NAME`: The installation's public name.
+  - `WALLET_TAGLINE`: Optional tagline displayed below the wallet name on the login page.
   - `I18N_WALLET_NAME_OVERRIDE`: String to override translations of common.walletName (Optional).
   - `FOLD_EVENT_HISTORY_AFTER_SECONDS`: Fold history events older than this value in seconds (default: 2592000 = 30 days).
   - `DISPLAY_ISSUANCE_WARNINGS`: Enable or disable (`true` or `false`) the display of the issuance warnings popup.
@@ -96,7 +96,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS`: Lifetime in seconds of transaction ID.
   - `OHTTP_KEY_CONFIG`: URL of OHTTP key config endpoint.
   - `OHTTP_RELAY`: URL of OHTTP relay endpoint.
-  - `VCT_REGISTRY_URL`: URL of the Type Metadata registry for SD-JWT VC credentials.
+  - `VCT_REGISTRY_URLS`: Comma-separated list of Type Metadata registry URLs for SD-JWT VC credentials.
   - `POLICY_LINKS`: Links to any TOS or other policies. This should be in the format `"<LABEL>::<URL>,<LABEL>::<URL>,<LABEL>::<URL>,..."` Can be left blank.
   - `SHOW_PWA_INSTALL_PROMPT`: Hide or show the PWA installation prompt on the login screen. Defaults to false if left blank or invalid.
 
@@ -194,7 +194,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Linux</td>
       <td>iOS</td>
       <td>Hybrid</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>❌</td>
       <td> </td>
     </tr>
@@ -210,8 +210,8 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Windows</td>
       <td>Windows</td>
       <td>Internal</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -251,7 +251,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -259,7 +259,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td>✅</td>
     </tr>
     <tr>
@@ -268,14 +268,14 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>USB</td>
       <td>✅</td>
       <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>Android</td>
       <td>Android</td>
       <td>Internal</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -283,7 +283,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>Android</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -291,7 +291,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>Hybrid</td>
       <td>✅</td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -299,7 +299,7 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>FIDO Security Key</td>
       <td>USB</td>
       <td>✅<sup>[1]</sup></td>
-      <td>❌</td>
+      <td>✅</td>
       <td> </td>
     </tr>
     <tr>
@@ -338,9 +338,9 @@ The PRF (Pseudo Random Function) extension in WebAuthn enables the evaluation of
       <td>iOS</td>
       <td>FIDO Security Key</td>
       <td>USB</td>
-      <td>❌</td>
-      <td>❌</td>
-      <td>❌</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
     </tr>
     <tr>
       <td>iOS</td>

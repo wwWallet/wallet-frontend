@@ -261,7 +261,7 @@ input:-webkit-autofill {
 }
 
 @layer components {
-	.inputDarkModeOverride:-webkit-autofill {
+	.dark .inputDarkModeOverride:-webkit-autofill {
 		-webkit-box-shadow: 0 0 0 30px rgb(70, 70, 70) inset !important;
 		-webkit-text-fill-color: white;
 	}
