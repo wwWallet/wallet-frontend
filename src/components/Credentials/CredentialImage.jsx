@@ -4,6 +4,7 @@ import UsagesRibbon from "./UsagesRibbon";
 import DefaultCred from "../../assets/images/cred.png";
 import { CredentialCardSkeleton } from '../Skeletons';
 import { useTranslation } from 'react-i18next';
+import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
 
 const CredentialImage = ({
 	vcEntity,
@@ -72,7 +73,7 @@ const CredentialImage = ({
 						{showRibbon &&
 							<ExpiredRibbon vcEntity={vcEntity} borderColor={borderColor} />
 						}
-						{showRibbon &&
+						{showRibbon && DISPLAY_CREDENTIAL_USAGES &&
 							<UsagesRibbon vcEntityInstances={vcEntityInstances} borderColor={borderColor} />
 						}
 					</div>
