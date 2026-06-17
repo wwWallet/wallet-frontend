@@ -12,7 +12,7 @@ import { buildOpenId4VpSessionTranscriptBytes } from "wallet-common";
 import { SDJwt } from "@sd-jwt/core";
 import { withHintsFromAllowCredentials } from "@/util-webauthn";
 import { addDeleteKeypairEvent, addNewKeypairEvent, CurrentSchema, foldState, SchemaV1, SchemaV2, SchemaV3 } from "./WalletStateSchema";
-import { createDeviceResponseForPresentationDefinition, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
+import { createDeviceResponseForDcql, extractDevicePublicKeyJwkFromMdoc, type MDoc } from "../utils/mdocHolderContext";
 
 type WalletState = CurrentSchema.WalletState;
 type WalletStateContainerV2 = SchemaV2.WalletStateContainer;
@@ -1080,7 +1080,8 @@ export async function generateKeypairs(
 export async function generateDeviceResponse(
 	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState],
 	mdocCredential: MDoc,
-	presentationDefinition: any,
+	dcqlQuery: any,
+	selectedCredentialId: string,
 	nonce: string,
 	clientId: string,
 	responseUri: string,
@@ -1123,9 +1124,10 @@ export async function generateDeviceResponse(
 	const uint8ArrayToHexString = (uint8Array: Uint8Array) => Array.from(uint8Array, byte => byte.toString(16).padStart(2, '0')).join('');
 	console.log("Session transcript bytes (HEX): ", uint8ArrayToHexString(new Uint8Array(sessionTranscriptBytes)));
 
-	const deviceResponseMDoc = await createDeviceResponseForPresentationDefinition({
+	const deviceResponseMDoc = await createDeviceResponseForDcql({
 		mdocCredential,
-		presentationDefinition,
+		dcqlQuery,
+		selectedCredentialId,
 		sessionTranscript: sessionTranscriptBytes,
 		privateKeyJwk: privateKeyJwk as JWK,
 		alg,
@@ -1137,7 +1139,7 @@ export async function generateDeviceResponse(
 export async function generateDeviceResponseWithProximity(
 	[privateData, mainKey, calculatedState]: [PrivateData, CryptoKey, WalletState],
 	mdocCredential: MDoc,
-	presentationDefinition: any,
+	dcqlQuery: any,
 	sessionTranscriptBytes: any
 ): Promise<{ deviceResponseMDoc: MDoc }> {
 	const devicePublicKeyJwk = extractDevicePublicKeyJwkFromMdoc(mdocCredential);
@@ -1152,9 +1154,9 @@ export async function generateDeviceResponseWithProximity(
 	const { alg, privateKey } = keypair.keypair;
 	const privateKeyJwk = privateKey;
 
-	const deviceResponseMDoc = await createDeviceResponseForPresentationDefinition({
+	const deviceResponseMDoc = await createDeviceResponseForDcql({
 		mdocCredential,
-		presentationDefinition,
+		dcqlQuery,
 		sessionTranscript: sessionTranscriptBytes as Uint8Array,
 		privateKeyJwk: privateKeyJwk as JWK,
 		alg,

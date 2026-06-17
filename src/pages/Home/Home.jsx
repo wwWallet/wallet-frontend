@@ -51,13 +51,12 @@ const Home = () => {
 		<>
 			<div className="w-full">
 				<div className="px-6 sm:px-12">
-					<div className='flex items-center justify-between gap-3'>
+					<div className='flex items-center justify-between gap-3 mb-2'>
 						<H1 heading={t('common.navItemCredentials')} />
 						{screenType !== "desktop" && vcEntityList?.length > 1 && (
 							<ViewSelect value={mobileVcHomeView} onChange={(v) => setView(v)} />
 						)}
 					</div>
-					<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 					{(pendingTransactions?.length > 0) && (
 						<PendingTransactionsBanner
 							pendingTransactions={pendingTransactions}

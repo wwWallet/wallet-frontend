@@ -8,6 +8,7 @@ import SessionContext, { SessionContextValue } from './SessionContext';
 import { useLocalStorage, useSessionStorage } from '@/hooks/useStorage';
 import { fetchKeyConfig, HpkeConfig } from '@/lib/utils/ohttpHelpers';
 import { OHTTP_KEY_CONFIG } from '@/config';
+import { setAppBadgeCount } from '@/utils';
 
 export const SessionContextProvider = ({ children }: React.PropsWithChildren) => {
 	const { isOnline } = useContext(StatusContext);
@@ -27,13 +28,18 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 
 
 	// Use a ref to hold a stable reference to the clearSession function
-	const clearSessionRef = useRef<() => void>();
+	const clearSessionRef = useRef<(preserveUrlParams?: boolean) => void>();
 
 	// Memoize clearSession using useCallback
-	const clearSession = useCallback(async () => {
-		window.history.replaceState({}, '', `${window.location.pathname}`);
+	const clearSession = useCallback(async (preserveUrlParams: boolean = false) => {
+		// Keep search params so a pending flow can continue after a
+		// cross-tab logout; otherwise clean up the URL.
+		if (!(preserveUrlParams && window.location.search)) {
+			window.history.replaceState({}, '', window.location.pathname);
+		}
 		console.log('[Session Context] Clear Session');
 		api.clearSession();
+		await setAppBadgeCount(0);
 	}, [api]);
 
 	// Update the ref whenever clearSession changes
@@ -49,9 +55,10 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 
 	useEffect(() => {
 		// Handler function that calls the current clearSession function
-		const handleClearSession = () => {
+		const handleClearSession = (event: Event) => {
+			const preserveUrlParams = (event as CustomEvent)?.detail?.preserveUrlParams ?? false;
 			if (clearSessionRef.current) {
-				clearSessionRef.current();
+				clearSessionRef.current(preserveUrlParams);
 			}
 		};
 
@@ -93,7 +100,8 @@ export const SessionContextProvider = ({ children }: React.PropsWithChildren) =>
 
 	useEffect(() => {
 		if (api && keystore && api.isLoggedIn() === true && keystore.isOpen() === false && ((tabId && globalTabId && tabId !== globalTabId) || (!tabId && globalTabId))) {
-			clearSession();
+			// Fallback for the initial-mount race with the event listener below.
+			clearSession(true);
 		}
 	}, [globalTabId, tabId, clearSession, api, keystore]);
 

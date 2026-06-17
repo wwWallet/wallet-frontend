@@ -30,16 +30,13 @@ function withDefaults(defaults: DefaultableProps, Component: React.ComponentType
 }
 
 
-export const H1 = withDefaults(defaults, (props: Props) => (
-	<>
-		<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
-			<h1 className={`text-2xl mb-2 font-bold ${props.textColorClass}`}>
-				{props.heading}
-			</h1>
-			{props.children}
-		</div>
-		{props.hr && <hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />}
-	</>
+export const H1 = withDefaults({ ...defaults, hr: false }, (props: Props) => (
+	<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
+		<h1 className={`text-2xl font-bold ${props.textColorClass}`}>
+			{props.heading}
+		</h1>
+		{props.children}
+	</div>
 ));
 
 export const H2 = withDefaults({

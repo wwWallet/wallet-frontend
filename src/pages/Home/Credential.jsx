@@ -183,7 +183,7 @@ const Credential = () => {
 
 		<CredentialLayout title={credentialName} fixedRatioImage={false} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
 			<>
-				<div className="w-full pt-2 px-2">
+				<div className="w-full pt-2">
 					{screenType !== 'mobile' ? (
 						<CredentialTabsPanel tabs={infoTabs} />
 					) : (

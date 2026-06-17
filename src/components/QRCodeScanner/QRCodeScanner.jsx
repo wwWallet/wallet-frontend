@@ -189,12 +189,12 @@ const QRScanner = ({ onClose }) => {
 								<button
 									id="close-qr-code-scanner-mobile"
 									onClick={handleClose}
-									className="mr-2 mb-2"
+									className="mr-2"
 									aria-label="Go back to the previous page"
 								>
 									<ArrowLeft size={20} className="text-2xl text-lm-gray-900 dark:text-dm-gray-100" />
 								</button>
-								<H1 heading={t('qrCodeScanner.title')} hr={false} />
+								<H1 heading={t('qrCodeScanner.title')} />
 							</div>
 						) : (
 							<div className="flex items-start justify-between border-b rounded-t border-lm-gray-400 dark:border-dm-gray-600">

@@ -57,7 +57,7 @@ function HistoryListView({ batchId = null, title = '', limit = null, history = {
 
 	return (
 		<>
-			<div className="py-2 w-full">
+			<div className="py-2 mt-2 w-full">
 				{title && groups.length > 0 && <H3 heading={title} />}
 				<div className="space-y-2">
 					{(limit ? sorted.slice(0, limit) : sorted).map(item => (

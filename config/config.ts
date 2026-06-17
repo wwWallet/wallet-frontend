@@ -24,6 +24,7 @@ export const ClientEnvConfigSchema = z.object({
 	// If in a multi-tenancy setup, these *should* likely differ between tenants.
 	STATIC_PUBLIC_URL: z.string().optional(),
 	STATIC_NAME: z.string().optional(),
+	WALLET_TAGLINE: z.string().optional(),
 	I18N_WALLET_NAME_OVERRIDE: z.string().optional(),
 	OPENID4VCI_REDIRECT_URI: z.string().optional(),
 
@@ -45,7 +46,7 @@ export const ClientEnvConfigSchema = z.object({
 	OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS: z.string().optional(),
 	OHTTP_KEY_CONFIG: z.string().optional(),
 	OHTTP_RELAY: z.string().optional(),
-	VCT_REGISTRY_URL: z.string().optional(),
+	VCT_REGISTRY_URLS: z.string().optional(),
 	POLICY_LINKS: z.string().optional(),
 	SHOW_PWA_INSTALL_PROMPT: z.string().optional(),
 });
