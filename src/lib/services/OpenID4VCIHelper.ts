@@ -15,22 +15,43 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(
-		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false): Promise<T> {
+		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false):
+			Promise<
+				{
+					success: true,
+					data: T
+				} |
+				{
+					success: false,
+					error: Error
+				}
+			> {
 			try {
-				const response = await httpProxy.get(path, {"Accept": "application/json"}, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
-				if (!response) throw new Error("Couldn't get response");
-
+				const response = await httpProxy.get(path, { "Accept": "application/json" }, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
+				if (!response) {
+					return {
+						success: false,
+						error: new Error("Couldn't get response")
+					}
+				}
 				const result = schema.safeParse(response.data);
 
 				if (!result.success) {
-					console.warn(`Schema validation failed for ${path}:`, result.error.issues);
-					throw new Error("Invalid response schema");
+					return {
+						success: false,
+						error: new Error(`Invalid response schema. Validation issues: ${result.error}`)
+					}
 				}
 
-				return result.data;
+				return {
+					success: true,
+					data: result.data
+				}
 			} catch (err) {
-				console.error(`Error fetching from ${path}:`, err);
-				throw new Error(`Couldn't get data from ${path}`);
+				return {
+					success: false,
+					error: err
+				}
 			}
 		}, [httpProxy])
 
@@ -89,45 +110,44 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	 * Attempts to fetch metadata from multiple endpoint paths with fallback logic.
 	 * Returns the first successful response or null if all attempts fail.
 	 */
-const fetchDataWithSchemaWithFallback = useCallback(
-	async function fetchDataWithSchemaWithFallback<T>(
-		endpointPaths: string[],
-		schema: any,
-		useCache?: boolean
-	): Promise<T | null> {
-		const errors: Array<{ path: string; error: Error }> = [];
+	const fetchDataWithSchemaWithFallback = useCallback(
+		async function fetchDataWithSchemaWithFallback<T>(
+			endpointPaths: string[],
+			schema: any,
+			useCache?: boolean
+		): Promise<T | null> {
+			const errors: Array<{ path: string; error: Error }> = [];
 
-		for (const path of endpointPaths) {
-			try {
-				return await fetchAndParseWithSchema<T>(
+			for (const path of endpointPaths) {
+				const response = await fetchAndParseWithSchema<T>(
 					path,
 					schema,
 					useCache,
 					useCache === false
 				);
-			} catch (err) {
-				const error =
-					err instanceof Error ? err : new Error(String(err));
 
-				errors.push({ path, error });
+				if (response.success === true) {
+					return response.data;
+				} else {
+					errors.push({ path, error: response.error });
+				}
 			}
-		}
 
-		if (errors.length > 0) {
-			const errorMessages = errors
-				.map(e => `${e.path}: ${e.error.message}`)
-				.join("; ");
+			if (errors.length > 0) {
+				const errorMessages = errors
+					.map(e => `${e.path}: ${e.error.message}`)
+					.join("; ");
 
-			console.error(
-				"All metadata endpoints failed:",
-				errorMessages
-			);
-		}
+				console.error(
+					"All metadata endpoints failed:",
+					errorMessages
+				);
+			}
 
-		return null;
-	},
-	[fetchAndParseWithSchema]
-);
+			return null;
+		},
+		[fetchAndParseWithSchema]
+	);
 
 	/**
 	 * Retrieves credential issuer metadata with signature verification if present.
@@ -151,13 +171,13 @@ const fetchDataWithSchemaWithFallback = useCallback(
 
 			// If signed metadata is present, verify it and return the verified payload
 			if (metadata.signed_metadata) {
-					const verifiedMetadata = await verifySignedMetadata(metadata.signed_metadata);
-					if (verifiedMetadata) {
-						return { metadata: verifiedMetadata };
-					} else {
-						console.warn('Signed metadata verification failed.');
-						return { metadata: null };
-					}
+				const verifiedMetadata = await verifySignedMetadata(metadata.signed_metadata);
+				if (verifiedMetadata) {
+					return { metadata: verifiedMetadata };
+				} else {
+					console.warn('Signed metadata verification failed.');
+					return { metadata: null };
+				}
 			}
 
 			return { metadata };
@@ -229,7 +249,13 @@ const fetchDataWithSchemaWithFallback = useCallback(
 						MdocIacasResponseSchema,
 						useCache
 					);
-					return response;
+
+					if (response.success === true) {
+						return response.data;
+					} else {
+						console.error(response.error);
+						return null;
+					}
 				}
 				return null;
 			}
