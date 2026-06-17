@@ -99,6 +99,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `VCT_REGISTRY_URLS`: Comma-separated list of Type Metadata registry URLs for SD-JWT VC credentials.
   - `POLICY_LINKS`: Links to any TOS or other policies. This should be in the format `"<LABEL>::<URL>,<LABEL>::<URL>,<LABEL>::<URL>,..."` Can be left blank.
   - `SHOW_PWA_INSTALL_PROMPT`: Hide or show the PWA installation prompt on the login screen. Defaults to false if left blank or invalid.
+  - `DISPLAY_CREDENTIAL_USAGES`: Hide or show the credential usage ribbon and usage count on credential cards/details. Defaults to false (hidden) if left blank or invalid.
 
   **Well-known file generation:**
   - `WELLKNOWN_APPLE_APPIDS`: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.

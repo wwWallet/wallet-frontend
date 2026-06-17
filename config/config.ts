@@ -49,6 +49,7 @@ export const ClientEnvConfigSchema = z.object({
 	VCT_REGISTRY_URLS: z.string().optional(),
 	POLICY_LINKS: z.string().optional(),
 	SHOW_PWA_INSTALL_PROMPT: z.string().optional(),
+	DISPLAY_CREDENTIAL_USAGES: z.string().optional(),
 });
 export type ClientEnvConfig = z.infer<typeof ClientEnvConfigSchema>;
 

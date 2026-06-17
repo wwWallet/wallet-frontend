@@ -9,6 +9,9 @@ import useScreenType from '@/hooks/useScreenType';
 import { useVcEntity } from '@/hooks/useVcEntity';
 import { useCredentialName } from '@/hooks/useCredentialName';
 
+// Config
+import { DISPLAY_CREDENTIAL_USAGES } from '@/config';
+
 // Contexts
 import CredentialsContext from '@/context/CredentialsContext';
 
@@ -102,7 +105,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 					fixedRatioImage={screenType === 'desktop'}
 					preferredOrientation={screenType === 'desktop' ? 'landscape' : 'portrait'}
 				/>
-				{zeroSigCount !== null && sigTotal && (
+				{DISPLAY_CREDENTIAL_USAGES && zeroSigCount !== null && sigTotal && (
 					<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
 				)}
@@ -127,7 +130,7 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 			<div className="flex flex-row items-center gap-5 px-2">
 				<div className='flex flex-col gap-4 w-4/5 xm:w-4/12'>
 					<CredentialImageButton showRibbon={false} fixedRatioImage={fixedRatioImage} />
-					{screenType !== 'mobile' && zeroSigCount !== null && sigTotal && (
+					{DISPLAY_CREDENTIAL_USAGES && screenType !== 'mobile' && zeroSigCount !== null && sigTotal && (
 						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
 
 					)}
@@ -135,8 +138,9 @@ const CredentialLayout = ({ children, title = null, displayCredentialInfo = null
 				{screenType === 'mobile' && (
 					<div className='flex flex-start flex-col gap-1'>
 						<p className='text-xl font-bold text-lm-gray-900 dark:text-dm-gray-100'>{credentialName}</p>
-						<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
-
+						{DISPLAY_CREDENTIAL_USAGES && (
+							<UsageStats zeroSigCount={zeroSigCount} sigTotal={sigTotal} screenType={screenType} t={t} />
+						)}
 					</div>
 				)}
 			</div>
