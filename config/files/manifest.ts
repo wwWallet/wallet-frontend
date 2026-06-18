@@ -143,6 +143,24 @@ function generateManifest({ hash, name, icons }: GenerateManifestOptions): Parti
 		'background_color': '#ffffff',
 		'scope': '/',
 		'dir': 'ltr',
-		'lang': 'en'
+		'lang': 'en',
+		'protocol_handlers': [
+			{
+				'protocol': 'openid-credential-offer',
+				'url': '/?%s'
+			},
+			{
+				'protocol': 'haip-vci',
+				'url': '/?%s'
+			},
+			{
+				'protocol': 'openid4vp',
+				'url': '/?%s'
+			},
+			{
+				'protocol': 'haip-vp',
+				'url': '/?%s'
+			}
+		]
 	};
 }
