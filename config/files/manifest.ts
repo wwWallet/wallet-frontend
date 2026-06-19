@@ -24,7 +24,7 @@ export default async function brandingManifest(destDir: string, config: EnvConfi
 
 	const manifest = generateManifest({
 		hash: brandingHash,
-		name: config.STATIC_NAME || 'wwWallet',
+		name: config.WALLET_NAME || 'wwWallet',
 		icons,
 	});
 

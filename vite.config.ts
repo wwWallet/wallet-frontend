@@ -15,7 +15,7 @@ export default defineConfig(async ({ mode }) => {
 	const brandingHash = getBrandingHash(resolve('branding'));
 	const manifestRevision = getManifestRevision({
 		brandingHash,
-		name: env.STATIC_NAME || 'wwWallet',
+		name: env.WALLET_NAME || 'wwWallet',
 	});
 
 	mkdirSync(resolve('public'), { recursive: true });
