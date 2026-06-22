@@ -6,7 +6,7 @@ import { useCallback, useContext, useMemo } from "react";
 import SessionContext from "@/context/SessionContext";
 import { MdocIacasResponse, MdocIacasResponseSchema, prependToPath } from "wallet-common"
 import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadataSchema } from 'wallet-common';
-import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
+import type { Grant, GrantType, OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
 
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
@@ -15,24 +15,81 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(
-		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false): Promise<T> {
-			try {
-				const response = await httpProxy.get(path, {"Accept": "application/json"}, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
-				if (!response) throw new Error("Couldn't get response");
-
-				const result = schema.safeParse(response.data);
-
-				if (!result.success) {
-					console.warn(`Schema validation failed for ${path}:`, result.error.issues);
-					throw new Error("Invalid response schema");
-				}
-
-				return result.data;
-			} catch (err) {
-				console.error(`Error fetching from ${path}:`, err);
-				throw new Error(`Couldn't get data from ${path}`);
+		async function fetchAndParseWithSchema<T>(
+			paths: string | string[],
+			schema: any,
+			options?: {
+				useCache?: boolean;
+				cacheOnError?: boolean;
+				condition?: (result: T) => boolean | Promise<boolean>;
+				fallback?: boolean;
 			}
-		}, [httpProxy])
+		): Promise<T | null> {
+			const {
+				useCache = true,
+				cacheOnError = false,
+				condition,
+				fallback = Array.isArray(paths),
+			} = options ?? {};
+
+			const endpointPaths = Array.isArray(paths) ? paths : [paths];
+
+			console.log(endpointPaths);
+
+			const errors: Array<{ path: string; error: Error }> = [];
+
+			for (const path of endpointPaths) {
+				try {
+					const response = await httpProxy.get(
+						path,
+						{ Accept: "application/json" },
+						{
+							useCache,
+							cacheOnError,
+						}
+					);
+
+					if (!response) {
+						throw new Error("Couldn't get response");
+					}
+
+					const result = schema.safeParse(response.data);
+
+					if (!result.success) {
+						console.warn(`Schema validation failed for ${path}:`, result.error.issues);
+						throw new Error("Invalid response schema");
+					}
+
+					const data = result.data as T;
+
+					if (condition && !(await condition(data))) {
+						throw new Error("Result did not conform to given condition.");
+					}
+
+					return data;
+				} catch (err) {
+					const error =
+						err instanceof Error ? err : new Error(String(err));
+
+					errors.push({ path, error });
+
+					if (!fallback) {
+						break;
+					}
+				}
+			}
+
+			if (errors.length > 0) {
+				console.error(
+					"All metadata endpoints failed:",
+					errors.map(e => `${e.path}: ${e.error.message}`).join("; ")
+				);
+			}
+
+			return null;
+		},
+		[httpProxy]
+	);
 
 	/**
 	 * Decodes and validates the JWT header from a signed metadata string.
@@ -86,50 +143,6 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	);
 
 	/**
-	 * Attempts to fetch metadata from multiple endpoint paths with fallback logic.
-	 * Returns the first successful response or null if all attempts fail.
-	 */
-const fetchDataWithSchemaWithFallback = useCallback(
-	async function fetchDataWithSchemaWithFallback<T>(
-		endpointPaths: string[],
-		schema: any,
-		useCache?: boolean
-	): Promise<T | null> {
-		const errors: Array<{ path: string; error: Error }> = [];
-
-		for (const path of endpointPaths) {
-			try {
-				return await fetchAndParseWithSchema<T>(
-					path,
-					schema,
-					useCache,
-					useCache === false
-				);
-			} catch (err) {
-				const error =
-					err instanceof Error ? err : new Error(String(err));
-
-				errors.push({ path, error });
-			}
-		}
-
-		if (errors.length > 0) {
-			const errorMessages = errors
-				.map(e => `${e.path}: ${e.error.message}`)
-				.join("; ");
-
-			console.error(
-				"All metadata endpoints failed:",
-				errorMessages
-			);
-		}
-
-		return null;
-	},
-	[fetchAndParseWithSchema]
-);
-
-	/**
 	 * Retrieves credential issuer metadata with signature verification if present.
 	 * Falls back between standard and legacy endpoint paths.
 	 */
@@ -144,7 +157,11 @@ const fetchDataWithSchemaWithFallback = useCallback(
 				`${credentialIssuerIdentifier}/.well-known/openid-configuration`,
 			];
 
-			const metadata = await fetchDataWithSchemaWithFallback<OpenidCredentialIssuerMetadata>(endpointPaths, OpenidCredentialIssuerMetadataSchema, useCache);
+			const metadata = await fetchAndParseWithSchema<OpenidCredentialIssuerMetadata>(
+				endpointPaths,
+				OpenidCredentialIssuerMetadataSchema,
+				{ useCache }
+			);
 			if (!metadata) {
 				return null;
 			}
@@ -162,36 +179,76 @@ const fetchDataWithSchemaWithFallback = useCallback(
 
 			return { metadata };
 		},
-		[fetchDataWithSchemaWithFallback, verifySignedMetadata]
+		[fetchAndParseWithSchema, verifySignedMetadata]
 	);
+
+	const supportsGivenGrantType = (metadata: OpenidAuthorizationServerMetadata, grantType: GrantType | null): boolean => {
+		if (grantType && metadata.grant_types_supported && !metadata.grant_types_supported.includes(grantType)) {
+			throw new Error(`Authorization server does not support grant type ${grantType}`);
+		}
+		return true;
+	}
+
+	const generateWellKnownEndpointsForPath = (path: string): string[] => {
+		const wellKnownOauthAuthorizationServer = ".well-known/oauth-authorization-server";
+		const wellKnownOpenidConfiguration = ".well-known/openid-configuration";
+
+		const prependedPath = prependToPath(path, wellKnownOauthAuthorizationServer);
+		const nonPrependedPath = `${path}/${wellKnownOauthAuthorizationServer}`;
+
+		const oauthAuthorizationServerPaths = [prependedPath]
+		if(prependedPath !== nonPrependedPath) {
+			oauthAuthorizationServerPaths.push(nonPrependedPath);
+		}
+
+		return [
+			...oauthAuthorizationServerPaths,
+			`${path}/${wellKnownOpenidConfiguration}`,
+		];
+	}
 
 	// Fetches authorization server metadata with fallback
 	// According to OpenID4VCI 1.0, section 12.2.4, paragraph 2.2, the authorization server is to be fetched from the credential issuer metadata.
 	// If not available from metadata, then the issuer is imlplied to also act as the authorization server.
 	const getAuthorizationServerMetadata = useCallback(
-		async (credentialIssuerIdentifier: string, useCache?: boolean): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
-			const wellKnownOauthAuthorizationServer = ".well-known/oauth-authorization-server";
-			const wellKnownOpenidConfiguration = ".well-known/openid-configuration";
+		async (credentialIssuerIdentifier: string, grant?: Grant, useCache?: boolean): Promise<{ authzServerMetadata: OpenidAuthorizationServerMetadata } | null> => {
 
-			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
-			const authorizationServerIdentifierFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
-				metadata.authorization_servers[0] :
-				null;
-			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
+			const credentialIssuerMetadataResponse = await getCredentialIssuerMetadata(credentialIssuerIdentifier, useCache);
+			if (credentialIssuerMetadataResponse === null) {
+				throw new Error(`Failed to fetch credential issuer metadata for ${credentialIssuerIdentifier}`);
+			}
+			const credentialIssuerMetadata = credentialIssuerMetadataResponse.metadata;
+			const credentialIssuerMetadataAuthorizationServers = credentialIssuerMetadata.authorization_servers || [];
+			const grantType: GrantType | null = grant ? Object.keys(grant)[0] as GrantType : null;
+			const credentialOfferAuthzServer: string | null = grantType ? grant[grantType].authorization_server : null;
 
-			const endpointPaths = [
-				prependToPath(authorizationServerIdentifierFromCredentialIssuerMetadata, wellKnownOauthAuthorizationServer),
-				`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOauthAuthorizationServer}`,
-				`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOpenidConfiguration}`,
-				prependToPath(credentialIssuerIdentifier, wellKnownOauthAuthorizationServer),
-				`${credentialIssuerIdentifier}/${wellKnownOauthAuthorizationServer}`,
-				`${credentialIssuerIdentifier}/${wellKnownOpenidConfiguration}`
-			];
-			authzServerMetadata = await fetchDataWithSchemaWithFallback<OpenidAuthorizationServerMetadata>(endpointPaths, OpenidAuthorizationServerMetadataSchema, useCache);
+			const authorizationServers: string[] = [];
+			if (credentialOfferAuthzServer) {
+				if (!credentialIssuerMetadataAuthorizationServers.includes(credentialOfferAuthzServer)) {
+					throw new Error(`Credential offer authorization server ${credentialOfferAuthzServer} not found in credential issuer metadata authorization_servers`);
+				}
+				authorizationServers.push(credentialOfferAuthzServer);
+			}
+			else {
+				authorizationServers.push(...credentialIssuerMetadataAuthorizationServers);
+				authorizationServers.push(credentialIssuerIdentifier);
+			}
+
+			const endpointPaths = authorizationServers
+				.flatMap(generateWellKnownEndpointsForPath);
+
+			const authzServerMetadata = await fetchAndParseWithSchema<OpenidAuthorizationServerMetadata>(
+				endpointPaths,
+				OpenidAuthorizationServerMetadataSchema,
+				{
+					condition: (result) => supportsGivenGrantType(result, grantType),
+					useCache
+				}
+			);
 
 			return authzServerMetadata ? { authzServerMetadata } : null;
 		},
-		[fetchDataWithSchemaWithFallback, getCredentialIssuerMetadata]
+		[fetchAndParseWithSchema, getCredentialIssuerMetadata]
 	);
 
 	const getClientId = useCallback(
@@ -227,7 +284,7 @@ const fetchDataWithSchemaWithFallback = useCallback(
 					const response = await fetchAndParseWithSchema<MdocIacasResponse>(
 						`${metadata.mdoc_iacas_uri}`,
 						MdocIacasResponseSchema,
-						useCache
+						{ useCache }
 					);
 					return response;
 				}
@@ -258,7 +315,7 @@ const fetchDataWithSchemaWithFallback = useCallback(
 					const metadata = metadataResult?.metadata;
 					if (!metadata) return;
 
-					await getAuthorizationServerMetadata(entity.credentialIssuerIdentifier, shouldUseCache);
+					await getAuthorizationServerMetadata(entity.credentialIssuerIdentifier, undefined, shouldUseCache);
 
 					// Call a callback to update state when metadata resolves.
 					onIssuerMetadataResolved?.(entity.credentialIssuerIdentifier, metadata);
