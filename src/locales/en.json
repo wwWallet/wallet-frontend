@@ -281,11 +281,14 @@
 			"successMessage": "Saved"
 		},
 		"title": {
+			"account": "Account",
 			"appVersion": "App Version",
 			"confirmDeletePopup": "Are You Sure?",
+			"general": "General",
 			"language": "Language",
 			"loggedInPasskey": "Logged in Passkey",
 			"manageOtherPasskeys": "Manage other Passkeys",
+			"privacy": "Privacy",
 			"rememberIssuer": "Remember Issuer"
 		},
 		"unlockSensitive": "Unlock sensitive actions",

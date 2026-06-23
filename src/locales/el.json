@@ -212,11 +212,14 @@
 			"successMessage": "Αποθηκεύτηκε"
 		},
 		"title": {
+			"account": "Λογαριασμός",
 			"appVersion": "Έκδοση Εφαρμογής",
 			"confirmDeletePopup": "Είστε Σίγουροι;",
+			"general": "Γενικά",
 			"language": "Γλώσσα",
 			"loggedInPasskey": "Συνδεδεμένο Κλειδί Πρόσβασης",
 			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
+			"privacy": "Απόρρητο",
 			"rememberIssuer": "Remember Issuer"
 		},
 		"upgradePrfKey": {

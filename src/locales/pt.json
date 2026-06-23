@@ -206,11 +206,14 @@
 			"successMessage": "Guardado"
 		},
 		"title": {
+			"account": "Conta",
 			"appVersion": "Versão da aplicação",
 			"confirmDeletePopup": "Tem a certeza?",
+			"general": "Geral",
 			"language": "Idioma",
 			"loggedInPasskey": "Chave de acesso autenticada",
 			"manageOtherPasskeys": "Gerir outras chaves de acesso",
+			"privacy": "Privacidade",
 			"rememberIssuer": "Relembrar issuer"
 		},
 		"upgradePrfKey": {
