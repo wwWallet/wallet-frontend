@@ -14,13 +14,15 @@ import { serializePrivateData } from '../../services/keystore';
 
 import DeletePopup from '../../components/Popups/DeletePopup';
 import Button from '../../components/Buttons/Button';
-import { H1, H2, H3 } from '../../components/Shared/Heading';
+import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Laptop, Moon, Smartphone, Sun, Trash2 } from 'lucide-react';
+import { Bell, Clock, Fingerprint, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, Smartphone, Sun, SunMoon, Trash2 } from 'lucide-react';
 import { APP_VERSION } from '@/config';
 
 import Dialog from './components/Dialog';
+import SettingsSection from './components/SettingsSection';
+import SettingsRow from './components/SettingsRow';
 import SettingsSelect from './components/SettingsSelect';
 import WebauthnRegistration from './components/WebauthnRegistration';
 import UnlockMainKey from './components/UnlockMainKey';
@@ -265,191 +267,182 @@ const Settings = () => {
 						<H1 heading={t('common.navItemSettings')} />
 						<PageDescription description={t('pageSettings.description')} />
 
-						<div className="my-2 py-2">
-							<H2 heading={t('pageSettings.title.language')} />
-							<div className="relative inline-block min-w-36">
-								<div className="relative">
-									<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none" showName={true} />
-								</div>
-							</div>
-						</div>
-						<div className="my-2 py-2">
-							<H2 heading={t('pageSettings.appearance.title')} />
-							<div className='pt-4'>
-								<H3 heading={t('pageSettings.appearance.colorScheme.title')}>
-								</H3>
-								<p className='mb-2 dark:text-white'>
-									{t('pageSettings.appearance.colorScheme.description')}
-								</p>
-							</div>
-							<div className="flex gap-2">
-								<SettingsSelect
-									icon={colorSchemeIcon}
-									value={settings.colorScheme}
-									onChange={(e) => setColorScheme(e.target.value as ColorScheme)}
-								>
-									<option value="system">
-										{t('pageSettings.appearance.colorScheme.system')}
-									</option>
-									<option value="light">
-										{t('pageSettings.appearance.colorScheme.light')}
-									</option>
-									<option value="dark">
-										{t('pageSettings.appearance.colorScheme.dark')}
-									</option>
-								</SettingsSelect>
-							</div>
-						</div>
-						<div className="my-2 py-2">
-							<H2 heading={t('pageSettings.title.loggedInPasskey')} />
-							{loggedInPasskey && (
-								<WebauthnCredentialItem
-									key={loggedInPasskey.id}
-									credential={loggedInPasskey}
-									prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
-									onRename={onRenameWebauthnCredential}
-									onUpgradePrfKey={onUpgradePrfKey}
-								/>
-							)}
-						</div>
-						<div className="my-2 py-2">
-							<H2 heading={t('pageSettings.title.rememberIssuer')} />
-							<p className='mb-2 dark:text-white'>
-								{t('pageSettings.rememberIssuer.description')}
-							</p>
-							<div className='flex gap-2 items-center'>
-								<SettingsSelect
-									defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
-									onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
-								>
-									<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
-									<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
-									<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
-									<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
-									<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
-								</SettingsSelect>
-								{successMessage && (
-									<div className="text-md text-lm-green dark:text-dm-green">
-										{successMessage}
+						<div className="flex flex-col gap-4 mt-4">
+							<SettingsSection title={t('pageSettings.title.language')} icon={<Languages size={18} />}>
+								<SettingsRow description={t('pageSettings.language.description')}>
+									<div className="relative inline-block min-w-36">
+										<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none" showName={true} />
 									</div>
-								)}
-							</div>
-						</div>
-						<div className="my-2 py-2">
-							<H2 heading={t('pageSettings.oblivious.title')} />
-							<p className='mb-2 dark:text-white'>
-								{t('pageSettings.oblivious.description')}
-							</p>
-							<div className='flex gap-2 items-center'>
-								<SettingsSelect
-									defaultValue={userData.settings.useOblivious}
-									onChange={(e) => handleObliviousChange(e.target.value)}
-									disabled={!isOnline}
-									title={!isOnline ? t("common.offlineTitle") : undefined}
+								</SettingsRow>
+							</SettingsSection>
+
+							<SettingsSection title={t('pageSettings.appearance.title')} icon={<SunMoon size={18} />}>
+								<SettingsRow
+									title={t('pageSettings.appearance.colorScheme.title')}
+									description={t('pageSettings.appearance.colorScheme.description')}
 								>
-									<option value="false">{t('pageSettings.oblivious.disabled')}</option>
-									<option value="true">{t('pageSettings.oblivious.gunet')}</option>
-								</SettingsSelect>
-								{obliviousSettingsMessage && (
-									<div className="text-md text-lm-green dark:text-lm-green">
-										{obliviousSettingsMessage}
-									</div>
-								)}
-							</div>
-						</div>
-						<div className="mt-2 mb-2 py-2">
-							<H2 heading={t('pageSettings.title.manageAcount')}>
-							</H2>
-							<div className='mb-2'>
-								<div className="pt-4">
-									<H3 heading={t('pageSettings.title.manageOtherPasskeys')}>
-									</H3>
-									<WebauthnRegistration onSuccess={() => refreshData()} />
-									<ul className="mt-4">
-
-										{userData.webauthnCredentials
-											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
-											.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
-											.map(cred => (
-												<WebauthnCredentialItem
-													key={cred.id}
-													credential={cred}
-													prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
-													onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
-													onRename={onRenameWebauthnCredential}
-													onUpgradePrfKey={onUpgradePrfKey}
-												/>
-											))}
-										{userData.webauthnCredentials
-											.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
-												<p className='dark:text-white'>{t('pageSettings.noOtherPasskeys')}</p>
-											)}
-									</ul>
-								</div>
-
-								<div className="pt-4">
-									<H3 heading={t('pageSettings.deleteAccount.title')}>
-										<UnlockMainKey
-											unlocked={unlocked}
-											onLock={() => {
-												setUnlocked(false);
-												setUnlockMainKeyError('');
-											}}
-											onUnlock={() => setUnlocked(true)}
-											onUnlockErrorChange={setUnlockMainKeyError}
-										/>
-									</H3>
-									{unlockMainKeyError && <p className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
-									<p className='mb-2 dark:text-white'>
-										{t('pageSettings.deleteAccount.description')}
-									</p>
-									<Button
-										id="delete-account"
-										onClick={openDeleteConfirmation}
-										variant="delete"
-										disabled={!unlocked || !isOnline}
-										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+									<SettingsSelect
+										icon={colorSchemeIcon}
+										value={settings.colorScheme}
+										onChange={(e) => setColorScheme(e.target.value as ColorScheme)}
 									>
-										<Trash2 size={18} />
-										{t('pageSettings.deleteAccount.buttonText')}
-									</Button>
-								</div>
-							</div>
+										<option value="system">
+											{t('pageSettings.appearance.colorScheme.system')}
+										</option>
+										<option value="light">
+											{t('pageSettings.appearance.colorScheme.light')}
+										</option>
+										<option value="dark">
+											{t('pageSettings.appearance.colorScheme.dark')}
+										</option>
+									</SettingsSelect>
+								</SettingsRow>
+							</SettingsSection>
 
-						</div>
-						<div className="my-2 py-2">
-							<div className='relative'>
-								<H2 heading={t('pageSettings.title.appVersion')} />
-								{updateAvailable && (
-									<Bell
-										size={22}
-										className="text-lm-green dark:text-dm-green absolute top-0 left-[105px]"
+							<SettingsSection title={t('pageSettings.title.loggedInPasskey')} icon={<Fingerprint size={18} />} card={false}>
+								{loggedInPasskey && (
+									<WebauthnCredentialItem
+										key={loggedInPasskey.id}
+										credential={loggedInPasskey}
+										prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
+										onRename={onRenameWebauthnCredential}
+										onUpgradePrfKey={onUpgradePrfKey}
 									/>
 								)}
-							</div>
-							{updateAvailable ? (
-								<p className='mb-2 dark:text-white'>
-									<Trans
-										i18nKey="pageSettings.appVersion.descriptionOldVersion"
-										values={{ react_app_version: APP_VERSION }}
-										components={{
-											reloadButton:
-												<button
-													id="reload-update-version"
-													className='text-primary dark:text-brand-light underline'
-													onClick={() => window.location.reload()}
-												/>,
-											strong: <strong />,
-											br: <br />,
-										}}
-									/>
-								</p>
-							) : (
-								<p className='mb-2 dark:text-white'>
-									{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: APP_VERSION })}
-								</p>
-							)}
+							</SettingsSection>
 
+							<SettingsSection title={t('pageSettings.title.rememberIssuer')} icon={<Clock size={18} />}>
+								<SettingsRow
+									description={t('pageSettings.rememberIssuer.description')}
+								>
+									<div className='flex gap-2 items-center'>
+										<SettingsSelect
+											defaultValue={userData.settings.openidRefreshTokenMaxAgeInSeconds}
+											onChange={(e) => handleTokenMaxAgeChange(e.target.value)}
+										>
+											<option value="0">{t('pageSettings.rememberIssuer.options.none')}</option>
+											<option value="3600">{t('pageSettings.rememberIssuer.options.hour')}</option>
+											<option value={`${24 * 3600}`}>{t('pageSettings.rememberIssuer.options.day')}</option>
+											<option value={`${7 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.week')}</option>
+											<option value={`${30 * 24 * 3600}`}>{t('pageSettings.rememberIssuer.options.month')}</option>
+										</SettingsSelect>
+										{successMessage && (
+											<div className="text-sm text-lm-green dark:text-dm-green whitespace-nowrap">
+												{successMessage}
+											</div>
+										)}
+									</div>
+								</SettingsRow>
+							</SettingsSection>
+
+							<SettingsSection title={t('pageSettings.oblivious.title')} icon={<ShieldCheck size={18} />}>
+								<SettingsRow
+									description={t('pageSettings.oblivious.description')}
+								>
+									<div className='flex gap-2 items-center'>
+										<SettingsSelect
+											defaultValue={userData.settings.useOblivious}
+											onChange={(e) => handleObliviousChange(e.target.value)}
+											disabled={!isOnline}
+											title={!isOnline ? t("common.offlineTitle") : undefined}
+										>
+											<option value="false">{t('pageSettings.oblivious.disabled')}</option>
+											<option value="true">{t('pageSettings.oblivious.gunet')}</option>
+										</SettingsSelect>
+										{obliviousSettingsMessage && (
+											<div className="text-sm text-lm-green dark:text-dm-green whitespace-nowrap">
+												{obliviousSettingsMessage}
+											</div>
+										)}
+									</div>
+								</SettingsRow>
+							</SettingsSection>
+
+							<SettingsSection title={t('pageSettings.title.manageOtherPasskeys')} icon={<KeyRound size={18} />}>
+								<WebauthnRegistration onSuccess={() => refreshData()} />
+								<ul className="mt-4">
+
+									{userData.webauthnCredentials
+										.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+										.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+										.map(cred => (
+											<WebauthnCredentialItem
+												key={cred.id}
+												credential={cred}
+												prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
+												onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+												onRename={onRenameWebauthnCredential}
+												onUpgradePrfKey={onUpgradePrfKey}
+											/>
+										))}
+									{userData.webauthnCredentials
+										.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
+											<p className='dark:text-white'>{t('pageSettings.noOtherPasskeys')}</p>
+										)}
+								</ul>
+							</SettingsSection>
+
+							<SettingsSection
+								title={t('pageSettings.deleteAccount.title')}
+								icon={<Trash2 size={18} />}
+								actions={
+									<UnlockMainKey
+										unlocked={unlocked}
+										onLock={() => {
+											setUnlocked(false);
+											setUnlockMainKeyError('');
+										}}
+										onUnlock={() => setUnlocked(true)}
+										onUnlockErrorChange={setUnlockMainKeyError}
+									/>
+								}
+							>
+								{unlockMainKeyError && <p className="mb-2 text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
+								<p className='mb-2 dark:text-white'>
+									{t('pageSettings.deleteAccount.description')}
+								</p>
+								<Button
+									id="delete-account"
+									onClick={openDeleteConfirmation}
+									variant="delete"
+									disabled={!unlocked || !isOnline}
+									title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+								>
+									<Trash2 size={18} />
+									{t('pageSettings.deleteAccount.buttonText')}
+								</Button>
+							</SettingsSection>
+
+							<SettingsSection
+								title={t('pageSettings.title.appVersion')}
+								icon={<Info size={18} />}
+								actions={updateAvailable && (
+									<Bell size={20} className="text-lm-green dark:text-dm-green" />
+								)}
+							>
+								{updateAvailable ? (
+									<p className='mb-2 dark:text-white'>
+										<Trans
+											i18nKey="pageSettings.appVersion.descriptionOldVersion"
+											values={{ react_app_version: APP_VERSION }}
+											components={{
+												reloadButton:
+													<button
+														id="reload-update-version"
+														className='text-primary dark:text-brand-light underline'
+														onClick={() => window.location.reload()}
+													/>,
+												strong: <strong />,
+												br: <br />,
+											}}
+										/>
+									</p>
+								) : (
+									<p className='mb-2 dark:text-white'>
+										{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: APP_VERSION })}
+									</p>
+								)}
+							</SettingsSection>
 						</div>
 					</>
 				)}

@@ -235,6 +235,9 @@
 			"title": "Delete account"
 		},
 		"description": "View account information and manage passkeys",
+		"language": {
+			"description": "Choose the language used throughout the app."
+		},
 		"lockSensitive": "Lock sensitive actions",
 		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
@@ -282,7 +285,6 @@
 			"confirmDeletePopup": "Are You Sure?",
 			"language": "Language",
 			"loggedInPasskey": "Logged in Passkey",
-			"manageAcount": "Manage Account",
 			"manageOtherPasskeys": "Manage other Passkeys",
 			"rememberIssuer": "Remember Issuer"
 		},

@@ -10,8 +10,7 @@ import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
 import { H2 } from '../../../components/Shared/Heading';
-import { FingerprintIcon, SmartphoneNfcIcon } from 'lucide-react';
-import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
+import { FingerprintIcon, KeyRound, SmartphoneNfcIcon } from 'lucide-react';
 import Dialog from './Dialog';
 
 const WebauthnRegistration = ({
@@ -146,7 +145,7 @@ const WebauthnRegistration = ({
 			{
 				[
 					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon },
-					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: UsbStickDotIcon },
+					{ hint: "security-key", btnLabel: t('common.externalPasskey'), Icon: KeyRound },
 					{ hint: "hybrid", btnLabel: t('common.hybridPasskey'), Icon: SmartphoneNfcIcon },
 				].map(({ Icon, hint, btnLabel }) => (
 					<Button
