@@ -58,7 +58,7 @@ const UnlockMainKey = ({
 		<Button
 			id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
 			onClick={unlocked ? onLock : onBeginUnlock}
-			variant="primary"
+			variant="outline"
 			disabled={inProgress || (!unlocked && !isOnline)}
 			ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
 			title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
