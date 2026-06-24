@@ -278,7 +278,7 @@ const Settings = () => {
 						<div className="mt-4">
 							<SettingsTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
-							<div className="flex flex-col gap-4 mt-4">
+							<div className="flex flex-col gap-5 mt-5">
 								{activeTab === 'general' && (
 									<>
 										<SettingsSection title={t('pageSettings.title.language')} icon={<Languages size={18} />}>
@@ -320,7 +320,7 @@ const Settings = () => {
 											)}
 										>
 											{updateAvailable ? (
-												<p className='mb-2 text-md text-lm-gray-800 dark:text-dm-gray-200'>
+												<p className='mb-2 text-sm text-lm-gray-800 dark:text-dm-gray-200'>
 													<Trans
 														i18nKey="pageSettings.appVersion.descriptionOldVersion"
 														values={{ react_app_version: APP_VERSION }}
@@ -337,7 +337,7 @@ const Settings = () => {
 													/>
 												</p>
 											) : (
-												<p className='mb-2 text-md text-lm-gray-800 dark:text-dm-gray-200'>
+												<p className='mb-2 text-sm text-lm-gray-800 dark:text-dm-gray-200'>
 													{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: APP_VERSION })}
 												</p>
 											)}
@@ -398,9 +398,13 @@ const Settings = () => {
 
 								{activeTab === 'account' && (
 									<>
-										<SettingsSection title={t('pageSettings.title.manageOtherPasskeys')} icon={<KeyRound size={18} />}>
-											<WebauthnRegistration onSuccess={() => refreshData()} />
-											<ul className="mt-4">
+										<SettingsSection
+											title={t('pageSettings.title.manageOtherPasskeys')}
+											icon={<KeyRound size={18} />}
+											actions={<WebauthnRegistration onSuccess={() => refreshData()} />}
+											card={false}
+										>
+											<ul>
 												{userData.webauthnCredentials
 													.slice()
 													.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))

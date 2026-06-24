@@ -21,7 +21,7 @@ const SettingsSection = ({
 	card?: boolean,
 	children: ReactNode,
 }) => (
-	<div>
+	<div className='flex flex-col gap-2'>
 		<H2
 			hr={false}
 			heading={

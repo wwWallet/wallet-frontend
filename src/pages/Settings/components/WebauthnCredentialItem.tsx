@@ -90,10 +90,10 @@ const WebauthnCredentialItem = ({
 	const needsPrfUpgrade = prfKeyInfo && !isPrfKeyV2(prfKeyInfo);
 
 	return (
-		<div className="mb-2 p-4 border border-lm-gray-300 dark:border-dm-gray-700 rounded-xl">
+		<div className="p-4 border border-lm-gray-300 dark:border-dm-gray-700 rounded-xl">
 			<form onSubmit={onSubmit} className="flex flex-col gap-3">
-				<div className="flex items-start justify-between gap-3">
-					<div className="flex items-center gap-2 min-w-0">
+				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+					<div className="flex flex-wrap items-center gap-2 min-w-0">
 						<span className="shrink-0 text-sm text-lm-gray-700 dark:text-dm-gray-300">
 							{t('pageSettings.passkeyItem.nickname')}
 						</span>
@@ -118,9 +118,11 @@ const WebauthnCredentialItem = ({
 							)
 						}
 						{!editing && isCurrent && (
-							<span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-blue/5 text-lm-blue/70 dark:bg-dm-blue/50 dark:text-lm-gray-100">
-								{t('pageSettings.passkeyItem.loggedIn')}
-							</span>
+							<div className="order-first sm:order-none w-full sm:w-auto">
+								<span className="inline-flex shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-blue/5 text-lm-blue/70 dark:bg-dm-blue/50 dark:text-lm-gray-100">
+									{t('pageSettings.passkeyItem.loggedIn')}
+								</span>
+							</div>
 						)}
 					</div>
 

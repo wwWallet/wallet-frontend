@@ -44,7 +44,7 @@ export const H2 = withDefaults({
 	textColorClass: "text-lm-gray-900 dark:text-white"
 }, (props: Props) => (
 	<>
-		<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
+		<div className={`flex flex-wrap justify-${props.flexJustifyContent} items-${props.flexAlignItems} gap-2`}>
 			<h2 className={`text-lg mt-2 mb-2 font-bold ${props.textColorClass}`}>
 				{props.heading}
 			</h2>
@@ -59,7 +59,7 @@ export const H3 = withDefaults({
 	textColorClass: "text-lm-gray-900 dark:text-dm-gray-100",
 }, (props: Props) => (
 	<>
-		<div className={`flex justify-${props.flexJustifyContent} items-${props.flexAlignItems}`}>
+		<div className={`flex flex-wrap justify-${props.flexJustifyContent} items-${props.flexAlignItems} gap-2`}>
 			<h3 className={`font-semibold my-2 ${props.textColorClass}`}>
 				{props.heading}
 			</h3>
