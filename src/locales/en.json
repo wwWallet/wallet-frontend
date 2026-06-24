@@ -229,14 +229,11 @@
 		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
-			"deleteButtonTitleLocked": "You cannot delete your account while locked",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
 			"message": "Are you sure you want to delete <strong>your Account</strong> ?",
 			"title": "Delete account"
 		},
 		"description": "View account information and manage passkeys",
-		"lockSensitive": "Lock sensitive actions",
-		"lockSensitiveTitle": "Click to lock sensitive actions",
 		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"oblivious": {
 			"description": "Select a private gateway to use Oblivious HTTP",
@@ -286,8 +283,6 @@
 			"manageOtherPasskeys": "Manage other Passkeys",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockSensitive": "Unlock sensitive actions",
-		"unlockSensitiveTitle": "Click to unlock sensitive actions",
 		"upgradePrfKey": {
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",

@@ -19,7 +19,7 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2, H3 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, ChevronDown, Edit, FingerprintIcon, Laptop, Lock, LockOpen, Moon, RefreshCcw, Smartphone, SmartphoneNfcIcon, Sun, Trash2 } from 'lucide-react';
+import { Bell, ChevronDown, Edit, FingerprintIcon, Laptop, Moon, RefreshCcw, Smartphone, SmartphoneNfcIcon, Sun, Trash2 } from 'lucide-react';
 import { UsbStickDotIcon } from '@/components/Shared/CustomIcons';
 import { APP_VERSION } from '@/config';
 
@@ -346,80 +346,6 @@ const WebauthnRegistation = ({
 	);
 };
 
-const UnlockMainKey = ({
-	onLock,
-	onUnlock,
-	onUnlockErrorChange,
-	unlocked,
-}: {
-	onLock: () => void,
-	onUnlock: () => void,
-	onUnlockErrorChange: (error: string) => void,
-	unlocked: boolean,
-}) => {
-	const { isOnline } = useContext(StatusContext);
-	const { keystore } = useContext(SessionContext);
-	const [inProgress, setInProgress] = useState(false);
-	const { t } = useTranslation();
-	const screenType = useScreenType();
-
-	const onBeginUnlock = useCallback(
-		async () => {
-			onUnlockErrorChange('');
-			setInProgress(true);
-			try {
-				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
-				onUnlock();
-			} catch (e) {
-				// Using a switch here so the t() argument can be a literal, to ease searching
-				switch (e?.cause?.errorId) {
-					case 'passkeyInvalid':
-						onUnlockErrorChange(t('passkeyInvalid'));
-						break;
-
-					case 'passkeyLoginFailedTryAgain':
-						onUnlockErrorChange(t('passkeyLoginFailedTryAgain'));
-						break;
-
-					default:
-						throw e;
-				}
-			} finally {
-				setInProgress(false);
-			}
-		},
-		[keystore, onUnlock, onUnlockErrorChange, t],
-	);
-
-	return (
-		<Button
-			id={`${unlocked ? 'lock-passkey' : 'unlock-passkey'}-management-settings`}
-			onClick={unlocked ? onLock : onBeginUnlock}
-			variant="primary"
-			disabled={inProgress || (!unlocked && !isOnline)}
-			ariaLabel={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitive') : t('pageSettings.unlockSensitive'))}
-			title={!unlocked && !isOnline ? t("common.offlineTitle") : screenType !== 'desktop' && (unlocked ? t('pageSettings.lockSensitiveTitle') : t('pageSettings.unlockSensitiveTitle'))}
-		>
-			<div className="flex items-center">
-				{unlocked
-					? <>
-						<LockOpen size={18} />
-						<span className='hidden md:block ml-2'>
-							{t('pageSettings.lockSensitive')}
-						</span>
-					</>
-					: <>
-						<Lock size={18} />
-						<span className='hidden md:block ml-2'>
-							{t('pageSettings.unlockSensitive')}
-						</span>
-					</>
-				}
-			</div>
-		</Button>
-	);
-};
-
 const WebauthnCredentialItem = ({
 	credential,
 	prfKeyInfo,
@@ -636,8 +562,8 @@ const Settings = () => {
 	const { setColorScheme, settings } = useContext(AppSettingsContext);
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
-	const [unlocked, setUnlocked] = useState(false);
-	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
+	const [deleteAuthInProgress, setDeleteAuthInProgress] = useState(false);
+	const [deleteAuthError, setDeleteAuthError] = useState('');
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
 	const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -670,15 +596,41 @@ const Settings = () => {
 	}
 
 	const handleDelete = async () => {
-		if (unlocked) {
-			// NOTE: Unlocking is purely a client-side safeguard against accidents.
-			// It is not enforced on the server side and can be easily bypassed.
-			setLoading(true);
-			await deleteAccount();
-			closeDeleteConfirmation();
-			setLoading(false);
-		}
+		setLoading(true);
+		await deleteAccount();
+		closeDeleteConfirmation();
+		setLoading(false);
 	};
+
+	const onDeleteButtonClick = useCallback(
+		async () => {
+			setDeleteAuthError('');
+			setDeleteAuthInProgress(true);
+			try {
+				// NOTE: This re-authentication is purely a client-side safeguard against
+				// accidental deletion. It is not enforced on the server side.
+				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
+				openDeleteConfirmation();
+			} catch (e) {
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (e?.cause?.errorId) {
+					case 'passkeyInvalid':
+						setDeleteAuthError(t('passkeyInvalid'));
+						break;
+
+					case 'passkeyLoginFailedTryAgain':
+						setDeleteAuthError(t('passkeyLoginFailedTryAgain'));
+						break;
+
+					default:
+						throw e;
+				}
+			} finally {
+				setDeleteAuthInProgress(false);
+			}
+		},
+		[keystore, t],
+	);
 
 	const refreshData = useCallback(
 		async () => {
@@ -996,27 +948,17 @@ const Settings = () => {
 								</div>
 
 								<div className="pt-4">
-									<H3 heading={t('pageSettings.deleteAccount.title')}>
-										<UnlockMainKey
-											unlocked={unlocked}
-											onLock={() => {
-												setUnlocked(false);
-												setUnlockMainKeyError('');
-											}}
-											onUnlock={() => setUnlocked(true)}
-											onUnlockErrorChange={setUnlockMainKeyError}
-										/>
-									</H3>
-									{unlockMainKeyError && <p className="text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
+									<H3 heading={t('pageSettings.deleteAccount.title')} />
+									{deleteAuthError && <p className="text-lm-red dark:text-dm-red">{deleteAuthError}</p>}
 									<p className='mb-2 dark:text-white'>
 										{t('pageSettings.deleteAccount.description')}
 									</p>
 									<Button
 										id="delete-account"
-										onClick={openDeleteConfirmation}
+										onClick={onDeleteButtonClick}
 										variant="delete"
-										disabled={!unlocked || !isOnline}
-										title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+										disabled={deleteAuthInProgress || !isOnline}
+										title={!isOnline ? t("common.offlineTitle") : ""}
 									>
 										<Trash2 size={18} />
 										{t('pageSettings.deleteAccount.buttonText')}
