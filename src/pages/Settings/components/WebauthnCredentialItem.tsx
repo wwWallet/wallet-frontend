@@ -24,12 +24,14 @@ export function useWebauthnCredentialNickname(credential: WebauthnCredential): s
 const WebauthnCredentialItem = ({
 	credential,
 	prfKeyInfo,
+	isCurrent,
 	onDelete,
 	onRename,
 	onUpgradePrfKey,
 }: {
 	credential: WebauthnCredential,
 	prfKeyInfo: WebauthnPrfEncryptionKeyInfo,
+	isCurrent?: boolean,
 	onDelete?: false | (() => Promise<void>),
 	onRename: (credential: WebauthnCredential, nickname: string | null) => Promise<boolean>,
 	onUpgradePrfKey: (prfKeyInfo: WebauthnPrfEncryptionKeyInfo) => void,
@@ -98,7 +100,7 @@ const WebauthnCredentialItem = ({
 						{editing
 							? (
 								<input
-									className="w-full max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
+									className="w-full text-sm max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
@@ -110,11 +112,16 @@ const WebauthnCredentialItem = ({
 								/>
 							)
 							: (
-								<p className="font-medium text-lm-gray-900 dark:text-white truncate">
+								<p className="font-medium text-sm text-lm-gray-900 dark:text-white truncate">
 									{currentLabel}
 								</p>
 							)
 						}
+						{!editing && isCurrent && (
+							<span className="shrink-0 px-2 py-0.5 rounded-full text-xs font-normal bg-lm-blue/5 text-lm-blue/70 dark:bg-dm-blue/50 dark:text-lm-gray-100">
+								{t('pageSettings.passkeyItem.loggedIn')}
+							</span>
+						)}
 					</div>
 
 					<div className="flex gap-2 shrink-0">

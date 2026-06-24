@@ -240,7 +240,6 @@
 		},
 		"lockSensitive": "Lock sensitive actions",
 		"lockSensitiveTitle": "Click to lock sensitive actions",
-		"noOtherPasskeys": "There are no other passkeys in this account.",
 		"oblivious": {
 			"description": "Select a private gateway to use Oblivious HTTP",
 			"disabled": "Do not use Oblivious HTTP",
@@ -257,6 +256,7 @@
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
+			"loggedIn": "Logged in",
 			"messageDeletePasskey": "Are you sure you want to delete <strong>{{nickname}}</strong> passkey?",
 			"needsPrfUpgrade": "Needs upgrade",
 			"nickname": "Nickname",
@@ -286,8 +286,7 @@
 			"confirmDeletePopup": "Are You Sure?",
 			"general": "General",
 			"language": "Language",
-			"loggedInPasskey": "Logged in Passkey",
-			"manageOtherPasskeys": "Manage other Passkeys",
+			"manageOtherPasskeys": "Manage Passkeys",
 			"privacy": "Privacy",
 			"rememberIssuer": "Remember Issuer"
 		},

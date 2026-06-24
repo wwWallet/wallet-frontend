@@ -178,7 +178,6 @@
 			"title": "Διαγραφή λογαριασμού"
 		},
 		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
-		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
 		"passkeyItem": {
 			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
 			"canEncryptNo": "Όχι",
@@ -188,6 +187,7 @@
 			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Κάντε κλικ για να διαγράψετε το κλειδί πρόσβασης {{passkeyLabel}}",
 			"lastUsed": "Τελευταία Χρήση",
+			"loggedIn": "Συνδεδεμένο",
 			"messageDeletePasskey": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί πρόσβασης <strong>{{nickname}}</strong>;",
 			"needsPrfUpgrade": "Απαιτείται αναβάθμιση",
 			"nickname": "Ψευδώνυμο",
@@ -217,8 +217,7 @@
 			"confirmDeletePopup": "Είστε Σίγουροι;",
 			"general": "Γενικά",
 			"language": "Γλώσσα",
-			"loggedInPasskey": "Συνδεδεμένο Κλειδί Πρόσβασης",
-			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
+			"manageOtherPasskeys": "Διαχείριση Κλειδιών Πρόσβασης",
 			"privacy": "Απόρρητο",
 			"rememberIssuer": "Remember Issuer"
 		},

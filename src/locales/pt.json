@@ -172,7 +172,6 @@
 			"title": "Eliminar conta"
 		},
 		"description": "Consulte informação da conta e gira chaves de acesso",
-		"noOtherPasskeys": "Não há mais chaves de acesso nesta conta.",
 		"passkeyItem": {
 			"canEncrypt": "Pode encriptar",
 			"canEncryptNo": "Não",
@@ -182,6 +181,7 @@
 			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Clique para eliminar a chave de acesso {{passkeyLabel}}",
 			"lastUsed": "Última utilização",
+			"loggedIn": "Autenticada",
 			"messageDeletePasskey": "Tem a certeza que deseja eliminar a chave de acesso <strong>{{nickname}}</strong>?",
 			"needsPrfUpgrade": "Atualização necessária",
 			"nickname": "Nome",
@@ -211,8 +211,7 @@
 			"confirmDeletePopup": "Tem a certeza?",
 			"general": "Geral",
 			"language": "Idioma",
-			"loggedInPasskey": "Chave de acesso autenticada",
-			"manageOtherPasskeys": "Gerir outras chaves de acesso",
+			"manageOtherPasskeys": "Gerir chaves de acesso",
 			"privacy": "Privacidade",
 			"rememberIssuer": "Relembrar issuer"
 		},

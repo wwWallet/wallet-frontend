@@ -17,7 +17,7 @@ import Button from '../../components/Buttons/Button';
 import { H1, H2 } from '../../components/Shared/Heading';
 import PageDescription from '../../components/Shared/PageDescription';
 import LanguageSelector from '../../components/LanguageSelector/LanguageSelector';
-import { Bell, Clock, Fingerprint, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
+import { Bell, Clock, Info, KeyRound, Languages, Laptop, Moon, ShieldCheck, SlidersHorizontal, Smartphone, Sun, SunMoon, Trash2, UserCog } from 'lucide-react';
 import { APP_VERSION } from '@/config';
 
 import Dialog from './components/Dialog';
@@ -398,39 +398,24 @@ const Settings = () => {
 
 								{activeTab === 'account' && (
 									<>
-										<SettingsSection title={t('pageSettings.title.loggedInPasskey')} icon={<Fingerprint size={18} />} card={false}>
-											{loggedInPasskey && (
-												<WebauthnCredentialItem
-													key={loggedInPasskey.id}
-													credential={loggedInPasskey}
-													prfKeyInfo={keystore.getPrfKeyInfo(loggedInPasskey.credentialId)}
-													onRename={onRenameWebauthnCredential}
-													onUpgradePrfKey={onUpgradePrfKey}
-												/>
-											)}
-										</SettingsSection>
-
 										<SettingsSection title={t('pageSettings.title.manageOtherPasskeys')} icon={<KeyRound size={18} />}>
 											<WebauthnRegistration onSuccess={() => refreshData()} />
 											<ul className="mt-4">
-
 												{userData.webauthnCredentials
-													.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id)
+													.slice()
 													.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
+													.sort((a, b) => Number(b.id === loggedInPasskey?.id) - Number(a.id === loggedInPasskey?.id))
 													.map(cred => (
 														<WebauthnCredentialItem
 															key={cred.id}
 															credential={cred}
 															prfKeyInfo={keystore.getPrfKeyInfo(cred.credentialId)}
-															onDelete={showDelete && (() => deleteWebauthnCredential(cred))}
+															isCurrent={cred.id === loggedInPasskey?.id}
+															onDelete={!(loggedInPasskey && cred.id === loggedInPasskey.id) && showDelete && (() => deleteWebauthnCredential(cred))}
 															onRename={onRenameWebauthnCredential}
 															onUpgradePrfKey={onUpgradePrfKey}
 														/>
 													))}
-												{userData.webauthnCredentials
-													.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
-														<p className='text-md text-lm-gray-800 dark:text-dm-gray-200'>{t('pageSettings.noOtherPasskeys')}</p>
-													)}
 											</ul>
 										</SettingsSection>
 
