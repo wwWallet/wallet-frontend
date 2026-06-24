@@ -1,4 +1,5 @@
-import React, { ReactNode, useEffect, useRef } from 'react';
+import React, { ReactNode } from 'react';
+import PopupLayout from '@/components/Popups/PopupLayout';
 
 const Dialog = ({
 	children,
@@ -8,32 +9,12 @@ const Dialog = ({
 	children: ReactNode,
 	open: boolean,
 	onCancel: () => void,
-}) => {
-	const dialog = useRef<HTMLDialogElement>();
-
-	useEffect(
-		() => {
-			if (dialog.current) {
-				if (open) {
-					dialog.current.showModal();
-				} else {
-					dialog.current.close();
-				}
-			}
-		},
-		[dialog, open],
-	);
-
-	return (
-		<dialog
-			ref={dialog}
-			className="p-4 pt-8 text-center md:space-y-6 sm:p-8 bg-lm-gray-50 dark:bg-dm-gray-950 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg backdrop:bg-lm-gray-900/50 dark:backdrop:bg-dm-gray-500/50 backdrop:backdrop-blur-xs"
-			style={{ minWidth: '30%' }}
-			onCancel={onCancel}
-		>
+}) => (
+	<PopupLayout isOpen={open} onClose={onCancel} padding="p-4 pt-8 sm:p-8">
+		<div className="text-center md:space-y-6">
 			{children}
-		</dialog>
-	);
-};
+		</div>
+	</PopupLayout>
+);
 
 export default Dialog;

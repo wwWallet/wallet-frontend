@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import StatusContext from '@/context/StatusContext';
@@ -10,7 +10,7 @@ import { serializePrivateData } from '../../../services/keystore';
 
 import Button from '../../../components/Buttons/Button';
 import { H2 } from '../../../components/Shared/Heading';
-import { FingerprintIcon, KeyRound, SmartphoneNfcIcon } from 'lucide-react';
+import { FingerprintIcon, KeyRound, LoaderCircle, ShieldCheck, SmartphoneNfcIcon } from 'lucide-react';
 import Dialog from './Dialog';
 
 const WebauthnRegistration = ({
@@ -29,6 +29,7 @@ const WebauthnRegistration = ({
 	const [prfRetryAccepted, setPrfRetryAccepted] = useState(false);
 	const { t } = useTranslation();
 	const screenType = useScreenType();
+	const abortControllerRef = useRef<AbortController | null>(null);
 
 	const stateChooseNickname = Boolean(beginData) && !needPrfRetry;
 
@@ -46,8 +47,11 @@ const WebauthnRegistration = ({
 				setBeginData(beginData);
 
 				const hints = [webauthnHint];
+				const abortController = new AbortController();
+				abortControllerRef.current = abortController;
 				const createOptions = {
 					...beginData.createOptions,
+					signal: abortController.signal,
 					publicKey: {
 						...beginData.createOptions.publicKey,
 						hints,
@@ -60,9 +64,13 @@ const WebauthnRegistration = ({
 					console.log("created", credential);
 					setPendingCredential(credential);
 				} catch (e) {
-					console.error("Failed to register", e);
+					if (e?.name !== 'AbortError') {
+						console.error("Failed to register", e);
+					}
 					setBeginData(null);
 					setPendingCredential(null);
+				} finally {
+					abortControllerRef.current = null;
 				}
 				setIsSubmitting(false);
 			}
@@ -72,6 +80,7 @@ const WebauthnRegistration = ({
 
 	const onCancel = () => {
 		console.log("onCancel");
+		abortControllerRef.current?.abort();
 		setPendingCredential(null);
 		setBeginData(null);
 		setNeedPrfRetry(false);
@@ -179,12 +188,16 @@ const WebauthnRegistration = ({
 				open={stateChooseNickname}
 				onCancel={onCancel}
 			>
-				<form method="dialog" onSubmit={onFinish}>
+				<form onSubmit={onFinish}>
 					{pendingCredential
 						? (
 							<>
-								<H2 heading={t('registerPasskey.messageSuccess')} hr={false} flexJustifyContent='center' />
-								<p className="mb-2 dark:text-white">{t('registerPasskey.giveNickname')}</p>
+								<H2
+									heading={t('registerPasskey.messageSuccess')}
+									hr={false}
+									flexJustifyContent='center'
+								/>
+								<p className="mb-2 text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.giveNickname')}</p>
 								<input
 									type="text"
 									className="my-4 w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
@@ -198,9 +211,10 @@ const WebauthnRegistration = ({
 							</>
 						)
 						: (
-							<>
-								<p className='dark:text-white'>{t('registerPasskey.messageInteract')}</p>
-							</>
+							<div className="flex flex-col items-center gap-3 py-2">
+								<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
+								<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteract')}</p>
+							</div>
 						)
 					}
 
@@ -232,9 +246,18 @@ const WebauthnRegistration = ({
 				open={needPrfRetry && !prfRetryAccepted}
 				onCancel={() => resolvePrfRetryPrompt(false)}
 			>
-				<H2 heading={t('registerPasskey.messageDone')} flexJustifyContent='center' hr={false} />
-				<p className='dark:text-white'>{t('registerPasskey.passkeyCreated')}</p>
-				<p className='dark:text-white'>{t('registerPasskey.authOnceMore')}</p>
+				<H2
+					heading={(
+						<span className="flex items-center justify-center gap-2">
+							<ShieldCheck size={20} className="text-lm-gray-700 dark:text-dm-gray-300" />
+							{t('registerPasskey.messageDone')}
+						</span>
+					)}
+					flexJustifyContent='center'
+					hr={false}
+				/>
+				<p className='text-lm-gray-800 dark:text-dm-gray-200'>{t('registerPasskey.passkeyCreated')}</p>
+				<p className='text-lm-gray-800 dark:text-dm-gray-200'>{t('registerPasskey.authOnceMore')}</p>
 
 				<div className='flex justify-center gap-2'>
 					<Button
@@ -260,11 +283,13 @@ const WebauthnRegistration = ({
 				open={prfRetryAccepted}
 				onCancel={onCancel}
 			>
-				<p className='dark:text-white'>{t('registerPasskey.messageInteractNewPasskey')}</p>
-				<div className='flex justify-center'>
+				<div className="flex flex-col items-center gap-3 py-2">
+					<LoaderCircle size={28} className="animate-spin text-lm-gray-500 dark:text-dm-gray-400" />
+					<p className="text-lm-gray-800 dark:text-dm-gray-200">{t('registerPasskey.messageInteractNewPasskey')}</p>
+				</div>
+				<div className='flex justify-center mt-2'>
 					<Button
 						id="cancel-in-progress-prf-settings"
-
 						onClick={onCancel}
 					>
 						{t('common.cancel')}
