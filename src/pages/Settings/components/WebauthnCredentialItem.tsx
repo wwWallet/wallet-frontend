@@ -88,21 +88,17 @@ const WebauthnCredentialItem = ({
 	const needsPrfUpgrade = prfKeyInfo && !isPrfKeyV2(prfKeyInfo);
 
 	return (
-		<form
-			className="mb-2 pl-4 px-4 py-2 border border-lm-gray-400 dark:border-dm-gray-600 rounded-lg flex flex-row flex-wrap gap-y-2 overflow-x-auto"
-			onSubmit={onSubmit}
-		>
-			<div className="grow">
-				{editing
-					? (
-						<>
-							<div className="flex items-center gap-2">
-								<p className="font-semibold dark:text-white">
-									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
-								</p>
+		<div className="mb-2 p-4 border border-lm-gray-300 dark:border-dm-gray-700 rounded-xl bg-lm-gray-50 dark:bg-dm-gray-950">
+			<form onSubmit={onSubmit} className="flex flex-col gap-3">
+				<div className="flex items-start justify-between gap-3">
+					<div className="flex items-center gap-2 min-w-0">
+						<span className="shrink-0 text-sm text-lm-gray-700 dark:text-dm-gray-300">
+							{t('pageSettings.passkeyItem.nickname')}
+						</span>
+						{editing
+							? (
 								<input
-									className="w-36 px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
-
+									className="w-full max-w-56 px-3 py-1.5 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride"
 									type="text"
 									placeholder={t('pageSettings.passkeyItem.nicknameInput')}
 									value={nickname}
@@ -110,124 +106,122 @@ const WebauthnCredentialItem = ({
 									aria-label={t('pageSettings.passkeyItem.nicknameInputAriaLabel', { passkeyLabel: currentLabel })}
 									onKeyUp={onKeyUp}
 									disabled={submitting}
+									autoFocus
 								/>
-							</div>
-						</>
-					)
-					: (
-						<div className="flex items-center">
-							<p>
-								<span className="font-semibold dark:text-white">
-									{t('pageSettings.passkeyItem.nickname')}:&nbsp;
-								</span>
-								<span className="italic">
+							)
+							: (
+								<p className="font-medium text-lm-gray-900 dark:text-white truncate">
 									{currentLabel}
-								</span>
-							</p>
-						</div>
-					)
-				}
-				<p className='dark:text-white'>
-					<span className="font-semibold">
-						{t('pageSettings.passkeyItem.created')}:&nbsp;
-					</span>
-					{formatDate(credential.createTime)}
-				</p>
-				<p className='dark:text-white'>
-					<span className="font-semibold">
-						{t('pageSettings.passkeyItem.lastUsed')}:&nbsp;
-					</span>
-					{formatDate(credential.lastUseTime)}</p>
-				<p className='dark:text-white flex gap-3 items-center'>
-					<span className="font-semibold">
-						{t('pageSettings.passkeyItem.canEncrypt')}:&nbsp;
-					</span>
-					{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
-					{needsPrfUpgrade
-						&& <span className="py-1 px-2 rounded bg-lm-orange dark:bg-dm-orange text-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
-					}
-				</p>
-			</div>
+								</p>
+							)
+						}
+					</div>
 
-			<div className="items-start	flex gap-2">
-				{needsPrfUpgrade
-					&&
-					<Button
-						id="upgrade-prf-settings"
-						variant="outline"
-						type="button"
-						onClick={() => onUpgradePrfKey(prfKeyInfo)}
-						aria-label={t('pageSettings.passkeyItem.prfUpgradeAriaLabel', { passkeyLabel: currentLabel })}
-					>
-						<RefreshCcw size={18} /> {t('pageSettings.passkeyItem.prfUpgrade')}
-					</Button>
-				}
+					<div className="flex gap-2 shrink-0">
+						{editing
+							? (
+								<>
+									<Button
+										id="cancel-editing-settings"
+										size="sm"
+										onClick={onCancelEditing}
+										disabled={submitting}
+										ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
+									>
+										{t('common.cancel')}
+									</Button>
+									<Button
+										id="save-editing-settings"
+										size="sm"
+										type="submit"
+										disabled={submitting}
+										variant="primary"
+									>
+										{t('common.save')}
+									</Button>
+								</>
+							)
+							: (
+								<Button
+									id="rename-passkey"
+									size="sm"
+									variant="outline"
+									onClick={() => setEditing(true)}
+									disabled={!isOnline}
+									aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
+									title={!isOnline ? t("common.offlineTitle") : ""}
+								>
+									<Edit size={14} />
+									{t('pageSettings.passkeyItem.rename')}
+								</Button>
+							)
+						}
 
-				{editing
-					? (
-
-						<div className='flex gap-2'>
+						{onDelete && (
 							<Button
-								id="cancel-editing-settings"
-								onClick={onCancelEditing}
-								disabled={submitting}
-								ariaLabel={t('pageSettings.passkeyItem.cancelChangesAriaLabel', { passkeyLabel: currentLabel })}
+								id="delete-passkey"
+								size="sm"
+								square
+								variant="delete"
+								onClick={openDeleteConfirmation}
+								disabled={!isOnline}
+								aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
+								title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 							>
-								{t('common.cancel')}
+								<Trash2 size={14} />
 							</Button>
-							<Button
-								id="save-editing-settings"
-								type="submit"
-								disabled={submitting}
-								variant="primary"
-							>
-								{t('common.save')}
-							</Button>
-						</div>
-					)
-					: (
+						)}
+					</div>
+				</div>
+
+				<div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3 text-sm">
+					<div>
+						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.created')}</p>
+						<p className="text-lm-gray-900 dark:text-white">{formatDate(credential.createTime)}</p>
+					</div>
+					<div>
+						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.lastUsed')}</p>
+						<p className="text-lm-gray-900 dark:text-white">{formatDate(credential.lastUseTime)}</p>
+					</div>
+					<div>
+						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.canEncrypt')}</p>
+						<p className="text-lm-gray-900 dark:text-white">
+							{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
+						</p>
+					</div>
+				</div>
+
+				{needsPrfUpgrade && (
+					<div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-lm-orange/10 dark:bg-dm-orange/10 border border-lm-orange/30 dark:border-dm-orange/30 px-3 py-2">
+						<span className="text-sm text-lm-gray-900 dark:text-white">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 						<Button
-							id="rename-passkey"
-							onClick={() => setEditing(true)}
-							variant="primary"
-							disabled={!isOnline}
-							aria-label={t('pageSettings.passkeyItem.renameAriaLabel', { passkeyLabel: currentLabel })}
-							title={!isOnline ? t("common.offlineTitle") : ""}
+							id="upgrade-prf-settings"
+							size="sm"
+							variant="outline"
+							type="button"
+							onClick={() => onUpgradePrfKey(prfKeyInfo)}
+							aria-label={t('pageSettings.passkeyItem.prfUpgradeAriaLabel', { passkeyLabel: currentLabel })}
 						>
-							<Edit size={18} className="mr-2" />
-							{t('pageSettings.passkeyItem.rename')}
+							<RefreshCcw size={14} /> {t('pageSettings.passkeyItem.prfUpgrade')}
 						</Button>
-					)
-				}
-
-				{onDelete && (
-					<Button
-						id="delete-passkey"
-						onClick={openDeleteConfirmation}
-						variant="delete"
-						disabled={!isOnline}
-						aria-label={t('pageSettings.passkeyItem.deleteAriaLabel', { passkeyLabel: currentLabel })}
-						title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
-						additionalClassName='ml-2 py-3'
-					>
-						<Trash2 size={18} />
-					</Button>
+					</div>
 				)}
-				<DeletePopup
-					isOpen={isDeleteConfirmationOpen}
-					onConfirm={handleDelete}
-					onClose={closeDeleteConfirmation}
-					message={
-						<Trans
-							i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
-							values={{ nickname: nickname }}
-							components={{ strong: <strong /> }}
-						/>
-					}
-					loading={loading}
-				/>
-			</div>
-		</form>
+			</form>
+
+			<DeletePopup
+				isOpen={isDeleteConfirmationOpen}
+				onConfirm={handleDelete}
+				onClose={closeDeleteConfirmation}
+				message={
+					<Trans
+						i18nKey="pageSettings.passkeyItem.messageDeletePasskey"
+						values={{ nickname: nickname }}
+						components={{ strong: <strong /> }}
+					/>
+				}
+				loading={loading}
+			/>
+		</div>
 	);
 };
 
