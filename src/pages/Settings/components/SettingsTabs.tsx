@@ -26,7 +26,7 @@ const SettingsTabs = ({
 				aria-label={tab.label}
 				title={tab.label}
 				onClick={() => onChange(tab.id)}
-				className={`flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 py-2 text-sm font-medium text-lm-gray-900 dark:text-dm-gray-100 ${activeTab === tab.id
+				className={`flex items-center gap-2 whitespace-nowrap px-3 sm:px-4 py-2 text-lm-gray-900 dark:text-dm-gray-100 ${activeTab === tab.id
 					? 'bg-lm-gray-500 dark:bg-dm-gray-500 rounded-t-lg'
 					: 'cursor-pointer'
 				}`}

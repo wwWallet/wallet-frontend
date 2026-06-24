@@ -141,7 +141,7 @@ const WebauthnRegistration = ({
 
 	return (
 		<div className="flex flex-row flex-wrap items-baseline gap-2">
-			<span className="grow">{t('pageSettings.addPasskey')}</span>
+			<span className="grow text-lm-gray-900 dark:text-white">{t('pageSettings.addPasskey')}</span>
 			{
 				[
 					{ hint: "client-device", btnLabel: t('common.platformPasskey'), Icon: FingerprintIcon },

@@ -320,7 +320,7 @@ const Settings = () => {
 											)}
 										>
 											{updateAvailable ? (
-												<p className='mb-2 dark:text-white'>
+												<p className='mb-2 text-md text-lm-gray-800 dark:text-dm-gray-200'>
 													<Trans
 														i18nKey="pageSettings.appVersion.descriptionOldVersion"
 														values={{ react_app_version: APP_VERSION }}
@@ -337,7 +337,7 @@ const Settings = () => {
 													/>
 												</p>
 											) : (
-												<p className='mb-2 dark:text-white'>
+												<p className='mb-2 text-md text-lm-gray-800 dark:text-dm-gray-200'>
 													{t('pageSettings.appVersion.descriptionLatestVersion', { react_app_version: APP_VERSION })}
 												</p>
 											)}
@@ -429,7 +429,7 @@ const Settings = () => {
 													))}
 												{userData.webauthnCredentials
 													.filter(cred => !loggedInPasskey || cred.id !== loggedInPasskey.id).length === 0 && (
-														<p className='dark:text-white'>{t('pageSettings.noOtherPasskeys')}</p>
+														<p className='text-md text-lm-gray-800 dark:text-dm-gray-200'>{t('pageSettings.noOtherPasskeys')}</p>
 													)}
 											</ul>
 										</SettingsSection>
@@ -450,20 +450,19 @@ const Settings = () => {
 												/>
 											}
 										>
-											{unlockMainKeyError && <p className="mb-2 text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
-											<p className='mb-2 dark:text-white'>
-												{t('pageSettings.deleteAccount.description')}
-											</p>
-											<Button
-												id="delete-account"
-												onClick={openDeleteConfirmation}
-												variant="delete"
-												disabled={!unlocked || !isOnline}
-												title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
-											>
-												<Trash2 size={18} />
-												{t('pageSettings.deleteAccount.buttonText')}
-											</Button>
+											{unlockMainKeyError && <p className="mb-2 text-sm text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
+											<SettingsRow description={t('pageSettings.deleteAccount.description')}>
+												<Button
+													id="delete-account"
+													onClick={openDeleteConfirmation}
+													variant="delete"
+													disabled={!unlocked || !isOnline}
+													title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+												>
+													<Trash2 size={18} />
+													{t('pageSettings.deleteAccount.buttonText')}
+												</Button>
+											</SettingsRow>
 										</SettingsSection>
 									</>
 								)}
@@ -491,7 +490,7 @@ const Settings = () => {
 					{upgradePrfState?.state === "authenticate"
 						? <>
 							<H2 heading={t('pageSettings.upgradePrfKey.title')} hr={false} flexJustifyContent='center'></H2>
-							<p className='mb-2'>
+							<p className='mb-2 dark:text-white'>
 								{t('pageSettings.upgradePrfKey.description', { passkeyLabel: upgradePrfPasskeyLabel })}
 							</p>
 							<div className='flex gap-2 justify-center align-center'>
@@ -507,7 +506,7 @@ const Settings = () => {
 							<Trans
 								i18nKey="pageSettings.upgradePrfKey.error"
 								values={{ passkeyLabel: upgradePrfPasskeyLabel }}
-								components={{ p: <p className='mb-2' /> }}
+								components={{ p: <p className='mb-2 dark:text-white' /> }}
 							/>
 							<div className='flex gap-2 justify-center align-center'>
 								<Button
