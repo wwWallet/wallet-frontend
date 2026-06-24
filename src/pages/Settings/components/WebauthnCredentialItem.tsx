@@ -88,7 +88,7 @@ const WebauthnCredentialItem = ({
 	const needsPrfUpgrade = prfKeyInfo && !isPrfKeyV2(prfKeyInfo);
 
 	return (
-		<div className="mb-2 p-4 border border-lm-gray-300 dark:border-dm-gray-700 rounded-xl bg-lm-gray-50 dark:bg-dm-gray-950">
+		<div className="mb-2 p-4 border border-lm-gray-300 dark:border-dm-gray-700 rounded-xl">
 			<form onSubmit={onSubmit} className="flex flex-col gap-3">
 				<div className="flex items-start justify-between gap-3">
 					<div className="flex items-center gap-2 min-w-0">
@@ -161,7 +161,6 @@ const WebauthnCredentialItem = ({
 							<Button
 								id="delete-passkey"
 								size="sm"
-								square
 								variant="delete"
 								onClick={openDeleteConfirmation}
 								disabled={!isOnline}
@@ -169,6 +168,7 @@ const WebauthnCredentialItem = ({
 								title={!isOnline ? t("common.offlineTitle") : t("pageSettings.passkeyItem.deleteButtonTitleUnlocked", { passkeyLabel: currentLabel })}
 							>
 								<Trash2 size={14} />
+								{t('common.delete')}
 							</Button>
 						)}
 					</div>
