@@ -32,7 +32,7 @@ const SettingsTabs = ({
 				}`}
 			>
 				{tab.icon}
-				<span className="hidden md:inline">{tab.label}</span>
+				<span>{tab.label}</span>
 			</button>
 		))}
 	</div>
