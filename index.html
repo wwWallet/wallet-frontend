@@ -10,7 +10,7 @@
 				var settings = JSON.parse(localStorage.getItem('settings') || '{}');
 				var scheme = settings.colorScheme;
 				var prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
-				var isDark = scheme === 'dark' || (scheme !== 'light' && prefersDark);
+				var isDark = scheme === 'dark' || ((scheme === 'system' || scheme == null) && prefersDark);
 				if (isDark) {
 					document.documentElement.classList.add('dark');
 					document.documentElement.style.colorScheme = 'dark';
