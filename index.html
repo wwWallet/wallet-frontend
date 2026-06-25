@@ -4,6 +4,20 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+	<script>
+		(function () {
+			try {
+				var settings = JSON.parse(localStorage.getItem('settings') || '{}');
+				var scheme = settings.colorScheme;
+				var prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+				var isDark = scheme === 'dark' || (scheme !== 'light' && prefersDark);
+				if (isDark) {
+					document.documentElement.classList.add('dark');
+					document.documentElement.style.colorScheme = 'dark';
+				}
+			} catch (e) { }
+		})();
+	</script>
 </head>
 
 <body>
