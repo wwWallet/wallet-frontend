@@ -26,7 +26,6 @@ import SettingsRow from './components/SettingsRow';
 import SettingsSelect from './components/SettingsSelect';
 import SettingsTabs, { SettingsTab } from './components/SettingsTabs';
 import WebauthnRegistration from './components/WebauthnRegistration';
-import UnlockMainKey from './components/UnlockMainKey';
 import WebauthnCredentialItem, { useWebauthnCredentialNickname } from './components/WebauthnCredentialItem';
 
 type UpgradePrfState = (
@@ -52,6 +51,7 @@ const Settings = () => {
 	const [userData, setUserData] = useState<UserData>(null);
 	const { webauthnCredentialCredentialId: loggedInPasskeyCredentialId } = api.getSession();
 	const [unlocked, setUnlocked] = useState(false);
+	const [unlockInProgress, setUnlockInProgress] = useState(false);
 	const [unlockMainKeyError, setUnlockMainKeyError] = useState('');
 	const showDelete = userData?.webauthnCredentials?.length > 1;
 	const { t } = useTranslation();
@@ -60,7 +60,10 @@ const Settings = () => {
 	const screenType = useScreenType();
 
 	const openDeleteConfirmation = () => setIsDeleteConfirmationOpen(true);
-	const closeDeleteConfirmation = () => setIsDeleteConfirmationOpen(false);
+	const closeDeleteConfirmation = () => {
+		setIsDeleteConfirmationOpen(false);
+		setUnlocked(false);
+	};
 	const [upgradePrfState, setUpgradePrfState] = useState<UpgradePrfState | null>(null);
 	const upgradePrfPasskeyLabel = useWebauthnCredentialNickname(upgradePrfState?.webauthnCredential);
 	const [successMessage, setSuccessMessage] = useState('');
@@ -95,6 +98,35 @@ const Settings = () => {
 			setLoading(false);
 		}
 	};
+
+	const onDeleteAccountClick = useCallback(
+		async () => {
+			setUnlockMainKeyError('');
+			setUnlockInProgress(true);
+			try {
+				await keystore.getPasswordOrPrfKeyFromSession(async () => true);
+				setUnlocked(true);
+				openDeleteConfirmation();
+			} catch (e) {
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (e?.cause?.errorId) {
+					case 'passkeyInvalid':
+						setUnlockMainKeyError(t('passkeyInvalid'));
+						break;
+
+					case 'passkeyLoginFailedTryAgain':
+						setUnlockMainKeyError(t('passkeyLoginFailedTryAgain'));
+						break;
+
+					default:
+						throw e;
+				}
+			} finally {
+				setUnlockInProgress(false);
+			}
+		},
+		[keystore, t],
+	);
 
 	const refreshData = useCallback(
 		async () => {
@@ -427,26 +459,15 @@ const Settings = () => {
 											title={t('pageSettings.deleteAccount.title')}
 											icon={<Trash2 size={18} />}
 											variant="danger"
-											actions={
-												<UnlockMainKey
-													unlocked={unlocked}
-													onLock={() => {
-														setUnlocked(false);
-														setUnlockMainKeyError('');
-													}}
-													onUnlock={() => setUnlocked(true)}
-													onUnlockErrorChange={setUnlockMainKeyError}
-												/>
-											}
 										>
 											{unlockMainKeyError && <p className="mb-2 text-sm text-lm-red dark:text-dm-red">{unlockMainKeyError}</p>}
 											<SettingsRow description={t('pageSettings.deleteAccount.description')}>
 												<Button
 													id="delete-account"
-													onClick={openDeleteConfirmation}
+													onClick={onDeleteAccountClick}
 													variant="delete"
-													disabled={!unlocked || !isOnline}
-													title={unlocked && !isOnline ? t("common.offlineTitle") : !unlocked ? t("pageSettings.deleteAccount.deleteButtonTitleLocked") : ""}
+													disabled={unlockInProgress || !isOnline}
+													title={!isOnline ? t("common.offlineTitle") : ""}
 												>
 													<Trash2 size={18} />
 													{t('pageSettings.deleteAccount.buttonText')}
