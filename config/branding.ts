@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
@@ -299,6 +299,17 @@ export function getManifestIconEntries({
 }
 
 /**
+ * Removes a leftover logo copy in the other format, e.g. logo_light.svg after switching to logo_light.png.
+ */
+async function removeStaleLogoCopy(publicDir: string, filename: string): Promise<void> {
+	const ext = path.extname(filename);
+	const staleExt = ext === ".svg" ? ".png" : ".svg";
+	const staleFilename = path.basename(filename, ext) + staleExt;
+
+	await rm(path.join(publicDir, staleFilename), { force: true });
+}
+
+/**
  * Generates all icons (favicon, apple touch icon, manifest icons).
  *
  * @param options Generation options.
@@ -332,6 +343,8 @@ export async function generateAllIcons({
 			copyFile(favicon.pathname, path.join(publicDir, path.basename(favicon.filename))).catch(() => {
 				console.warn(`No file ${favicon} was found, skipping...`);
 			}),
+			removeStaleLogoCopy(publicDir, logoLight.filename),
+			removeStaleLogoCopy(publicDir, logoDark.filename),
 		]);
 	}
 
