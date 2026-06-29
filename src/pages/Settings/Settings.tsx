@@ -436,7 +436,7 @@ const Settings = () => {
 											actions={<WebauthnRegistration onSuccess={() => refreshData()} />}
 											card={false}
 										>
-											<ul>
+											<ul className="flex flex-col gap-3">
 												{userData.webauthnCredentials
 													.slice()
 													.sort(compareBy((cred: WebauthnCredential) => new Date(cred.createTime)))
