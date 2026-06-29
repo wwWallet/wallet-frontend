@@ -1,19 +1,11 @@
-import { JWK } from "jose";
 import { DcqlQueryType } from "./dcqlQuery.type";
 import * as z from 'zod';
-import { OpenID4VPResponseMode } from "wallet-common";
+import { OpenID4VPClientMetadata, OpenID4VPResponseMode } from "wallet-common";
 
 export { OpenID4VPResponseMode as ResponseMode };
 
 export const ResponseModeSchema = z.nativeEnum(OpenID4VPResponseMode);
 
-type ClientMetadata = {
-	jwks?: { keys: JWK[] };
-	jwks_uri?: string;
-	authorization_encrypted_response_alg?: string;
-	authorization_encrypted_response_enc?: string;
-	vp_formats: any;
-}
 /**
  * serializable
  */
@@ -24,7 +16,7 @@ export class OpenID4VPRelyingPartyState {
 		public response_uri: string,
 		public client_id: string,
 		public state: string,
-		public client_metadata: ClientMetadata,
+		public client_metadata: OpenID4VPClientMetadata,
 		public response_mode: OpenID4VPResponseMode,
 		public transaction_data: string[],
 		public dcql_query: DcqlQueryType
