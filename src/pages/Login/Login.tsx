@@ -113,12 +113,14 @@ const WebauthnSignupLogin = ({
 
 	const promptForPrfRetry = async (): Promise<boolean> => {
 		setNeedPrfRetry(true);
+		setPrfRetryAccepted(false);
 		return new Promise((resolve: (accept: boolean) => void, _reject) => {
 			setResolvePrfRetryPrompt(() => resolve);
-		}).finally(() => {
+		}).then((accept) => {
 			setNeedPrfRetry(false);
-			setPrfRetryAccepted(true);
 			setResolvePrfRetryPrompt(null);
+			setPrfRetryAccepted(accept); // only true if the user clicked Continue
+			return accept;
 		});
 	};
 
