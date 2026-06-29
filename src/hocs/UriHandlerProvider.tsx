@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import type { OpenidCredentialIssuerMetadata } from "wallet-common";
+import { GrantType, type OpenidCredentialIssuerMetadata } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -228,7 +228,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			setUrl('');
 
 			if (u.protocol === 'openid-credential-offer' || u.searchParams.get('credential_offer') || u.searchParams.get('credential_offer_uri')) {
-				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, issuer_state, preAuthorizedCode, txCode }) => {
+				handleCredentialOffer(u.toString()).then(async ({ credentialIssuer, selectedCredentialConfigurationId, grant }) => {
 					const metadataResult = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuer);
 					if (!metadataResult?.metadata) {
 						throw new Error('Could not resolve issuer metadata for credential offer');
@@ -243,9 +243,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 
 					console.log("Generating authorization request...");
-					if (!preAuthorizedCode) {
-						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
-					} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
+
+					if (!grant[GrantType.PRE_AUTHORIZED_CODE]) {
+						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, grant);
+					}
+
+					const preAuthorizedCode = grant[GrantType.PRE_AUTHORIZED_CODE]['pre-authorized_code'];
+					const txCode = grant[GrantType.PRE_AUTHORIZED_CODE].tx_code;
+
+					if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
 						throw new Error("Already used pre-authorized code");
 					}
 

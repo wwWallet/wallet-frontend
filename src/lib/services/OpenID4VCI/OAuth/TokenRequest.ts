@@ -4,6 +4,7 @@ import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
 import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
+import { GrantType } from 'wallet-common';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
 const isDev = MODE === 'development';
@@ -19,12 +20,6 @@ export type AccessToken = {
 		"dpop-nonce"?: string;
 	};
 };
-
-export enum GrantType {
-	AUTHORIZATION_CODE = "code",
-	REFRESH = "refresh_token",
-	PRE_AUTHORIZED_CODE = "urn:ietf:params:oauth:grant-type:pre-authorized_code",
-}
 
 export enum TokenRequestError {
 	FAILED,
@@ -268,6 +263,9 @@ export function useTokenRequest() {
 
 		if (grantType.current === GrantType.AUTHORIZATION_CODE) {
 			tokenRequest = authorizationCodeGrantRequest;
+		} else if (grantType.current === GrantType.CODE) {
+			console.warn("GrantType.CODE is deprecated, please use GrantType.AUTHORIZATION_CODE instead");
+			tokenRequest = authorizationCodeGrantRequest;
 		} else if (grantType.current === GrantType.REFRESH) {
 			tokenRequest = refreshTokenGrantRequest;
 		} else if (grantType.current === GrantType.PRE_AUTHORIZED_CODE) {
@@ -280,6 +278,9 @@ export function useTokenRequest() {
 
 		const processResponse = async (response: Response) => {
 			if (grantType.current === GrantType.AUTHORIZATION_CODE) {
+				return oauth4webapi.processAuthorizationCodeResponse(as, client, response);
+			} else if (grantType.current === GrantType.CODE) {
+				console.warn('Grant type "code" is deprecated, please use "authorization_code" instead');
 				return oauth4webapi.processAuthorizationCodeResponse(as, client, response);
 			} else if (grantType.current === GrantType.REFRESH) {
 				return oauth4webapi.processRefreshTokenResponse(as, client, response);
