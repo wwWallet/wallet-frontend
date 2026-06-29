@@ -53,6 +53,7 @@ export const VCT_REGISTRY_URLS: string[] = config.vct_registry_urls
 	: [];
 export const POLICY_LINKS = config.policy_links;
 export const SHOW_PWA_INSTALL_PROMPT = config.show_pwa_install_prompt ? config.show_pwa_install_prompt === 'true' : false;
+export const DISPLAY_CREDENTIAL_USAGES = config.display_credential_usages ? config.display_credential_usages === 'true' : false;
 export const BRANDING = {
 	LOGO_LIGHT: config.branding?.logo_light || '/logo_light.svg',
 	LOGO_DARK: config.branding?.logo_dark || '/logo_dark.svg',

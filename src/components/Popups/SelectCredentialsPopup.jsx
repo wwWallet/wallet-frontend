@@ -173,8 +173,10 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 				setActiveSlideIndexByKey(prev => ({ ...prev, [currentKey]: idx + 1 }));
 			}
 		}
-		// run when step or its vcEntities change
-	}, [currentKey, vcEntities, currentSelectionMap, activeSlideIndexByKey]);
+		// run when step or its selection changes — NOT when activeSlideIndexByKey
+		// changes, otherwise swiping away from the selected card snaps right back.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentKey, vcEntities, currentSelectionMap]);
 
 	const requestedFieldsPerCredential = useMemo(() => {
 
@@ -227,7 +229,6 @@ function SelectCredentialsPopup({ popupState, setPopupState, showPopup, hidePopu
 		};
 
 		if (popupState?.options && vcEntityList) {
-			console.log("opts = ", popupState.options)
 			getData();
 		}
 	}, [

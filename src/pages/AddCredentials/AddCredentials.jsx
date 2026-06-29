@@ -88,6 +88,12 @@ const AddCredentials = () => {
 		return issuers.find((issuer) => issuer.credential_issuer === credentialIssuerIdentifier) ?? null;
 	}, [issuers, selectedCredentialConfiguration]);
 
+	const sortedCredentialConfigurations = useMemo(() => {
+		return [...credentialConfigurations].sort((a, b) =>
+			a.credentialIssuerIdentifier.localeCompare(b.credentialIssuerIdentifier)
+		);
+	}, [credentialConfigurations]);
+
 	const redirectPopupContent = useMemo(() => {
 		if (!selectedCredentialConfiguration || !selectedIssuer) {
 			return null;
@@ -218,7 +224,7 @@ const AddCredentials = () => {
 				{credentialConfigurations && recent && (
 					<QueryableList
 						isOnline={isOnline}
-						list={credentialConfigurations}
+						list={sortedCredentialConfigurations}
 						recent={credentialConfigurations.length < 6 ? [] : recent}
 						queryField='credentialConfigurationDisplayName'
 						translationPrefix='pageAddCredentials'
