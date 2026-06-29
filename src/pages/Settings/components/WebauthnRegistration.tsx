@@ -193,7 +193,7 @@ const WebauthnRegistration = ({
 							id={`add-passkey-settings-${hint}`}
 							role="menuitem"
 							type="button"
-							className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left text-lm-gray-900 dark:text-white hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600"
+							className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left cursor-pointer text-lm-gray-900 dark:text-white hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600"
 							onClick={() => {
 								setMenuOpen(false);
 								onBegin(hint);

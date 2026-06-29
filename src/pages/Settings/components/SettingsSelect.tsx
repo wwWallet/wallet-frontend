@@ -6,7 +6,7 @@ interface SettingsSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 	children: ReactNode,
 }
 
-const SettingsSelect = ({ icon, className, children, ...selectProps }: SettingsSelectProps) => (
+const SettingsSelect = ({ icon, className, children, disabled, ...selectProps }: SettingsSelectProps) => (
 	<div className="relative inline-block min-w-36">
 		{icon && (
 			<span className="absolute top-1/2 left-3 -translate-y-1/2 pointer-events-none dark:text-white">
@@ -14,7 +14,8 @@ const SettingsSelect = ({ icon, className, children, ...selectProps }: SettingsS
 			</span>
 		)}
 		<select
-			className={`h-10 ${icon ? 'pl-10' : 'pl-3'} w-full pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none ${className ?? ''}`}
+			className={`h-10 ${icon ? 'pl-10' : 'pl-3'} w-full pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'} ${className ?? ''}`}
+			disabled={disabled}
 			{...selectProps}
 		>
 			{children}

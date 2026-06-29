@@ -17,9 +17,9 @@ const MIN_VISIBLE_TABS = 1;
 const MIN_OVERFLOW_TABS = 2;
 
 const tabButtonClassName = (isActive: boolean) => (
-	`flex items-center gap-2 min-w-0 px-3 sm:px-4 py-2 text-lm-gray-900 dark:text-dm-gray-100 ${isActive
+	`flex items-center gap-2 min-w-0 px-3 sm:px-4 py-2 cursor-pointer text-lm-gray-900 dark:text-dm-gray-100 ${isActive
 		? 'bg-lm-gray-500 dark:bg-dm-gray-500 rounded-t-lg'
-		: 'cursor-pointer'
+		: ''
 	}`
 );
 
@@ -184,8 +184,8 @@ const SettingsTabs = ({
 										setMenuOpen(false);
 									}}
 									className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg text-left whitespace-nowrap ${activeTab === tab.id
-										? 'bg-primary text-white font-semibold'
-										: 'hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'
+										? 'bg-primary text-white font-semibold cursor-pointer'
+										: 'cursor-pointer hover:bg-lm-gray-400 dark:hover:bg-dm-gray-600'
 									}`}
 								>
 									{tab.icon}

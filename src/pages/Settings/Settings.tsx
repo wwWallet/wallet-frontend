@@ -315,7 +315,7 @@ const Settings = () => {
 									<>
 										<SettingsSection title={t('pageSettings.title.language')} icon={<Languages size={18} />}>
 											<SettingsRow description={t('pageSettings.language.description')}>
-												<div className="relative inline-block min-w-36">
+												<div className="relative inline-block min-w-36 [&_select]:cursor-pointer">
 													<LanguageSelector className="h-10 pl-3 pr-10 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-600 dark:border-dm-gray-400 dark:text-white rounded-lg inputDarkModeOverride appearance-none" showName={true} />
 												</div>
 											</SettingsRow>
@@ -360,7 +360,7 @@ const Settings = () => {
 															reloadButton:
 																<button
 																	id="reload-update-version"
-																	className='text-primary dark:text-brand-light underline'
+																	className='text-primary dark:text-brand-light underline cursor-pointer'
 																	onClick={() => window.location.reload()}
 																/>,
 															strong: <strong />,
