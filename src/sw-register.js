@@ -1,4 +1,4 @@
-import { BASE_PATH, MODE } from './config';
+import { BASE_PATH } from './config';
 
 const swScope = BASE_PATH.replace(/\/?$/, '/');
 const swPath = `${swScope}service-worker.js`;
@@ -16,8 +16,19 @@ const swPolicy = tt
 	})
 	: null;
 
-if (MODE === 'production' && 'serviceWorker' in navigator) {
-	window.addEventListener('load', () => {
+if ('serviceWorker' in navigator) {
+	window.addEventListener('load', async () => {
+		// Only exists after a build; the dev server serves index.html instead.
+		try {
+			const res = await fetch(swPath, { method: 'HEAD' });
+			const contentType = res.headers.get('content-type') || '';
+			if (!res.ok || !contentType.includes('javascript')) {
+				return;
+			}
+		} catch {
+			return;
+		}
+
 		const trustedSwUrl = swPolicy ? swPolicy.createScriptURL(swPath) : swPath;
 		navigator.serviceWorker
 			.register(trustedSwUrl, { scope: swScope })
