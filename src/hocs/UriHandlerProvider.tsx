@@ -43,6 +43,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
+	const txCodeResolverRef = useRef<((value: string | null) => void) | null>(null);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
 	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
@@ -166,6 +167,13 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		});
 	}, []);
 
+	const requestTxCodeInput = useCallback(() => {
+		return new Promise<string | null>((resolve) => {
+			txCodeResolverRef.current = resolve;
+			setShowPinInputPopup(true);
+		});
+	}, []);
+
 	const popupContentFromIssuerMetadata = useCallback((
 		issuerMetadata: OpenidCredentialIssuerMetadata,
 		credentialConfigurationId: string
@@ -251,15 +259,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 					let userInput: string | undefined = undefined;
 					if (txCode) {
-						while (1) {
-							userInput = prompt(txCode.description ?? "Input Transaction Code displayed on your screen")
-							if (txCode.length && txCode.length === userInput.length) {
-								break;
-							}
-							else if (txCode.length) {
-								alert(`Length of transaction code must be ${txCode.length}`);
-							}
+						const pin = await requestTxCodeInput();
+						if (pin === null) {
+							return null;
 						}
+						userInput = pin;
 					}
 					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
@@ -349,6 +353,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		// depend on methods, not whole context objects
 		popupContentFromIssuerMetadata,
 		requestRedirectConsent,
+		requestTxCodeInput,
 		showMessagePopup,
 		handleCredentialOffer,
 		generateAuthorizationRequest,
@@ -379,7 +384,12 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			{children}
 			<Suspense fallback={null}>
 				{showPinInputPopup &&
-					<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
+					<PinInputPopup
+						isOpen={showPinInputPopup}
+						setIsOpen={setShowPinInputPopup}
+						onSubmit={(pin: string) => { txCodeResolverRef.current?.(pin); txCodeResolverRef.current = null; }}
+						onCancel={() => { txCodeResolverRef.current?.(null); txCodeResolverRef.current = null; }}
+					/>
 				}
 				{isMessagePopupOpen &&
 					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
