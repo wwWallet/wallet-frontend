@@ -198,7 +198,11 @@
 			"rename": "Μετονομασία",
 			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
 			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
-			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
+			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης",
+			"syncable": "Συγχρονισμένο",
+			"syncableYes": "Ναι",
+			"syncableAvailable": "Υποστηρίζεται Συγχρονισμός",
+			"syncableNo": "Όχι"
 		},
 		"rememberIssuer": {
 			"description": "Ορίστε τη διάρκεια πρόσβασης σε issuers χωρίς νέα αυθεντικοποίηση (σύμφωνα με την πολιτική του issuer)",

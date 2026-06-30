@@ -192,7 +192,11 @@
 			"rename": "Renomear",
 			"renameAriaLabel": "Renomear chave de acesso {{passkeyLabel}}",
 			"saveChangesAriaLabel": "Guardar alterações para chave de acesso {{passkeyLabel}}",
-			"unnamed": "Chave de acesso sem nome"
+			"unnamed": "Chave de acesso sem nome",
+			"syncable": "Sincronizado",
+			"syncableYes": "Sim",
+			"syncableAvailable": "Disponível",
+			"syncableNo": "Não"
 		},
 		"rememberIssuer": {
 			"description": "Defina a duração de acesso aos issuers sem ser necessário nova autenticação (de acordo com a política do issuer)",
