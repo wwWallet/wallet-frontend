@@ -119,7 +119,7 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 	};
 
 	return (
-		<PopupLayout isOpen={isOpen} onClose={false}>
+		<PopupLayout isOpen={isOpen} onClose={() => { }} shouldCloseOnOverlayClick={false}>
 			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
