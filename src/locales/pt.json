@@ -20,6 +20,7 @@
 		"cancel": "Cancelar",
 		"continue": "Continuar",
 		"delete": "Eliminar",
+		"more": "Mais",
 		"navItemAddCredentials": "Adicionar Credenciais",
 		"navItemAddCredentialsSimple": "Adicionar",
 		"navItemCredentials": "Credenciais",
@@ -166,13 +167,11 @@
 		},
 		"deleteAccount": {
 			"buttonText": "Elimine a sua conta",
-			"deleteButtonTitleLocked": "Não é possível apagar a conta com gestão bloqueada",
 			"description": "Eliminar a conta é um processo irreversível. Por favor, assegure-se de que quer prosseguir.",
 			"message": "Tem a certeza que quer eliminar <strong>a sua conta</strong>?",
 			"title": "Eliminar conta"
 		},
 		"description": "Consulte informação da conta e gira chaves de acesso",
-		"noOtherPasskeys": "Não há mais chaves de acesso nesta conta.",
 		"passkeyItem": {
 			"canEncrypt": "Pode encriptar",
 			"canEncryptNo": "Não",
@@ -182,6 +181,7 @@
 			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Clique para eliminar a chave de acesso {{passkeyLabel}}",
 			"lastUsed": "Última utilização",
+			"loggedIn": "Autenticada",
 			"messageDeletePasskey": "Tem a certeza que deseja eliminar a chave de acesso <strong>{{nickname}}</strong>?",
 			"needsPrfUpgrade": "Atualização necessária",
 			"nickname": "Nome",
@@ -206,12 +206,13 @@
 			"successMessage": "Guardado"
 		},
 		"title": {
+			"account": "Conta",
 			"appVersion": "Versão da aplicação",
 			"confirmDeletePopup": "Tem a certeza?",
+			"general": "Geral",
 			"language": "Idioma",
-			"loggedInPasskey": "Chave de acesso autenticada",
-			"manageAcount": "Gerir conta",
-			"manageOtherPasskeys": "Gerir outras chaves de acesso",
+			"manageOtherPasskeys": "Gerir chaves de acesso",
+			"privacy": "Privacidade",
 			"rememberIssuer": "Relembrar issuer"
 		},
 		"upgradePrfKey": {
