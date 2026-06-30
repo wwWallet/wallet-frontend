@@ -16,6 +16,18 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 
 	const inputRefs = useRef([]);
 
+	const trimExtraEmptyDigits = (digits) => {
+		if (!expectedLength) {
+			return digits;
+		}
+
+		const trimmedDigits = [...digits];
+		while (trimmedDigits.length > expectedLength && trimmedDigits[trimmedDigits.length - 1] === '') {
+			trimmedDigits.pop();
+		}
+		return trimmedDigits;
+	};
+
 	useEffect(() => {
 		if (!isOpen) {
 			return;
@@ -33,13 +45,6 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 		onCancel?.();
 	};
 
-	const sanitizeCode = (value) => {
-		const sanitizedValue = normalizedInputMode === 'numeric'
-			? value.replace(/\D/g, '')
-			: value;
-		return expectedLength ? Array.from(sanitizedValue).slice(0, expectedLength).join('') : sanitizedValue;
-	};
-
 	const handleSubmit = async () => {
 		if (isSubmitting) {
 			return;
@@ -47,7 +52,7 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 
 		try {
 			const userPin = pin.join('');
-			if (!userPin || (expectedLength && pin.some((digit) => digit === ''))) {
+			if (!userPin || (expectedLength && pin.slice(0, expectedLength).some((digit) => digit === ''))) {
 				setErrMessage(`${t('PinInputPopup.errMessage')}`);
 				return;
 			}
@@ -74,28 +79,29 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 
 	const handleInputChange = (value) => {
 		setErrMessage('');
-		setPin([sanitizeCode(value)]);
+		setPin([value]);
 	};
 
 	const handlePinDigitChange = (index, value) => {
 		setErrMessage('');
-		const sanitizedValue = sanitizeCode(value);
 		const newPin = [...pin];
 
-		if (sanitizedValue.length > 1) {
-			const pastedPin = Array.from(sanitizedValue);
-			setPin([
+		if (value.length > 1) {
+			const pastedPin = Array.from(value);
+			const nextPin = trimExtraEmptyDigits([
 				...pastedPin,
-				...Array(expectedLength - pastedPin.length).fill('')
+				...Array(Math.max(expectedLength - pastedPin.length, 0)).fill('')
 			]);
-			inputRefs.current[Math.min(pastedPin.length, expectedLength - 1)]?.focus();
+			setPin(nextPin);
+			inputRefs.current[Math.min(pastedPin.length, Math.max(expectedLength, nextPin.length) - 1)]?.focus();
 			return;
 		}
 
-		newPin[index] = sanitizedValue;
-		setPin(newPin);
+		newPin[index] = value;
+		const nextPin = trimExtraEmptyDigits(newPin);
+		setPin(nextPin);
 
-		if (sanitizedValue && index < expectedLength - 1) {
+		if (value && index < Math.max(expectedLength, nextPin.length) - 1) {
 			inputRefs.current[index + 1]?.focus();
 		}
 	};
@@ -103,20 +109,21 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 	const handlePinDigitPaste = (index, event) => {
 		event.preventDefault();
 		setErrMessage('');
-		const pastedPin = Array.from(sanitizeCode(event.clipboardData.getData('Text')));
+		const pastedPin = Array.from(event.clipboardData.getData('Text'));
 		if (pastedPin.length === 0) {
 			return;
 		}
 
 		const newPin = [...pin];
 		pastedPin.forEach((digit, offset) => {
-			if (index + offset < expectedLength) {
-				newPin[index + offset] = digit;
-			}
+			newPin[index + offset] = digit;
 		});
-		setPin(newPin);
-		inputRefs.current[Math.min(index + pastedPin.length, expectedLength - 1)]?.focus();
+		const nextPin = trimExtraEmptyDigits(newPin);
+		setPin(nextPin);
+		inputRefs.current[Math.min(index + pastedPin.length, Math.max(expectedLength, nextPin.length) - 1)]?.focus();
 	};
+
+	const inputCount = expectedLength ? Math.max(expectedLength, pin.length) : 0;
 
 	return (
 		<PopupLayout isOpen={isOpen} onClose={() => { }} shouldCloseOnOverlayClick={false}>
@@ -134,7 +141,7 @@ function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 
 			)}
 			{expectedLength ? (
 				<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
-					{Array.from({ length: expectedLength }).map((_, index) => (
+					{Array.from({ length: inputCount }).map((_, index) => (
 						<input
 							type="text"
 							key={index}
