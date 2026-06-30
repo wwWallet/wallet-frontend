@@ -16,6 +16,7 @@ import useFilterItemByLang from "@/hooks/useFilterItemByLang";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { getAuthorizationRequestErrorMessageKey } from "@/lib/services/OpenID4VP/authorizationRequestErrorMessageKey";
 import { getAuthorizationResponseErrorMessageKey } from "@/lib/services/OpenID4VCI/authorizationResponseErrorMessageKey";
+import type { TxCodeInputMetadata } from "@/lib/interfaces/IOpenID4VCI";
 
 const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'));
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
@@ -44,6 +45,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
 	const txCodeResolverRef = useRef<((value: string | null) => void) | null>(null);
+	const [txCodeInputOptions, setTxCodeInputOptions] = useState<TxCodeInputMetadata | null>(null);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
 	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
@@ -167,11 +169,18 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		});
 	}, []);
 
-	const requestTxCodeInput = useCallback(() => {
+	const requestTxCodeInput = useCallback((txCode: TxCodeInputMetadata) => {
 		return new Promise<string | null>((resolve) => {
+			setTxCodeInputOptions(txCode ?? null);
 			txCodeResolverRef.current = resolve;
 			setShowPinInputPopup(true);
 		});
+	}, []);
+
+	const cancelTxCodeInput = useCallback(() => {
+		txCodeResolverRef.current?.(null);
+		txCodeResolverRef.current = null;
+		setTxCodeInputOptions(null);
 	}, []);
 
 	const popupContentFromIssuerMetadata = useCallback((
@@ -258,9 +267,10 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					}
 
 					let userInput: string | undefined = undefined;
-					if (txCode) {
-						const pin = await requestTxCodeInput();
+					if (txCode !== undefined) {
+						const pin = await requestTxCodeInput(txCode);
 						if (pin === null) {
+							cleanCurrentUrl();
 							return null;
 						}
 						userInput = pin;
@@ -387,8 +397,15 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					<PinInputPopup
 						isOpen={showPinInputPopup}
 						setIsOpen={setShowPinInputPopup}
-						onSubmit={(pin: string) => { txCodeResolverRef.current?.(pin); txCodeResolverRef.current = null; }}
-						onCancel={() => { txCodeResolverRef.current?.(null); txCodeResolverRef.current = null; }}
+						length={txCodeInputOptions?.length}
+						input_mode={txCodeInputOptions?.input_mode}
+						description={txCodeInputOptions?.description}
+						onSubmit={(pin: string) => {
+							txCodeResolverRef.current?.(pin);
+							txCodeResolverRef.current = null;
+							setTxCodeInputOptions(null);
+						}}
+						onCancel={cancelTxCodeInput}
 					/>
 				}
 				{isMessagePopupOpen &&
