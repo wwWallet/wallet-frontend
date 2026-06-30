@@ -546,6 +546,18 @@ const WebauthnCredentialItem = ({
 						&& <span className="py-1 px-2 rounded bg-lm-orange dark:bg-dm-orange text-lm-gray-900 font-bold">{t('pageSettings.passkeyItem.needsPrfUpgrade')}</span>
 					}
 				</p>
+				<p className='dark:text-white flex gap-3 items-center'>
+					<span className="font-semibold">
+						{t('pageSettings.passkeyItem.syncable')}:&nbsp;
+					</span>
+					{ 
+						credential.backupEligibility === true && credential.backupState === true
+  							? t("pageSettings.passkeyItem.syncableYes")
+  						: credential.backupEligibility === true && credential.backupState === false
+    						? t("pageSettings.passkeyItem.syncableAvailable")
+    					: t("pageSettings.passkeyItem.syncableNo")
+					}
+				</p>
 			</div>
 
 			<div className="items-start	flex gap-2">

@@ -264,7 +264,11 @@
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
-			"unnamed": "Unnamed passkey"
+			"unnamed": "Unnamed passkey",
+			"syncable": "Synced",
+			"syncableYes": "Yes",
+			"syncableAvailable": "Available",
+			"syncableNo": "No"
 		},
 		"rememberIssuer": {
 			"description": "Set the duration for accessing issuers without re-authenticating (subject to issuer policy)",
