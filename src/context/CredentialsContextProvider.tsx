@@ -6,6 +6,7 @@ import { useHttpProxy } from "@/lib/services/HttpProxy/HttpProxy";
 import CredentialsContext, { ExtendedVcEntity, Instance } from "./CredentialsContext";
 import { useOpenID4VCIHelper } from "@/lib/services/OpenID4VCIHelper";
 import { CurrentSchema } from '@/services/WalletStateSchema';
+import { setAppBadgeCount } from '@/utils';
 
 type WalletStateCredential = CurrentSchema.WalletStateCredential;
 
@@ -37,6 +38,10 @@ export const CredentialsContextProvider = ({ children }: React.PropsWithChildren
 		);
 		setPendingTransactions(sessionsWithTx);
 	}, [getCalculatedWalletState]);
+
+	useEffect(() => {
+		setAppBadgeCount(pendingTransactions?.length ?? 0);
+	}, [pendingTransactions]);
 
 	const initializeEngine = useCallback(async (useCache: boolean) => {
 		const trustedCertificates: string[] = [];

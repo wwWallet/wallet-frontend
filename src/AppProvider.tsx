@@ -28,19 +28,19 @@ const AppProvider: React.FC<RootProviderProps> = ({ children }) => {
 			<SessionContextProvider>
 				<CredentialsContextProvider>
 					<I18nextProvider i18n={i18n}>
-						<OpenID4VPContextProvider>
-							<OpenID4VCIContextProvider>
-								<UriHandlerProvider>
-									<AppSettingsProvider>
+						<AppSettingsProvider>
+							<OpenID4VPContextProvider>
+								<OpenID4VCIContextProvider>
+									<UriHandlerProvider>
 										<NotificationProvider>
 											<NativeWrapperProvider>
 												{children}
 											</NativeWrapperProvider>
 										</NotificationProvider>
-									</AppSettingsProvider>
-								</UriHandlerProvider>
-							</OpenID4VCIContextProvider>
-						</OpenID4VPContextProvider>
+									</UriHandlerProvider>
+								</OpenID4VCIContextProvider>
+							</OpenID4VPContextProvider>
+						</AppSettingsProvider>
 					</I18nextProvider>
 				</CredentialsContextProvider>
 			</SessionContextProvider>

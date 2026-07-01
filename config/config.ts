@@ -46,9 +46,10 @@ export const ClientEnvConfigSchema = z.object({
 	OPENID4VCI_TRANSACTION_ID_LIFETIME_IN_SECONDS: z.string().optional(),
 	OHTTP_KEY_CONFIG: z.string().optional(),
 	OHTTP_RELAY: z.string().optional(),
-	VCT_REGISTRY_URL: z.string().optional(),
+	VCT_REGISTRY_URLS: z.string().optional(),
 	POLICY_LINKS: z.string().optional(),
 	SHOW_PWA_INSTALL_PROMPT: z.string().optional(),
+	DISPLAY_CREDENTIAL_USAGES: z.string().optional(),
 });
 export type ClientEnvConfig = z.infer<typeof ClientEnvConfigSchema>;
 

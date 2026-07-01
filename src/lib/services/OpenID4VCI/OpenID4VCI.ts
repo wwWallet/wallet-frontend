@@ -692,18 +692,25 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 	const handleCredentialOffer = useCallback(
 		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: { inputMode?: string; length?: number; description?: string; }; preAuthorizedCode?: string; }> => {
 			const parsedUrl = new URL(credentialOfferURL);
+			const credentialOffer = parsedUrl.searchParams.get("credential_offer");
+			const credentialOfferUri = parsedUrl.searchParams.get("credential_offer_uri");
 			let offer;
-			if (parsedUrl.searchParams.get("credential_offer")) {
-				offer = CredentialOfferSchema.parse(JSON.parse(parsedUrl.searchParams.get("credential_offer")));
-			} else {
+			if (credentialOffer && credentialOfferUri) {
+				throw new Error("Credential offer must not contain both credential_offer and credential_offer_uri");
+			}
+			if (credentialOffer) {
+				offer = CredentialOfferSchema.parse(JSON.parse(credentialOffer));
+			} else if (credentialOfferUri) {
 				try {
-					let response = await httpProxy.get(parsedUrl.searchParams.get("credential_offer_uri"), {})
-					offer = response.data;
+					let response = await httpProxy.get(credentialOfferUri, {})
+					offer = CredentialOfferSchema.parse(response.data);
 				}
 				catch (err) {
 					console.error(err);
 					return;
 				}
+			} else {
+				throw new Error("Credential offer must contain credential_offer or credential_offer_uri");
 			}
 
 
@@ -717,8 +724,8 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				throw new Error("Credential configuration not found");
 			}
 
-			if (GrantType.PRE_AUTHORIZED_CODE in offer.grants) {
-				const preAuthorizedCodeObject = offer.grants[GrantType.PRE_AUTHORIZED_CODE];
+			const preAuthorizedCodeObject = offer.grants?.[GrantType.PRE_AUTHORIZED_CODE];
+			if (preAuthorizedCodeObject) {
 				const preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"];
 				const txCode = preAuthorizedCodeObject["tx_code"];
 				return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, txCode, preAuthorizedCode };

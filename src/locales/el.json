@@ -20,6 +20,7 @@
 		"cancel": "Ακύρωση",
 		"continue": "Συνέχεια",
 		"delete": "Διαγραφή",
+		"more": "Περισσότερα",
 		"navItemAddCredentials": "Προσθήκη Πιστοποιητικών",
 		"navItemAddCredentialsSimple": "Προσθήκη",
 		"navItemCredentials": "Πιστοποιητικά",
@@ -176,13 +177,11 @@
 		},
 		"deleteAccount": {
 			"buttonText": "Διαγραφή του λογαριασμού σας",
-			"deleteButtonTitleLocked": "Δεν μπορείτε να διαγράψετε τον λογαριασμό σας ενώ είναι κλειδωμένος",
 			"description": "Μόλις διαγράψετε τον λογαριασμό σας, δεν υπάρχει επιστροφή. Παρακαλώ να είστε βέβαιοι.",
 			"message": "Είστε σίγουροι ότι θέλετε να διαγράψετε <strong>τον λογαριασμό σας</strong>;",
 			"title": "Διαγραφή λογαριασμού"
 		},
 		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
-		"noOtherPasskeys": "Δεν υπάρχουν άλλα κλειδιά πρόσβασης σε αυτόν τον λογαριασμό.",
 		"passkeyItem": {
 			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
 			"canEncryptNo": "Όχι",
@@ -192,6 +191,7 @@
 			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Κάντε κλικ για να διαγράψετε το κλειδί πρόσβασης {{passkeyLabel}}",
 			"lastUsed": "Τελευταία Χρήση",
+			"loggedIn": "Συνδεδεμένο",
 			"messageDeletePasskey": "Είστε σίγουροι ότι θέλετε να διαγράψετε το κλειδί πρόσβασης <strong>{{nickname}}</strong>;",
 			"needsPrfUpgrade": "Απαιτείται αναβάθμιση",
 			"nickname": "Ψευδώνυμο",
@@ -216,12 +216,13 @@
 			"successMessage": "Αποθηκεύτηκε"
 		},
 		"title": {
+			"account": "Λογαριασμός",
 			"appVersion": "Έκδοση Εφαρμογής",
 			"confirmDeletePopup": "Είστε Σίγουροι;",
+			"general": "Γενικά",
 			"language": "Γλώσσα",
-			"loggedInPasskey": "Συνδεδεμένο Κλειδί Πρόσβασης",
-			"manageAcount": "Διαχείριση Λογαριασμού",
-			"manageOtherPasskeys": "Διαχείριση Άλλων Κλειδιών Πρόσβασης",
+			"manageOtherPasskeys": "Διαχείριση Κλειδιών Πρόσβασης",
+			"privacy": "Απόρρητο",
 			"rememberIssuer": "Remember Issuer"
 		},
 		"upgradePrfKey": {

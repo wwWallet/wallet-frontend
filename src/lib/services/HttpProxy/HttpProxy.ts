@@ -11,6 +11,8 @@ import { toU8 } from '@/util';
 // @ts-ignore
 const walletBackendServerUrl = BACKEND_URL;
 const inFlightRequests = new Map<string, Promise<any>>();
+// Session-only cache for `no-store` responses, cleared on reload.
+const sessionCache = new Map<string, { data: any; expiry: number }>();
 const TIMEOUT = 3 * 1000;
 
 const parseCacheControl = (header: string) =>
@@ -52,7 +54,7 @@ export function useHttpProxy(): IHttpProxy {
 
 			if (useCache && online !== false) {
 				try {
-					const cached = await getItem('proxyCache', cacheKey, 'proxyCache');
+					const cached = sessionCache.get(cacheKey) ?? await getItem('proxyCache', cacheKey, 'proxyCache');
 
 					const cachedData = cached?.data;
 					const expiry = cached?.expiry;
@@ -186,12 +188,16 @@ export function useHttpProxy(): IHttpProxy {
 					const cacheControlHeader: string | undefined = sourceHeaders?.['cache-control'];
 
 					let shouldCache = useCache !== undefined;
+					let useSessionCache = false;
 					let maxAge = 60 * 60 * 24 * 30; // default: 30 days
 
 					// Handle Cache-Control logic
 					if (shouldCache && typeof cacheControlHeader === 'string') {
 						const lower = cacheControlHeader.toLowerCase();
-						if (lower.includes('no-store')) shouldCache = false;
+						if (lower.includes('no-store')) {
+							shouldCache = false;
+							useSessionCache = true;
+						}
 						else if (lower.includes('no-cache')) maxAge = 0;
 						else {
 							const parsed = parseCacheControl(lower);
@@ -214,8 +220,8 @@ export function useHttpProxy(): IHttpProxy {
 							data: blobUrl,
 						};
 
-						if (shouldCache) {
-							await addItem('proxyCache', cacheKey, {
+						if (shouldCache || useSessionCache) {
+							const entry = {
 								data: {
 									__binary: true,
 									status: response.status,
@@ -224,22 +230,34 @@ export function useHttpProxy(): IHttpProxy {
 									bytes: arrayBuffer,
 								},
 								expiry: now + maxAge,
-							}, 'proxyCache');
+							};
+
+							if (shouldCache) {
+								await addItem('proxyCache', cacheKey, entry, 'proxyCache');
+							} else {
+								sessionCache.set(cacheKey, entry);
+							}
 						}
 
 						return responseToCache;
 					}
 
 					// Non-blob response
-					if (shouldCache) {
-						await addItem('proxyCache', cacheKey, {
+					if (shouldCache || useSessionCache) {
+						const entry = {
 							data: {
 								status: res.status,
 								headers: res.headers,
 								data: res.data,
 							},
 							expiry: now + maxAge,
-						}, 'proxyCache');
+						};
+
+						if (shouldCache) {
+							await addItem('proxyCache', cacheKey, entry, 'proxyCache');
+						} else {
+							sessionCache.set(cacheKey, entry);
+						}
 					}
 
 					return {

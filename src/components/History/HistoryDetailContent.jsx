@@ -26,7 +26,7 @@ const HistoryDetailContent = ({ historyItem }) => {
 	);
 
 	return (
-		<div className="py-2 w-full">
+		<div className="py-4 w-full">
 			<div className='flex items-center gap-2 px-2 mb-4'>
 				<BookCheck size={40} className="text-white bg-primary p-2 rounded-md shrink-0" />
 				<div>
