@@ -11,10 +11,10 @@
 		"status": "Connection status:"
 	},
 	"PinInputPopup": {
-		"description": "Please enter the PIN which was displayed from the issuer",
-		"errMessage": "You have entered an incorrect pin",
-		"inputPlaceholder": "Pin",
-		"title": "Enter the Pin"
+		"description": "Please enter the PIN provided by the issuer",
+		"errMessage": "You have entered an incorrect PIN",
+		"inputPlaceholder": "PIN",
+		"title": "Enter the PIN"
 	},
 	"common": {
 		"and": "and",
@@ -250,9 +250,6 @@
 			"title": "Oblivious HTTP"
 		},
 		"passkeyItem": {
-			"canEncrypt": "Can Encrypt",
-			"canEncryptNo": "No",
-			"canEncryptYes": "Yes",
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
@@ -269,6 +266,10 @@
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+			"syncable": "Synced",
+			"syncableAvailable": "Available",
+			"syncableNo": "No",
+			"syncableYes": "Yes",
 			"unnamed": "Unnamed passkey"
 		},
 		"rememberIssuer": {

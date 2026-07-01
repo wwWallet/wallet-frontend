@@ -1,108 +1,69 @@
 // PinInput.js
-import React, { useState, useRef, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
-import SessionContext from '@/context/SessionContext';
 import PopupLayout from './PopupLayout';
-import { last } from '@/util';
 import { Lock } from 'lucide-react';
 
-function PinInput({ isOpen, setIsOpen }) {
-	const { api } = useContext(SessionContext);
-	const navigate = useNavigate();
+function PinInput({ isOpen, setIsOpen, onSubmit, onCancel, length, input_mode = 'numeric', description }) {
 	const [errMessage, setErrMessage] = useState('');
-	const [pin, setPin] = useState(['', '', '', '']);
+	const parsedLength = Number(length);
+	const expectedLength = Number.isInteger(parsedLength) && parsedLength > 0 ? parsedLength : null;
+	const normalizedInputMode = input_mode === 'text' ? 'text' : 'numeric';
+	const [pin, setPin] = useState(['']);
+	const [isSubmitting, setSubmitting] = useState(false);
 	const { t } = useTranslation();
 
-	const inputRefs = [
-		useRef(null),
-		useRef(null),
-		useRef(null),
-		useRef(null)
-	];
-	const firstInputRef = inputRefs[0];
+	const inputRefs = useRef([]);
+
+	const trimExtraEmptyDigits = (digits) => {
+		if (!expectedLength) {
+			return digits;
+		}
+
+		const trimmedDigits = [...digits];
+		while (trimmedDigits.length > expectedLength && trimmedDigits[trimmedDigits.length - 1] === '') {
+			trimmedDigits.pop();
+		}
+		return trimmedDigits;
+	};
 
 	useEffect(() => {
-		if (firstInputRef.current) {
-			firstInputRef.current.focus();
+		if (!isOpen) {
+			return;
 		}
-	}, [firstInputRef]);
+
+		setErrMessage('');
+		setPin(Array(expectedLength ?? 1).fill(''));
+		setSubmitting(false);
+		inputRefs.current = inputRefs.current.slice(0, expectedLength ?? 1);
+		inputRefs.current[0]?.focus();
+	}, [isOpen, expectedLength]);
 
 	const handleCancel = () => {
 		setIsOpen(false);
-		navigate('/');
+		onCancel?.();
 	};
 
 	const handleSubmit = async () => {
+		if (isSubmitting) {
+			return;
+		}
+
 		try {
 			const userPin = pin.join('');
-			await api.post('/communication/handle', { user_pin: userPin });
+			if (!userPin || (expectedLength && pin.slice(0, expectedLength).some((digit) => digit === ''))) {
+				setErrMessage(`${t('PinInputPopup.errMessage')}`);
+				return;
+			}
+
+			setSubmitting(true);
+			await onSubmit?.(userPin);
 			setIsOpen(false);
 		} catch (err) {
 			setErrMessage(`${t('PinInputPopup.errMessage')}`);
-		}
-	};
-
-	const handleInputChange = (index, value) => {
-		setErrMessage('');
-		if (/^\d*$/.test(value) && value.length <= 1) {
-			const newPin = [...pin];
-			newPin[index] = value;
-
-			setPin(newPin);
-
-			if (value === '' && index > 0) {
-				// Move focus to the previous input field and clear it if the value is cleared
-				inputRefs[index - 1].current.focus();
-				newPin[index - 1] = '';
-			} else if (value !== '' && index < 3) {
-				// Move focus to the next input and clean it
-				const nextInput = inputRefs[index + 1].current;
-				newPin[index + 1] = '';
-				setPin(newPin);
-				nextInput.focus();
-				nextInput.select();
-			} else if (value !== '' && index === 3) {
-				// Clear next input fields if you are in the last input
-				for (let i = index + 1; i < newPin.length; i++) {
-					newPin[i] = '';
-				}
-				setPin(newPin);
-			}
-		}
-	};
-
-	const handleInputKeyDown = (index, event) => {
-		setErrMessage('');
-		if (event.key === 'Backspace' && pin[index] === '' && index > 0) {
-			inputRefs[index - 1].current.focus();
-			const newPin = [...pin];
-			newPin[index - 1] = '';
-			setPin(newPin);
-		}
-	};
-
-	const handleInputClick = (index) => {
-		setErrMessage('');
-		const newPin = [...pin];
-		newPin[index] = '';
-		setPin(newPin);
-
-	};
-
-	const handleInputPaste = (pastedValue) => {
-		setErrMessage('');
-		if (/^\d{1,4}$/.test(pastedValue)) {
-			const newPin = Array.from(pastedValue, (char) => char);
-
-			const updatedPin = [...newPin];
-			while (updatedPin.length < pin.length) {
-				updatedPin.push('');
-			}
-			setPin(updatedPin);
-
-			last(inputRefs).current.focus();
+		} finally {
+			setSubmitting(false);
 		}
 	};
 
@@ -110,42 +71,112 @@ function PinInput({ isOpen, setIsOpen }) {
 		return null;
 	}
 
-	const handleInputKeyPress = (event) => {
+	const handleInputKeyDownSubmit = (event) => {
 		if (event.key === 'Enter') {
 			handleSubmit();
 		}
 	};
 
+	const handleInputChange = (value) => {
+		setErrMessage('');
+		setPin([value]);
+	};
+
+	const handlePinDigitChange = (index, value) => {
+		setErrMessage('');
+		const newPin = [...pin];
+
+		if (value.length > 1) {
+			const pastedPin = Array.from(value);
+			const nextPin = trimExtraEmptyDigits([
+				...pastedPin,
+				...Array(Math.max(expectedLength - pastedPin.length, 0)).fill('')
+			]);
+			setPin(nextPin);
+			inputRefs.current[Math.min(pastedPin.length, Math.max(expectedLength, nextPin.length) - 1)]?.focus();
+			return;
+		}
+
+		newPin[index] = value;
+		const nextPin = trimExtraEmptyDigits(newPin);
+		setPin(nextPin);
+
+		if (value && index < Math.max(expectedLength, nextPin.length) - 1) {
+			inputRefs.current[index + 1]?.focus();
+		}
+	};
+
+	const handlePinDigitPaste = (index, event) => {
+		event.preventDefault();
+		setErrMessage('');
+		const pastedPin = Array.from(event.clipboardData.getData('Text'));
+		if (pastedPin.length === 0) {
+			return;
+		}
+
+		const newPin = [...pin];
+		pastedPin.forEach((digit, offset) => {
+			newPin[index + offset] = digit;
+		});
+		const nextPin = trimExtraEmptyDigits(newPin);
+		setPin(nextPin);
+		inputRefs.current[Math.min(index + pastedPin.length, Math.max(expectedLength, nextPin.length) - 1)]?.focus();
+	};
+
+	const inputCount = expectedLength ? Math.max(expectedLength, pin.length) : 0;
+
 	return (
-		<PopupLayout isOpen={isOpen} onClose={false}>
+		<PopupLayout isOpen={isOpen} onClose={() => { }} shouldCloseOnOverlayClick={false}>
 			<h2 className="text-lg font-bold mb-2 text-lm-gray-900 dark:text-dm-gray-100">
 				<Lock size={20} className="inline mr-1 mb-1" />
 				{t('PinInputPopup.title')}
 			</h2>
 			<hr className="mb-2 border-t border-lm-gray-400 dark:border-dm-gray-600" />
 			<p className="italic pd-2 text-lm-gray-800 dark:text-dm-gray-200">
-				{t('PinInputPopup.description')}
+				{description || t('PinInputPopup.description')}
 			</p>
 
 			{errMessage && (
-				<p className='text-sm text-lm-red dark:text-dm-red'>aaa{errMessage}</p>
+				<p className='text-sm text-lm-red dark:text-dm-red'>{errMessage}</p>
 			)}
-			<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
-				{pin.map((digit, index) => (
+			{expectedLength ? (
+				<div className='mt-2 flex flex-wrap justify-center overflow-y-auto max-h-[50vh]'>
+					{Array.from({ length: inputCount }).map((_, index) => (
+						<input
+							type="text"
+							key={index}
+							value={pin[index] ?? ''}
+							onChange={(e) => handlePinDigitChange(index, e.target.value)}
+							onPaste={(e) => handlePinDigitPaste(index, e)}
+							onKeyDown={handleInputKeyDownSubmit}
+							inputMode={normalizedInputMode}
+							pattern={normalizedInputMode === 'numeric' ? '[0-9]*' : undefined}
+							maxLength={1}
+							autoComplete="one-time-code"
+							className="w-10 px-3 mx-1 my-2 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 rounded-md focus:outline-none"
+							ref={(element) => {
+								inputRefs.current[index] = element;
+							}}
+						/>
+					))}
+				</div>
+			) : (
+				<div className='mt-4'>
 					<input
 						type="text"
-						key={index}
-						value={digit}
-						onChange={(e) => handleInputChange(index, e.target.value)}
-						onKeyDown={(e) => handleInputKeyDown(index, e)}
-						onClick={() => handleInputClick(index)}
-						onPaste={(e) => handleInputPaste(e.clipboardData.getData('Text'))}
-						onKeyPress={(e) => handleInputKeyPress(e)}
-						className="w-10 px-3 mx-1 my-2 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 rounded-md focus:outline-none"
-						ref={inputRefs[index]}
+						value={pin[0] ?? ''}
+						onChange={(e) => handleInputChange(e.target.value)}
+						onKeyDown={handleInputKeyDownSubmit}
+						inputMode={normalizedInputMode}
+						pattern={normalizedInputMode === 'numeric' ? '[0-9]*' : undefined}
+						autoComplete="one-time-code"
+						className="w-full px-3 py-2 bg-lm-gray-200 dark:bg-dm-gray-800 border border-lm-gray-400 dark:border-dm-gray-600 rounded-md focus:outline-none"
+						ref={(element) => {
+							inputRefs.current[0] = element;
+						}}
 					/>
-				))}
-			</div>
+				</div>
+			)}
 
 			<div className="flex justify-end space-x-2 pt-4">
 				<Button
@@ -158,6 +189,7 @@ function PinInput({ isOpen, setIsOpen }) {
 					id="submit-pin-input"
 					variant="primary"
 					onClick={handleSubmit}
+					disabled={isSubmitting}
 				>
 					{t('common.submit')}
 				</Button>

@@ -1,4 +1,4 @@
-import { IOpenID4VCI } from '../../interfaces/IOpenID4VCI';
+import { IOpenID4VCI, TxCodeInputMetadata } from '../../interfaces/IOpenID4VCI';
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '../../utils/generateRandomIdentifier';
 import * as config from '../../../config';
@@ -698,7 +698,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
  */
 
 	const handleCredentialOffer = useCallback(
-		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: { inputMode?: string; length?: number; description?: string; }; preAuthorizedCode?: string; }> => {
+		async (credentialOfferURL: string): Promise<{ credentialIssuer: string, selectedCredentialConfigurationId: string; issuer_state?: string; txCode?: TxCodeInputMetadata; preAuthorizedCode?: string; }> => {
 			const parsedUrl = new URL(credentialOfferURL);
 			const credentialOffer = parsedUrl.searchParams.get("credential_offer");
 			const credentialOfferUri = parsedUrl.searchParams.get("credential_offer_uri");
@@ -735,7 +735,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const preAuthorizedCodeObject = offer.grants?.[GrantType.PRE_AUTHORIZED_CODE];
 			if (preAuthorizedCodeObject) {
 				const preAuthorizedCode = preAuthorizedCodeObject["pre-authorized_code"];
-				const txCode = preAuthorizedCodeObject["tx_code"];
+				const txCode = "tx_code" in preAuthorizedCodeObject
+					? preAuthorizedCodeObject["tx_code"] ?? {}
+					: undefined;
 				return { credentialIssuer: offer.credential_issuer, selectedCredentialConfigurationId: selectedConfigurationId, txCode, preAuthorizedCode };
 			}
 
