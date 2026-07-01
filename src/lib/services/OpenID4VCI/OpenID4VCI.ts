@@ -53,7 +53,7 @@ async function refreshAccessTokenForFlowState(
 		throw new Error("No refresh token available");
 	}
 
-	const [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
+	let [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
 		context.openID4VCIHelper.getAuthorizationServerMetadata(flowState.credentialIssuerIdentifier),
 		context.openID4VCIHelper.getClientId(flowState.credentialIssuerIdentifier),
 		context.openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier),
@@ -66,7 +66,9 @@ async function refreshAccessTokenForFlowState(
 	if (!scope) {
 		throw new Error("Missing scope for refresh token request");
 	}
-
+	if(flowState.code_verifier === "") {
+		clientId = {client_id: '__pre-authorized_code_client__'};
+	}
 	const result = await refreshAccessToken({
 		tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
 		issuer: authzServerMetadata.authzServerMetadata.issuer,
