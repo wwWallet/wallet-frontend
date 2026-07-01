@@ -179,7 +179,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const showMessagePopup = useCallback((
 		messageOrErrorKey: string | { title: string, description: string },
 		mappedDescriptionKey?: string,
-		type: 'error' | 'success' = 'error',
+		type: 'error' | 'success' | 'info' = 'error',
 	) => {
 		if (typeof messageOrErrorKey === 'string') {
 			const errorKey = messageOrErrorKey;

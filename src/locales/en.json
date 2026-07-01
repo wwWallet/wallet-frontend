@@ -124,6 +124,10 @@
 			"title": "Authorization Process Failed"
 		},
 		"close": "Close",
+		"credentialIssuanceAlreadyPending": {
+			"description": "This credential request is already pending. The wallet will continue polling the existing issuance request.",
+			"title": "Pending request"
+		},
 		"onlyOneInputDescriptor": {
 			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
 			"title": "Unsupported protocol version"
