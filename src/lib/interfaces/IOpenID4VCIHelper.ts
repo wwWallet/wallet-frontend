@@ -8,3 +8,8 @@ export interface IOpenID4VCIHelper {
 	getMdocIacas(credentialIssuerIdentifier: string, metadata?: OpenidCredentialIssuerMetadata, useCache?: boolean): Promise<MdocIacasResponse | null>;
 	fetchIssuerMetadataAndCertificates(getIssuers: () => Promise<Record<string, unknown>[]>, onCertificates: (pemCertificates: string[]) => void, shouldUseCache: boolean, onIssuerMetadataResolved?: (issuerIdentifier: string, metadata: OpenidCredentialIssuerMetadata) => void): Promise<void>;
 }
+
+export type IOpenID4VCITokenRefreshMetadataProvider = Pick<
+	IOpenID4VCIHelper,
+	"getAuthorizationServerMetadata" | "getClientId" | "getCredentialIssuerMetadata"
+>;

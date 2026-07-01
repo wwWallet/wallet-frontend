@@ -3,14 +3,27 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
-import { CheckCircle, CircleAlert } from 'lucide-react';
+import { CheckCircle, CircleAlert, Info } from 'lucide-react';
 
 const MessagePopup = ({ type, message, onClose }) => {
 	const { title, description } = message || {};
 	const { t } = useTranslation();
 
-	const IconComponent = type === 'error' ? CircleAlert : CheckCircle;
-	const color = type === 'error' ? 'bg-lm-red dark:bg-dm-red' : 'bg-lm-green dark:bg-dm-green';
+	const popupStyles = {
+		error: {
+			icon: CircleAlert,
+			color: 'bg-lm-red dark:bg-dm-red',
+		},
+		info: {
+			icon: Info,
+			color: 'bg-lm-blue dark:bg-dm-blue',
+		},
+		success: {
+			icon: CheckCircle,
+			color: 'bg-lm-green dark:bg-dm-green',
+		},
+	};
+	const { icon: IconComponent, color } = popupStyles[type] || popupStyles.success;
 
 	return (
 		<PopupLayout isOpen={true} onClose={onClose}>

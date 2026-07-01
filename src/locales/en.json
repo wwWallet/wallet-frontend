@@ -11,10 +11,10 @@
 		"status": "Connection status:"
 	},
 	"PinInputPopup": {
-		"description": "Please enter the PIN which was displayed from the issuer",
-		"errMessage": "You have entered an incorrect pin",
-		"inputPlaceholder": "Pin",
-		"title": "Enter the Pin"
+		"description": "Please enter the PIN provided by the issuer",
+		"errMessage": "You have entered an incorrect PIN",
+		"inputPlaceholder": "PIN",
+		"title": "Enter the PIN"
 	},
 	"common": {
 		"and": "and",
@@ -124,6 +124,10 @@
 			"title": "Authorization Process Failed"
 		},
 		"close": "Close",
+		"credentialIssuanceAlreadyPending": {
+			"description": "This credential request is already pending. The wallet will continue polling the existing issuance request.",
+			"title": "Pending request"
+		},
 		"onlyOneInputDescriptor": {
 			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
 			"title": "Unsupported protocol version"

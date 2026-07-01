@@ -31,13 +31,32 @@ export enum TokenRequestError {
 	AUTHORIZATION_REQUIRED,
 }
 
-export function useTokenRequest() {
+export interface TokenRequestBuilder {
+	setClientId(clientIdValue: string | null): void;
+	setIssuer(issuerValue: string): void;
+	setGrantType(grant: GrantType): void;
+	setAuthorizationCode(authzCode: string): void;
+	setPreAuthorizedCode(c: string): void;
+	setTxCode(c: string): void;
+	setAuthorizationResponseUrl(url: string): void;
+	setState(state: string): void;
+	setCodeVerifier(codeVerifierValue: string): void;
+	setRefreshToken(token: string): void;
+	setAdditionalParameters(params: Record<string, string> | null): void;
+	setRedirectUri(uri: string): void;
+	setTokenEndpoint(endpoint: string): void;
+	setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string): Promise<void>;
+	execute(): Promise<{ response: AccessToken } | { error: TokenRequestError; response?: any }>;
+}
+
+export function useTokenRequest(): TokenRequestBuilder {
 	const httpProxy = useHttpProxy();
 
 	const tokenEndpointURL = useRef<string | null>(null);
 	const issuer = useRef<string | null>(null);
 	const grantType = useRef<GrantType>(GrantType.AUTHORIZATION_CODE);
 	const refreshToken = useRef<string | null>(null);
+	const additionalParameters = useRef<Record<string, string> | null>(null);
 	const authorizationCode = useRef<string | null>(null);
 	const preAuthorizedCode = useRef<string | null>(null);
 	const txCode = useRef<string | null>(null);
@@ -106,7 +125,7 @@ export function useTokenRequest() {
 		};
 	}, [httpProxy]);
 
-	const setClientId = useCallback((clientIdValue: string) => {
+	const setClientId = useCallback((clientIdValue: string | null) => {
 		clientId.current = clientIdValue;
 	}, []);
 
@@ -144,6 +163,10 @@ export function useTokenRequest() {
 
 	const setRefreshToken = useCallback((token: string) => {
 		refreshToken.current = token;
+	}, []);
+
+	const setAdditionalParameters = useCallback((params: Record<string, string> | null) => {
+		additionalParameters.current = params;
 	}, []);
 
 	const setRedirectUri = useCallback((uri: string) => {
@@ -256,7 +279,10 @@ export function useTokenRequest() {
 				client,
 				clientAuth,
 				refreshToken.current,
-				options
+				{
+					...options,
+					...(additionalParameters.current ? { additionalParameters: additionalParameters.current } : {}),
+				}
 			);
 		};
 
@@ -346,6 +372,7 @@ export function useTokenRequest() {
 		setState,
 		setCodeVerifier,
 		setRefreshToken,
+		setAdditionalParameters,
 		setRedirectUri,
 		setTokenEndpoint,
 		setDpopHeader,
@@ -361,6 +388,7 @@ export function useTokenRequest() {
 		setState,
 		setCodeVerifier,
 		setRefreshToken,
+		setAdditionalParameters,
 		setRedirectUri,
 		setTokenEndpoint,
 		setDpopHeader,
