@@ -193,9 +193,9 @@ const WebauthnCredentialItem = ({
 						<p className="text-lm-gray-900 dark:text-white">{formatDate(credential.lastUseTime)}</p>
 					</div>
 					<div>
-						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.canEncrypt')}</p>
+						<p className="text-sm text-lm-gray-700 dark:text-dm-gray-300">{t('pageSettings.passkeyItem.syncable')}</p>
 						<p className="text-lm-gray-900 dark:text-white">
-							{credential.prfCapable ? t('pageSettings.passkeyItem.canEncryptYes') : t('pageSettings.passkeyItem.canEncryptNo')}
+							{credential.backupEligibility === true && credential.backupState === true ? t("pageSettings.passkeyItem.syncableYes"): credential.backupEligibility === true && credential.backupState === false ? t("pageSettings.passkeyItem.syncableAvailable"): t("pageSettings.passkeyItem.syncableNo")}
 						</p>
 					</div>
 				</div>

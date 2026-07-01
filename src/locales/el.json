@@ -183,9 +183,6 @@
 		},
 		"description": "Δείτε πληροφορίες λογαριασμού και διαχειριστείτε κλειδιά πρόσβασης",
 		"passkeyItem": {
-			"canEncrypt": "Μπορεί να Κρυπτογραφήσει",
-			"canEncryptNo": "Όχι",
-			"canEncryptYes": "Ναι",
 			"cancelChangesAriaLabel": "Ακύρωση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
 			"created": "Δημιουργήθηκε",
 			"deleteAriaLabel": "Διαγραφή κλειδιού πρόσβασης {{passkeyLabel}}",
@@ -202,6 +199,10 @@
 			"rename": "Μετονομασία",
 			"renameAriaLabel": "Μετονομασία κλειδιού πρόσβασης {{passkeyLabel}}",
 			"saveChangesAriaLabel": "Αποθήκευση αλλαγών στο κλειδί πρόσβασης {{passkeyLabel}}",
+			"syncable": "Συγχρονισμένο",
+			"syncableAvailable": "Υποστηρίζεται Συγχρονισμός",
+			"syncableNo": "Όχι",
+			"syncableYes": "Ναι",
 			"unnamed": "Χωρίς Όνομα κλειδί πρόσβασης"
 		},
 		"rememberIssuer": {
