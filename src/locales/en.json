@@ -11,10 +11,10 @@
 		"status": "Connection status:"
 	},
 	"PinInputPopup": {
-		"description": "Please enter the PIN which was displayed from the issuer",
-		"errMessage": "You have entered an incorrect pin",
-		"inputPlaceholder": "Pin",
-		"title": "Enter the Pin"
+		"description": "Please enter the PIN provided by the issuer",
+		"errMessage": "You have entered an incorrect PIN",
+		"inputPlaceholder": "PIN",
+		"title": "Enter the PIN"
 	},
 	"common": {
 		"and": "and",
