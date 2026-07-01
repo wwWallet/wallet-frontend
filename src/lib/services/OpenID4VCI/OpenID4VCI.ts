@@ -580,7 +580,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			} else {
 				try {
 					let response = await httpProxy.get(parsedUrl.searchParams.get("credential_offer_uri"), {})
-					offer = response.data;
+					offer = CredentialOfferSchema.parse(response.data);
 				}
 				catch (err) {
 					console.error(err);
