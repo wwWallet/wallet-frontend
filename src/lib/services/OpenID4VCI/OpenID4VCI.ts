@@ -510,6 +510,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			created: Math.floor(Date.now() / 1000),
 		};
 
+		const userHandleB64u = keystore.getUserHandleB64u();
+		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+		flowState.state = state;
+
 		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
 		let dpopPrivateKeyJwk: jose.JWK | null = null;
 		let dpopPublicKeyJwk: jose.JWK | null = null;
@@ -531,6 +535,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 		}
 
+		// Persist state/code_verifier for later token exchange
+		await openID4VCIClientStateRepository.create(flowState);
+		await openID4VCIClientStateRepository.commitStateChanges();
+
 		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
@@ -551,17 +559,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		}
 
 
-		const tokenResponse = {
+		flowState.tokenResponse = {
 			data: {
 				access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
 			},
 			headers: { ...result.response.httpResponseHeaders }
 		};
+		await openID4VCIClientStateRepository.updateState(flowState);
 
-
-		await credentialRequest(tokenResponse, flowState);
+		await credentialRequest(flowState.tokenResponse, flowState);
 		return {};
-	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper]);
+	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper, keystore, openID4VCIClientStateRepository]);
 
 	/**
  *
@@ -741,7 +749,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			const credsCollected = [];
 			let stateUpdated = false;
 			for (const s of sessions) {
-				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId }, tokenResponse: { data: { access_token } } } = s;
+				console.log(s);
+				const { created, credentialIssuerIdentifier, credentialEndpoint: { transactionId }, tokenResponse } = s;
+				const access_token = tokenResponse?.data?.access_token;
 				const { metadata } = await openID4VCIHelper.getCredentialIssuerMetadata(credentialIssuerIdentifier);
 				const now = Math.floor(new Date().getTime() / 1000);
 				console.log("Transaction id: ", transactionId)
