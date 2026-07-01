@@ -53,7 +53,7 @@ async function refreshAccessTokenForFlowState(
 		throw new Error("No refresh token available");
 	}
 
-	const [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
+	let [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
 		context.openID4VCIHelper.getAuthorizationServerMetadata(flowState.credentialIssuerIdentifier),
 		context.openID4VCIHelper.getClientId(flowState.credentialIssuerIdentifier),
 		context.openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier),
@@ -66,7 +66,9 @@ async function refreshAccessTokenForFlowState(
 	if (!scope) {
 		throw new Error("Missing scope for refresh token request");
 	}
-
+	if(flowState.code_verifier === "") {
+		clientId = {client_id: '__pre-authorized_code_client__'};
+	}
 	const result = await refreshAccessToken({
 		tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
 		issuer: authzServerMetadata.authzServerMetadata.issuer,
@@ -628,6 +630,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			created: Math.floor(Date.now() / 1000),
 		};
 
+		const userHandleB64u = keystore.getUserHandleB64u();
+		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+		flowState.state = state;
+
 		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
 		let dpopPrivateKeyJwk: jose.JWK | null = null;
 		let dpopPublicKeyJwk: jose.JWK | null = null;
@@ -649,6 +655,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 		}
 
+		// Persist state/code_verifier for later token exchange
+		await openID4VCIClientStateRepository.create(flowState);
+		await openID4VCIClientStateRepository.commitStateChanges();
+
 		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
@@ -669,17 +679,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		}
 
 
-		const tokenResponse = {
+		flowState.tokenResponse = {
 			data: {
 				access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
 			},
 			headers: { ...result.response.httpResponseHeaders }
 		};
+		await openID4VCIClientStateRepository.updateState(flowState);
 
-
-		await credentialRequest(tokenResponse, flowState);
+		await credentialRequest(flowState.tokenResponse, flowState);
 		return {};
-	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper, resumePendingCredentialIssuance]);
+	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper, resumePendingCredentialIssuance, keystore, openID4VCIClientStateRepository]);
 
 	/**
  *
