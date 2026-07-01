@@ -173,9 +173,6 @@
 		},
 		"description": "Consulte informação da conta e gira chaves de acesso",
 		"passkeyItem": {
-			"canEncrypt": "Pode encriptar",
-			"canEncryptNo": "Não",
-			"canEncryptYes": "Sim",
 			"cancelChangesAriaLabel": "Cancelar alterações à chave de acesso {{passkeyLabel}}",
 			"created": "Criada",
 			"deleteAriaLabel": "Eliminar a chave de acesso {{passkeyLabel}}",
