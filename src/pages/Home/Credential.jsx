@@ -26,6 +26,7 @@ import CredentialLayout from '../../components/Credentials/CredentialLayout';
 import PopupLayout from '../../components/Popups/PopupLayout';
 import CredentialImage from '../../components/Credentials/CredentialImage';
 import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
+import { H2 } from '@/components/Shared/Heading';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { BookCheck, QrCode } from 'lucide-react';
@@ -155,49 +156,52 @@ const Credential = () => {
 		}
 	}, [vcEntity]);
 
-	const infoTabs = [
+	const presentationsContent = (
+		<>
+			{history.length === 0 ? (
+				<p className="text-lm-gray-900 dark:text-white">
+					{t('pageHistory.noFound')}
+				</p>
+			) : (
+				<div className="max-h-[45vh] overflow-y-auto custom-scrollbar pr-2">
+					<HistoryList batchId={batchId} history={history} />
+				</div>
+			)}
+		</>
+	);
+
+	const infoTabs = DEV_MODE ? [
 		{
 			label: t('pageCredentials.presentationsTitle'),
-			component:
-				<>
-					{history.length === 0 ? (
-						<p className="text-lm-gray-900 dark:text-white">
-							{t('pageHistory.noFound')}
-						</p>
-					) : (
-						<div className="max-h-[45vh] overflow-y-auto custom-scrollbar px-2">
-							<HistoryList batchId={batchId} history={history} />
-						</div>
-					)}
-				</>
+			component: presentationsContent
 		},
-		...(DEV_MODE ? [{
+		{
 			label: t('pageCredentials.datasetTitle'),
 			component:
 				<CredentialJson
 					parsedCredential={vcEntity?.parsedCredential}
 				/>
-		}] : [])
-	];
+		}
+	] : [];
 
 	return (
 
 		<CredentialLayout title={credentialName} fixedRatioImage={false} displayCredentialInfo={vcEntity && <CredentialInfo parsedCredential={vcEntity.parsedCredential} />}>
 			<>
 				<div className="w-full pt-2">
-					{screenType !== 'mobile' ? (
-						<CredentialTabsPanel tabs={infoTabs} />
-					) : (
-						<>
-							<Button
-								id="navigate-credential-history"
-								variant="primary"
-								onClick={() => navigate(`/credential/${batchId}/history`)}
-								additionalClassName='w-full my-2'
-							>
-								{t('pageCredentials.presentationsTitle')}
-							</Button>
-							{DEV_MODE && (
+					{DEV_MODE ? (
+						screenType !== 'mobile' ? (
+							<CredentialTabsPanel tabs={infoTabs} />
+						) : (
+							<>
+								<Button
+									id="navigate-credential-history"
+									variant="primary"
+									onClick={() => navigate(`/credential/${batchId}/history`)}
+									additionalClassName='w-full my-2'
+								>
+									{t('pageCredentials.presentationsTitle')}
+								</Button>
 								<Button
 									id="navigate-credential-details"
 									variant="primary"
@@ -206,7 +210,12 @@ const Credential = () => {
 								>
 									{t('pageCredentials.datasetTitle')}
 								</Button>
-							)}
+							</>
+						)
+					) : (
+						<>
+							<H2 heading={t('pageCredentials.presentationsTitle')} />
+							{presentationsContent}
 						</>
 					)}
 				</div>
