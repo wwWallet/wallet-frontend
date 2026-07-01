@@ -29,6 +29,7 @@ import CredentialTabsPanel from '@/components/Credentials/CredentialTabsPanel';
 
 import { useMdocAppCommunication } from '@/lib/services/MdocAppCommunication';
 import { BookCheck, QrCode } from 'lucide-react';
+import { DEV_MODE } from '@/config';
 
 const Credential = () => {
 	const { batchId } = useParams();
@@ -170,13 +171,13 @@ const Credential = () => {
 					)}
 				</>
 		},
-		{
+		...(DEV_MODE ? [{
 			label: t('pageCredentials.datasetTitle'),
 			component:
 				<CredentialJson
 					parsedCredential={vcEntity?.parsedCredential}
 				/>
-		}
+		}] : [])
 	];
 
 	return (
@@ -196,14 +197,16 @@ const Credential = () => {
 							>
 								{t('pageCredentials.presentationsTitle')}
 							</Button>
-							<Button
-								id="navigate-credential-details"
-								variant="primary"
-								onClick={() => navigate(`/credential/${batchId}/details`)}
-								additionalClassName='w-full my-2'
-							>
-								{t('pageCredentials.datasetTitle')}
-							</Button>
+							{DEV_MODE && (
+								<Button
+									id="navigate-credential-details"
+									variant="primary"
+									onClick={() => navigate(`/credential/${batchId}/details`)}
+									additionalClassName='w-full my-2'
+								>
+									{t('pageCredentials.datasetTitle')}
+								</Button>
+							)}
 						</>
 					)}
 				</div>
