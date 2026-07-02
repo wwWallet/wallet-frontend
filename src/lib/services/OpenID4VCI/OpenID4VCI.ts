@@ -53,7 +53,7 @@ async function refreshAccessTokenForFlowState(
 		throw new Error("No refresh token available");
 	}
 
-	let [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
+	const [authzServerMetadata, clientId, credentialIssuerMetadata] = await Promise.all([
 		context.openID4VCIHelper.getAuthorizationServerMetadata(flowState.credentialIssuerIdentifier),
 		context.openID4VCIHelper.getClientId(flowState.credentialIssuerIdentifier),
 		context.openID4VCIHelper.getCredentialIssuerMetadata(flowState.credentialIssuerIdentifier),
@@ -66,34 +66,39 @@ async function refreshAccessTokenForFlowState(
 	if (!scope) {
 		throw new Error("Missing scope for refresh token request");
 	}
-	if(flowState.code_verifier === "") {
-		clientId = {client_id: '__pre-authorized_code_client__'};
+
+	try {
+		const result = await refreshAccessToken({
+			tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
+			issuer: authzServerMetadata.authzServerMetadata.issuer,
+			clientId: clientId ? clientId.client_id : null,
+			refreshToken: flowState.tokenResponse.data.refresh_token,
+			additionalParameters: { scope },
+			dpop: flowState.dpop,
+			dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
+		}, {
+			tokenRequestBuilder: context.tokenRequestBuilder,
+		});
+
+		flowState.tokenResponse = {
+			data: {
+				access_token: result.tokenState.access_token,
+				c_nonce: result.tokenState.c_nonce,
+				expiration_timestamp: result.tokenState.expiration_timestamp,
+				c_nonce_expiration_timestamp: result.tokenState.c_nonce_expiration_timestamp,
+				refresh_token: result.tokenState.refresh_token,
+			},
+			headers: { ...result.headers },
+		};
+		flowState.dpop = result.dpop ?? flowState.dpop;
+
+		await context.openID4VCIClientStateRepository.updateState(flowState);
+	} catch (error) {
+		const transactionId = flowState.credentialEndpoint?.transactionId;
+		console.error(`Error fetching refresh token for transaction id ${transactionId}: ${error}`);
+		console.log(`Deleting transaction ${transactionId}`);
+		await context.openID4VCIClientStateRepository.deleteSessionByTransactionId(flowState.credentialEndpoint.transactionId);
 	}
-	const result = await refreshAccessToken({
-		tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
-		issuer: authzServerMetadata.authzServerMetadata.issuer,
-		clientId: clientId ? clientId.client_id : null,
-		refreshToken: flowState.tokenResponse.data.refresh_token,
-		additionalParameters: { scope },
-		dpop: flowState.dpop,
-		dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
-	}, {
-		tokenRequestBuilder: context.tokenRequestBuilder,
-	});
-
-	flowState.tokenResponse = {
-		data: {
-			access_token: result.tokenState.access_token,
-			c_nonce: result.tokenState.c_nonce,
-			expiration_timestamp: result.tokenState.expiration_timestamp,
-			c_nonce_expiration_timestamp: result.tokenState.c_nonce_expiration_timestamp,
-			refresh_token: result.tokenState.refresh_token,
-		},
-		headers: { ...result.headers },
-	};
-	flowState.dpop = result.dpop ?? flowState.dpop;
-
-	await context.openID4VCIClientStateRepository.updateState(flowState);
 	return flowState;
 }
 
@@ -107,6 +112,9 @@ async function ensureValidAccessTokenForFlowState(
 		tokenRequestBuilder: TokenRequestBuilder;
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
+
+	console.log(context.tokenRequestBuilder);
+
 	if (accessTokenIsValid(flowState.tokenResponse?.data, context.now, context.refreshSkewSeconds)) {
 		return flowState;
 	}

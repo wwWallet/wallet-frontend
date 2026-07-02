@@ -81,6 +81,27 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		return deletedSessions;
 	}, [getRememberIssuerAge]);
 
+	const deleteSessionByTransactionId = useCallback(async (transactionId: string): Promise<boolean> => {
+		if (!sessions.current || !transactionId) {
+			return false;
+		}
+
+		let matchedSessionId: number | undefined;
+		for (const [sessionId, session] of sessions.current.entries()) {
+			if (session?.credentialEndpoint?.transactionId === transactionId) {
+				matchedSessionId = sessionId;
+				break;
+			}
+		}
+
+		if (matchedSessionId === undefined) {
+			return false;
+		}
+
+		sessions.current.delete(matchedSessionId);
+		return true;
+	}, []);
+
 	const commitStateChanges = useCallback(async (): Promise<void> => {
 		const S = getCalculatedWalletState();
 		if (!S) {
@@ -176,6 +197,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 			getByCredentialIssuerIdentifierAndCredentialConfigurationId,
 			getByState,
 			cleanupExpired,
+			deleteSessionByTransactionId,
 			create,
 			updateState,
 			commitStateChanges,
@@ -186,6 +208,7 @@ export function useOpenID4VCIClientStateRepository(): IOpenID4VCIClientStateRepo
 		getByCredentialIssuerIdentifierAndCredentialConfigurationId,
 		getByState,
 		cleanupExpired,
+		deleteSessionByTransactionId,
 		create,
 		updateState,
 		commitStateChanges,
