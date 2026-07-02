@@ -263,7 +263,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						}
 						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
 					} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
-						throw new Error("Already used pre-authorized code");
+						console.log("Already used pre-authorized code");
+						return null;
 					}
 
 					let userInput: string | undefined = undefined;
