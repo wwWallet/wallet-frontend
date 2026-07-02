@@ -939,20 +939,15 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					console.log("Credential response = ", credentialResponse)
 					if (credentialResponse?.data?.error && credentialResponse?.data?.error !== "issuance_pending") {
 						console.log("Error deferred: ", credentialResponse?.data?.error)
-						await openID4VCIClientStateRepository.updateState({
-							...pollingState,
-							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
-						});
+						await openID4VCIClientStateRepository.deleteSessionByTransactionId(transactionId);
+						await openID4VCIClientStateRepository.commitStateChanges();
+						notify("error",
+							{
+								title: "Pending credential issuance failed",
+								message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
+							}
+						);
 						console.log("Invalidated transaction id: ", transactionId)
-						stateUpdated = true;
-						continue;
-					}
-					if (credentialResponse?.data?.error === "invalid_transaction_id") {
-						console.log("Invalid transaction id")
-						await openID4VCIClientStateRepository.updateState({
-							...pollingState,
-							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
-						});
 						stateUpdated = true;
 						continue;
 					}
