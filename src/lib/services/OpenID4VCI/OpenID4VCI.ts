@@ -96,8 +96,13 @@ async function refreshAccessTokenForFlowState(
 	} catch (error) {
 		const transactionId = flowState.credentialEndpoint?.transactionId;
 		console.error(`Error fetching refresh token for transaction id ${transactionId}: ${error}`);
-		console.log(`Deleting transaction ${transactionId}`);
 		await context.openID4VCIClientStateRepository.deleteSessionByTransactionId(flowState.credentialEndpoint.transactionId);
+		notify("error",
+			{
+				title: "Pending credential issuance failed",
+				message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
+			}
+		);
 	}
 	return flowState;
 }
