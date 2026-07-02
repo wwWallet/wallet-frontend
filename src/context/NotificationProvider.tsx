@@ -18,6 +18,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const DEFAULTS: Record<NotificationType, { duration: number }> = {
 	success: { duration: 4000 },
 	newCredential: { duration: 4000 },
+	error: { duration: 4000 },
 };
 
 export const NotificationProvider = ({ children }: React.PropsWithChildren) => {
@@ -129,9 +130,12 @@ const Toast: React.FC<{
 		(enter ? "translate-y-0 opacity-100" : "-translate-y-60 opacity-0");
 
 	const byType: Record<NotificationType, string> = {
-		success: "bg-lm-green-bg dark:bg-dm-green-bg border-transparent text-white",
+		success:
+			"bg-lm-green-bg dark:bg-dm-green-bg border-transparent text-white",
 		newCredential:
 			"bg-lm-gray-100 dark:bg-dm-gray-900 border-lm-gray-400 dark:border-dm-gray-600 text-ln-gray-900 dark:text-dm-gray-100",
+		error:
+			"bg-lm-gray-100 dark:bg-dm-gray-900 border-red-500 dark:border-red-400 text-ln-gray-900 dark:text-dm-gray-100",
 	};
 
 	return (

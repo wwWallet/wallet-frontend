@@ -67,31 +67,42 @@ async function refreshAccessTokenForFlowState(
 		throw new Error("Missing scope for refresh token request");
 	}
 
-	const result = await refreshAccessToken({
-		tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
-		issuer: authzServerMetadata.authzServerMetadata.issuer,
-		clientId: clientId ? clientId.client_id : null,
-		refreshToken: flowState.tokenResponse.data.refresh_token,
-		additionalParameters: { scope },
-		dpop: flowState.dpop,
-		dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
-	}, {
-		tokenRequestBuilder: context.tokenRequestBuilder,
-	});
+	try {
+		const result = await refreshAccessToken({
+			tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
+			issuer: authzServerMetadata.authzServerMetadata.issuer,
+			clientId: clientId ? clientId.client_id : null,
+			refreshToken: flowState.tokenResponse.data.refresh_token,
+			additionalParameters: { scope },
+			dpop: flowState.dpop,
+			dpopSupported: !!authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported,
+		}, {
+			tokenRequestBuilder: context.tokenRequestBuilder,
+		});
 
-	flowState.tokenResponse = {
-		data: {
-			access_token: result.tokenState.access_token,
-			c_nonce: result.tokenState.c_nonce,
-			expiration_timestamp: result.tokenState.expiration_timestamp,
-			c_nonce_expiration_timestamp: result.tokenState.c_nonce_expiration_timestamp,
-			refresh_token: result.tokenState.refresh_token,
-		},
-		headers: { ...result.headers },
-	};
-	flowState.dpop = result.dpop ?? flowState.dpop;
+		flowState.tokenResponse = {
+			data: {
+				access_token: result.tokenState.access_token,
+				c_nonce: result.tokenState.c_nonce,
+				expiration_timestamp: result.tokenState.expiration_timestamp,
+				c_nonce_expiration_timestamp: result.tokenState.c_nonce_expiration_timestamp,
+				refresh_token: result.tokenState.refresh_token,
+			},
+			headers: { ...result.headers },
+		};
+		flowState.dpop = result.dpop ?? flowState.dpop;
 
-	await context.openID4VCIClientStateRepository.updateState(flowState);
+		await context.openID4VCIClientStateRepository.updateState(flowState);
+	} catch (error) {
+		const transactionId = flowState.credentialEndpoint?.transactionId;
+		console.error(`Error fetching refresh token for transaction id ${transactionId}: ${error}`);
+		if (transactionId) {
+			await context.openID4VCIClientStateRepository.updateState({
+				...flowState,
+				credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
+			});
+		}
+	}
 	return flowState;
 }
 
@@ -628,6 +639,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			created: Math.floor(Date.now() / 1000),
 		};
 
+		const userHandleB64u = keystore.getUserHandleB64u();
+		const state = btoa(JSON.stringify({ userHandleB64u: userHandleB64u, id: generateRandomIdentifier(12) })).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+		flowState.state = state;
+
 		let dpopPrivateKey: jose.KeyLike | Uint8Array | null = null;
 		let dpopPrivateKeyJwk: jose.JWK | null = null;
 		let dpopPublicKeyJwk: jose.JWK | null = null;
@@ -649,6 +664,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			}
 		}
 
+		// Persist state/code_verifier for later token exchange
+		await openID4VCIClientStateRepository.create(flowState);
+		await openID4VCIClientStateRepository.commitStateChanges();
+
 		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
@@ -669,17 +688,17 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		}
 
 
-		const tokenResponse = {
+		flowState.tokenResponse = {
 			data: {
 				access_token, c_nonce, expiration_timestamp: Math.floor(Date.now() / 1000) + expires_in, c_nonce_expiration_timestamp: Math.floor(Date.now() / 1000) + c_nonce_expires_in, refresh_token
 			},
 			headers: { ...result.response.httpResponseHeaders }
 		};
+		await openID4VCIClientStateRepository.updateState(flowState);
 
-
-		await credentialRequest(tokenResponse, flowState);
+		await credentialRequest(flowState.tokenResponse, flowState);
 		return {};
-	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper, resumePendingCredentialIssuance]);
+	}, [tokenRequestBuilder, credentialRequest, openID4VCIHelper, resumePendingCredentialIssuance, keystore, openID4VCIClientStateRepository]);
 
 	/**
  *
@@ -924,15 +943,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 						});
 						console.log("Invalidated transaction id: ", transactionId)
-						stateUpdated = true;
-						continue;
-					}
-					if (credentialResponse?.data?.error === "invalid_transaction_id") {
-						console.log("Invalid transaction id")
-						await openID4VCIClientStateRepository.updateState({
-							...pollingState,
-							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
-						});
+						notify("error",
+							{
+								title: "Pending credential issuance failed",
+								message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
+							}
+						);
 						stateUpdated = true;
 						continue;
 					}
