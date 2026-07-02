@@ -250,17 +250,17 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					if (!metadataResult?.metadata) {
 						throw new Error('Could not resolve issuer metadata for credential offer');
 					}
-					const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
-					const userApproved = await requestRedirectConsent({
-						title: popupContent.title,
-						message: popupContent.message,
-					});
-					if (!userApproved) {
-						return null;
-					}
 
 					console.log("Generating authorization request...");
 					if (!preAuthorizedCode) {
+						const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
+						const userApproved = await requestRedirectConsent({
+							title: popupContent.title,
+							message: popupContent.message,
+						});
+						if (!userApproved) {
+							return null;
+						}
 						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, issuer_state);
 					} else if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
 						throw new Error("Already used pre-authorized code");
