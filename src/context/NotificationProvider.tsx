@@ -130,10 +130,12 @@ const Toast: React.FC<{
 		(enter ? "translate-y-0 opacity-100" : "-translate-y-60 opacity-0");
 
 	const byType: Record<NotificationType, string> = {
-		success: "bg-lm-green-bg dark:bg-dm-green-bg border-transparent text-white",
+		success:
+			"bg-lm-green-bg dark:bg-dm-green-bg border-transparent text-white",
 		newCredential:
 			"bg-lm-gray-100 dark:bg-dm-gray-900 border-lm-gray-400 dark:border-dm-gray-600 text-ln-gray-900 dark:text-dm-gray-100",
-		error:	"bg-red-500 dark:bg-red-300 border-transparent text-black",
+		error:
+			"bg-lm-gray-100 dark:bg-dm-gray-900 border-red-500 dark:border-red-400 text-ln-gray-900 dark:text-dm-gray-100",
 	};
 
 	return (
