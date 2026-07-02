@@ -101,12 +101,6 @@ async function refreshAccessTokenForFlowState(
 				...flowState,
 				credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 			});
-			notify("error",
-				{
-					title: "Pending credential issuance failed",
-					message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
-				}
-			);
 		}
 	}
 	return flowState;
@@ -949,6 +943,12 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
 						});
 						console.log("Invalidated transaction id: ", transactionId)
+						notify("error",
+							{
+								title: "Pending credential issuance failed",
+								message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
+							}
+						);
 						stateUpdated = true;
 						continue;
 					}
