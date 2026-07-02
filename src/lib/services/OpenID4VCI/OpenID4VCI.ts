@@ -112,9 +112,6 @@ async function ensureValidAccessTokenForFlowState(
 		tokenRequestBuilder: TokenRequestBuilder;
 	},
 ): Promise<WalletStateCredentialIssuanceSession> {
-
-	console.log(context.tokenRequestBuilder);
-
 	if (accessTokenIsValid(flowState.tokenResponse?.data, context.now, context.refreshSkewSeconds)) {
 		return flowState;
 	}
