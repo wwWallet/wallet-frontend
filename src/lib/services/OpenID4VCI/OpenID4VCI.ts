@@ -96,13 +96,18 @@ async function refreshAccessTokenForFlowState(
 	} catch (error) {
 		const transactionId = flowState.credentialEndpoint?.transactionId;
 		console.error(`Error fetching refresh token for transaction id ${transactionId}: ${error}`);
-		await context.openID4VCIClientStateRepository.deleteSessionByTransactionId(flowState.credentialEndpoint.transactionId);
-		notify("error",
-			{
-				title: "Pending credential issuance failed",
-				message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
-			}
-		);
+		if (transactionId) {
+			await context.openID4VCIClientStateRepository.updateState({
+				...flowState,
+				credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
+			});
+			notify("error",
+				{
+					title: "Pending credential issuance failed",
+					message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
+				}
+			);
+		}
 	}
 	return flowState;
 }
@@ -939,14 +944,10 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 					console.log("Credential response = ", credentialResponse)
 					if (credentialResponse?.data?.error && credentialResponse?.data?.error !== "issuance_pending") {
 						console.log("Error deferred: ", credentialResponse?.data?.error)
-						await openID4VCIClientStateRepository.deleteSessionByTransactionId(transactionId);
-						await openID4VCIClientStateRepository.commitStateChanges();
-						notify("error",
-							{
-								title: "Pending credential issuance failed",
-								message: "Unable to fetch deferred credential. Credential issuance has been cancelled."
-							}
-						);
+						await openID4VCIClientStateRepository.updateState({
+							...pollingState,
+							credentialEndpoint: { transactionId: undefined, nextPollAt: undefined },
+						});
 						console.log("Invalidated transaction id: ", transactionId)
 						stateUpdated = true;
 						continue;
