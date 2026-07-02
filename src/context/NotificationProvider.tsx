@@ -18,7 +18,7 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 const DEFAULTS: Record<NotificationType, { duration: number }> = {
 	success: { duration: 4000 },
 	newCredential: { duration: 4000 },
-	error: { duration: 20000 },
+	error: { duration: 4000 },
 };
 
 export const NotificationProvider = ({ children }: React.PropsWithChildren) => {
