@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { UseStorageHandle, useClearStorages, useLocalStorage, useSessionStorage } from '../hooks/useStorage';
 import { addItem, getItem, EXCLUDED_INDEXEDDB_PATHS } from '../indexedDB';
 import { loginWebAuthnBeginOffline } from './LocalAuthentication';
-import { withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
+import { signalUnknownCredential, withAuthenticatorAttachmentFromHints, withHintsFromAllowCredentials } from '@/util-webauthn';
 
 const walletBackendUrl = config.BACKEND_URL;
 
@@ -33,6 +33,10 @@ type SignupWebauthnError = (
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
+
+function isRejectedWebauthnLoginFinishError(error: any): boolean {
+	return [400, 403].includes(error?.response?.status);
+}
 
 
 export type ClearSessionEvent = {};
@@ -572,7 +576,15 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					}
 
 				} catch (e) {
-					return Err('passkeyInvalid');
+					if (isOnline && isRejectedWebauthnLoginFinishError(e)) {
+						await signalUnknownCredential({
+							rpId: config.WEBAUTHN_RPID,
+							credentialId: credential.id,
+						});
+						return Err('passkeyInvalid');
+					}
+
+					return Err(isOnline ? 'passkeyLoginFailedServerError' : 'passkeyInvalid');
 				}
 
 			} catch (e) {
