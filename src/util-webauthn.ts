@@ -140,3 +140,25 @@ export async function signalUnknownCredential(options?: SignalUnknownCredentialO
 		return false;
 	}
 }
+
+export async function signalCurrentUserDetails(options?: SignalCurrentUserDetailsOptions): Promise<boolean> {
+	if (!options) {
+		return false;
+	}
+
+	try {
+		const signals = await getPublicKeyCredentialSignals();
+		if (
+			!signals?.publicKeyCredential.signalCurrentUserDetails
+			|| signals.clientCapabilities.signalCurrentUserDetails !== true
+		) {
+			return false;
+		}
+
+		await signals.publicKeyCredential.signalCurrentUserDetails(options);
+		return true;
+	} catch (error) {
+		console.warn("Failed to signal current WebAuthn user details", error);
+		return false;
+	}
+}
