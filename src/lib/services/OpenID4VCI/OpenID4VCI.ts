@@ -20,7 +20,6 @@ import { fromBase64Url } from '@/util';
 import { IssuerSigned } from '@owf/mdoc';
 import { notify } from "@/context/notifier";
 import { IOpenID4VCIClientStateRepository } from '@/lib/interfaces/IOpenID4VCIClientStateRepository';
-import { useNavigate } from 'react-router-dom';
 import { IOpenID4VCITokenRefreshMetadataProvider } from '@/lib/interfaces/IOpenID4VCIHelper';
 
 type WalletStateCredentialIssuanceSession = CurrentSchema.WalletStateCredentialIssuanceSession;
@@ -146,7 +145,6 @@ export const deriveHolderKidFromCredential = async (credential: string, format: 
 export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopup, openID4VCIClientStateRepository }: { errorCallback: (title: string, message: string) => void, showPopupConsent: (options: Record<string, unknown>) => Promise<boolean>, showMessagePopup: (message: { title: string, description: string }, type?: 'error' | 'success' | 'info') => void, openID4VCIClientStateRepository: IOpenID4VCIClientStateRepository }): IOpenID4VCI {
 	const { search } = useLocation();
 	const params = useMemo(() => new URLSearchParams(search), [search]);
-	const navigate = useNavigate();
 
 	const verificationFlowInProgress = useMemo(
 		() => params.has("request_uri") && params.has("client_id"),
@@ -362,7 +360,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 				console.log("Updated S: ", s);
 				await openID4VCIClientStateRepository.cleanupExpired();
 				setCommitStateChanges(1);
-				navigate("/");
 				return;
 			}
 			await openID4VCIClientStateRepository.updateState(flowState);
@@ -379,7 +376,6 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		openID4VCIClientStateRepository,
 		credentialRequestBuilder,
 		httpProxy,
-		navigate,
 		resumePendingCredentialIssuance
 	]);
 
