@@ -54,6 +54,9 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@storybook/addon-essentials": "^8.6",
+    "@storybook/addon-themes": "^8.6",
+    "@storybook/react-vite": "^8.6",
     "@tailwindcss/vite": "^4.1.17",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -67,6 +70,7 @@
     "eslint": "^8.56.0",
     "eslint-config-react-app": "^7.0.1",
     "jsdom": "^28.0.0",
+    "storybook": "^8.6",
     "vite": "^6.1.0",
     "vite-plugin-checker": "^0.11.0",
     "vite-plugin-svgr": "^4.3.0",
@@ -85,7 +89,9 @@
     "typecheck:watch": "tsc --noEmit --watch --preserveWatchOutput",
     "dev": "concurrently -k -n Types,Vite -c yellow,cyan \"yarn typecheck:watch\" \"yarn start\"",
     "dev:docker": "concurrently -k -n Types,Vite -c yellow,cyan \"yarn typecheck:watch\" \"yarn start-docker\"",
-    "dev:test": "concurrently -k -n Types,Tests -c yellow,cyan \"yarn typecheck:watch\" \"yarn test-start\""
+    "dev:test": "concurrently -k -n Types,Tests -c yellow,cyan \"yarn typecheck:watch\" \"yarn test-start\"",
+    "storybook": "storybook dev -p 6006 --no-open",
+    "build-storybook": "storybook build"
   },
   "repository": "https://github.com/wwwallet/wallet-frontend",
   "license": "BSD-2-Clause"

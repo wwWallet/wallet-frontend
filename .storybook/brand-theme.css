@@ -1,0 +1,15 @@
+/*
+ * Brand color custom properties consumed by src/index.css (--color-brand-*).
+ *
+ * In the app these are generated at build time from `branding/` into public/theme.css.
+ * Storybook doesn't run that generation step, so we pin the default-branding values
+ * here to keep the component library self-contained. Update these if the default
+ * brand palette in branding/default changes.
+ */
+:root {
+	--theme-brand-color: hsl(217 66% 32%);
+	--theme-brand-color-light: hsl(217 46% 45%);
+	--theme-brand-color-lighter: hsl(217 27% 60%);
+	--theme-brand-color-dark: hsl(217 42% 42%);
+	--theme-brand-color-darker: hsl(217 16% 40%);
+}

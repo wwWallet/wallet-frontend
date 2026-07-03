@@ -1,0 +1,41 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# wwWallet — Component Library
+
+A living catalogue of reusable UI components from the **wallet-frontend** app.
+
+Every story renders with the app's real Tailwind theme, brand colors and fonts.
+Use the **toolbar theme switcher** (top of the canvas) to flip between light and
+dark mode — it toggles the `dark` class on `<html>` exactly like the app does.
+
+## What's here
+
+- **Button** — the shared action button and all its variants/sizes
+- **CounterBadge** — pending-count pills used on navigation
+- **PasswordStrength** — the signup password meter
+- **Heading** — H1/H2/H3 section headings
+- **SeparatorLine** — labelled dividers (e.g. the "or" between login options)
+- **SearchInput** — list filtering input
+- **Skeletons** — loading placeholders for credentials
+
+## Adding a story
+
+Co-locate a `*.stories.tsx` file next to the component:
+
+```tsx
+import type { Meta, StoryObj } from '@storybook/react';
+import MyComponent from './MyComponent';
+
+const meta = {
+	title: 'Components/MyComponent',
+	component: MyComponent,
+	tags: ['autodocs'],
+} satisfies Meta<typeof MyComponent>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+```

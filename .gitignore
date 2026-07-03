@@ -5,6 +5,7 @@
 node_modules/
 package_lock.json
 /build
+/storybook-static
 
 .env*
 !.env.template
