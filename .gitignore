@@ -51,5 +51,6 @@ ssl_keys/*
 .npmrc
 
 variables.vars
+vite.config.local.ts
 
 public/
