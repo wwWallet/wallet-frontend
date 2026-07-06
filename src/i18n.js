@@ -28,13 +28,8 @@ const isMultiLanguageEnabled = config.MULTI_LANGUAGE_DISPLAY;
 const availableResources = isMultiLanguageEnabled ? resources : { [fallbackLng]: resources[fallbackLng] };
 
 // Helper function to get only the language part and check if it exists
-export const getLanguage = (locale) => {
-	if (!locale) {
-		return undefined;
-	}
-	const language = locale.includes('-') ? locale.split('-')[0] : locale;
-	return language || undefined;
-};
+export const getLanguage = (locale) =>
+	(locale && (locale.includes('-') ? locale.split('-')[0] : locale)) || undefined;
 
 // Get the preferred language
 let preferredLanguage =
