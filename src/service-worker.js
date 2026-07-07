@@ -2,11 +2,12 @@
 
 import { clientsClaim } from "workbox-core";
 import { ExpirationPlugin } from "workbox-expiration";
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, } from "workbox-precaching";
+import { precacheAndRoute, cleanupOutdatedCaches } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { StaleWhileRevalidate, CacheFirst, NetworkFirst } from "workbox-strategies";
 
 const basePath = new URL(self.registration.scope).pathname.replace(/\/?$/, '/') || '/';
+const appShellCacheName = `app-shell:${basePath}`;
 
 clientsClaim();
 
@@ -31,10 +32,8 @@ const SPA_ROUTE_ALLOWLIST = [
 	/^\/history\/[^/]+$/,                // History detail
 ];
 
-const appShellHandler = createHandlerBoundToURL(`${basePath}index.html`);
 const appShellStrategy = new NetworkFirst({
-	cacheName: "app-shell",
-	networkTimeoutSeconds: 3,
+	cacheName: appShellCacheName,
 });
 
 registerRoute(
@@ -55,6 +54,7 @@ registerRoute(
 				event,
 				request: new Request(appShellUrl, {
 					credentials: "same-origin",
+					cache: "reload",
 				}),
 			});
 
@@ -62,8 +62,6 @@ registerRoute(
 				return response;
 			}
 		} catch {}
-
-		return appShellHandler({ event });
 	}
 );
 
@@ -124,11 +122,11 @@ self.addEventListener("activate", (event) => {
 			// Clean old Workbox precache caches
 			await cleanupOutdatedCaches();
 
-			// Delete runtime image cache
+			// Delete the old unscoped app shell cache.
 			const cacheNames = await caches.keys();
 			await Promise.all(
 				cacheNames
-					.filter((name) => name === "images")
+					.filter((name) => name === "app-shell")
 					.map((name) => caches.delete(name))
 			);
 
