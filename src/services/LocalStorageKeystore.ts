@@ -356,30 +356,83 @@ export function useLocalStorageKeystore(eventTarget: EventTarget): LocalStorageK
 				setCalculatedWalletState(foldedState);
 			}
 			else {
-				async function mergeWithLocalEncryptedPrivateData(container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
-					const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
-					const localUser = await getItem("users", userId.id);
-					if (!localUser) {
-						return container;
-					}
-					const localPrivateData: Uint8Array = localUser.privateData;
-					const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
-					const stringifiedLocalPrivateData = jsonStringifyTaggedBinary(localPrivateData);
-					const stringifiedSerializedNewlyUnlockedPrivateData = jsonStringifyTaggedBinary(keystore.serializePrivateData(unlockSuccess.privateData));
-					if (stringifiedLocalPrivateData !== stringifiedSerializedNewlyUnlockedPrivateData) { // local and remote are different
-						// decryption of local is required
-						const [unlockPrfResult,] = await keystore.unlockPrf(parsedLocalEncryptedPrivateData, credential, promptForPrfRetry);
-						const { privateData, mainKey } = unlockPrfResult;
-						const [localContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
-						const mergedContainer = await mergeEventHistories(unlockedContainer, localContainer);
-						const { newContainer } = await keystore.updateWalletState([
-							keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData),
-							unlockSuccess.mainKey,
-						], mergedContainer as CurrentSchema.WalletStateContainer);
-						const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
-						return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
-					}
-					return container;
+				async function mergeWithLocalEncryptedPrivateData(
+				    container: [EncryptedContainer, CryptoKey, WalletStateContainerGeneric]
+				): Promise<[EncryptedContainer, CryptoKey, WalletStateContainerGeneric]> {
+
+				    const userId = UserId.fromUserHandle(fromBase64Url(userHandleB64u));
+				    const localUser = await getItem("users", userId.id);
+				    
+				    // If the cache meomory is empty then accept the newly unlocked data as-is.
+				    if (!localUser) {
+				        return container;
+				    }
+				
+				    const localPrivateData: Uint8Array = localUser.privateData;
+				    const parsedLocalEncryptedPrivateData = await keystore.parsePrivateData(localPrivateData);
+				
+				    // If the JWE strings match skip the merger.
+				    if (parsedLocalEncryptedPrivateData.jwe === unlockSuccess.privateData.jwe) {
+				        return container;
+				    }
+				
+				    const stringifiedLocalPrivateData = jsonStringifyTaggedBinary(localPrivateData);
+				    const stringifiedSerializedNewlyUnlockedPrivateData = jsonStringifyTaggedBinary(
+				        keystore.serializePrivateData(unlockSuccess.privateData)
+				    );
+				
+				    // If the data differs then decrypt the local data and merge.
+				    if (stringifiedLocalPrivateData !== stringifiedSerializedNewlyUnlockedPrivateData) {
+				        let localContainer: WalletStateContainerGeneric;
+				    
+				        try {
+				            // unlock the local database using the master key that was just unlocked.
+				            [localContainer, ,] = await keystore.openPrivateData(
+				                unlockSuccess.mainKey, 
+				                parsedLocalEncryptedPrivateData
+				            );
+				        } catch (err) {
+				            // If the master key failed then ask the user to authenticate against the old local data.
+				            
+				            // verify if the passkey used actually exists in the local database.
+				            const hasMatchingPrfKey = parsedLocalEncryptedPrivateData.prfKeys?.some(
+				                k => credential && toBase64Url(k.credentialId) === credential.id
+				            );
+				        
+				            if (credential && hasMatchingPrfKey) {
+				                // The passkey exists locally, then trigger a prompt to unlock the old local data.
+				                const [unlockPrfResult,] = await keystore.unlockPrf(
+				                    parsedLocalEncryptedPrivateData, 
+				                    credential, 
+				                    promptForPrfRetry
+				                );
+				                const { privateData, mainKey } = unlockPrfResult;
+				                [localContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
+				            } else {
+				                // The local data is too stale or incompatible with the current login credential.
+				                // Abort the merge to prevent a crash, and just overwrite with the fresh cloud data.
+				                console.warn("Skipping local merge: credential not found in stale local PRF keys and mainKey mismatched.");
+				                return container;
+				            }
+				        }
+				    
+				        // Both the local and cloud vaults are now unlocked in memory. 
+				        // Reconcile the event histories.
+				        const mergedContainer = await mergeEventHistories(container[2], localContainer);
+				        
+				        // Wrap the newly merged data back into a secure, encrypted JWE container.
+				        const { newContainer } = await keystore.updateWalletState([
+				            keystore.assertAsymmetricEncryptedContainer(unlockSuccess.privateData),
+				            unlockSuccess.mainKey,
+				        ], mergedContainer as CurrentSchema.WalletStateContainer);
+				    
+				        const [newPrivateDataEncryptedContainer, newMainKey] = newContainer;
+				        
+				        // Return the fully synchronized, re-encrypted vault to be saved.
+				        return [newPrivateDataEncryptedContainer, newMainKey, mergedContainer];
+				    }
+				    
+				    return container;
 				}
 				const { privateData, mainKey } = unlockSuccess;
 				const [unlockedContainer, ,] = await keystore.openPrivateData(mainKey, privateData);
