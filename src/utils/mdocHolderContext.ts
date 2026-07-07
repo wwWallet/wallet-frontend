@@ -58,7 +58,8 @@ async function importSigningKeyFromCoseKey(key: CoseKey): Promise<CryptoKey> {
 export const mdocContext = {
 	crypto: {
 		digest: async ({ digestAlgorithm, bytes }) => {
-			const digest = await crypto.subtle.digest(digestAlgorithm, bytes as Uint8Array<ArrayBuffer>);
+			//const digest = await crypto.subtle.digest(digestAlgorithm, bytes as Uint8Array<ArrayBuffer>);
+			const digest = await crypto.subtle.digest(digestAlgorithm, bytes as BufferSource);
 			return new Uint8Array(digest);
 		},
 		random: (length: number) => crypto.getRandomValues(new Uint8Array(length)),
