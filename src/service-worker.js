@@ -34,6 +34,7 @@ const SPA_ROUTE_ALLOWLIST = [
 
 const appShellStrategy = new NetworkFirst({
 	cacheName: appShellCacheName,
+	networkTimeoutSeconds: 3,
 });
 
 registerRoute(
@@ -48,20 +49,15 @@ registerRoute(
 	},
 	async ({ event }) => {
 		const appShellUrl = new URL(`${basePath}index.html`, self.location.origin);
+		const appShellRequest = new Request(appShellUrl, {
+			credentials: "same-origin",
+			cache: "reload",
+		});
 
-		try {
-			const response = await appShellStrategy.handle({
-				event,
-				request: new Request(appShellUrl, {
-					credentials: "same-origin",
-					cache: "reload",
-				}),
-			});
-
-			if (response) {
-				return response;
-			}
-		} catch {}
+		return appShellStrategy.handle({
+			event,
+			request: appShellRequest,
+		});
 	}
 );
 
