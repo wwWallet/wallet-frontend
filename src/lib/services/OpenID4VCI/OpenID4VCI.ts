@@ -70,6 +70,7 @@ async function refreshAccessTokenForFlowState(
 		const result = await refreshAccessToken({
 			tokenEndpoint: authzServerMetadata.authzServerMetadata.token_endpoint,
 			issuer: authzServerMetadata.authzServerMetadata.issuer,
+			authorizationServerMetadata: authzServerMetadata.authzServerMetadata,
 			clientId: clientId ? clientId.client_id : null,
 			refreshToken: flowState.tokenResponse.data.refresh_token,
 			additionalParameters: { scope },
@@ -502,6 +503,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 
 			tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 			tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
+			tokenRequestBuilder.setAuthorizationServerMetadata(authzServerMetadata.authzServerMetadata);
 
 			if (authzServerMetadata.authzServerMetadata.dpop_signing_alg_values_supported) {
 				await tokenRequestBuilder.setDpopHeader(dpopPrivateKey as jose.KeyLike, dpopPublicKeyJwk, jti);
@@ -667,6 +669,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		const tokenEndpoint = authzServerMetadata.authzServerMetadata.token_endpoint;
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
+		tokenRequestBuilder.setAuthorizationServerMetadata(authzServerMetadata.authzServerMetadata);
 		tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
 		tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
 		if (txCode) {

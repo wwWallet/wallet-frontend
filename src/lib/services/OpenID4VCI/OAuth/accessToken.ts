@@ -1,6 +1,7 @@
 import * as jose from 'jose';
 import { generateRandomIdentifier } from '@/lib/utils/generateRandomIdentifier';
 import { GrantType, TokenRequestBuilder } from './TokenRequest';
+import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
 
 export type OAuthTokenState = {
 	access_token: string;
@@ -20,6 +21,7 @@ export type DpopState = {
 export type OAuthTokenRefreshRequest = {
 	tokenEndpoint: string;
 	issuer: string;
+	authorizationServerMetadata?: OpenidAuthorizationServerMetadata;
 	clientId: string | null;
 	refreshToken: string;
 	additionalParameters?: Record<string, string>;
@@ -82,6 +84,7 @@ export async function refreshAccessToken(
 
 	context.tokenRequestBuilder.setTokenEndpoint(request.tokenEndpoint);
 	context.tokenRequestBuilder.setIssuer(request.issuer);
+	context.tokenRequestBuilder.setAuthorizationServerMetadata(request.authorizationServerMetadata ?? null);
 	context.tokenRequestBuilder.setGrantType(GrantType.REFRESH);
 	context.tokenRequestBuilder.setRefreshToken(request.refreshToken);
 	context.tokenRequestBuilder.setClientId(request.clientId);

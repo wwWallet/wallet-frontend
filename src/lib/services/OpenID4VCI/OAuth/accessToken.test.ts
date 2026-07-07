@@ -16,6 +16,7 @@ const tokenRequestBuilder = () => ({
 	setClientId: vi.fn(),
 	setAdditionalParameters: vi.fn(),
 	setRedirectUri: vi.fn(),
+	setAuthorizationServerMetadata: vi.fn(),
 	setDpopHeader: vi.fn(),
 	execute: vi.fn().mockResolvedValue({
 		response: {

@@ -4,6 +4,11 @@ import { useHttpProxy } from '../../HttpProxy/HttpProxy';
 import * as oauth4webapi from 'oauth4webapi';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
 import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
+import {
+	getClientAttestationHeaders,
+	retryWithFreshAttestationChallenge,
+} from './attestationBasedClientAuthentication';
+import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
 const isDev = MODE === 'development';
@@ -45,6 +50,7 @@ export interface TokenRequestBuilder {
 	setAdditionalParameters(params: Record<string, string> | null): void;
 	setRedirectUri(uri: string): void;
 	setTokenEndpoint(endpoint: string): void;
+	setAuthorizationServerMetadata(metadata: OpenidAuthorizationServerMetadata | null): void;
 	setDpopHeader(dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, jti: string): Promise<void>;
 	execute(): Promise<{ response: AccessToken } | { error: TokenRequestError; response?: any }>;
 }
@@ -53,6 +59,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const httpProxy = useHttpProxy();
 
 	const tokenEndpointURL = useRef<string | null>(null);
+	const authorizationServerMetadata = useRef<OpenidAuthorizationServerMetadata | null>(null);
 	const issuer = useRef<string | null>(null);
 	const grantType = useRef<GrantType>(GrantType.AUTHORIZATION_CODE);
 	const refreshToken = useRef<string | null>(null);
@@ -88,7 +95,20 @@ export function useTokenRequest(): TokenRequestBuilder {
 	const myCustomFetch = useMemo(() => {
 		return async (url: string, options?: RequestInit) => {
 			const method = (options?.method ?? 'POST').toLowerCase();
-			const headers = normalizeHeaders(options?.headers);
+			const headers = {
+				...normalizeHeaders(options?.headers),
+				...(grantType.current === GrantType.PRE_AUTHORIZED_CODE
+					|| normalizeHeaders(options?.headers)['oauth-client-attestation']
+					? {}
+					: await getClientAttestationHeaders(
+						authorizationServerMetadata.current ?? {
+							issuer: issuer.current ?? tokenEndpointURL.current ?? url,
+							token_endpoint: tokenEndpointURL.current ?? url,
+						},
+						clientId.current,
+						httpProxy,
+					)),
+			};
 			const body = options?.body;
 
 			let data: string | undefined;
@@ -175,6 +195,10 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 	const setTokenEndpoint = useCallback((endpoint: string) => {
 		tokenEndpointURL.current = endpoint;
+	}, []);
+
+	const setAuthorizationServerMetadata = useCallback((metadata: OpenidAuthorizationServerMetadata | null) => {
+		authorizationServerMetadata.current = metadata;
 	}, []);
 
 	const setDpopHeader = useCallback(async (dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK, _jti: string) => {
@@ -304,6 +328,91 @@ export function useTokenRequest(): TokenRequestBuilder {
 			throw new Error("Invalid grant type selected");
 		}
 
+		const requestWithAttestationRetry = async () => {
+			const response = await tokenRequest();
+			if (grantType.current === GrantType.PRE_AUTHORIZED_CODE) {
+				return response;
+			}
+
+			return retryWithFreshAttestationChallenge(
+				response,
+				(headers) => tokenRequestWithHeaders(headers),
+				{
+					asMeta: authorizationServerMetadata.current ?? {
+						issuer: as.issuer,
+						token_endpoint: tokenEndpointURL.current!,
+					},
+					clientId: clientId.current,
+					httpProxy,
+				},
+			);
+		};
+
+		const tokenRequestWithHeaders = async (headers: Record<string, string>) => {
+			const previousFetch = options[customFetch];
+			const retryOptions: oauth4webapi.TokenEndpointRequestOptions = {
+				...options,
+				[customFetch]: (url, requestOptions) => previousFetch(
+					url,
+					{
+						...requestOptions,
+						headers: {
+							...normalizeHeaders(requestOptions?.headers),
+							...headers,
+						},
+					},
+				),
+			};
+
+			if (grantType.current === GrantType.AUTHORIZATION_CODE) {
+				if (!clientId.current || !redirectUri.current) {
+					throw new Error("Client ID or Redirect URI is not set");
+				}
+				if (!authorizationCode.current || !codeVerifier.current) {
+					throw new Error("Authorization Code or Code Verifier is not set");
+				}
+				let callbackParams: URLSearchParams;
+				if (authorizationResponseUrl.current) {
+					const currentUrl = new URL(authorizationResponseUrl.current);
+					callbackParams = oauth4webapi.validateAuthResponse(
+						as,
+						client,
+						currentUrl,
+						oauthState.current ?? undefined
+					);
+				} else {
+					callbackParams = new URLSearchParams({ code: authorizationCode.current });
+				}
+				return oauth4webapi.authorizationCodeGrantRequest(
+					as,
+					client,
+					clientAuth,
+					callbackParams,
+					redirectUri.current!,
+					codeVerifier.current,
+					retryOptions
+				);
+			}
+
+			if (grantType.current === GrantType.REFRESH) {
+				if (!refreshToken.current) {
+					throw new Error("Refresh Token is not set");
+				}
+				return oauth4webapi.refreshTokenGrantRequest(
+					as,
+					client,
+					clientAuth,
+					refreshToken.current,
+					{
+						...retryOptions,
+						...(additionalParameters.current ? { additionalParameters: additionalParameters.current } : {}),
+					}
+				);
+			}
+
+			return tokenRequest();
+		};
+
 		const processResponse = async (response: Response) => {
 			if (grantType.current === GrantType.AUTHORIZATION_CODE) {
 				return oauth4webapi.processAuthorizationCodeResponse(as, client, response);
@@ -324,7 +433,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 			return null;
 		};
 
-		let response = await tokenRequest();
+		let response = await requestWithAttestationRetry();
 		let result: any;
 		try {
 			result = await processResponse(response);
@@ -359,7 +468,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 				},
 			},
 		};
-	}, [getDPoPHandle, myCustomFetch]);
+	}, [getDPoPHandle, httpProxy, myCustomFetch]);
 
 	return useMemo(() => ({
 		setClientId,
@@ -375,6 +484,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		setAdditionalParameters,
 		setRedirectUri,
 		setTokenEndpoint,
+		setAuthorizationServerMetadata,
 		setDpopHeader,
 		execute,
 	}), [
@@ -391,6 +501,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 		setAdditionalParameters,
 		setRedirectUri,
 		setTokenEndpoint,
+		setAuthorizationServerMetadata,
 		setDpopHeader,
 		execute,
 	]);

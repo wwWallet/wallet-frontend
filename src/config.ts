@@ -41,6 +41,10 @@ export const STATIC_PUBLIC_URL = config.static_public_url || 'https://demo.wwwal
 export const STATIC_NAME = config.static_name || 'wwWallet';
 export const WALLET_TAGLINE: string | undefined = config.wallet_tagline;
 export const OPENID4VCI_PROOF_TYPE_PRECEDENCE = config.openid4vci_proof_type_precedence || 'jwt';
+export const OPENID4VCI_CLIENT_ATTESTATION_ENABLED = config.openid4vci_client_attestation_enabled === 'true';
+export const OPENID4VCI_CLIENT_ATTESTATION_ISSUER = config.openid4vci_client_attestation_issuer;
+export const OPENID4VCI_CLIENT_ATTESTATION_ATTESTER_PRIVATE_JWK = config.openid4vci_client_attestation_attester_private_jwk;
+export const OPENID4VCI_CLIENT_ATTESTATION_LIFETIME_SECONDS = config.openid4vci_client_attestation_lifetime_seconds && !isNaN(parseInt(config.openid4vci_client_attestation_lifetime_seconds)) ? parseInt(config.openid4vci_client_attestation_lifetime_seconds) : 300;
 export const FOLD_EVENT_HISTORY_AFTER_SECONDS = config.fold_event_history_after_seconds && !isNaN(parseInt(config.fold_event_history_after_seconds)) ? parseInt(config.fold_event_history_after_seconds) : 2592000; // 30 days
 export const DISPLAY_ISSUANCE_WARNINGS: boolean = config.display_issuance_warnings ? JSON.parse(config.display_issuance_warnings) : false;
 export const OPENID4VCI_MAX_ACCEPTED_BATCH_SIZE: number = config.openid4vci_max_accepted_batch_size && !isNaN(parseInt(config.openid4vci_max_accepted_batch_size)) ? parseInt(config.openid4vci_max_accepted_batch_size) : 10;

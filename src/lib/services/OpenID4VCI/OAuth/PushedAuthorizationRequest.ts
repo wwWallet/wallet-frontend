@@ -3,6 +3,10 @@ import { useHttpProxy } from "../../HttpProxy/HttpProxy";
 import { useCallback, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
 import { MODE } from '@/config';
+import {
+	getClientAttestationHeaders,
+	retryWithFreshAttestationChallenge,
+} from './attestationBasedClientAuthentication';
 
 const { customFetch, allowInsecureRequests } = oauth4webapi;
 const isDev = MODE === 'development';
@@ -21,9 +25,12 @@ export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
 
 	const myCustomFetch = useMemo(() => {
-		return async (url: string, options?: RequestInit) => {
+		return async (url: string, options?: RequestInit, asMeta?: OpenidAuthorizationServerMetadata, clientId?: string) => {
 			const method = (options?.method ?? 'POST').toLowerCase();
-			const headers = normalizeHeaders(options?.headers);
+			const headers = {
+				...normalizeHeaders(options?.headers),
+				...(asMeta && clientId ? await getClientAttestationHeaders(asMeta, clientId, httpProxy) : {}),
+			};
 			const body = options?.body;
 
 			let data: string | undefined;
@@ -80,15 +87,28 @@ export function usePushedAuthorizationRequest() {
 				pushed_authorization_request_endpoint: endpoint,
 			};
 
-			const response = await oauth4webapi.pushedAuthorizationRequest(
+			const request = (retryHeaders?: Record<string, string>) => oauth4webapi.pushedAuthorizationRequest(
 				as,
 				client,
 				oauth4webapi.None(),
 				body,
 				{
-					[customFetch]: myCustomFetch,
+					[customFetch]: (url, options) => myCustomFetch(
+						url,
+						retryHeaders
+							? { ...options, headers: { ...normalizeHeaders(options?.headers), ...retryHeaders } }
+							: options,
+						retryHeaders ? undefined : asMeta,
+						retryHeaders ? undefined : params.client_id,
+					),
 					[allowInsecureRequests]: isDev,
 				}
+			);
+
+			const response = await retryWithFreshAttestationChallenge(
+				await request(),
+				(headers) => request(headers),
+				{ asMeta, clientId: params.client_id, httpProxy },
 			);
 
 			const json = await response.json();
@@ -100,7 +120,7 @@ export function usePushedAuthorizationRequest() {
 			}
 			return { request_uri: json.request_uri, code_verifier, rawResponse: json };
 		},
-		[myCustomFetch]
+		[httpProxy, myCustomFetch]
 	);
 
 	return useMemo(() => ({ sendPushedAuthorizationRequest }), [sendPushedAuthorizationRequest]);
