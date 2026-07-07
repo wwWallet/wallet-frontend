@@ -5,11 +5,11 @@ export function coerce<T>(value: T): T {
 }
 
 
-export function toU8(b: BufferSource) {
-	if (b instanceof ArrayBuffer) {
-		return new Uint8Array(b);
-	} else {
+export function toU8(b: ArrayBufferLike | ArrayBufferView): Uint8Array {
+	if (ArrayBuffer.isView(b)) {
 		return new Uint8Array(b.buffer);
+	} else {
+		return new Uint8Array(b);
 	}
 }
 
