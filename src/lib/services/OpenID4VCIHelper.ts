@@ -9,23 +9,17 @@ import { OpenidAuthorizationServerMetadataSchema, OpenidCredentialIssuerMetadata
 import type { OpenidAuthorizationServerMetadata, OpenidCredentialIssuerMetadata } from 'wallet-common'
 import { OPENID4VCI_REDIRECT_URI } from "@/config";
 
+type FetchParseResult<T> =
+	| { success: true; data: T }
+	| { success: false; error: Error };
+
 export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	const httpProxy = useHttpProxy();
 	const { api } = useContext(SessionContext);
 	const { getExternalEntity } = api;
 
 	const fetchAndParseWithSchema = useCallback(
-		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false):
-			Promise<
-				{
-					success: true,
-					data: T
-				} |
-				{
-					success: false,
-					error: Error
-				}
-			> {
+		async function fetchAndParseWithSchema<T>(path: string, schema: any, useCache: boolean = true, cacheOnError: boolean = false): Promise<FetchParseResult<T>> {
 			try {
 				const response = await httpProxy.get(path, { "Accept": "application/json" }, { useCache: useCache !== undefined ? useCache : true, cacheOnError });
 				if (!response) {
@@ -50,7 +44,7 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			} catch (err) {
 				return {
 					success: false,
-					error: err
+					error: err instanceof Error ? err : new Error(String(err))
 				}
 			}
 		}, [httpProxy])
@@ -112,13 +106,13 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 	 */
 	const fetchDataWithSchemaWithFallback = useCallback(
 		async function fetchDataWithSchemaWithFallback<T>(
-			endpointPaths: string[],
+			endpointPaths: Array<string | null>,
 			schema: any,
 			useCache?: boolean
 		): Promise<T | null> {
 			const errors: Array<{ path: string; error: Error }> = [];
 
-			for (const path of endpointPaths) {
+			for (const path of endpointPaths.filter((path): path is string => Boolean(path))) {
 				const response = await fetchAndParseWithSchema<T>(
 					path,
 					schema,
@@ -194,15 +188,19 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 			const wellKnownOpenidConfiguration = ".well-known/openid-configuration";
 
 			const { metadata } = await getCredentialIssuerMetadata(credentialIssuerIdentifier);
-			const authorizationServerIdentifierFromCredentialIssuerMetadata = metadata.authorization_servers && metadata.authorization_servers.length > 0 ?
+			const authorizationServerIdentifierFromCredentialIssuerMetadata = metadata.authorization_servers?.length > 0 ?
 				metadata.authorization_servers[0] :
 				null;
 			let authzServerMetadata: OpenidAuthorizationServerMetadata = null;
 
-			const endpointPaths = [
+			const authorizationServerEndpointPaths = authorizationServerIdentifierFromCredentialIssuerMetadata ? [
 				prependToPath(authorizationServerIdentifierFromCredentialIssuerMetadata, wellKnownOauthAuthorizationServer),
 				`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOauthAuthorizationServer}`,
 				`${authorizationServerIdentifierFromCredentialIssuerMetadata}/${wellKnownOpenidConfiguration}`,
+			] : [];
+
+			const endpointPaths = [
+				...authorizationServerEndpointPaths,
 				prependToPath(credentialIssuerIdentifier, wellKnownOauthAuthorizationServer),
 				`${credentialIssuerIdentifier}/${wellKnownOauthAuthorizationServer}`,
 				`${credentialIssuerIdentifier}/${wellKnownOpenidConfiguration}`
