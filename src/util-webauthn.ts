@@ -58,12 +58,6 @@ type SignalUnknownCredentialOptions = {
 	rpId: string;
 };
 
-type SignalAllAcceptedCredentialsOptions = {
-	allAcceptedCredentialIds: string[];
-	rpId: string;
-	userId: string;
-};
-
 type SignalCurrentUserDetailsOptions = {
 	displayName: string;
 	name: string;
@@ -73,7 +67,6 @@ type SignalCurrentUserDetailsOptions = {
 
 type PublicKeyCredentialWithSignalMethods = typeof PublicKeyCredential & {
 	getClientCapabilities?: () => Promise<Record<string, boolean>>;
-	signalAllAcceptedCredentials?: (options: SignalAllAcceptedCredentialsOptions) => Promise<void>;
 	signalCurrentUserDetails?: (options: SignalCurrentUserDetailsOptions) => Promise<void>;
 	signalUnknownCredential?: (options: SignalUnknownCredentialOptions) => Promise<void>;
 };
@@ -95,28 +88,6 @@ async function getPublicKeyCredentialSignals(): Promise<{
 		clientCapabilities: await publicKeyCredential.getClientCapabilities(),
 		publicKeyCredential,
 	};
-}
-
-export async function signalAllAcceptedCredentials(options?: SignalAllAcceptedCredentialsOptions): Promise<boolean> {
-	if (!options) {
-		return false;
-	}
-
-	try {
-		const signals = await getPublicKeyCredentialSignals();
-		if (
-			!signals?.publicKeyCredential.signalAllAcceptedCredentials
-			|| signals.clientCapabilities.signalAllAcceptedCredentials !== true
-		) {
-			return false;
-		}
-
-		await signals.publicKeyCredential.signalAllAcceptedCredentials(options);
-		return true;
-	} catch (error) {
-		console.warn("Failed to signal accepted WebAuthn credentials", error);
-		return false;
-	}
 }
 
 export async function signalUnknownCredential(options?: SignalUnknownCredentialOptions): Promise<boolean> {

@@ -33,9 +33,15 @@ type SignupWebauthnError = (
 	| { errorId: 'prfRetryFailed', retryFrom: SignupWebauthnRetryParams }
 );
 type SignupWebauthnRetryParams = { beginData: any, credential: PublicKeyCredential };
+const UNKNOWN_WEBAUTHN_CREDENTIAL_ERROR = "UNKNOWN_WEBAUTHN_CREDENTIAL";
 
 function isRejectedWebauthnLoginFinishError(error: any): boolean {
 	return [400, 403].includes(error?.response?.status);
+}
+
+function isUnknownWebauthnCredentialError(error: any): boolean {
+	return error?.response?.status === 403
+		&& error?.response?.data?.error === UNKNOWN_WEBAUTHN_CREDENTIAL_ERROR;
 }
 
 
@@ -576,11 +582,14 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 					}
 
 				} catch (e) {
-					if (isOnline && isRejectedWebauthnLoginFinishError(e)) {
+					if (isOnline && isUnknownWebauthnCredentialError(e)) {
 						await signalUnknownCredential({
 							rpId: config.WEBAUTHN_RPID,
 							credentialId: credential.id,
 						});
+					}
+
+					if (isOnline && isRejectedWebauthnLoginFinishError(e)) {
 						return Err('passkeyInvalid');
 					}
 
