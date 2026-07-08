@@ -225,6 +225,7 @@ export async function addSaveCredentialIssuanceSessionEvent(container: WalletSta
 	},
 	credentialEndpoint?: {
 		transactionId?: string,
+		nextPollAt?: number,
 	},
 	created?: number
 ): Promise<WalletStateContainer> {

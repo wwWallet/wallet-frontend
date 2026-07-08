@@ -50,6 +50,7 @@ export const ClientEnvConfigSchema = z.object({
 	POLICY_LINKS: z.string().optional(),
 	SHOW_PWA_INSTALL_PROMPT: z.string().optional(),
 	DISPLAY_CREDENTIAL_USAGES: z.string().optional(),
+	DEV_MODE: z.string().optional(),
 });
 export type ClientEnvConfig = z.infer<typeof ClientEnvConfigSchema>;
 

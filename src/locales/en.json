@@ -11,18 +11,19 @@
 		"status": "Connection status:"
 	},
 	"PinInputPopup": {
-		"description": "Please enter the PIN which was displayed from the issuer",
-		"errMessage": "You have entered an incorrect pin",
-		"inputPlaceholder": "Pin",
-		"title": "Enter the Pin"
+		"description": "Please enter the PIN provided by the issuer",
+		"errMessage": "You have entered an incorrect PIN",
+		"inputPlaceholder": "PIN",
+		"title": "Enter the PIN"
 	},
 	"common": {
 		"and": "and",
 		"cancel": "Cancel",
 		"continue": "Continue",
 		"delete": "Delete",
-		"externalPasskey": "Passkey on a security key",
-		"hybridPasskey": "Passkey on nearby device",
+		"externalPasskey": "Security key",
+		"hybridPasskey": "Nearby device",
+		"more": "More",
 		"navItemAddCredentials": "Add Credentials",
 		"navItemAddCredentialsSimple": "Add",
 		"navItemCredentials": "Credentials",
@@ -39,7 +40,7 @@
 		"passwordHideTitle": "Click to hide password",
 		"passwordShowAriaLabel": "Show password",
 		"passwordShowTitle": "Click to show password",
-		"platformPasskey": "Passkey on this device",
+		"platformPasskey": "This device",
 		"previous": "Previous",
 		"privateDataConflict": "Your session is out of sync with the server. Please log out, then sign in and try again.",
 		"refresh": "Refresh",
@@ -123,6 +124,10 @@
 			"title": "Authorization Process Failed"
 		},
 		"close": "Close",
+		"credentialIssuanceAlreadyPending": {
+			"description": "This credential request is already pending. The wallet will continue polling the existing issuance request.",
+			"title": "Pending request"
+		},
 		"onlyOneInputDescriptor": {
 			"description": "Currenly the wallet cannot accept a Presentation Request of more than one credentials at a time.",
 			"title": "Unsupported protocol version"
@@ -229,15 +234,14 @@
 		},
 		"deleteAccount": {
 			"buttonText": "Delete your account",
-			"deleteButtonTitleLocked": "You cannot delete your account while locked",
 			"description": "Once you delete your account, there is no going back. Please be certain.",
 			"message": "Are you sure you want to delete <strong>your Account</strong> ?",
 			"title": "Delete account"
 		},
 		"description": "View account information and manage passkeys",
-		"lockSensitive": "Lock sensitive actions",
-		"lockSensitiveTitle": "Click to lock sensitive actions",
-		"noOtherPasskeys": "There are no other passkeys in this account.",
+		"language": {
+			"description": "Choose the language used throughout the app."
+		},
 		"oblivious": {
 			"description": "Select a private gateway to use Oblivious HTTP",
 			"disabled": "Do not use Oblivious HTTP",
@@ -246,14 +250,12 @@
 			"title": "Oblivious HTTP"
 		},
 		"passkeyItem": {
-			"canEncrypt": "Can Encrypt",
-			"canEncryptNo": "No",
-			"canEncryptYes": "Yes",
 			"cancelChangesAriaLabel": "Cancel changes to passkey {{passkeyLabel}}",
 			"created": "Created",
 			"deleteAriaLabel": "Delete passkey {{passkeyLabel}}",
 			"deleteButtonTitleUnlocked": "Click to delete passkey {{passkeyLabel}}",
 			"lastUsed": "Last Used",
+			"loggedIn": "Logged in",
 			"messageDeletePasskey": "Are you sure you want to delete <strong>{{nickname}}</strong> passkey?",
 			"needsPrfUpgrade": "Needs upgrade",
 			"nickname": "Nickname",
@@ -264,6 +266,10 @@
 			"rename": "Rename",
 			"renameAriaLabel": "Rename passkey {{passkeyLabel}}",
 			"saveChangesAriaLabel": "Save changes to passkey {{passkeyLabel}}",
+			"syncable": "Synced",
+			"syncableAvailable": "Available",
+			"syncableNo": "No",
+			"syncableYes": "Yes",
 			"unnamed": "Unnamed passkey"
 		},
 		"rememberIssuer": {
@@ -278,16 +284,15 @@
 			"successMessage": "Saved"
 		},
 		"title": {
+			"account": "Account",
 			"appVersion": "App Version",
 			"confirmDeletePopup": "Are You Sure?",
+			"general": "General",
 			"language": "Language",
-			"loggedInPasskey": "Logged in Passkey",
-			"manageAcount": "Manage Account",
-			"manageOtherPasskeys": "Manage other Passkeys",
+			"manageOtherPasskeys": "Manage Passkeys",
+			"privacy": "Privacy",
 			"rememberIssuer": "Remember Issuer"
 		},
-		"unlockSensitive": "Unlock sensitive actions",
-		"unlockSensitiveTitle": "Click to unlock sensitive actions",
 		"upgradePrfKey": {
 			"description": "Please authenticate with the passkey \"{{passkeyLabel}}\"...",
 			"error": "<p>Something went wrong, please try again.</p><p>Please note that you need to authenticate with the passkey \"{{passkeyLabel}}\".</p>",

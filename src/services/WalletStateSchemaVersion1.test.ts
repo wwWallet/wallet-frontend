@@ -28,6 +28,30 @@ export function fossilize(containers: { [name: string]: WalletStateContainer }) 
 
 
 describe("WalletStateSchemaVersion1", () => {
+	it("preserves deferred credential polling metadata in credential issuance sessions", async () => {
+		const container = WalletStateOperations.initialWalletStateContainer();
+		const nextPollAt = 1758140200;
+		const reduced = WalletStateOperations.walletStateReducer(container.S, {
+			schemaVersion: 1,
+			eventId: 1,
+			parentHash: "",
+			timestampSeconds: 1758140122,
+			type: "save_credential_issuance_session",
+			sessionId: 1,
+			credentialIssuerIdentifier: "iss",
+			state: "state",
+			code_verifier: "code-verifier",
+			credentialConfigurationId: "credential-config",
+			credentialEndpoint: { transactionId: "transaction-id", nextPollAt },
+			created: 1758140122,
+		});
+
+		assert.deepEqual(reduced.credentialIssuanceSessions[0].credentialEndpoint, {
+			transactionId: "transaction-id",
+			nextPollAt,
+		});
+	});
+
 	it("should successfully apply 'new_credential' events on empty baseState", async () => {
 		const container: WalletStateContainer = jsonParseTaggedBinary("{\"lastEventHash\":\"\",\"events\":[{\"schemaVersion\":1,\"eventId\":80402279,\"parentHash\":\"\",\"timestampSeconds\":1758139255,\"type\":\"new_credential\",\"credentialId\":383352691,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0},{\"schemaVersion\":1,\"eventId\":341391050,\"parentHash\":\"ed4744cfa91aab9c0e348c966049e114e73dfdb3e7de1ee466260adc17d2ea98\",\"timestampSeconds\":1758139255,\"type\":\"new_credential\",\"credentialId\":627506554,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"batchId\":0,\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0}],\"S\":{\"schemaVersion\":1,\"credentials\":[{\"credentialId\":383352691,\"data\":\"cred1\",\"format\":\"\",\"kid\":\"\",\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0,\"batchId\":0},{\"credentialId\":627506554,\"data\":\"cred2\",\"format\":\"\",\"kid\":\"\",\"credentialIssuerIdentifier\":\"\",\"credentialConfigurationId\":\"\",\"instanceId\":0,\"batchId\":0}],\"keypairs\":[],\"presentations\":[],\"credentialIssuanceSessions\":[],\"settings\":{\"openidRefreshTokenMaxAgeInSeconds\":\"0\"}}}");
 		const s1 = WalletStateOperations.walletStateReducer(container.S, container.events[0]);

@@ -115,6 +115,7 @@ export type WalletSessionEventSaveCredentialIssuanceSession = {
 	},
 	credentialEndpoint?: {
 		transactionId?: string,
+		nextPollAt?: number,
 	},
 	created: number,
 }
@@ -179,6 +180,7 @@ export type WalletState = {
 		},
 		credentialEndpoint?: {
 			transactionId?: string,
+			nextPollAt?: number,
 		},
 		created: number,
 	}[],

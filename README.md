@@ -14,6 +14,7 @@ Welcome to wwWallet Frontend repository! This application is a user-friendly web
 - 📦 [Installation](#installation)
 - ✅ [Pre-commit Hook](#pre-commit-hook)
 - 🚀 [Usage](#usage)
+- ⚙️ [Local Vite Config](#local-vite-config)
 - 🔐 [PRF Compatibility](#prf-compatibility)
 - 🎨 [Tailwind CSS](#tailwind-css)
 - 💡 [Contributing](#contributing)
@@ -100,6 +101,7 @@ Our Web Wallet provides a range of features tailored to enhance the credential m
   - `POLICY_LINKS`: Links to any TOS or other policies. This should be in the format `"<LABEL>::<URL>,<LABEL>::<URL>,<LABEL>::<URL>,..."` Can be left blank.
   - `SHOW_PWA_INSTALL_PROMPT`: Hide or show the PWA installation prompt on the login screen. Defaults to false if left blank or invalid.
   - `DISPLAY_CREDENTIAL_USAGES`: Hide or show the credential usage ribbon and usage count on credential cards/details. Defaults to false (hidden) if left blank or invalid.
+  - `DEV_MODE`: Show development-only wallet UI, including the credential dataset view. Defaults to false (hidden) if left blank or invalid.
 
   **Well-known file generation:**
   - `WELLKNOWN_APPLE_APPIDS`: Used to generate the `.well-known/apple-app-site-association` file, used for IOS wrappers. This should be in the format `"<APP_ID>,<APP_ID>,<APP_ID>,..."` Can be left blank.
@@ -144,6 +146,28 @@ git add -A
 ## 🚀Usage
 
 Once the development server is running, you can access the app by visiting http://localhost:3000 in your web browser. The app provides various pages and components that you can interact with. Explore the features and enjoy using the Wallet Frontend!
+
+## ⚙️Local Vite Config
+
+For local development, you can create an optional `vite.config.local.ts` file in the project root. This file is ignored by git and is merged into the main Vite config when present.
+
+This is useful for machine-specific settings, such as custom dev server proxy rules, without editing the committed `vite.config.ts`.
+
+Example:
+
+```ts
+import type { UserConfig } from 'vite';
+
+export const localViteConfig: Partial<UserConfig> = {
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
+  },
+};
+```
+
+If `vite.config.local.ts` does not exist, the app uses the default Vite config unchanged.
 
 ## 🔐PRF Compatibility
 

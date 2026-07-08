@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import StatusContext from "../context/StatusContext";
 import SessionContext from "../context/SessionContext";
 import { useTranslation } from "react-i18next";
-import { GrantType, type OpenidCredentialIssuerMetadata } from "wallet-common";
+import { GrantType, TxCode, type OpenidCredentialIssuerMetadata } from "wallet-common";
 import OpenID4VCIContext from "../context/OpenID4VCIContext";
 import OpenID4VPContext from "../context/OpenID4VPContext";
 import CredentialsContext from "@/context/CredentialsContext";
@@ -43,6 +43,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const { handleAuthorizationRequest, promptForCredentialSelection, sendAuthorizationResponse } = openID4VP;
 
 	const [showPinInputPopup, setShowPinInputPopup] = useState<boolean>(false);
+	const txCodeResolverRef = useRef<((value: string | null) => void) | null>(null);
+	const [txCodeInputOptions, setTxCodeInputOptions] = useState<TxCode | null>(null);
 
 	const [showSyncPopup, setSyncPopup] = useState<boolean>(false);
 	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
@@ -166,6 +168,20 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		});
 	}, []);
 
+	const requestTxCodeInput = useCallback((txCode: TxCode) => {
+		return new Promise<string | null>((resolve) => {
+			setTxCodeInputOptions(txCode ?? null);
+			txCodeResolverRef.current = resolve;
+			setShowPinInputPopup(true);
+		});
+	}, []);
+
+	const cancelTxCodeInput = useCallback(() => {
+		txCodeResolverRef.current?.(null);
+		txCodeResolverRef.current = null;
+		setTxCodeInputOptions(null);
+	}, []);
+
 	const popupContentFromIssuerMetadata = useCallback((
 		issuerMetadata: OpenidCredentialIssuerMetadata,
 		credentialConfigurationId: string
@@ -179,7 +195,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const showMessagePopup = useCallback((
 		messageOrErrorKey: string | { title: string, description: string },
 		mappedDescriptionKey?: string,
-		type: 'error' | 'success' = 'error',
+		type: 'error' | 'success' | 'info' = 'error',
 	) => {
 		if (typeof messageOrErrorKey === 'string') {
 			const errorKey = messageOrErrorKey;
@@ -233,18 +249,18 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					if (!metadataResult?.metadata) {
 						throw new Error('Could not resolve issuer metadata for credential offer');
 					}
-					const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
-					const userApproved = await requestRedirectConsent({
-						title: popupContent.title,
-						message: popupContent.message,
-					});
-					if (!userApproved) {
-						return null;
-					}
 
 					console.log("Generating authorization request...");
 
 					if (!grant[GrantType.PRE_AUTHORIZED_CODE]) {
+						const popupContent = popupContentFromIssuerMetadata(metadataResult.metadata, selectedCredentialConfigurationId);
+						const userApproved = await requestRedirectConsent({
+							title: popupContent.title,
+							message: popupContent.message,
+						});
+						if (!userApproved) {
+							return null;
+						}
 						return generateAuthorizationRequest(credentialIssuer, selectedCredentialConfigurationId, grant);
 					}
 
@@ -252,20 +268,18 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					const txCode = grant[GrantType.PRE_AUTHORIZED_CODE].tx_code;
 
 					if (usedPreAuthorizedCodes.current.includes(preAuthorizedCode)) {
-						throw new Error("Already used pre-authorized code");
+						console.log("Already used pre-authorized code");
+						return null;
 					}
 
 					let userInput: string | undefined = undefined;
-					if (txCode) {
-						while (1) {
-							userInput = prompt(txCode.description ?? "Input Transaction Code displayed on your screen")
-							if (txCode.length && txCode.length === userInput.length) {
-								break;
-							}
-							else if (txCode.length) {
-								alert(`Length of transaction code must be ${txCode.length}`);
-							}
+					if (txCode !== undefined) {
+						const pin = await requestTxCodeInput(txCode);
+						if (pin === null) {
+							cleanCurrentUrl();
+							return null;
 						}
+						userInput = pin;
 					}
 					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
 					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
@@ -355,6 +369,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 		// depend on methods, not whole context objects
 		popupContentFromIssuerMetadata,
 		requestRedirectConsent,
+		requestTxCodeInput,
 		showMessagePopup,
 		handleCredentialOffer,
 		generateAuthorizationRequest,
@@ -385,7 +400,19 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			{children}
 			<Suspense fallback={null}>
 				{showPinInputPopup &&
-					<PinInputPopup isOpen={showPinInputPopup} setIsOpen={setShowPinInputPopup} />
+					<PinInputPopup
+						isOpen={showPinInputPopup}
+						setIsOpen={setShowPinInputPopup}
+						length={txCodeInputOptions?.length}
+						input_mode={txCodeInputOptions?.input_mode}
+						description={txCodeInputOptions?.description}
+						onSubmit={(pin: string) => {
+							txCodeResolverRef.current?.(pin);
+							txCodeResolverRef.current = null;
+							setTxCodeInputOptions(null);
+						}}
+						onCancel={cancelTxCodeInput}
+					/>
 				}
 				{isMessagePopupOpen &&
 					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
