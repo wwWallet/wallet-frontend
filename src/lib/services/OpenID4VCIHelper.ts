@@ -224,14 +224,21 @@ export function useOpenID4VCIHelper(): IOpenID4VCIHelper {
 
 			const authorizationServers: string[] = [];
 			if (credentialOfferAuthzServer) {
+				if (credentialIssuerMetadataAuthorizationServers.length <= 1) {
+					throw new Error("Credential offer authorization_server must only be used when credential issuer metadata authorization_servers has multiple entries");
+				}
 				if (!credentialIssuerMetadataAuthorizationServers.includes(credentialOfferAuthzServer)) {
 					throw new Error(`Credential offer authorization server ${credentialOfferAuthzServer} not found in credential issuer metadata authorization_servers`);
 				}
 				authorizationServers.push(credentialOfferAuthzServer);
 			}
 			else {
-				authorizationServers.push(...credentialIssuerMetadataAuthorizationServers);
-				authorizationServers.push(credentialIssuerIdentifier);
+				if (credentialIssuerMetadataAuthorizationServers.length > 0) {
+					authorizationServers.push(...credentialIssuerMetadataAuthorizationServers);
+				}
+				else {
+					authorizationServers.push(credentialIssuerIdentifier);
+				}
 			}
 
 			const endpointPaths = authorizationServers

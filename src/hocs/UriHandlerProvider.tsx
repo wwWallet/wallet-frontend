@@ -282,7 +282,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 						userInput = pin;
 					}
 					usedPreAuthorizedCodes.current.push(preAuthorizedCode);
-					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput);
+					return requestCredentialsWithPreAuthorization(credentialIssuer, selectedCredentialConfigurationId, preAuthorizedCode, userInput, grant);
 				}).then((res) => {
 					if (!res) {
 						return;
