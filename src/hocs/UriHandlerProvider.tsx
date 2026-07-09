@@ -95,8 +95,9 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	}, [location]);
 
 	useEffect(() => {
+		// offline->online flag check for sync
 		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
-			api.syncPrivateData(cachedUser);
+			setSynced(false);
 		}
 		if (isLoggedIn) {
 			setLatestIsOnlineStatus(isOnline);
@@ -104,12 +105,12 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			setLatestIsOnlineStatus(null);
 		}
 	}, [
-		api,
 		isLoggedIn,
 		isOnline,
 		latestIsOnlineStatus,
 		setLatestIsOnlineStatus,
-		cachedUser
+		cachedUser,
+		setSynced,
 	]);
 
 	useEffect(() => {
@@ -117,19 +118,18 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 			return;
 		}
 		const params = new URLSearchParams(location.search);
-		if (synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
+		// syncPrivateData no-ops offline, which would wrongly mark this synced.
+		if (isOnline && synced === false && getCalculatedWalletState() && params.get('sync') !== 'fail') {
 			console.log("Actually syncing...");
 			syncPrivateData(cachedUser).then((r) => {
 				if (!r.ok) {
 					return;
 				}
 				setSynced(true);
-				// checkForUpdates();
-				// updateOnlineStatus(false);
 			});
 		}
 
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search]);
+	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search, isOnline]);
 
 	useEffect(() => {
 		if (synced === true && window.location.search !== '') {
