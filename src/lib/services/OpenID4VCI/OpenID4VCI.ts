@@ -624,8 +624,9 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 			return {};
 		}
 
-		const [authzServerMetadata] = await Promise.all([
+		const [authzServerMetadata, clientId] = await Promise.all([
 			openID4VCIHelper.getAuthorizationServerMetadata(credentialIssuer),
+			openID4VCIHelper.getClientId(credentialIssuer),
 		]);
 
 		const flowState: WalletStateCredentialIssuanceSession = {
@@ -670,6 +671,7 @@ export function useOpenID4VCI({ errorCallback, showPopupConsent, showMessagePopu
 		tokenRequestBuilder.setTokenEndpoint(tokenEndpoint);
 		tokenRequestBuilder.setIssuer(authzServerMetadata.authzServerMetadata.issuer);
 		tokenRequestBuilder.setAuthorizationServerMetadata(authzServerMetadata.authzServerMetadata);
+		tokenRequestBuilder.setClientId(clientId?.client_id ?? null);
 		tokenRequestBuilder.setGrantType(GrantType.PRE_AUTHORIZED_CODE);
 		tokenRequestBuilder.setPreAuthorizedCode(preAuthorizedCode);
 		if (txCode) {

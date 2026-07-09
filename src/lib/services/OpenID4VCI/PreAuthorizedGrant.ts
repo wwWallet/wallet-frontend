@@ -6,7 +6,7 @@ import { JWK, KeyLike } from "jose";
 export namespace PreAuthorizedGrant {
 	export const preAuthorizedCodeGrantRequest = async (
 		as: oauth4webapi.AuthorizationServer,
-		credentialOfferParams: { preAuthorizedCode: string, txCode?: string },
+		credentialOfferParams: { preAuthorizedCode: string, txCode?: string, clientId?: string },
 		dpop: { dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK },
 		options?: oauth4webapi.TokenEndpointRequestOptions
 	): Promise<Response> => {
@@ -17,6 +17,9 @@ export namespace PreAuthorizedGrant {
 		tokenRequestParams.set("grant_type", GrantType.PRE_AUTHORIZED_CODE);
 		if (credentialOfferParams.txCode) {
 			tokenRequestParams.set("tx_code", credentialOfferParams.txCode);
+		}
+		if (credentialOfferParams.clientId) {
+			tokenRequestParams.set("client_id", credentialOfferParams.clientId);
 		}
 
 		const requestOpts: oauth4webapi.CustomFetchOptions<"POST", URLSearchParams> = {

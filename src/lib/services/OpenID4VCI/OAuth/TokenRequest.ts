@@ -92,13 +92,22 @@ export function useTokenRequest(): TokenRequestBuilder {
 		return out;
 	}
 
+	const shouldUseAnonymousPreAuthorizedGrant = useCallback(() => {
+		return grantType.current === GrantType.PRE_AUTHORIZED_CODE
+			&& authorizationServerMetadata.current?.["pre-authorized_grant_anonymous_access_supported"] === true;
+	}, []);
+
+	const shouldSkipClientAttestationForRequest = useCallback((headers: Record<string, string>) => {
+		return !!headers['oauth-client-attestation'] || shouldUseAnonymousPreAuthorizedGrant();
+	}, [shouldUseAnonymousPreAuthorizedGrant]);
+
 	const myCustomFetch = useMemo(() => {
 		return async (url: string, options?: RequestInit) => {
 			const method = (options?.method ?? 'POST').toLowerCase();
+			const requestHeaders = normalizeHeaders(options?.headers);
 			const headers = {
-				...normalizeHeaders(options?.headers),
-				...(grantType.current === GrantType.PRE_AUTHORIZED_CODE
-					|| normalizeHeaders(options?.headers)['oauth-client-attestation']
+				...requestHeaders,
+				...(shouldSkipClientAttestationForRequest(requestHeaders)
 					? {}
 					: await getClientAttestationHeaders(
 						authorizationServerMetadata.current ?? {
@@ -143,7 +152,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 				headers: resHeaders,
 			});
 		};
-	}, [httpProxy]);
+	}, [httpProxy, shouldSkipClientAttestationForRequest]);
 
 	const setClientId = useCallback((clientIdValue: string | null) => {
 		clientId.current = clientIdValue;
@@ -252,15 +261,19 @@ export function useTokenRequest(): TokenRequestBuilder {
 			...(DPoP ? { DPoP } : {}),
 		};
 
-		const preAuthorizedCodeGrantRequest = async () => {
+		const preAuthorizedCodeGrantRequest = async (requestOptions: oauth4webapi.TokenEndpointRequestOptions = options) => {
 			if (!preAuthorizedCode.current) {
 				throw new Error("Pre-Authorized Code not set");
 			}
 			return PreAuthorizedGrant.preAuthorizedCodeGrantRequest(
 				as,
-				{ preAuthorizedCode: preAuthorizedCode.current, txCode: txCode.current },
+				{
+					preAuthorizedCode: preAuthorizedCode.current,
+					txCode: txCode.current,
+					clientId: shouldUseAnonymousPreAuthorizedGrant() ? undefined : clientId.current ?? undefined,
+				},
 				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
-				options
+				requestOptions
 			);
 		}
 
@@ -330,7 +343,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 
 		const requestWithAttestationRetry = async () => {
 			const response = await tokenRequest();
-			if (grantType.current === GrantType.PRE_AUTHORIZED_CODE) {
+			if (shouldUseAnonymousPreAuthorizedGrant()) {
 				return response;
 			}
 
@@ -410,6 +423,10 @@ export function useTokenRequest(): TokenRequestBuilder {
 				);
 			}
 
+			if (grantType.current === GrantType.PRE_AUTHORIZED_CODE) {
+				return preAuthorizedCodeGrantRequest(retryOptions);
+			}
+
 			return tokenRequest();
 		};
 
@@ -468,7 +485,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 				},
 			},
 		};
-	}, [getDPoPHandle, httpProxy, myCustomFetch]);
+	}, [getDPoPHandle, httpProxy, myCustomFetch, shouldUseAnonymousPreAuthorizedGrant]);
 
 	return useMemo(() => ({
 		setClientId,
