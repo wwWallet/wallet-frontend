@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { OpenidAuthorizationServerMetadata } from "wallet-common";
 import { MODE } from '@/config';
 import {
-	getClientAttestationHeaders,
 	retryWithFreshAttestationChallenge,
 } from './attestationBasedClientAuthentication';
 
@@ -25,12 +24,9 @@ export function usePushedAuthorizationRequest() {
 	const httpProxy = useHttpProxy();
 
 	const myCustomFetch = useMemo(() => {
-		return async (url: string, options?: RequestInit, asMeta?: OpenidAuthorizationServerMetadata, clientId?: string) => {
+		return async (url: string, options?: RequestInit) => {
 			const method = (options?.method ?? 'POST').toLowerCase();
-			const headers = {
-				...normalizeHeaders(options?.headers),
-				...(asMeta && clientId ? await getClientAttestationHeaders(asMeta, clientId, httpProxy) : {}),
-			};
+			const headers = normalizeHeaders(options?.headers);
 			const body = options?.body;
 
 			let data: string | undefined;
@@ -98,8 +94,6 @@ export function usePushedAuthorizationRequest() {
 						retryHeaders
 							? { ...options, headers: { ...normalizeHeaders(options?.headers), ...retryHeaders } }
 							: options,
-						retryHeaders ? undefined : asMeta,
-						retryHeaders ? undefined : params.client_id,
 					),
 					[allowInsecureRequests]: isDev,
 				}

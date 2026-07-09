@@ -7,7 +7,7 @@ export namespace PreAuthorizedGrant {
 	export const preAuthorizedCodeGrantRequest = async (
 		as: oauth4webapi.AuthorizationServer,
 		credentialOfferParams: { preAuthorizedCode: string, txCode?: string, clientId?: string },
-		dpop: { dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK },
+		dpop?: { dpopPrivateKey: KeyLike, dpopPublicKeyJwk: JWK },
 		options?: oauth4webapi.TokenEndpointRequestOptions
 	): Promise<Response> => {
 
@@ -22,17 +22,23 @@ export namespace PreAuthorizedGrant {
 			tokenRequestParams.set("client_id", credentialOfferParams.clientId);
 		}
 
-		const requestOpts: oauth4webapi.CustomFetchOptions<"POST", URLSearchParams> = {
-			body: tokenRequestParams,
-			method: "POST",
-			headers: {
-				"Content-Type": "application/x-www-form-urlencoded",
+		const dpopHeader = dpop
+			? {
 				"DPoP": await generateDPoP(
 					dpop.dpopPrivateKey,
 					dpop.dpopPublicKeyJwk,
 					"POST",
 					as.token_endpoint,
 				),
+			}
+			: {};
+
+		const requestOpts: oauth4webapi.CustomFetchOptions<"POST", URLSearchParams> = {
+			body: tokenRequestParams,
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				...dpopHeader,
 			},
 			redirect: "manual",
 		};

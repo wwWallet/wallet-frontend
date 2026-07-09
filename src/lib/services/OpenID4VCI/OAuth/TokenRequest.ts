@@ -5,7 +5,6 @@ import * as oauth4webapi from 'oauth4webapi';
 import { PreAuthorizedGrant } from '../PreAuthorizedGrant';
 import { MODE, OPENID4VCI_REDIRECT_URI } from '@/config';
 import {
-	getClientAttestationHeaders,
 	retryWithFreshAttestationChallenge,
 } from './attestationBasedClientAuthentication';
 import type { OpenidAuthorizationServerMetadata } from 'wallet-common';
@@ -97,27 +96,10 @@ export function useTokenRequest(): TokenRequestBuilder {
 			&& authorizationServerMetadata.current?.["pre-authorized_grant_anonymous_access_supported"] === true;
 	}, []);
 
-	const shouldSkipClientAttestationForRequest = useCallback((headers: Record<string, string>) => {
-		return !!headers['oauth-client-attestation'] || shouldUseAnonymousPreAuthorizedGrant();
-	}, [shouldUseAnonymousPreAuthorizedGrant]);
-
 	const myCustomFetch = useMemo(() => {
 		return async (url: string, options?: RequestInit) => {
 			const method = (options?.method ?? 'POST').toLowerCase();
-			const requestHeaders = normalizeHeaders(options?.headers);
-			const headers = {
-				...requestHeaders,
-				...(shouldSkipClientAttestationForRequest(requestHeaders)
-					? {}
-					: await getClientAttestationHeaders(
-						authorizationServerMetadata.current ?? {
-							issuer: issuer.current ?? tokenEndpointURL.current ?? url,
-							token_endpoint: tokenEndpointURL.current ?? url,
-						},
-						clientId.current,
-						httpProxy,
-					)),
-			};
+			const headers = normalizeHeaders(options?.headers);
 			const body = options?.body;
 
 			let data: string | undefined;
@@ -152,7 +134,7 @@ export function useTokenRequest(): TokenRequestBuilder {
 				headers: resHeaders,
 			});
 		};
-	}, [httpProxy, shouldSkipClientAttestationForRequest]);
+	}, [httpProxy]);
 
 	const setClientId = useCallback((clientIdValue: string | null) => {
 		clientId.current = clientIdValue;
@@ -272,7 +254,9 @@ export function useTokenRequest(): TokenRequestBuilder {
 					txCode: txCode.current,
 					clientId: shouldUseAnonymousPreAuthorizedGrant() ? undefined : clientId.current ?? undefined,
 				},
-				{ dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk },
+				dpopParams.current
+					? { dpopPrivateKey: dpopParams.current.dpopPrivateKey, dpopPublicKeyJwk: dpopParams.current.dpopPublicKeyJwk }
+					: undefined,
 				requestOptions
 			);
 		}
