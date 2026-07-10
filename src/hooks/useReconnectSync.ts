@@ -36,9 +36,9 @@ export function useReconnectSync({
 	const location = useLocation();
 
 	// Persisted so a reload while unresolved still reads as "pending", not fresh.
-	const [onlineChanged, setOnlineChanged] = useClearOnClearSession(useSessionStorage('onlineChanged', null));
+	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(useSessionStorage('reconnectDetected', null));
 	// True at mount means this reconnect was already pending (a reload), not live.
-	const wasOnlineChangedAtMount = useRef(onlineChanged === true).current;
+	const wasReconnectDetectedAtMount = useRef(reconnectDetected === true).current;
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	const [showAuthPopup, setShowAuthPopup] = useState(false);
@@ -48,11 +48,11 @@ export function useReconnectSync({
 
 	useEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
-			setOnlineChanged(true);
+			setReconnectDetected(true);
 			setSynced(false);
 		}
 		setLatestIsOnlineStatus(isLoggedIn ? isOnline : null);
-	}, [isLoggedIn, isOnline, latestIsOnlineStatus, setLatestIsOnlineStatus, cachedUser, setSynced, setOnlineChanged]);
+	}, [isLoggedIn, isOnline, latestIsOnlineStatus, setLatestIsOnlineStatus, cachedUser, setSynced, setReconnectDetected]);
 
 	useEffect(() => {
 		if (!getCalculatedWalletState || !cachedUser || !syncPrivateData) {
@@ -68,10 +68,10 @@ export function useReconnectSync({
 				}
 				setSynced(true);
 				// Clear so a later, unrelated failure isn't misread as this reconnect.
-				setOnlineChanged(false);
+				setReconnectDetected(false);
 			});
 		}
-	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search, isOnline, setOnlineChanged]);
+	}, [cachedUser, synced, setSynced, getCalculatedWalletState, syncPrivateData, location.search, isOnline, setReconnectDetected]);
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -84,12 +84,12 @@ export function useReconnectSync({
 			setShowSyncNotification(false);
 			return;
 		}
-		if (onlineChanged === true && wasOnlineChangedAtMount) {
+		if (reconnectDetected === true && wasReconnectDetectedAtMount) {
 			// Reload while pending: show the popup and notification together.
 			setShowAuthPopup(true);
 			setShowSyncNotification(true);
 			setShowSyncPopup(false);
-		} else if (onlineChanged === true) {
+		} else if (reconnectDetected === true) {
 			// Fresh reconnect: show the notification first, not the popup.
 			setShowSyncNotification(true);
 			setShowSyncPopup(false);
@@ -99,7 +99,7 @@ export function useReconnectSync({
 			setShowSyncPopup(true);
 			setShowSyncNotification(false);
 		}
-	}, [location, synced, setSynced, onlineChanged, wasOnlineChangedAtMount]);
+	}, [location, synced, setSynced, reconnectDetected, wasReconnectDetectedAtMount]);
 
 	const openAuthPopup = useCallback(() => {
 		setShowAuthPopup(true);
@@ -113,7 +113,7 @@ export function useReconnectSync({
 	const closeSyncPopup = useCallback(() => setShowSyncPopup(false), []);
 
 	// True only for a still-unresolved reconnect.
-	const pendingResync = isLoggedIn && !!cachedUser && onlineChanged === true;
+	const pendingResync = isLoggedIn && !!cachedUser && reconnectDetected === true;
 
 	return {
 		pendingResync,
