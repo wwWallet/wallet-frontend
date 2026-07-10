@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import type { BackendApi } from '@/api';
 import type { CachedUser, LocalStorageKeystore } from '@/services/LocalStorageKeystore';
@@ -37,8 +37,9 @@ export function useReconnectSync({
 
 	// Persisted so a reload while unresolved still reads as "pending", not fresh.
 	const [reconnectDetected, setReconnectDetected] = useClearOnClearSession(useSessionStorage('reconnectDetected', null));
-	// True at mount means this reconnect was already pending (a reload), not live.
-	const wasReconnectDetectedAtMount = useRef(reconnectDetected === true).current;
+	// True if pending before this page load and cleared while offline.
+	const wasReconnectDetectedAtMountRef = useRef(reconnectDetected === true);
+	const wasReconnectDetectedAtMount = wasReconnectDetectedAtMountRef.current;
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
 	const [showAuthPopup, setShowAuthPopup] = useState(false);
@@ -46,10 +47,13 @@ export function useReconnectSync({
 	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
 	const [showSyncNotification, setShowSyncNotification] = useState(false);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (latestIsOnlineStatus === false && isOnline === true && cachedUser) {
 			setReconnectDetected(true);
 			setSynced(false);
+		} else if (isOnline === false) {
+			setReconnectDetected(false);
+			wasReconnectDetectedAtMountRef.current = false;
 		}
 		setLatestIsOnlineStatus(isLoggedIn ? isOnline : null);
 	}, [isLoggedIn, isOnline, latestIsOnlineStatus, setLatestIsOnlineStatus, cachedUser, setSynced, setReconnectDetected]);
@@ -84,6 +88,12 @@ export function useReconnectSync({
 			setShowSyncNotification(false);
 			return;
 		}
+		if (!isOnline) {
+			setShowAuthPopup(false);
+			setShowSyncNotification(false);
+			setShowSyncPopup(false);
+			return;
+		}
 		if (reconnectDetected === true && wasReconnectDetectedAtMount) {
 			// Reload while pending: show the popup and notification together.
 			setShowAuthPopup(true);
@@ -99,7 +109,7 @@ export function useReconnectSync({
 			setShowSyncPopup(true);
 			setShowSyncNotification(false);
 		}
-	}, [location, synced, setSynced, reconnectDetected, wasReconnectDetectedAtMount]);
+	}, [location, synced, setSynced, reconnectDetected, wasReconnectDetectedAtMount, isOnline]);
 
 	const openAuthPopup = useCallback(() => {
 		setShowAuthPopup(true);
