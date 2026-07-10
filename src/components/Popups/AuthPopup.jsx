@@ -1,11 +1,98 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useCallback } from 'react';
 import { useTranslation, Trans } from 'react-i18next';
+import Button from '../Buttons/Button';
 import PopupLayout from './PopupLayout';
 import SessionContext from '@/context/SessionContext';
-import { useLocation } from 'react-router-dom';
-import { WebauthnLogin } from './SyncPopup';
+import { useLocation, useNavigate } from 'react-router-dom';
+import checkForUpdates from '@/offlineUpdateSW';
+import { UserLock } from 'lucide-react';
 
-const AuthPopup = ({ onClose }) => {
+export const WebauthnLogin = ({
+	filteredUser,
+	onClose,
+}) => {
+	const { api, keystore } = useContext(SessionContext);
+	const [error, setError] = useState('');
+	const navigate = useNavigate();
+	const { t } = useTranslation();
+
+	const [isSubmitting, setIsSubmitting] = useState(false);
+
+	const onLogin = useCallback(
+		async (cachedUser) => {
+			const result = await api.loginWebauthn(keystore, async () => false, [], cachedUser);
+			if (result.ok) {
+				const params = new URLSearchParams(window.location.search);
+				params.delete("user");
+				params.delete('sync')
+				navigate(`${window.location.pathname}?${params.toString()}`, { replace: true });
+			} else {
+				// Using a switch here so the t() argument can be a literal, to ease searching
+				switch (result.val) {
+					case 'loginKeystoreFailed':
+						setError(t('loginSignup.loginKeystoreFailed'));
+						break;
+
+					case 'passkeyInvalid':
+						setError(t('loginSignup.passkeyInvalid'));
+						break;
+
+					case 'passkeyLoginFailedTryAgain':
+						setError(t('loginSignup.passkeyLoginFailedTryAgain'));
+						break;
+
+					case 'passkeyLoginFailedServerError':
+						setError(t('loginSignup.passkeyLoginFailedServerError'));
+						break;
+
+					default:
+						throw result;
+				}
+			}
+		},
+		[api, keystore, navigate, t],
+	);
+
+	const onLoginCachedUser = async (cachedUser) => {
+		setError();
+		setIsSubmitting(true);
+		await onLogin(cachedUser);
+		setIsSubmitting(false);
+		checkForUpdates();
+	};
+
+	return (
+		<>
+			<ul className=" p-2">
+				<div className='flex flex-row gap-4 justify-center mr-2'>
+					<Button
+						id="cancel-login-state"
+						onClick={onClose}
+						disabled={isSubmitting}
+						additionalClassName='w-full'
+					>
+						Logout
+					</Button>
+					<Button
+						id={`${isSubmitting ? 'submitting' : 'continue'}-login-state`}
+						onClick={() => onLoginCachedUser(filteredUser)}
+						variant="primary"
+						disabled={isSubmitting}
+						additionalClassName='w-full'
+					>
+						<UserLock className="inline text-xl mr-2" />
+						{isSubmitting
+							? t('loginSignup.submitting')
+							: t('common.continue')}
+					</Button>
+				</div>
+			</ul>
+			{error && <div className="text-lm-red dark:text-dm-red pt-2">{error}</div>}
+		</>
+	);
+};
+
+const AuthPopup = ({ descriptionKey, onClose }) => {
 	const { t } = useTranslation();
 
 	const { keystore } = useContext(SessionContext);
@@ -15,11 +102,21 @@ const AuthPopup = ({ onClose }) => {
 
 	const getFilteredUser = () => {
 		const queryParams = new URLSearchParams(location.search);
+		const state = queryParams.get('state');
 		const user = queryParams.get('user');
-		if (!user) {
-			return null;
+		if (user) {
+			return cachedUsers.find((u) => u.userHandleB64u === user);
 		}
-		return cachedUsers.find((u) => u.userHandleB64u === user);
+		if (state) {
+			try {
+				const decodedState = atob(state);
+				const stateObj = JSON.parse(decodedState);
+				return cachedUsers.find((u) => u.userHandleB64u === stateObj.userHandleB64u);
+			} catch (error) {
+				console.error('Error decoding state:', error);
+			}
+		}
+		return null;
 	};
 	const filteredUser = getFilteredUser();
 
@@ -35,7 +132,7 @@ const AuthPopup = ({ onClose }) => {
 				</p>
 				<p className=" mb-2 mt-2 dark:text-dm-gray-100">
 					<Trans
-						i18nKey="authPopup.description"
+						i18nKey={descriptionKey}
 						components={{ strong: <strong /> }}
 					/>
 				</p>

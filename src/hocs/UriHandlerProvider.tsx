@@ -10,7 +10,6 @@ import CredentialsContext from "@/context/CredentialsContext";
 import SyncNotificationContext from "@/context/SyncNotificationContext";
 import { CachedUser } from "@/services/LocalStorageKeystore";
 import AuthPopup from "@/components/Popups/AuthPopup";
-import SyncPopup from "@/components/Popups/SyncPopup";
 import RedirectPopup from "@/components/Popups/RedirectPopup";
 import { buildCredentialRedirectPopupContent } from "@/components/Popups/credentialRedirectPopupContent";
 import { useReconnectSync } from "@/hooks/useReconnectSync";
@@ -67,11 +66,8 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	const {
 		pendingResync,
-		showAuthPopup,
+		popupDescriptionKey,
 		closeAuthPopup,
-		showSyncPopup,
-		textSyncPopup,
-		closeSyncPopup,
 		showSyncNotification,
 		openAuthPopup,
 		dismissSyncNotification,
@@ -387,18 +383,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 					<MessagePopup type={typeMessagePopup} message={textMessagePopup} onClose={() => setMessagePopup(false)} />
 				}
 			</Suspense>
-			{showAuthPopup &&
+			{popupDescriptionKey &&
 				<AuthPopup
+					descriptionKey={popupDescriptionKey}
 					onClose={() => {
 						closeAuthPopup();
-						logout();
-					}}
-				/>
-			}
-			{showSyncPopup &&
-				<SyncPopup message={textSyncPopup}
-					onClose={() => {
-						closeSyncPopup();
 						logout();
 					}}
 				/>

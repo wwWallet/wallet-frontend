@@ -42,9 +42,9 @@ export function useReconnectSync({
 	const wasReconnectDetectedAtMount = wasReconnectDetectedAtMountRef.current;
 	const [latestIsOnlineStatus, setLatestIsOnlineStatus] = useClearOnClearSession(useSessionStorage('latestIsOnlineStatus', null));
 
-	const [showAuthPopup, setShowAuthPopup] = useState(false);
-	const [showSyncPopup, setShowSyncPopup] = useState(false);
-	const [textSyncPopup, setTextSyncPopup] = useState<{ description: string }>({ description: "" });
+	// Which popup to show, if any -- both render the same component, they only
+	// differ in this i18n key.
+	const [popupDescriptionKey, setPopupDescriptionKey] = useState<string | null>(null);
 	const [showSyncNotification, setShowSyncNotification] = useState(false);
 
 	useLayoutEffect(() => {
@@ -84,54 +84,46 @@ export function useReconnectSync({
 			return;
 		}
 		if (params.get('sync') !== 'fail' || synced !== false) {
-			setShowSyncPopup(false);
+			setPopupDescriptionKey(null);
 			setShowSyncNotification(false);
 			return;
 		}
 		if (!isOnline) {
-			setShowAuthPopup(false);
+			setPopupDescriptionKey(null);
 			setShowSyncNotification(false);
-			setShowSyncPopup(false);
 			return;
 		}
 		if (reconnectDetected === true && wasReconnectDetectedAtMount) {
 			// Reload while pending: show the popup and notification together.
-			setShowAuthPopup(true);
+			setPopupDescriptionKey('authPopup.description');
 			setShowSyncNotification(true);
-			setShowSyncPopup(false);
 		} else if (reconnectDetected === true) {
 			// Fresh reconnect: show the notification first, not the popup.
 			setShowSyncNotification(true);
-			setShowSyncPopup(false);
 		} else {
 			// Not a reconnect (e.g. cross-device mismatch): fall back to the original popup.
-			setTextSyncPopup({ description: 'syncPopup.description' });
-			setShowSyncPopup(true);
+			setPopupDescriptionKey('syncPopup.description');
 			setShowSyncNotification(false);
 		}
 	}, [location, synced, setSynced, reconnectDetected, wasReconnectDetectedAtMount, isOnline]);
 
 	const openAuthPopup = useCallback(() => {
-		setShowAuthPopup(true);
+		setPopupDescriptionKey('authPopup.description');
 	}, []);
 
 	const dismissSyncNotification = useCallback(() => {
 		setShowSyncNotification(false);
 	}, []);
 
-	const closeAuthPopup = useCallback(() => setShowAuthPopup(false), []);
-	const closeSyncPopup = useCallback(() => setShowSyncPopup(false), []);
+	const closeAuthPopup = useCallback(() => setPopupDescriptionKey(null), []);
 
 	// True only for a still-unresolved reconnect.
 	const pendingResync = isLoggedIn && !!cachedUser && reconnectDetected === true;
 
 	return {
 		pendingResync,
-		showAuthPopup,
+		popupDescriptionKey,
 		closeAuthPopup,
-		showSyncPopup,
-		textSyncPopup,
-		closeSyncPopup,
 		showSyncNotification,
 		openAuthPopup,
 		dismissSyncNotification,
