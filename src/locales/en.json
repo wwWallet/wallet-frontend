@@ -387,7 +387,7 @@
 		"transactionDataExample": "Accept example transaction data terms & conditions"
 	},
 	"resyncNotification": {
-		"action": "Resync now",
+		"action": "Sync",
 		"description": "You're back online. Would you like to resync your wallet?"
 	},
 	"sidebar": {
