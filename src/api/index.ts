@@ -185,18 +185,28 @@ export function useApi(isOnlineProp: boolean = true): BackendApi {
 			}
 		}
 		// Online case
-		const respBackend = await axios.get(
-			`${walletBackendUrl}${path}`,
-			{
-				headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
-				validateStatus: status => (status >= 200 && status < 300) || status === 304,
-				transformResponse,
-			},
-		);
-		if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
-			await addItem(path, dbKey, respBackend.data);
+		try {
+			const respBackend = await axios.get(
+				`${walletBackendUrl}${path}`,
+				{
+					headers: buildGetHeaders(options?.headers ?? {}, { appToken: options?.appToken }),
+					validateStatus: status => (status >= 200 && status < 300) || status === 304,
+					transformResponse,
+				},
+			);
+			if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
+				await addItem(path, dbKey, respBackend.data);
+			}
+			return respBackend;
+		} catch (err) {
+			if (!EXCLUDED_INDEXEDDB_PATHS.has(path)) {
+				const data = await getItem(path, dbKey);
+				if (data) {
+					return { data } as AxiosResponse;
+				}
+			}
+			throw err;
 		}
-		return respBackend;
 	}, [buildGetHeaders, isOnline]);
 
 	const get = useCallback(async (
