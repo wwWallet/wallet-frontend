@@ -8,7 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import checkForUpdates from '@/offlineUpdateSW';
 import { UserLock } from 'lucide-react';
 
-const WebauthnLogin = ({
+export const WebauthnLogin = ({
 	filteredUser,
 	onClose,
 }) => {

@@ -16,6 +16,9 @@
 		"inputPlaceholder": "PIN",
 		"title": "Enter the PIN"
 	},
+	"authPopup": {
+		"description": "Please <strong>authenticate</strong> to continue."
+	},
 	"common": {
 		"and": "and",
 		"cancel": "Cancel",
@@ -382,6 +385,10 @@
 		"summaryDescription": "You are about to share <strong>only the following fields</strong> from the selected credentials.",
 		"summaryTitle": "Summary",
 		"transactionDataExample": "Accept example transaction data terms & conditions"
+	},
+	"resyncNotification": {
+		"action": "Resync now",
+		"description": "You're back online. Would you like to resync your wallet?"
 	},
 	"sidebar": {
 		"navItemLogout": "Logout",

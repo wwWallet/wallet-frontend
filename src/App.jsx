@@ -20,6 +20,7 @@ const lazyWithDelay = (importFunction, delay = 1000) => {
 
 const PrivateRoute = React.lazy(() => import('./components/Auth/PrivateRoute'));
 const NotificationOfflineWarning = React.lazy(() => import('./components/Notifications/NotificationOfflineWarning'));
+const ResyncNotification = React.lazy(() => import('./components/Notifications/ResyncNotification'));
 const AddCredentials = React.lazy(() => import('./pages/AddCredentials/AddCredentials'));
 const Credential = React.lazy(() => import('./pages/Home/Credential'));
 const CredentialHistory = React.lazy(() => import('./pages/Home/CredentialHistory'));
@@ -50,6 +51,7 @@ function App() {
 								<Suspense fallback={<Spinner size='small' />}>
 									<FadeInContentTransition appear reanimateKey={location.pathname}>
 										<NotificationOfflineWarning />
+										<ResyncNotification />
 										<Outlet />
 									</FadeInContentTransition>
 								</Suspense>
