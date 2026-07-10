@@ -24,7 +24,8 @@ const MessagePopup = React.lazy(() => import('../components/Popups/MessagePopup'
 const PinInputPopup = React.lazy(() => import('../components/Popups/PinInput'));
 
 export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
-	const { isOnline } = useContext(StatusContext);
+	const statusContext = useContext(StatusContext);
+	const { isOnline } = statusContext;
 
 	const filterItemByLang = useFilterItemByLang();
 
@@ -65,6 +66,7 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 	const [synced, setSynced] = useState(false);
 
 	const {
+		pendingResync,
 		showAuthPopup,
 		closeAuthPopup,
 		showSyncPopup,
@@ -360,9 +362,11 @@ export const UriHandlerProvider = ({ children }: React.PropsWithChildren) => {
 
 	return (
 		<>
-			<SyncNotificationContext.Provider value={{ showSyncNotification, openAuthPopup, dismissSyncNotification }}>
-				{children}
-			</SyncNotificationContext.Provider>
+			<StatusContext.Provider value={{ ...statusContext, isOnline: isOnline && !pendingResync }}>
+				<SyncNotificationContext.Provider value={{ showSyncNotification, openAuthPopup, dismissSyncNotification }}>
+					{children}
+				</SyncNotificationContext.Provider>
+			</StatusContext.Provider>
 			<Suspense fallback={null}>
 				{showPinInputPopup &&
 					<PinInputPopup

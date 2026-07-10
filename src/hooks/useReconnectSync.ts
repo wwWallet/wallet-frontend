@@ -112,7 +112,11 @@ export function useReconnectSync({
 	const closeAuthPopup = useCallback(() => setShowAuthPopup(false), []);
 	const closeSyncPopup = useCallback(() => setShowSyncPopup(false), []);
 
+	// True only for a still-unresolved reconnect.
+	const pendingResync = isLoggedIn && !!cachedUser && onlineChanged === true;
+
 	return {
+		pendingResync,
 		showAuthPopup,
 		closeAuthPopup,
 		showSyncPopup,
